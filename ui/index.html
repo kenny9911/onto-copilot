@@ -4,6 +4,16 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>OntoCopilot</title>
+<script>
+// 主题防闪烁：在样式生效前就把 data-theme 打到根元素上，避免深色模式用户先看一闪浅色。
+// 'system' 不打这个属性 —— 留给下面的 @media (prefers-color-scheme) 接管。
+(function(){
+  try{
+    var t = localStorage.getItem("oc_theme");
+    if (t === "dark" || t === "light") document.documentElement.setAttribute("data-theme", t);
+  }catch(e){}
+})();
+</script>
 <style>
 :root{
   --bg:#faf9f7; --panel:#fff; --line:#e9e7e1; --line-soft:#f0eee9;
@@ -11,16 +21,46 @@
   --accent:#2f6b4f; --accent-tint:#e9f0ea; --accent-line:#c9dccf;
   --warn:#8a6d1f; --warn-tint:#fdf6e3; --warn-line:#ecdcae;
   --danger:#9c3b32; --danger-tint:#fbeeec; --btn:#16150f;
+  /* 深色模式需要的补充 token：悬停底色、滚动条、"次级面板"背景 */
+  --hover:#f2f0eb; --hover-2:#eeece6; --thumb:#dedbd3; --panel-soft:#fdfcfa;
   --serif:"Songti SC","STSong","Noto Serif CJK SC",Georgia,serif;
   --sans:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
   --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+/* 深色配色：系统跟随 + 显式切换两条路径都要覆盖同一组 token。
+   --btn 刻意没有做成浅色 —— 气泡/按钮上硬编码的是白字，按钮底色只能选深色系。 */
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#1a1a18; --panel:#242320; --line:#3a382f; --line-soft:#2c2b26;
+    --ink:#ece9e2; --ink-2:#a8a398; --ink-3:#78746a;
+    --accent:#4fae7f; --accent-tint:#1f3229; --accent-line:#35543f;
+    --warn:#d8b04a; --warn-tint:#332a13; --warn-line:#5c4c22;
+    --danger:#e08579; --danger-tint:#3a201c; --btn:#4a4842;
+    --hover:#2c2b26; --hover-2:#33322b; --thumb:#4a473e; --panel-soft:#201f1c;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1a1a18; --panel:#242320; --line:#3a382f; --line-soft:#2c2b26;
+  --ink:#ece9e2; --ink-2:#a8a398; --ink-3:#78746a;
+  --accent:#4fae7f; --accent-tint:#1f3229; --accent-line:#35543f;
+  --warn:#d8b04a; --warn-tint:#332a13; --warn-line:#5c4c22;
+  --danger:#e08579; --danger-tint:#3a201c; --btn:#4a4842;
+  --hover:#2c2b26; --hover-2:#33322b; --thumb:#4a473e; --panel-soft:#201f1c;
+}
+:root[data-theme="light"]{
+  --bg:#faf9f7; --panel:#fff; --line:#e9e7e1; --line-soft:#f0eee9;
+  --ink:#1c1c1a; --ink-2:#6b6862; --ink-3:#9d998f;
+  --accent:#2f6b4f; --accent-tint:#e9f0ea; --accent-line:#c9dccf;
+  --warn:#8a6d1f; --warn-tint:#fdf6e3; --warn-line:#ecdcae;
+  --danger:#9c3b32; --danger-tint:#fbeeec; --btn:#16150f;
+  --hover:#f2f0eb; --hover-2:#eeece6; --thumb:#dedbd3; --panel-soft:#fdfcfa;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
 body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:13.5px;line-height:1.65;-webkit-font-smoothing:antialiased}
 button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 ::-webkit-scrollbar{width:9px;height:9px}
-::-webkit-scrollbar-thumb{background:#dedbd3;border-radius:9px;border:2px solid var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--thumb);border-radius:9px;border:2px solid var(--bg)}
 
 .app{display:flex;height:100vh;min-width:720px;overflow-x:auto}
 .pane{background:var(--panel);display:flex;flex-direction:column;min-height:0}
@@ -33,8 +73,8 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .sec{font-size:11px;color:var(--ink-3);padding:0 20px 8px;letter-spacing:.5px}
 .convs{flex:1;overflow-y:auto;padding:0 10px}
 .conv{padding:9px 10px;border-radius:8px;cursor:pointer;margin-bottom:2px}
-.conv:hover{background:#f2f0eb}
-.conv.on{background:#eeece6;box-shadow:inset 0 0 0 1px var(--line)}
+.conv:hover{background:var(--hover)}
+.conv.on{background:var(--hover-2);box-shadow:inset 0 0 0 1px var(--line)}
 .conv .t{font-size:13px}
 .conv .s{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);margin-top:2px}
 .side-foot{border-top:1px solid var(--line);padding:12px 20px 16px;font-size:11px;color:var(--ink-3)}
@@ -50,7 +90,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .pill.err{background:var(--danger-tint);color:var(--danger)}.pill.err i{background:var(--danger)}
 @keyframes blink{50%{opacity:.2}}
 .ghost{border:1px solid var(--line);border-radius:7px;padding:4px 11px;font-size:12px;color:var(--ink-2)}
-.ghost:hover{background:#f6f4f0}
+.ghost:hover{background:var(--hover)}
 .modetog{display:inline-flex;gap:2px;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:2px}
 .modetog button{border:0;background:transparent;color:var(--ink-2);font-size:12.5px;padding:4px 14px;border-radius:7px;cursor:pointer}
 .modetog button.on{background:var(--panel);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.05)}
@@ -92,7 +132,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .ev{display:inline-flex;gap:4px;font-family:var(--mono);font-size:10px;background:#f2f0ec;border:1px solid var(--line);border-radius:4px;padding:1px 5px;color:var(--ink-2);cursor:pointer;margin:2px 3px 0 0}
 .ev:hover{background:var(--accent-tint);border-color:var(--accent-line);color:var(--accent)}
 
-.trace{border:1px solid var(--line);border-radius:10px;margin-bottom:12px;overflow:hidden;background:#fdfcfa}
+.trace{border:1px solid var(--line);border-radius:10px;margin-bottom:12px;overflow:hidden;background:var(--panel-soft)}
 .trace>summary{list-style:none;cursor:pointer;padding:8px 13px;font-family:var(--mono);font-size:10.5px;color:var(--ink-2);letter-spacing:.4px}
 .trace>summary::-webkit-details-marker{display:none}
 .trace .tb{border-top:1px solid var(--line-soft);padding:9px 13px 11px}
@@ -109,7 +149,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .q .qt{font-size:13.5px;line-height:1.6}
 .q .qbody{padding:10px 15px 12px}
 .opt{display:flex;gap:9px;align-items:flex-start;padding:7px 9px;border-radius:7px;cursor:pointer;font-size:12.8px}
-.opt:hover{background:#f7f5f1}
+.opt:hover{background:var(--hover)}
 .opt.sel{background:var(--accent-tint)}
 .opt .rd{width:13px;height:13px;border:1.5px solid #c5c1b8;border-radius:50%;flex:0 0 auto;margin-top:4px;position:relative}
 .opt.sel .rd{border-color:var(--accent)}
@@ -302,16 +342,86 @@ input[type=file]{display:none}
 .pchi{color:var(--warn)}
 .ptri{color:var(--ink-3);font-size:11px}
 .pcbody{padding:8px 14px 12px}
+
+/* ── P6/P5：登录、账户、设置 ────────────────────────────────────── */
+.langsw{display:inline-flex;gap:2px;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:2px;flex:0 0 auto}
+.langsw button{border:0;background:transparent;color:var(--ink-2);font-size:11.5px;padding:4px 9px;border-radius:7px;cursor:pointer}
+.langsw button.on{background:var(--panel);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.05)}
+
+.identity{padding-bottom:10px;margin-bottom:10px;border-bottom:1px solid var(--line-soft)}
+.idrow{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink)}
+.idname{font-weight:500}
+.idrole{font-family:var(--mono);font-size:9.5px;color:var(--ink-3);background:var(--hover);border-radius:4px;padding:1px 6px}
+.idbtns{display:flex;gap:6px;margin-top:7px;flex-wrap:wrap}
+.ghost.sm{padding:3px 9px;font-size:11px;border:1px solid var(--line);border-radius:6px;color:var(--ink-2)}
+.ghost.sm:hover{background:var(--hover)}
+
+.overlay{position:fixed;inset:0;background:rgba(10,10,8,.5);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px}
+.opanel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:24px 26px;
+  width:360px;max-width:100%;box-shadow:0 16px 48px rgba(0,0,0,.25)}
+.opanel.wide{width:660px;max-height:84vh;display:flex;flex-direction:column}
+.opanel h3{font-family:var(--serif);font-size:18px;font-weight:400;margin-bottom:4px}
+
+.field{margin:10px 0}
+.field label{display:block;font-size:11.5px;color:var(--ink-2);margin-bottom:4px}
+.input{width:100%;border:1px solid var(--line);border-radius:7px;padding:7px 10px;font-size:13px;
+  background:var(--panel);color:var(--ink);font-family:inherit}
+.input:focus{outline:0;border-color:var(--accent-line)}
+.input.sm{padding:4px 7px;font-size:12px;width:auto}
+.err{color:var(--danger);background:var(--danger-tint);border:1px solid var(--danger-tint);
+  border-radius:6px;padding:7px 10px;font-size:12px;margin:8px 0}
+
+.modal-head{display:flex;align-items:center;gap:8px;padding-bottom:10px;border-bottom:1px solid var(--line-soft);margin-bottom:12px;flex:0 0 auto}
+.modal-head h3{flex:1}
+.modal-body{overflow-y:auto;flex:1}
+
+.tbl{border:1px solid var(--line-soft);border-radius:8px;overflow:hidden;margin-bottom:14px}
+.trow{display:grid;grid-template-columns:1.3fr 1fr .6fr 2fr;gap:8px;align-items:center;
+  padding:8px 12px;border-bottom:1px solid var(--line-soft);font-size:12.5px}
+.trow:last-child{border-bottom:0}
+.trow.thead{background:var(--bg);color:var(--ink-3);font-size:11px}
+.rowacts{display:flex;gap:6px;flex-wrap:wrap}
+.inlineform{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+
+.sgrp{margin-bottom:18px}
+.slabel{font-size:11.5px;color:var(--ink-3);margin-bottom:8px;letter-spacing:.3px}
+.schoice{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.swatch{width:24px;height:24px;border-radius:50%;border:2px solid transparent;cursor:pointer;padding:0}
+.swatch.on{border-color:var(--ink)}
+.badge{display:inline-block;font-size:10px;font-family:var(--mono);border-radius:4px;
+  padding:1px 6px;background:var(--hover);color:var(--ink-2);margin-left:6px}
+.badge.warn{background:var(--warn-tint);color:var(--warn)}
+.badge.danger{background:var(--danger-tint);color:var(--danger)}
+
+.stabs{display:flex;gap:4px;border-bottom:1px solid var(--line-soft);margin-bottom:14px;flex:0 0 auto}
+.stab{padding:8px 14px;font-size:12.5px;color:var(--ink-2);border-bottom:2px solid transparent;cursor:pointer;background:none}
+.stab.on{color:var(--ink);border-color:var(--accent)}
+
+.envtbl{border:1px solid var(--line-soft);border-radius:8px;overflow:hidden}
+.envrow{display:flex;align-items:center;gap:8px;padding:6px 10px;border-bottom:1px solid var(--line-soft);font-size:11.5px}
+.envrow:last-child{border-bottom:0}
+.envname{font-family:var(--mono);color:var(--ink-2);flex:0 0 180px}
+.envval{flex:1;color:var(--ink-3);word-break:break-all}
+.saverow{display:flex;align-items:center;gap:10px;justify-content:flex-end;margin-top:6px;flex:0 0 auto}
+
+/* 紧凑密度：只裁边距，不改字号/结构 */
+body.dense .card{padding:9px 12px;margin-bottom:8px}
+body.dense .conv{padding:6px 8px}
+body.dense .bub .body{padding:6px 10px}
+body.dense .mhead{padding:9px 16px}
+body.dense .comp{padding:8px 16px 12px}
+body.dense .stream{padding:0 16px}
 </style>
 </head>
 <body>
 <div class="app">
   <aside class="pane sidebar">
     <div class="brand"><h1>OntoCopilot</h1></div>
-    <button class="newchat" onclick="newSession()">+ 新会话</button>
+    <button class="newchat" id="newchatBtn" onclick="newSession()">+ 新会话</button>
     <div class="sec">会话</div>
     <div class="convs" id="convs"></div>
     <div class="side-foot">
+      <div id="identity" class="identity"></div>
       <div id="store" class="k"></div>
     </div>
   </aside>
@@ -327,7 +437,12 @@ input[type=file]{display:none}
         <button data-mode="work" class="on" onclick="setMode('work')">工作</button>
       </div>
       <span class="pill" id="status"><i></i>就绪</span>
-      <button class="ghost" onclick="refresh()">刷新</button>
+      <div class="langsw" id="langsw">
+        <button data-lang="zh" onclick="setLang('zh')">中</button>
+        <button data-lang="en" onclick="setLang('en')">EN</button>
+      </div>
+      <button class="ghost" id="refreshBtn" onclick="refresh()">刷新</button>
+      <button class="collapse" id="gearBtn" title="设置" onclick="openSettings()">⚙</button>
     </div>
     <div class="stream" id="stream"></div>
     <div class="comp">
@@ -364,6 +479,52 @@ input[type=file]{display:none}
 </div>
 <input type="file" id="picker" multiple>
 
+<!-- 登录：未认证时全屏挡住整个应用 -->
+<div class="overlay" id="loginOverlay" style="display:none">
+  <div class="opanel">
+    <h3 id="loginTitle"></h3>
+    <p class="cap" id="loginSubtitle"></p>
+    <div class="field"><label id="loginUserLabel"></label>
+      <input class="input" id="loginUser" type="text" autocomplete="username"></div>
+    <div class="field"><label id="loginPassLabel"></label>
+      <input class="input" id="loginPass" type="password" autocomplete="current-password"></div>
+    <div class="err" id="loginErr" style="display:none"></div>
+    <button class="act pri" id="loginSubmit" style="width:100%;margin-top:8px" onclick="doLogin()"></button>
+  </div>
+</div>
+
+<!-- 首次启动：还没有管理员账号，指引在主机上创建 -->
+<div class="overlay" id="bootstrapOverlay" style="display:none">
+  <div class="opanel">
+    <h3 id="bsTitle"></h3>
+    <p class="cap" id="bsBody" style="white-space:pre-wrap"></p>
+    <button class="act pri" id="bsRetry" style="width:100%;margin-top:8px" onclick="retryBootstrap()"></button>
+  </div>
+</div>
+
+<!-- 账户管理：仅管理员可见 -->
+<div class="overlay" id="accountsModal" style="display:none">
+  <div class="opanel wide">
+    <div class="modal-head">
+      <h3 id="acctTitle"></h3>
+      <button class="collapse" onclick="closeAccounts()">×</button>
+    </div>
+    <div class="modal-body" id="acctBody"></div>
+  </div>
+</div>
+
+<!-- 设置：外观对所有人开放，网关/模型/预算/环境变量仅管理员可见 -->
+<div class="overlay" id="settingsModal" style="display:none">
+  <div class="opanel wide">
+    <div class="modal-head">
+      <h3 id="setTitle"></h3>
+      <button class="collapse" onclick="closeSettings()">×</button>
+    </div>
+    <div class="stabs" id="setTabs"></div>
+    <div class="modal-body" id="setBody"></div>
+  </div>
+</div>
+
 <script>
 const API = "";
 let S = null, TAB = "mat", FILE = null, SRC = {}, ES = null, ANSWERS = {};
@@ -386,10 +547,212 @@ let NEEDS_CONFIRM = false, CONFIRM_NEXT = false;
 let PROMPTS = [], FOLLOWUPS = [];
 // 全部推理轮次的存档，给右栏「推理」tab 用。STEPS 只有当前这轮。
 let TRACE = [];
+// 停止按钮：中断在跑的对话轮。abort 掉这条 /chat fetch 让前端不再干等；真正让
+// 服务端停下的是并发发出的 /stop。
+let CHAT_ABORT = null;
+// 最近一条助手回合的事件 seq。AI 追问带着它回来（prompts.ready.turn），据此丢弃
+// 过期轮次的追问 —— 否则上一问的追问会盖掉这一问的。
+let LAST_ASSIST_SEQ = -1;
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
-const j = async (u, o) => { const r = await fetch(API + u, o); if (!r.ok) throw new Error((await r.text()).slice(0,300)); return r.json(); };
+const j = async (u, o) => {
+  const r = await fetch(API + u, o);
+  // 401 意味着会话过期或从未登录 —— 除了登录请求本身，任何接口踩到这个都该
+  // 弹登录框，而不是让调用方各自处理一遍「未授权」。
+  if (r.status === 401 && u !== "/api/login") showLogin();
+  if (!r.ok) throw new Error((await r.text()).slice(0,300));
+  return r.json();
+};
+
+// ── i18n ────────────────────────────────────────────────────────
+const I18N = {
+  zh: {
+    "nav.newSession":"+ 新会话", "nav.sessions":"会话",
+    "sidebar.chatMeta":"对话", "sidebar.emptyChat":"还没有对话", "sidebar.emptyWork":"还没有工作会话",
+    "tab.mat":"材料", "tab.ent":"实体", "tab.cf":"冲突", "tab.art":"产物", "tab.flow":"流程图", "tab.think":"推理",
+    "mode.chat":"聊天", "mode.work":"工作",
+    "status.idle":"待上传", "status.parsing":"解析中", "status.extracting":"抽取中",
+    "status.awaiting_answer":"待拍板", "status.done":"已完成", "status.failed":"失败", "status.ready":"就绪",
+    "composer.placeholder":"说点什么，或直接把材料拖进来",
+    "action.refresh":"刷新", "preview.title":"预览",
+    "login.title":"登录", "login.subtitle":"登录后继续使用 OntoCopilot",
+    "login.username":"用户名", "login.password":"密码", "login.submit":"登录",
+    "login.bad":"用户名或密码错误", "login.throttled":"尝试太多，请稍后再试",
+    "bootstrap.title":"实例尚未初始化",
+    "bootstrap.body":"还没有管理员账号。请在部署这个实例的主机上运行：\n\nontocopilot useradd --admin <用户名>\n\n创建首个管理员账号后点重试。",
+    "bootstrap.retry":"重试",
+    "auth.logout":"退出", "auth.local":"本地模式", "auth.accounts":"账户管理", "auth.settings":"设置",
+    "role.admin":"管理员", "role.user":"用户",
+    "accounts.title":"账户管理", "accounts.username":"用户名", "accounts.role":"角色", "accounts.active":"启用",
+    "accounts.actions":"操作", "accounts.add":"添加账号", "accounts.addBtn":"添加", "accounts.password":"密码",
+    "accounts.resetPw":"重置密码", "accounts.delete":"删除", "accounts.confirmDelete":"确定删除这个账号？",
+    "accounts.newPwPrompt":"新密码",
+    "accounts.errDup":"用户名已存在", "accounts.errLastAdmin":"不能移除最后一个管理员",
+    "accounts.errSelfDelete":"不能删除自己",
+    "settings.title":"设置", "settings.gateway":"网关", "settings.baseUrl":"服务地址", "settings.apiKey":"API Key",
+    "settings.apiKeyHint":"留空则不修改", "settings.insecure":"不安全的 HTTP 连接",
+    "settings.models":"模型分级", "settings.tierLow":"低", "settings.tierMedium":"中",
+    "settings.tierHigh":"高", "settings.tierCritical":"关键",
+    "settings.default":"默认", "settings.overridden":"已覆盖",
+    "settings.budget":"预算", "settings.usdCap":"总额上限（USD）", "settings.chatUsdCap":"对话额度上限（USD）",
+    "settings.env":"环境变量", "settings.restartRequired":"需重启", "settings.secret":"敏感",
+    "settings.save":"保存", "settings.saved":"已保存",
+    "appearance.title":"外观", "appearance.theme":"主题",
+    "appearance.theme.system":"跟随系统", "appearance.theme.light":"浅色", "appearance.theme.dark":"深色",
+    "appearance.accent":"强调色", "appearance.font":"字号",
+    "appearance.font.s":"小", "appearance.font.m":"中", "appearance.font.l":"大",
+    "appearance.density":"密度", "appearance.density.comfortable":"舒适", "appearance.density.compact":"紧凑",
+    "appearance.timezone":"时区", "appearance.timezone.browser":"跟随浏览器",
+    "common.cancel":"取消", "common.confirm":"确认", "common.close":"关闭",
+  },
+  en: {
+    "nav.newSession":"+ New session", "nav.sessions":"Sessions",
+    "sidebar.chatMeta":"Chat", "sidebar.emptyChat":"No conversations yet", "sidebar.emptyWork":"No work sessions yet",
+    "tab.mat":"Materials", "tab.ent":"Entities", "tab.cf":"Conflicts", "tab.art":"Artifacts", "tab.flow":"Flow", "tab.think":"Reasoning",
+    "mode.chat":"Chat", "mode.work":"Work",
+    "status.idle":"Pending upload", "status.parsing":"Parsing", "status.extracting":"Extracting",
+    "status.awaiting_answer":"Awaiting decision", "status.done":"Done", "status.failed":"Failed", "status.ready":"Ready",
+    "composer.placeholder":"Say something, or drop materials in",
+    "action.refresh":"Refresh", "preview.title":"Preview",
+    "login.title":"Sign in", "login.subtitle":"Sign in to continue using OntoCopilot",
+    "login.username":"Username", "login.password":"Password", "login.submit":"Sign in",
+    "login.bad":"Incorrect username or password", "login.throttled":"Too many attempts, try again later",
+    "bootstrap.title":"Instance not initialized",
+    "bootstrap.body":"There's no admin account yet. On the host running this instance, run:\n\nontocopilot useradd --admin <username>\n\nthen retry once the first admin is created.",
+    "bootstrap.retry":"Retry",
+    "auth.logout":"Log out", "auth.local":"Local mode", "auth.accounts":"Accounts", "auth.settings":"Settings",
+    "role.admin":"Admin", "role.user":"User",
+    "accounts.title":"Accounts", "accounts.username":"Username", "accounts.role":"Role", "accounts.active":"Active",
+    "accounts.actions":"Actions", "accounts.add":"Add account", "accounts.addBtn":"Add", "accounts.password":"Password",
+    "accounts.resetPw":"Reset password", "accounts.delete":"Delete", "accounts.confirmDelete":"Delete this account?",
+    "accounts.newPwPrompt":"New password",
+    "accounts.errDup":"Username already exists", "accounts.errLastAdmin":"Cannot remove the last admin",
+    "accounts.errSelfDelete":"Cannot delete yourself",
+    "settings.title":"Settings", "settings.gateway":"Gateway", "settings.baseUrl":"Base URL", "settings.apiKey":"API Key",
+    "settings.apiKeyHint":"Leave blank to keep unchanged", "settings.insecure":"Insecure HTTP connection",
+    "settings.models":"Model tiers", "settings.tierLow":"Low", "settings.tierMedium":"Medium",
+    "settings.tierHigh":"High", "settings.tierCritical":"Critical",
+    "settings.default":"Default", "settings.overridden":"Overridden",
+    "settings.budget":"Budget", "settings.usdCap":"Total cap (USD)", "settings.chatUsdCap":"Chat cap (USD)",
+    "settings.env":"Environment", "settings.restartRequired":"Restart required", "settings.secret":"Secret",
+    "settings.save":"Save", "settings.saved":"Saved",
+    "appearance.title":"Appearance", "appearance.theme":"Theme",
+    "appearance.theme.system":"System", "appearance.theme.light":"Light", "appearance.theme.dark":"Dark",
+    "appearance.accent":"Accent color", "appearance.font":"Font size",
+    "appearance.font.s":"Small", "appearance.font.m":"Medium", "appearance.font.l":"Large",
+    "appearance.density":"Density", "appearance.density.comfortable":"Comfortable", "appearance.density.compact":"Compact",
+    "appearance.timezone":"Timezone", "appearance.timezone.browser":"Browser default",
+    "common.cancel":"Cancel", "common.confirm":"Confirm", "common.close":"Close",
+  },
+};
+let LANG = localStorage.getItem("oc_lang") || "zh";
+function t(key, fallback){ return (I18N[LANG] && I18N[LANG][key]) ?? (I18N.zh[key]) ?? fallback ?? key; }
+
+// ── 外观：主题 / 强调色 / 字号 / 密度 ──────────────────────────────
+// 每个预设给浅色、深色两份色值 —— 同一个强调色直接照搬到深色背景上，
+// 多数情况下都偏暗，文字对比度不够。
+const ACCENTS = {
+  green: {light:"#2f6b4f", dark:"#4fae7f"},
+  blue:  {light:"#2f5f8f", dark:"#5b9bd8"},
+  plum:  {light:"#7a4a68", dark:"#c07fae"},
+  slate: {light:"#4b5768", dark:"#93a4b8"},
+  amber: {light:"#8a6a1f", dark:"#e0ac3f"},
+};
+function effectiveDark(){
+  const theme = localStorage.getItem("oc_theme") || "system";
+  if (theme === "dark") return true;
+  if (theme === "light") return false;
+  return !!(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+}
+function applyAppearance(){
+  const theme = localStorage.getItem("oc_theme") || "system";
+  if (theme === "dark" || theme === "light") document.documentElement.setAttribute("data-theme", theme);
+  else document.documentElement.removeAttribute("data-theme");
+
+  const accentKey = localStorage.getItem("oc_accent") || "green";
+  const preset = ACCENTS[accentKey] || ACCENTS.green;
+  const hex = effectiveDark() ? preset.dark : preset.light;
+  const root = document.documentElement.style;
+  root.setProperty("--accent", hex);
+  root.setProperty("--accent-tint", `color-mix(in srgb, ${hex} 14%, var(--panel))`);
+  root.setProperty("--accent-line", `color-mix(in srgb, ${hex} 35%, var(--panel))`);
+
+  const FS = {s:"12.5px", m:"13.5px", l:"15px"};
+  document.body.style.fontSize = FS[localStorage.getItem("oc_fontscale") || "m"] || FS.m;
+  document.body.classList.toggle("dense", (localStorage.getItem("oc_density") || "comfortable") === "compact");
+}
+// 系统主题跟随时，操作系统本身切换深浅也要跟着重算强调色的浅/深版本
+if (window.matchMedia) {
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+    if ((localStorage.getItem("oc_theme") || "system") === "system") applyAppearance();
+  });
+}
+
+// 会话时间戳：按用户选的时区格式化，时区非法或格式化失败就退回浏览器默认，
+// 绝不能因为一个坏的时区字符串让整个侧栏列表崩掉。
+function fmtWhen(epochSec){
+  if (!epochSec) return "";
+  const tz = localStorage.getItem("oc_tz") || undefined;
+  try {
+    return new Intl.DateTimeFormat(undefined, {dateStyle:"short", timeStyle:"short", timeZone: tz || undefined}).format(new Date(epochSec * 1000));
+  } catch(e) {
+    try { return new Intl.DateTimeFormat(undefined, {dateStyle:"short", timeStyle:"short"}).format(new Date(epochSec * 1000)); }
+    catch(e2) { return ""; }
+  }
+}
+
+// 本地存储的 key 名和后端 /api/me/prefs 的字段名不完全一样（oc_tz ↔ timezone，
+// oc_fontscale ↔ font_scale），这里做一次映射，两头都不用迁就对方。
+const PREF_SERVER_KEY = {theme:"theme", accent:"accent", lang:"lang", tz:"timezone", fontscale:"font_scale", density:"density"};
+function savePref(localKey, val){
+  localStorage.setItem("oc_" + localKey, val);
+  if (CURRENT_USER && CURRENT_USER.id !== "__local__") {
+    const serverKey = PREF_SERVER_KEY[localKey] || localKey;
+    j("/api/me/prefs", {method:"PATCH", headers:{"content-type":"application/json"},
+      body: JSON.stringify({[serverKey]: val})}).catch(() => {});
+  }
+}
+// 登录 / 刷新时，服务端记的偏好赢过本地缓存 —— 换个设备登录也该是同一套外观。
+function applyUserPrefs(prefs){
+  if (!prefs) return;
+  const map = {theme:"oc_theme", accent:"oc_accent", lang:"oc_lang", timezone:"oc_tz", font_scale:"oc_fontscale", density:"oc_density"};
+  let langChanged = false;
+  for (const [serverKey, lsKey] of Object.entries(map)) {
+    if (!(serverKey in prefs)) continue;
+    const v = prefs[serverKey] ?? "";
+    localStorage.setItem(lsKey, v);
+    if (serverKey === "lang" && v && v !== LANG) { LANG = v; langChanged = true; }
+  }
+  applyAppearance();
+  if (langChanged) applyI18n();
+}
+
+function setLang(l){
+  LANG = (l === "en") ? "en" : "zh";
+  localStorage.setItem("oc_lang", LANG);
+  document.documentElement.lang = LANG === "en" ? "en" : "zh-CN";
+  applyI18n();
+  savePref("lang", LANG);
+}
+
+// 静态标签的翻译。动态内容（statusText、composer placeholder 等）在各自的
+// render 里已经走 t()，这里只处理不随会话状态变化的固定文案。
+function applyI18n(){
+  document.documentElement.lang = LANG === "en" ? "en" : "zh-CN";
+  const set = (id, txt) => { const el = $(id); if (el) el.textContent = txt; };
+  set("newchatBtn", t("nav.newSession"));
+  const sec = document.querySelector(".sec"); if (sec) sec.textContent = t("nav.sessions");
+  const mChat = document.querySelector('#modetog button[data-mode="chat"]'); if (mChat) mChat.textContent = t("mode.chat");
+  const mWork = document.querySelector('#modetog button[data-mode="work"]'); if (mWork) mWork.textContent = t("mode.work");
+  document.querySelectorAll(".tab").forEach(b => { const k = b.dataset.t;
+    if (k) b.textContent = t("tab." + k); });
+  set("refreshBtn", t("action.refresh"));
+  const pt = document.querySelector(".preview .pt"); if (pt) pt.textContent = t("preview.title");
+  document.querySelectorAll("#langsw button").forEach(b => b.classList.toggle("on", b.dataset.lang === LANG));
+  renderIdentity();
+  if (S) { render(); paint(); }
+}
 
 // ── 启动 ────────────────────────────────────────────────────────
 function applyMode(){
@@ -405,8 +768,28 @@ function setMode(m){
   if (S) { render(); paint(); }
 }
 
+let CURRENT_USER = null;
+
 (async function init(){
+  applyI18n();
+  applyAppearance();
   applyMode();
+  bindAuthForms();
+
+  // 认证闸：先问清楚"我是谁、这个实例要不要登录"，答案没定之前不碰会话列表。
+  let auStatus;
+  try { auStatus = await j("/api/auth/status"); }
+  catch(e) { auStatus = {auth_enabled:false, bootstrap_needed:false, authenticated:true, user:null}; }
+
+  if (auStatus.bootstrap_needed) { showBootstrap(); return; }
+  if (auStatus.auth_enabled && !auStatus.authenticated) { showLogin(); return; }
+
+  // 未开启认证 / 单机模式：合成一个本地管理员身份，UI 逻辑不用为"没有用户"
+  // 这个状态单独分叉。
+  CURRENT_USER = auStatus.user || {id:"__local__", username:"local", role:"admin", prefs:{}};
+  applyUserPrefs(CURRENT_USER.prefs);
+  renderIdentity();
+
   try {
     const h = await j("/api/health");
     // 这里只放**用户需要知道的**：数据会不会丢。模型能力计数是实现细节，
@@ -424,21 +807,107 @@ function setMode(m){
   bindResize();
 })();
 
+// ── 认证：登录 / 首次启动引导 ──────────────────────────────────────
+function bindAuthForms(){
+  const onEnter = (id, fn) => { const el = $(id); if (el) el.addEventListener("keydown", e => {
+    if (e.key === "Enter") { e.preventDefault(); fn(); } }); };
+  onEnter("loginUser", doLogin);
+  onEnter("loginPass", doLogin);
+}
+
+function showLogin(){
+  $("loginTitle").textContent = t("login.title");
+  $("loginSubtitle").textContent = t("login.subtitle");
+  $("loginUserLabel").textContent = t("login.username");
+  $("loginPassLabel").textContent = t("login.password");
+  $("loginSubmit").textContent = t("login.submit");
+  $("loginErr").style.display = "none";
+  $("loginOverlay").style.display = "flex";
+}
+
+async function doLogin(){
+  const u = ($("loginUser").value || "").trim();
+  const p = $("loginPass").value || "";
+  const errEl = $("loginErr");
+  errEl.style.display = "none";
+  if (!u || !p) return;
+  const btn = $("loginSubmit");
+  btn.disabled = true;
+  try {
+    // 走原生 fetch 而不是 j()：401/429 在这里是正常的表单校验结果，
+    // 不该弹第二个登录框或被当成异常抛出去。
+    const r = await fetch(API + "/api/login", {method:"POST", headers:{"content-type":"application/json"},
+      body: JSON.stringify({username:u, password:p})});
+    if (r.status === 401) { errEl.textContent = t("login.bad"); errEl.style.display = "block"; return; }
+    if (r.status === 429) { errEl.textContent = t("login.throttled"); errEl.style.display = "block"; return; }
+    if (!r.ok) { errEl.textContent = (await r.text()).slice(0,200); errEl.style.display = "block"; return; }
+    location.reload();
+  } catch(e) {
+    errEl.textContent = String(e.message || e); errEl.style.display = "block";
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function showBootstrap(){
+  $("bsTitle").textContent = t("bootstrap.title");
+  $("bsBody").textContent = t("bootstrap.body");
+  $("bsRetry").textContent = t("bootstrap.retry");
+  $("bootstrapOverlay").style.display = "flex";
+}
+
+async function retryBootstrap(){
+  try {
+    const st = await j("/api/auth/status");
+    if (st.bootstrap_needed) { showBootstrap(); return; }
+    location.reload();
+  } catch(e) { /* 保持挂起，用户可以再点一次 */ }
+}
+
+async function doLogout(){
+  try { await fetch(API + "/api/logout", {method:"POST"}); } catch(e) {}
+  location.reload();
+}
+
+// 侧栏底部身份区：本地模式只给一行提示，登录用户给身份 + 退出，
+// 管理员再多一个「账户管理」入口。
+function renderIdentity(){
+  const el = $("identity");
+  if (!el) return;
+  if (!CURRENT_USER) { el.innerHTML = ""; return; }
+  if (CURRENT_USER.id === "__local__") {
+    el.innerHTML = `<div class="idrow">${esc(t("auth.local"))}</div>`;
+    return;
+  }
+  const roleLabel = CURRENT_USER.role === "admin" ? t("role.admin") : t("role.user");
+  el.innerHTML = `<div class="idrow">
+      <span class="idname">${esc(CURRENT_USER.username)}</span>
+      <span class="idrole">${esc(roleLabel)}</span></div>
+    <div class="idbtns">
+      ${CURRENT_USER.role === "admin" ? `<button class="ghost sm" onclick="openAccounts()">${esc(t("auth.accounts"))}</button>` : ""}
+      <button class="ghost sm" onclick="doLogout()">${esc(t("auth.logout"))}</button>
+    </div>`;
+}
+
 async function loadSessions(){
-  const list = await j("/api/sessions");
+  // 聊天与工作各自一份列表（像 ChatGPT 的对话 vs 项目），按当前模式过滤
+  const all = await j("/api/sessions");
+  const list = all.filter(s => (s.mode || "work") === MODE);
+  const meta = s => MODE === "chat" ? t("sidebar.chatMeta") : `${statusText(s.status)} · ${s.files} 份材料`;
+  const emptyHint = MODE === "chat" ? t("sidebar.emptyChat") : t("sidebar.emptyWork");
   $("convs").innerHTML = list.length ? list.map(s => `
     <div class="conv ${S && s.id===S.id ? "on" : ""}" onclick="openSession('${s.id}')">
       <div class="t">${esc(s.title)}</div>
-      <div class="s">${statusText(s.status)} · ${s.files} 份材料</div>
+      <div class="s">${meta(s)}${s.created ? " · " + esc(fmtWhen(s.created)) : ""}</div>
       <button class="del" title="删除会话"
         onclick="event.stopPropagation();dropSession('${s.id}','${esc(s.title)}')">×</button>
-    </div>`).join("") : `<div class="cap" style="padding:0 10px">还没有会话</div>`;
-  if (!S && list.length) openSession(list[0].id);
+    </div>`).join("") : `<div class="cap" style="padding:0 10px">${esc(emptyHint)}</div>`;
+  // 当前会话若不属于本模式，就不强开；否则在当前列表里挑第一个
+  if ((!S || (S.mode || "work") !== MODE) && list.length) openSession(list[0].id);
   else if (!S) render();
 }
 
-const statusText = s => ({idle:"待上传", parsing:"解析中", extracting:"抽取中",
-  awaiting_answer:"待拍板", done:"已完成", failed:"失败"}[s] || s);
+const statusText = s => t("status." + s, s);
 
 async function newSession(silent){
   S = await j("/api/sessions", {method:"POST", headers:{"content-type":"application/json"},
@@ -518,7 +987,8 @@ async function startBuild(tier){
   if (!S || !S.files) return;
   const q = tier ? `?tier=${encodeURIComponent(tier)}` : "";
   try {
-    await j(`/api/sessions/${S.id}/build${q}`, {method:"POST"});
+    await j(`/api/sessions/${S.id}/build${q}`, {method:"POST",
+      headers:{"content-type":"application/json"}, body: JSON.stringify({lang:LANG})});
     S.status = "parsing"; render(); paint();
   } catch(e){ alert("启动失败：" + e.message); }
 }
@@ -549,7 +1019,7 @@ async function submitAnswer(qid, conflictRid){
   const btn = document.querySelector(`[data-submit="${qid}"]`);
   if (btn){ btn.disabled = true; btn.textContent = "提交中…"; }
   await j(`/api/sessions/${S.id}/answer`, {method:"POST", headers:{"content-type":"application/json"},
-    body: JSON.stringify({conflict_rid: conflictRid, option_id: oid, note: "由 FDE 在界面上确认"})});
+    body: JSON.stringify({conflict_rid: conflictRid, option_id: oid, note: "由 FDE 在界面上确认", lang:LANG})});
   await refresh();
 }
 
@@ -558,12 +1028,12 @@ function render(){
   const st = $("status");
   const s = S?.status || "idle";
   st.className = "pill" + (["parsing","extracting"].includes(s) ? " busy" : s==="failed" ? " err" : "");
-  st.innerHTML = `<i></i>${S ? statusText(s) : "就绪"}`;
+  st.innerHTML = `<i></i>${esc(S ? statusText(s) : t("status.ready"))}`;
   $("title").textContent = S?.title || "OntoCopilot";
   $("chip").textContent = `附件 ${S?.files ?? 0}`;
   // 输入框永远可用 —— 跑着的时候恰恰是最想插话的时候。
   $("cin").disabled = !S;
-  $("cin").placeholder = !S ? "" : "说点什么，或直接把材料拖进来";
+  $("cin").placeholder = !S ? "" : t("composer.placeholder");
   $("chip").textContent = S?.files ? `${S.files} 份材料` : "";
   $("send").disabled = !S;
   paintActions();
@@ -829,7 +1299,7 @@ async function sendChat(){
   try {
     const res = await j(`/api/sessions/${S.id}/chat`, {method:"POST",
       headers:{"content-type":"application/json"},
-      body: JSON.stringify({text, confirm: CONFIRM_NEXT})});
+      body: JSON.stringify({text, confirm: CONFIRM_NEXT, lang:LANG})});
     // 确认是**一轮限定**的，不是给会话开长期后门
     CONFIRM_NEXT = false;
     NEEDS_CONFIRM = !!res.needs_confirm;
@@ -1307,6 +1777,279 @@ function paint(){
       <a class="act" href="${API}/api/sessions/${S.id}/artifacts/${encodeURIComponent(a)}">下载</a></div>`).join("")
 
     : ph("ARTIFACTS", "编译出模板后这里可以下载");
+}
+
+// ── 账户管理（仅管理员） ────────────────────────────────────────
+let USERS = [];
+let RESET_ID = null;   // 正在给哪个用户重置密码，行内展开一个小表单
+
+function acctError(msg){
+  const el = $("acctErr");
+  if (!el) return;
+  el.textContent = msg; el.style.display = "block";
+}
+
+async function openAccounts(){
+  RESET_ID = null;
+  $("acctTitle").textContent = t("accounts.title");
+  $("accountsModal").style.display = "flex";
+  await loadUsers();
+}
+function closeAccounts(){ $("accountsModal").style.display = "none"; }
+
+async function loadUsers(){
+  try { USERS = await j("/api/users"); renderAccounts(); }
+  catch(e) { $("acctBody").innerHTML = `<div class="fnd">${esc(e.message)}</div>`; }
+}
+
+function renderAccounts(){
+  const rows = USERS.map(u => `
+    <div class="trow">
+      <span>${esc(u.username)}</span>
+      <span><select class="input sm" onchange="changeRole('${esc(u.id)}', this.value)">
+        <option value="user" ${u.role==="user"?"selected":""}>${esc(t("role.user"))}</option>
+        <option value="admin" ${u.role==="admin"?"selected":""}>${esc(t("role.admin"))}</option>
+      </select></span>
+      <span><input type="checkbox" ${u.active?"checked":""} onchange="toggleActive('${esc(u.id)}', this.checked)"></span>
+      <span class="rowacts">
+        ${RESET_ID === u.id ? `
+          <span class="inlineform">
+            <input class="input sm" id="resetPwInput" type="password" placeholder="${esc(t("accounts.newPwPrompt"))}">
+            <button class="act" onclick="doResetPassword('${esc(u.id)}')">${esc(t("common.confirm"))}</button>
+            <button class="act" onclick="cancelReset()">${esc(t("common.cancel"))}</button>
+          </span>` : `
+          <button class="act" onclick="beginReset('${esc(u.id)}')">${esc(t("accounts.resetPw"))}</button>`}
+        <button class="act" onclick="doDeleteUser('${esc(u.id)}','${esc(u.username)}')">${esc(t("accounts.delete"))}</button>
+      </span>
+    </div>`).join("");
+  $("acctBody").innerHTML = `
+    <div class="err" id="acctErr" style="display:none"></div>
+    <div class="tbl">
+      <div class="trow thead">
+        <span>${esc(t("accounts.username"))}</span>
+        <span>${esc(t("accounts.role"))}</span>
+        <span>${esc(t("accounts.active"))}</span>
+        <span>${esc(t("accounts.actions"))}</span>
+      </div>
+      ${rows}
+    </div>
+    <div class="sgrp">
+      <div class="slabel">${esc(t("accounts.add"))}</div>
+      <div class="field"><input class="input" id="newUsername" placeholder="${esc(t("accounts.username"))}"></div>
+      <div class="field"><input class="input" id="newPassword" type="password" placeholder="${esc(t("accounts.password"))}"></div>
+      <div class="field"><select class="input" id="newRole">
+        <option value="user">${esc(t("role.user"))}</option>
+        <option value="admin">${esc(t("role.admin"))}</option>
+      </select></div>
+      <button class="act pri" onclick="doAddUser()">${esc(t("accounts.addBtn"))}</button>
+    </div>`;
+}
+
+async function doAddUser(){
+  const username = ($("newUsername").value || "").trim();
+  const password = $("newPassword").value || "";
+  const role = $("newRole").value;
+  if (!username || !password) return;
+  try {
+    await j("/api/users", {method:"POST", headers:{"content-type":"application/json"},
+      body: JSON.stringify({username, password, role})});
+    await loadUsers();
+  } catch(e) { renderAccounts(); acctError(/409/.test(e.message) ? t("accounts.errDup") : e.message); }
+}
+
+async function changeRole(id, role){
+  try { await j(`/api/users/${id}`, {method:"PATCH", headers:{"content-type":"application/json"}, body: JSON.stringify({role})}); await loadUsers(); }
+  catch(e) { await loadUsers(); acctError(/409/.test(e.message) ? t("accounts.errLastAdmin") : e.message); }
+}
+
+async function toggleActive(id, active){
+  try { await j(`/api/users/${id}`, {method:"PATCH", headers:{"content-type":"application/json"}, body: JSON.stringify({active})}); await loadUsers(); }
+  catch(e) { await loadUsers(); acctError(/409/.test(e.message) ? t("accounts.errLastAdmin") : e.message); }
+}
+
+function beginReset(id){ RESET_ID = id; renderAccounts(); }
+function cancelReset(){ RESET_ID = null; renderAccounts(); }
+async function doResetPassword(id){
+  const val = ($("resetPwInput").value || "");
+  if (!val) return;
+  try {
+    await j(`/api/users/${id}/reset-password`, {method:"POST", headers:{"content-type":"application/json"},
+      body: JSON.stringify({password: val})});
+    RESET_ID = null; await loadUsers();
+  } catch(e) { acctError(e.message); }
+}
+
+async function doDeleteUser(id, username){
+  if (!confirm(`${t("accounts.confirmDelete")} (${username})`)) return;
+  try { await j(`/api/users/${id}`, {method:"DELETE"}); await loadUsers(); }
+  catch(e) {
+    await loadUsers();
+    acctError(/409/.test(e.message) ? (/self/i.test(e.message) ? t("accounts.errSelfDelete") : t("accounts.errLastAdmin")) : e.message);
+  }
+}
+
+// ── 设置（外观对所有人；网关/模型/预算/环境变量仅管理员） ──────────
+let SET_TAB = "appearance";
+let CONFIG = null;   // GET /api/config 的缓存，只有管理员会去拿
+
+function openSettings(){
+  SET_TAB = "appearance";
+  $("setTitle").textContent = t("settings.title");
+  $("settingsModal").style.display = "flex";
+  renderSettingsShell();
+}
+function closeSettings(){ $("settingsModal").style.display = "none"; }
+
+function switchSetTab(tab){ SET_TAB = tab; renderSettingsShell(); }
+
+function renderSettingsShell(){
+  const isAdmin = CURRENT_USER && CURRENT_USER.role === "admin";
+  $("setTabs").innerHTML = `
+    <button class="stab ${SET_TAB==="appearance"?"on":""}" onclick="switchSetTab('appearance')">${esc(t("appearance.title"))}</button>
+    ${isAdmin ? `<button class="stab ${SET_TAB==="system"?"on":""}" onclick="switchSetTab('system')">${esc(t("settings.gateway"))}</button>` : ""}`;
+  if (SET_TAB === "system" && isAdmin) loadAndRenderConfig();
+  else renderAppearanceTab();
+}
+
+function renderAppearanceTab(){
+  const theme = localStorage.getItem("oc_theme") || "system";
+  const accent = localStorage.getItem("oc_accent") || "green";
+  const fs = localStorage.getItem("oc_fontscale") || "m";
+  const density = localStorage.getItem("oc_density") || "comfortable";
+  const tz = localStorage.getItem("oc_tz") || "";
+  const TZS = ["", "Asia/Shanghai", "Asia/Tokyo", "UTC", "America/New_York", "Europe/London"];
+  $("setBody").innerHTML = `
+    <div class="sgrp">
+      <div class="slabel">${esc(t("appearance.theme"))}</div>
+      <div class="schoice">
+        <button class="act ${theme==="system"?"pri":""}" onclick="setTheme('system')">${esc(t("appearance.theme.system"))}</button>
+        <button class="act ${theme==="light"?"pri":""}" onclick="setTheme('light')">${esc(t("appearance.theme.light"))}</button>
+        <button class="act ${theme==="dark"?"pri":""}" onclick="setTheme('dark')">${esc(t("appearance.theme.dark"))}</button>
+      </div>
+    </div>
+    <div class="sgrp">
+      <div class="slabel">${esc(t("appearance.accent"))}</div>
+      <div class="schoice">
+        ${Object.keys(ACCENTS).map(k => `<button class="swatch ${accent===k?"on":""}" title="${esc(k)}"
+          style="background:${ACCENTS[k].light}" onclick="setAccent('${k}')"></button>`).join("")}
+      </div>
+    </div>
+    <div class="sgrp">
+      <div class="slabel">${esc(t("appearance.font"))}</div>
+      <div class="schoice">
+        <button class="act ${fs==="s"?"pri":""}" onclick="setFontScale('s')">${esc(t("appearance.font.s"))}</button>
+        <button class="act ${fs==="m"?"pri":""}" onclick="setFontScale('m')">${esc(t("appearance.font.m"))}</button>
+        <button class="act ${fs==="l"?"pri":""}" onclick="setFontScale('l')">${esc(t("appearance.font.l"))}</button>
+      </div>
+    </div>
+    <div class="sgrp">
+      <div class="slabel">${esc(t("appearance.density"))}</div>
+      <div class="schoice">
+        <button class="act ${density==="comfortable"?"pri":""}" onclick="setDensity('comfortable')">${esc(t("appearance.density.comfortable"))}</button>
+        <button class="act ${density==="compact"?"pri":""}" onclick="setDensity('compact')">${esc(t("appearance.density.compact"))}</button>
+      </div>
+    </div>
+    <div class="sgrp">
+      <div class="slabel">${esc(t("appearance.timezone"))}</div>
+      <select class="input" id="tzSel" onchange="setTz(this.value)">
+        ${TZS.map(v => `<option value="${esc(v)}" ${tz===v?"selected":""}>${v===""?esc(t("appearance.timezone.browser")):esc(v)}</option>`).join("")}
+      </select>
+    </div>`;
+}
+
+function setTheme(v){ savePref("theme", v); applyAppearance(); renderAppearanceTab(); }
+function setAccent(v){ savePref("accent", v); applyAppearance(); renderAppearanceTab(); }
+function setFontScale(v){ savePref("fontscale", v); applyAppearance(); renderAppearanceTab(); }
+function setDensity(v){ savePref("density", v); applyAppearance(); renderAppearanceTab(); }
+function setTz(v){ savePref("tz", v); renderAppearanceTab(); if (S) loadSessions(); }
+
+async function loadAndRenderConfig(){
+  $("setBody").innerHTML = `<div class="cap">…</div>`;
+  try { CONFIG = await j("/api/config"); renderConfigForm(); }
+  catch(e) { $("setBody").innerHTML = `<div class="fnd">${esc(e.message)}</div>`; }
+}
+
+function renderConfigForm(){
+  const c = CONFIG || {};
+  const gw = c.gateway || {};
+  const tiers = c.tiers || {};
+  const catalog = c.catalog || [];
+  const budget = c.budget || {};
+  const env = c.env || [];
+  const tierField = tk => {
+    const cur = tiers[tk] || {};
+    const opts = [`<option value="">${esc(t("settings.default"))}</option>`]
+      .concat(catalog.map(m => `<option value="${esc(m.name)}" ${cur.model===m.name?"selected":""}>${esc(m.name)}${m.vendor?" · "+esc(m.vendor):""}${m.quality?"/"+esc(m.quality):""}</option>`));
+    const tierLabel = "settings.tier" + tk.charAt(0).toUpperCase() + tk.slice(1);
+    return `<div class="field">
+      <label>${esc(t(tierLabel))}</label>
+      <select class="input" id="tier_${tk}">${opts.join("")}</select>
+      <span class="cap">${esc(cur.effort || "")}${cur.overridden
+        ? `<span class="badge warn">${esc(t("settings.overridden"))}</span>`
+        : `<span class="badge">${esc(t("settings.default"))}</span>`}</span>
+    </div>`;
+  };
+  $("setBody").innerHTML = `
+    <div class="sgrp"><div class="slabel">${esc(t("settings.gateway"))}</div>
+      ${gw.insecure ? `<div class="badge danger">${esc(t("settings.insecure"))}</div>` : ""}
+      <div class="field"><label>${esc(t("settings.baseUrl"))}</label>
+        <input class="input" id="cfgBaseUrl" value="${esc(gw.base_url || "")}"></div>
+      <div class="field"><label>${esc(t("settings.apiKey"))}</label>
+        <input class="input" id="cfgApiKey" type="password" placeholder="${esc(gw.api_key || "")}">
+        <span class="cap">${esc(t("settings.apiKeyHint"))}</span></div>
+    </div>
+    <div class="sgrp"><div class="slabel">${esc(t("settings.models"))}</div>
+      ${tierField("low")}${tierField("medium")}${tierField("high")}${tierField("critical")}
+    </div>
+    <div class="sgrp"><div class="slabel">${esc(t("settings.budget"))}</div>
+      <div class="field"><label>${esc(t("settings.usdCap"))}</label>
+        <input class="input" id="cfgUsdCap" type="number" step="0.01" value="${esc(budget.usd_cap ?? "")}"></div>
+      <div class="field"><label>${esc(t("settings.chatUsdCap"))}</label>
+        <input class="input" id="cfgChatUsdCap" type="number" step="0.01" value="${esc(budget.chat_usd_cap ?? "")}"></div>
+    </div>
+    <div class="sgrp"><div class="slabel">${esc(t("settings.env"))}</div>
+      <div class="envtbl">${env.map(e => `<div class="envrow">
+        <span class="envname">${esc(e.name)}</span>
+        <span class="envval">${esc(e.set ? (e.value ?? "") : "—")}</span>
+        ${e.secret ? `<span class="badge">${esc(t("settings.secret"))}</span>` : ""}
+        ${e.restart ? `<span class="badge warn">${esc(t("settings.restartRequired"))}</span>` : ""}
+      </div>`).join("")}</div>
+    </div>
+    <div class="saverow">
+      <span class="err" id="cfgErr" style="display:none"></span>
+      <span class="cap" id="cfgSaved" style="display:none">${esc(t("settings.saved"))}</span>
+      <button class="act pri" onclick="saveConfig()">${esc(t("settings.save"))}</button>
+    </div>`;
+}
+
+async function saveConfig(){
+  const errEl = $("cfgErr"), savedEl = $("cfgSaved");
+  errEl.style.display = "none"; savedEl.style.display = "none";
+  const body = {};
+  const baseUrl = ($("cfgBaseUrl").value || "").trim();
+  if (baseUrl !== (CONFIG.gateway?.base_url || "")) body.base_url = baseUrl;
+  const apiKey = $("cfgApiKey").value || "";
+  // api_key 是只写字段：placeholder 就是服务端返回的脱敏串（含"…"），
+  // 只有用户真的敲了新值、且这个值不含"…"，才当成一次真实修改发回去。
+  if (apiKey && !apiKey.includes("…")) body.api_key = apiKey;
+  const models = {};
+  for (const tk of ["low","medium","high","critical"]) {
+    const sel = $("tier_" + tk);
+    const cur = (CONFIG.tiers?.[tk] || {}).model || "";
+    if (sel && sel.value !== cur) models[tk] = sel.value;
+  }
+  if (Object.keys(models).length) body.models = models;
+  const usdCapRaw = $("cfgUsdCap").value;
+  if (usdCapRaw !== "" && Number(usdCapRaw) !== CONFIG.budget?.usd_cap) body.usd_cap = Number(usdCapRaw);
+  const chatCapRaw = $("cfgChatUsdCap").value;
+  if (chatCapRaw !== "" && Number(chatCapRaw) !== CONFIG.budget?.chat_usd_cap) body.chat_usd_cap = Number(chatCapRaw);
+  try {
+    const r = await fetch(API + "/api/config", {method:"PUT", headers:{"content-type":"application/json"}, body: JSON.stringify(body)});
+    if (!r.ok) { errEl.textContent = (await r.text()).slice(0,300); errEl.style.display = "block"; return; }
+    CONFIG = await r.json();
+    renderConfigForm();
+    $("cfgSaved").style.display = "inline";
+  } catch(e) { errEl.textContent = String(e.message || e); errEl.style.display = "block"; }
 }
 </script>
 </body>

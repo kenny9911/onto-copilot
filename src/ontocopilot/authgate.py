@@ -245,6 +245,28 @@ async def change_own_password(request: Request, body: dict, repo: Repo = Depends
     return resp
 
 
+#: 允许自助保存的外观/语言偏好键。其它键一律忽略（前端别想借它塞乱数据）。
+_PREF_KEYS = frozenset({"theme", "accent", "lang", "timezone", "font_scale", "density"})
+
+
+@router.patch("/me/prefs")
+async def update_prefs(request: Request, body: dict, repo: Repo = Depends(get_repo)):
+    user = require_user(request)
+    patch = {k: v for k, v in (body or {}).items() if k in _PREF_KEYS}
+    tz = patch.get("timezone")
+    if tz:                                       # 非法 IANA 时区会让前端 Intl 抛错
+        from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+        try:
+            ZoneInfo(str(tz))
+        except (ZoneInfoNotFoundError, ValueError):
+            raise HTTPException(400, f"未知时区：{tz}") from None
+    if user.id == SYNTHETIC_ADMIN.id:
+        return {"prefs": patch}                  # 开放模式无持久账号 → 前端只落 localStorage
+    merged = {**(user.prefs or {}), **patch}
+    await repo.update_user(user.id, prefs=merged)
+    return {"prefs": merged}
+
+
 # ══════════════════════════════════════════════════════════════════
 #  路由：账号管理（仅管理员）
 # ══════════════════════════════════════════════════════════════════
