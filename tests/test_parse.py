@@ -71,6 +71,36 @@ def test_cell_comments_are_extracted(messy_xlsx):
     assert "〔批注〕" in text
 
 
+def test_render_pairs_binds_comment_to_its_column():
+    """批注要绑在被批注的那一列后面，不是甩到行尾 —— 否则批注是哪一列的口径就丢了。"""
+    from ontocopilot.onto.parse.tabular import _render_pairs
+    header = ["字段", "类型", "口径"]
+    row = ["plan_amount", "DECIMAL", "计划金额"]
+    joined = " | ".join(_render_pairs(header, row, comments={0: "含税"}))
+    assert "字段=plan_amount　〔批注〕含税" in joined
+
+
+def test_middle_column_comment_binds_to_that_column(tmp_path):
+    """一份批注在中间列（不是最后一列）时，也要就地绑定，而不是落在行尾。"""
+    from openpyxl import Workbook
+    from openpyxl.comments import Comment
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "T"
+    for c, h in enumerate(["实体", "字段", "类型"], start=1):
+        ws.cell(row=1, column=c, value=h)
+    ws.cell(row=2, column=1, value="order")
+    ws.cell(row=2, column=2, value="amount")
+    ws.cell(row=2, column=3, value="DECIMAL")
+    ws.cell(row=2, column=2).comment = Comment("单位：分", "a")  # 批注在中间列
+    p = tmp_path / "t.xlsx"
+    wb.save(p)
+    doc = default_registry().parse(p)
+    row = next(c for c in doc.chunks if "row" in c.tags)
+    assert "字段=amount　〔批注〕单位：分" in row.render
+    assert row.render.index("单位：分") < row.render.index("类型=DECIMAL")
+
+
 def test_office_metadata_leak_is_reported_and_indexed(messy_xlsx):
     """作者名和绝对保存路径不在表格内容里，但常常泄漏客户名与项目代号。"""
     doc = default_registry().parse(messy_xlsx)
@@ -148,6 +178,38 @@ def test_ddl_inline_comments_carry_the_definition(real_ddl):
     assert b["comment"] == "不含税·单次·CNY"
 
 
+def test_ddl_inline_comment_syntax_is_captured(tmp_path):
+    """口径不止写在 `-- 注释` 里，MySQL/Oracle 常用行内 `COMMENT '...'` —— 也要抽出来。"""
+    p = tmp_path / "s.ddl"
+    p.write_text("CREATE TABLE t (amount DECIMAL(18,2) COMMENT '含税·年度');",
+                 encoding="utf-8")
+    doc = default_registry().parse(p)
+    col = next(c for c in doc.structured["tables"][0]["columns"] if c["name"] == "amount")
+    assert col["comment"] == "含税·年度"
+
+
+def test_composite_foreign_key_maps_columns_positionally(tmp_path):
+    """复合外键 (x,y)→(x,y) 要按位配对，不能全指向第一个引用列。"""
+    p = tmp_path / "s.ddl"
+    p.write_text(
+        "CREATE TABLE p (x VARCHAR(8), y VARCHAR(8), PRIMARY KEY (x,y));\n"
+        "CREATE TABLE c (x VARCHAR(8), y VARCHAR(8),\n"
+        "  CONSTRAINT fk FOREIGN KEY (x, y) REFERENCES p(x, y));",
+        encoding="utf-8")
+    doc = default_registry().parse(p)
+    fks = doc.structured["tables"][1]["foreign_keys"]
+    assert {(f["column"], f["ref_column"]) for f in fks} == {("x", "x"), ("y", "y")}
+
+
+def test_ddl_emits_a_table_level_chunk(real_ddl):
+    """除了 per-column/per-fk，还要有一个"这张表是干嘛的"的表级切片。"""
+    doc = default_registry().parse(real_ddl)
+    tbl = [c for c in doc.chunks if "table" in c.tags]
+    body = " ".join(c.render for c in tbl)
+    assert "pbp_header" in body and "clm_contract" in body
+    assert any("plan_id" in c.render for c in tbl)  # 概览带上列名/主键
+
+
 def test_constraint_lines_are_not_mistaken_for_columns(real_ddl):
     """`CONSTRAINT fk_plan FOREIGN KEY ...` 不是列定义。"""
     doc = default_registry().parse(real_ddl)
@@ -194,6 +256,31 @@ def test_schemas_give_object_and_property_candidates(real_openapi):
     assert "含税" in plan["properties"]["planAmount"]["description"]
 
 
+def test_openapi_schema_chunk_render_carries_description_and_enum(real_openapi):
+    """property 的 description 常常就是口径，enum 是取值域 —— 都要进 render 才可检索。"""
+    doc = default_registry().parse(real_openapi)
+    sc = next(c for c in doc.chunks if "schema" in c.tags and "Plan" in c.render)
+    assert "含税" in sc.render      # description 进 render
+    assert "DRAFT" in sc.render     # enum 进 render
+
+
+def test_write_endpoint_links_to_its_request_schema(real_openapi):
+    """写端点→请求体 schema 是一条关系，像 DDL 外键那样单独成一等切片。"""
+    doc = default_registry().parse(real_openapi)
+    links = [c for c in doc.chunks if "link" in c.tags]
+    assert any("submitPurchasePlan" in c.render and "SubmitReq" in c.render for c in links)
+
+
+def test_openapi_null_description_does_not_crash(tmp_path):
+    """description 显式为 null 时（合法 JSON）不能崩 —— 真实 spec 里常见。"""
+    import json
+    p = tmp_path / "o.json"
+    p.write_text(json.dumps({"openapi": "3.0.0", "paths": {
+        "/x": {"post": {"operationId": "doX", "description": None}}}}), encoding="utf-8")
+    doc = default_registry().parse(p)
+    assert any("doX" in c.render for c in doc.chunks)
+
+
 def test_endpoint_chunks_carry_json_pointers(real_openapi):
     doc = default_registry().parse(real_openapi)
     ep = next(c for c in doc.chunks if "endpoint" in c.tags)
@@ -227,6 +314,16 @@ def test_docx_rule_sentences_are_tagged(flow_docx):
     assert rules
     assert any("多个采购包" in c.render for c in rules)
     assert any("年度累计含税" in c.render for c in doc.chunks)
+
+
+def test_docx_chunks_carry_heading_breadcrumb(flow_docx):
+    """"4.1 金额口径"下的规则句要带上祖先标题"采购业务流程说明"——只带最近一级
+    标题会丢掉层级语境,规则句脱离它所属的流程就容易误读。"""
+    doc = default_registry().parse(flow_docx)
+    amt = next(c for c in doc.chunks if "para" in c.tags and "年度累计含税" in c.render)
+    assert "采购业务流程说明" in amt.render   # 顶层标题在面包屑里
+    assert "金额口径" in amt.render            # 直属标题也在
+    assert " > " in amt.locator.get("section", "")  # locator 记的是路径
 
 
 def test_docx_tables_are_extracted_separately(flow_docx):

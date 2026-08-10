@@ -81,15 +81,22 @@ def profile_column(name: str, values: list[str]) -> dict[str, Any]:
 #  表头探测
 # ══════════════════════════════════════════════════════════════════
 
-def _render_pairs(header: list[str], row: list[str]) -> list[str]:
+def _render_pairs(header: list[str], row: list[str],
+                  comments: dict[int, str] | None = None) -> list[str]:
     """把一行渲染成 ``列名=值`` 列表，**同值的相邻列合并**。
 
     合并单元格被填充后，同一个值会出现在连续的好几列里。一行 22 列全是同一段
     职责说明时，不合并的话这一行的 render 就是那段话重复 22 遍 —— 一个 45 行的
     sheet 渲染出 27 万字符，模型只看得到开头，而开头全是重复。它会合理地推断
     "这些列是重复的"然后整段放弃。**真实材料上就是这么丢掉一整张业务规则表的。**
+
+    ``comments`` 是 ``{列下标: 批注}``。批注**就地绑在被批注的那一列后面**，而不是
+    甩到行尾 —— 口径几乎都写在批注里，"这条口径是哪一列的"必须跟着列走。值为空、
+    没能落到任何 pair 的批注不丢，挂到末尾并标出所属列。
     """
+    comments = comments or {}
     out: list[str] = []
+    used: set[int] = set()
     i = 0
     n = min(len(header), len(row))
     while i < n:
@@ -101,8 +108,13 @@ def _render_pairs(header: list[str], row: list[str]) -> list[str]:
         while j < n and str(row[j]).strip() == v:
             j += 1
         name = header[i] if j == i + 1 else f"{header[i]}~{header[j - 1]}"
-        out.append(f"{name}={v}")
+        tail = "".join(f"　〔批注〕{comments[c]}" for c in range(i, j) if c in comments)
+        used.update(range(i, j))
+        out.append(f"{name}={v}{tail}")
         i = j
+    for c, txt in comments.items():
+        if c not in used and 0 <= c < len(header):
+            out.append(f"〔批注·{header[c]}〕{txt}")
     return out
 
 
@@ -263,11 +275,12 @@ class XlsxParser(Parser):
             render_body = _fill_hierarchy(header, body)
             for ri, row in enumerate(body):
                 excel_row = h + 2 + ri
-                pairs = _render_pairs(header, render_body[ri])
+                row_comments = {c0: t for (r0, c0), t in comments.items()
+                                if r0 == excel_row}
+                pairs = _render_pairs(header, render_body[ri], row_comments)
                 if not pairs:
                     continue
-                note = comments.get(excel_row)
-                render = " | ".join(pairs) + (f"　〔批注〕{note}" if note else "")
+                render = " | ".join(pairs)
                 doc.chunks.append(make_chunk(
                     doc_id=f"{ws.title}:r{excel_row}", file_id=file_id, file_name=path.name,
                     locator={"kind": "range", "sheet": ws.title,
@@ -282,8 +295,8 @@ class XlsxParser(Parser):
         return doc
 
 
-def _read_sheet(ws: Any) -> tuple[list[list[str]], dict[int, str]]:
-    """读成字符串网格，顺带还原合并单元格、抽出批注。"""
+def _read_sheet(ws: Any) -> tuple[list[list[str]], dict[tuple[int, int], str]]:
+    """读成字符串网格，顺带还原合并单元格、抽出批注（按 (行, 列下标) 定位）。"""
     grid: list[list[str]] = []
     for row in ws.iter_rows():
         grid.append(["" if c.value is None else str(c.value).strip() for c in row])
@@ -301,12 +314,13 @@ def _read_sheet(ws: Any) -> tuple[list[list[str]], dict[int, str]]:
                 if not grid[r][c]:
                     grid[r][c] = v
 
-    comments: dict[int, str] = {}
+    comments: dict[tuple[int, int], str] = {}
     for row in ws.iter_rows():
         for c in row:
             if c.comment and c.comment.text:
                 txt = c.comment.text.strip()
-                comments[c.row] = f"{comments[c.row]}；{txt}" if c.row in comments else txt
+                key = (c.row, c.column - 1)  # 0-based 列下标，与 header 对齐
+                comments[key] = f"{comments[key]}；{txt}" if key in comments else txt
 
     while grid and not any(x.strip() for x in grid[-1]):
         grid.pop()

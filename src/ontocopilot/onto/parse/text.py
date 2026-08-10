@@ -26,6 +26,31 @@ _RULE_HINTS = re.compile(
 _HEADING = re.compile(r"^\s*(#{1,6}\s+|第[一二三四五六七八九十百]+[章节条]|"
                       r"\d+(\.\d+)*[、.\s]|[一二三四五六七八九十]+[、.])\s*")
 
+#: 标题层级号（Heading N / 标题 N），拿不到就退回按编号深度推断。
+_HEADING_LVL = re.compile(r"(?:heading|标题)\s*(\d)", re.IGNORECASE)
+_NUM_PREFIX = re.compile(r"\s*(\d+(?:\.\d+)*)")
+
+
+def _is_heading(style: str | None, text: str) -> bool:
+    """标题判定：Word 的 Heading 样式、本地化的"标题"样式，或编号/井号格式。
+
+    材料来自很多业务域、很多语言，样式名不能只认英文 ``heading``。
+    """
+    s = (style or "").lower()
+    return (s.startswith("heading") or "标题" in (style or "")
+            or bool(_HEADING.match(text)))
+
+
+def _heading_level(style: str | None, text: str) -> int:
+    """标题层级：优先按样式号（Heading 2 → 2），否则按编号深度（``3.2.1`` → 3）。"""
+    if m := _HEADING_LVL.search(style or ""):
+        return int(m.group(1))
+    if m := _NUM_PREFIX.match(text):
+        return m.group(1).count(".") + 1
+    if re.match(r"\s*第[一二三四五六七八九十百]+节", text):
+        return 2
+    return 1
+
 
 class TextParser(Parser):
     """md / txt / 兜底。"""
@@ -71,7 +96,9 @@ class DocxParser(Parser):
                 "），对外发布前建议清理。",
                 {"kind": "meta", "field": "docProps/core.xml"}, severity="warn"))
 
-        # 正文：按标题层级聚段
+        # 正文：按标题层级聚段。current 记的是**标题面包屑**（H1 > H2 > H3），
+        # 不是最近一级标题 —— 规则句脱离它所属的流程层级就容易误读。
+        stack: list[tuple[int, str]] = []
         current = ""
         buf: list[str] = []
         blocks: list[tuple[str, str]] = []
@@ -79,11 +106,15 @@ class DocxParser(Parser):
             t = (p.text or "").strip()
             if not t:
                 continue
-            if (p.style.name or "").lower().startswith("heading") or _HEADING.match(t):
+            if _is_heading(p.style.name, t):
                 if buf:
                     blocks.append((current, "\n".join(buf)))
                     buf = []
-                current = t
+                lvl = _heading_level(p.style.name, t)
+                while stack and stack[-1][0] >= lvl:
+                    stack.pop()
+                stack.append((lvl, t))
+                current = " > ".join(x for _, x in stack)
             else:
                 buf.append(t)
                 if sum(len(x) for x in buf) > SECTION_SOFT_LIMIT:

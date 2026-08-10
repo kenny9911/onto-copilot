@@ -71,11 +71,19 @@ class OpenApiParser(Parser):
                        f"　〔{tag}〕" + (f" {e['summary']}" if e["summary"] else ""),
                 raw=e, order=order, tags=["endpoint", "write" if e["write"] else "read"]))
             order += 1
+            # 端点→请求体 schema 是一条关系，像 DDL 外键那样单独成一等切片
+            if e.get("request_schema"):
+                doc.chunks.append(make_chunk(
+                    doc_id=f"eplink{order}", file_id=file_id, file_name=path.name,
+                    locator={"kind": "json", "pointer": e["pointer"]},
+                    render=f"{e['operationId']} → {e['request_schema']}"
+                           "（请求体，引用该 schema）",
+                    raw={"from": e["operationId"], "to": e["request_schema"]},
+                    order=order, tags=["link", "relation"]))
+                order += 1
 
         for name, s in schemas.items():
-            props = "、".join(
-                f"{p}:{d['base_type']}" + ("*" if d["required"] else "")
-                for p, d in s["properties"].items())
+            props = "、".join(_prop_str(p, d) for p, d in s["properties"].items())
             doc.chunks.append(make_chunk(
                 doc_id=f"schema:{name}", file_id=file_id, file_name=path.name,
                 locator={"kind": "json", "pointer": f"$.components.schemas.{name}"},
@@ -91,6 +99,20 @@ class OpenApiParser(Parser):
         return doc
 
 
+def _prop_str(p: str, d: dict[str, Any]) -> str:
+    """property → 一段可检索文本：类型 + 必填 + 取值域 + 口径说明。
+
+    description 常常就是口径（"含税、年度累计"），enum 是取值域 —— 只放进 raw 而不
+    进 render，检索时就看不见。
+    """
+    s = f"{p}:{d['base_type']}" + ("*" if d["required"] else "")
+    if d.get("enum"):
+        s += "[" + "|".join(str(x) for x in d["enum"]) + "]"
+    if d.get("description"):
+        s += f"（{d['description']}）"
+    return s
+
+
 def _endpoints(spec: dict, file_id: str, file_name: str) -> list[dict[str, Any]]:
     out: list[dict[str, Any]] = []
     for path, ops in (spec.get("paths") or {}).items():
@@ -103,7 +125,7 @@ def _endpoints(spec: dict, file_id: str, file_name: str) -> list[dict[str, Any]]
             out.append({
                 "operationId": op.get("operationId") or _synth_id(m, path),
                 "method": m, "path": path, "write": m in WRITE_METHODS,
-                "summary": op.get("summary", "") or op.get("description", "")[:120],
+                "summary": (op.get("summary") or op.get("description") or "")[:120],
                 "tags": op.get("tags", []),
                 "request_schema": _ref_name(op.get("requestBody")),
                 "file_id": file_id, "file_name": file_name,

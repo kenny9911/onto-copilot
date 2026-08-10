@@ -55,6 +55,19 @@ class DdlParser(Parser):
             tables.append({"name": tname, "columns": cols, "primary_key": pks,
                            "foreign_keys": fks})
 
+            # 表级切片：一眼看清这张表是什么 + 主键 + 列名概览。检索"这张表有哪些字段"
+            # 时不必把每个列切片都捞出来。
+            pk_str = f"，主键 {'+'.join(pks)}" if pks else ""
+            doc.chunks.append(make_chunk(
+                doc_id=tname, file_id=file_id, file_name=path.name,
+                locator={"kind": "ddl", "object": tname},
+                render=f"表 {tname}（{len(cols)} 列{pk_str}）："
+                       + "、".join(c["name"] for c in cols),
+                raw={"table": tname, "primary_key": pks,
+                     "columns": [c["name"] for c in cols]},
+                order=order, tags=["table"]))
+            order += 1
+
             for c in cols:
                 bits = [f"{tname}.{c['name']} {c['type']}"]
                 if c["name"] in pks:
@@ -109,38 +122,47 @@ def _columns(stmt: Any, comments: dict[str, str]) -> tuple[list[dict], list[str]
                 "name": name,
                 "type": e.args.get("kind").sql() if e.args.get("kind") else "UNKNOWN",
                 "nullable": "NotNullColumnConstraint" not in constraints,
-                "comment": comments.get(name.lower(), ""),
+                # 口径可能在 `-- 行注释`（行扫描）里，也可能在行内 `COMMENT '...'`（AST）里
+                "comment": comments.get(name.lower(), "") or _inline_comment(e),
             })
         elif isinstance(e, exp.PrimaryKey):
             pks.extend(c.name for c in e.expressions if hasattr(c, "name"))
         elif isinstance(e, exp.ForeignKey):
-            ref = e.args.get("reference")
-            ref_tbl = ref_col = ""
-            if ref is not None:
-                sub = ref.this
-                ref_tbl = getattr(getattr(sub, "this", None), "name", "") or getattr(sub, "name", "")
-                exprs = getattr(sub, "expressions", None) or []
-                ref_col = exprs[0].name if exprs else ""
-            for c in e.expressions:
-                fks.append({"name": None, "column": c.name,
-                            "ref_table": str(ref_tbl), "ref_column": str(ref_col)})
+            fks.extend(_fk_edges(e, None))
         elif isinstance(e, exp.Constraint):
             for inner in e.expressions:
                 if isinstance(inner, exp.ForeignKey):
-                    ref = inner.args.get("reference")
-                    ref_tbl = ref_col = ""
-                    if ref is not None:
-                        sub = ref.this
-                        ref_tbl = (getattr(getattr(sub, "this", None), "name", "")
-                                   or getattr(sub, "name", ""))
-                        exprs = getattr(sub, "expressions", None) or []
-                        ref_col = exprs[0].name if exprs else ""
-                    for c in inner.expressions:
-                        fks.append({"name": e.name, "column": c.name,
-                                    "ref_table": str(ref_tbl), "ref_column": str(ref_col)})
+                    fks.extend(_fk_edges(inner, e.name))
                 elif isinstance(inner, exp.PrimaryKey):
                     pks.extend(c.name for c in inner.expressions if hasattr(c, "name"))
     return cols, list(dict.fromkeys(pks)), fks
+
+
+def _inline_comment(coldef: Any) -> str:
+    """行内 ``COMMENT '...'`` → 文本（MySQL/Oracle 常这么写口径）。"""
+    for c in (coldef.constraints or []):
+        if type(c.kind).__name__ == "CommentColumnConstraint":
+            lit = getattr(c.kind, "this", None)
+            return str(getattr(lit, "this", lit) or "")
+    return ""
+
+
+def _fk_edges(fk: Any, con_name: str | None) -> list[dict[str, Any]]:
+    """外键 → 边列表。源列与引用列**按位配对** —— 复合外键 (x,y)→(x,y) 才不会
+    全指向第一个引用列。"""
+    ref = fk.args.get("reference")
+    ref_tbl = ""
+    ref_cols: list[str] = []
+    if ref is not None:
+        sub = ref.this
+        ref_tbl = getattr(getattr(sub, "this", None), "name", "") or getattr(sub, "name", "")
+        ref_cols = [x.name for x in (getattr(sub, "expressions", None) or [])]
+    out: list[dict[str, Any]] = []
+    for i, c in enumerate(fk.expressions):
+        rc = ref_cols[i] if i < len(ref_cols) else (ref_cols[0] if ref_cols else "")
+        out.append({"name": con_name, "column": c.name,
+                    "ref_table": str(ref_tbl), "ref_column": str(rc)})
+    return out
 
 
 def _column_comments(sql: str) -> dict[str, dict[str, str]]:
