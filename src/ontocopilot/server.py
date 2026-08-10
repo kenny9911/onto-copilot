@@ -134,6 +134,11 @@ class Session:
 
 SESSIONS: dict[str, Session] = {}
 
+#: 按网关实际可用模型过滤后的目录。视觉选型（OCR）靠它 —— 见 _ensure_catalog。
+#: 懒发现：第一次 build 时（网关此刻一定配好了）拉一次 /v1/models 并缓存。
+_CATALOG: ModelCatalog | None = None
+_CATALOG_OK: bool = False
+
 # lifespan 取代 on_event("startup")：后者在 FastAPI 里已弃用，而且没有对称的
 # 关闭钩子 —— 连接池不 dispose 的话，热重载会一轮轮泄漏连接。
 @asynccontextmanager
@@ -178,6 +183,37 @@ async def _sess_async(sid: str) -> Session:
     return SESSIONS.get(sid) or await _hydrate(sid)
 
 
+async def _ensure_catalog() -> ModelCatalog:
+    """按网关 /v1/models 过滤模型目录，装配视觉网关。**懒发现、成功一次即缓存。**
+
+    不过滤的后果正是「扫描件不识别」：视觉选型按质量挑候选（opus/gpt-5.5 在前），
+    可网关未必上了这些模型 —— 候选逐个 404，而真能 OCR 的 gemini-3.5-flash 因质量档
+    排在候选之外、**从没被试到**，于是扫描件内容静默不进产物。发现后目录只留网关
+    真有的模型，require(VISION) 就落到网关实际提供的视觉模型上。
+
+    在 build 时调（那时网关一定配好了，启动时未必）。发现失败、或命名不匹配把目录
+    清空了，都退回内置目录（比没有目录好），且不置 OK —— 下次 build 再试。
+    """
+    global _CATALOG, _CATALOG_OK
+    if _CATALOG_OK and _CATALOG is not None:
+        return _CATALOG
+    cat = ModelCatalog()
+    try:
+        cfg = appconfig.resolved_llm_config()
+        live = await cat.discover(cfg.base_url, cfg.api_key)
+        if cat.names():
+            vision = cat.by_capability().get("vision") or []
+            print(f"[catalog] 网关可用模型 {len(cat.names())} 个；视觉可用："
+                  f"{vision or '无（扫描件仍无法 OCR，请在网关上开一个带视觉的模型）'}")
+            _CATALOG, _CATALOG_OK = cat, True
+            return cat
+        print(f"[catalog] 发现清空了目录（网关命名与内置不匹配？live={live[:8]}），退回内置")
+    except Exception as exc:  # noqa: BLE001 — 发现失败不该拖垮 build
+        print(f"[catalog] 模型发现失败，退回内置：{type(exc).__name__}: {exc}")
+    _CATALOG = ModelCatalog()
+    return _CATALOG
+
+
 def _gateways(out: Path, run_id: str) -> tuple[Any, ModelGateway, SmartGateway, Budget]:
     cfg = appconfig.resolved_llm_config()          # 设置 → env → 抛错
     rec = Recorder(run_id, FileJournal(out / "journal"), FileBlobStore(out / "blobs"))
@@ -185,7 +221,8 @@ def _gateways(out: Path, run_id: str) -> tuple[Any, ModelGateway, SmartGateway, 
     # 上限设太紧的后果不是省钱，是跑到一半 HALT、前面花掉的钱全打水漂。
     budget = Budget(tokens=4_000_000, usd=appconfig.usd_cap())
     backend = OpenAICompatBackend(cfg.base_url, cfg.api_key)
-    catalog = ModelCatalog()
+    # 启动时按网关可用模型过滤过的目录 —— 视觉选型据此落到网关真有的视觉模型上
+    catalog = _CATALOG or ModelCatalog()
     # 路由按当前设置构建（含各档模型覆盖）并随本次 Run 固定：配置改动只作用到之后
     # 新建的 Run，不影响在跑的这次。
     routing = gateway_routing(appconfig.model_overrides(), catalog)
@@ -532,6 +569,7 @@ async def _run_pipeline(s: Session, *, tier: str = "full") -> None:
     try:
         s.status = "parsing"
         s.emit("node.entered", node="PARSE", title="解析材料")
+        await _ensure_catalog()          # 按网关可用模型过滤目录（视觉网关/OCR 靠它）
         backend, gw, smart, budget = _gateways(s.dir, f"run_{s.id}")
 
         paths = [Path(f["path"]) for f in s.files]
