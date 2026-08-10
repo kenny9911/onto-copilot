@@ -202,8 +202,50 @@ blob = sa.Table(
               server_default=sa.func.now()),
 )
 
+
+# ══════════════════════════════════════════════════════════════════
+#  账号与登录会话（鉴权层）—— 与建模 session 无关的两张顶层表
+# ══════════════════════════════════════════════════════════════════
+# 数据是共享的（单管理员门禁，不按用户隔离），账号只用于登录与角色控制，
+# 所以这两张表**不挂在建模 session 之下**、没有 owner 外键。
+# id / password_hash / token 一律在 Python 里生成（uuid4 / scrypt / token_urlsafe），
+# **不用** gen_random_uuid / pgcrypto —— 否则 SQLite 与 MemoryRepo 两条路都跑不通。
+app_user = sa.Table(
+    "app_user", metadata,
+    sa.Column("id", sa.Text, primary_key=True),                     # uuid4().hex
+    sa.Column("username", sa.Text, nullable=False, unique=True),    # 调用方已 strip().lower()
+    sa.Column("password_hash", sa.Text, nullable=False),            # scrypt 自描述串
+    sa.Column("role", sa.Text, nullable=False, server_default="user"),
+    sa.Column("active", sa.Boolean, nullable=False, server_default=sa.true()),
+    #: 外观/语言偏好（主题、强调色、时区、字号、语言）。必须在**建表时**就有 ——
+    #  迁移一旦落库就按 checksum 锁死，以后想 ALTER 进来得单开一个迁移文件。
+    _json("prefs", nullable=False, server_default="{}"),
+    sa.Column("created_at", sa.DateTime(timezone=True), nullable=False,
+              server_default=sa.func.now()),
+    sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False,
+              server_default=sa.func.now()),
+    sa.CheckConstraint("role IN ('admin','user')", name="app_user_role_ck"),
+)
+
+# 登录会话：主键是令牌的 sha256，**不是令牌本身** —— 库里泄了也换不出 cookie。
+# 明文令牌只活在浏览器的 HttpOnly cookie 里。过期行读时过滤 + 周期性清理。
+auth_session = sa.Table(
+    "auth_session", metadata,
+    sa.Column("token_hash", sa.Text, primary_key=True),
+    sa.Column("user_id", sa.Text,
+              sa.ForeignKey("app_user.id", ondelete="CASCADE"), nullable=False),
+    sa.Column("created_at", sa.DateTime(timezone=True), nullable=False,
+              server_default=sa.func.now()),
+    sa.Column("last_seen_at", sa.DateTime(timezone=True), nullable=False,
+              server_default=sa.func.now()),
+    sa.Column("expires_at", sa.DateTime(timezone=True), nullable=False),
+)
+sa.Index("auth_session_user_idx", auth_session.c.user_id)
+
+
 __all__ = [
     "metadata", "schema_migration", "session", "session_file", "run",
     "session_state", "conflict", "decision", "chat_turn", "session_event",
-    "kernel_event", "blob", "DERIVED_KEYS", "EVENT_INLINE_LIMIT",
+    "kernel_event", "blob", "app_user", "auth_session",
+    "DERIVED_KEYS", "EVENT_INLINE_LIMIT",
 ]

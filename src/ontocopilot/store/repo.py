@@ -105,6 +105,39 @@ class DecisionRow:
                 "ts": self.ts, "superseded_by": self.superseded_by}
 
 
+@dataclass(slots=True)
+class UserRow:
+    """账号。``password_hash`` 只进不出 —— :meth:`public` 绝不带它。"""
+
+    id: str
+    username: str
+    password_hash: str
+    role: str = "user"          # admin | user
+    active: bool = True
+    prefs: dict[str, Any] = field(default_factory=dict)
+    created: float = 0.0
+
+    def public(self) -> dict[str, Any]:
+        """给列表/管理页看的安全投影。**永不含 password_hash / prefs 之外的内部字段。**"""
+        return {"id": self.id, "username": self.username, "role": self.role,
+                "active": self.active, "created": self.created}
+
+
+@dataclass(slots=True)
+class AuthSessionRow:
+    """登录会话。主键是令牌的 sha256（``token_hash``），不是令牌本身。"""
+
+    token_hash: str
+    user_id: str
+    created: float = 0.0
+    last_seen: float = 0.0
+    expires: float = 0.0
+
+
+class DuplicateUsername(ValueError):
+    """用户名（或 id）已存在。两个实现都抛它，路由层统一映射成 409。"""
+
+
 # ══════════════════════════════════════════════════════════════════
 #  接口
 # ══════════════════════════════════════════════════════════════════
@@ -145,6 +178,24 @@ class Repo(Protocol):
     async def finish_run(self, run_id: str, *, status: str, error: str = "",
                          budget: dict[str, Any] | None = None) -> None: ...
 
+    # 账号与登录会话（鉴权层）—— 顶层表，不随建模会话级联。
+    async def create_user(self, row: UserRow) -> UserRow: ...
+    async def get_user(self, uid: str) -> UserRow | None: ...
+    async def get_user_by_username(self, username: str) -> UserRow | None: ...
+    async def list_users(self) -> list[UserRow]: ...
+    async def count_users(self) -> int: ...
+    async def update_user(self, uid: str, *, role: str | None = None,
+                          active: bool | None = None,
+                          password_hash: str | None = None,
+                          prefs: dict[str, Any] | None = None) -> UserRow | None: ...
+    async def delete_user(self, uid: str) -> bool: ...
+
+    async def create_auth_session(self, row: AuthSessionRow) -> AuthSessionRow: ...
+    async def get_auth_session(self, token_hash: str) -> AuthSessionRow | None: ...
+    async def delete_auth_session(self, token_hash: str) -> bool: ...
+    async def delete_user_auth_sessions(self, uid: str) -> int: ...
+    async def prune_auth_sessions(self, *, now: float) -> int: ...
+
     def atomic(self) -> Any: ...
 
 
@@ -169,6 +220,10 @@ class MemoryRepo:
         self._decisions: dict[str, list[DecisionRow]] = {}
         self._events: dict[str, list[EventRow]] = {}
         self._runs: dict[str, dict[str, Any]] = {}
+        #: 账号与登录会话。**顶层**，与建模会话无关 —— 故意不进 delete_session 的
+        #  清理元组（那是按建模会话清的，扫到这里会误删所有账号）。
+        self._users: dict[str, UserRow] = {}
+        self._auth: dict[str, AuthSessionRow] = {}
 
     # ── 会话 ─────────────────────────────────────────────────────
     async def create_session(self, row: SessionRow) -> SessionRow:
@@ -304,6 +359,80 @@ class MemoryRepo:
                          budget: dict[str, Any] | None = None) -> None:
         self._runs[run_id] |= {"status": status, "error": error,
                                "budget": budget or {}}
+
+    # ── 账号 ─────────────────────────────────────────────────────
+    async def create_user(self, row: UserRow) -> UserRow:
+        if row.id in self._users:
+            raise DuplicateUsername(f"用户 id 已存在: {row.id}")
+        if any(u.username == row.username for u in self._users.values()):
+            raise DuplicateUsername(f"用户名已存在: {row.username}")
+        row.created = row.created or time.time()
+        self._users[row.id] = row
+        return row
+
+    async def get_user(self, uid: str) -> UserRow | None:
+        return self._users.get(uid)
+
+    async def get_user_by_username(self, username: str) -> UserRow | None:
+        return next((u for u in self._users.values() if u.username == username), None)
+
+    async def list_users(self) -> list[UserRow]:
+        return sorted(self._users.values(), key=lambda u: u.created)
+
+    async def count_users(self) -> int:
+        return len(self._users)
+
+    async def update_user(self, uid: str, *, role: str | None = None,
+                          active: bool | None = None,
+                          password_hash: str | None = None,
+                          prefs: dict[str, Any] | None = None) -> UserRow | None:
+        u = self._users.get(uid)
+        if u is None:
+            return None
+        if role is not None:
+            u.role = role
+        if active is not None:
+            u.active = active
+        if password_hash is not None:
+            u.password_hash = password_hash
+        if prefs is not None:
+            u.prefs = prefs
+        return u
+
+    async def delete_user(self, uid: str) -> bool:
+        if uid not in self._users:
+            return False
+        # 手动级联登录会话 == ON DELETE CASCADE。**绝不**把 _users/_auth 加进
+        # delete_session 的清理元组 —— 那是按建模会话清的，会误删所有账号。
+        for th in [t for t, a in self._auth.items() if a.user_id == uid]:
+            self._auth.pop(th, None)
+        self._users.pop(uid, None)
+        return True
+
+    # ── 登录会话 ─────────────────────────────────────────────────
+    async def create_auth_session(self, row: AuthSessionRow) -> AuthSessionRow:
+        row.created = row.created or time.time()
+        row.last_seen = row.last_seen or row.created
+        self._auth[row.token_hash] = row
+        return row
+
+    async def get_auth_session(self, token_hash: str) -> AuthSessionRow | None:
+        return self._auth.get(token_hash)
+
+    async def delete_auth_session(self, token_hash: str) -> bool:
+        return self._auth.pop(token_hash, None) is not None
+
+    async def delete_user_auth_sessions(self, uid: str) -> int:
+        gone = [t for t, a in self._auth.items() if a.user_id == uid]
+        for t in gone:
+            self._auth.pop(t, None)
+        return len(gone)
+
+    async def prune_auth_sessions(self, *, now: float) -> int:
+        gone = [t for t, a in self._auth.items() if a.expires and a.expires <= now]
+        for t in gone:
+            self._auth.pop(t, None)
+        return len(gone)
 
     @asynccontextmanager
     async def atomic(self) -> AsyncIterator["MemoryRepo"]:
@@ -672,6 +801,148 @@ class PgRepo:
                 status=status, error=error, budget=budget or {},
                 ended_at=sa.func.now()))
 
+    # ── 账号 ─────────────────────────────────────────────────────
+    async def create_user(self, row: UserRow) -> UserRow:
+        from datetime import UTC, datetime
+
+        import sqlalchemy.exc as saexc
+
+        from . import schema as t
+        row.created = row.created or time.time()
+        ts = datetime.fromtimestamp(row.created, tz=UTC)
+        try:
+            async with self._engine.begin() as conn:
+                await conn.execute(t.app_user.insert().values(
+                    id=row.id, username=row.username,
+                    password_hash=row.password_hash, role=row.role,
+                    active=row.active, prefs=row.prefs,
+                    created_at=ts, updated_at=ts))
+        except saexc.IntegrityError as exc:
+            # 用户名 UNIQUE 或 id 主键冲突 —— 和 MemoryRepo 抛同一种异常，
+            # 路由层才能统一映射成 409（否则两个实现行为分叉，测试还测不到）。
+            raise DuplicateUsername(f"用户名或 id 已存在: {row.username}") from exc
+        return row
+
+    async def get_user(self, uid: str) -> UserRow | None:
+        import sqlalchemy as sa
+
+        from . import schema as t
+        async with self._engine.connect() as conn:
+            r = (await conn.execute(sa.select(t.app_user).where(
+                t.app_user.c.id == uid))).mappings().first()
+        return _user_row(r) if r else None
+
+    async def get_user_by_username(self, username: str) -> UserRow | None:
+        import sqlalchemy as sa
+
+        from . import schema as t
+        async with self._engine.connect() as conn:
+            r = (await conn.execute(sa.select(t.app_user).where(
+                t.app_user.c.username == username))).mappings().first()
+        return _user_row(r) if r else None
+
+    async def list_users(self) -> list[UserRow]:
+        import sqlalchemy as sa
+
+        from . import schema as t
+        async with self._engine.connect() as conn:
+            rs = (await conn.execute(sa.select(t.app_user)
+                                     .order_by(t.app_user.c.created_at))).mappings().all()
+        return [_user_row(r) for r in rs]
+
+    async def count_users(self) -> int:
+        import sqlalchemy as sa
+
+        from . import schema as t
+        async with self._engine.connect() as conn:
+            return int((await conn.execute(
+                sa.select(sa.func.count()).select_from(t.app_user))).scalar_one())
+
+    async def update_user(self, uid: str, *, role: str | None = None,
+                          active: bool | None = None,
+                          password_hash: str | None = None,
+                          prefs: dict[str, Any] | None = None) -> UserRow | None:
+        from . import schema as t
+        vals: dict[str, Any] = {}
+        if role is not None:
+            vals["role"] = role
+        if active is not None:
+            vals["active"] = active
+        if password_hash is not None:
+            vals["password_hash"] = password_hash
+        if prefs is not None:
+            vals["prefs"] = prefs
+        if vals:
+            async with self._engine.begin() as conn:
+                await conn.execute(t.app_user.update()
+                                   .where(t.app_user.c.id == uid).values(**vals))
+        return await self.get_user(uid)
+
+    async def delete_user(self, uid: str) -> bool:
+        import sqlalchemy as sa
+
+        from . import schema as t
+        async with self._engine.begin() as conn:
+            # 显式先删登录会话再删账号：SQLite 默认不强制外键，不能只靠 CASCADE。
+            await conn.execute(sa.delete(t.auth_session)
+                               .where(t.auth_session.c.user_id == uid))
+            r = await conn.execute(sa.delete(t.app_user)
+                                   .where(t.app_user.c.id == uid))
+        return bool(r.rowcount)
+
+    # ── 登录会话 ─────────────────────────────────────────────────
+    async def create_auth_session(self, row: AuthSessionRow) -> AuthSessionRow:
+        from datetime import UTC, datetime
+
+        from . import schema as t
+        row.created = row.created or time.time()
+        row.last_seen = row.last_seen or row.created
+        async with self._engine.begin() as conn:
+            await conn.execute(t.auth_session.insert().values(
+                token_hash=row.token_hash, user_id=row.user_id,
+                created_at=datetime.fromtimestamp(row.created, tz=UTC),
+                last_seen_at=datetime.fromtimestamp(row.last_seen, tz=UTC),
+                expires_at=datetime.fromtimestamp(row.expires, tz=UTC)))
+        return row
+
+    async def get_auth_session(self, token_hash: str) -> AuthSessionRow | None:
+        import sqlalchemy as sa
+
+        from . import schema as t
+        async with self._engine.connect() as conn:
+            r = (await conn.execute(sa.select(t.auth_session).where(
+                t.auth_session.c.token_hash == token_hash))).mappings().first()
+        return _auth_row(r) if r else None
+
+    async def delete_auth_session(self, token_hash: str) -> bool:
+        import sqlalchemy as sa
+
+        from . import schema as t
+        async with self._engine.begin() as conn:
+            r = await conn.execute(sa.delete(t.auth_session)
+                                   .where(t.auth_session.c.token_hash == token_hash))
+        return bool(r.rowcount)
+
+    async def delete_user_auth_sessions(self, uid: str) -> int:
+        import sqlalchemy as sa
+
+        from . import schema as t
+        async with self._engine.begin() as conn:
+            r = await conn.execute(sa.delete(t.auth_session)
+                                   .where(t.auth_session.c.user_id == uid))
+        return int(r.rowcount or 0)
+
+    async def prune_auth_sessions(self, *, now: float) -> int:
+        from datetime import UTC, datetime
+
+        import sqlalchemy as sa
+
+        from . import schema as t
+        async with self._engine.begin() as conn:
+            r = await conn.execute(sa.delete(t.auth_session).where(
+                t.auth_session.c.expires_at <= datetime.fromtimestamp(now, tz=UTC)))
+        return int(r.rowcount or 0)
+
 
 def _session_row(r: Any) -> SessionRow:
     return SessionRow(
@@ -680,10 +951,25 @@ def _session_row(r: Any) -> SessionRow:
         state_version=r["state_version"])
 
 
+def _user_row(r: Any) -> UserRow:
+    return UserRow(
+        id=r["id"], username=r["username"], password_hash=r["password_hash"],
+        role=r["role"], active=bool(r["active"]), prefs=dict(r["prefs"] or {}),
+        created=r["created_at"].timestamp())
+
+
+def _auth_row(r: Any) -> AuthSessionRow:
+    return AuthSessionRow(
+        token_hash=r["token_hash"], user_id=r["user_id"],
+        created=r["created_at"].timestamp(), last_seen=r["last_seen_at"].timestamp(),
+        expires=r["expires_at"].timestamp())
+
+
 def build_repo(store: Any) -> Repo:
     """按 Store 的模式挑实现。**这是唯一的选路点。**"""
     return MemoryRepo() if not store.enabled else PgRepo(store.engine)
 
 
 __all__ = ["Repo", "MemoryRepo", "PgRepo", "SessionRow", "FileRow", "EventRow",
-           "DecisionRow", "build_repo"]
+           "DecisionRow", "UserRow", "AuthSessionRow", "DuplicateUsername",
+           "build_repo"]

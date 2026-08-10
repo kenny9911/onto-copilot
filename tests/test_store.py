@@ -15,11 +15,13 @@ import pytest
 
 from ontocopilot.store.engine import Store, database_url
 from ontocopilot.store.repo import (
+    AuthSessionRow,
     DecisionRow,
-    EventRow,
+    DuplicateUsername,
     FileRow,
     MemoryRepo,
     SessionRow,
+    UserRow,
     build_repo,
 )
 
@@ -214,3 +216,105 @@ async def test_conflicts_and_answered_rids(repo):
     assert {c["rid"] for c in await repo.list_conflicts("s1")} == {"cf_1", "cf_2"}
     assert (await repo.get_conflict("s1", "cf_1"))["kind"] == "caliber_divergence"
     assert await repo.get_conflict("s1", "不存在") is None
+
+
+# ══════════════════════════════════════════════════════════════════
+#  账号与登录会话（鉴权层）—— 顶层数据，两个实现同一份断言
+# ══════════════════════════════════════════════════════════════════
+def _user(uid: str = "u1", username: str = "alice", **kw) -> UserRow:
+    base = {"id": uid, "username": username, "password_hash": "scrypt$x",
+            "role": "user", "active": True, "prefs": {}, "created": 1_700_000_000.0}
+    return UserRow(**{**base, **kw})
+
+
+async def test_user_round_trip(repo):
+    await repo.create_user(_user())
+    got = await repo.get_user("u1")
+    assert got is not None
+    assert (got.username, got.role, got.active) == ("alice", "user", True)
+    assert got.password_hash == "scrypt$x"
+
+
+async def test_user_lookup_by_username(repo):
+    await repo.create_user(_user())
+    got = await repo.get_user_by_username("alice")
+    assert got is not None and got.id == "u1"
+    assert await repo.get_user_by_username("nobody") is None
+
+
+async def test_duplicate_username_raises_same_error_in_both(repo):
+    """两个实现必须抛同一种异常 —— 否则 memory 上 409、sql 上 500，测不到。"""
+    await repo.create_user(_user())
+    with pytest.raises(DuplicateUsername):
+        await repo.create_user(_user(uid="u2", username="alice"))
+
+
+async def test_users_listed_oldest_first_and_counted(repo):
+    await repo.create_user(_user("u0", "admin", role="admin", created=100.0))
+    await repo.create_user(_user("u1", "bob", created=200.0))
+    assert await repo.count_users() == 2
+    assert [u.id for u in await repo.list_users()] == ["u0", "u1"]
+
+
+async def test_update_user_fields(repo):
+    await repo.create_user(_user())
+    await repo.update_user("u1", role="admin", active=False,
+                           password_hash="scrypt$y", prefs={"theme": "dark"})
+    got = await repo.get_user("u1")
+    assert (got.role, got.active, got.password_hash) == ("admin", False, "scrypt$y")
+    assert got.prefs == {"theme": "dark"}
+
+
+async def test_update_missing_user_returns_none(repo):
+    assert await repo.update_user("ghost", role="admin") is None
+
+
+async def test_delete_user_cascades_auth_sessions(repo):
+    await repo.create_user(_user())
+    await repo.create_auth_session(
+        AuthSessionRow(token_hash="h1", user_id="u1", expires=9_999_999_999.0))
+    assert await repo.get_auth_session("h1") is not None
+    assert await repo.delete_user("u1") is True
+    assert await repo.get_user("u1") is None
+    assert await repo.get_auth_session("h1") is None      # 级联删掉
+
+
+async def test_auth_session_round_trip_and_delete(repo):
+    await repo.create_user(_user())
+    await repo.create_auth_session(
+        AuthSessionRow(token_hash="h1", user_id="u1", expires=9_999_999_999.0))
+    assert (await repo.get_auth_session("h1")).user_id == "u1"
+    assert await repo.delete_auth_session("h1") is True
+    assert await repo.get_auth_session("h1") is None
+
+
+async def test_delete_user_auth_sessions_bulk(repo):
+    """停用/改密要立刻踢掉该用户的全部登录会话。"""
+    await repo.create_user(_user())
+    for h in ("h1", "h2", "h3"):
+        await repo.create_auth_session(
+            AuthSessionRow(token_hash=h, user_id="u1", expires=9_999_999_999.0))
+    assert await repo.delete_user_auth_sessions("u1") == 3
+    assert await repo.get_auth_session("h2") is None
+
+
+async def test_prune_expired_auth_sessions(repo):
+    await repo.create_user(_user())
+    await repo.create_auth_session(
+        AuthSessionRow(token_hash="live", user_id="u1", expires=2_000_000_000.0))
+    await repo.create_auth_session(
+        AuthSessionRow(token_hash="dead", user_id="u1", expires=1_000.0))
+    assert await repo.prune_auth_sessions(now=1_700_000_000.0) == 1
+    assert await repo.get_auth_session("live") is not None
+    assert await repo.get_auth_session("dead") is None
+
+
+async def test_delete_session_leaves_accounts_untouched(repo):
+    """删建模会话**绝不能**误伤账号/登录会话 —— 它们是顶层数据，不随会话级联。"""
+    await repo.create_session(_sess())
+    await repo.create_user(_user())
+    await repo.create_auth_session(
+        AuthSessionRow(token_hash="h1", user_id="u1", expires=9_999_999_999.0))
+    await repo.delete_session("s1")
+    assert await repo.get_user("u1") is not None
+    assert await repo.get_auth_session("h1") is not None
