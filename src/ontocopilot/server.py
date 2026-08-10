@@ -150,6 +150,11 @@ _CATALOG_OK: bool = False
 @asynccontextmanager
 async def _lifespan(app: FastAPI) -> Any:
     """先起库，再对账。顺序不能反 —— 对账要用 repo。"""
+    # 把 .env 载进进程环境。CLI 走 llm_config() 时会加载，但服务端的网关配置改走
+    # appconfig（DB→env→抛错），它只读 os.getenv 不自己加载 —— 于是裸 uvicorn 启动
+    # 时 .env 里的网关明明配了却读不到，/chat 与 /build 全 500。在这里一次性载入。
+    from .kernel.config import load_dotenv
+    load_dotenv()
     async with store_lifespan(app):
         ROOT.mkdir(parents=True, exist_ok=True)
         await appconfig.refresh(get_repo())      # 预热设置缓存（网关/模型/预算覆盖）
