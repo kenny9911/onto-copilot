@@ -101,6 +101,15 @@ def test_middle_column_comment_binds_to_that_column(tmp_path):
     assert row.render.index("单位：分") < row.render.index("类型=DECIMAL")
 
 
+def test_xlsx_emits_a_per_sheet_schema_chunk(messy_xlsx):
+    """xlsx 也该像 csv 那样有一个"这张表有哪些列"的 schema 切片 —— 检索列构成时
+    不必扫每一行，大表尤其重要。"""
+    doc = default_registry().parse(messy_xlsx)
+    sch = [c for c in doc.chunks if "schema" in c.tags]
+    assert sch and any("实体名称" in c.render for c in sch)
+    assert sch[0].locator["sheet"] == "业务对象实体梳理"
+
+
 def test_office_metadata_leak_is_reported_and_indexed(messy_xlsx):
     """作者名和绝对保存路径不在表格内容里，但常常泄漏客户名与项目代号。"""
     doc = default_registry().parse(messy_xlsx)

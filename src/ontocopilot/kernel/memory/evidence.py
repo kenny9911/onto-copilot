@@ -123,6 +123,10 @@ class EvidenceIndex:
         self._df: Counter[str] = Counter()
         self._len: dict[str, int] = {}
         self._by_file: dict[str, list[str]] = defaultdict(list)
+        #: 倒排表 term → 含该词的 chunk_id。检索只需给候选打分，不用全库扫。
+        #: BM25 打分公式一字不改 —— 只是把"扫所有切片"换成"扫含查询词的切片"，
+        #: 结果逐位一致，可复现。
+        self._postings: dict[str, list[str]] = defaultdict(list)
         self._avg_len = 0.0
 
     # ── 建索引 ──────────────────────────────────────────────────
@@ -137,6 +141,7 @@ class EvidenceIndex:
         self._len[chunk.chunk_id] = len(toks)
         for t in tf:
             self._df[t] += 1
+            self._postings[t].append(chunk.chunk_id)
         self._by_file[chunk.file_id].append(chunk.chunk_id)
         self._avg_len = sum(self._len.values()) / max(1, len(self._len))
 
@@ -180,9 +185,15 @@ class EvidenceIndex:
             return []
 
         n = len(self._chunks)
+        # 倒排候选：只看含至少一个查询词的切片。不含任何查询词的切片 BM25 分必为 0，
+        # 本就会被 ``if s > 0`` 丢掉，所以候选集之外一个不漏、结果逐位一致。
+        candidates: set[str] = set()
+        for term in q:
+            candidates.update(self._postings.get(term, ()))
         scores: dict[str, float] = {}
-        for cid, tf in self._tf.items():
+        for cid in candidates:
             ch = self._chunks[cid]
+            tf = self._tf[cid]
             if allow is not None and ch.file_id not in allow:
                 continue
             if kind_allow is not None and ch.locator.get("kind") not in kind_allow:

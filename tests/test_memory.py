@@ -141,6 +141,18 @@ def test_search_finds_the_conflicting_definition_across_two_files():
     assert "schema.ddl#clm_contract" in cites
 
 
+def test_search_ignores_chunks_with_no_query_term_overlap():
+    """倒排候选集：完全不含任何查询词的切片绝不该被打分/返回 —— BM25 语义如此，
+    倒排索引优化后也必须保持。"""
+    ix = EvidenceIndex()
+    ix.add(Chunk(chunk_id="hit", file_id="f", file_name="x", locator={},
+                 render="采购合同 计划金额"))
+    ix.add(Chunk(chunk_id="miss", file_id="f", file_name="x", locator={},
+                 render="供应商 地址 电话"))
+    hits = ix.search("计划金额", top_k=10, expand=0)
+    assert {h.chunk_id for h in hits} == {"hit"}
+
+
 def test_search_can_filter_by_kind():
     """节点可以把检索限定到某类来源 —— 例如只看 DDL 的物理定义。"""
     ix = _idx()

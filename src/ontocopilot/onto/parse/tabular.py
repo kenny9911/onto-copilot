@@ -270,6 +270,17 @@ class XlsxParser(Parser):
                     f"「{ws.title}」没有可识别的表头，已按位置列名处理、正文从第 1 行起",
                     {"sheet": ws.title}))
 
+            # 每张表一个 schema 切片：一眼看清列构成/类型，检索"这张表有哪些列"
+            # 时不必扫每一行 —— 大表尤其重要。
+            doc.chunks.append(make_chunk(
+                doc_id=f"{ws.title}:schema", file_id=file_id, file_name=path.name,
+                locator={"kind": "range", "sheet": ws.title, "rows": [h + 1, h + 1]},
+                render=f"表「{ws.title}」列：" + " | ".join(
+                    f"{n}（{p['inferred_type']}，唯一率{p['distinct_ratio']:.0%}）"
+                    for n, p in cols.items()),
+                raw=cols, order=order, tags=["schema"]))
+            order += 1
+
             # 每行一个切片：行是表格里语义完整的最小单元。render 用补全了分组列的
             # 视图（切片才能自证归属），raw 保持原样（下游 shape 靠留空判分组列）。
             render_body = _fill_hierarchy(header, body)
