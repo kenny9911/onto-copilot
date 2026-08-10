@@ -30,7 +30,7 @@ server.py 的改法（示意，替换现在直接摸 SESSIONS 的地方）::
                              repo: Repo = Depends(get_repo)) -> dict:
         body = body or {}
         row = SessionRow(id=uuid.uuid4().hex[:12],
-                         title=body.get("title") or "采购中台 Ontology 梳理",
+                         title=body.get("title") or "新的本体梳理",
                          project=body.get("project", ""))
         (WORKSPACE / row.id).mkdir(parents=True, exist_ok=True)
         await repo.create_session(row)

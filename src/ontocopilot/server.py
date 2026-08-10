@@ -323,7 +323,7 @@ async def list_sessions() -> list[dict[str, Any]]:
 async def create_session(body: dict[str, Any] | None = None) -> dict[str, Any]:
     body = body or {}
     s = Session(id=uuid.uuid4().hex[:12],
-                title=body.get("title") or "采购中台 Ontology 梳理",
+                title=body.get("title") or "新的本体梳理",
                 project=body.get("project", ""))
     # 聊天 / 工作 双模式：chat = 纯对话（只读工具、无梳理管线），work = 完整工作台。
     s.state["mode"] = body.get("mode") if body.get("mode") in ("work", "chat") else "work"

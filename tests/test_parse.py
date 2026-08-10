@@ -333,6 +333,30 @@ def test_docx_tables_are_extracted_separately(flow_docx):
     assert "含税年度累计" in " ".join(c.render for c in tbl)
 
 
+def test_english_rule_sentences_are_tagged(tmp_path):
+    """Copilot 面向很多业务域和语言 —— 英文的基数/约束句也要能被识别为规则。"""
+    import docx
+    d = docx.Document()
+    d.add_heading("Rules", level=1)
+    d.add_paragraph("Each order must reference exactly one customer; "
+                    "an order can contain multiple line items.")
+    p = tmp_path / "rules.docx"
+    d.save(p)
+    doc = default_registry().parse(p)
+    rules = [c for c in doc.chunks if "rule" in c.tags]
+    assert rules and any("customer" in c.render.lower() for c in rules)
+
+
+def test_rule_hints_are_not_procurement_specific():
+    """规则线索里不该再夹带 含税/不含税 这种某个业务域独有的词。"""
+    from ontocopilot.onto.parse.text import _RULE_HINTS
+    assert not _RULE_HINTS.search("金额含税")
+    assert not _RULE_HINTS.search("按不含税记录")
+    # 但通用建模线索照常命中
+    assert _RULE_HINTS.search("每个订单必须对应一个客户")
+    assert _RULE_HINTS.search("references the parent table")
+
+
 def test_docx_author_leak_is_reported(flow_docx):
     doc = default_registry().parse(flow_docx)
     assert any(f.kind == "metadata_leak" for f in doc.findings)

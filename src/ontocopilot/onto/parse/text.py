@@ -18,10 +18,19 @@ from .base import Finding, ParsedDoc, Parser, make_chunk
 #: 一个切片的软上限（字符）。超了就在句号处切开，不硬切。
 SECTION_SOFT_LIMIT = 1200
 
-#: 建模相关的规则句特征。命中的切片打 rule 标签，检索时优先。
+#: 建模相关的规则句特征。命中的切片打 rule 标签，检索时（tag boost）优先。
+#: **领域无关 + 双语**：Copilot 面向很多业务域和语言，线索只认"建模语义"（基数、
+#: 约束、关系、键、口径），不夹带 含税/不含税 这种某个域独有的词 —— 那是例子不是
+#: 规则线索。漏标不致命：rule 只是加权项，不是硬门禁。
 _RULE_HINTS = re.compile(
-    r"(一个|每个|多个|至少|最多|必须|不得|应当|由.{0,8}(生成|下达|拆分|合并)"
-    r"|对应|关联|一对多|多对多|口径|含税|不含税|唯一|主键)")
+    r"一个|每个|多个|至少|最多|必须|不得|应当|需要"
+    r"|由.{0,8}(生成|产生|创建|拆分|合并|触发|派生)"
+    r"|对应|关联|引用|属于|一对多|多对多|一对一|唯一|主键|外键|默认|枚举|取值|口径|为准"
+    r"|\beach\b|\bevery\b|\bat least\b|\bat most\b|\bexactly one\b|\bmultiple\b|\bmany\b"
+    r"|\bmust\b|\bshall\b|\bcannot\b|\brequired\b|\boptional\b|\bmandatory\b"
+    r"|\breferences?\b|\bbelongs? to\b|\bassociated\b|\bone-to-many\b|\bmany-to-many\b"
+    r"|\bunique\b|\bprimary key\b|\bforeign key\b",
+    re.IGNORECASE)
 
 _HEADING = re.compile(r"^\s*(#{1,6}\s+|第[一二三四五六七八九十百]+[章节条]|"
                       r"\d+(\.\d+)*[、.\s]|[一二三四五六七八九十]+[、.])\s*")
