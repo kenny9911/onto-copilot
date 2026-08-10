@@ -9,7 +9,11 @@ from ontocopilot.onto.parse import (
     corpus_summary,
     default_registry,
 )
-from ontocopilot.onto.parse.tabular import detect_header_row, infer_type
+from ontocopilot.onto.parse.tabular import (
+    _fill_hierarchy,
+    detect_header_row,
+    infer_type,
+)
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -31,6 +35,31 @@ def test_merged_cells_are_filled_down(messy_xlsx):
     # 「采购计划」跨三行合并，每行都该带上它
     assert sum(1 for r in rows if r.get("业务域") == "采购计划") == 3
     assert sum(1 for r in rows if r.get("业务对象") == "采购需求计划") == 2
+
+
+def test_blank_continuation_entity_is_carried_into_render(messy_xlsx):
+    """实体名称是"写一次、下面留空继承"（不是合并单元格），plan_amount 字段行
+    的 实体名称/业务对象/业务域 全靠视觉缩进继承。不还原进 render，切片进了检索
+    索引也不知道自己属于哪个实体 —— 跨实体口径冲突（含税 vs 不含税）无从归因。"""
+    doc = default_registry().parse(messy_xlsx)
+    amt = [c for c in doc.chunks
+           if "row" in c.tags and c.raw.get("字段") == "plan_amount"]
+    assert len(amt) == 2
+    # 两个同名字段靠 render 里的实体名区分
+    by_entity = {}
+    for c in amt:
+        if "pbpHeader" in c.render:
+            by_entity["pbpHeader"] = c
+        if "clmContract" in c.render:
+            by_entity["clmContract"] = c
+    assert set(by_entity) == {"pbpHeader", "clmContract"}, \
+        f"plan_amount 行没带上实体名：{[c.render for c in amt]}"
+    # 含税·年度累计 归 pbpHeader，不含税·单次 归 clmContract
+    assert "年度累计" in by_entity["pbpHeader"].render
+    assert "单次" in by_entity["clmContract"].render
+    # R8 三个分组列全靠继承 —— 业务对象/业务域 也要跟上
+    assert "采购合同" in by_entity["clmContract"].render
+    assert "合同" in by_entity["clmContract"].render
 
 
 def test_cell_comments_are_extracted(messy_xlsx):
@@ -57,6 +86,27 @@ def test_row_chunks_carry_precise_locators(messy_xlsx):
     row = next(c for c in doc.chunks if "row" in c.tags)
     assert row.locator["sheet"] == "业务对象实体梳理"
     assert row.cite().startswith("实体梳理.xlsx!业务对象实体梳理!R")
+
+
+def test_fill_hierarchy_carries_grouping_not_optional_attribute():
+    """分组列（键列左侧、更粗）向下继承；可选属性列（键列右侧）的空是"没有值"，不碰。"""
+    header = ["模块", "字段", "默认值"]
+    body = [["订单", "id", "0"],
+            ["", "amount", ""],
+            ["用户", "uid", "1"],
+            ["", "name", ""]]
+    out = _fill_hierarchy(header, body)
+    assert [r[0] for r in out] == ["订单", "订单", "用户", "用户"]  # 分组列继承
+    assert [r[2] for r in out] == ["0", "", "1", ""]              # 属性列原样
+    # 输入不被就地改写
+    assert body[1][0] == ""
+
+
+def test_fill_hierarchy_without_record_key_is_noop():
+    """没有"逐行都填、逐行变化"的记录键列 —— 不是一行一记录的表，不猜、原样返回。"""
+    header = ["A", "B"]
+    body = [["x", ""], ["", "y"], ["", ""]]
+    assert _fill_hierarchy(header, body) == body
 
 
 def test_header_detection_prefers_the_row_above_data():

@@ -106,6 +106,60 @@ def _render_pairs(header: list[str], row: list[str]) -> list[str]:
     return out
 
 
+def _fill_hierarchy(header: list[str], body: list[list[str]]) -> list[list[str]]:
+    """把"写一次、下面留空继承"的分组列向下补全 —— **只给 render 用，不动 raw**。
+
+    合并单元格已在 :func:`_read_sheet` 里按物理区域填过；这里补的是没做物理合并、
+    纯靠视觉缩进表达层级的分组列。``实体名称`` 最典型：每个实体写一次，其下的字段
+    行留空,视觉上归属上面那个实体。不还原,``plan_amount`` 这样的字段行进了检索
+    索引就不知道自己属于哪个实体,跨实体口径冲突永远归不了因。
+
+    安全边界（宁可少补也不能误填"可选属性列"的空）：
+    * 必须存在一个"密集锚列"（逐行都填、逐行变化的记录键，如 ``字段``）才动手；
+      没有锚列说明这不是一行一记录的表,直接原样返回、不猜。
+    * 只补锚列**左侧**、比锚列**更粗**（重复更多）的短文本列 —— 那才是层级分组；
+      锚列右侧的属性列留空往往是"没有值",不能继承。
+    * 只在"真数据行"（至少一个密集列有值）上继承,空白分隔行不碰。
+    """
+    n = len(body)
+    if n < 2 or not header:
+        return body
+    ncol = len(header)
+
+    def col(i: int) -> list[str]:
+        return [(r[i].strip() if i < len(r) else "") for r in body]
+
+    fill, dratio, maxlen = [], [], []
+    for i in range(ncol):
+        vals = col(i)
+        nonblank = [v for v in vals if v]
+        fill.append(len(nonblank) / n)
+        dratio.append(len(set(nonblank)) / n if nonblank else 0.0)
+        maxlen.append(max((len(v) for v in vals), default=0))
+
+    # 记录键列：从左到右第一个"密集且逐行变化"的列（字段/编码）。
+    key = next((i for i in range(ncol) if fill[i] >= 0.85 and dratio[i] >= 0.5), None)
+    if key is None:
+        return body
+    # 分组列：键列左侧、比键列更粗、短文本、至少写过一次。
+    carry_cols = [i for i in range(key)
+                  if fill[i] > 0 and dratio[i] < dratio[key] and maxlen[i] <= 24]
+    if not carry_cols:
+        return body
+    dense_cols = [i for i in range(ncol) if fill[i] >= 0.85]
+
+    out = [list(r) + [""] * (ncol - len(r)) for r in body]
+    last = dict.fromkeys(carry_cols, "")
+    for r in out:
+        is_data = any(r[d].strip() for d in dense_cols)
+        for i in carry_cols:
+            if r[i].strip():
+                last[i] = r[i].strip()
+            elif is_data and last[i]:
+                r[i] = last[i]
+    return out
+
+
 def detect_header_row(rows: list[list[str]]) -> int:
     """找出表头在第几行（0-based）；**没有表头时返回 -1**。
 
@@ -204,10 +258,12 @@ class XlsxParser(Parser):
                     f"「{ws.title}」没有可识别的表头，已按位置列名处理、正文从第 1 行起",
                     {"sheet": ws.title}))
 
-            # 每行一个切片：行是表格里语义完整的最小单元
+            # 每行一个切片：行是表格里语义完整的最小单元。render 用补全了分组列的
+            # 视图（切片才能自证归属），raw 保持原样（下游 shape 靠留空判分组列）。
+            render_body = _fill_hierarchy(header, body)
             for ri, row in enumerate(body):
                 excel_row = h + 2 + ri
-                pairs = _render_pairs(header, row)
+                pairs = _render_pairs(header, render_body[ri])
                 if not pairs:
                     continue
                 note = comments.get(excel_row)
