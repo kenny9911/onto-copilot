@@ -107,6 +107,9 @@ class Session:
     events: list[dict[str, Any]] = field(default_factory=list)
     state: dict[str, Any] = field(default_factory=dict)
     error: str = ""
+    #: 当前请求选的界面语言（zh/en）。请求时捕获，供**后台管线**读取 —— 管线跑在
+    #  非请求作用域、读不到 cookie/请求，只能靠 Session 传递（与鉴权/配置同一套手法）。
+    lang: str = "zh"
     #: 正在跑的对话轮 / 梳理任务的句柄 —— 停止按钮据此 cancel。运行时对象，**不落库**。
     chat_task: asyncio.Task | None = field(default=None, repr=False, compare=False)
     run_task: asyncio.Task | None = field(default=None, repr=False, compare=False)
@@ -700,6 +703,7 @@ async def _run_pipeline(s: Session, *, tier: str = "full") -> None:
             await _persist(s)
             fstats = (s.state.get("flow") or {}).get("stats") or {}
             s.emit("run.completed", stats={"tier": "flow_preview", **fstats})
+            asyncio.create_task(_emit_ai_prompts(s, slot="opening"))
             return
 
         # ── 切段并冻结计划 ─────────────────────────────────────
@@ -787,6 +791,8 @@ async def _run_pipeline(s: Session, *, tier: str = "full") -> None:
         s.state["_conflicts"] = conflicts
         s.state["suggestions"] = res.get("suggestions") or []
         s.emit("clarify.request", questions=s.state["questions"], routing=cs.summary())
+        # 梳理挂起等 FDE 拍板 —— 这正是他下一步要问的时候，出一版结合全量产物的开场。
+        asyncio.create_task(_emit_ai_prompts(s, slot="opening"))
         if s.state["suggestions"]:
             # 建议不阻塞 —— 单独发一条事件，前端另起一栏，不要塞进问题流里让人
             # 误以为必须先答完才能继续。
@@ -1174,6 +1180,7 @@ async def _compile(s: Session) -> None:
     # 界面停止刷新，然后产物才悄悄变了 —— 他不会知道。
     await _drain_queue(s)
     s.emit("run.completed", stats=oir.stats())
+    asyncio.create_task(_emit_ai_prompts(s, slot="opening"))
 
 
 @app.post("/api/sessions/{sid}/answer")
@@ -1828,7 +1835,7 @@ async def _reason(s: Session, text: str, *, hint: str = "",
         from .kernel.tools import ToolRegistry
         from .onto.converse import _CHAT_SYSTEM
         agent = ConversationAgent(gateway=gw, tools=ToolRegistry(), scope="chat",
-                                  max_steps=3, system=_CHAT_SYSTEM)
+                                  max_steps=3, system=_CHAT_SYSTEM, lang=s.lang)
     else:
         # 工作模式的模型选择器：选了具体模型就让对话直接用它（梳理管线仍按能力路由）
         model_spec = None
@@ -1837,7 +1844,7 @@ async def _reason(s: Session, text: str, *, hint: str = "",
             card = (_CATALOG or ModelCatalog()).get(chosen)
             model_spec = card.spec if card else None
         agent = ConversationAgent(gateway=gw, tools=tools, scope="converse",
-                                  max_steps=5, model=model_spec)
+                                  max_steps=5, model=model_spec, lang=s.lang)
 
     def on_step(rec: dict[str, Any]) -> None:
         # 推理过程必须可见 —— 看不见的推理和编造的区别，用户分辨不出来。
@@ -1896,6 +1903,8 @@ async def chat(sid: str, body: dict[str, Any]) -> dict[str, Any]:
     Run 进行中会排队到本轮结束再执行 —— 否则就是在动一份正在被读写的 OIR。
     """
     s = await _sess_async(sid)
+    # 请求时捕获界面语言：助手回复语言、意图解析规则表都据此选（后台管线读不到请求）。
+    s.lang = "en" if str(body.get("lang") or "").lower().startswith("en") else "zh"
     text = str(body.get("text") or "").strip()
     if not text:
         raise HTTPException(400, "说点什么")
@@ -1910,9 +1919,11 @@ async def chat(sid: str, body: dict[str, Any]) -> dict[str, Any]:
     if approved and pending:
         _publish_turn(s, Speaker.USER, text, intent="confirm", confidence=1.0)
         reply = await _replay_pending(s, pending)
-        _publish_turn(s, Speaker.ASSISTANT, reply)
+        turn_seq = _publish_turn(s, Speaker.ASSISTANT, reply)
         s.state["_pending_action"] = None
         await _persist(s, status=False)
+        asyncio.create_task(_emit_ai_prompts(s, slot="followup", turn=turn_seq,
+                                             user_text=text, reply=reply))
         public = {k: v for k, v in s.state.items() if not k.startswith("_")}
         return {"reply": reply, "needs_confirm": False, "replayed": True,
                 "followups": followup_prompts(answer=reply, state=public,

@@ -233,13 +233,19 @@ class ConversationAgent:
 
     def __init__(self, *, gateway: Any, tools: Any, scope: str = "readonly",
                  max_steps: int = 5, system: str | None = None,
-                 model: Any = None) -> None:
+                 model: Any = None, lang: str = "zh") -> None:
         self.gw = gateway
         self.tools = tools
         self.scope = scope
         self.max_steps = max_steps
         #: 系统提示可覆盖 —— 聊天模式换成通用助手 `_CHAT_SYSTEM`，工作模式用 FDE 版。
         self.system = system or _SYSTEM
+        if lang == "en":
+            # 只加一行输出语言指令：领域内容仍是中文材料，模型照读不误，只把**它自己
+            # 的话**换成英文。实体名/口径等抽取出来的术语保持原文，别硬翻。
+            self.system += ("\n\n[Output language] Reply to the user in English. "
+                            "Keep extracted domain terms (entity names, calibers, "
+                            "field names) in their original language.")
         #: 指定模型（ModelSpec）则对话直接用它，跳过按难度的路由 —— 工作模式的模型选择器。
         self.model = model
 

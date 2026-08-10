@@ -101,7 +101,9 @@ class IntentParse:
 #  分句
 # ══════════════════════════════════════════════════════════════════
 #: 并列连词。"第3条采纳，另外临时表别要了"是两件事 —— 不拆的话执行器只做前一件。
-_CONJ = re.compile(r"[；;。\n]+|，\s*(?=另外|还有|以及|同时|再有|顺便|此外|并且)")
+#: 英文只在 "and also" 处拆（纯 "and" 太容易误拆 "temp and staging tables"）。
+_CONJ = re.compile(r"[；;。\n]+|，\s*(?=另外|还有|以及|同时|再有|顺便|此外|并且)|"
+                   r",?\s+and\s+also\s+", re.I)
 
 
 def split_clauses(text: str) -> list[str]:
@@ -118,47 +120,71 @@ def split_clauses(text: str) -> list[str]:
 #  规则层
 # ══════════════════════════════════════════════════════════════════
 _NUM = r"(\d{1,3})"
-#: 引用某个问题：#12 / 第3个问题 / 问题5 / Q7
-_Q_REF = re.compile(rf"(?:#|问题\s*|第\s*{_NUM}\s*(?:个|条)?\s*问题|[Qq])\s*{_NUM}?")
-#: 引用某条建议：第3条建议 / 建议2 / 第 3 条
-_S_REF = re.compile(rf"(?:第\s*{_NUM}\s*条\s*建议|建议\s*{_NUM}|第\s*{_NUM}\s*条)")
-#: 选项：选① / 第二个 / 选 B / 选项2
-_OPT = re.compile(r"选\s*([①②③④⑤ABCDabcd\d])|第\s*([一二三四五12345])\s*个")
+#: 引用某个问题：#12 / 第3个问题 / 问题5 / Q7 / question 5
+#: 注意 "question" 的分支要排在 "Q" 前面，且 Q 必须后跟数字 —— 否则 [Qq] 会先
+#: 咬住 "question" 里的那个 q，导致 n=0 判不出。
+_Q_REF = re.compile(rf"(?:#|问题\s*|第\s*{_NUM}\s*(?:个|条)?\s*问题|question\s*|\b[Qq](?=\s*\d))"
+                    rf"\s*{_NUM}?", re.I)
+#: 引用某条建议：第3条建议 / 建议2 / 第 3 条 / suggestion 2
+_S_REF = re.compile(rf"(?:第\s*{_NUM}\s*条\s*建议|建议\s*{_NUM}|第\s*{_NUM}\s*条|suggestion\s*{_NUM})",
+                    re.I)
+#: 选项：选① / 第二个 / 选 B / 选项2 / option B / pick 2
+#: 英文序数词（"the second one"）不在此列 —— 交给模型兜底，避免槽位歧义。
+_OPT = re.compile(r"选\s*([①②③④⑤ABCDabcd\d])|第\s*([一二三四五12345])\s*个|"
+                  r"(?:option|pick|choose)\s*([ABCDabcd\d])", re.I)
 
-_ADOPT = re.compile(r"采纳|接受|同意|照(?:着)?做|就这么(?:办|干)|按你说的|可以，?\s*执行|同意执行")
-_REJECT = re.compile(r"不采纳|不接受|否决|不同意|别(?:这么|那么)做|先不|算了")
-_EXCLUDE = re.compile(r"(?:都)?(?:别|不)要|排除|去掉|删掉|不(?:用|需要)(?:建模|进本体)|剔除")
-_INCLUDE = re.compile(r"要保留|留(?:着|下)|加回来|要(?:建模|进本体)|纳入")
-_EXPLAIN = re.compile(r"为什么|凭什么|依据是|怎么(?:得|判|看)出|从哪(?:看|来)|解释一下|说明一下理由")
+# 中英双语：中文规则要 CJK 才命中、英文规则要 ASCII 词才命中，两套互不串味，
+# 所以合成一条正则、单一代码路径，既支持中文也支持英文命令（含混输）。
+_ADOPT = re.compile(r"采纳|接受|同意|照(?:着)?做|就这么(?:办|干)|按你说的|可以，?\s*执行|同意执行|"
+                    r"\b(?:adopt|accept|agree|go ahead|do it|sounds good|approve|apply it)\b", re.I)
+_REJECT = re.compile(r"不采纳|不接受|否决|不同意|别(?:这么|那么)做|先不|算了|"
+                     r"\b(?:reject|decline|do ?n'?t do|skip (?:it|that)|never ?mind|not now|no thanks)\b", re.I)
+_EXCLUDE = re.compile(r"(?:都)?(?:别|不)要|排除|去掉|删掉|不(?:用|需要)(?:建模|进本体)|剔除|"
+                      r"\b(?:exclude|drop|leave out|omit|get rid of|do ?n'?t (?:need|want|model))\b", re.I)
+_INCLUDE = re.compile(r"要保留|留(?:着|下)|加回来|要(?:建模|进本体)|纳入|"
+                      r"\b(?:include|keep|add back|bring back|retain)\b", re.I)
+_EXPLAIN = re.compile(r"为什么|凭什么|依据是|怎么(?:得|判|看)出|从哪(?:看|来)|解释一下|说明一下理由|"
+                      r"\b(?:why|explain|on what basis|how did you|justify|what makes you)\b", re.I)
 # "重出模板"和"重新抽一遍"是两件代价差三个数量级的事，但都以"重"开头 ——
 # 正则要都认得，分流交给槽位里的 phrase。
 _RERUN = re.compile(r"重(?:跑|新|出|做|算|编译|生成)|再(?:跑|抽|来|生成)一?(?:遍|次)?|"
-                    r"重新(?:分析|识别|编译|生成|梳理)")
+                    r"重新(?:分析|识别|编译|生成|梳理)|"
+                    r"\b(?:re-?run|re-?do|regenerate|rebuild|recompile|re-?extract|"
+                    r"run (?:it )?again|try again)\b", re.I)
 #: 开始梳理。判在 _RERUN **之前** —— "重新梳理"两条都命中，但用户说"重新"时
 #: 意思是重跑，说"开始"时意思是第一次跑。
 _START = re.compile(r"^\s*(?:开始|跑一下|梳理一下|处理一下|分析一下|来吧|开工)|"
-                    r"(?:开始|启动)(?:梳理|抽取|分析|处理)|把(?:材料|文件).{0,4}(?:梳理|处理|分析)")
+                    r"(?:开始|启动)(?:梳理|抽取|分析|处理)|把(?:材料|文件).{0,4}(?:梳理|处理|分析)|"
+                    r"^\s*(?:start|begin|go|let'?s go|kick off|run it)\b|"
+                    r"\b(?:start|begin) (?:the )?(?:build|modeling|extraction|analysis)\b", re.I)
 
-_STATUS = re.compile(r"(?:现在|目前)?(?:什么|啥)(?:情况|进度|状态)|进度(?:怎么样|如何)|做到哪|跑完了吗")
+_STATUS = re.compile(r"(?:现在|目前)?(?:什么|啥)(?:情况|进度|状态)|进度(?:怎么样|如何)|做到哪|跑完了吗|"
+                     r"\b(?:status|progress|how'?s it going|are we done|done yet|where are we)\b", re.I)
 #: 问句。「含税按专票算」是在**约定**口径，「我说的口径是什么」是在**问**它 ——
 #: 只看关键词的话两者一模一样，而把提问记成一条新约定，等于用户每问一次就被
 #: 悄悄改一次设定。
 _QUESTION = re.compile(r"[?？]\s*$|^(?:什么|哪|谁|多少|怎么|如何|是否|有没有)|"
-                       r"(?:是什么|有哪些|是多少|对不对|吗)\s*[?？]?\s*$")
+                       r"(?:是什么|有哪些|是多少|对不对|吗)\s*[?？]?\s*$|"
+                       r"^(?:what|which|who|whose|how|why|when|where|is|are|do|does|can|"
+                       r"could|should|would)\b", re.I)
 
 
 def _is_question(c: str) -> bool:
     return bool(_QUESTION.search(c.strip()))
 
 
-_CHITCHAT = re.compile(r"^\s*(?:你好|hi|hello|在吗|谢谢|thanks?|辛苦了|好的|嗯+|ok)\s*[!！。.~]*\s*$", re.I)
+_CHITCHAT = re.compile(r"^\s*(?:你好|hi|hey|hello|在吗|谢谢|thanks?|thank you|辛苦了|好的|嗯+|"
+                       r"ok|okay|great|cool|got it)\s*[!！。.~]*\s*$", re.I)
 
 #: 口径词。这些词一出现，这句话几乎一定是在约定口径。
 # 刻意不含"统一指/按/用"这类泛化说法 —— 它同样出现在命名约定里
 # （"头表统一用 Header 后缀"），会把命名判成口径。判据要落在口径**本身的词**上。
 _CALIBER = re.compile(r"含税|不含税|税率|口径|币种|本位币|折算|时间粒度|按(?:年|月|日|季)度?|"
-                      r"自然(?:年|月)|财(?:年|月)")
-_NAMING = re.compile(r"命名|前缀|后缀|驼峰|下划线|apiName|统一叫|统一用.{0,6}(?:命名|名字|后缀|前缀)")
+                      r"自然(?:年|月)|财(?:年|月)|"
+                      r"\b(?:tax[- ]?(?:in|ex)clusive|with(?:out)? tax|currency|granularity|"
+                      r"fiscal (?:year|month)|caliber)\b", re.I)
+_NAMING = re.compile(r"命名|前缀|后缀|驼峰|下划线|apiName|统一叫|统一用.{0,6}(?:命名|名字|后缀|前缀)|"
+                     r"\b(?:naming|prefix|suffix|camel ?case|snake ?case|api ?name)\b", re.I)
 
 #: 粘进来的结构化片段 —— DDL、JSON、接口定义。这是补充材料，不是指令。
 _PASTED = re.compile(r"CREATE\s+TABLE|ALTER\s+TABLE|^\s*[{\[]|\bvarchar\s*\(|\bGET\s+/|\bPOST\s+/",
@@ -279,7 +305,9 @@ class RuleIntentParser:
                            span=c, by="rule:explain")
 
     def _start(self, c: str) -> IntentMatch | None:
-        if _START.search(c) and not re.search(r"重新|再来|重跑", c):
+        # "重新/再来" 与 "again/re-run/redo" 都是重跑，不是首次开始 —— 让给 _rerun。
+        if _START.search(c) and not re.search(r"重新|再来|重跑|again|re-?run|re-?do|regenerate",
+                                              c, re.I):
             return IntentMatch(Intent.START_BUILD, 0.9, span=c, by="rule:start")
         return None
 
