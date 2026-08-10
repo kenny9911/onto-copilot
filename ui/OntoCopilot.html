@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OntoCopilot</title>
+<style>
+:root{
+  --bg:#faf9f7; --panel:#fff; --line:#e9e7e1; --line-soft:#f0eee9;
+  --ink:#1c1c1a; --ink-2:#6b6862; --ink-3:#9d998f;
+  --accent:#2f6b4f; --accent-tint:#e9f0ea; --accent-line:#c9dccf;
+  --warn:#8a6d1f; --warn-tint:#fdf6e3; --warn-line:#ecdcae;
+  --danger:#9c3b32; --danger-tint:#fbeeec;
+  --btn:#16150f;
+  --serif:"Songti SC","STSong","Noto Serif CJK SC","Source Han Serif SC",Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --r:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:13.5px;line-height:1.65;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+::-webkit-scrollbar{width:9px;height:9px}
+::-webkit-scrollbar-thumb{background:#dedbd3;border-radius:9px;border:2px solid var(--bg)}
+::-webkit-scrollbar-track{background:transparent}
+
+/* ══ shell ══ */
+.app{display:flex;height:100vh;min-width:1120px;overflow-x:auto}
+.pane{background:var(--panel);display:flex;flex-direction:column;min-height:0}
+
+/* ══ sidebar ══ */
+.sidebar{width:222px;flex:0 0 222px;border-right:1px solid var(--line);background:var(--bg)}
+.brand{padding:26px 20px 6px}
+.brand h1{font-family:var(--serif);font-size:19px;font-weight:400;letter-spacing:.3px}
+.brand .meta{font-family:var(--mono);font-size:10px;color:var(--ink-3);letter-spacing:.8px;margin-top:3px}
+.newchat{margin:16px 16px 20px;padding:9px;background:var(--btn);color:#fff;border-radius:8px;font-size:13px;text-align:center;transition:opacity .15s}
+.newchat:hover{opacity:.85}
+.sec{font-size:11px;color:var(--ink-3);padding:0 20px 8px;letter-spacing:.5px}
+.convs{flex:1;overflow-y:auto;padding:0 10px}
+.conv{padding:9px 10px;border-radius:8px;cursor:pointer;position:relative;margin-bottom:2px}
+.conv:hover{background:#f2f0eb}
+.conv.on{background:#eeece6;box-shadow:inset 0 0 0 1px var(--line)}
+.conv .t{font-size:13px;line-height:1.4}
+.conv .s{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);margin-top:2px}
+.conv .dots{position:absolute;right:8px;top:9px;color:var(--ink-3);opacity:0;letter-spacing:1px;font-size:12px}
+.conv:hover .dots{opacity:1}
+.side-foot{border-top:1px solid var(--line);padding:12px 20px 16px}
+.side-foot .who{font-size:11px;color:var(--ink-3);margin-bottom:9px}
+.side-foot .lnks{display:flex;gap:18px}
+.side-foot a{font-size:12px;color:var(--ink-2);text-decoration:none;cursor:pointer}
+.side-foot a:hover{color:var(--accent)}
+
+/* ══ main ══ */
+.main{flex:1 1 auto;min-width:472px;border-right:1px solid var(--line)}
+.mhead{display:flex;align-items:center;gap:11px;padding:14px 22px;border-bottom:1px solid var(--line-soft);flex:0 0 auto}
+.ava{width:26px;height:26px;border-radius:7px;background:var(--btn);color:#fff;font-family:var(--mono);font-size:9px;display:flex;align-items:center;justify-content:center;letter-spacing:.5px}
+.mhead h2{font-size:14.5px;font-weight:500;flex:1}
+.pill{display:inline-flex;align-items:center;gap:6px;background:var(--accent-tint);color:var(--accent);border-radius:20px;padding:4px 11px;font-size:11.5px}
+.pill i{width:5px;height:5px;border-radius:50%;background:var(--accent);display:block}
+.ghost{border:1px solid var(--line);border-radius:7px;padding:4px 11px;font-size:12px;color:var(--ink-2)}
+.ghost:hover{background:#f6f4f0}
+
+.stream{flex:1;overflow-y:auto;padding:0 22px}
+.wrap{max-width:660px;margin:0 auto;padding:26px 0 20px}
+
+/* empty */
+.empty{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+.empty .k{font-family:var(--mono);font-size:10.5px;letter-spacing:2.2px;color:var(--ink-3)}
+.empty h3{font-family:var(--serif);font-size:25px;font-weight:400}
+.sug{background:var(--accent-tint);color:var(--accent);border:1px solid var(--accent-line);border-radius:20px;padding:7px 17px;font-size:13px}
+.sug:hover{background:#dfeae2}
+
+/* messages */
+.turn{margin-bottom:26px}
+.user{display:flex;justify-content:flex-end}
+.user .b{background:#f0eee8;border-radius:13px 13px 3px 13px;padding:9px 14px;max-width:76%;font-size:13.5px}
+.user .att{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);margin-top:5px;text-align:right}
+
+.bot p{margin-bottom:11px}
+.bot p:last-child{margin-bottom:0}
+.lead{font-family:var(--serif);font-size:16px;line-height:1.75;margin-bottom:13px}
+
+/* trace */
+.trace{border:1px solid var(--line);border-radius:var(--r);margin-bottom:14px;overflow:hidden;background:#fdfcfa}
+.trace>summary{list-style:none;cursor:pointer;padding:8px 13px;display:flex;align-items:center;gap:9px;font-family:var(--mono);font-size:10.5px;color:var(--ink-2);letter-spacing:.4px}
+.trace>summary::-webkit-details-marker{display:none}
+.trace>summary:hover{background:#f7f5f1}
+.trace .car{transition:transform .18s;color:var(--ink-3)}
+.trace[open] .car{transform:rotate(90deg)}
+.trace .tb{border-top:1px solid var(--line-soft);padding:11px 13px 13px}
+.step{display:flex;gap:9px;padding:5px 0;font-size:12.3px;align-items:flex-start}
+.tag{font-family:var(--mono);font-size:9px;letter-spacing:.6px;padding:2px 5px;border-radius:4px;flex:0 0 auto;margin-top:2px;min-width:50px;text-align:center}
+.tag.plan{background:#eef1f6;color:#4a5b76}
+.tag.act{background:#f0eee8;color:#6b6255}
+.tag.code{background:#eceff0;color:#4a6068}
+.tag.crit{background:var(--warn-tint);color:var(--warn)}
+.tag.ok{background:var(--accent-tint);color:var(--accent)}
+.step code{font-family:var(--mono);font-size:11px;background:#f2f0ec;padding:1px 4px;border-radius:3px}
+.step .sub{color:var(--ink-3);font-size:11.5px}
+
+/* cards */
+.card{border:1px solid var(--line);border-radius:var(--r);padding:15px 17px;margin-bottom:13px;background:var(--panel)}
+.card.hi{border-color:var(--warn-line);background:var(--warn-tint)}
+.card.gd{border-color:var(--accent-line);background:var(--accent-tint)}
+.card h4{font-size:13px;font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.card h4 .n{font-family:var(--mono);font-size:9.5px;color:var(--ink-3);font-weight:400;letter-spacing:.6px}
+
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line-soft);border:1px solid var(--line-soft);border-radius:8px;overflow:hidden;margin-bottom:12px}
+.stat{background:var(--panel);padding:10px 11px}
+.stat .v{font-family:var(--serif);font-size:20px;line-height:1.2}
+.stat .l{font-size:10.5px;color:var(--ink-3);margin-top:2px}
+.stat.a .v{color:var(--accent)}
+.stat.w .v{color:var(--warn)}
+.stat.d .v{color:var(--danger)}
+
+.rows{display:flex;flex-direction:column;gap:0}
+.row{display:flex;gap:10px;padding:7px 0;border-bottom:1px solid var(--line-soft);font-size:12.5px;align-items:baseline}
+.row:last-child{border-bottom:none}
+.row .k{color:var(--ink-2);flex:0 0 96px}
+.row .v{flex:1}
+.num{font-family:var(--mono);font-size:12px}
+
+.ev{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:10px;background:#f2f0ec;border:1px solid var(--line);border-radius:4px;padding:1px 5px;color:var(--ink-2);cursor:pointer;vertical-align:1px}
+.ev:hover{background:var(--accent-tint);border-color:var(--accent-line);color:var(--accent)}
+
+/* clarify */
+.q{border:1px solid var(--line);border-radius:var(--r);margin-bottom:11px;overflow:hidden}
+.q .qh{padding:11px 15px 9px;border-bottom:1px solid var(--line-soft)}
+.q .qm{font-family:var(--mono);font-size:9.5px;color:var(--ink-3);letter-spacing:.6px;margin-bottom:5px}
+.q .qt{font-size:13.5px;line-height:1.6}
+.q .qbody{padding:11px 15px 13px}
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:11px}
+.cmp .c{border:1px solid var(--line);border-radius:7px;padding:9px 11px;background:#fdfcfa}
+.cmp .c .cl{font-family:var(--mono);font-size:9.5px;color:var(--ink-3);margin-bottom:4px;letter-spacing:.5px}
+.cmp .c .cv{font-size:12.5px}
+.opt{display:flex;gap:9px;align-items:flex-start;padding:7px 9px;border-radius:7px;cursor:pointer;font-size:12.8px}
+.opt:hover{background:#f7f5f1}
+.opt.sel{background:var(--accent-tint)}
+.opt .rd{width:13px;height:13px;border:1.5px solid #c5c1b8;border-radius:50%;flex:0 0 auto;margin-top:4px;position:relative}
+.opt.sel .rd{border-color:var(--accent)}
+.opt.sel .rd::after{content:"";position:absolute;inset:2.5px;border-radius:50%;background:var(--accent)}
+.opt .rr{color:var(--ink-3);font-size:11.5px;margin-top:1px}
+
+/* audit */
+.bar{height:5px;background:var(--line-soft);border-radius:3px;overflow:hidden;margin:8px 0 4px}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:3px}
+.ret{border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-bottom:7px}
+.ret .rh{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:5px}
+.ret .rh b{font-weight:600}
+.ret .rh span{font-family:var(--mono);font-size:11px;color:var(--danger)}
+.ret .ri{font-size:11.8px;color:var(--ink-2);padding:2px 0}
+
+.acts{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.act{border:1px solid var(--line);border-radius:7px;padding:5px 12px;font-size:12.3px;background:var(--panel)}
+.act:hover{border-color:var(--accent-line);background:var(--accent-tint);color:var(--accent)}
+.act.pri{background:var(--btn);color:#fff;border-color:var(--btn)}
+.act.pri:hover{opacity:.85;color:#fff}
+
+/* composer */
+.comp{flex:0 0 auto;padding:14px 22px 20px}
+.cbox{max-width:660px;margin:0 auto;border:1px solid var(--line);border-radius:12px;background:var(--panel);display:flex;align-items:center;gap:11px;padding:9px 9px 9px 13px}
+.cbox:focus-within{border-color:#d6d2c8}
+.chip{background:var(--accent-tint);color:var(--accent);border:1px solid var(--accent-line);border-radius:6px;padding:2px 8px;font-size:11px;flex:0 0 auto}
+.cin{flex:1;font-size:13.3px;color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cin.ph{color:var(--ink-3)}
+.send{background:var(--btn);color:#fff;border-radius:8px;padding:6px 14px;font-size:12.5px;flex:0 0 auto;display:flex;gap:6px;align-items:center}
+.send:hover{opacity:.85}
+.send.off{background:#ebe9e4;color:var(--ink-3);cursor:default}
+.send.off:hover{opacity:1}
+.send kbd{font-family:var(--mono);font-size:10px;opacity:.65}
+
+/* ══ preview ══ */
+.preview{width:372px;flex:0 0 372px;background:var(--bg);transition:flex-basis .22s,width .22s}
+.preview.min{width:42px;flex:0 0 42px}
+.phead{display:flex;align-items:center;padding:14px 16px 10px}
+.phead .pt{font-size:13px;flex:1}
+.phead .cl{color:var(--ink-3);font-size:14px;padding:0 3px}
+.phead .cl:hover{color:var(--ink)}
+.preview.min .phead{padding:14px 0;justify-content:center}
+.preview.min>*:not(.phead){display:none}
+.preview.min .pt{display:none}
+.vstrip{display:none;writing-mode:vertical-rl;font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--ink-3);margin:14px auto 0;cursor:pointer}
+.preview.min .vstrip{display:block}
+
+.tabs{display:flex;background:#f0eee9;border-radius:9px;padding:3px;margin:0 16px 13px}
+.tab{flex:1;padding:5px;font-size:12.3px;color:var(--ink-2);border-radius:7px;text-align:center}
+.tab.on{background:var(--panel);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.pbody{flex:1;overflow-y:auto;padding:0 16px 20px}
+
+.files{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.f{font-family:var(--mono);font-size:10.5px;padding:3px 8px;border-radius:6px;background:#f0eee9;color:var(--ink-3);cursor:pointer}
+.f:hover{background:#e8e5de}
+.f.on{background:var(--panel);color:var(--ink);box-shadow:inset 0 0 0 1px #d8d4ca}
+
+.fh{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px}
+.fh .nm{font-size:12.3px}
+.fh .st{font-family:var(--mono);font-size:9.5px;color:var(--accent)}
+.sheets{display:flex;gap:5px;margin-bottom:9px;flex-wrap:wrap}
+.sh{font-size:10.5px;padding:2px 7px;border-radius:5px;background:#f0eee9;color:var(--ink-3);cursor:pointer}
+.sh.on{background:var(--accent-tint);color:var(--accent)}
+
+table.g{width:100%;border-collapse:collapse;font-size:11.3px;background:var(--panel);border:1px solid var(--line);border-radius:7px;overflow:hidden}
+table.g th{background:#faf9f6;font-weight:400;color:var(--ink-3);font-size:10px;text-align:left;padding:5px 7px;border-bottom:1px solid var(--line)}
+table.g td{padding:5px 7px;border-bottom:1px solid var(--line-soft);vertical-align:top}
+table.g tr:last-child td{border-bottom:none}
+table.g td.rn{font-family:var(--mono);font-size:9.5px;color:#c3bfb5;width:26px}
+table.g tr.hl td{background:var(--warn-tint)}
+table.g tr.hl td.rn{color:var(--warn)}
+.cap{font-size:10.5px;color:var(--ink-3);margin-top:7px}
+
+pre.code{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:10px 11px;font-family:var(--mono);font-size:10.5px;line-height:1.7;overflow-x:auto;color:var(--ink-2)}
+pre.code .kw{color:#7a5aa8}.pre .s{color:var(--accent)}
+pre.code .s{color:#3f7a56}
+pre.code .c{color:#b0aca2}
+pre.code mark{background:var(--warn-tint);color:var(--warn);padding:0 2px;border-radius:2px}
+
+.doc{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:12px 13px;font-size:11.8px;line-height:1.85;color:var(--ink-2)}
+.doc mark{background:var(--warn-tint);color:var(--ink);padding:1px 3px;border-radius:3px;box-shadow:0 0 0 1px var(--warn-line)}
+.doc h5{font-size:12px;color:var(--ink);margin:10px 0 5px;font-weight:600}
+.doc h5:first-child{margin-top:0}
+
+.scan{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:14px;text-align:center}
+.scan .box{border:1px dashed #d8d4ca;border-radius:6px;padding:22px 12px;color:var(--ink-3);font-size:11px;font-family:var(--mono);margin-bottom:9px;background:repeating-linear-gradient(0deg,#fbfaf8,#fbfaf8 3px,#f6f4f0 3px,#f6f4f0 6px)}
+.ocr{text-align:left;font-size:11px;color:var(--ink-2);line-height:1.8}
+.ocr b{font-family:var(--mono);font-size:9.5px;color:var(--accent);font-weight:400}
+
+.elist{display:flex;flex-direction:column;gap:0}
+.e{display:flex;gap:9px;align-items:baseline;padding:7px 2px;border-bottom:1px solid var(--line-soft);font-size:12.2px}
+.e:last-child{border-bottom:none}
+.e .en{flex:1}
+.e .ec{font-family:var(--mono);font-size:10px;color:var(--ink-3)}
+.e .es{font-size:9.5px;font-family:var(--mono);padding:1px 5px;border-radius:4px}
+.es.c{background:var(--accent-tint);color:var(--accent)}
+.es.p{background:#f0eee8;color:var(--ink-2)}
+.es.x{background:var(--danger-tint);color:var(--danger)}
+
+.lg{display:flex;gap:13px;flex-wrap:wrap;margin-bottom:10px;font-size:10.5px;color:var(--ink-2)}
+.lg i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px;vertical-align:-1px;border:1px solid rgba(0,0,0,.08)}
+td.yl{background:var(--warn-tint)}
+td.gy{background:#f3f1ed;color:var(--ink-3)}
+td.cf{position:relative}
+td.cf::after{content:"";position:absolute;top:0;right:0;border:4px solid transparent;border-top-color:var(--danger);border-right-color:var(--danger)}
+
+.rule{padding:8px 0;border-bottom:1px solid var(--line-soft);font-size:12px}
+.rule:last-child{border-bottom:none}
+.rule .rc{font-family:var(--mono);font-size:9.5px;color:var(--ink-3);letter-spacing:.5px}
+.rule .rt{margin-top:2px}
+.rule .rx{font-family:var(--mono);font-size:10.5px;color:var(--accent);margin-top:3px}
+
+.ph-empty{text-align:center;color:var(--ink-3);font-size:12px;padding:44px 16px;line-height:1.9}
+.ph-empty .ic{font-family:var(--mono);font-size:10px;letter-spacing:2px;margin-bottom:8px;color:#c8c4ba}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ═══ SIDEBAR ═══ -->
+  <aside class="pane sidebar">
+    <div class="brand">
+      <h1>OntoCopilot</h1>
+      <div class="meta">ONT-112 · FDE 王工</div>
+    </div>
+    <button class="newchat" onclick="reset()">+ 新会话</button>
+    <div class="sec">会话</div>
+    <div class="convs">
+      <div class="conv on"><div class="t">采购中台 Ontology 梳理</div><div class="s">进行中 · 6 份材料</div><div class="dots">···</div></div>
+      <div class="conv"><div class="t">库存域对象补齐</div><div class="s">待业务回传 · 08-04</div><div class="dots">···</div></div>
+      <div class="conv"><div class="t">合同域命名对齐</div><div class="s">已归档 · 07-29</div><div class="dots">···</div></div>
+    </div>
+    <div class="side-foot">
+      <div class="who">项目组 · 只读</div>
+      <div class="lnks"><a onclick="go('rule')">建模规范</a><a onclick="go('mat')">运行记录</a></div>
+    </div>
+  </aside>
+
+  <!-- ═══ MAIN ═══ -->
+  <main class="pane main">
+    <div class="mhead">
+      <div class="ava">OC</div>
+      <h2>采购中台 Ontology 梳理</h2>
+      <span class="pill" id="hstat"><i></i>Harness 就绪</span>
+      <button class="ghost" onclick="reset()">重放</button>
+    </div>
+    <div class="stream" id="stream"></div>
+    <div class="comp">
+      <div class="cbox">
+        <span class="chip" id="chip">附件 6</span>
+        <div class="cin ph" id="cin"></div>
+        <button class="send" id="send" onclick="next()">发送 <kbd>↵</kbd></button>
+      </div>
+    </div>
+  </main>
+
+  <!-- ═══ PREVIEW ═══ -->
+  <aside class="pane preview" id="prev">
+    <div class="phead">
+      <span class="pt">预览</span>
+      <button class="cl" onclick="togglePrev()">›</button>
+    </div>
+    <div class="vstrip" onclick="togglePrev()">预览</div>
+    <div class="tabs">
+      <button class="tab on" data-t="mat" onclick="go('mat')">材料</button>
+      <button class="tab" data-t="ent" onclick="go('ent')">实体</button>
+      <button class="tab" data-t="tpl" onclick="go('tpl')">模板</button>
+      <button class="tab" data-t="rule" onclick="go('rule')">规范</button>
+    </div>
+    <div class="pbody" id="pbody"></div>
+  </aside>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   剧本：材料梳理 → 反问 3 个建模决策 → 出预填模板
+        → 回传审核（68%）→ 打回 + 自动修 → 二轮达标发布
+   ═══════════════════════════════════════════════════════════ */
+
+const ev = (f,loc,label) => `<span class="ev" onclick="jump('${f}')">◧ ${label}</span>`;
+
+const SCRIPT = [
+/* ── 0 ─────────────────────────────────────────────────── */
+{
+  input:'这 6 份是采购中台的全部梳理材料，格式很杂，先拆解清洗，告诉我能建出什么',
+  att:'实体梳理.xlsx · openapi.json · 流程说明.docx · schema.ddl · er_scan.png · material.csv',
+  jump:'mat',
+  bot:`
+  <div class="lead">6 份都读完了。169 行梳理表里能挑出 46 个候选对象，对齐去重后收敛成 <b>23 个 ObjectType</b>。有两件事你现在就得知道。</div>
+
+  <details class="trace" open>
+    <summary><span class="car">›</span>推理轨迹 · 4 阶段 · 11 步 · 38s</summary>
+    <div class="tb">
+      <div class="step"><span class="tag plan">PLAN</span><div>拆 6 步：按格式分路解析 → 统一切片 → 分模态抽取 → 实体对齐 → 四视角评审 → 排歧义<div class="sub">拓扑在读取材料内容前冻结（防注入）</div></div></div>
+      <div class="step"><span class="tag act">PARSE</span><div><code>docling.convert</code> × 3 · <code>sqlglot.parse</code> · <code>openapi.introspect</code> · <code>ocr.tableformer</code><div class="sub">→ 1,284 个切片，全部带 locator</div></div></div>
+      <div class="step"><span class="tag code">CODEACT</span><div>合成 pandas 抽取脚本，gVisor 沙箱执行<div class="sub">跨行分布检测走确定性 profiler，未交给模型</div></div></div>
+      <div class="step"><span class="tag act">ALIGN</span><div>阻塞 → 成对打分 → 连通分量聚类<div class="sub">46 候选 → 23 实体；<code>采购需求计划</code>/<code>pbpHeader</code>/<code>PurchasePlan</code> 判为同一概念</div></div></div>
+      <div class="step"><span class="tag crit">CRITIC</span><div>Provenance 视角驳回 3 条无证据断言<div class="sub">已降级为 INFERRED，UI 中以浅色标注</div></div></div>
+      <div class="step"><span class="tag crit">CRITIC</span><div>Schema 视角发现 2 个孤立对象<div class="sub"><code>supplierBank</code> / <code>taxCode</code> 无任何 Link</div></div></div>
+      <div class="step"><span class="tag ok">DONE</span><div>4 视角全部通过硬门，21 条冲突进入排歧义队列</div></div>
+    </div>
+  </details>
+
+  <div class="stats">
+    <div class="stat"><div class="v">23</div><div class="l">ObjectType</div></div>
+    <div class="stat"><div class="v">187</div><div class="l">PropertyType</div></div>
+    <div class="stat"><div class="v">31</div><div class="l">LinkType</div></div>
+    <div class="stat d"><div class="v">0</div><div class="l">ActionType</div></div>
+  </div>
+
+  <div class="card hi">
+    <h4>⚠ 「计划金额」有两个口径 <span class="n">SEMANTIC_DIVERGENCE · 影响 12 个对象</span></h4>
+    <div class="cmp">
+      <div class="c"><div class="cl">A · 预算域</div><div class="cv">含税 · 年度累计 · CNY</div></div>
+      <div class="c"><div class="cl">B · 合同域</div><div class="cv">不含税 · 单次 · CNY</div></div>
+    </div>
+    <div style="font-size:12.3px;color:var(--ink-2)">两处都叫 <code style="font-family:var(--mono);font-size:11px">planAmount</code>，类型也都是 DECIMAL(18,2)，只有口径文字不同——所以纯 schema 比对发现不了。
+    ${ev('xlsx','','实体梳理.xlsx 行44')} ${ev('ddl','','schema.ddl clm_contract')}</div>
+  </div>
+
+  <div class="card">
+    <h4>ActionType 一条都没有 <span class="n">MISSING_ACTION</span></h4>
+    <div style="font-size:12.5px;color:var(--ink-2)">梳理表里没人填动作。但 <code style="font-family:var(--mono);font-size:11px">openapi.json</code> 里有 19 个写操作端点，可以反推出草稿再让业务确认，比让他们从零写靠谱。${ev('json','','openapi.json')}</div>
+  </div>
+
+  <div class="card">
+    <h4>顺带一句 <span class="n">元数据泄漏</span></h4>
+    <div style="font-size:12.5px;color:var(--ink-2)">xlsx 的 <code style="font-family:var(--mono);font-size:11px">workbook.xml</code> 里留着保存路径和作者名，对外发布前建议清一遍。${ev('meta','','查看元数据')}</div>
+  </div>
+  `
+},
+
+/* ── 1 ─────────────────────────────────────────────────── */
+{
+  input:'先把这些歧义定了，你觉得该怎么建？',
+  jump:'ent',
+  bot:`
+  <div class="lead">21 条冲突里，18 条我能自己处理或转成模板里的空格。剩下 3 条必须你拍板——它们改的是骨架，返工代价最大。</div>
+
+  <details class="trace">
+    <summary><span class="car">›</span>推理轨迹 · 澄清引擎 · EIG 排序</summary>
+    <div class="tb">
+      <div class="step"><span class="tag plan">PLAN</span><div>对 21 条冲突计算 <code>EIG × log(影响半径) × 不可逆性 × (1-自解性)</code></div></div>
+      <div class="step"><span class="tag act">RANK</span><div>top-3 得分 0.91 / 0.74 / 0.68；第 4 名 0.31 低于阈值 θ=0.35<div class="sub">停止提问。剩余 18 条中 12 条自动修、6 条转为模板黄底必填</div></div></div>
+      <div class="step"><span class="tag ok">DONE</span><div>问 3 个，不问 21 个</div></div>
+    </div>
+  </details>
+
+  <div class="q">
+    <div class="qh"><div class="qm">决策 1/3 · 影响 12 个对象 · 不可逆</div><div class="qt">「计划金额」两个口径怎么处理？</div></div>
+    <div class="qbody">
+      <div class="cmp">
+        <div class="c"><div class="cl">A · 实体梳理.xlsx 行44</div><div class="cv">含税 · 年度累计</div></div>
+        <div class="c"><div class="cl">B · schema.ddl clm_contract</div><div class="cv">不含税 · 单次</div></div>
+      </div>
+      <div class="opt sel" onclick="pick(this)"><span class="rd"></span><div>拆成两个属性 <code style="font-family:var(--mono);font-size:11px">planAmountTaxIncl</code> / <code style="font-family:var(--mono);font-size:11px">planAmountNet</code><div class="rr">信息不丢，但下游要改 4 处报表口径</div></div></div>
+      <div class="opt" onclick="pick(this)"><span class="rd"></span><div>统一为 A（含税年度），B 标为派生<div class="rr">合同域需补一个换算规则</div></div></div>
+      <div class="opt" onclick="pick(this)"><span class="rd"></span><div>统一为 B（不含税单次），A 标为派生<div class="rr">预算域历史数据需回溯</div></div></div>
+      <div class="opt" onclick="pick(this)"><span class="rd"></span><div>先不定，转成模板里的业务必填项<div class="rr">推迟到业务方填写时消解</div></div></div>
+    </div>
+  </div>
+
+  <div class="q">
+    <div class="qh"><div class="qm">决策 2/3 · 影响 8 个对象</div><div class="qt">采购包与执行计划是几对几？</div></div>
+    <div class="qbody">
+      <div style="font-size:12.3px;color:var(--ink-2);margin-bottom:9px">DDL 里是外键（一对多），但流程说明写「一个执行计划可拆入多个采购包」。两处矛盾。${ev('ddl','','schema.ddl')} ${ev('docx','','流程说明.docx §3.2')}</div>
+      <div class="opt sel" onclick="pick(this)"><span class="rd"></span><div>MANY_TO_MANY，补一张关联对象 <code style="font-family:var(--mono);font-size:11px">planPackageRel</code><div class="rr">以流程说明为准，DDL 视为未实现</div></div></div>
+      <div class="opt" onclick="pick(this)"><span class="rd"></span><div>ONE_TO_MANY，以 DDL 为准<div class="rr">流程说明中的拆分场景需另行确认</div></div></div>
+    </div>
+  </div>
+
+  <div class="q">
+    <div class="qh"><div class="qm">决策 3/3 · 影响 23 个对象</div><div class="qt">ActionType 从 OpenAPI 反推草稿？</div></div>
+    <div class="qbody">
+      <div style="font-size:12.3px;color:var(--ink-2);margin-bottom:9px">19 个写端点，能覆盖 23 个对象里的 16 个。反推的草稿会标为「待确认」，不会直接算数。</div>
+      <div class="opt sel" onclick="pick(this)"><span class="rd"></span><div>反推，草稿进模板让业务确认<div class="rr">业务方从"改"开始，比从"写"开始完成率高</div></div></div>
+      <div class="opt" onclick="pick(this)"><span class="rd"></span><div>不反推，留空让业务自己填<div class="rr">预计完成率低于 30%</div></div></div>
+    </div>
+  </div>
+  `
+},
+
+/* ── 2 ─────────────────────────────────────────────────── */
+{
+  input:'按你推荐的来：拆两个属性、多对多、反推草稿',
+  jump:'tpl',
+  bot:`
+  <div class="lead">模板出好了。<b>1,682 格里预填了 1,043 格（62%）</b>，剩下 213 格是业务必填，已经按责任人分派完毕。</div>
+
+  <details class="trace">
+    <summary><span class="car">›</span>推理轨迹 · 模板编译 · CodeAct</summary>
+    <div class="tb">
+      <div class="step"><span class="tag act">SYNC</span><div>3 个决策回写 OIR，级联更新 12 个属性、8 个关系</div></div>
+      <div class="step"><span class="tag code">CODEACT</span><div><code>openpyxl</code> 生成 6 sheet，写入样式/校验/批注/隐藏锚点列<div class="sub"><code>_oir_rid</code> + <code>_oir_hash</code> 用于回传时单元格级 diff</div></div></div>
+      <div class="step"><span class="tag act">DRAFT</span><div>OpenAPI → 19 条 ActionType 草稿，全部标 <code>DRAFT_FROM_API</code></div></div>
+      <div class="step"><span class="tag crit">CRITIC</span><div>Completeness 视角：3 个 sheet 缺填写指引，已补</div></div>
+      <div class="step"><span class="tag ok">GATE</span><div>发放门通过，等你确认后发出</div></div>
+    </div>
+  </details>
+
+  <div class="stats">
+    <div class="stat a"><div class="v">62%</div><div class="l">预填率</div></div>
+    <div class="stat w"><div class="v">213</div><div class="l">业务必填</div></div>
+    <div class="stat"><div class="v">47</div><div class="l">内嵌校验</div></div>
+    <div class="stat"><div class="v">19</div><div class="l">动作草稿</div></div>
+  </div>
+
+  <div class="card">
+    <h4>责任人分派 <span class="n">按对象归属自动推导</span></h4>
+    <div class="rows">
+      <div class="row"><span class="k">供应链部</span><span class="v">王明 · <span class="num">87</span> 格 · 采购计划域 9 个对象</span></div>
+      <div class="row"><span class="k">合同部</span><span class="v">李强 · <span class="num">64</span> 格 · 合同域 7 个对象</span></div>
+      <div class="row"><span class="k">财务部</span><span class="v">张莉 · <span class="num">62</span> 格 · 金额口径与税务字段</span></div>
+    </div>
+  </div>
+
+  <div class="card gd">
+    <h4>模板里做了几件事让他们少犯错</h4>
+    <div style="font-size:12.4px;color:var(--ink-2);line-height:1.9">
+      · 每个 sheet 第一行是填写指引，冻结窗格<br>
+      · 黄底=必填，灰底=已定不用改，红角标=有冲突（批注里写了出处）<br>
+      · 枚举列做了下拉，口径列做了正则校验——错误在他们那端就被拦住<br>
+      · 「计划金额」拆出的两列各自带上了完整口径说明
+    </div>
+  </div>
+
+  <div class="acts">
+    <button class="act pri" onclick="next()">发给三位责任人</button>
+    <button class="act" onclick="go('tpl')">先看模板</button>
+  </div>
+  `
+},
+
+/* ── 3 ─────────────────────────────────────────────────── */
+{
+  input:'业务口都填完回传了，你审一下',
+  att:'采购中台实体模板_回传_v1.xlsx',
+  jump:'tpl',
+  bot:`
+  <div class="lead">审完了。<b>完成度 68%</b>，离达标还差一轮。命名类的 12 处我自己修了，剩下 47 处得他们自己来。</div>
+
+  <details class="trace">
+    <summary><span class="car">›</span>推理轨迹 · 回传审核 · CRITICAL 档</summary>
+    <div class="tb">
+      <div class="step"><span class="tag act">DIFF</span><div>按 <code>_oir_rid</code> 锚点对齐，1,682 格逐格比对<div class="sub">业务方增了 3 行、删了 1 行、重排过顺序——锚点全部命中</div></div></div>
+      <div class="step"><span class="tag act">RULE</span><div>确定性规则：必填 / 命名 / 类型 / 引用完整性<div class="sub">1.2s，零成本，发现 49 处</div></div></div>
+      <div class="step"><span class="tag crit">LLM</span><div>语义审核：口径矛盾 / 疑似敷衍 / 语义重复<div class="sub">异构评委 + 双向 pairwise，三采样多数票</div></div></div>
+      <div class="step"><span class="tag crit">FLAG</span><div>4 处疑似敷衍：3 处抄了列名，1 处原样交回我的预填值<div class="sub"><code>UNCHANGED_PREFILL</code> 说明这格他没审</div></div></div>
+      <div class="step"><span class="tag ok">FIX</span><div>自动修 12 处命名违规（可逆 · 已记账 · 可一键回滚）</div></div>
+    </div>
+  </details>
+
+  <div class="card">
+    <h4>完成度 <span class="n">加权口径：主键 &gt; 口径定义 &gt; 描述 &gt; 备注</span></h4>
+    <div class="bar"><i style="width:68%"></i></div>
+    <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:10.5px;color:var(--ink-3)"><span>68%</span><span>达标线 95%</span></div>
+  </div>
+
+  <div class="stats">
+    <div class="stat d"><div class="v">37</div><div class="l">必填缺失</div></div>
+    <div class="stat d"><div class="v">6</div><div class="l">口径矛盾</div></div>
+    <div class="stat a"><div class="v">12</div><div class="l">命名违规 · 已修</div></div>
+    <div class="stat w"><div class="v">4</div><div class="l">疑似敷衍</div></div>
+  </div>
+
+  <div class="card hi">
+    <h4>这 4 处得说一下 <span class="n">PERFUNCTORY</span></h4>
+    <div style="font-size:12.4px;color:var(--ink-2);line-height:1.9">
+      · 行 12 / 19 / 27 的「口径定义」直接抄了列名<br>
+      · 行 44 的 <code style="font-family:var(--mono);font-size:11px">planAmountTaxIncl</code> 原样交回了我的预填值——这格恰好是当初有争议的那个，需要人真的确认过<br>
+      <span style="color:var(--ink-3);font-size:11.5px">这类问题规则查不出来，混合启发式 + 语义判定才抓得到</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h4>打回单 · 按责任人 <span class="n">47 项</span></h4>
+    <div class="ret"><div class="rh"><b>王明 · 供应链部</b><span>21 项</span></div>
+      <div class="ri">必填缺失 14 · 02_属性明细 行 44,51,58,63,71,79,83…</div>
+      <div class="ri">疑似敷衍 3 · 行 12,19,27 抄了列名</div>
+      <div class="ri">口径矛盾 4 · 与合同域 <code style="font-family:var(--mono);font-size:10.5px">planAmountNet</code> 不一致</div></div>
+    <div class="ret"><div class="rh"><b>李强 · 合同部</b><span>15 项</span></div>
+      <div class="ri">必填缺失 13 · 04_动作清单 的 ActionType 确认</div>
+      <div class="ri">口径矛盾 2 · 需与王明当面对齐</div></div>
+    <div class="ret"><div class="rh"><b>张莉 · 财务部</b><span>11 项</span></div>
+      <div class="ri">必填缺失 10 · 税务字段口径</div>
+      <div class="ri">疑似敷衍 1 · 行 44 原样交回预填值</div></div>
+  </div>
+
+  <div class="acts">
+    <button class="act pri" onclick="next()">发出打回单</button>
+    <button class="act">查看 12 处自动修改</button>
+  </div>
+  `
+},
+
+/* ── 4 ─────────────────────────────────────────────────── */
+{
+  input:'第二轮回来了',
+  att:'采购中台实体模板_回传_v2.xlsx',
+  jump:'ent',
+  bot:`
+  <div class="lead">完成度 <b>96%</b>，过了发布门。Ontology Bundle 已经生成，可以拿去建工作流了。</div>
+
+  <details class="trace">
+    <summary><span class="car">›</span>推理轨迹 · 二轮审核 + 发布</summary>
+    <div class="tb">
+      <div class="step"><span class="tag act">DIFF</span><div>47 项打回中 45 项已处理，2 项标注「本期不适用」并给了理由</div></div>
+      <div class="step"><span class="tag crit">CRITIC</span><div>四视角全通过；口径矛盾清零<div class="sub">王明与李强线下对齐后统一采用不含税单次，含税列改为派生</div></div></div>
+      <div class="step"><span class="tag ok">GATE</span><div>Provenance 高危 0 · 必填率 96% · 命名违规 0 → PASS</div></div>
+      <div class="step"><span class="tag act">EMIT</span><div>导出 <code>ontology_bundle.xlsx</code> + <code>ontology.json</code> + 溯源报告</div></div>
+    </div>
+  </details>
+
+  <div class="stats">
+    <div class="stat a"><div class="v">23</div><div class="l">ObjectType</div></div>
+    <div class="stat a"><div class="v">188</div><div class="l">PropertyType</div></div>
+    <div class="stat a"><div class="v">32</div><div class="l">LinkType</div></div>
+    <div class="stat a"><div class="v">19</div><div class="l">ActionType</div></div>
+  </div>
+
+  <div class="card gd">
+    <h4>产物 <span class="n">全部带完整 provenance</span></h4>
+    <div class="rows">
+      <div class="row"><span class="k">下游输入</span><span class="v"><code style="font-family:var(--mono);font-size:11px">ontology_bundle.xlsx</code> · 6 sheet · 可直接导入</span></div>
+      <div class="row"><span class="k">机器可读</span><span class="v"><code style="font-family:var(--mono);font-size:11px">ontology.json</code> · 每个断言挂 evidence locator</span></div>
+      <div class="row"><span class="k">决策报告</span><span class="v">3 个建模决策 + 21 条冲突处置 + 12 处自动修的完整账</span></div>
+      <div class="row"><span class="k">用时</span><span class="v">2 轮往返 · <span class="num">6</span> 个工作日（人工基线 <span class="num">4</span> 周）</span></div>
+    </div>
+  </div>
+
+  <div class="acts">
+    <button class="act pri">下载 Bundle</button>
+    <button class="act">导出决策报告</button>
+    <button class="act" onclick="reset()">重放</button>
+  </div>
+  `
+}
+];
+
+/* ═══ 预览面板数据 ═══ */
+const FILES = {
+  xlsx:{n:'实体梳理.xlsx',st:'已解析'},
+  json:{n:'openapi.json',st:'已解析'},
+  docx:{n:'流程说明.docx',st:'已解析'},
+  ddl:{n:'schema.ddl',st:'已解析'},
+  scan:{n:'er_scan.png',st:'OCR 完成'},
+  csv:{n:'material.csv',st:'已解析'},
+  meta:{n:'实体梳理.xlsx',st:'元数据'}
+};
+
+const FILEVIEW = {
+xlsx:`<div class="sheets"><span class="sh on">业务对象实体梳理</span><span class="sh">API梳理</span><span class="sh">业务规则</span></div>
+<table class="g"><tr><th></th><th>业务对象</th><th>实体名称</th><th>口径说明</th></tr>
+<tr><td class="rn">2</td><td>采购需求计划</td><td>采购业务计划头</td><td>年度滚动</td></tr>
+<tr><td class="rn">4</td><td></td><td>采购业务计划行</td><td>按物料拆分</td></tr>
+<tr><td class="rn">9</td><td>采购包</td><td>采购包头</td><td>多计划合并</td></tr>
+<tr class="hl"><td class="rn">44</td><td>clmContract</td><td>采购合同</td><td>计划金额（含税，年度累计）</td></tr>
+<tr><td class="rn">81</td><td>poHeader</td><td>采购订单头</td><td>—</td></tr></table>
+<div class="cap">169 行 · 46 个候选对象 · 行 44 命中 SEMANTIC_DIVERGENCE</div>`,
+
+json:`<pre class="code"><span class="c">// 19 个写操作端点 → ActionType 草稿源</span>
+<span class="s">"/purchase-plans/{id}/submit"</span>: {
+  <span class="s">"post"</span>: {
+    <span class="s">"operationId"</span>: <span class="s">"submitPurchasePlan"</span>,
+    <span class="s">"requestBody"</span>: { <span class="s">"$ref"</span>: <span class="s">"#/components/schemas/SubmitReq"</span> }
+  }
+},
+<span class="s">"/purchase-packages"</span>: {
+  <span class="s">"post"</span>: { <span class="s">"operationId"</span>: <span class="s">"createPurchasePackage"</span> }
+},
+<span class="c">// components.schemas.Plan</span>
+<span class="s">"planAmount"</span>: {
+  <span class="s">"type"</span>: <span class="s">"number"</span>, <span class="s">"format"</span>: <span class="s">"decimal"</span>,
+  <span class="s">"description"</span>: <mark>"计划金额"</mark>   <span class="c">← 口径未注明</span>
+}</pre>
+<div class="cap">JSON Pointer 级 locator · 19 个端点覆盖 16/23 对象</div>`,
+
+docx:`<div class="doc">
+<h5>§3.2 采购包组建</h5>
+执行计划下达后，采购员按物料类别、供应商能力、交付窗口三个因子组包。
+<mark>一个执行计划可拆入多个采购包，一个采购包也可包含多个执行计划的行项</mark>。
+组包完成后进入询比价环节。
+<h5>§4.1 金额口径</h5>
+预算控制以<mark>年度累计含税金额</mark>为准；合同签订时按<mark>不含税单次金额</mark>记录，
+两者之间的换算由财务共享中心维护税率表。
+</div>
+<div class="cap">Docling 版式抽取 · 段落 + 字符 span 级 locator · 2 处高亮命中冲突检测</div>`,
+
+ddl:`<pre class="code"><span class="kw">CREATE TABLE</span> clm_contract (
+  contract_id   <span class="kw">VARCHAR</span>(32) <span class="kw">PRIMARY KEY</span>,
+  plan_id       <span class="kw">VARCHAR</span>(32),
+  <mark>plan_amount   DECIMAL(18,2)</mark>,  <span class="c">-- 不含税·单次</span>
+  <span class="kw">CONSTRAINT</span> fk_plan <span class="kw">FOREIGN KEY</span> (plan_id)
+    <span class="kw">REFERENCES</span> pbp_header(plan_id)
+);
+<span class="c">-- FK 暗示 ONE_TO_MANY，与流程说明 §3.2 矛盾</span>
+<span class="kw">CREATE TABLE</span> pbp_header (
+  plan_id       <span class="kw">VARCHAR</span>(32) <span class="kw">PRIMARY KEY</span>,
+  <mark>plan_amount   DECIMAL(18,2)</mark>   <span class="c">-- 含税·年度累计</span>
+);</pre>
+<div class="cap">sqlglot AST · 同名同类型不同口径 —— 纯 schema 比对无法发现</div>`,
+
+scan:`<div class="scan"><div class="box">er_scan.png · 2480×3508 · 扫描件</div>
+<div class="ocr">
+<b>OCR + TableFormer</b><br>
+识别出 ER 图 14 个实体框、22 条连线<br>
+其中 3 个实体不在 xlsx 梳理表内：<br>
+&nbsp;&nbsp;· 供应商银行账户 supplierBank<br>
+&nbsp;&nbsp;· 税码 taxCode<br>
+&nbsp;&nbsp;· 询价单 rfqHeader<br>
+<span style="color:var(--warn)">前两个在对齐后成为孤立对象</span>
+</div></div>
+<div class="cap">page + bbox 级 locator · Firecracker microVM 中执行</div>`,
+
+csv:`<table class="g"><tr><th></th><th>material_code</th><th>name</th><th>uom</th></tr>
+<tr><td class="rn">1</td><td>M-100234</td><td>低压电缆 YJV-4×25</td><td>米</td></tr>
+<tr><td class="rn">2</td><td>M-100235</td><td>低压电缆 YJV-4×35</td><td>米</td></tr>
+<tr><td class="rn">3</td><td>M-100411</td><td>断路器 NSX250</td><td>台</td></tr></table>
+<div class="cap">12,847 行 · profiler：唯一率 100% · 空值 0 · 已推断为 materialMaster 的实例源</div>`,
+
+meta:`<pre class="code"><span class="c">// xl/workbook.xml + docProps/core.xml</span>
+&lt;absPath url=<mark>"C:\\Users\\l.wu\\Desktop\\工作\\华东能源G3项目\\"</mark>/&gt;
+&lt;dc:creator&gt;<mark>l.wu</mark>&lt;/dc:creator&gt;
+&lt;cp:lastModifiedBy&gt;<mark>l.wu</mark>&lt;/cp:lastModifiedBy&gt;
+&lt;dcterms:modified&gt;2026-07-31T09:14:22Z&lt;/dcterms:modified&gt;</pre>
+<div class="doc" style="margin-top:9px">
+客户名与项目代号是从<b>保存路径</b>读出来的，不在表格内容里。作者名 <code style="font-family:var(--mono);font-size:10.5px">l.wu</code> 同理。<br><br>
+<span style="color:var(--warn)">Office 文档默认携带作者、保存路径、修订记录。对外发布前建议清洗，或把项目名换成中性代号。</span>
+</div>`
+};
+
+const ENT = [
+ ['purchasePlanHeader','采购业务计划头','c'],['purchasePlanLine','采购业务计划行','c'],
+ ['purchasePackage','采购包头','c'],['purchasePackageLine','采购包行','c'],
+ ['clmContract','采购合同','c'],['poHeader','采购订单头','c'],['poLine','采购订单行','c'],
+ ['rfqHeader','询价单头','p'],['supplierMaster','供应商主数据','c'],
+ ['materialMaster','物料主数据','c'],['planPackageRel','计划-包关联','p'],
+ ['supplierBank','供应商银行账户','x'],['taxCode','税码','x']
+];
+
+const RULES = [
+ ['NAME-01','apiName 使用 lowerCamelCase，禁止中英混排','^[a-z][a-zA-Z0-9]*$'],
+ ['NAME-02','表头对象一律以 Header/Line 结尾区分主子','.*(Header|Line)$'],
+ ['NAME-03','缩写须在术语表登记后方可使用','—'],
+ ['TYPE-01','金额类统一 DECIMAL(18,2)，必须声明含税口径与时间粒度','—'],
+ ['TYPE-02','枚举必须给出完整 valueDomain，禁止自由文本','—'],
+ ['EVID-01','每个断言至少一条 evidence，否则标记 INFERRED','—'],
+ ['LINK-01','LinkType 必须声明 joinKey 两端属性','—'],
+ ['ACT-01','从 OpenAPI 反推的动作一律标 DRAFT_FROM_API，需人工确认','—']
+];
+
+/* ═══ 状态 ═══ */
+let i = 0, tab = 'mat', file = 'xlsx';
+const $ = id => document.getElementById(id);
+
+function render(){
+  const s = $('stream');
+  if(i === 0){
+    s.innerHTML = `<div class="empty">
+      <div class="k">6 FILES ATTACHED</div>
+      <h3>材料已就位，等你下指令</h3>
+      <button class="sug" onclick="next()">先把材料梳理一遍</button>
+    </div>`;
+  }
+  $('cin').textContent = i < SCRIPT.length ? SCRIPT[i].input : '会话已完成，点「重放」重新开始';
+  $('cin').className = 'cin' + (i < SCRIPT.length ? ' ph' : '');
+  $('chip').style.display = i === 0 ? '' : 'none';
+  $('send').className = 'send' + (i < SCRIPT.length ? '' : ' off');
+  $('hstat').innerHTML = i === 0 ? '<i></i>Harness 就绪'
+    : i >= SCRIPT.length ? '<i></i>已发布' : '<i></i>Harness 运行中';
+}
+
+function next(){
+  if(i >= SCRIPT.length) return;
+  const st = SCRIPT[i], s = $('stream');
+  if(i === 0) s.innerHTML = '<div class="wrap" id="wrap"></div>';
+  const w = $('wrap');
+  w.insertAdjacentHTML('beforeend',
+    `<div class="turn user"><div><div class="b">${st.input}</div>${st.att?`<div class="att">◧ ${st.att}</div>`:''}</div></div>`);
+  pin();
+  setTimeout(()=>{
+    w.insertAdjacentHTML('beforeend', `<div class="turn bot">${st.bot}</div>`);
+    pin(); if(st.jump) go(st.jump);
+  }, 420);
+  i++; render();
+}
+
+function pin(){ [0,120,420].forEach(d=>setTimeout(()=>{const s=$('stream');s.scrollTop=s.scrollHeight;},d)); }
+
+function reset(){ i = 0; tab = 'mat'; file = 'xlsx'; render(); paint(); }
+
+function pick(el){
+  el.parentElement.querySelectorAll('.opt').forEach(o=>o.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+/* ═══ 预览 ═══ */
+function go(t){
+  if(FILES[t]){ tab='mat'; file=t; } else tab=t;
+  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on', b.dataset.t===tab));
+  $('prev').classList.remove('min');
+  paint();
+}
+const jump = go;
+
+function togglePrev(){ $('prev').classList.toggle('min'); }
+
+function paint(){
+  const b = $('pbody');
+  if(tab === 'mat'){
+    const chips = Object.entries(FILES).filter(([k])=>k!=='meta')
+      .map(([k,v])=>`<span class="f${k===file?' on':''}" onclick="go('${k}')">${v.n}</span>`).join('');
+    const f = FILES[file];
+    b.innerHTML = `<div class="files">${chips}</div>
+      <div class="fh"><span class="nm">${f.n}</span><span class="st">${f.st}</span></div>
+      ${FILEVIEW[file]}`;
+  }
+  else if(tab === 'ent'){
+    if(i < 1){ b.innerHTML = ph('ENTITIES','材料梳理完成后<br>这里显示抽取出的 ObjectType'); return; }
+    const done = i >= 5;                       // 发布后候选转已确认
+    const st = s => done && s === 'p' ? 'c' : s;
+    b.innerHTML = `<div class="cap" style="margin:0 0 9px">23 个 ObjectType · 显示前 ${ENT.length} · 已确认 ${done?21:19} · 候选 ${done?0:2} · 孤立 2</div>
+      <div class="elist">${ENT.map(([c,n,s])=>`<div class="e">
+        <span class="en">${n}</span><span class="ec">${c}</span>
+        <span class="es ${st(s)}">${st(s)==='c'?'已确认':st(s)==='p'?'候选':'孤立'}</span></div>`).join('')}</div>
+      <div class="cap">孤立对象来自 er_scan.png，梳理表里没有 —— 建议确认是否遗漏</div>`;
+  }
+  else if(tab === 'tpl'){
+    if(i < 3){ b.innerHTML = ph('TEMPLATE','决策确认后<br>这里显示编译出的填写模板'); return; }
+    b.innerHTML = `<div class="sheets"><span class="sh">00_填写指引</span><span class="sh">01_对象清单</span><span class="sh on">02_属性明细</span><span class="sh">04_动作清单</span></div>
+      <div class="lg">
+        <span><i style="background:var(--warn-tint);border-color:var(--warn-line)"></i>业务必填</span>
+        <span><i style="background:#f3f1ed"></i>已定·只读</span>
+        <span><i style="background:#fff"></i>可改</span>
+        <span><i style="background:var(--danger)"></i>有冲突</span>
+      </div>
+      <table class="g"><tr><th></th><th>apiName</th><th>类型</th><th>口径定义</th></tr>
+      <tr><td class="rn">2</td><td class="gy">planId</td><td class="gy">STRING</td><td class="gy">主键</td></tr>
+      <tr><td class="rn">12</td><td class="gy">planName</td><td class="gy">STRING</td><td class="yl">${i>=4?'<span style="color:var(--danger)">计划名称 ← 抄了列名</span>':'　'}</td></tr>
+      <tr><td class="rn">44</td><td class="gy">planAmountTaxIncl</td><td class="gy">DECIMAL(18,2)</td><td class="yl cf">${i>=4?'<span style="color:var(--danger)">原样交回预填值</span>':'　'}</td></tr>
+      <tr><td class="rn">45</td><td class="gy">planAmountNet</td><td class="gy">DECIMAL(18,2)</td><td class="yl">${i>=4?'不含税·单次':'　'}</td></tr>
+      <tr><td class="rn">58</td><td class="gy">supplierCode</td><td class="gy">STRING</td><td class="yl">　</td></tr></table>
+      <div class="cap">1,682 格 · 预填 1,043（62%）· 业务必填 213 · 隐藏锚点列 _oir_rid / _oir_hash${i>=4?'<br><span style="color:var(--danger)">回传审核：行 12 疑似敷衍 · 行 44 UNCHANGED_PREFILL</span>':''}</div>`;
+  }
+  else {
+    b.innerHTML = `<div class="cap" style="margin:0 0 6px">项目级建模规范 · 8 条 · 只读</div>
+      ${RULES.map(([c,t,x])=>`<div class="rule"><div class="rc">${c}</div><div class="rt">${t}</div>${x!=='—'?`<div class="rx">${x}</div>`:''}</div>`).join('')}
+      <div class="cap">Naming 视角的 critic 直接读这份规范；12 处自动修全部依据 NAME-01</div>`;
+  }
+}
+const ph = (k,t)=>`<div class="ph-empty"><div class="ic">${k}</div>${t}</div>`;
+
+document.addEventListener('keydown', e=>{
+  if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); next(); }
+});
+
+render(); paint();
+</script>
+</body>
+</html>

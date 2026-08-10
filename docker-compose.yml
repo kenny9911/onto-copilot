@@ -1,0 +1,39 @@
+# OntoCopilot 的本地设施。
+#
+#     docker compose up -d
+#     export DATABASE_URL=postgresql://onto:onto@localhost:5433/ontocopilot
+#     ontocopilot-server
+#
+# 端口刻意用 5433 而不是 5432：开发机上多半已经跑着一个别的 Postgres，
+# 抢 5432 的结果是容器起不来、而错误信息指向端口占用、跟这个项目毫无关系。
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: ontocopilot-pg
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: onto
+      POSTGRES_PASSWORD: onto
+      POSTGRES_DB: ontocopilot
+      # 中文内容的排序与比较。装库时定死，之后改要重建整个实例。
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # 初始化脚本按文件名顺序执行，且**只在数据卷为空时执行一次**。
+      # 改了这里要 `docker compose down -v` 才会重跑 —— 所以真正的模式演进
+      # 走迁移文件，不靠这个目录。
+      - ./infra/initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      # 用 pg_isready 而不是 `psql -c 'select 1'`：后者在初始化脚本还在跑的
+      # 时候就能连上，于是"健康"了但表还没建完。
+      test: ["CMD-SHELL", "pg_isready -U onto -d ontocopilot"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
+
+volumes:
+  pgdata:

@@ -1,0 +1,1313 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OntoCopilot</title>
+<style>
+:root{
+  --bg:#faf9f7; --panel:#fff; --line:#e9e7e1; --line-soft:#f0eee9;
+  --ink:#1c1c1a; --ink-2:#6b6862; --ink-3:#9d998f;
+  --accent:#2f6b4f; --accent-tint:#e9f0ea; --accent-line:#c9dccf;
+  --warn:#8a6d1f; --warn-tint:#fdf6e3; --warn-line:#ecdcae;
+  --danger:#9c3b32; --danger-tint:#fbeeec; --btn:#16150f;
+  --serif:"Songti SC","STSong","Noto Serif CJK SC",Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:13.5px;line-height:1.65;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+::-webkit-scrollbar{width:9px;height:9px}
+::-webkit-scrollbar-thumb{background:#dedbd3;border-radius:9px;border:2px solid var(--bg)}
+
+.app{display:flex;height:100vh;min-width:720px;overflow-x:auto}
+.pane{background:var(--panel);display:flex;flex-direction:column;min-height:0}
+.sidebar{width:230px;flex:0 0 230px;border-right:1px solid var(--line);background:var(--bg)}
+.brand{padding:24px 20px 4px}
+.brand h1{font-family:var(--serif);font-size:19px;font-weight:400}
+.brand .meta{font-family:var(--mono);font-size:10px;color:var(--ink-3);letter-spacing:.7px;margin-top:3px}
+.newchat{margin:16px 16px 18px;padding:9px;background:var(--btn);color:#fff;border-radius:8px;font-size:13px;text-align:center}
+.newchat:hover{opacity:.85}
+.sec{font-size:11px;color:var(--ink-3);padding:0 20px 8px;letter-spacing:.5px}
+.convs{flex:1;overflow-y:auto;padding:0 10px}
+.conv{padding:9px 10px;border-radius:8px;cursor:pointer;margin-bottom:2px}
+.conv:hover{background:#f2f0eb}
+.conv.on{background:#eeece6;box-shadow:inset 0 0 0 1px var(--line)}
+.conv .t{font-size:13px}
+.conv .s{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);margin-top:2px}
+.side-foot{border-top:1px solid var(--line);padding:12px 20px 16px;font-size:11px;color:var(--ink-3)}
+.side-foot .k{font-family:var(--mono);font-size:10px}
+
+.main{flex:1 1 auto;min-width:360px;border-right:1px solid var(--line);position:relative}
+.mhead{display:flex;align-items:center;gap:11px;padding:14px 22px;border-bottom:1px solid var(--line-soft);flex:0 0 auto}
+.ava{width:26px;height:26px;border-radius:7px;background:var(--btn);color:#fff;font-family:var(--mono);font-size:9px;display:flex;align-items:center;justify-content:center}
+.mhead h2{font-size:14.5px;font-weight:500;flex:1}
+.pill{display:inline-flex;align-items:center;gap:6px;background:var(--accent-tint);color:var(--accent);border-radius:20px;padding:4px 11px;font-size:11.5px}
+.pill i{width:5px;height:5px;border-radius:50%;background:var(--accent);display:block}
+.pill.busy i{animation:blink 1s infinite}
+.pill.err{background:var(--danger-tint);color:var(--danger)}.pill.err i{background:var(--danger)}
+@keyframes blink{50%{opacity:.2}}
+.ghost{border:1px solid var(--line);border-radius:7px;padding:4px 11px;font-size:12px;color:var(--ink-2)}
+.ghost:hover{background:#f6f4f0}
+.modetog{display:inline-flex;gap:2px;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:2px}
+.modetog button{border:0;background:transparent;color:var(--ink-2);font-size:12.5px;padding:4px 14px;border-radius:7px;cursor:pointer}
+.modetog button.on{background:var(--panel);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.app.mode-chat .preview{display:none}
+.app.mode-chat .abar,.app.mode-chat #attach{display:none}
+.mdbody{line-height:1.62}
+.mdbody strong{font-weight:600}
+.mdbody .mdh{font-weight:600;margin:7px 0 2px}
+.mdbody .mdl{margin:4px 0;padding-left:20px}
+.mdbody .mdl li{margin:2px 0}
+.mdbody .mdik{font-family:var(--mono);font-size:.9em;background:var(--accent-tint);padding:1px 5px;border-radius:4px}
+.mdbody .mdcode{font-family:var(--mono);font-size:12px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 11px;overflow-x:auto;white-space:pre-wrap;margin:6px 0}
+.mdbody .cur{display:inline-block;width:6px;height:1em;background:var(--ink-3);vertical-align:-2px;animation:blink 1s infinite;margin-left:1px}
+
+.stream{flex:1;overflow-y:auto;padding:0 22px}
+.wrap{max-width:680px;margin:0 auto;padding:24px 0}
+.empty{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center}
+.empty .k{font-family:var(--mono);font-size:10.5px;letter-spacing:2.2px;color:var(--ink-3)}
+.empty h3{font-family:var(--serif);font-size:25px;font-weight:400}
+.sug{background:var(--accent-tint);color:var(--accent);border:1px solid var(--accent-line);border-radius:20px;padding:7px 17px;font-size:13px}
+.sug:hover{background:#dfeae2}
+.sug[disabled]{opacity:.45;cursor:default}
+
+.card{border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:12px;background:var(--panel)}
+.card.hi{border-color:var(--warn-line);background:var(--warn-tint)}
+.card.gd{border-color:var(--accent-line);background:var(--accent-tint)}
+.card.bad{border-color:#e8c4bf;background:var(--danger-tint)}
+.card h4{font-size:13px;font-weight:600;margin-bottom:9px;display:flex;gap:8px;align-items:baseline}
+.card h4 .n{font-family:var(--mono);font-size:9.5px;color:var(--ink-3);font-weight:400}
+.lead{font-family:var(--serif);font-size:16px;line-height:1.75;margin-bottom:12px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line-soft);border:1px solid var(--line-soft);border-radius:8px;overflow:hidden;margin-bottom:11px}
+.stat{background:var(--panel);padding:9px 11px}
+.stat .v{font-family:var(--serif);font-size:19px;line-height:1.2}
+.stat .l{font-size:10.5px;color:var(--ink-3)}
+.stat.a .v{color:var(--accent)}.stat.w .v{color:var(--warn)}.stat.d .v{color:var(--danger)}
+.rows .row{display:flex;gap:10px;padding:6px 0;border-bottom:1px solid var(--line-soft);font-size:12.5px}
+.rows .row:last-child{border:0}
+.rows .k{color:var(--ink-2);flex:0 0 110px}
+.ev{display:inline-flex;gap:4px;font-family:var(--mono);font-size:10px;background:#f2f0ec;border:1px solid var(--line);border-radius:4px;padding:1px 5px;color:var(--ink-2);cursor:pointer;margin:2px 3px 0 0}
+.ev:hover{background:var(--accent-tint);border-color:var(--accent-line);color:var(--accent)}
+
+.trace{border:1px solid var(--line);border-radius:10px;margin-bottom:12px;overflow:hidden;background:#fdfcfa}
+.trace>summary{list-style:none;cursor:pointer;padding:8px 13px;font-family:var(--mono);font-size:10.5px;color:var(--ink-2);letter-spacing:.4px}
+.trace>summary::-webkit-details-marker{display:none}
+.trace .tb{border-top:1px solid var(--line-soft);padding:9px 13px 11px}
+.step{display:flex;gap:9px;padding:4px 0;font-size:12.2px;align-items:flex-start}
+.tag{font-family:var(--mono);font-size:9px;letter-spacing:.5px;padding:2px 5px;border-radius:4px;flex:0 0 auto;margin-top:2px;min-width:56px;text-align:center}
+.tag.run{background:#eef1f6;color:#4a5b76}.tag.ok{background:var(--accent-tint);color:var(--accent)}
+.tag.warn{background:var(--warn-tint);color:var(--warn)}.tag.err{background:var(--danger-tint);color:var(--danger)}
+.step .sub{color:var(--ink-3);font-size:11.5px}
+
+.q{border:1px solid var(--line);border-radius:10px;margin-bottom:11px;overflow:hidden}
+.q.answered{opacity:.55}
+.q .qh{padding:11px 15px 9px;border-bottom:1px solid var(--line-soft)}
+.q .qm{font-family:var(--mono);font-size:9.5px;color:var(--ink-3);letter-spacing:.5px;margin-bottom:4px}
+.q .qt{font-size:13.5px;line-height:1.6}
+.q .qbody{padding:10px 15px 12px}
+.opt{display:flex;gap:9px;align-items:flex-start;padding:7px 9px;border-radius:7px;cursor:pointer;font-size:12.8px}
+.opt:hover{background:#f7f5f1}
+.opt.sel{background:var(--accent-tint)}
+.opt .rd{width:13px;height:13px;border:1.5px solid #c5c1b8;border-radius:50%;flex:0 0 auto;margin-top:4px;position:relative}
+.opt.sel .rd{border-color:var(--accent)}
+.opt.sel .rd::after{content:"";position:absolute;inset:2.5px;border-radius:50%;background:var(--accent)}
+.opt .rr{color:var(--ink-3);font-size:11.5px;margin-top:1px}
+.acts{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.act{border:1px solid var(--line);border-radius:7px;padding:5px 12px;font-size:12.3px;background:var(--panel)}
+.act:hover{border-color:var(--accent-line);background:var(--accent-tint);color:var(--accent)}
+.act.pri{background:var(--btn);color:#fff;border-color:var(--btn)}
+.act.pri:hover{opacity:.85;color:#fff}
+.act[disabled]{opacity:.4;cursor:default}
+
+.comp{flex:0 0 auto;padding:12px 22px 18px}
+.cbox{max-width:680px;margin:0 auto;border:1px solid var(--line);border-radius:14px;
+  background:var(--panel);padding:10px 12px 8px;transition:border-color .12s}
+.cbox:focus-within{border-color:#cdc8bd}
+.crow{display:flex;align-items:center;gap:8px;margin-top:6px}
+.cspacer{flex:1}
+.cbtn{width:28px;height:28px;border-radius:50%;border:1px solid var(--line);
+  background:var(--panel);color:var(--ink-2);font-size:15px;line-height:1;
+  display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+.cbtn:hover{background:var(--bg)}
+.cbtn.go{background:var(--btn);color:#fff;border-color:var(--btn)}
+.cbtn.go:hover{opacity:.85}
+.cbtn.go[disabled]{background:#e6e3dd;color:#b3aea3;border-color:#e6e3dd}
+.cfiles{font-size:11.5px;color:var(--ink-3)}
+.cbox.drag{border-color:var(--accent);background:var(--accent-tint)}
+/* .cbox 是块级容器，不是 flex 行 —— 这里必须 width:100%。写 flex:1 的话
+   textarea 会退回 cols 属性的默认宽度（约 20 字符），一句话就换行。 */
+.cin{display:block;width:100%;box-sizing:border-box;font-size:13.3px;color:var(--ink);
+     background:transparent;border:0;outline:0;resize:none;font-family:var(--sans);
+     line-height:1.55;max-height:160px;padding:2px 0}
+.cin::placeholder{color:var(--ink-3)}
+.ghost2{background:var(--panel);color:var(--ink-2);border:1px solid var(--line)}
+.ghost2:hover{background:var(--bg)}
+.ghost2[disabled]{background:#f4f2ee;color:var(--ink-3);border-color:var(--line-soft)}
+/* 对话气泡。用户靠右、助手靠左，和推理轨迹卡片区分开 —— 轨迹是系统在做事，
+   气泡是人在说话，混在一起就分不出"我说过什么"了。 */
+.bub{margin:10px 0;display:flex}
+.bub.me{justify-content:flex-end}
+.bub .body{max-width:78%;padding:9px 13px;border-radius:12px;font-size:13.3px;line-height:1.65;
+           white-space:pre-wrap;word-break:break-word}
+.bub.me .body{background:var(--btn);color:#fff;border-bottom-right-radius:3px}
+.bub.oc .body{background:var(--panel);border:1px solid var(--line);border-bottom-left-radius:3px}
+.itag{display:inline-block;font-family:var(--mono);font-size:10px;letter-spacing:.03em;
+      background:var(--accent-tint);color:var(--accent);border-radius:3px;padding:1px 6px;margin-right:6px}
+.itag.low{background:var(--warn-tint);color:var(--warn)}
+.send{background:var(--btn);color:#fff;border-radius:8px;padding:6px 14px;font-size:12.5px;flex:0 0 auto}
+.send:hover{opacity:.85}
+.send[disabled]{background:#ebe9e4;color:var(--ink-3);cursor:default}
+
+.preview{width:400px;flex:0 0 400px;background:var(--bg)}
+.phead{display:flex;align-items:center;padding:14px 16px 10px}
+.phead .pt{font-size:13px;flex:1}
+.tabs{display:flex;background:#f0eee9;border-radius:9px;padding:3px;margin:0 16px 12px}
+.tab{flex:1;padding:5px;font-size:12.3px;color:var(--ink-2);border-radius:7px;text-align:center}
+.tab.on{background:var(--panel);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.pbody{flex:1;overflow-y:auto;padding:0 16px 20px}
+.files{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.f{font-family:var(--mono);font-size:10.5px;padding:3px 8px;border-radius:6px;background:#f0eee9;color:var(--ink-3);cursor:pointer}
+.f:hover{background:#e8e5de}
+.f.on{background:var(--panel);color:var(--ink);box-shadow:inset 0 0 0 1px #d8d4ca}
+.chunk{border:1px solid var(--line);border-radius:7px;padding:8px 10px;margin-bottom:6px;background:var(--panel);font-size:11.6px}
+.chunk .c{font-family:var(--mono);font-size:9.5px;color:var(--accent);margin-bottom:3px}
+.chunk mark{background:var(--warn-tint);padding:0 2px;border-radius:2px}
+.elist .e{display:flex;gap:8px;align-items:baseline;padding:6px 2px;border-bottom:1px solid var(--line-soft);font-size:12.2px}
+.elist .e:last-child{border:0}
+.elist .en{flex:1}
+.elist .ec{font-family:var(--mono);font-size:10px;color:var(--ink-3)}
+.cap{font-size:10.5px;color:var(--ink-3);margin:6px 0}
+.ph{text-align:center;color:var(--ink-3);font-size:12px;padding:40px 16px;line-height:1.9}
+.ph .ic{font-family:var(--mono);font-size:10px;letter-spacing:2px;margin-bottom:8px;color:#c8c4ba}
+pre.j{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:9px 10px;font-family:var(--mono);font-size:10.3px;line-height:1.65;overflow-x:auto;color:var(--ink-2);white-space:pre-wrap;word-break:break-all}
+input[type=file]{display:none}
+
+.sgc{border:1px solid var(--line);border-left:2px solid var(--accent-line);border-radius:3px;
+     padding:12px 14px;margin:10px 0;background:var(--panel)}
+.sgh{display:flex;align-items:baseline;gap:8px;margin-bottom:6px}
+.sgi{font-size:13px;color:var(--accent);width:16px;flex:none}
+.sgt{font-weight:600;font-size:13.5px;flex:1;color:var(--ink)}
+.sgm{font-size:11px;color:var(--ink-3);letter-spacing:.02em;flex:none}
+.sgr{font-size:12.5px;line-height:1.7;color:var(--ink-2);margin-bottom:6px}
+.steps{border-left:2px solid var(--accent-line);margin:8px 0 10px 6px;padding-left:12px}
+.stp{margin-bottom:9px}
+.stt{font-size:12.5px;color:var(--ink-2);line-height:1.6}
+.sto{font-family:var(--mono);font-size:11px;color:var(--accent);margin-top:3px}
+.stb{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);margin-top:3px;
+     background:var(--bg);border-radius:3px;padding:4px 7px;
+     white-space:pre-wrap;word-break:break-all;max-height:76px;overflow:hidden}
+.fnd{font-size:11.5px;line-height:1.65;color:var(--warn);background:var(--warn-tint);
+     border:1px solid var(--warn-line);border-radius:5px;padding:7px 9px;margin-bottom:6px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;font-size:11.5px}
+.kvr{display:contents}
+.kvk{color:var(--ink-3);white-space:nowrap;font-size:10.5px;padding-top:1px}
+.kvv{color:var(--ink);word-break:break-word}
+.conv{position:relative}
+.conv .del{position:absolute;right:8px;top:50%;transform:translateY(-50%);
+  opacity:0;background:transparent;color:var(--ink-3);font-size:15px;line-height:1;
+  padding:2px 6px;border-radius:4px;transition:opacity .12s}
+.conv:hover .del{opacity:1}
+.conv .del:hover{background:var(--danger-tint);color:var(--danger)}
+/* 思考中 */
+.bub .body.think{color:var(--ink-2);display:flex;align-items:center;gap:8px}
+.dots{display:inline-flex;gap:3px}
+.dots i{width:5px;height:5px;border-radius:50%;background:var(--ink-3);display:block;
+  animation:blink 1.2s infinite ease-in-out}
+.dots i:nth-child(2){animation-delay:.18s}
+.dots i:nth-child(3){animation-delay:.36s}
+@keyframes blink{0%,60%,100%{opacity:.22;transform:translateY(0)}
+                 30%{opacity:1;transform:translateY(-2px)}}
+.tsec{font-family:var(--mono);font-size:10.5px;color:var(--ink-3)}
+/* 推理 tab */
+.trw{display:flex;gap:9px;padding:9px 0;border-bottom:1px solid var(--line-soft)}
+.trn{font-family:var(--mono);font-size:10px;color:var(--ink-3);width:16px;flex:0 0 auto;padding-top:2px}
+.trb{flex:1;min-width:0}
+.trt{font-size:12.5px;line-height:1.7;color:var(--ink);white-space:pre-wrap}
+.trc{font-family:var(--mono);font-size:10.5px;color:var(--accent);margin-top:4px;
+     word-break:break-all}
+.tro{font-family:var(--mono);font-size:10px;color:var(--ink-3);margin-top:4px;
+     background:var(--bg);border-radius:4px;padding:5px 7px;white-space:pre-wrap;
+     word-break:break-all;max-height:150px;overflow:auto}
+.tgrp{margin-bottom:18px}
+.tgq{font-size:11.5px;color:var(--ink-3);margin-bottom:6px;padding-bottom:5px;
+     border-bottom:1px solid var(--line)}
+.cfm{border:1px solid var(--warn-line);background:var(--warn-tint);border-radius:8px;
+  padding:11px 13px;margin:10px 0;font-size:12.5px;color:var(--warn);
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.cfm .act{margin-left:auto}
+.abar{max-width:680px;margin:0 auto 10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.abar:empty{display:none}
+.abtn{border:1px solid var(--line);background:var(--panel);color:var(--ink);
+  border-radius:8px;padding:7px 14px;font-size:12.5px;text-decoration:none;
+  display:inline-flex;align-items:center;line-height:1}
+.abtn:hover{background:var(--bg)}
+.abtn.pri{background:var(--btn);color:#fff;border-color:var(--btn)}
+.abtn.pri:hover{opacity:.86}
+.apend{font-size:12.5px;color:var(--ink-2);display:inline-flex;align-items:center;gap:7px}
+.apend i{width:6px;height:6px;border-radius:50%;background:var(--accent);
+  animation:blink 1.2s infinite ease-in-out}
+.pchips{display:flex;gap:7px;flex-wrap:wrap;margin:12px 0 4px}
+.pchip{border:1px solid var(--line);background:var(--panel);color:var(--ink-2);
+  border-radius:16px;padding:6px 13px;font-size:12px;text-align:left;line-height:1.4}
+.pchip:hover{background:var(--accent-tint);color:var(--accent);border-color:var(--accent-line)}
+.fnode{display:inline-block;font-size:11px;border-radius:5px;padding:3px 7px;
+  margin:3px 4px 0 0;border:1px solid transparent}
+.fnode.action{background:#dbeafe;border-color:#93c5fd;color:#1e3a5f}
+.fnode.event{background:#fef3c7;border-color:#fcd34d;color:#78350f}
+.fnode.gateway{background:#fefce8;border-color:#eab308;color:#713f12}
+.fnode.terminal{background:#dcfce7;border-color:#86efac;color:#14532d}
+.fnode.external{background:#f5f3ff;border-color:#c4b5fd;color:#581c87}
+.fnode.guess{border-style:dashed;opacity:.75}
+.msheet{border:1px solid var(--line);border-radius:8px;margin-bottom:8px;overflow:hidden}
+.mshead{display:flex;align-items:center;gap:8px;padding:9px 12px;cursor:pointer;
+  background:var(--panel);user-select:none}
+.mshead:hover{background:var(--bg)}
+.mstri{color:var(--ink-3);font-size:11px;width:10px}
+.msname{font-weight:600;font-size:12.5px;color:var(--ink);flex:1}
+.mscount{font-size:11px;color:var(--ink-3);font-family:var(--mono)}
+.msshape{font-size:10.5px;color:var(--accent);background:var(--accent-tint);
+  border-radius:10px;padding:1px 8px}
+.msrows{padding:4px 12px 10px;border-top:1px solid var(--line-soft)}
+.mrow{font-size:11.5px;line-height:1.55;padding:6px 0;border-bottom:1px solid var(--line-soft)}
+.mrow:last-child{border-bottom:0}
+.fnode{cursor:pointer}
+.fcitebox{margin-top:12px}
+.fcite{border:1px solid var(--accent-line);background:var(--accent-tint);
+  border-radius:8px;padding:11px 13px;font-size:12.5px}
+.fcite b{color:var(--ink)}
+.fccode{font-family:var(--mono);font-size:10px;color:var(--accent);margin-left:8px}
+.fcw{display:block;margin-top:5px;color:var(--warn);font-size:11.5px}
+.fcsnip{margin-top:6px;color:var(--ink-2);font-size:11.5px;line-height:1.6;
+  border-left:2px solid var(--accent-line);padding-left:8px}
+.sidebar{transition:width .15s,flex-basis .15s}
+.sidebar.hidden{width:0;flex-basis:0;overflow:hidden;border-right:0}
+.preview.hidden{width:0;flex-basis:0;overflow:hidden;border-left:0}
+.preview{position:relative}
+.pdrag{position:absolute;left:-3px;top:0;bottom:0;width:6px;cursor:col-resize;z-index:5}
+.pdrag:hover{background:var(--accent-line)}
+.collapse{background:transparent;border:0;color:var(--ink-3);font-size:15px;
+  padding:2px 7px;border-radius:5px;line-height:1;flex:0 0 auto}
+.collapse:hover{background:var(--bg);color:var(--ink)}
+.phead{display:flex;align-items:center}
+.phead .pt{flex:1}
+/* 待办：对话流里的一张卡片 */
+.pcard{border:1px solid var(--warn-line);border-radius:12px;margin:12px 0;
+  background:var(--panel);overflow:hidden}
+.pchead{display:flex;align-items:center;gap:8px;padding:11px 14px;cursor:pointer;
+  font-size:12.5px;font-weight:600;color:var(--ink);background:var(--warn-tint)}
+.pchead:hover{background:#fdf0d5}
+.pchi{color:var(--warn)}
+.ptri{color:var(--ink-3);font-size:11px}
+.pcbody{padding:8px 14px 12px}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="pane sidebar">
+    <div class="brand"><h1>OntoCopilot</h1></div>
+    <button class="newchat" onclick="newSession()">+ 新会话</button>
+    <div class="sec">会话</div>
+    <div class="convs" id="convs"></div>
+    <div class="side-foot">
+      <div id="store" class="k"></div>
+    </div>
+  </aside>
+
+  <main class="pane main">
+    <div class="mhead">
+      <button class="collapse" id="sidetoggle" title="收起/展开会话栏"
+        onclick="toggleSidebar()">☰</button>
+      <div class="ava">OC</div>
+      <h2 id="title">OntoCopilot</h2>
+      <div class="modetog" id="modetog">
+        <button data-mode="chat" onclick="setMode('chat')">聊天</button>
+        <button data-mode="work" class="on" onclick="setMode('work')">工作</button>
+      </div>
+      <span class="pill" id="status"><i></i>就绪</span>
+      <button class="ghost" onclick="refresh()">刷新</button>
+    </div>
+    <div class="stream" id="stream"></div>
+    <div class="comp">
+      <div class="abar" id="abar"></div>
+      <div class="cbox">
+        <textarea class="cin" id="cin" rows="1"
+          placeholder="说点什么，或直接把材料拖进来"></textarea>
+        <div class="crow">
+          <button class="cbtn" id="attach" title="添加材料"
+            onclick="document.getElementById('picker').click()">+</button>
+          <span class="cfiles" id="chip"></span>
+          <span class="cspacer"></span>
+          <button class="cbtn go" id="send" title="发送" onclick="sendChat()">↑</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <aside class="pane preview" id="preview">
+    <div class="pdrag" id="pdrag" title="拖动调节预览宽度"></div>
+    <div class="phead"><span class="pt">预览</span>
+      <button class="collapse" title="收起/展开预览" onclick="togglePreview()">⇥</button>
+    </div>
+    <div class="tabs">
+      <button class="tab on" data-t="mat" onclick="go('mat')">材料</button>
+      <button class="tab" data-t="ent" onclick="go('ent')">实体</button>
+      <button class="tab" data-t="cf" onclick="go('cf')">冲突</button>
+      <button class="tab" data-t="art" onclick="go('art')">产物</button>
+      <button class="tab" data-t="flow" onclick="go('flow')">流程图</button>
+      <button class="tab" data-t="think" onclick="go('think')">推理</button>
+    </div>
+    <div class="pbody" id="pbody"></div>
+  </aside>
+</div>
+<input type="file" id="picker" multiple>
+
+<script>
+const API = "";
+let S = null, TAB = "mat", FILE = null, SRC = {}, ES = null, ANSWERS = {};
+let MODE = localStorage.getItem("oc_mode") || "work";   // 聊天 / 工作 双模式
+let STREAM = null;   // {full, i, timer} —— 助手回答的打字机流式呈现
+// 477 个切片全渲染会让面板卡住，也没人会一次看完。
+let MAT_N = 100;
+// 材料预览：哪些 sheet 是展开的。默认第一张展开，其余折叠。
+let MAT_OPEN = new Set();
+// 乐观上屏的消息。服务端回执到达后由 S.state.dialogue 接管，这里清空 ——
+// 不清的话同一句话会显示两遍。
+let PENDING = [];
+// 当前这轮推理的过程。回答落地后清空 —— 保留的话每轮都会越堆越长。
+let STEPS = [];
+// 是否正在等回复。发出去的那一刻就置上，不等第一个 step。
+let THINKING = false;
+// 上一轮有动作被闸门挡住，等用户点确认。**一轮限定**，用完即清。
+let NEEDS_CONFIRM = false, CONFIRM_NEXT = false;
+// 开场提示（会话级）与追问（每轮刷新）。空白输入框对新用户最不友好。
+let PROMPTS = [], FOLLOWUPS = [];
+// 全部推理轮次的存档，给右栏「推理」tab 用。STEPS 只有当前这轮。
+let TRACE = [];
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+const j = async (u, o) => { const r = await fetch(API + u, o); if (!r.ok) throw new Error((await r.text()).slice(0,300)); return r.json(); };
+
+// ── 启动 ────────────────────────────────────────────────────────
+function applyMode(){
+  document.querySelector(".app").classList.toggle("mode-chat", MODE === "chat");
+  document.querySelectorAll("#modetog button").forEach(b =>
+    b.classList.toggle("on", b.dataset.mode === MODE));
+}
+// 聊天 = 纯对话（右侧工作面板收起、无材料/产物）；工作 = 完整工作台。
+function setMode(m){
+  MODE = (m === "chat") ? "chat" : "work";
+  localStorage.setItem("oc_mode", MODE);
+  applyMode();
+  if (S) { render(); paint(); }
+}
+
+(async function init(){
+  applyMode();
+  try {
+    const h = await j("/api/health");
+    // 这里只放**用户需要知道的**：数据会不会丢。模型能力计数是实现细节，
+    // 摆在侧栏只是噪声。
+    const db = h.database || {};
+    $("store").innerHTML = db.mode === "memory"
+      ? `<span style="color:var(--warn)">● 内存模式</span><br>会话在服务重启后会丢失`
+      : db.ok ? `<span style="color:var(--accent)">● 已连接数据库</span><br>schema v${db.schema_version ?? "?"}`
+      : `<span style="color:var(--danger)">● 数据库异常</span><br>${esc(String(db.error||"").slice(0,60))}`;
+  } catch(e) { /* 健康检查失败不该在界面上留一行技术说明 */ }
+  await loadSessions();
+  $("picker").onchange = uploadPicked;
+  bindComposer();
+  bindDrop();
+  bindResize();
+})();
+
+async function loadSessions(){
+  const list = await j("/api/sessions");
+  $("convs").innerHTML = list.length ? list.map(s => `
+    <div class="conv ${S && s.id===S.id ? "on" : ""}" onclick="openSession('${s.id}')">
+      <div class="t">${esc(s.title)}</div>
+      <div class="s">${statusText(s.status)} · ${s.files} 份材料</div>
+      <button class="del" title="删除会话"
+        onclick="event.stopPropagation();dropSession('${s.id}','${esc(s.title)}')">×</button>
+    </div>`).join("") : `<div class="cap" style="padding:0 10px">还没有会话</div>`;
+  if (!S && list.length) openSession(list[0].id);
+  else if (!S) render();
+}
+
+const statusText = s => ({idle:"待上传", parsing:"解析中", extracting:"抽取中",
+  awaiting_answer:"待拍板", done:"已完成", failed:"失败"}[s] || s);
+
+async function newSession(silent){
+  S = await j("/api/sessions", {method:"POST", headers:{"content-type":"application/json"},
+    body: JSON.stringify({title: MODE === "chat" ? "新对话" : "新会话", mode: MODE})});
+  S.state = {}; S.events = []; ANSWERS = {}; SRC = {}; FILE = null; PENDING = []; MAT_N = 100;
+  S.filelist = []; S.files = 0; PROMPTS = []; FOLLOWUPS = [];
+  // 每 per-session 状态都得清，否则会残留上一个会话的内容（推理 tab 尤其明显）
+  TRACE = []; STEPS = []; NEEDS_CONFIRM = false; CONFIRM_NEXT = false; stopThinking();
+  // 新会话立刻拿开场提示 —— 不然第一屏是个空白输入框
+  try { PROMPTS = (await j(`/api/sessions/${S.id}/state`)).prompts || []; } catch(e) {}
+  await loadSessions(); connect(); render();
+  // silent：文件已经拖进来了，再弹一次选择器是打断
+  if (!silent) $("cin")?.focus();
+}
+
+async function openSession(id){
+  const st = await j(`/api/sessions/${id}/state`);
+  S = st; S.events = []; ANSWERS = {}; SRC = {}; FILE = null; PENDING = []; MAT_N = 100;
+  PROMPTS = st.prompts || []; FOLLOWUPS = [];
+  // 切会话同样要清掉推理/待确认/思考残留 —— TRACE 是「推理」tab 唯一数据源
+  TRACE = []; STEPS = []; NEEDS_CONFIRM = false; CONFIRM_NEXT = false; stopThinking();
+  // 视图跟随会话自身的模式（聊天/工作），并同步顶部切换
+  if (st.mode && st.mode !== MODE) { MODE = st.mode; localStorage.setItem("oc_mode", MODE); }
+  applyMode();
+  S.files = (st.filelist || []).length;
+  await loadSessions(); connect(); render(); paint();
+}
+
+// ── 事件流 ──────────────────────────────────────────────────────
+function connect(){
+  if (ES) ES.close();
+  if (!S) return;
+  ES = new EventSource(`${API}/api/sessions/${S.id}/stream?since=0`);
+  ES.onmessage = e => {
+    const ev = JSON.parse(e.data);
+    S.events = S.events.filter(x => x.seq !== ev.seq).concat([ev]).sort((a,b)=>a.seq-b.seq);
+    if (ev.kind === "clarify.request") S.state.questions = ev.questions;
+    if (ev.kind === "suggest.ready") S.state.suggestions = ev.suggestions;
+    if (ev.kind === "chat.step") {
+      // 同一步会回调两次（发起时、拿到结果后），按 n 就地更新而不是追加
+      const key = x => `${x.turn}#${x.n}`;
+      const i = STEPS.findIndex(x => key(x) === key(ev.step));
+      if (i >= 0) STEPS[i] = ev.step; else STEPS.push(ev.step);
+      const j = TRACE.findIndex(x => key(x) === key(ev.step));
+      if (j >= 0) TRACE[j] = {...ev.step, ts: ev.ts};
+      else TRACE.push({...ev.step, ts: ev.ts});
+      if (TAB === "think") paint();
+    }
+    if (ev.kind === "chat.turn") {
+      if (ev.turn.speaker === "assistant") STEPS = [];  // 回答落地，过程收起
+      S.state.dialogue = S.state.dialogue || {turns: []};
+      S.state.dialogue.turns.push(ev.turn);
+      // 回执到了，撤掉对应的乐观占位
+      if (ev.turn.speaker === "user") PENDING = PENDING.filter(x => x.text !== ev.turn.text);
+      if (ev.turn.speaker === "assistant") stopThinking();
+    }
+    if (ev.kind === "node.completed" && ev.node === "CONFLICT") S.state.conflicts = ev.conflicts;
+    if (["run.completed","run.failed","run.suspended","artifact.ready","human.recorded"].includes(ev.kind))
+      fetch(`${API}/api/sessions/${S.id}/state`).then(r=>r.json()).then(st => {
+        const evs = S.events; Object.assign(S, st); S.events = evs;
+        S.files = (st.filelist || []).length; render(); paint();
+      });
+    render();
+  };
+}
+
+// ── 上传与启动 ──────────────────────────────────────────────────
+async function uploadPicked(){
+  const fs = [...$("picker").files];
+  if (!fs.length) return;
+  if (!S) await newSession(true);
+  await uploadFiles(fs);
+  $("picker").value = "";
+}
+
+async function startBuild(tier){
+  if (!S || !S.files) return;
+  const q = tier ? `?tier=${encodeURIComponent(tier)}` : "";
+  try {
+    await j(`/api/sessions/${S.id}/build${q}`, {method:"POST"});
+    S.status = "parsing"; render(); paint();
+  } catch(e){ alert("启动失败：" + e.message); }
+}
+
+
+// 删会话。默认**只从列表移除**，产物和事件日志留在 workspace/ —— 这两件事
+// 分开问，因为后者不可逆。
+async function dropSession(id, title){
+  if (!confirm(`删除会话「${title}」？\n\n产物文件会保留在 workspace/ 里。`)) return;
+  const purge = confirm("连同产物文件一起彻底删除？\n\n取消 = 只从列表移除（推荐）。");
+  await j(`/api/sessions/${id}${purge ? "?purge=true" : ""}`, {method:"DELETE"});
+  if (S && S.id === id) { S = null; if (ES) ES.close(); }
+  await loadSessions(); render(); paint();
+}
+
+async function refresh(){ if (S) await openSession(S.id); }
+
+function pick(el, qid, oid){
+  el.parentElement.querySelectorAll(".opt").forEach(o=>o.classList.remove("sel"));
+  el.classList.add("sel"); ANSWERS[qid] = oid;
+  const btn = document.querySelector(`[data-submit="${qid}"]`);
+  if (btn) btn.disabled = false;
+}
+
+async function submitAnswer(qid, conflictRid){
+  const oid = ANSWERS[qid];
+  if (!oid) return;
+  const btn = document.querySelector(`[data-submit="${qid}"]`);
+  if (btn){ btn.disabled = true; btn.textContent = "提交中…"; }
+  await j(`/api/sessions/${S.id}/answer`, {method:"POST", headers:{"content-type":"application/json"},
+    body: JSON.stringify({conflict_rid: conflictRid, option_id: oid, note: "由 FDE 在界面上确认"})});
+  await refresh();
+}
+
+// ── 渲染：中栏 ──────────────────────────────────────────────────
+function render(){
+  const st = $("status");
+  const s = S?.status || "idle";
+  st.className = "pill" + (["parsing","extracting"].includes(s) ? " busy" : s==="failed" ? " err" : "");
+  st.innerHTML = `<i></i>${S ? statusText(s) : "就绪"}`;
+  $("title").textContent = S?.title || "OntoCopilot";
+  $("chip").textContent = `附件 ${S?.files ?? 0}`;
+  // 输入框永远可用 —— 跑着的时候恰恰是最想插话的时候。
+  $("cin").disabled = !S;
+  $("cin").placeholder = !S ? "" : "说点什么，或直接把材料拖进来";
+  $("chip").textContent = S?.files ? `${S.files} 份材料` : "";
+  $("send").disabled = !S;
+  paintActions();
+
+  const box = $("stream");
+  if (!S) { box.innerHTML = ph("NO SESSION", "新建一个会话开始"); return; }
+
+  const dlg = (S.state?.dialogue?.turns || []).filter(t => t.speaker !== "system");
+  const hasChat = dlg.length || PENDING.length;
+
+  // 空状态**不再直接 return** —— 用户完全可能还没上传材料就先聊起来（"我手上有
+  // 三份材料，先跟你说说背景"），这恰恰是最常见的入口。空状态是一块内容，
+  // 不是一个终点。
+  let intro = "";
+  if (!S.files) {
+    intro = `<div class="empty"><h3>把材料拖进来，或者先聊聊</h3>
+      <button class="sug" onclick="document.getElementById('picker').click()">添加材料</button></div>`;
+  } else if (!S.events.length && S.status === "idle") {
+    intro = `<div class="empty"><h3>${S.files} 份材料已读完</h3>
+      <button class="sug" onclick="startBuild()">开始梳理</button></div>`;
+  }
+  if (intro && !hasChat) {
+    // 空状态也要带提示条 —— 那正是最需要它的时候。上一次这里的 early return
+    // 把聊天气泡挡在外面，这次挡的是开场提示，同一类错误。
+    box.innerHTML = intro + (PROMPTS.length
+      ? `<div class="pchips" style="justify-content:center">${PROMPTS.map(c =>
+          `<button class="pchip" onclick="ask(this.dataset.s)"
+             data-s="${esc(c.send || c.text)}">${esc(c.text)}</button>`).join("")}</div>`
+      : "");
+    return;
+  }
+
+  const parts = [`<div class="wrap">`, intro, traceCard()];
+  for (const ev of S.events) parts.push(evCard(ev));
+  // 待办（决策 + 建议）作为**对话流里的一条消息**，插在梳理刚完成、用户还没
+  // 开口那个时间点。用户一旦提问，后面的气泡自然把它推上去 —— 它不再钉在
+  // 最下方，而是像所有消息一样往上滚。这是一个连续的聊天窗口，不是两块区域。
+  // 待办卡片钉在**它发生的时间点** —— 梳理刚完成、第一句对话之前。之后每一句
+  // 对话都排在它后面，自然把它往上推。它不再永远在最下方（那正是用户抱怨的）。
+  parts.push(pendingCard());
+  for (const t of dlg) parts.push(bubble(t));
+  for (const t of PENDING) parts.push(bubble(t));
+  if (STEPS.length) parts.push(stepsCard());
+  if (THINKING) parts.push(thinkingBubble());
+  if (!THINKING) {
+    // 有追问就出追问；没有（会话刚开始）就出开场。两者不同时出 ——
+    // 提示的位置很贵，占一条就少一条真正有用的。
+    const chips = FOLLOWUPS.length ? FOLLOWUPS : (dlg.length ? [] : PROMPTS);
+    if (chips.length) parts.push(
+      `<div class="pchips">${chips.map(c =>
+        `<button class="pchip" onclick="ask(this.dataset.s)"
+           data-s="${esc(c.send || c.text)}">${esc(c.text)}</button>`).join("")}</div>`);
+  }
+  if (NEEDS_CONFIRM && !THINKING) parts.push(
+    `<div class="cfm">这一步会改产物或花钱，需要你点头。
+      <button class="act pri" onclick="confirmAct()">确认执行</button>
+      <button class="act" onclick="NEEDS_CONFIRM=false;render()">先不要</button></div>`);
+  parts.push("</div>");
+  // 建议/决策**不进消息流** —— 它们以前 push 在流尾，于是永远钉在最下方，
+  // 用户重新提问也不动。搬到中栏顶部的独立固定区（paintPending），
+  // 消息流归消息流。
+  const atBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 120;
+  box.innerHTML = parts.filter(Boolean).join("");
+  if (atBottom) box.scrollTop = box.scrollHeight;
+}
+
+
+// 值得单独占一张卡片的事件。大多数事件只进推理轨迹那条时间线，
+// 只有**需要人读全文**的才升级成卡片：材料里发现的问题、人拍的板、产出的东西。
+function evCard(ev){
+  if (ev.kind === "corpus.ready") {
+    const f = ev.findings || [];
+    if (!f.length) return "";
+    return `<div class="card"><h4>材料解析<span class="n">${ev.stats?.files ?? 0} 份 · ${ev.stats?.chunks ?? 0} 切片</span></h4>`
+      + f.map(x => `<div class="fnd">${esc(x.message)}</div>`).join("") + `</div>`;
+  }
+  if (ev.kind === "parse.failed")
+    return `<div class="card"><h4>解析失败</h4><div class="cap">${esc(ev.error || "")}</div></div>`;
+  if (ev.kind === "human.recorded")
+    return `<div class="card"><h4>已确认<span class="n">${esc(ev.conflict || "")}</span></h4>
+      ${esc(ev.label || "")}
+      ${(ev.changed||[]).length ? `<div class="cap">变更 ${esc((ev.changed||[]).join("、"))}</div>` : ""}</div>`;
+  if (ev.kind === "artifact.ready") {
+    const st = ev.stats || {};
+    return `<div class="card"><h4>${esc(ev.name || "产物")}</h4>
+      <div class="cap">${st.sheets ?? 0} 张表 · ${st.business_required ?? 0} 格待业务方填写</div>
+      <a class="act" href="${API}/api/sessions/${S.id}/artifacts/${encodeURIComponent(ev.name)}">下载</a></div>`;
+  }
+  if (ev.kind === "run.failed")
+    return `<div class="card"><h4>没跑完</h4><div class="cap">${esc(ev.error || "")}</div></div>`;
+  if (ev.kind === "session.restored")
+    return `<div class="card"><h4>会话已恢复</h4>
+      <div class="cap">${ev.files ?? 0} 份材料${ev.stats ? ` · ${ev.stats.objects ?? 0} 个对象` : ""}</div></div>`;
+  return "";
+}
+
+function traceCard(){
+  // 对话事件不进轨迹 —— 轨迹是"系统做了什么"，对话是"我们说了什么"，
+  // 混在一起两边都读不清。
+  const evs = S.events.filter(e => !["chat.turn","chat.step"].includes(e.kind));
+  if (!evs.length) return "";
+
+  const LABEL = {"files.attached":"附件","corpus.ready":"读完材料","parse.failed":"解析失败",
+    "plan.frozen":"冻结计划","node.entered":"进入","node.completed":"完成",
+    "clarify.request":"待拍板","suggest.ready":"建议","human.recorded":"决策",
+    "artifact.ready":"产物","run.completed":"结束","run.failed":"失败",
+    "run.suspended":"挂起","audit.completed":"审核"};
+
+  // 统计用人话说。{"objects":172,"properties":0,...} 这种 JSON 摆在界面上
+  // 等于没说 —— 用户得自己在脑子里翻译一遍。
+  const CN = {objects:"对象", properties:"属性", links:"关系", actions:"行动",
+    rules:"规则", questions:"问题", open_questions:"待答", orphans:"孤儿",
+    confirmed:"已确认", files:"文件", chunks:"切片", sheets:"表",
+    prefilled:"预填", business_required:"业务必填", total_cells:"格",
+    clusters:"聚簇", merged_away:"合并", endpoints:"接口", profiles:"列画像"};
+  const human = o => Object.entries(o || {})
+    .filter(([k,v]) => v !== 0 && v !== null && CN[k])
+    .map(([k,v]) => `${CN[k]} ${v}`).join(" · ");
+
+  const rows = evs.map(ev => {
+    const tag = ev.kind === "run.failed" || ev.kind === "parse.failed" ? "err"
+      : ev.kind.endsWith("completed") || ev.kind === "corpus.ready" ? "ok"
+      : ev.kind === "run.suspended" ? "warn" : "run";
+    const label = LABEL[ev.kind] || ev.kind;
+    const detail = ev.node ? `${ev.node}${ev.title ? " · " + ev.title : ""}`
+      : ev.error || ev.reason || (ev.name ? ev.name : "");
+    const stat = human(ev.stats) || (ev.segments ? `${ev.segments.length} 段` : "")
+      || (ev.questions ? `${ev.questions.length} 个决策` : "")
+      || (ev.suggestions ? `${ev.suggestions.length} 条` : "")
+      || (ev.files ? `${ev.files.length} 份` : "");
+    const extra = ev.model ? `<div class="sub">${esc(ev.model)} · $${ev.usd}</div>`
+      : stat ? `<div class="sub">${esc(stat)}</div>` : "";
+    return `<div class="step"><span class="tag ${tag}">${esc(label)}</span>
+      <div>${esc(detail)}${extra}</div></div>`;
+  }).join("");
+  // 只有几条事件时默认收起 —— 一个只有"附件、读完材料"的展开面板占了半屏，
+  // 却什么也没说。
+  return `<details class="trace"${evs.length > 4 ? " open" : ""}>
+    <summary>推理轨迹 · ${evs.length} 条</summary><div class="tb">${rows}</div></details>`;
+}
+
+
+// 必须人拍板的决策。选项带证据，点证据能跳回原文。
+
+// 待办卡片：AI 发现的决策与建议，作为对话流里的一条消息。可折叠 ——
+// 处理过一轮后它就该让位给对话，而不是一直占半屏。
+let PENDING_OPEN = true;
+function pendingCard(){
+  const q = (S?.state?.questions || []).filter(x =>
+    !(S?.state?.answered || []).includes(x.conflict_rid));
+  const sg = S?.state?.suggestions || [];
+  if (!q.length && !sg.length) return "";
+  const head = `${q.length?`${q.length} 个待拍板`:""}${q.length&&sg.length?" · ":""}${sg.length?`${sg.length} 条建议`:""}`;
+  return `<div class="pcard">
+    <div class="pchead" onclick="PENDING_OPEN=!PENDING_OPEN;render()">
+      <span class="ptri">${PENDING_OPEN?"▾":"▸"}</span>
+      <span class="pchi">◔</span> 我梳理时发现了这些 · ${head}
+    </div>
+    ${PENDING_OPEN ? `<div class="pcbody">${questionCards()}${suggestionCards()}</div>` : ""}
+  </div>`;
+}
+
+function questionCards(){
+  const qs = S.state?.questions || [];
+  if (!qs.length) return "";
+  const answered = new Set(S.state?.answered || []);
+  return qs.map((q, i) => {
+    const done = answered.has(q.conflict_rid);
+    return `<div class="q ${done ? "answered" : ""}">
+      <div class="qh">
+        <div class="qm">决策 ${i+1}/${qs.length} · 影响 ${q.impact_count} 个实体 · ${q.reversible ? "可逆" : "不可逆"}</div>
+        <div class="qt">${esc(q.title)}</div></div>
+      <div class="qbody">
+        ${(q.options||[]).map(o => `<div class="opt" onclick="${done ? "" : `pick(this,'${q.id}','${o.id}')`}">
+          <span class="rd"></span><div>${esc(o.label)}
+            ${o.rationale ? `<div class="rr">${esc(o.rationale)}</div>` : ""}
+            ${(o.evidence||[]).slice(0,3).map(e => `<span class="ev" onclick="event.stopPropagation();openSource('${esc(e.file_name)}','${esc(e.cite)}')">◧ ${esc(e.cite)}</span>`).join("")}
+          </div></div>`).join("")}
+        ${done ? `<div class="cap">已确认</div>`
+          : `<div class="acts"><button class="act pri" data-submit="${q.id}" disabled
+               onclick="submitAnswer('${q.id}','${q.conflict_rid}')">确认</button></div>`}
+      </div></div>`;
+  }).join("");
+}
+
+// 建议：不阻塞流程，排在必答决策之后。**每条都要能直接采纳** ——
+// 一个采纳不了的建议不如不给，它让人以为做了决定而实际什么都没发生。
+function suggestionCards(){
+  const ss = S.state?.suggestions || [];
+  if (!ss.length) return "";
+  const ICON = {ADD_LINK:"⇢", ASK_MATERIAL:"◱", EXCLUDE:"⊘", NAMING:"Aa",
+                BIND_RULE:"§", REVIEW:"◎"};
+  return ss.map((x, i) => `<div class="sgc">
+    <div class="sgh"><span class="sgi">${ICON[x.kind] || "▸"}</span>
+      <span class="sgt">${esc(x.title)}</span>
+      <span class="sgm">影响 ${x.impact} · 把握 ${Math.round(x.confidence*100)}%</span></div>
+    <div class="sgr">${esc(x.rationale)}</div>
+    ${(x.citations||[]).slice(0,3).map(c =>
+      `<span class="ev" onclick="openSource('', '${esc(c)}')">◧ ${esc(c)}</span>`).join("")}
+    ${x.kind === "ASK_MATERIAL" ? "" :
+      `<div class="acts"><button class="act" onclick="adopt(${i+1})">采纳</button></div>`}
+  </div>`).join("");
+}
+
+// 采纳走对话通道，和用户自己打字说「第 N 条建议采纳」完全同一条路径 ——
+// 两条路径会漂移，而漂移的那天你不会知道该信哪个。
+async function adopt(n){
+  const el = $("cin");
+  el.value = `第${n}条建议采纳`;
+  await sendChat();
+}
+
+
+const ph = (k, t) => `<div class="ph"><div class="ic">${k}</div>${t}</div>`;
+
+
+
+// 拖拽上传。"把文件拖进来"是这类工具的默认预期 —— 让人去找一个「附件」按钮
+// 是多余的一步。整个中栏都是投放区，不只是输入框那一小条。
+function bindDrop(){
+  const zone = document.querySelector(".main");
+  const box = document.querySelector(".cbox");
+  let depth = 0;   // dragenter/dragleave 会在子元素间反复触发，用计数而不是布尔
+  zone.addEventListener("dragover", e => { e.preventDefault(); });
+  zone.addEventListener("dragenter", e => {
+    e.preventDefault();
+    if (++depth === 1) box.classList.add("drag");
+  });
+  zone.addEventListener("dragleave", () => { if (--depth <= 0) { depth = 0; box.classList.remove("drag"); } });
+  zone.addEventListener("drop", async e => {
+    e.preventDefault(); depth = 0; box.classList.remove("drag");
+    const fs = [...(e.dataTransfer?.files || [])];
+    if (!fs.length) return;
+    if (!S) await newSession(true);
+    await uploadFiles(fs);
+  });
+}
+
+async function uploadFiles(list){
+  const fd = new FormData();
+  for (const f of list) fd.append("files", f);
+  $("chip").textContent = "读取中…";
+  const r = await j(`/api/sessions/${S.id}/files`, {method:"POST", body: fd});
+  S.files = r.files.length; S.filelist = r.files;
+  PROMPTS = r.prompts || PROMPTS; FOLLOWUPS = [];   // 材料进来了，能问的完全变了
+  render(); go("mat");
+}
+
+// ── 对话 ────────────────────────────────────────────────────────
+// 输入框在梳理进行中也可用。发出去的话不阻塞流水线，后端按意图决定是立即执行
+// 还是排到本轮结束 —— 前端不做这个判断。
+async function sendChat(){
+  const el = $("cin");
+  const text = (el.value || "").trim();
+  if (!text) return;
+  // 没会话就建一个 —— 想说话之前先点「新会话」是多余的一步
+  if (!S) await newSession(true);
+  el.value = ""; autoGrow(el);
+  // 乐观上屏：网络往返期间用户要能看见自己说了什么，否则会以为没发出去
+  PENDING.push({speaker:"user", text, pending:true});
+  STEPS = [];
+  startThinking();
+  try {
+    const res = await j(`/api/sessions/${S.id}/chat`, {method:"POST",
+      headers:{"content-type":"application/json"},
+      body: JSON.stringify({text, confirm: CONFIRM_NEXT})});
+    // 确认是**一轮限定**的，不是给会话开长期后门
+    CONFIRM_NEXT = false;
+    NEEDS_CONFIRM = !!res.needs_confirm;
+    FOLLOWUPS = res.followups || [];
+  } catch(e) {
+    PENDING.push({speaker:"assistant", text:"没发出去：" + e.message, error:true});
+  } finally {
+    stopThinking();
+    render();
+  }
+}
+
+
+// 点一条提示 = 把它当成用户自己打的字发出去。**不走特殊路径** ——
+// 特殊路径会和手打的行为漂移，而漂移的那天你不知道该信哪个。
+async function ask(text){
+  const el = $("cin");
+  el.value = text;
+  await sendChat();
+}
+
+async function confirmAct(){
+  CONFIRM_NEXT = true; NEEDS_CONFIRM = false;
+  $("cin").value = "确认执行";
+  await sendChat();
+}
+
+function autoGrow(el){
+  el.style.height = "auto";
+  el.style.height = Math.min(el.scrollHeight, 160) + "px";
+}
+
+// 回车发送、Shift+回车换行。输入法组词期间的回车不能当发送 ——
+// 中文用户按回车选词时会把半截词发出去。
+function bindComposer(){
+  const el = $("cin");
+  let composing = false;
+  el.addEventListener("compositionstart", () => { composing = true; });
+  el.addEventListener("compositionend", () => { composing = false; });
+  el.addEventListener("input", () => autoGrow(el));
+  el.addEventListener("keydown", e => {
+    if (e.key === "Enter" && !e.shiftKey && !composing && !e.isComposing) {
+      e.preventDefault(); sendChat();
+    }
+  });
+}
+
+// 对话气泡。与推理轨迹卡片刻意用不同的视觉语言 ——
+// 轨迹是"系统在做事"，气泡是"人在说话"。
+
+// 推理过程。看不见的推理和编造的区别，用户是分辨不出来的 —— 所以默认展开，
+// 而不是折叠在一个"查看详情"后面。
+
+// 推理轨迹的一行。**思考文字全文显示，不截断** —— 这个 tab 存在的理由就是
+// 让人能核对它到底想了什么；截断的思考和没有思考一样不可核对。
+function traceRow(x){
+  return `<div class="trw">
+    <div class="trn">${x.n ?? "·"}</div>
+    <div class="trb">
+      ${x.thought ? `<div class="trt">${esc(x.thought)}</div>` : ""}
+      ${x.tool ? `<div class="trc"><code>${esc(x.tool)}</code> ${esc(JSON.stringify(x.args || {}))}</div>` : ""}
+      ${x.observation ? `<div class="tro">${esc(String(x.observation))}</div>` : ""}
+    </div></div>`;
+}
+
+
+// 点流程节点，看它是从材料哪一行推出来的。证据链要能一路点回原文。
+function flowCite(stageKey, idx){
+  const fl = S.state?.flow;
+  const ns = (fl.nodes||[]).filter(n => n.stage === stageKey);
+  const n = ns[idx];
+  if (!n) return;
+  const box = document.getElementById("fcite");
+  const ev = (n.evidence && n.evidence[0]) || (n.label?.evidence && n.label.evidence[0]);
+  if (!n.grounded || !ev) {
+    box.innerHTML = `<div class="fcite"><b>${esc(n.label?.value||"")}</b>
+      <span class="fcw">这个节点是系统推断补上的，材料里没有直接依据 —— 落地前要跟客户确认。</span></div>`;
+    return;
+  }
+  box.innerHTML = `<div class="fcite"><b>${esc(n.label?.value||"")}</b>
+    <span class="fccode">${esc(n.code||"")}</span>
+    <span class="ev" onclick="openSource('', '${esc(ev.cite||"")}')">◧ ${esc(ev.cite||"")}</span>
+    ${ev.snippet ? `<div class="fcsnip">${esc(ev.snippet)}</div>` : ""}</div>`;
+}
+
+function stepsCard(){
+  return `<div class="steps">${STEPS.map(x => `
+    <div class="stp">
+      <div class="stt">${esc(x.thought || "")}</div>
+      ${x.tool ? `<div class="sto"><code>${esc(x.tool)}</code>
+        ${esc(JSON.stringify(x.args || {}))}</div>` : ""}
+      ${x.observation ? `<div class="stb">${esc(String(x.observation).slice(0,240))}</div>` : ""}
+    </div>`).join("")}</div>`;
+}
+
+
+// 表格行的 render 是 "列名=值 | 列名=值" 的长串，直接吐出来要横向找半天。
+// 拆成键值对之后，同一列在不同行是对齐的，扫一眼就知道哪个格子空着。
+
+// 按 sheet 把切片分组。sheet 名从 locator 取，取不到就从 cite 里 `文件!sheet!行`
+// 解析 —— cite 是权威的，locator 有时缺。
+function groupBySheet(chunks){
+  const map = new Map();
+  for (const c of chunks) {
+    let sheet = c.locator?.sheet || c.locator?.section;
+    if (!sheet) {
+      const m = String(c.cite||"").match(/!([^!]+)!/);
+      sheet = m ? m[1] : (c.locator?.kind === "meta" ? "文档元数据" : "其它");
+    }
+    if (!map.has(sheet)) map.set(sheet, []);
+    map.get(sheet).push(c);
+  }
+  return [...map.entries()].map(([sheet, rows]) => ({sheet, rows, shape: sheetShape(rows)}));
+}
+
+// 一眼看出这是什么表。纯前端启发式，只为导航 —— 真正的形状判定在后端 shape.py。
+function sheetShape(rows){
+  const txt = rows.slice(0, 8).map(r => r.text || "").join(" ");
+  // 顺序即优先级：先判最特征化的，散文兜底放最后
+  if (/文档元数据|abs_path|creator|last_modified/.test(txt)) return "文档元数据";
+  if (/触发条件|输入.*输出|执行者|执行着/.test(txt)) return "流程说明";
+  if (/[?？]|参考选项|澄清问题/.test(txt)) return "待填问卷";
+  if (/\burl\b|openapi|\/v\d|接口路径/i.test(txt)) return "接口清单";
+  if (/实体编码|实体名称|apiName|业务对象/.test(txt)) return "实体清单";
+  if (rows.length && (rows[0].text||"").length > 60) return "规则/散文";
+  return "";
+}
+
+
+// 三栏可调：会话栏收起、预览栏收起+拖拽调宽。宽度记进 localStorage，
+// 下次打开还是上次的样子 —— 每次都手动拉一遍是折磨。
+function toggleSidebar(){
+  document.querySelector(".sidebar").classList.toggle("hidden");
+}
+function togglePreview(){
+  const pv = document.getElementById("preview");
+  const hidden = pv.classList.toggle("hidden");
+  // bindResize 会把宽度写成**内联** style，内联样式盖过 .hidden 的 width:0 ——
+  // 所以收起时必须清掉内联宽度，展开时再按保存值恢复，否则按钮点了没反应。
+  if (hidden) {
+    pv.style.width = ""; pv.style.flexBasis = "";
+  } else {
+    const saved = parseInt(localStorage.getItem("oc_pv_w") || "400", 10);
+    const w = (saved >= 320 && saved <= 900) ? saved : 400;
+    pv.style.width = w + "px"; pv.style.flexBasis = w + "px";
+  }
+  localStorage.setItem("oc_pv_hidden", hidden ? "1" : "");
+}
+function bindResize(){
+  const pv = document.getElementById("preview");
+  const drag = document.getElementById("pdrag");
+  const saved = parseInt(localStorage.getItem("oc_pv_w") || "0", 10);
+  // 收起状态优先：收起时别再写内联宽度（会盖过 .hidden 的 width:0）
+  if (localStorage.getItem("oc_pv_hidden")) {
+    pv.classList.add("hidden");
+  } else if (saved >= 320 && saved <= 900) {
+    pv.style.width = saved + "px"; pv.style.flexBasis = saved + "px";
+  }
+  let dragging = false;
+  drag.addEventListener("mousedown", e => {
+    dragging = true; document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none"; e.preventDefault();
+  });
+  window.addEventListener("mousemove", e => {
+    if (!dragging) return;
+    // 预览在最右，宽度 = 视口右缘到鼠标。夹在 [320, 900]。
+    const w = Math.min(900, Math.max(320, window.innerWidth - e.clientX));
+    pv.style.width = w + "px"; pv.style.flexBasis = w + "px";
+  });
+  window.addEventListener("mouseup", () => {
+    if (!dragging) return;
+    dragging = false; document.body.style.cursor = "";
+    document.body.style.userSelect = "";
+    localStorage.setItem("oc_pv_w", String(parseInt(pv.style.width, 10) || 400));
+  });
+}
+
+function toggleSheet(sheet){
+  if (MAT_OPEN.has(sheet)) MAT_OPEN.delete(sheet); else MAT_OPEN.add(sheet);
+  MAT_N = 100; paint();
+}
+
+function chunkBody(c){
+  const t = String(c.text || "");
+  if (!t.includes("=") || !t.includes("|")) return esc(t).slice(0, 600);
+  const pairs = t.split("|").map(x => x.trim()).filter(Boolean);
+  if (pairs.length < 2) return esc(t).slice(0, 600);
+  return `<div class="kv">` + pairs.map(p => {
+    const i = p.indexOf("=");
+    if (i < 0) return `<div class="kvr"><span class="kvv">${esc(p)}</span></div>`;
+    return `<div class="kvr"><span class="kvk">${esc(p.slice(0,i))}</span>
+      <span class="kvv">${esc(p.slice(i+1))}</span></div>`;
+  }).join("") + `</div>`;
+}
+
+
+// 正在思考。**必须在发出去的那一刻就出现**，不能等第一个 step 回来 ——
+// 推理循环的第一次模型调用要好几秒，这几秒里界面纹丝不动的话，
+// 用户会以为没发出去然后再点一次。
+
+// 常驻动作栏。**这是产品的主干道** —— 上传材料之后，"接下来做什么"必须
+// 一眼可见，而不是要用户猜该打什么字。
+//
+// 之前这里只有一个藏在空状态里的按钮：上传本身就产生了事件，空状态立刻消失，
+// 于是材料传上去以后界面上一个入口都没有。
+//
+// 用户点按钮**本身就是确认**。确认闸是用来挡模型自作主张花钱的，不是用来
+// 挡人的 —— 挡人只会让他多点一次，然后学会无脑点确定。
+function paintActions(){
+  const bar = $("abar");
+  if (!S) { bar.innerHTML = ""; return; }
+  const st = S.status, n = S.files || 0;
+  const arts = S.state?.artifacts || [];
+  const tpl = arts.find(a => a.endsWith(".xlsx"));
+  const btns = [];
+
+  if (["parsing","extracting"].includes(st)) {
+    btns.push(`<span class="apend"><i></i>正在梳理…</span>`);
+  } else if (n && st !== "done") {
+    btns.push(`<button class="abtn pri" onclick="startBuild()">开始梳理 ${n} 份材料</button>`);
+    btns.push(`<button class="abtn" onclick="startBuild('flow_preview')">先免费预览流程图</button>`);
+  } else if (st === "done") {
+    if (tpl) btns.push(`<a class="abtn pri" download
+      href="${API}/api/sessions/${S.id}/artifacts/${encodeURIComponent(tpl)}">下载填写模板</a>`);
+    btns.push(`<a class="abtn" download
+      href="${API}/api/sessions/${S.id}/bundle">导出交付包</a>`);
+    btns.push(`<button class="abtn" onclick="go('art')">全部产物</button>`);
+    btns.push(`<button class="abtn" onclick="startBuild()">重新梳理</button>`);
+  }
+  if (!n) btns.push(`<button class="abtn" onclick="document.getElementById('picker').click()">添加材料</button>`);
+  bar.innerHTML = btns.join("");
+}
+
+function thinkingBubble(){
+  const last = STEPS.length ? STEPS[STEPS.length - 1] : null;
+  const what = last && last.tool ? `正在查 ${esc(last.tool)}`
+    : last && last.thought ? esc(last.thought.slice(0, 40))
+    : "正在想";
+  return `<div class="bub oc"><div class="body think">
+    <span class="dots"><i></i><i></i><i></i></span>${what}
+    <span class="tsec" id="tsec"></span></div></div>`;
+}
+
+// 计时器：超过几秒的等待，用户需要看见"它还在动"而不只是三个点。
+let THINK_T0 = 0, THINK_TIMER = null;
+function startThinking(){
+  THINKING = true; THINK_T0 = Date.now();
+  clearInterval(THINK_TIMER);
+  THINK_TIMER = setInterval(() => {
+    const el = document.getElementById("tsec");
+    if (el) el.textContent = ` ${((Date.now() - THINK_T0) / 1000).toFixed(0)}s`;
+  }, 500);
+  render();
+}
+function stopThinking(){
+  THINKING = false; clearInterval(THINK_TIMER); THINK_TIMER = null;
+}
+
+// 轻量 markdown → HTML。**先转义再套用**，杜绝注入；只覆盖助手回答里常见的子集：
+// 代码块 / 行内代码 / 加粗 / 标题 / 有序无序列表 / 换行。
+function md(src){
+  let s = esc(src || "");
+  const stash = [];
+  const keep = html => { stash.push(html); return ` ${stash.length - 1} `; };
+  s = s.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, l, c) =>
+        keep(`<pre class="mdcode">${c.replace(/\n$/, "")}</pre>`));
+  s = s.replace(/`([^`\n]+)`/g, (_, c) => keep(`<code class="mdik">${c}</code>`));
+  s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+  s = s.replace(/^#{1,3}\s+(.+)$/gm, '<div class="mdh">$1</div>');
+  const lines = s.split("\n"); let out = [], ul = false, ol = false;
+  const close = () => { if (ul){ out.push("</ul>"); ul = false; } if (ol){ out.push("</ol>"); ol = false; } };
+  for (const ln of lines){
+    let m;
+    if ((m = ln.match(/^\s*\d+\.\s+(.+)$/))){
+      if (!ol){ close(); out.push('<ol class="mdl">'); ol = true; } out.push(`<li>${m[1]}</li>`);
+    } else if ((m = ln.match(/^\s*[-*]\s+(.+)$/))){
+      if (!ul){ close(); out.push('<ul class="mdl">'); ul = true; } out.push(`<li>${m[1]}</li>`);
+    } else { close(); out.push(ln); }
+  }
+  close(); s = out.join("\n");
+  s = s.replace(/\n{2,}/g, "<br><br>").replace(/\n/g, "<br>");
+  s = s.replace(/(<\/(?:ul|ol|pre|div)>)(?:<br>)+/g, "$1").replace(/(?:<br>)+(<(?:ul|ol|pre|div))/g, "$1");
+  return s.replace(/ (\d+) /g, (_, i) => stash[i]);
+}
+
+// 助手回答的打字机流式呈现。后端一次性给完整 turn，这里在前端按段揭示 ——
+// 「思考」气泡收起后，答案一段段流出来，而不是整块蹦出来。
+function startStream(text){
+  if (STREAM) clearInterval(STREAM.timer);
+  STREAM = { full: text || "", i: 0, timer: null };
+  render();
+  const step = Math.max(3, Math.ceil(STREAM.full.length / 140));  // 长回答也别拖太久
+  STREAM.timer = setInterval(() => {
+    if (!STREAM){ return; }
+    STREAM.i = Math.min(STREAM.full.length, STREAM.i + step);
+    const el = [...document.querySelectorAll('.stream .bub.oc .mdbody')].pop();
+    if (el){
+      const done = STREAM.i >= STREAM.full.length;
+      el.innerHTML = md(STREAM.full.slice(0, STREAM.i)) + (done ? "" : '<span class="cur"></span>');
+    }
+    const box = $("stream"); if (box) box.scrollTop = box.scrollHeight;
+    if (STREAM.i >= STREAM.full.length){ clearInterval(STREAM.timer); STREAM = null; }
+  }, 16);
+}
+
+function bubble(t){
+  const me = t.speaker === "user";
+  const tag = t.intent ? `<span class="itag${(t.confidence ?? 1) < 0.6 ? " low" : ""}">${esc(t.intent)}</span>` : "";
+  let txt = t.text || "";
+  // 正在流式的那条助手消息按当前进度截断
+  if (!me && STREAM && txt === STREAM.full) txt = STREAM.full.slice(0, STREAM.i);
+  const body = me
+    ? esc(txt)
+    : tag + `<div class="mdbody">${md(txt)}</div>`;
+  return `<div class="bub ${me ? "me" : "oc"}"><div class="body"${t.pending ? ' style="opacity:.55"' : ""}>${body}</div></div>`;
+}
+
+// ── 渲染：右栏 ──────────────────────────────────────────────────
+function go(t){ TAB = t; document.querySelectorAll(".tab").forEach(b => b.classList.toggle("on", b.dataset.t === TAB)); paint(); }
+
+async function openSource(file, cite){
+  // 证据 chip 有时只给 cite、不给文件名（流程图/建议里的引用就是 openSource('', cite)）。
+  // cite 形如「文件名!sheet!R1C2」或「文件名#p2」——从前缀兜底出文件名，
+  // 否则 file='' 会命中 /source?file= 的 500，而且什么都定位不到。
+  if (!file && cite) file = String(cite).split(/[!#]/)[0];
+  go("mat"); FILE = file; paint();
+  if (file) await loadSource(file);
+  if (!cite) return;
+  const el = document.querySelector(`[data-cite="${CSS.escape(cite)}"]`);
+  if (el) { el.scrollIntoView({block:"center"}); el.style.boxShadow = "0 0 0 2px var(--accent-line)"; }
+}
+
+
+// 打开一份材料时，默认展开第一张有内容的 sheet —— 全折叠等于什么都没显示。
+function _openFirstSheet(file){
+  const doc = SRC[file];
+  if (!doc || !doc.chunks) return;
+  const g = groupBySheet(doc.chunks);
+  // 跳过纯元数据那张，展开第一张真表
+  const first = g.find(x => x.sheet !== "文档元数据") || g[0];
+  if (first) MAT_OPEN = new Set([first.sheet]);
+}
+
+async function loadSource(file){
+  MAT_OPEN = new Set(); MAT_N = 100;
+  if (!S || SRC[file]) { _openFirstSheet(file); paint(); return; }
+  try { SRC[file] = await j(`/api/sessions/${S.id}/source?file=${encodeURIComponent(file)}`); }
+  catch(e){ SRC[file] = {error: e.message, chunks: []}; }
+  _openFirstSheet(file);
+  paint();
+}
+
+function paint(){
+  const b = $("pbody");
+  if (!S) { b.innerHTML = ph("PREVIEW", "新建会话后这里显示材料与产物"); return; }
+
+  if (TAB === "mat") {
+    const fl = S.filelist || [];
+    if (!fl.length) { b.innerHTML = ph("MATERIALS", "还没有上传材料<br><br>") +
+      `<div style="text-align:center"><button class="act" onclick="document.getElementById('picker').click()">选择文件</button></div>`; return; }
+    const chips = fl.map(f => `<span class="f ${f.name===FILE?"on":""}"
+      onclick="FILE='${esc(f.name)}';loadSource('${esc(f.name)}')">${esc(f.name)}</span>`).join("");
+    const doc = FILE ? SRC[FILE] : null;
+    let body;
+    if (!FILE) body = `<div class="cap">点一份材料，看它解析成了什么结构</div>`;
+    else if (!doc) body = `<div class="cap">读取中…</div>`;
+    else if (doc.error) body = `<div class="fnd">读取失败：${esc(doc.error)}</div>`;
+    else {
+      // 先给告警（元数据泄漏这类是 FDE 真正要看的），再给**按 sheet 分组的结构**。
+      // 一堵 477 张卡片的墙没人看得下去；他要知道的是"这文件有几张表、各是什么"。
+      const cs = doc.chunks || [];
+      const groups = groupBySheet(cs);
+      body = (doc.findings||[]).map(f =>
+          `<div class="fnd">! ${esc(f.message)}</div>`).join("")
+        + `<div class="cap">${groups.length} 张表 · ${cs.length} 行</div>`
+        + groups.map((g, i) => {
+            const open = MAT_OPEN.has(g.sheet);
+            return `<div class="msheet">
+              <div class="mshead" onclick="toggleSheet('${esc(g.sheet)}')">
+                <span class="mstri">${open?"▾":"▸"}</span>
+                <span class="msname">${esc(g.sheet)}</span>
+                ${g.shape ? `<span class="msshape">${esc(g.shape)}</span>` : ""}
+                <span class="mscount">${g.rows.length} 行</span></div>
+              ${open ? `<div class="msrows">` + g.rows.slice(0, MAT_N).map(c =>
+                  `<div class="mrow" data-cite="${esc(c.cite)}" title="${esc(c.cite)}">${chunkBody(c)}</div>`).join("")
+                + (g.rows.length > MAT_N
+                    ? `<button class="act" style="width:100%;margin-top:6px"
+                         onclick="event.stopPropagation();MAT_N+=100;paint()">再看 100 行（共 ${g.rows.length}）</button>` : "")
+                + `</div>` : ""}
+            </div>`;
+          }).join("");
+    }
+    b.innerHTML = `<div class="files">${chips}</div>` + body;
+    return;
+  }
+
+  if (TAB === "ent") {
+    const oir = S.state?.oir;
+    if (!oir) { b.innerHTML = ph("ENTITIES", "梳理完成后这里显示抽取出的 ObjectType"); return; }
+    const st = oir.stats || {};
+    b.innerHTML = `<div class="cap">${st.objects||0} 个对象 · ${st.properties||0} 个属性 · ${st.links||0} 条关系</div><div class="elist">` +
+      oir.objects.map(o => `<div class="e"><span class="en">${esc(o.displayName.value)}</span>
+        <span class="ec">${esc(o.apiName.value)}</span></div>`).join("") + `</div>` +
+
+      oir.properties.slice(0,40).map(p => `<div class="chunk"><div class="c">${esc(p.apiName.value)}</div>
+        ${esc(p.definition.value || "（无口径）").slice(0,180)}</div>`).join("");
+    return;
+  }
+  if (TAB === "cf") {
+    const cs = S.state?.conflicts || [];
+    if (!cs.length) { b.innerHTML = ph("CONFLICTS", "梳理完成后这里显示检出的冲突"); return; }
+    b.innerHTML = cs.map(c => `<div class="chunk" style="border-color:${c.kind==="semantic_divergence"?"var(--warn-line)":"var(--line)"}">
+      <div class="c">${esc(c.kind)} · ${esc(c.handling)}</div>${esc(c.summary)}
+      ${(c.evidence||[]).slice(0,2).map(e => `<span class="ev" onclick="openSource('${esc(e.file_name)}','${esc(e.cite)}')">◧ ${esc(e.cite)}</span>`).join("")}
+      </div>`).join("");
+    return;
+  }
+  if (TAB === "flow") {
+    const fl = S.state?.flow;
+    if (!fl) { b.innerHTML = ph("FLOW", "梳理材料后，这里显示抽出的业务流程图"); return; }
+    const st = fl.stats || {};
+    const grounded = (fl.nodes||[]).filter(n => n.grounded).length;
+    const total = (fl.nodes||[]).length;
+    const hasMain = (S.state?.artifacts||[]).includes("流程图_主干.svg");
+    b.innerHTML = `<div class="cap">${st.actions||0} 个动作 · ${st.events||0} 个事件 · `
+      + `${st.stages||0} 个阶段 · ${st.gateways||0} 个判断 · ${st.edges||0} 条边</div>`
+      // 证据体检：每个节点有没有材料出处，一眼可见。"不是瞎编"要能核对。
+      + `<div class="cap">${grounded}/${total} 个节点有材料依据`
+      + (st.inferred_edges ? ` · ${st.inferred_edges} 条边是推断的（虚线，需确认）` : "")
+      + `</div>`
+      + `<div class="acts" style="margin:8px 0 14px;flex-wrap:wrap">
+          <a class="act pri" target="_blank"
+             href="${API}/api/sessions/${S.id}/artifacts/${encodeURIComponent("流程图.svg")}">完整图</a>`
+      + (hasMain ? `<a class="act" target="_blank"
+             href="${API}/api/sessions/${S.id}/artifacts/${encodeURIComponent("流程图_主干.svg")}">主干图</a>` : "")
+      + `<a class="act" download
+             href="${API}/api/sessions/${S.id}/artifacts/${encodeURIComponent("流程图.mmd")}">mermaid</a>
+         </div>`
+      + `<div style="height:6px"></div>`
+      + (fl.stages||[]).map(sg => {
+          const ns = (fl.nodes||[]).filter(n => n.stage === sg.key);
+          return `<div class="chunk"><div class="c">${esc(sg.title)}</div>`
+            + ns.map((n, i) => `<span class="fnode ${esc(n.kind)}${n.grounded?"":" guess"}"
+                 onclick="flowCite('${esc(sg.key)}',${i})"
+                 title="${n.grounded?'点看出处':'系统推断，无出处'}">${esc(n.label?.value || "")}</span>`).join("")
+            + `</div>`;
+        }).join("")
+      + `<div id="fcite" class="fcitebox"></div>`;
+    return;
+  }
+  if (TAB === "think") {
+    if (!TRACE.length) {
+      b.innerHTML = ph("REASONING", "问一句话，这里会显示它想了什么、查了什么");
+      return;
+    }
+    // 按轮次分组。不分组的话不同问题的步骤混在一起，步号还会重复 ——
+    // 看的人分不清哪一步属于哪个问题。
+    const groups = [];
+    for (const x of TRACE) {
+      const g = groups.find(y => y.turn === x.turn);
+      if (g) g.rows.push(x); else groups.push({turn: x.turn, q: x.q, rows: [x]});
+    }
+    b.innerHTML = groups.reverse().map((g, i) => `
+      <div class="tgrp">
+        <div class="tgq">${i === 0 ? "" : "· "}${esc(g.q || "")}</div>
+        ${g.rows.sort((a, b2) => a.n - b2.n).map(traceRow).join("")}
+      </div>`).join("");
+    return;
+  }
+
+  const arts = S.state?.artifacts || [];
+  const bundleRow = `<div class="chunk"><div class="c">交付包（含清单与溯源）</div>
+      <a class="act" download href="${API}/api/sessions/${S.id}/bundle">导出 Bundle</a></div>`;
+  b.innerHTML = arts.length ? bundleRow + arts.map(a => `<div class="chunk"><div class="c">${esc(a)}</div>
+      <a class="act" href="${API}/api/sessions/${S.id}/artifacts/${encodeURIComponent(a)}">下载</a></div>`).join("")
+
+    : ph("ARTIFACTS", "编译出模板后这里可以下载");
+}
+</script>
+</body>
+</html>
