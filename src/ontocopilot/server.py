@@ -101,12 +101,15 @@ class Session:
     project: str = ""
     created: float = field(default_factory=time.time)
     files: list[dict[str, Any]] = field(default_factory=list)
-    status: str = "idle"  # idle | parsing | extracting | awaiting_answer | done | failed
+    status: str = "idle"  # idle | parsing | extracting | awaiting_answer | done | failed | stopped
     #: SSE 订阅者的队列。断线重连时按 seq 补发，见 /stream。
     subscribers: list[asyncio.Queue] = field(default_factory=list)
     events: list[dict[str, Any]] = field(default_factory=list)
     state: dict[str, Any] = field(default_factory=dict)
     error: str = ""
+    #: 正在跑的对话轮 / 梳理任务的句柄 —— 停止按钮据此 cancel。运行时对象，**不落库**。
+    chat_task: asyncio.Task | None = field(default=None, repr=False, compare=False)
+    run_task: asyncio.Task | None = field(default=None, repr=False, compare=False)
 
     @property
     def dir(self) -> Path:
@@ -381,10 +384,50 @@ async def upload(sid: str, files: list[UploadFile]) -> dict[str, Any]:
     # 视觉模型，那个要花钱，留到 build 再做。
     await _preparse(s)
     public = {k: v for k, v in s.state.items() if not k.startswith("_")}
+    # 材料进来、结构解析好了 —— 让 AI 结合刚读到的语料出一版更贴的开场问题，
+    # 后台算好走 prompts.ready 换上去。启发式那版先随响应返回，chips 立刻在。
+    asyncio.create_task(_emit_ai_prompts(s, slot="opening"))
     return {"files": s.files, "corpus": s.state.get("corpus"),
             "prompts": opening_prompts(state=public,
                                        files=[f["name"] for f in s.files],
                                        status=s.status)}
+
+
+@app.post("/api/sessions/{sid}/to_work")
+async def to_work(sid: str) -> dict[str, Any]:
+    """把一个聊天会话转成工作会话：把聊天里传的文件带过去，在那边正式梳理。
+
+    聊天只对话、不梳理；真要抽本体/出流程图，转成工作会话即可 —— 文件跟着走，
+    不用重新上传。
+    """
+    import shutil
+
+    src = await _sess_async(sid)
+    ws = Session(id=uuid.uuid4().hex[:12],
+                 title=(src.title.replace("对话", "").strip() or "梳理") + "（自聊天）")
+    ws.state["mode"] = "work"
+    ws.dir.mkdir(parents=True, exist_ok=True)
+    src_mats = src.dir / "materials"
+    if src_mats.exists():
+        (ws.dir / "materials").mkdir(exist_ok=True)
+        for p in sorted(src_mats.iterdir()):
+            if p.is_file():
+                dst = ws.dir / "materials" / p.name
+                shutil.copy2(p, dst)
+                ws.files.append({"name": p.name, "size": dst.stat().st_size,
+                                 "path": str(dst)})
+    SESSIONS[ws.id] = ws
+    await get_repo().create_session(SessionRow(
+        id=ws.id, title=ws.title, project="", status=ws.status,
+        error="", created=ws.created, state_version=0))
+    if ws.files:
+        await get_repo().add_files(ws.id, [
+            FileRow(name=f["name"], rel_path=str(Path(f["path"]).relative_to(ROOT)),
+                    size=f["size"], sha256="")
+            for f in ws.files])
+        await _preparse(ws)
+    await _persist(ws, status=False)
+    return {"id": ws.id, "files": len(ws.files)}
 
 
 async def _preparse(s: Session) -> None:
@@ -574,8 +617,38 @@ async def build(sid: str, tier: str = "full") -> dict[str, Any]:
         raise HTTPException(409, "已经在跑了")
     # tier=flow_preview：只解析 + 出流程图，跳过付费抽取。默认 full 走完整管线。
     tier = tier if tier in ("full", "flow_preview") else "full"
-    asyncio.create_task(_run_pipeline(s, tier=tier))
+    s.run_task = asyncio.create_task(_run_pipeline(s, tier=tier))
     return {"started": True, "session": s.id, "tier": tier}
+
+
+@app.post("/api/sessions/{sid}/stop")
+async def stop(sid: str, body: dict[str, Any] | None = None) -> dict[str, Any]:
+    """中断在跑的生成：``target`` 取 ``chat``（对话轮）/ ``run``（梳理任务）/
+    ``all``（默认，两者都停）。
+
+    幂等 —— 没有在跑的就是一次 200 空操作。真正让服务端停下来的是这里的
+    ``.cancel()``；前端另外 abort 掉自己那条 ``/chat`` fetch 只是为了不再干等。
+    """
+    s = await _sess_async(sid)
+    target = (body or {}).get("target") or "all"
+    stopped: list[str] = []
+    if target in ("chat", "all") and s.chat_task and not s.chat_task.done():
+        s.chat_task.cancel()
+        stopped.append("chat")
+    if target in ("run", "all") and s.run_task and not s.run_task.done():
+        s.run_task.cancel()
+        stopped.append("run")
+    return {"stopped": stopped}
+
+
+def _on_run_cancelled(s: Session) -> None:
+    """梳理被用户喊停时的收尾：状态落成 ``stopped``，发一条事件让前端把箭头收回。
+
+    不是 ``failed``（没出错，是人喊停），也不回 ``idle``（idle 的文案是"待上传"，
+    材料明明在）。``stopped`` 是"跑到一半被停、可以重跑"的独立状态。
+    """
+    s.status = "stopped"
+    s.emit("run.cancelled", reason="用户停止")
 
 
 async def _run_pipeline(s: Session, *, tier: str = "full") -> None:
@@ -724,6 +797,11 @@ async def _run_pipeline(s: Session, *, tier: str = "full") -> None:
             s.emit("run.suspended", reason="等待 FDE 拍板")
             return
         await _compile(s)
+    except asyncio.CancelledError:
+        # 用户点了停止 —— CancelledError 是 BaseException，不会被下面的
+        # `except Exception` 吞掉。收尾后**照常重抛**，让任务干净地结束。
+        _on_run_cancelled(s)
+        raise
     except Exception as exc:  # noqa: BLE001 — 服务边界，错误要送到前端而不是吞掉
         s.status = "failed"
         s.error = f"{type(exc).__name__}: {exc}"
@@ -1157,15 +1235,17 @@ def _parser_for(s: Session) -> RuleIntentParser:
 
 
 def _publish_turn(s: Session, speaker: Speaker, text: str, *, intent: str = "",
-                  confidence: float = 1.0, refs: list[str] | None = None) -> None:
-    """写进对话记忆并投影成 SSE 事件。
+                  confidence: float = 1.0, refs: list[str] | None = None) -> int:
+    """写进对话记忆并投影成 SSE 事件，返回这条 ``chat.turn`` 的事件 seq。
 
-    两件事必须一起做：只写记忆前端看不见，只发事件刷新页面就没了。
+    两件事必须一起做：只写记忆前端看不见，只发事件刷新页面就没了。返回 seq 是为了
+    给这一轮的 AI 追问打标 —— 前端据此丢弃过期轮次的追问（见 ``prompts.ready``）。
     """
     dm = _dialogue(s)
     u = dm.say(speaker, text, intent=intent, refs=refs or [])
     dm.compact_to_fit()
-    s.emit("chat.turn", turn={**u.to_dict(), "confidence": round(confidence, 2)})
+    ev = s.emit("chat.turn", turn={**u.to_dict(), "confidence": round(confidence, 2)})
+    return ev["seq"]
 
 
 
@@ -1476,7 +1556,7 @@ def _converse_tools(s: Session) -> Any:
             return {"error": "还没有材料"}
         if _busy(s):
             return {"error": "已经在跑了"}
-        asyncio.create_task(_run_pipeline(s))
+        s.run_task = asyncio.create_task(_run_pipeline(s))
         return {"已启动": True, "材料份数": len(s.files),
                 "说明": "过程会在推理轨迹里逐步显示"}
 
@@ -1555,7 +1635,7 @@ def _converse_tools(s: Session) -> Any:
             return {"error": "还没有材料，先上传。"}
         if _busy(s):
             return {"error": "已经在跑了。"}
-        asyncio.create_task(_run_pipeline(s, tier="flow_preview"))
+        s.run_task = asyncio.create_task(_run_pipeline(s, tier="flow_preview"))
         return {"已启动": "免费流程预览",
                 "说明": "只解析 + 出流程图，跳过付费抽取；过程在推理轨迹里显示。"}
 
@@ -1699,6 +1779,28 @@ async def _replay_pending(s: Session, action: dict[str, Any]) -> str:
                                   动作=tool_name, 结果=result), "确认执行")
 
 
+def _chat_docs_brief(s: Session, *, cap: int = 6000) -> str:
+    """聊天里用户传的文件摘成一段文本，供模型对话参考（不是正式梳理）。
+
+    截到 cap 字符 —— 聊天不做梳理，把全文塞进 prompt 既贵又没必要；要完整梳理
+    就转成工作会话。
+    """
+    parts = ["用户在这次聊天里上传了文件，内容摘录如下（供对话参考，不是正式梳理）："]
+    used = 0
+    for fname, chunks in (s.state.get("_chunks") or {}).items():
+        parts.append(f"\n【{fname}】")
+        for c in chunks:
+            t = (c.get("text") or "").strip()
+            if not t:
+                continue
+            parts.append(t[:1200])
+            used += min(len(t), 1200)
+            if used >= cap:
+                parts.append("…（其余略；要完整梳理请点「转成工作会话」）")
+                return "\n".join(parts)
+    return "\n".join(parts)
+
+
 async def _reason(s: Session, text: str, *, hint: str = "",
                   approved: bool = False) -> Any:
     """跑一轮对话推理，并把每一步投影成事件。
@@ -1744,6 +1846,9 @@ async def _reason(s: Session, text: str, *, hint: str = "",
         s.emit("chat.step", step={**rec, "turn": run_id, "q": text[:40]})
 
     ctx_text = _context_brief(s)
+    # 聊天模式里用户传了文件 → 把文本摘录塞进上下文，模型才能就它对话（聊天无工具）
+    if s.state.get("mode") == "chat" and s.state.get("_chunks"):
+        ctx_text += "\n\n" + _chat_docs_brief(s)
     if hint:
         # 规则层的判定作为**提示**给出，不是命令 —— 措辞上要让模型知道它可以不采纳。
         ctx_text += f"\n\n规则层对这句话的初步判断（仅供参考，你可以不同意）：{hint}"
@@ -1828,7 +1933,19 @@ async def chat(sid: str, body: dict[str, Any]) -> dict[str, Any]:
         f"{m.intent.value}({m.confidence:.0%}"
         + (f", {json.dumps(m.slots, ensure_ascii=False)}" if m.slots else "") + ")"
         for m in parse.matches if m.intent is not Intent.UNKNOWN)
-    turn = await _reason(s, text, hint=hint, approved=approved)
+    # 包成任务存到会话上，这样 /stop 能从另一条请求里把它 cancel 掉。
+    s.chat_task = asyncio.create_task(_reason(s, text, hint=hint, approved=approved))
+    try:
+        turn = await s.chat_task
+    except asyncio.CancelledError:
+        # 用户点了停止。已经流出的推理步骤留着，落一个"已停止"标记，安静收尾。
+        # 这里 catch 的是**子任务**被 cancel —— 不会连带取消 chat() 这个协程本身。
+        _publish_turn(s, Speaker.ASSISTANT, "（已停止）")
+        await _persist(s, status=False)
+        return {"reply": "（已停止）", "stopped": True,
+                "needs_confirm": False, "followups": []}
+    finally:
+        s.chat_task = None
     replies = [turn.answer] if turn.answer else []
     if turn.citations:
         replies.append("依据：" + "　".join(f"◧ {c}" for c in turn.citations[:4]))
@@ -1836,7 +1953,7 @@ async def chat(sid: str, body: dict[str, Any]) -> dict[str, Any]:
         replies.append(f"（我不确定的一点：{turn.followup}）")
 
     reply = "\n\n".join(r for r in replies if r) or "收到。"
-    _publish_turn(s, Speaker.ASSISTANT, reply)
+    turn_seq = _publish_turn(s, Speaker.ASSISTANT, reply)
     # 人拍的板是最不该丢的一份状态，每轮都落。
     await _persist(s, status=False)
     # 这一轮有没有动作被确认门挡住 —— 前端据此显示确认按钮。靠子串匹配确认门的
@@ -1846,6 +1963,11 @@ async def chat(sid: str, body: dict[str, Any]) -> dict[str, Any]:
                if "需要人工确认" in str(x.get("observation") or "")
                or "要用户确认" in str(x.get("observation") or "")]
     public = {k: v for k, v in s.state.items() if not k.startswith("_")}
+    # 结合上下文的 FDE 追问：另起一次模型调用，**不阻塞回复**。这里先带着启发式
+    # followups 返回（chips 立刻在），AI 版在后台算好后走 prompts.ready 换上去；
+    # 算不出来（模型不可用/封顶）就什么都不换，启发式那批留着。
+    asyncio.create_task(_emit_ai_prompts(s, slot="followup", turn=turn_seq,
+                                         user_text=text, reply=reply))
     return {"intents": parse.to_dict(),
             "reply": reply, "needs_confirm": bool(pending),
             "usd": round(float(s.state.get("_chat_usd") or 0), 4),
@@ -1944,6 +2066,98 @@ def _outcome(kind: str, fallback: str, **facts: Any) -> dict[str, Any]:
     return {"kind": kind, "facts": facts, "fallback": fallback}
 
 
+# ══════════════════════════════════════════════════════════════════
+#  AI 推荐问题（面向 FDE）
+# ══════════════════════════════════════════════════════════════════
+#: 推荐问题的产出契约。至多 3 条；``send`` 缺省等于 ``text``（同 onto.prompts.Prompt）。
+_FOLLOWUPS_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "required": ["questions"],
+    "properties": {
+        "questions": {
+            "type": "array", "maxItems": 3,
+            "items": {
+                "type": "object", "required": ["text"],
+                "properties": {
+                    "text": {"type": "string", "description": "展示给 FDE 的问题，一句话"},
+                    "send": {"type": "string",
+                             "description": "点下去实际发送的话；缺省等于 text"},
+                },
+            },
+        },
+    },
+}
+
+_FDE_SYSTEM = """你在为一位 FDE（前向部署工程师）预测：结合当前项目状态，
+他接下来最可能想问的问题。
+
+给 3 条以内。每条都要：
+- 具体、可执行 —— 扣住材料、产物、待拍板/建议的现状，别问空泛的（"能详细说说吗"）。
+- 是这个角色真正关心的：材料哪里没写清、哪些推断没依据、口径由谁定、
+  哪些必须问客户、接下来该跑什么。
+- 只问答得上、且答了有用的 —— 一个点下去得到"我查不到"的问题，净价值是负的。
+
+不要寒暄，不要重复他已经问过的，不要把一个问题拆成两条。"""
+
+
+async def _ai_recommend(s: Session, *, slot: str, user_text: str | None = None,
+                        reply: str | None = None) -> list[dict[str, Any]] | None:
+    """结合上下文，让模型预测 FDE 接下来会问的问题。
+
+    失败 / 空结果一律返回 ``None`` —— 调用方据此退回启发式 ``prompts.py``。
+    ``slot="followup"`` 传 ``user_text``/``reply``（他刚问的和刚给的答复）；
+    ``slot="opening"`` 只看当前项目状态。
+    """
+    # 对话花费封顶时就别再花这一次 —— 推荐问题是锦上添花，不值得顶着上限跑。
+    spent = float(s.state.get("_chat_usd") or 0.0)
+    cap = float(os.getenv("ONTOCOPILOT_CHAT_USD_CAP", "3"))
+    if spent >= cap:
+        return None
+    try:
+        corpus = s.state.get("corpus") or {}
+        findings = "；".join(f.get("message", "")
+                             for f in (corpus.get("findings") or [])[:5])
+        dlg = ((s.state.get("dialogue") or {}).get("turns") or [])
+        recent = "\n".join(f"{t.get('speaker')}: {str(t.get('text', ''))[:200]}"
+                           for t in dlg[-4:] if t.get("speaker") != "system")
+        prompt = (
+            f"## 当前项目状态\n{_context_brief(s)}\n"
+            + (f"\n## 材料里已发现的问题\n{findings}\n" if findings else "")
+            + (f"\n## 最近几轮对话\n{recent}\n" if recent else "")
+            + (f"\n## 他刚问的\n{user_text}\n" if user_text else "")
+            + (f"\n## 刚给他的回复\n{reply}\n" if reply else ""))
+        _, gw, _, _ = _gateways(s.dir, f"rec_{uuid.uuid4().hex[:8]}")
+        comp = await gw.call("CHAT.recommend", prompt, system=_FDE_SYSTEM,
+                             difficulty=Difficulty.LOW, schema=_FOLLOWUPS_SCHEMA,
+                             max_tokens=400)
+        s.state["_chat_usd"] = spent + float(getattr(comp, "usd", 0) or 0)
+        out: list[dict[str, Any]] = []
+        for q in (comp.data or {}).get("questions") or []:
+            text = str(q.get("text") or "").strip()
+            if not text:
+                continue
+            send = str(q.get("send") or "").strip() or text
+            out.append({"text": text, "send": send, "group": ""})
+            if len(out) >= 3:
+                break
+        return out or None
+    except Exception:  # noqa: BLE001 — 推荐失败不该影响回复，退回启发式即可
+        return None
+
+
+async def _emit_ai_prompts(s: Session, *, slot: str, turn: int | None = None,
+                           user_text: str | None = None,
+                           reply: str | None = None) -> None:
+    """后台算 AI 推荐问题，算出来了就发 ``prompts.ready`` 让前端把 chips 换成更好的。
+
+    失败就什么都不发 —— ``/chat``、``/files`` 早已带着启发式提示返回，chips 已经在了。
+    ``turn`` 是这一轮 ``chat.turn`` 的事件 seq，前端据此丢弃过期轮次的追问。
+    """
+    qs = await _ai_recommend(s, slot=slot, user_text=user_text, reply=reply)
+    if qs:
+        s.emit("prompts.ready", slot=slot, turn=turn, questions=qs)
+
+
 async def _act(s: Session, m: Any) -> str:
     """执行一个意图。每个分支都要回显**它到底做了什么**，不能只回"好的"。"""
     dm = _dialogue(s)
@@ -1999,7 +2213,7 @@ async def _act(s: Session, m: Any) -> str:
             return "还没有材料。把文件拖进来，或者点 + 添加。"
         if s.status in ("parsing", "extracting"):
             return "已经在跑了。"
-        asyncio.create_task(_run_pipeline(s))
+        s.run_task = asyncio.create_task(_run_pipeline(s))
         return f"开始梳理 {len(s.files)} 份材料。过程我会一步步说。"
 
     if m.intent is Intent.RERUN:
