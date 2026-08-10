@@ -251,6 +251,24 @@ async def health() -> dict[str, Any]:
             "skills": default_library().names()}
 
 
+@app.get("/api/models")
+async def api_models() -> dict[str, Any]:
+    """「工作」模式模型选择器：列出网关**实际可用**的模型（懒发现，回落内置目录）。"""
+    cat = await _ensure_catalog()
+    return {"models": cat.describe()}
+
+
+@app.post("/api/sessions/{sid}/model")
+async def set_model(sid: str, body: dict[str, Any]) -> dict[str, Any]:
+    """设定该会话对话用的模型。空/未知则清除，回落到按难度路由。"""
+    s = await _sess_async(sid)
+    name = str((body or {}).get("model") or "")
+    cat = await _ensure_catalog()
+    s.state["model"] = name if (name and cat.get(name)) else ""
+    await _persist(s, status=False)
+    return {"model": s.state["model"]}
+
+
 @app.get("/api/sessions")
 async def list_sessions() -> list[dict[str, Any]]:
     """会话列表**以库为准**。
@@ -267,9 +285,11 @@ async def list_sessions() -> list[dict[str, Any]]:
             out.append(live.brief())
             continue
         files = await get_repo().list_files(r.id)
+        st = await get_repo().load_state(r.id, keys=["mode"])
         out.append({"id": r.id, "title": r.title, "project": r.project,
                     "status": r.status, "files": len(files), "created": r.created,
-                    "error": r.error, "hydrated": False})
+                    "error": r.error, "mode": st.get("mode", "work"),
+                    "hydrated": False})
     known = {r.id for r in rows}
     out += [s.brief() for s in SESSIONS.values() if s.id not in known]
     known |= {x["id"] for x in out}
@@ -288,7 +308,8 @@ async def list_sessions() -> list[dict[str, Any]]:
                 # 有产物就是跑完过的。目录里的事实比一个丢掉的状态字段可信。
                 "status": "done" if "oir.json" in arts else "idle",
                 "files": len(list(mats.iterdir())) if mats.exists() else 0,
-                "created": d.stat().st_mtime, "error": "", "orphan": True})
+                "created": d.stat().st_mtime, "error": "",
+                "mode": "work", "orphan": True})
     return sorted(out, key=lambda x: -x["created"])
 
 
@@ -764,7 +785,7 @@ def _trace_detail(ev: Any) -> str:
 #: 会持久化的公开状态 key。私有（``_`` 开头）的一律不存 —— 它们要么是活对象
 #: （OIR、证据索引），要么是能重算的（列画像），存了反而制造第二份真相。
 _PERSISTED = ("oir", "template", "artifacts", "questions", "suggestions",
-              "corpus", "budget", "routing", "answered", "audit", "mode")
+              "corpus", "budget", "routing", "answered", "audit", "mode", "model")
 
 #: 私有的版本/补丁栈也要落库 —— 它们是「撤销历史」和「重跑时要重放的人工补丁」，
 #: 恰恰是最不该随重启丢掉的一份状态（`_flow_versions`/`_tpl_versions` 以前只在内存，
@@ -1707,7 +1728,14 @@ async def _reason(s: Session, text: str, *, hint: str = "",
         agent = ConversationAgent(gateway=gw, tools=ToolRegistry(), scope="chat",
                                   max_steps=3, system=_CHAT_SYSTEM)
     else:
-        agent = ConversationAgent(gateway=gw, tools=tools, scope="converse", max_steps=5)
+        # 工作模式的模型选择器：选了具体模型就让对话直接用它（梳理管线仍按能力路由）
+        model_spec = None
+        chosen = s.state.get("model")
+        if chosen:
+            card = (_CATALOG or ModelCatalog()).get(chosen)
+            model_spec = card.spec if card else None
+        agent = ConversationAgent(gateway=gw, tools=tools, scope="converse",
+                                  max_steps=5, model=model_spec)
 
     def on_step(rec: dict[str, Any]) -> None:
         # 推理过程必须可见 —— 看不见的推理和编造的区别，用户分辨不出来。

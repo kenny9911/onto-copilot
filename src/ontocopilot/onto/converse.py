@@ -232,13 +232,16 @@ class ConversationAgent:
     """
 
     def __init__(self, *, gateway: Any, tools: Any, scope: str = "readonly",
-                 max_steps: int = 5, system: str | None = None) -> None:
+                 max_steps: int = 5, system: str | None = None,
+                 model: Any = None) -> None:
         self.gw = gateway
         self.tools = tools
         self.scope = scope
         self.max_steps = max_steps
         #: 系统提示可覆盖 —— 聊天模式换成通用助手 `_CHAT_SYSTEM`，工作模式用 FDE 版。
         self.system = system or _SYSTEM
+        #: 指定模型（ModelSpec）则对话直接用它，跳过按难度的路由 —— 工作模式的模型选择器。
+        self.model = model
 
     async def run(self, text: str, *, ctx: Any, context: str = "",
                   on_step: Any = None) -> ConverseTurn:
@@ -261,7 +264,7 @@ class ConversationAgent:
             try:
                 comp = await self.gw.call(
                     f"CHAT.{ctx.turn_id}", prompt, system=self.system,
-                    difficulty=Difficulty.MEDIUM,
+                    difficulty=Difficulty.MEDIUM, model=self.model,
                     schema=ANSWER_SCHEMA if last else _STEP_SCHEMA,
                     # key 必须给：同一个"节点"里会连着调好几次，不给 key 的话
                     # effect 记账会按 (node_id, idx) 撞在一起。
