@@ -175,6 +175,9 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .cbtn.go{background:var(--btn);color:#fff;border-color:var(--btn)}
 .cbtn.go:hover{opacity:.85}
 .cbtn.go[disabled]{background:#e6e3dd;color:#b3aea3;border-color:#e6e3dd}
+/* 停止态：复用 go 的黑圆底，换成停止方块。语义是"停止生成"，故用 ■ 不用 ⏸。 */
+.cbtn.stop{background:var(--btn);color:#fff;border-color:var(--btn);font-size:11px}
+.cbtn.stop:hover{opacity:.85}
 .cfiles{font-size:11.5px;color:var(--ink-3)}
 .cbox.drag{border-color:var(--accent);background:var(--accent-tint)}
 /* .cbox 是块级容器，不是 flex 行 —— 这里必须 width:100%。写 flex:1 的话
@@ -574,6 +577,7 @@ const I18N = {
     "mode.chat":"聊天", "mode.work":"工作",
     "status.idle":"待上传", "status.parsing":"解析中", "status.extracting":"抽取中",
     "status.awaiting_answer":"待拍板", "status.done":"已完成", "status.failed":"失败", "status.ready":"就绪",
+    "status.stopped":"已停止",
     "composer.placeholder":"说点什么，或直接把材料拖进来",
     "action.refresh":"刷新", "preview.title":"预览",
     "login.title":"登录", "login.subtitle":"登录后继续使用 OntoCopilot",
@@ -613,6 +617,7 @@ const I18N = {
     "mode.chat":"Chat", "mode.work":"Work",
     "status.idle":"Pending upload", "status.parsing":"Parsing", "status.extracting":"Extracting",
     "status.awaiting_answer":"Awaiting decision", "status.done":"Done", "status.failed":"Failed", "status.ready":"Ready",
+    "status.stopped":"Stopped",
     "composer.placeholder":"Say something, or drop materials in",
     "action.refresh":"Refresh", "preview.title":"Preview",
     "login.title":"Sign in", "login.subtitle":"Sign in to continue using OntoCopilot",
@@ -957,15 +962,21 @@ function connect(){
       if (TAB === "think") paint();
     }
     if (ev.kind === "chat.turn") {
-      if (ev.turn.speaker === "assistant") STEPS = [];  // 回答落地，过程收起
+      if (ev.turn.speaker === "assistant") { STEPS = []; LAST_ASSIST_SEQ = ev.seq; }  // 回答落地，过程收起
       S.state.dialogue = S.state.dialogue || {turns: []};
       S.state.dialogue.turns.push(ev.turn);
       // 回执到了，撤掉对应的乐观占位
       if (ev.turn.speaker === "user") PENDING = PENDING.filter(x => x.text !== ev.turn.text);
       if (ev.turn.speaker === "assistant") stopThinking();
     }
+    // AI 结合上下文算出的推荐问题到了，把 chips 换成更好的这批。开场直接换；追问要
+    // 对上轮次（LAST_ASSIST_SEQ）—— 否则上一问的追问会盖掉这一问的。
+    if (ev.kind === "prompts.ready") {
+      if (ev.slot === "opening") PROMPTS = ev.questions || [];
+      else if (ev.slot === "followup" && ev.turn === LAST_ASSIST_SEQ) FOLLOWUPS = ev.questions || [];
+    }
     if (ev.kind === "node.completed" && ev.node === "CONFLICT") S.state.conflicts = ev.conflicts;
-    if (["run.completed","run.failed","run.suspended","artifact.ready","human.recorded"].includes(ev.kind))
+    if (["run.completed","run.failed","run.suspended","run.cancelled","artifact.ready","human.recorded"].includes(ev.kind))
       fetch(`${API}/api/sessions/${S.id}/state`).then(r=>r.json()).then(st => {
         const evs = S.events; Object.assign(S, st); S.events = evs;
         S.files = (st.filelist || []).length; render(); paint();
@@ -1035,7 +1046,7 @@ function render(){
   $("cin").disabled = !S;
   $("cin").placeholder = !S ? "" : t("composer.placeholder");
   $("chip").textContent = S?.files ? `${S.files} 份材料` : "";
-  $("send").disabled = !S;
+  paintSendBtn();
   paintActions();
 
   const box = $("stream");
@@ -1296,20 +1307,70 @@ async function sendChat(){
   PENDING.push({speaker:"user", text, pending:true});
   STEPS = [];
   startThinking();
+  // 每一轮挂一个 AbortController，停止按钮据此 abort 掉这条 fetch，前端不再干等。
+  CHAT_ABORT = new AbortController();
   try {
     const res = await j(`/api/sessions/${S.id}/chat`, {method:"POST",
       headers:{"content-type":"application/json"},
+      signal: CHAT_ABORT.signal,
       body: JSON.stringify({text, confirm: CONFIRM_NEXT, lang:LANG})});
     // 确认是**一轮限定**的，不是给会话开长期后门
     CONFIRM_NEXT = false;
+    // 被停止：占位气泡由 SSE 的「（已停止）」chat.turn 接管，这里不再落建议
+    if (res.stopped) return;
     NEEDS_CONFIRM = !!res.needs_confirm;
     FOLLOWUPS = res.followups || [];
   } catch(e) {
+    // 是我们自己 abort 的（点了停止），不是错误 —— 别弹"没发出去"
+    if (e.name === "AbortError") return;
     PENDING.push({speaker:"assistant", text:"没发出去：" + e.message, error:true});
   } finally {
+    CHAT_ABORT = null;
     stopThinking();
     render();
   }
+}
+
+// 发送 ⇄ 停止：一个按钮四种状态。**前景优先** —— 对话轮在跑就先停它；否则输入框
+// 有字就是发送（梳理跑着也能插话，这是这产品的定义性交互）；再否则梳理在跑就停梳理。
+function paintSendBtn(){
+  const btn = $("send");
+  if (!btn) return;
+  const hasText = ($("cin")?.value || "").trim().length > 0;
+  const runActive = ["parsing","extracting"].includes(S?.status);
+  const mode = THINKING ? "stopChat"
+             : hasText  ? "send"
+             : runActive ? "stopRun"
+             : "send";
+  const stop = mode !== "send";
+  btn.classList.toggle("stop", stop);
+  btn.textContent = stop ? "■" : "↑";
+  btn.title = stop ? t("composer.stop","停止") : t("composer.send","发送");
+  btn.disabled = !S;
+  btn.onclick = mode === "stopChat" ? stopChat
+              : mode === "stopRun"  ? stopRun
+              : sendChat;
+}
+
+// 停对话轮：abort 掉自己那条 fetch（立刻不等），再并发 /stop 让服务端真的停下来。
+async function stopChat(){
+  if (!S) return;
+  CHAT_ABORT?.abort();
+  stopThinking();
+  try {
+    await j(`/api/sessions/${S.id}/stop`, {method:"POST",
+      headers:{"content-type":"application/json"}, body: JSON.stringify({target:"chat"})});
+  } catch(e) { /* 停止本身失败无所谓，abort 已让前端归位 */ }
+  render();
+}
+
+// 停梳理任务：状态与事件由 SSE 的 run.cancelled + /state 刷新驱动，这里只发指令。
+async function stopRun(){
+  if (!S) return;
+  try {
+    await j(`/api/sessions/${S.id}/stop`, {method:"POST",
+      headers:{"content-type":"application/json"}, body: JSON.stringify({target:"run"})});
+  } catch(e) { /* 忽略 */ }
 }
 
 
@@ -1339,7 +1400,7 @@ function bindComposer(){
   let composing = false;
   el.addEventListener("compositionstart", () => { composing = true; });
   el.addEventListener("compositionend", () => { composing = false; });
-  el.addEventListener("input", () => autoGrow(el));
+  el.addEventListener("input", () => { autoGrow(el); paintSendBtn(); });
   el.addEventListener("keydown", e => {
     if (e.key === "Enter" && !e.shiftKey && !composing && !e.isComposing) {
       e.preventDefault(); sendChat();
@@ -1518,6 +1579,8 @@ function paintActions(){
 
   if (["parsing","extracting"].includes(st)) {
     btns.push(`<span class="apend"><i></i>正在梳理…</span>`);
+    // 梳理在跑时也能停 —— 尤其当同时有对话在跑、组合按钮被对话占着的时候。
+    btns.push(`<button class="abtn" onclick="stopRun()">■ ${t("composer.stop","停止")}</button>`);
   } else if (n && st !== "done") {
     btns.push(`<button class="abtn pri" onclick="startBuild()">开始梳理 ${n} 份材料</button>`);
     btns.push(`<button class="abtn" onclick="startBuild('flow_preview')">先免费预览流程图</button>`);
