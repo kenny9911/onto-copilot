@@ -134,6 +134,15 @@ class AuthSessionRow:
     expires: float = 0.0
 
 
+@dataclass(slots=True)
+class SettingRow:
+    """一条全局应用设置。``value`` 是任意 JSON 可序列化值。"""
+
+    key: str
+    value: Any
+    updated: float = 0.0
+
+
 class DuplicateUsername(ValueError):
     """用户名（或 id）已存在。两个实现都抛它，路由层统一映射成 409。"""
 
@@ -196,6 +205,12 @@ class Repo(Protocol):
     async def delete_user_auth_sessions(self, uid: str) -> int: ...
     async def prune_auth_sessions(self, *, now: float) -> int: ...
 
+    # 全局应用设置（顶层，不随会话级联）。
+    async def get_setting(self, key: str) -> Any | None: ...
+    async def set_setting(self, key: str, value: Any) -> None: ...
+    async def list_settings(self) -> list[SettingRow]: ...
+    async def delete_setting(self, key: str) -> bool: ...
+
     def atomic(self) -> Any: ...
 
 
@@ -220,10 +235,11 @@ class MemoryRepo:
         self._decisions: dict[str, list[DecisionRow]] = {}
         self._events: dict[str, list[EventRow]] = {}
         self._runs: dict[str, dict[str, Any]] = {}
-        #: 账号与登录会话。**顶层**，与建模会话无关 —— 故意不进 delete_session 的
-        #  清理元组（那是按建模会话清的，扫到这里会误删所有账号）。
+        #: 账号、登录会话、全局设置。**顶层**，与建模会话无关 —— 故意不进
+        #  delete_session 的清理元组（那是按建模会话清的，扫到这里会误删账号/设置）。
         self._users: dict[str, UserRow] = {}
         self._auth: dict[str, AuthSessionRow] = {}
+        self._settings: dict[str, Any] = {}
 
     # ── 会话 ─────────────────────────────────────────────────────
     async def create_session(self, row: SessionRow) -> SessionRow:
@@ -433,6 +449,22 @@ class MemoryRepo:
         for t in gone:
             self._auth.pop(t, None)
         return len(gone)
+
+    # ── 设置 ─────────────────────────────────────────────────────
+    async def get_setting(self, key: str) -> Any | None:
+        return self._settings.get(key)
+
+    async def set_setting(self, key: str, value: Any) -> None:
+        self._settings[key] = value
+
+    async def list_settings(self) -> list[SettingRow]:
+        return [SettingRow(key=k, value=v) for k, v in self._settings.items()]
+
+    async def delete_setting(self, key: str) -> bool:
+        if key in self._settings:
+            del self._settings[key]
+            return True
+        return False
 
     @asynccontextmanager
     async def atomic(self) -> AsyncIterator["MemoryRepo"]:
@@ -943,6 +975,40 @@ class PgRepo:
                 t.auth_session.c.expires_at <= datetime.fromtimestamp(now, tz=UTC)))
         return int(r.rowcount or 0)
 
+    # ── 设置 ─────────────────────────────────────────────────────
+    async def get_setting(self, key: str) -> Any | None:
+        import sqlalchemy as sa
+
+        from . import schema as t
+        async with self._engine.connect() as conn:
+            return (await conn.execute(sa.select(t.app_setting.c.value).where(
+                t.app_setting.c.key == key))).scalar_one_or_none()
+
+    async def set_setting(self, key: str, value: Any) -> None:
+        from . import schema as t
+        async with self._engine.begin() as conn:
+            await conn.execute(self._upsert(
+                t.app_setting, {"key": key, "value": value},
+                index_elements=["key"], update=["value"]))
+
+    async def list_settings(self) -> list[SettingRow]:
+        import sqlalchemy as sa
+
+        from . import schema as t
+        async with self._engine.connect() as conn:
+            rs = (await conn.execute(sa.select(t.app_setting.c.key,
+                                               t.app_setting.c.value))).all()
+        return [SettingRow(key=k, value=v) for k, v in rs]
+
+    async def delete_setting(self, key: str) -> bool:
+        import sqlalchemy as sa
+
+        from . import schema as t
+        async with self._engine.begin() as conn:
+            r = await conn.execute(sa.delete(t.app_setting)
+                                   .where(t.app_setting.c.key == key))
+        return bool(r.rowcount)
+
 
 def _session_row(r: Any) -> SessionRow:
     return SessionRow(
@@ -971,5 +1037,5 @@ def build_repo(store: Any) -> Repo:
 
 
 __all__ = ["Repo", "MemoryRepo", "PgRepo", "SessionRow", "FileRow", "EventRow",
-           "DecisionRow", "UserRow", "AuthSessionRow", "DuplicateUsername",
-           "build_repo"]
+           "DecisionRow", "UserRow", "AuthSessionRow", "SettingRow",
+           "DuplicateUsername", "build_repo"]

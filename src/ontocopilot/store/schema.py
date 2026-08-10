@@ -243,9 +243,20 @@ auth_session = sa.Table(
 sa.Index("auth_session_user_idx", auth_session.c.user_id)
 
 
+# 全局应用设置（管理员可改的网关/预算配置）。键值对，value 是 JSON —— 与
+# session_state 同一套形态。**顶层**，与建模会话无关，故不随会话级联。
+app_setting = sa.Table(
+    "app_setting", metadata,
+    sa.Column("key", sa.Text, primary_key=True),
+    _json("value", nullable=False),
+    sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False,
+              server_default=sa.func.now()),
+)
+
+
 __all__ = [
     "metadata", "schema_migration", "session", "session_file", "run",
     "session_state", "conflict", "decision", "chat_turn", "session_event",
-    "kernel_event", "blob", "app_user", "auth_session",
+    "kernel_event", "blob", "app_user", "auth_session", "app_setting",
     "DERIVED_KEYS", "EVENT_INLINE_LIMIT",
 ]

@@ -263,26 +263,71 @@ GATEWAY_MODELS: dict[str, ModelSpec] = {
 }
 
 
-def gateway_routing() -> RoutingTable:
+#: 难度档 → 键名（供设置页/覆盖用）。
+_TIER_KEYS: dict[str, Difficulty] = {
+    "low": Difficulty.LOW, "medium": Difficulty.MEDIUM,
+    "high": Difficulty.HIGH, "critical": Difficulty.CRITICAL,
+}
+#: 各档"意图 effort"。仅当所选模型**支持** effort 时才下发，否则一律 None。
+_TIER_EFFORT: dict[Difficulty, str | None] = {
+    Difficulty.LOW: None, Difficulty.MEDIUM: "medium",
+    Difficulty.HIGH: "high", Difficulty.CRITICAL: "xhigh",
+}
+
+
+def _override_spec(model_name: str, catalog: Any, diff: Difficulty) -> ModelSpec:
+    """把"某档选某模型"落成 ModelSpec，**服务端派生 effort**。
+
+    关键安全点：不支持 effort 的模型（Flash/Haiku/deepseek…）必须 effort=None，
+    否则后端把 effort 下发给网关会直接 400。用目录卡片的 spec.effort 是否为 None
+    判断能力 —— 不引 Capability，避免与 catalog 形成循环依赖。
+    """
+    card = catalog.get(model_name) if catalog is not None else None
+    if card is None:
+        # 目录里没有 → 保守：无 effort、中档定价（定价只用于兜底估算）。
+        return ModelSpec(model_name, "mid", 3.0, 15.0, effort=None, thinking=None)
+    supports_effort = card.spec.effort is not None
+    eff = _TIER_EFFORT[diff] if supports_effort else None
+    return ModelSpec(model_name, card.spec.tier, card.spec.usd_per_mtok_in,
+                     card.spec.usd_per_mtok_out, effort=eff,
+                     thinking=True if supports_effort else None)
+
+
+def gateway_routing(model_overrides: dict[str, str] | None = None,
+                    catalog: Any = None) -> RoutingTable:
     """接自定义聚合网关的路由表。
 
-    生成侧混合路由：LOW/MEDIUM 走 Gemini 3.5 Flash（快、省），HIGH/CRITICAL 走
+    生成侧默认混合路由：LOW/MEDIUM 走 Gemini 3.5 Flash（快、省），HIGH/CRITICAL 走
     Claude Sonnet（保留推理深度，CRITICAL 用更深 effort）。
 
-    评委用 GPT / Gemini 而非与生成者同族：judge_for 按名剔除与生成者同名的评委，
-    所以 Gemini 生成时落到 GPT、Sonnet 生成时 GPT/Gemini 皆可 —— 始终跨厂商，
-    缓解 LLM-as-judge 综述里点名的自我增强偏差。
+    ``model_overrides`` 形如 ``{"low"/"medium"/"high"/"critical": "厂商/模型"}``，
+    由管理员在设置页选定、按需覆盖各档模型；``catalog`` 用来查模型能力/定价。
+    effort 一律**服务端派生**（见 :func:`_override_spec`），UI 不碰 effort。
+
+    评委保持代码默认（GPT / Gemini，跨厂商），**不暴露给 UI**：judge_for 按名剔除
+    与生成者同名的评委，所以两条生成路径都始终有异构评委 —— 缓解 LLM-as-judge
+    综述里点名的自我增强偏差。
     """
     m = GATEWAY_MODELS
-    return RoutingTable(
-        models={
-            Difficulty.LOW: m["flash"],
-            Difficulty.MEDIUM: m["flash"],
-            Difficulty.HIGH: m["sonnet"],
-            Difficulty.CRITICAL: m["sonnet_deep"],
-        },
-        judges=[m["judge_openai"], m["judge_google"]],
-    )
+    tiers: dict[Difficulty, ModelSpec] = {
+        Difficulty.LOW: m["flash"],
+        Difficulty.MEDIUM: m["flash"],
+        Difficulty.HIGH: m["sonnet"],
+        Difficulty.CRITICAL: m["sonnet_deep"],
+    }
+    for key, diff in _TIER_KEYS.items():
+        name = (model_overrides or {}).get(key)
+        if name:
+            tiers[diff] = _override_spec(name, catalog, diff)
+
+    judges = [m["judge_openai"], m["judge_google"]]
+    # 防御：任一档的生成者都必须留得下至少一个异构评委，否则 judge_for 会在
+    # 运行时抛错。默认双评委不同名，覆盖也不可能把两个都撞上，这里显式兜底。
+    for spec in set(tiers.values()):
+        if not [j for j in judges if j.name != spec.name]:
+            raise ModelError(f"{spec.name} 没有可用的异构评委（评委池："
+                             f"{[j.name for j in judges]}）")
+    return RoutingTable(models=tiers, judges=judges)
 
 
 def stub_routing() -> RoutingTable:

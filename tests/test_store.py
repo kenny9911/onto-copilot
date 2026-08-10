@@ -21,6 +21,7 @@ from ontocopilot.store.repo import (
     FileRow,
     MemoryRepo,
     SessionRow,
+    SettingRow,
     UserRow,
     build_repo,
 )
@@ -318,3 +319,36 @@ async def test_delete_session_leaves_accounts_untouched(repo):
     await repo.delete_session("s1")
     assert await repo.get_user("u1") is not None
     assert await repo.get_auth_session("h1") is not None
+
+
+# ══════════════════════════════════════════════════════════════════
+#  全局设置
+# ══════════════════════════════════════════════════════════════════
+async def test_setting_round_trip_and_upsert(repo):
+    await repo.set_setting("gateway.base_url", "http://gw:3010/v1")
+    assert await repo.get_setting("gateway.base_url") == "http://gw:3010/v1"
+    await repo.set_setting("gateway.base_url", "http://gw2:3010/v1")   # 覆盖
+    assert await repo.get_setting("gateway.base_url") == "http://gw2:3010/v1"
+    assert await repo.get_setting("不存在") is None
+
+
+async def test_setting_values_keep_json_shape(repo):
+    await repo.set_setting("budget.usd_cap", 12.5)
+    await repo.set_setting("gateway.model.high", "anthropic/claude-sonnet-5")
+    assert await repo.get_setting("budget.usd_cap") == 12.5
+    keys = {s.key for s in await repo.list_settings()}
+    assert keys == {"budget.usd_cap", "gateway.model.high"}
+
+
+async def test_setting_delete(repo):
+    await repo.set_setting("k", "v")
+    assert await repo.delete_setting("k") is True
+    assert await repo.delete_setting("k") is False
+    assert await repo.get_setting("k") is None
+
+
+async def test_delete_session_leaves_settings_untouched(repo):
+    await repo.create_session(_sess())
+    await repo.set_setting("gateway.base_url", "http://gw:3010/v1")
+    await repo.delete_session("s1")
+    assert await repo.get_setting("gateway.base_url") == "http://gw:3010/v1"

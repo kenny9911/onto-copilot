@@ -11,7 +11,7 @@ import uuid
 import httpx
 import pytest
 
-from ontocopilot import authgate
+from ontocopilot import appconfig, authgate
 from ontocopilot.auth import (
     hash_password,
     mint_token,
@@ -68,11 +68,13 @@ def test_mint_token_hash_matches():
 # ══════════════════════════════════════════════════════════════════
 @pytest.fixture(autouse=True)
 def _reset_auth_state():
-    """每个用例前后清掉进程内限流计数与测试仓储，避免相互污染。"""
+    """每个用例前后清掉进程内限流计数、设置缓存与测试仓储，避免相互污染。"""
     authgate._ATTEMPTS.clear()
+    appconfig._CACHE = {}
     yield
     set_repo_for_tests(None)
     authgate._ATTEMPTS.clear()
+    appconfig._CACHE = {}
 
 
 def _client(repo: MemoryRepo) -> httpx.AsyncClient:
@@ -189,3 +191,64 @@ async def test_login_throttle_kicks_in(monkeypatch):
                   json={"username": "admin", "password": "nope"})).status_code
                  for _ in range(12)]
         assert 429 in codes            # 超过窗口上限后限流
+
+
+# ── 设置页后端（/api/config，仅管理员）──────────────────────────────
+async def test_config_requires_admin(monkeypatch):
+    monkeypatch.setenv("ONTOCOPILOT_AUTH", "1")
+    repo = MemoryRepo()
+    await _mk_user(repo, "admin", "admin-pw-1", role="admin")
+    await _mk_user(repo, "bob", "bob-pw-1", role="user")
+    async with _client(repo) as c:
+        await c.post("/api/login", json={"username": "bob", "password": "bob-pw-1"})
+        assert (await c.get("/api/config")).status_code == 403
+
+
+async def test_config_get_redacts_and_put_overrides(monkeypatch):
+    monkeypatch.setenv("ONTOCOPILOT_AUTH", "1")
+    monkeypatch.setenv("CUSTOM_LLM_BASE_URL", "http://env:3010/v1")
+    monkeypatch.setenv("CUSTOM_LLM_API_KEY", "sk-secretkey-1234")
+    repo = MemoryRepo()
+    await _mk_user(repo, "admin", "admin-pw-1", role="admin")
+    async with _client(repo) as c:
+        await c.post("/api/login", json={"username": "admin", "password": "admin-pw-1"})
+        cfg = (await c.get("/api/config")).json()
+        assert cfg["gateway"]["base_url"] == "http://env:3010/v1"
+        assert "…" in cfg["gateway"]["api_key"] and "secretkey" not in cfg["gateway"]["api_key"]
+        assert set(cfg["tiers"]) == {"low", "medium", "high", "critical"}
+        # PUT：覆盖 high 档 + 改 base_url；api_key 原样把 redacted 送回 → 应被忽略。
+        put = await c.put("/api/config", json={
+            "base_url": "http://db:3010/v1",
+            "api_key": cfg["gateway"]["api_key"],
+            "models": {"high": "google/gemini-3.5-flash"},
+            "usd_cap": 9.0})
+        assert put.status_code == 200
+        j = put.json()
+        assert j["gateway"]["base_url"] == "http://db:3010/v1"
+        assert j["tiers"]["high"]["model"] == "google/gemini-3.5-flash"
+        assert j["tiers"]["high"]["effort"] is None        # effort 派生成 None（Flash）
+        assert j["budget"]["usd_cap"] == 9.0
+        assert await repo.get_setting("gateway.api_key") is None   # redacted 未被写回
+
+
+async def test_config_api_key_write_only(monkeypatch):
+    monkeypatch.setenv("ONTOCOPILOT_AUTH", "1")
+    repo = MemoryRepo()
+    await _mk_user(repo, "admin", "admin-pw-1", role="admin")
+    async with _client(repo) as c:
+        await c.post("/api/login", json={"username": "admin", "password": "admin-pw-1"})
+        await c.put("/api/config", json={"base_url": "http://x:3010/v1",
+                                         "api_key": "sk-brand-new-key-9"})
+        assert await repo.get_setting("gateway.api_key") == "sk-brand-new-key-9"
+        cfg = (await c.get("/api/config")).json()
+        assert "brand-new" not in cfg["gateway"]["api_key"]   # 回显仍 redacted
+
+
+async def test_config_rejects_unknown_model(monkeypatch):
+    monkeypatch.setenv("ONTOCOPILOT_AUTH", "1")
+    repo = MemoryRepo()
+    await _mk_user(repo, "admin", "admin-pw-1", role="admin")
+    async with _client(repo) as c:
+        await c.post("/api/login", json={"username": "admin", "password": "admin-pw-1"})
+        assert (await c.put("/api/config",
+                json={"models": {"high": "foo/nonexistent"}})).status_code == 400

@@ -26,13 +26,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, Response, StreamingResponse
 
 from . import __version__
+from . import appconfig
 from . import authgate
+from . import configapi
 from .kernel.backends import OpenAICompatBackend
 from .store.deps import get_repo, get_store, lifespan as store_lifespan
 from .store.repo import FileRow, SessionRow
 from .kernel.budget import Budget
 from .kernel.catalog import Capability, ModelCatalog, SmartGateway
-from .kernel.config import llm_config
 from .kernel.dag import Difficulty
 from .kernel.events import EventKind
 from .kernel.journal import FileBlobStore, FileJournal
@@ -140,6 +141,7 @@ async def _lifespan(app: FastAPI) -> Any:
     """先起库，再对账。顺序不能反 —— 对账要用 repo。"""
     async with store_lifespan(app):
         ROOT.mkdir(parents=True, exist_ok=True)
+        await appconfig.refresh(get_repo())      # 预热设置缓存（网关/模型/预算覆盖）
         await _reconcile_on_boot()
         yield
 
@@ -158,6 +160,7 @@ app.add_middleware(
 )
 app.include_router(authgate.router)
 app.include_router(authgate.users_router)
+app.include_router(configapi.router)
 
 
 def _sess(sid: str) -> Session:
@@ -176,14 +179,18 @@ async def _sess_async(sid: str) -> Session:
 
 
 def _gateways(out: Path, run_id: str) -> tuple[Any, ModelGateway, SmartGateway, Budget]:
-    cfg = llm_config()
+    cfg = appconfig.resolved_llm_config()          # 设置 → env → 抛错
     rec = Recorder(run_id, FileJournal(out / "journal"), FileBlobStore(out / "blobs"))
     # 一份几百行的梳理表要跑十来个抽取节点，每个节点还可能因 critic 打回重来。
     # 上限设太紧的后果不是省钱，是跑到一半 HALT、前面花掉的钱全打水漂。
-    budget = Budget(tokens=4_000_000, usd=float(os.getenv("ONTOCOPILOT_USD_CAP", "15")))
+    budget = Budget(tokens=4_000_000, usd=appconfig.usd_cap())
     backend = OpenAICompatBackend(cfg.base_url, cfg.api_key)
-    gw = ModelGateway(backend, rec, routing=gateway_routing(), budget=budget)
-    return backend, gw, SmartGateway(gw, ModelCatalog()), budget
+    catalog = ModelCatalog()
+    # 路由按当前设置构建（含各档模型覆盖）并随本次 Run 固定：配置改动只作用到之后
+    # 新建的 Run，不影响在跑的这次。
+    routing = gateway_routing(appconfig.model_overrides(), catalog)
+    gw = ModelGateway(backend, rec, routing=routing, budget=budget)
+    return backend, gw, SmartGateway(gw, catalog), budget
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -192,7 +199,7 @@ def _gateways(out: Path, run_id: str) -> tuple[Any, ModelGateway, SmartGateway, 
 @app.get("/api/health")
 async def health() -> dict[str, Any]:
     try:
-        cfg = llm_config()
+        cfg = appconfig.resolved_llm_config()      # 设置 → env → 抛错
         gateway = {"base_url": cfg.base_url, "key": cfg.redacted_key,
                    "insecure": cfg.insecure_transport}
     except RuntimeError as exc:
@@ -1649,7 +1656,7 @@ async def _reason(s: Session, text: str, *, hint: str = "",
     # 上限 —— 也就是说对话侧根本没有封顶。一轮真问题跑满 5 步实测约 $0.08，
     # 一天两百轮就是十几美元，而它们大多是本可以不花的。
     spent = float(s.state.get("_chat_usd") or 0.0)
-    cap = float(os.getenv("ONTOCOPILOT_CHAT_USD_CAP", "3"))
+    cap = appconfig.chat_usd_cap()
     if spent >= cap:
         raise HTTPException(429, f"这个会话的对话花费已达上限 ${cap}（已花 ${spent:.2f}）。"
                                  f"调 ONTOCOPILOT_CHAT_USD_CAP 或新建会话。")
