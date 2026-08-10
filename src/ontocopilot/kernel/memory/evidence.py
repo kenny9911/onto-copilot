@@ -17,19 +17,28 @@ import re
 from collections import Counter, defaultdict
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, ClassVar
 
-_TOKEN_RE = re.compile(r"[a-zA-Z][a-zA-Z0-9]*|\d+|[㐀-鿿]")
+_TOKEN_RE = re.compile(r"[a-zA-Z][a-zA-Z0-9]*|\d+|[㐀-鿿]+")
 _CAMEL_RE = re.compile(r"(?<=[a-z0-9])(?=[A-Z])")
 
 
 def tokenize(text: str) -> list[str]:
-    """分词 + camelCase 拆分。
+    """分词 + camelCase 拆分 + 中文相邻二字组。
 
     ``clmContract`` 要能被 ``contract`` 命中 —— 材料里物理名和业务名混用是常态。
+
+    中文没有 camelCase 那样的天然切分，按单字切又区分度太低（``采``、``购``、
+    ``包`` 到处都是，跨领域尤其如此）。所以对每段连续汉字**同时**发单字（兜底
+    召回）和相邻二字组（``采购``、``购包``，提精度）—— 这是 camelCase 拆分在
+    中文上的对等物，纯词法、零依赖、检索与建索引走同一函数因而可复现。
     """
     out: list[str] = []
     for t in _TOKEN_RE.findall(text or ""):
+        if "㐀" <= t[0] <= "鿿":  # 连续汉字段
+            out.extend(t)  # 单字：召回
+            out.extend(t[i:i + 2] for i in range(len(t) - 1))  # 相邻二字组：精度
+            continue
         low = t.lower()
         out.append(low)
         if len(t) > 3 and _CAMEL_RE.search(t):
@@ -37,6 +46,17 @@ def tokenize(text: str) -> list[str]:
         if "_" in low:
             out.extend(p for p in low.split("_") if p)
     return out
+
+
+def _situate(loc: dict[str, Any]) -> str:
+    """从 locator 取"所属容器"的名字（sheet / section）。
+
+    这些是切片的结构归属：进 ``render`` 会造成逐行重复（见 tabular ``_render_pairs``
+    拼命消掉的那种重复），但进检索 token 流能让"按所属表 / 章节检索"成立。领域无关。
+    """
+    if not loc:
+        return ""
+    return " ".join(str(loc[k]) for k in ("sheet", "section") if loc.get(k))
 
 
 @dataclass(slots=True)
@@ -55,6 +75,9 @@ class Chunk:
     raw: Any = None  # 给代码用的结构
     order: int = 0  # 文件内序号，邻域扩展靠它
     tags: list[str] = field(default_factory=list)
+    #: 定位性上下文（所属表/章节的名字，或上游拼好的标题面包屑）。**进检索 token
+    #: 流、不进 render** —— 让"按所属容器检索"生效，又不把每行 render 撑重复。
+    context: str = ""
 
     @property
     def tokens(self) -> int:
@@ -89,6 +112,10 @@ class EvidenceIndex:
 
     K1 = 1.4
     B = 0.72
+    #: 命中后按标签加权 —— 规则/关系/外键切片承载建模决定性信息（基数、口径、
+    #: 引用），同等词法命中时应当排在普通正文前面。领域无关：这些标签是结构角色，
+    #: 不是某个业务域的词。只在已经有正命中时生效，不凭空把无关切片捞上来。
+    TAG_BOOST: ClassVar[dict[str, float]] = {"rule": 1.3, "relation": 1.3, "fk": 1.3}
 
     def __init__(self) -> None:
         self._chunks: dict[str, Chunk] = {}
@@ -102,7 +129,8 @@ class EvidenceIndex:
     def add(self, chunk: Chunk) -> None:
         if chunk.chunk_id in self._chunks:
             return
-        toks = tokenize(chunk.render) + tokenize(chunk.file_name)
+        toks = (tokenize(chunk.render) + tokenize(chunk.file_name)
+                + tokenize(chunk.context) + tokenize(_situate(chunk.locator)))
         tf = Counter(toks)
         self._chunks[chunk.chunk_id] = chunk
         self._tf[chunk.chunk_id] = tf
@@ -123,6 +151,8 @@ class EvidenceIndex:
         *,
         top_k: int = 20,
         files: Iterable[str] | None = None,
+        kinds: Iterable[str] | None = None,
+        tags: Iterable[str] | None = None,
         expand: int = 1,
         budget_tokens: int | None = None,
         diversify_by_file: bool = True,
@@ -143,6 +173,8 @@ class EvidenceIndex:
             rerank: 可选的二次排序钩子（向量重排、cross-encoder）。
         """
         allow = set(files) if files is not None else None
+        kind_allow = set(kinds) if kinds is not None else None
+        tag_allow = set(tags) if tags is not None else None
         q = Counter(tokenize(query))
         if not q or not self._chunks:
             return []
@@ -150,7 +182,12 @@ class EvidenceIndex:
         n = len(self._chunks)
         scores: dict[str, float] = {}
         for cid, tf in self._tf.items():
-            if allow is not None and self._chunks[cid].file_id not in allow:
+            ch = self._chunks[cid]
+            if allow is not None and ch.file_id not in allow:
+                continue
+            if kind_allow is not None and ch.locator.get("kind") not in kind_allow:
+                continue
+            if tag_allow is not None and tag_allow.isdisjoint(ch.tags):
                 continue
             dl = self._len[cid] or 1
             s = 0.0
@@ -162,7 +199,8 @@ class EvidenceIndex:
                 denom = f + self.K1 * (1 - self.B + self.B * dl / max(1e-9, self._avg_len))
                 s += idf * (f * (self.K1 + 1) / denom) * qc
             if s > 0:
-                scores[cid] = s
+                boost = max((self.TAG_BOOST.get(t, 1.0) for t in ch.tags), default=1.0)
+                scores[cid] = s * boost
 
         ranked = sorted(scores, key=lambda c: -scores[c])
         ranked = self._round_robin(ranked, top_k) if diversify_by_file else ranked[:top_k]

@@ -101,6 +101,37 @@ def test_camel_case_is_split_so_physical_and_business_names_both_hit():
     assert "amount" in tokenize("plan_amount")
 
 
+def test_tokenize_emits_cjk_bigrams_for_discrimination():
+    """中文按单字切区分度太低（采、购、包 到处都是）。相邻二字组让多字专有名词
+    精确命中，同时保留单字兜底召回。camelCase 拆分对中文无效，二字组是对等手段。"""
+    toks = tokenize("采购包头")
+    assert "采购" in toks and "购包" in toks and "包头" in toks  # 二字组：精度
+    assert "采" in toks and "头" in toks                        # 单字：召回
+
+
+def test_cjk_bigrams_break_ties_that_unigrams_cannot():
+    """两个切片单字集合相同、只是相邻关系不同 —— 单字模型给同分,二字组能分开。
+    b 的单字频次更高（本应靠单字排前）,但只有 a 含"采购/购包"两个二字组。"""
+    ix = EvidenceIndex()
+    ix.add(Chunk(chunk_id="a", file_id="f", file_name="x", locator={}, render="采购包"))
+    ix.add(Chunk(chunk_id="b", file_id="f", file_name="x", locator={},
+                 render="采 采 购 购 包 包"))  # 单字更密,但无 采购/购包 二字组
+    hits = ix.search("采购包", top_k=2, expand=0, diversify_by_file=False)
+    assert hits[0].chunk_id == "a", [h.chunk_id for h in hits]
+
+
+def test_rule_and_relation_tags_are_boosted_when_they_match():
+    """规则/关系切片承载建模决定性信息（基数、口径、外键）—— 同等命中时优先。
+    这才兑现 text.py 里"命中的切片打 rule 标签，检索时优先"的承诺。"""
+    ix = EvidenceIndex()
+    ix.add(Chunk(chunk_id="plain", file_id="f", file_name="x", locator={},
+                 render="一个执行计划可拆入多个采购包", tags=["para"]))
+    ix.add(Chunk(chunk_id="rule", file_id="f", file_name="x", locator={},
+                 render="一个执行计划可拆入多个采购包", tags=["para", "rule"]))
+    hits = ix.search("执行计划 采购包", top_k=2, expand=0, diversify_by_file=False)
+    assert hits[0].chunk_id == "rule", [h.chunk_id for h in hits]
+
+
 def test_search_finds_the_conflicting_definition_across_two_files():
     """按物理名检索要能同时捞出 xlsx 的业务口径和 DDL 的物理定义 ——
     「计划金额」双口径就是这么被发现的。"""
@@ -108,6 +139,24 @@ def test_search_finds_the_conflicting_definition_across_two_files():
     cites = [c.cite() for c in ix.search("clmContract 计划金额", top_k=5, expand=0)]
     assert cites[0] == "实体梳理.xlsx!业务对象实体梳理!R44CF"
     assert "schema.ddl#clm_contract" in cites
+
+
+def test_search_can_filter_by_kind():
+    """节点可以把检索限定到某类来源 —— 例如只看 DDL 的物理定义。"""
+    ix = _idx()
+    ddl_only = ix.search("plan_amount 计划金额", top_k=5, expand=0, kinds=["ddl"])
+    assert ddl_only and all(c.locator.get("kind") == "ddl" for c in ddl_only)
+
+
+def test_sheet_name_is_searchable_even_when_absent_from_render():
+    """所属表/章节名不进 render（否则每行重复），但要进检索 token 流 ——
+    "按所属表检索"才成立。领域无关。"""
+    ix = EvidenceIndex()
+    ix.add(Chunk(chunk_id="r", file_id="f", file_name="x.xlsx",
+                 locator={"kind": "range", "sheet": "供应商主数据", "rows": [5, 5]},
+                 render="编码=S001 | 名称=示例"))
+    hits = ix.search("供应商", top_k=3, expand=0)
+    assert any(h.chunk_id == "r" for h in hits)
 
 
 def test_neighborhood_expansion_pulls_adjacent_rows():

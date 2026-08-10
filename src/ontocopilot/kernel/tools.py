@@ -304,11 +304,15 @@ def builtin_registry(
                      "query": {"type": "string", "description": "检索词，用材料里的原词"},
                      "top_k": {"type": "integer", "description": "最多返回几片，默认 12"},
                      "files": {"type": "array", "items": {"type": "string"},
-                               "description": "限定文件 id，不给则全库"}}},
+                               "description": "限定文件 id，不给则全库"},
+                     "kinds": {"type": "array", "items": {"type": "string"},
+                               "description": "限定来源类型，如 ddl/json/range/page/cell；"
+                                              "不给则不限。想只看物理定义就传 [\"ddl\"]"}}},
                 danger=Danger.READ)
         def _search(ctx: Any, query: str, top_k: int = 12,
-                    files: list[str] | None = None) -> dict[str, Any]:
-            hits = evidence.search(query, top_k=top_k, files=files, expand=1)
+                    files: list[str] | None = None,
+                    kinds: list[str] | None = None) -> dict[str, Any]:
+            hits = evidence.search(query, top_k=top_k, files=files, kinds=kinds, expand=1)
             return {"count": len(hits),
                     "chunks": [{"cite": c.cite(), "text": c.render[:1200]} for c in hits]}
 
