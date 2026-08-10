@@ -1188,9 +1188,9 @@ def _converse_tools(s: Session) -> Any:
     """
     reg = builtin_registry(evidence=s.state.get("_index"), oir=s.state.get("_oir"),
                            profiles=s.state.get("_profiles"))
-    # RO 的只读工具在 converse 和 chat 两个作用域都可见；RW 改产物的工具只在
-    # converse —— 于是「聊天」模式（scope=chat）拿不到任何改产物/花钱的工具。
-    RO, RW = ("converse", "chat"), ("converse",)
+    # 工作模式的工具都挂在 converse 作用域。聊天模式不走这套 —— 它用一份空注册表，
+    # 保证零工具（见 _reason），所以这里不再需要单独的 chat 作用域。
+    RO, RW = ("converse",), ("converse",)
 
     @reg.fn("session.status", "查当前会话的状态：材料、产物统计、待拍板的问题、建议、花费。"
             "回答『进度』『现在什么情况』这类问题前先调它。",
@@ -1661,9 +1661,15 @@ async def _reason(s: Session, text: str, *, hint: str = "",
         raise HTTPException(429, f"这个会话的对话花费已达上限 ${cap}（已花 ${spent:.2f}）。"
                                  f"调 ONTOCOPILOT_CHAT_USD_CAP 或新建会话。")
     tools = _converse_tools(s)
-    # 聊天模式只给只读工具（scope=chat）—— 纯对话不该能触发梳理/改产物/花钱。
-    scope = "chat" if s.state.get("mode") == "chat" else "converse"
-    agent = ConversationAgent(gateway=gw, tools=tools, scope=scope, max_steps=5)
+    # 聊天模式：通用助手 + **完全无工具**（空注册表，连 * 作用域的内建检索都拿不到），
+    # 纯对话不该能触发梳理/改产物/花钱。工作模式才装全套工具、用 FDE 系统提示。
+    if s.state.get("mode") == "chat":
+        from .kernel.tools import ToolRegistry
+        from .onto.converse import _CHAT_SYSTEM
+        agent = ConversationAgent(gateway=gw, tools=ToolRegistry(), scope="chat",
+                                  max_steps=3, system=_CHAT_SYSTEM)
+    else:
+        agent = ConversationAgent(gateway=gw, tools=tools, scope="converse", max_steps=5)
 
     def on_step(rec: dict[str, Any]) -> None:
         # 推理过程必须可见 —— 看不见的推理和编造的区别，用户分辨不出来。

@@ -201,6 +201,22 @@ _SYSTEM = """你是 OntoCopilot 的对话侧，面对的是一位 FDE 工程师�
   只读的检索/查询不受此限。"""
 
 
+#: 「聊天」模式的系统提示：一个**通用**助手，不是 FDE 专用副驾。纯对话、无工具、
+#: 不主动谈梳理/本体/材料。要梳理业务材料时，引导用户切到「工作」模式。
+_CHAT_SYSTEM = """你是 OntoCopilot 的聊天助手 —— 一个通用的 AI 助手。
+
+这里是纯聊天：你没有任何工具，不梳理材料、不生成本体或流程图、不改任何产物。
+就正常对话：回答问题、帮着分析、写点东西、聊聊都可以，用你自己的知识。
+
+几条：
+- 直接、简洁地回答；该展开时再展开，别套话。
+- 不确定就说不确定，别编。
+- 用户想**梳理业务材料、生成 Ontology 或业务流程图**时，告诉他切到上方的「工作」
+  模式 —— 那边才有解析、抽取、出图这些能力；聊天这边只负责对话。
+- 若用户在聊天里传了文件，你能读到它的文本、可以就它讨论；但真正的梳理仍要去「工作」。
+"""
+
+
 class ConversationAgent:
     """对话侧的推理循环。
 
@@ -216,11 +232,13 @@ class ConversationAgent:
     """
 
     def __init__(self, *, gateway: Any, tools: Any, scope: str = "readonly",
-                 max_steps: int = 5) -> None:
+                 max_steps: int = 5, system: str | None = None) -> None:
         self.gw = gateway
         self.tools = tools
         self.scope = scope
         self.max_steps = max_steps
+        #: 系统提示可覆盖 —— 聊天模式换成通用助手 `_CHAT_SYSTEM`，工作模式用 FDE 版。
+        self.system = system or _SYSTEM
 
     async def run(self, text: str, *, ctx: Any, context: str = "",
                   on_step: Any = None) -> ConverseTurn:
@@ -242,7 +260,7 @@ class ConversationAgent:
             prompt = self._prompt(text, context, transcript, specs, final=last)
             try:
                 comp = await self.gw.call(
-                    f"CHAT.{ctx.turn_id}", prompt, system=_SYSTEM,
+                    f"CHAT.{ctx.turn_id}", prompt, system=self.system,
                     difficulty=Difficulty.MEDIUM,
                     schema=ANSWER_SCHEMA if last else _STEP_SCHEMA,
                     # key 必须给：同一个"节点"里会连着调好几次，不给 key 的话
