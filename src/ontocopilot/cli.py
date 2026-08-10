@@ -479,6 +479,61 @@ def _load_oir(path: Path) -> OIR:
 
 
 # ══════════════════════════════════════════════════════════════════
+#  账号
+# ══════════════════════════════════════════════════════════════════
+async def cmd_useradd(args: argparse.Namespace) -> int:
+    """建一个登录账号。**首个管理员只能用它创建** —— 没有公开的 bootstrap 路由，
+    杜绝"谁先访问谁当管理员"的抢注竞态。助手绝不代设密码。"""
+    import getpass
+    import os
+    import uuid
+    from pathlib import Path
+
+    from .auth import hash_password, normalize_username
+    from .store.engine import Store, database_url
+    from .store.repo import DuplicateUsername, UserRow, build_repo
+
+    username = normalize_username(args.username)
+    if not username:
+        _p(f"{BAD} 用户名不能为空")
+        return 1
+
+    # 密码来源：--password-stdin（脚本/CI）读一行；否则交互式两次确认。
+    if args.password_stdin:
+        pw = sys.stdin.readline().rstrip("\n")
+    else:
+        pw = getpass.getpass("设置密码: ")
+        if pw != getpass.getpass("再输一次: "):
+            _p(f"{BAD} 两次输入不一致")
+            return 1
+    if not pw:
+        _p(f"{BAD} 密码不能为空")
+        return 1
+
+    url = database_url()
+    if url:
+        store = await Store.open(url)
+    else:
+        root = Path(os.getenv("ONTOCOPILOT_WORKSPACE", "workspace"))
+        root.mkdir(parents=True, exist_ok=True)
+        url = f"sqlite+aiosqlite:///{(root / 'ontocopilot.db').resolve()}"
+        store = await Store.open(url, create_all=True)
+    repo = build_repo(store)
+    role = "admin" if args.admin else "user"
+    try:
+        await repo.create_user(UserRow(
+            id=uuid.uuid4().hex, username=username,
+            password_hash=hash_password(pw), role=role))
+        _p(f"{OK} 已创建{role}账号：{username}")
+        return 0
+    except DuplicateUsername:
+        _p(f"{BAD} 用户名已存在：{username}")
+        return 1
+    finally:
+        await store.close()
+
+
+# ══════════════════════════════════════════════════════════════════
 #  入口
 # ══════════════════════════════════════════════════════════════════
 def build_parser() -> argparse.ArgumentParser:
@@ -516,6 +571,13 @@ def build_parser() -> argparse.ArgumentParser:
     a.add_argument("returned", help="业务方回传的 xlsx")
     a.add_argument("--target", type=float, default=0.95, help="达标线")
     a.set_defaults(fn=cmd_audit, is_async=False)
+
+    u = sub.add_parser("useradd", help="创建登录账号（首个管理员只能用它创建）")
+    u.add_argument("username")
+    u.add_argument("--admin", action="store_true", help="创建为管理员")
+    u.add_argument("--password-stdin", action="store_true",
+                   help="从标准输入读一行作为密码（脚本/CI 用），否则交互式输入")
+    u.set_defaults(fn=cmd_useradd, is_async=True)
     return ap
 
 

@@ -26,6 +26,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, Response, StreamingResponse
 
 from . import __version__
+from . import authgate
 from .kernel.backends import OpenAICompatBackend
 from .store.deps import get_repo, get_store, lifespan as store_lifespan
 from .store.repo import FileRow, SessionRow
@@ -144,8 +145,19 @@ async def _lifespan(app: FastAPI) -> Any:
 
 
 app = FastAPI(title="OntoCopilot", version=__version__, lifespan=_lifespan)
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"],
-                   allow_headers=["*"])
+# 鉴权门禁：一道 fail-closed 的 HTTP 中间件（详见 :mod:`authgate`）。**先**注册它、
+# **后**注册 CORS，这样 CORS 在外层 —— 预检 OPTIONS 与 401 响应上都能带跨域头。
+app.middleware("http")(authgate.auth_middleware)
+app.add_middleware(
+    CORSMiddleware,
+    # 默认空 = 仅同源（实际部署方式）。带凭证时浏览器禁止通配，cors_origins 也会滤掉 "*"。
+    allow_origins=authgate.cors_origins(),
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+app.include_router(authgate.router)
+app.include_router(authgate.users_router)
 
 
 def _sess(sid: str) -> Session:
