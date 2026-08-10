@@ -23,6 +23,24 @@ ontocopilot-server                  # http://127.0.0.1:8000
 进程就多一份 CORS、端口、部署配置要对齐，而这个 UI 没有构建步骤，分开跑没有好处。
 API 文档在 `/docs`。
 
+## 登录、账号与设置
+
+默认是**单机开放**模式（零配置，行为和以前一样）。门禁是 **fail-closed** 的：
+库里一旦有账号，就自动强制登录，无需再设开关。
+
+```bash
+# 1) 在宿主机上播种首个管理员（唯一的建号入口，没有公开的 bootstrap 路由）
+ontocopilot useradd root --admin
+# 2) 联网部署：从首次启动就锁死（未播种管理员前一切 /api 返回 401）
+ONTOCOPILOT_AUTH=1 ONTOCOPILOT_COOKIE_SECURE=1 ontocopilot-server   # COOKIE_SECURE 仅在 HTTPS 后
+```
+
+登录后：管理员可在右上角 **⚙ 设置** 里改 LLM 网关（base_url / api_key 只写不回显 /
+各难度档模型）、预算上限、查看环境变量（密钥已脱敏），并管理账号（增删、改角色、
+重置密码）；普通用户只能用。**外观**（深/浅色主题、强调色、字号、密度、时区）与
+**中/英语言**每个用户各自保存。相关环境变量见 `.env.example`
+（`ONTOCOPILOT_AUTH` / `COOKIE_SECURE` / `SESSION_TTL_HOURS` / `CORS_ORIGINS`）。
+
 ## 命令行
 
 ```bash
