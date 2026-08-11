@@ -21,7 +21,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, HTTPException, UploadFile
+from fastapi import FastAPI, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, Response, StreamingResponse
 
@@ -280,15 +280,25 @@ async def set_model(sid: str, body: dict[str, Any]) -> dict[str, Any]:
     return {"model": s.state["model"]}
 
 
-@app.get("/api/sessions")
-async def list_sessions() -> list[dict[str, Any]]:
-    """会话列表**以库为准**。
+# ── 会话归属（按账号隔离）─────────────────────────────────────────
+def _owner_id(request: Request) -> str:
+    """当前请求用户的 id（开放模式下是合成管理员 "__local__"）。新建会话记它为归属。"""
+    u = getattr(request.state, "user", None)
+    return u.id if u is not None else ""
 
-    内存里的 SESSIONS 只是本进程活着的那些。重启后库里还有一堆会话，
-    只列内存的话它们就凭空消失了 —— 而 workspace/ 下的产物还在，
-    用户会以为数据丢了。
-    """
-    rows = await get_repo().list_sessions()
+
+def _isolate(request: Request) -> bool:
+    """是否要按账号隔离：强制鉴权下的真实用户才隔离；开放模式（合成管理员）照旧全见。"""
+    u = getattr(request.state, "user", None)
+    return u is not None and u.id != authgate.SYNTHETIC_ADMIN.id
+
+
+@app.get("/api/sessions")
+async def list_sessions(request: Request) -> list[dict[str, Any]]:
+    """会话列表**以库为准**。强制鉴权下只列归属自己的；开放模式保持原行为
+    （合并内存里活着的 + 盘上孤儿目录）。"""
+    isolate = _isolate(request)
+    rows = await get_repo().list_sessions(owner=_owner_id(request) if isolate else None)
     out: list[dict[str, Any]] = []
     for r in rows:
         live = SESSIONS.get(r.id)
@@ -301,6 +311,12 @@ async def list_sessions() -> list[dict[str, Any]]:
                     "status": r.status, "files": len(files), "created": r.created,
                     "error": r.error, "mode": st.get("mode", "work"),
                     "hydrated": False})
+    if isolate:
+        # 隔离模式到此为止：只列库里归属自己的会话（每次创建都已落库带 owner）。
+        # 不合并"内存里活着但不在结果集"的会话，也不扫孤儿目录 —— 那些会泄露他人
+        # 或无归属的会话。
+        return sorted(out, key=lambda x: -x["created"])
+
     known = {r.id for r in rows}
     out += [s.brief() for s in SESSIONS.values() if s.id not in known]
     known |= {x["id"] for x in out}
@@ -325,7 +341,8 @@ async def list_sessions() -> list[dict[str, Any]]:
 
 
 @app.post("/api/sessions")
-async def create_session(body: dict[str, Any] | None = None) -> dict[str, Any]:
+async def create_session(request: Request,
+                         body: dict[str, Any] | None = None) -> dict[str, Any]:
     body = body or {}
     s = Session(id=uuid.uuid4().hex[:12],
                 title=body.get("title") or "新的本体梳理",
@@ -336,7 +353,7 @@ async def create_session(body: dict[str, Any] | None = None) -> dict[str, Any]:
     SESSIONS[s.id] = s
     await get_repo().create_session(SessionRow(
         id=s.id, title=s.title, project=s.project, status=s.status,
-        error="", created=s.created, state_version=0))
+        error="", created=s.created, state_version=0, owner=_owner_id(request)))
     await _persist(s, status=False)   # 把 mode 落下来，重载前就存在
     return s.brief()
 
@@ -402,7 +419,7 @@ async def upload(sid: str, files: list[UploadFile]) -> dict[str, Any]:
 
 
 @app.post("/api/sessions/{sid}/to_work")
-async def to_work(sid: str) -> dict[str, Any]:
+async def to_work(sid: str, request: Request) -> dict[str, Any]:
     """把一个聊天会话转成工作会话：把聊天里传的文件带过去，在那边正式梳理。
 
     聊天只对话、不梳理；真要抽本体/出流程图，转成工作会话即可 —— 文件跟着走，
@@ -427,7 +444,7 @@ async def to_work(sid: str) -> dict[str, Any]:
     SESSIONS[ws.id] = ws
     await get_repo().create_session(SessionRow(
         id=ws.id, title=ws.title, project="", status=ws.status,
-        error="", created=ws.created, state_version=0))
+        error="", created=ws.created, state_version=0, owner=_owner_id(request)))
     if ws.files:
         await get_repo().add_files(ws.id, [
             FileRow(name=f["name"], rel_path=str(Path(f["path"]).relative_to(ROOT)),

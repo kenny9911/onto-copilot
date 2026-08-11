@@ -99,7 +99,8 @@ async def resolve_cookie_user(request: Request, repo: Repo) -> UserRow | None:
     return user
 
 
-_PUBLIC_PATHS = frozenset({"/", "/api/health", "/api/login", "/api/auth/status"})
+_PUBLIC_PATHS = frozenset({"/", "/api/health", "/api/login", "/api/register",
+                           "/api/auth/status"})
 
 
 def _is_public(request: Request) -> bool:
@@ -108,11 +109,19 @@ def _is_public(request: Request) -> bool:
     return request.url.path in _PUBLIC_PATHS
 
 
+def _session_sid(path: str) -> str | None:
+    """从 ``/api/sessions/<sid>[/...]`` 里取出 sid；列表/创建路由（无 sid）返回 None。"""
+    prefix = "/api/sessions/"
+    if not path.startswith(prefix):
+        return None
+    return path[len(prefix):].split("/", 1)[0] or None
+
+
 async def auth_middleware(request: Request, call_next):
-    """一道 fail-closed 门。解析用户挂到 ``request.state.user``。"""
+    """一道 fail-closed 门。解析用户挂到 ``request.state.user``，并按账号隔离会话。"""
     repo = get_repo()
     if not await _enforce(repo):
-        request.state.user = SYNTHETIC_ADMIN     # 开放模式
+        request.state.user = SYNTHETIC_ADMIN     # 开放模式：不鉴权、不隔离（同今日行为）
         return await call_next(request)
 
     # 强制模式：总是先尝试解析 cookie（allowlist 也解析，好让 /auth/status 知道身份）
@@ -121,6 +130,16 @@ async def auth_middleware(request: Request, call_next):
         return await call_next(request)
     if request.state.user is None:
         return JSONResponse({"error": "未登录", "code": "auth.required"}, status_code=401)
+
+    # 按账号隔离：访问具体会话必须是**本人**的。不存在 / 无归属 / 他人的会话一律当作
+    # "不存在"（404）—— 不泄露"这个 id 存在但不是你的"。集中在这里做，避免逐个改
+    # 十几条会话路由。
+    sid = _session_sid(request.url.path)
+    if sid is not None:
+        row = await repo.get_session(sid)
+        if row is None or row.owner != request.state.user.id:
+            return JSONResponse({"error": "会话不存在", "code": "session.not_found"},
+                                status_code=404)
     return await call_next(request)
 
 
@@ -193,6 +212,34 @@ async def login(request: Request, body: dict, repo: Repo = Depends(get_repo)):
     return resp
 
 
+@router.post("/register")
+async def register(request: Request, body: dict, repo: Repo = Depends(get_repo)):
+    """自助注册。**首个注册的账号自动成为管理员**（可改网关/全局配置），其余为普通
+    用户。开放注册：任何人都能建号（联网部署请自行评估是否加邀请码）。"""
+    _throttle(request)
+    username = normalize_username(str(body.get("username", "")))
+    password = str(body.get("password", ""))
+    if not username or not password:
+        raise HTTPException(400, "用户名和密码不能为空")
+    if len(password) < 6:
+        raise HTTPException(400, "密码至少 6 位")
+    # 库里还没有账号 → 这个人就是管理员。有 TOCTOU 窗口（两人同时抢首个），
+    # 单进程下概率极低，且最坏结果只是多一个管理员，可接受。
+    role = "admin" if await repo.count_users() == 0 else "user"
+    ph = await run_in_threadpool(hash_password, password)
+    try:
+        user = await repo.create_user(UserRow(
+            id=uuid.uuid4().hex, username=username, password_hash=ph, role=role))
+    except DuplicateUsername:
+        raise HTTPException(409, "用户名已存在") from None
+    token, th = mint_token()
+    await repo.create_auth_session(AuthSessionRow(
+        token_hash=th, user_id=user.id, expires=time.time() + session_ttl_seconds()))
+    resp = JSONResponse({"user": user.public()})
+    _set_cookie(resp, token)                        # 注册即登录
+    return resp
+
+
 @router.post("/logout")
 async def logout(request: Request, repo: Repo = Depends(get_repo)):
     tok = request.cookies.get(COOKIE)
@@ -217,8 +264,9 @@ async def auth_status(request: Request, repo: Repo = Depends(get_repo)):
     n = await repo.count_users()
     return {
         "auth_enabled": enforce,
-        # 强制鉴权但零账号 = 被锁死，需宿主机 CLI 播种首个管理员。
-        "bootstrap_needed": enforce and n == 0,
+        # 开放自助注册：前端在登录页始终提供"注册"。零账号时首个注册者即管理员。
+        "registration_open": True,
+        "first_user_is_admin": enforce and n == 0,
         "authenticated": user is not None,
         "user": ({"id": user.id, "username": user.username, "role": user.role,
                   "prefs": user.prefs} if user else None),

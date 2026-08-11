@@ -509,7 +509,9 @@ body.dense .stream{padding:0 16px}
     <div class="field"><label id="loginPassLabel"></label>
       <input class="input" id="loginPass" type="password" autocomplete="current-password"></div>
     <div class="err" id="loginErr" style="display:none"></div>
-    <button class="act pri" id="loginSubmit" style="width:100%;margin-top:8px" onclick="doLogin()"></button>
+    <button class="act pri" id="loginSubmit" style="width:100%;margin-top:8px" onclick="doAuthSubmit()"></button>
+    <p class="cap" id="loginToggle" style="text-align:center;margin-top:10px;cursor:pointer;color:var(--accent)"
+       onclick="toggleAuthMode()"></p>
   </div>
 </div>
 
@@ -600,6 +602,9 @@ const I18N = {
     "login.title":"登录", "login.subtitle":"登录后继续使用 OntoCopilot",
     "login.username":"用户名", "login.password":"密码", "login.submit":"登录",
     "login.bad":"用户名或密码错误", "login.throttled":"尝试太多，请稍后再试",
+    "register.title":"注册", "register.subtitle":"创建账号并登录（首个账号是管理员）",
+    "register.submit":"注册", "register.short":"密码至少 6 位", "register.dup":"用户名已存在",
+    "auth.to_register":"没有账号？注册", "auth.to_login":"已有账号？登录",
     "bootstrap.title":"实例尚未初始化",
     "bootstrap.body":"还没有管理员账号。请在部署这个实例的主机上运行：\n\nontocopilot useradd --admin <用户名>\n\n创建首个管理员账号后点重试。",
     "bootstrap.retry":"重试",
@@ -640,6 +645,9 @@ const I18N = {
     "login.title":"Sign in", "login.subtitle":"Sign in to continue using OntoCopilot",
     "login.username":"Username", "login.password":"Password", "login.submit":"Sign in",
     "login.bad":"Incorrect username or password", "login.throttled":"Too many attempts, try again later",
+    "register.title":"Create account", "register.subtitle":"Register and sign in (the first account is admin)",
+    "register.submit":"Register", "register.short":"Password must be at least 6 characters", "register.dup":"Username already taken",
+    "auth.to_register":"No account? Register", "auth.to_login":"Have an account? Sign in",
     "bootstrap.title":"Instance not initialized",
     "bootstrap.body":"There's no admin account yet. On the host running this instance, run:\n\nontocopilot useradd --admin <username>\n\nthen retry once the first admin is created.",
     "bootstrap.retry":"Retry",
@@ -803,8 +811,11 @@ let CURRENT_USER = null;
   try { auStatus = await j("/api/auth/status"); }
   catch(e) { auStatus = {auth_enabled:false, bootstrap_needed:false, authenticated:true, user:null}; }
 
-  if (auStatus.bootstrap_needed) { showBootstrap(); return; }
-  if (auStatus.auth_enabled && !auStatus.authenticated) { showLogin(); return; }
+  if (auStatus.auth_enabled && !auStatus.authenticated) {
+    // 零账号时默认进注册（首个注册者即管理员）；否则登录。两者共用同一个可切换的表单。
+    showLogin(auStatus.first_user_is_admin ? "register" : "login");
+    return;
+  }
 
   // 未开启认证 / 单机模式：合成一个本地管理员身份，UI 逻辑不用为"没有用户"
   // 这个状态单独分叉。
@@ -833,19 +844,28 @@ let CURRENT_USER = null;
 function bindAuthForms(){
   const onEnter = (id, fn) => { const el = $(id); if (el) el.addEventListener("keydown", e => {
     if (e.key === "Enter") { e.preventDefault(); fn(); } }); };
-  onEnter("loginUser", doLogin);
-  onEnter("loginPass", doLogin);
+  onEnter("loginUser", doAuthSubmit);
+  onEnter("loginPass", doAuthSubmit);
 }
 
-function showLogin(){
-  $("loginTitle").textContent = t("login.title");
-  $("loginSubtitle").textContent = t("login.subtitle");
+let AUTH_MODE = "login";   // login | register —— 共用同一套表单
+
+function showLogin(mode){
+  AUTH_MODE = (mode === "register") ? "register" : "login";
+  const reg = AUTH_MODE === "register";
+  $("loginTitle").textContent = t(reg ? "register.title" : "login.title");
+  $("loginSubtitle").textContent = t(reg ? "register.subtitle" : "login.subtitle");
   $("loginUserLabel").textContent = t("login.username");
   $("loginPassLabel").textContent = t("login.password");
-  $("loginSubmit").textContent = t("login.submit");
+  $("loginPass").setAttribute("autocomplete", reg ? "new-password" : "current-password");
+  $("loginSubmit").textContent = t(reg ? "register.submit" : "login.submit");
+  $("loginToggle").textContent = t(reg ? "auth.to_login" : "auth.to_register");
   $("loginErr").style.display = "none";
   $("loginOverlay").style.display = "flex";
 }
+
+function toggleAuthMode(){ showLogin(AUTH_MODE === "login" ? "register" : "login"); }
+function doAuthSubmit(){ return AUTH_MODE === "register" ? doRegister() : doLogin(); }
 
 async function doLogin(){
   const u = ($("loginUser").value || "").trim();
@@ -864,6 +884,30 @@ async function doLogin(){
     if (r.status === 429) { errEl.textContent = t("login.throttled"); errEl.style.display = "block"; return; }
     if (!r.ok) { errEl.textContent = (await r.text()).slice(0,200); errEl.style.display = "block"; return; }
     location.reload();
+  } catch(e) {
+    errEl.textContent = String(e.message || e); errEl.style.display = "block";
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function doRegister(){
+  const u = ($("loginUser").value || "").trim();
+  const p = $("loginPass").value || "";
+  const errEl = $("loginErr");
+  errEl.style.display = "none";
+  if (!u || !p) return;
+  if (p.length < 6) { errEl.textContent = t("register.short"); errEl.style.display = "block"; return; }
+  const btn = $("loginSubmit");
+  btn.disabled = true;
+  try {
+    const r = await fetch(API + "/api/register", {method:"POST", headers:{"content-type":"application/json"},
+      body: JSON.stringify({username:u, password:p})});
+    if (r.status === 409) { errEl.textContent = t("register.dup"); errEl.style.display = "block"; return; }
+    if (r.status === 429) { errEl.textContent = t("login.throttled"); errEl.style.display = "block"; return; }
+    if (r.status === 400) { errEl.textContent = t("register.short"); errEl.style.display = "block"; return; }
+    if (!r.ok) { errEl.textContent = (await r.text()).slice(0,200); errEl.style.display = "block"; return; }
+    location.reload();   // 注册即登录
   } catch(e) {
     errEl.textContent = String(e.message || e); errEl.style.display = "block";
   } finally {

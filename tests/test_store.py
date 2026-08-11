@@ -352,3 +352,18 @@ async def test_delete_session_leaves_settings_untouched(repo):
     await repo.set_setting("gateway.base_url", "http://gw:3010/v1")
     await repo.delete_session("s1")
     assert await repo.get_setting("gateway.base_url") == "http://gw:3010/v1"
+
+
+# ══════════════════════════════════════════════════════════════════
+#  会话按账号隔离
+# ══════════════════════════════════════════════════════════════════
+async def test_session_owner_isolation(repo):
+    await repo.create_session(_sess("a", owner="u1"))
+    await repo.create_session(_sess("b", owner="u2"))
+    await repo.create_session(_sess("c"))          # 无归属（owner=""）
+    assert [s.id for s in await repo.list_sessions(owner="u1")] == ["a"]   # 只看到自己的
+    assert [s.id for s in await repo.list_sessions(owner="u2")] == ["b"]
+    # 无归属对任何具体用户都不可见；不带 owner 过滤时仍全列（内部/开放模式）
+    assert {s.id for s in await repo.list_sessions()} == {"a", "b", "c"}
+    assert (await repo.get_session("a")).owner == "u1"
+    assert (await repo.get_session("c")).owner == ""        # NULL ↔ ""

@@ -50,6 +50,8 @@ class SessionRow:
     error: str = ""
     created: float = 0.0
     state_version: int = 0
+    #: 归属账号 id。"" = 无归属（旧会话/开放模式），强制鉴权下对所有人隐藏。
+    owner: str = ""
 
     def brief(self, *, files: int = 0) -> dict[str, Any]:
         return {"id": self.id, "title": self.title, "project": self.project,
@@ -158,7 +160,8 @@ class Repo(Protocol):
 
     async def create_session(self, row: SessionRow) -> SessionRow: ...
     async def get_session(self, sid: str) -> SessionRow | None: ...
-    async def list_sessions(self, limit: int = 100) -> list[SessionRow]: ...
+    async def list_sessions(self, limit: int = 100, *,
+                            owner: str | None = None) -> list[SessionRow]: ...
     async def set_status(self, sid: str, status: str, *, error: str = "") -> None: ...
     async def delete_session(self, sid: str) -> bool: ...
 
@@ -257,8 +260,12 @@ class MemoryRepo:
     async def get_session(self, sid: str) -> SessionRow | None:
         return self._sessions.get(sid)
 
-    async def list_sessions(self, limit: int = 100) -> list[SessionRow]:
-        return sorted(self._sessions.values(), key=lambda s: -s.created)[:limit]
+    async def list_sessions(self, limit: int = 100, *,
+                            owner: str | None = None) -> list[SessionRow]:
+        rows = self._sessions.values()
+        if owner is not None:                      # 只看归属自己的；无归属("")天然被排除
+            rows = [s for s in rows if s.owner == owner]
+        return sorted(rows, key=lambda s: -s.created)[:limit]
 
     async def set_status(self, sid: str, status: str, *, error: str = "") -> None:
         s = self._sessions[sid]
@@ -527,6 +534,7 @@ class PgRepo:
                 id=row.id, title=row.title, project=row.project,
                 status=row.status, error=row.error, state_version=0,
                 next_event_seq=0, next_run_ordinal=0,
+                owner=row.owner or None,           # "" → NULL（无归属）
                 created_at=datetime.fromtimestamp(row.created, tz=UTC),
                 updated_at=datetime.fromtimestamp(row.created, tz=UTC)))
         return row
@@ -539,12 +547,15 @@ class PgRepo:
                 t.session.c.id == sid))).mappings().first()
         return _session_row(r) if r else None
 
-    async def list_sessions(self, limit: int = 100) -> list[SessionRow]:
+    async def list_sessions(self, limit: int = 100, *,
+                            owner: str | None = None) -> list[SessionRow]:
         from . import schema as t
         import sqlalchemy as sa
+        q = sa.select(t.session)
+        if owner is not None:                      # 只看归属自己的；NULL(无归属)天然被排除
+            q = q.where(t.session.c.owner == owner)
         async with self._engine.connect() as conn:
-            rs = (await conn.execute(sa.select(t.session)
-                                     .order_by(t.session.c.created_at.desc())
+            rs = (await conn.execute(q.order_by(t.session.c.created_at.desc())
                                      .limit(limit))).mappings().all()
         return [_session_row(r) for r in rs]
 
@@ -1014,7 +1025,7 @@ def _session_row(r: Any) -> SessionRow:
     return SessionRow(
         id=r["id"], title=r["title"], project=r["project"], status=r["status"],
         error=r["error"], created=r["created_at"].timestamp(),
-        state_version=r["state_version"])
+        state_version=r["state_version"], owner=r["owner"] or "")
 
 
 def _user_row(r: Any) -> UserRow:

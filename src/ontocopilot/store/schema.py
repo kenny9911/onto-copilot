@@ -56,6 +56,10 @@ session = sa.Table(
               server_default=sa.func.now()),
     sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False,
               server_default=sa.func.now()),
+    #: 会话归属的账号 id（app_user.id）。NULL/'' = 无归属 —— 迁移前的旧会话与开放
+    #  模式创建的会话都是这种，在强制鉴权下对所有人隐藏。不设外键：删账号不连带
+    #  删会话（归属改判交给上层），也避免与 app_user 的生命周期耦合。
+    sa.Column("owner", sa.Text),
     sa.CheckConstraint(
         "status IN ('idle','parsing','extracting','awaiting_answer','done','failed')",
         name="session_status_ck"),

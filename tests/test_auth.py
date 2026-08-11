@@ -21,7 +21,7 @@ from ontocopilot.auth import (
 )
 from ontocopilot.server import app
 from ontocopilot.store.deps import set_repo_for_tests
-from ontocopilot.store.repo import MemoryRepo, UserRow
+from ontocopilot.store.repo import MemoryRepo, SessionRow, UserRow
 
 
 def test_hash_is_salted_and_verifies():
@@ -104,7 +104,7 @@ async def test_enforced_blocks_protected_but_allows_allowlist(monkeypatch):
         assert (await c.get("/api/me")).status_code == 401          # 受保护
         assert (await c.get("/api/health")).status_code == 200      # allowlist
         j = (await c.get("/api/auth/status")).json()
-        assert j["auth_enabled"] and j["bootstrap_needed"] and not j["authenticated"]
+        assert j["auth_enabled"] and j["first_user_is_admin"] and not j["authenticated"]
 
 
 async def test_login_me_logout(monkeypatch):
@@ -252,3 +252,61 @@ async def test_config_rejects_unknown_model(monkeypatch):
         await c.post("/api/login", json={"username": "admin", "password": "admin-pw-1"})
         assert (await c.put("/api/config",
                 json={"models": {"high": "foo/nonexistent"}})).status_code == 400
+
+
+# ══════════════════════════════════════════════════════════════════
+#  自助注册 + 会话按账号隔离
+# ══════════════════════════════════════════════════════════════════
+async def test_register_first_is_admin_rest_user(monkeypatch):
+    monkeypatch.setenv("ONTOCOPILOT_AUTH", "1")
+    async with _client(MemoryRepo()) as c:
+        r1 = await c.post("/api/register",
+                          json={"username": "alice", "password": "pw-alice-1"})
+        assert r1.status_code == 200 and r1.json()["user"]["role"] == "admin"   # 首个=管理员
+        me = await c.get("/api/me")                                             # 注册即登录
+        assert me.status_code == 200 and me.json()["username"] == "alice"
+        c.cookies.clear()
+        r2 = await c.post("/api/register",
+                          json={"username": "bob", "password": "pw-bob-1"})
+        assert r2.status_code == 200 and r2.json()["user"]["role"] == "user"    # 其余=普通
+
+
+async def test_register_duplicate_and_validation(monkeypatch):
+    monkeypatch.setenv("ONTOCOPILOT_AUTH", "1")
+    async with _client(MemoryRepo()) as c:
+        await c.post("/api/register", json={"username": "alice", "password": "pw-alice-1"})
+        c.cookies.clear()
+        # 规范化后重名 → 409
+        assert (await c.post("/api/register",
+                json={"username": "Alice", "password": "another"})).status_code == 409
+        assert (await c.post("/api/register",
+                json={"username": "", "password": "pw-xxxx"})).status_code == 400
+        assert (await c.post("/api/register",
+                json={"username": "z", "password": "123"})).status_code == 400   # 密码太短
+
+
+async def test_session_isolation_between_accounts(monkeypatch):
+    monkeypatch.setenv("ONTOCOPILOT_AUTH", "1")
+    repo = MemoryRepo()
+    async with _client(repo) as c:
+        alice = (await c.post("/api/register",
+                 json={"username": "alice", "password": "pw-alice-1"})).json()["user"]
+        # 直接在库里塞一个 alice 的会话（避开建会话路由对磁盘的依赖）
+        await repo.create_session(
+            SessionRow(id="sess_a", title="A", owner=alice["id"], created=1000.0))
+        assert any(x["id"] == "sess_a" for x in (await c.get("/api/sessions")).json())
+        # 换 bob
+        c.cookies.clear()
+        await c.post("/api/register", json={"username": "bob", "password": "pw-bob-1"})
+        assert (await c.get("/api/sessions")).json() == []                 # 看不到 alice 的
+        assert (await c.get("/api/sessions/sess_a/state")).status_code == 404  # 也访问不了
+
+
+async def test_open_mode_has_no_isolation(monkeypatch):
+    monkeypatch.delenv("ONTOCOPILOT_AUTH", raising=False)
+    repo = MemoryRepo()
+    async with _client(repo) as c:
+        assert (await c.get("/api/auth/status")).json()["registration_open"] is True
+        await repo.create_session(SessionRow(id="s_open", owner="whoever", created=1.0))
+        # 开放模式（合成管理员）不隔离 —— 看得到别人 owner 的会话
+        assert any(x["id"] == "s_open" for x in (await c.get("/api/sessions")).json())
