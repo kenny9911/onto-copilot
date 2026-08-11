@@ -17,6 +17,7 @@ from __future__ import annotations
 import asyncio
 import base64
 import io
+import time
 from pathlib import Path
 from typing import Any
 
@@ -32,10 +33,19 @@ MAX_EDGE = 2000
 #: 重试同样的预算再撞两次，整份材料就废了。会思考的模型还要再吃掉一部分预算。
 OCR_MAX_TOKENS = 24_000
 
-#: 单页识别的时间上限。密集图 + 大预算本来就慢，卡太紧会把**正在正常出结果**的
-#: 调用掐掉（而取消不会留下 effect.failed，日志里只剩一条孤零零的 requested，
-#: 极难排查）。给足时间，但必须有上限 —— 无限等就是界面上永远的"解析中"。
-OCR_TIMEOUT_S = 300
+#: 单页识别的时间上限。
+#:
+#: **这是"每次识别图片都失败"的真凶。** 实测同一张上百节点的流程图：
+#:     claude-opus-4.8   287s  114 blocks / 14 relations
+#:     gemini-3.5-flash  152s   44 blocks / 34 relations
+#:     gpt-5.4-mini       19s   89 blocks /  0 relations
+#: 而上限是 150s —— 于是**每一次都在正常出结果的途中被掐掉**。更糟的是取消不写
+#: effect.failed，日志里只剩一条没有结局的 requested，看上去像"卡住了"而不是
+#: "被我们自己杀了"。
+#:
+#: 现在给足余量（最慢的一档 287s + 网络抖动），但仍然有上限 —— 无限等就是界面上
+#: 永远的"解析中"。
+OCR_TIMEOUT_S = 600
 
 #: PDF 渲染倍率。2.0 对应约 144 DPI，中文小字够认。
 PDF_ZOOM = 2.0
@@ -115,11 +125,22 @@ class VisionParser(Parser):
     extensions = (".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tif", ".tiff", ".pdf")
 
     def __init__(self, gateway: Any = None, *, prefer: str = "quality",
-                 max_pages: int = 20, node_id: str = "PARSE.scan") -> None:
+                 max_pages: int = 20, node_id: str = "PARSE.scan",
+                 on_progress: Any = None) -> None:
         self.gateway = gateway
         self.prefer = prefer
         self.max_pages = max_pages
         self.node_id = node_id
+        #: 每页开始/结束回调一次。一页要几分钟，不报进度的话界面上就是几分钟的
+        #: 死寂，用户分不清在识别还是又挂了。
+        self.on_progress = on_progress
+
+    def _note(self, msg: str) -> None:
+        if self.on_progress:
+            try:
+                self.on_progress(msg)
+            except Exception:  # noqa: BLE001 — 报进度失败不该影响识别
+                pass
 
     def parse(self, path: Path, *, file_id: str) -> ParsedDoc:
         raise RuntimeError(
@@ -147,7 +168,11 @@ class VisionParser(Parser):
 
         order = 0
         all_relations: list[dict[str, Any]] = []
+        self._note(f"开始识别 {path.name}（{len(pages)} 页）。"
+                   f"密集的图一页可能要 2–5 分钟，请等它跑完。")
         for pno, data_uri in enumerate(pages, start=1):
+            _t0 = time.monotonic()
+            self._note(f"正在识别第 {pno}/{len(pages)} 页…")
             # 视觉调用必须**有超时、且失败不炸整条 build**。否则网关上没有可用视觉模型
             # （require 抛错）或调用卡住时，PARSE 会一直挂在这里 —— 界面上就是「一直
             # 正在梳理」，而根因（没有视觉模型）被埋在一个永不返回的 await 里。
@@ -172,6 +197,11 @@ class VisionParser(Parser):
                     {}, severity="warn"))
                 break   # 一页就失败，后面多半也一样 —— 别把超时乘以页数
             page = comp.data or {}
+            self._note(
+                f"第 {pno} 页识别完成（{time.monotonic() - _t0:.0f} 秒）："
+                f"{len(page.get('blocks') or [])} 个文本块、"
+                f"{len(page.get('tables') or [])} 张表、"
+                f"{len(page.get('relations') or [])} 条连线")
 
             for b in page.get("blocks", ()):
                 text = (b.get("text") or "").strip()

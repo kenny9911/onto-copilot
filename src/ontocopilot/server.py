@@ -816,7 +816,12 @@ async def _run_pipeline(s: Session, *, tier: str = "full") -> None:
                 + (f"可用：{'、'.join(vis[:3])}" if vis
                    else "⚠ 网关上没有带视觉的模型，识别会失败")
                 + "），单页可能要几十秒。"))
-        docs = await default_registry(vision_gateway=smart).aparse_all(paths)
+        # 识别进度直接投影进推理面板：一页要几分钟，不报进度的话那几分钟里界面
+        # 是死的，用户分不清在识别、还是又挂了。
+        docs = await default_registry(
+            vision_gateway=smart,
+            vision_progress=lambda msg: s.emit("flow.step", cite="", found=msg),
+        ).aparse_all(paths)
         index = build_index(docs)
         endpoints = collect_endpoints(docs)
         profiles = collect_profiles(docs)

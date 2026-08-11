@@ -27,7 +27,7 @@ from .vision import VisionParser
 
 def default_registry(
     *, sql_dialect: str | None = None, vision_gateway: Any = None,
-    vision_prefer: str = "quality",
+    vision_prefer: str = "quality", vision_progress: Any = None,
 ) -> ParserRegistry:
     """内置解析器。顺序即优先级。
 
@@ -43,7 +43,8 @@ def default_registry(
         .register(DdlParser(dialect=sql_dialect))
         .register(OpenApiParser())
         .register(DocxParser())
-        .register(VisionParser(vision_gateway, prefer=vision_prefer))
+        .register(VisionParser(vision_gateway, prefer=vision_prefer,
+                               on_progress=vision_progress))
         .register(TextParser(), fallback=True)
     )
 

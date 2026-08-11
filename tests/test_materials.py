@@ -226,3 +226,40 @@ def test_ocr_budget_and_timeout_fit_a_dense_diagram():
 
     assert vision.OCR_MAX_TOKENS >= 16_000
     assert vision.OCR_TIMEOUT_S >= 240
+
+
+def test_ocr_timeout_covers_the_slowest_measured_model():
+    """实测同一张上百节点的流程图：opus 287s / gemini-flash 152s / gpt-mini 19s。
+    上限曾是 150s —— 于是**每一次都在正常出结果的途中被掐掉**，而取消不写
+    effect.failed，日志里只剩一条没有结局的 requested，看上去像"卡住"。"""
+    from ontocopilot.onto.parse import vision
+
+    assert vision.OCR_TIMEOUT_S >= 500, "要盖住最慢一档（287s）加网络抖动"
+
+
+async def test_vision_reports_progress_per_page():
+    """一页要几分钟。不报进度的话那几分钟界面是死的，用户分不清在识别还是又挂了。"""
+    import pathlib
+
+    import ontocopilot.onto.parse.vision as V
+    from ontocopilot.onto.parse.vision import VisionParser
+
+    orig = V.render_pages
+    V.render_pages = lambda p, max_pages=20: ["data:image/png;base64,AA"] * 2
+    try:
+        class _Gw:
+            async def call(self, *a, **k):
+                class _C:
+                    data = {"blocks": [{"text": "x", "bbox": [0, 0, 1, 1], "kind": "note"}],
+                            "tables": [], "relations": [{"from": "a", "to": "b"}]}
+                return _C()
+
+        seen: list[str] = []
+        await VisionParser(_Gw(), on_progress=seen.append).aparse(
+            pathlib.Path("/tmp/a.png"), file_id="f")
+    finally:
+        V.render_pages = orig
+
+    assert any("开始识别" in m for m in seen)
+    assert any("第 1/2 页" in m for m in seen)
+    assert any("识别完成" in m and "连线" in m for m in seen), "完成时要报读出了什么"
