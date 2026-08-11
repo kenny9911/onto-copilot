@@ -423,10 +423,13 @@ async def upload(sid: str, files: list[UploadFile]) -> dict[str, Any]:
                 size=f["size"], sha256="")
         for f in s.files[-len(files):]])
     s.emit("files.attached", files=[f["name"] for f in s.files])
-    # 上传即解析。xlsx / csv / ddl / docx 的解析是**零模型调用**的，没有任何
-    # 理由让人先花几美元跑完整轮抽取才能问第一个问题。扫描件例外 —— 它要过
-    # 视觉模型，那个要花钱，留到 build 再做。
-    await _preparse(s)
+    # **上传只登记，不解析。** 解析是不是现在做、做哪几份，交给 AI 判断（它有
+    # material.list 看清单、material.parse 去读）。上传即解析看着"贴心"，实际是
+    # 替 FDE 和 AI 都做了决定：他可能还要再传两份、可能只想先聊聊，而 AI 也没有
+    # 机会说"这份跟你要问的没关系，先不读"。
+    s.emit("materials.registered",
+           files=[f["name"] for f in s.files[-len(files):]],
+           note="已登记，还没读内容。要读时由助手调用解析。")
     public = {k: v for k, v in s.state.items() if not k.startswith("_")}
     # 材料进来、结构解析好了 —— 让 AI 结合刚读到的语料出一版更贴的开场问题，
     # 后台算好走 prompts.ready 换上去。启发式那版先随响应返回，chips 立刻在。
@@ -1498,11 +1501,33 @@ def _converse_tools(s: Session) -> Any:
     **改产物的工具一律 WRITE_LOCAL**，且每个都在返回值里说清改了什么，
     模型必须把它转述给用户。静默改产物是这层最不能出的错。
     """
-    reg = builtin_registry(evidence=s.state.get("_index"), oir=s.state.get("_oir"),
+    # 证据索引按**调用时**解析，不按建注册表时。工具集是一轮开始时装配的，而
+    # `material.parse` 就是在这一轮中间把索引建出来的 —— 早绑的话，AI 刚读完材料
+    # 却发现这一轮没有检索工具可用，只能等下一轮，白跑一趟。
+    class _LazyIndex:
+        def _ix(self) -> Any:
+            return s.state.get("_index")
+
+        def search(self, *a: Any, **k: Any) -> Any:
+            ix = self._ix()
+            return ix.search(*a, **k) if ix is not None else []
+
+        def file_names(self) -> dict[str, str]:
+            ix = self._ix()
+            return ix.file_names() if ix is not None else {}
+
+        def __len__(self) -> int:
+            ix = self._ix()
+            return len(ix) if ix is not None else 0
+
+    reg = builtin_registry(evidence=_LazyIndex(), oir=s.state.get("_oir"),
                            profiles=s.state.get("_profiles"))
-    # 工作模式的工具都挂在 converse 作用域。聊天模式不走这套 —— 它用一份空注册表，
-    # 保证零工具（见 _reason），所以这里不再需要单独的 chat 作用域。
-    RO, RW = ("converse",), ("converse",)
+    # RO（只读：看状态、看材料清单、查流程）两个模式都给 —— 聊天也要能就上传的
+    # 材料对话。RW（改产物：抽本体、改流程图、出模板、开跑）**只给工作模式**。
+    # `material.parse` 单独放行到聊天：它只是把文件读进索引，不产出任何产物，
+    # 而聊天要分析上传的文件就必须能读。
+    RO, RW = ("converse", "chat"), ("converse",)
+    RO_PARSE = ("converse", "chat")
 
     @reg.fn("material.list",
             "列出这次会话的全部材料：文件名、体量、已经读进来多少段、有没有还没识别的。"
@@ -1510,16 +1535,47 @@ def _converse_tools(s: Session) -> Any:
             {"type": "object", "properties": {}}, danger=Danger.READ, scopes=RO)
     def _mat_list(ctx: Any) -> dict[str, Any]:
         chunks = s.state.get("_chunks") or {}
+        scan_ext = (".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tif", ".tiff", ".pdf")
         rows = []
         for f in s.files:
             cs = chunks.get(f["name"]) or []
+            is_scan = f["name"].lower().endswith(scan_ext)
             rows.append({
                 "文件": f["name"], "大小KB": round((f.get("size") or 0) / 1024),
                 "已读入段数": len(cs),
-                "状态": "已读入" if cs else "还没读到内容（图片/扫描件要开始梳理才识别）",
+                # 两种"没读"要分清：文本类现在就能读（material.parse，零成本），
+                # 图片类要视觉模型、留到梳理时 —— 混成一句话会让 AI 对着文本材料
+                # 干等"开始梳理"，或者以为图片现在就能读。
+                "状态": ("已读入" if cs else
+                         "还没识别（图片/扫描件，点「开始梳理」时用视觉模型识别）"
+                         if is_scan else "还没读入（调 material.parse 即可读，零成本）"),
             })
         return {"材料数": len(s.files), "材料": rows,
                 "说明": "要看某份材料的正文，用 evidence.search 并把文件名填进 files"}
+
+    @reg.fn("material.parse",
+            "把还没读过的材料读进来（表格/CSV/SQL/文档是**零成本**的，读完就能检索）。"
+            "用户问材料里的事、而 material.list 显示还没读入时，**先调它再回答** —— "
+            "没读进来就检索，只会查到空。图片/扫描件要视觉模型识别，那个留到"
+            "「开始梳理」时做，这里不碰。",
+            {"type": "object", "properties": {
+                "files": {"type": "array", "items": {"type": "string"},
+                          "description": "只读这几份（文件名）；不给就把还没读的都读了"}}},
+            danger=Danger.WRITE_LOCAL, scopes=RO_PARSE)
+    async def _mat_parse(ctx: Any, files: list[str] | None = None) -> dict[str, Any]:
+        if not s.files:
+            return {"error": "还没有材料。"}
+        if _busy(s):
+            return {"error": "梳理正在跑，它自己会解析。"}
+        before = dict(s.state.get("_chunks") or {})
+        await _preparse(s)                      # 零模型调用；扫描件在这条路上不识别
+        after = s.state.get("_chunks") or {}
+        got = {k: len(v) for k, v in after.items() if len(v) > len(before.get(k) or [])}
+        pending = [f["name"] for f in s.files if not after.get(f["name"])]
+        return {"已读入": got or "没有新读入的（可能都读过了）",
+                "还没识别": pending or "无",
+                "说明": ("图片/扫描件要视觉模型，点「开始梳理」时才识别"
+                         if pending else "都读进来了，可以用 evidence.search 查内容")}
 
     @reg.fn("material.inspect",
             "看一份材料的结构大纲：分成了哪些段、都是什么类型、解析时发现了什么问题。"
@@ -2044,9 +2100,9 @@ async def _reason(s: Session, text: str, *, hint: str = "",
     # 生成产物的工具** —— 不抽本体/不出流程图/不生成模板，那些是工作模式的事。
     if s.state.get("mode") == "chat":
         from .onto.converse import _CHAT_SYSTEM
-        chat_tools = builtin_registry(evidence=s.state.get("_index"),
-                                      oir=s.state.get("_oir"))
-        agent = ConversationAgent(gateway=gw, tools=chat_tools, scope="chat",
+        # 用同一份注册表、但按 chat 作用域取工具：拿得到只读的看/查/读材料，
+        # 拿不到任何改产物的（那些是 RW=converse）。作用域即授权，不靠提示词自律。
+        agent = ConversationAgent(gateway=gw, tools=tools, scope="chat",
                                   max_steps=4, system=_CHAT_SYSTEM, lang=s.lang)
     else:
         # 工作模式的模型选择器：选了具体模型就让对话直接用它（梳理管线仍按能力路由）
@@ -2287,6 +2343,7 @@ async def _say(s: Session, outcome: dict[str, Any], user_text: str) -> str:
     fallback = str(outcome.get("fallback") or "")
     if outcome.get("verbatim"):
         return fallback  # 有些回复必须一字不差（比如引用原文）
+    _trace_aux(s, "措辞", f"把「{outcome.get('kind', '结果')}」的事实说成人话")
     try:
         _, gw, _, _ = _gateways(s.dir, f"say_{uuid.uuid4().hex[:8]}")
         comp = await gw.call(
@@ -2387,6 +2444,19 @@ async def _ai_recommend(s: Session, *, slot: str, user_text: str | None = None,
         return None
 
 
+def _trace_aux(s: Session, what: str, detail: str) -> None:
+    """把**辅助性的模型调用**也投影进推理面板。
+
+    措辞、推荐问题这些调用一样在花钱、一样是"AI 在想事情"，但它们不走对话推理
+    循环，于是推理面板里完全看不见 —— 用户看到的是一个偶尔卡一下、不知道在干嘛
+    的界面。既然那一栏叫「推理」，它就该是**这一轮所有模型工作**的全集。
+    """
+    n = len([e for e in s.events if e.get("kind") == "chat.step"
+             and (e.get("step") or {}).get("turn") == "aux"]) + 1
+    s.emit("chat.step", step={"turn": "aux", "q": "后台", "n": n,
+                              "thought": f"{what}：{detail}"})
+
+
 async def _emit_ai_prompts(s: Session, *, slot: str, turn: int | None = None,
                            user_text: str | None = None,
                            reply: str | None = None) -> None:
@@ -2395,8 +2465,11 @@ async def _emit_ai_prompts(s: Session, *, slot: str, turn: int | None = None,
     失败就什么都不发 —— ``/chat``、``/files`` 早已带着启发式提示返回，chips 已经在了。
     ``turn`` 是这一轮 ``chat.turn`` 的事件 seq，前端据此丢弃过期轮次的追问。
     """
+    _trace_aux(s, "想推荐问题",
+               "结合当前产物和这轮回答，算他接下来最该问什么")
     qs = await _ai_recommend(s, slot=slot, user_text=user_text, reply=reply)
     if qs:
+        _trace_aux(s, "推荐问题", "、".join(q.get("text", "")[:18] for q in qs[:3]))
         s.emit("prompts.ready", slot=slot, turn=turn, questions=qs)
 
 

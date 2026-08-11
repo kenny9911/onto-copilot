@@ -117,3 +117,62 @@ async def test_material_tools_expose_the_inventory_and_the_unread_ones(tmp_path,
     # 清单要进每轮的上下文，而不是只能靠模型主动查
     brief = server._context_brief(s)
     assert "流程图.png" in brief and "尚未识别" in brief
+
+
+async def test_upload_registers_without_parsing_and_the_ai_decides(tmp_path, monkeypatch):
+    """上传即解析看着贴心，实际是替 FDE 和 AI 都做了决定：他可能还要再传两份、
+    可能只想先聊聊，而 AI 也没机会说"这份跟你要问的没关系，先不读"。
+
+    并且解析完必须能**在同一轮里**检索 —— 工具集是回合开始时装配的，证据索引
+    若早绑，AI 刚读完材料却发现这一轮没有检索工具，只能白等一轮。
+    """
+    import ontocopilot.server as server
+
+    monkeypatch.setattr(server, "ROOT", tmp_path)
+    s = server.Session(id="p1")
+    (s.dir / "materials").mkdir(parents=True, exist_ok=True)
+    p = s.dir / "materials" / "采购.csv"
+    p.write_text("对象,口径\n采购包,含税金额\n", encoding="utf-8")
+    s.files = [{"name": p.name, "size": p.stat().st_size, "path": str(p)}]
+
+    reg = server._converse_tools(s)
+
+    class _Ctx:
+        approved = True
+        pending: list = []
+
+    assert not s.state.get("_chunks"), "上传不该已经解析"
+
+    listed = await reg.call("material.list", {}, _Ctx(), scope="chat")
+    assert "material.parse" in listed["材料"][0]["状态"]     # 文本类：现在就能读
+
+    parsed = await reg.call("material.parse", {}, _Ctx(), scope="chat")
+    assert parsed["已读入"]["采购.csv"] == 2
+
+    hit = await reg.call("evidence.search", {"query": "采购包"}, _Ctx(), scope="chat")
+    assert hit["count"] >= 1, "解析完必须能在同一轮内检索到"
+
+
+def test_scans_and_text_are_not_described_the_same_way(tmp_path, monkeypatch):
+    """两种"没读"要分清：文本现在就能读，图片要等视觉模型。混成一句话会让 AI
+    对着文本材料干等「开始梳理」，或者以为图片现在就能读。"""
+    import ontocopilot.server as server
+
+    monkeypatch.setattr(server, "ROOT", tmp_path)
+    s = server.Session(id="p2")
+    s.dir.mkdir(parents=True, exist_ok=True)
+    s.files = [{"name": "a.csv", "size": 10, "path": "x"},
+               {"name": "b.png", "size": 10, "path": "y"}]
+    reg = server._converse_tools(s)
+
+    class _Ctx:
+        approved = True
+        pending: list = []
+
+    import asyncio
+    rows = asyncio.get_event_loop_policy().new_event_loop().run_until_complete(
+        reg.call("material.list", {}, _Ctx(), scope="chat"))["材料"]
+    text_row = next(r for r in rows if r["文件"] == "a.csv")
+    scan_row = next(r for r in rows if r["文件"] == "b.png")
+    assert "material.parse" in text_row["状态"]
+    assert "视觉" in scan_row["状态"] and "开始梳理" in scan_row["状态"]
