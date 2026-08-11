@@ -512,6 +512,11 @@ async def to_work(sid: str, request: Request) -> dict[str, Any]:
 #: 几 MB；1500 足够"点回原文"显示上下文，检索本身走 EvidenceIndex 不靠它。
 _CHUNK_TEXT_CAP = 1500
 
+#: material.rows 能读行的格式；别的文件没有"行"这个概念，正文走 evidence.search。
+_TABULAR_EXT = (".xlsx", ".xlsm", ".xltx", ".csv", ".tsv")
+#: 一次最多列多少行。超了**要在回执里说清**还剩多少 —— 悄悄截断会被读成"就这些"。
+_ROWS_MAX = 500
+
 
 def _chunk_cache(docs: list[Any]) -> dict[str, list[dict[str, Any]]]:
     """把解析结果摊成可持久化的切片缓存。**解析的两条路共用这一个形状。**
@@ -1693,7 +1698,14 @@ def _converse_tools(s: Session) -> Any:
         oir = s.state.get("oir") or {}
         items = list(oir.get(kind) or [])
         if not items:
-            return {"error": f"还没有 {kind}。先跑一轮梳理。"}
+            # 这条错最容易被误读成"这东西读不出来"，然后模型就去 evidence.search 抄
+            # 几条片段凑清单、再跟用户说"系统读取异常"。要列的东西在**用户自己上传
+            # 的表**里时，根本不需要梳理 —— 直接读那张表就有。
+            return {"error": f"还没有 {kind} —— 这里列的是**梳理产出的**东西，"
+                             f"而梳理还没跑过。",
+                    "下一步": "如果用户要的其实是**他上传的表格里已有的内容**"
+                              "（比如他自己整理好的问题清单），用 material.rows"
+                              "(file=…) 直接把那张表列出来，不用先梳理。"}
 
         def val(x: Any) -> str:
             return str((x or {}).get("value", "") if isinstance(x, dict) else (x or ""))
@@ -1812,7 +1824,108 @@ def _converse_tools(s: Session) -> Any:
                 "各类段落": by_tag,
                 "前几段": [{"出处": c.get("cite"), "摘录": (c.get("text") or "")[:160]}
                            for c in cs[:5]],
-                "下一步": f"要查具体内容：evidence.search(query=…, files=[\"{name}\"])"}
+                "下一步": (f"要**整张表列给用户**：material.rows(file=\"{name}\")；"
+                           f"要查某个说法在哪：evidence.search(query=…, files=[\"{name}\"])")}
+
+    @reg.fn("material.rows",
+            "把**用户自己上传的表格**里的行原样列出来给他看（xlsx/csv）。他说「把表里的"
+            "问题列给我」「这份表有哪些行」「全部列一遍」，而东西在**他上传的表**里时，"
+            "用这个 —— 行由系统直接从文件读，150 行就是 150 行。\n"
+            "**绝不要拿 evidence.search 的片段凑清单**：那是按相关度取的前几条，拿它当"
+            "全集必然只剩零星几条，而他要的正是全部。零成本，不需要先梳理。\n"
+            "（`ui.table` 列的是**梳理产出的**对象/属性/规则；这个列的是**原始材料**。）",
+            {"type": "object", "required": ["file"],
+             "properties": {
+                 "file": {"type": "string", "description": "文件名"},
+                 "sheet": {"type": "string",
+                           "description": "工作表名；整份只有一张表时可不给"},
+                 "contains": {"type": "string",
+                              "description": "只列内容里含这个词的行；不给则全部"},
+                 "columns": {"type": "array", "items": {"type": "string"},
+                             "description": "只要这几列；不给则全部"},
+                 "title": {"type": "string", "description": "给这张表起个标题"}}},
+            danger=Danger.READ, scopes=RO)
+    def _mat_rows(ctx: Any, file: str, sheet: str = "", contains: str = "",
+                  columns: list[str] | None = None,
+                  title: str = "") -> dict[str, Any]:
+        f = (next((x for x in s.files if x["name"] == file), None)
+             or next((x for x in s.files if file in x["name"]), None))
+        if not f:
+            return {"error": f"没有材料「{file}」。现有：{[x['name'] for x in s.files]}"}
+        path = Path(f.get("path") or (s.dir / "materials" / f["name"]))
+        if path.suffix.lower() not in _TABULAR_EXT:
+            return {"error": f"「{f['name']}」不是表格（{path.suffix or '无后缀'}），没有"
+                             f"「行」可列。正文内容用 evidence.search。"}
+        try:
+            doc = default_registry().parse(path)
+        except Exception as exc:                                  # noqa: BLE001
+            return {"error": f"读不了「{f['name']}」：{type(exc).__name__}: {exc}"}
+
+        # 一行一个切片、raw 就是「列名→值」，所以这里不必再解析一遍表格
+        rows_by_sheet: dict[str, list[dict[str, Any]]] = {}
+        for c in doc.chunks:
+            if "row" not in (c.tags or ()):
+                continue
+            sh = (c.locator or {}).get("sheet") or path.stem
+            rows_by_sheet.setdefault(sh, []).append(c.raw or {})
+        if not rows_by_sheet:
+            return {"error": f"「{f['name']}」里没读出数据行。"}
+
+        names = list(rows_by_sheet)
+        pick = (sheet if sheet in rows_by_sheet else
+                next((n for n in names if sheet and sheet in n), ""))
+        if not pick:
+            if sheet:
+                return {"error": f"没有工作表「{sheet}」。现有：{names}"}
+            if len(names) > 1:
+                return {"多张工作表": {n: len(v) for n, v in rows_by_sheet.items()},
+                        "下一步": "传 sheet=表名 再调一次；用户没指定就先问他要哪张。"}
+            pick = names[0]
+
+        data = rows_by_sheet[pick]
+        head = [c["columns"] for c in (doc.structured or {}).get("sheets", ())
+                if c.get("name") == pick]
+        cols = list(head[0]) if head else list(
+            {k: None for r in data for k in r})
+        if columns:
+            want = [c for c in cols if c in columns]
+            missing = [c for c in columns if c not in cols]
+            if not want:
+                return {"error": f"这些列都不存在：{columns}。现有列：{cols}"}
+            cols, note_cols = want, missing
+        else:
+            note_cols = []
+        if contains:
+            k = contains.lower()
+            data = [r for r in data
+                    if k in " ".join(str(v) for v in r.values()).lower()]
+        # 全空的列（尾部空列在真实表格里很常见）不占版面
+        live = [c for c in cols if any(str(r.get(c, "")).strip() for r in data)]
+        blank = len(cols) - len(live)
+        cols = live or cols
+
+        total = len(data)
+        shown = data[:_ROWS_MAX]
+        s.emit("ui.table",
+               title=title or (f"{f['name']}·{pick}"
+                               + (f"（含「{contains}」{total} 行）" if contains
+                                  else f"（{total} 行）")),
+               columns=cols,
+               rows=[[str(r.get(c, "") or "") for c in cols] for r in shown])
+        out: dict[str, Any] = {
+            "已列出": len(shown), "总行数": total, "表": pick, "列": cols,
+            "说明": f"表格已经显示给用户了。回答里说一句「已列出 {len(shown)} 条，"
+                    f"见下表」就够了，**不要再逐条复述**。",
+        }
+        if total > len(shown):
+            out["只显示了前几行"] = (f"共 {total} 行，只列了前 {_ROWS_MAX} 行。"
+                                     f"**要告诉用户还有 {total - len(shown)} 行没列**，"
+                                     f"并建议用 contains=… 缩小范围。")
+        if blank:
+            out["隐藏的空列"] = f"{blank} 个整列都是空的，没列出来"
+        if note_cols:
+            out["没有这几列"] = note_cols
+        return out
 
     @reg.fn("session.status", "查当前会话的状态：材料、产物统计、待拍板的问题、建议、花费。"
             "回答『进度』『现在什么情况』这类问题前先调它。",

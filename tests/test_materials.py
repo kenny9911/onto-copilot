@@ -374,3 +374,112 @@ def test_an_answer_containing_a_json_example_still_parses():
     assert _parse_json('{"answer":"hi"}')["answer"] == "hi"
     assert _parse_json('```json\n{"answer":"ok"}\n```')["answer"] == "ok"
     assert _parse_json('这是结果：{"answer":"y"} 完毕')["answer"] == "y"
+
+
+# ══════════════════════════════════════════════════════════════════
+#  上传材料里现成的表，不该逼着用户先跑一轮梳理才能看
+# ══════════════════════════════════════════════════════════════════
+def _questions_xlsx(path, n=150, sheets=("流程节点问题",)):
+    from openpyxl import Workbook
+
+    wb = Workbook()
+    wb.remove(wb.active)
+    for name in sheets:
+        ws = wb.create_sheet(name)
+        ws.append(["节点", "编号", "澄清问题", "参考选项", "备注"])
+        for i in range(1, n + 1):
+            ws.append([f"（{i // 15 + 1}）编制集采计划", i,
+                       f"第 {i} 个要澄清的问题？",
+                       "① 全线下 ② 系统里编" if i % 3 == 0 else "",
+                       ""])                      # 整列全空：真实表格里到处都是
+    wb.save(path)
+    return path
+
+
+async def test_user_asks_for_the_150_questions_in_his_own_spreadsheet(
+        tmp_path, monkeypatch):
+    """他上传了一份**自己整理好的** 150 条问题清单，说"以表格形式列给我"。
+
+    以前没有任何工具能列原始材料的行：`ui.table` 只读梳理产出（回"先跑一轮梳理"），
+    `evidence.search` 按相关度只给前几条。模型于是拿那几条片段凑了个 4 行的表，
+    还跟用户说"系统读取异常，无法列出全部 150 条" —— 把选错工具说成了系统坏了，
+    而那 150 条一直就在文件里躺着。
+    """
+    import ontocopilot.server as server
+
+    monkeypatch.setattr(server, "ROOT", tmp_path)
+    s = server.Session(id="rows1")
+    (s.dir / "materials").mkdir(parents=True, exist_ok=True)
+    p = _questions_xlsx(s.dir / "materials" / "采购计划流程问题.xlsx")
+    s.files = [{"name": p.name, "size": p.stat().st_size, "path": str(p)}]
+
+    reg = server._converse_tools(s)
+
+    class _Ctx:
+        approved = True
+        pending: list = []
+
+    # 没跑梳理时 ui.table 只能拒绝 —— 但要把人指到对的工具上，不能只说"先梳理"
+    miss = await reg.call("ui.table", {"kind": "questions"}, _Ctx(), scope="converse")
+    assert "error" in miss
+    assert "material.rows" in miss["下一步"]
+
+    out = await reg.call("material.rows", {"file": "采购计划"}, _Ctx(), scope="converse")
+    assert out["已列出"] == 150, "150 条就是 150 条"
+    assert out["总行数"] == 150
+    assert out["表"] == "流程节点问题"
+    assert "不要再逐条复述" in out["说明"]
+    assert "备注" not in out["列"] and out["隐藏的空列"]   # 全空列不占版面
+    assert "只显示了前几行" not in out                     # 150 < 上限，没有截断
+
+    ev = [e for e in s.events if e["kind"] == "ui.table"][-1]
+    assert len(ev["rows"]) == 150
+    assert ev["columns"] == ["节点", "编号", "澄清问题", "参考选项"]
+    assert ev["rows"][-1][2] == "第 150 个要澄清的问题？"
+
+    # 缩小范围
+    sub = await reg.call("material.rows",
+                         {"file": p.name, "contains": "第 7 个"}, _Ctx(), scope="converse")
+    assert 0 < sub["已列出"] < 150
+
+    only = await reg.call("material.rows",
+                          {"file": p.name, "columns": ["编号", "澄清问题"]},
+                          _Ctx(), scope="converse")
+    assert only["列"] == ["编号", "澄清问题"]
+
+
+async def test_material_rows_is_honest_about_what_it_could_not_list(
+        tmp_path, monkeypatch):
+    """截断和"选不出表"都必须说出口。悄悄给个前 500 行，用户会当成全部。"""
+    import ontocopilot.server as server
+
+    monkeypatch.setattr(server, "ROOT", tmp_path)
+    s = server.Session(id="rows2")
+    (s.dir / "materials").mkdir(parents=True, exist_ok=True)
+    big = _questions_xlsx(s.dir / "materials" / "big.xlsx", n=520,
+                          sheets=("流程节点问题", "字段表"))
+    txt = s.dir / "materials" / "说明.txt"
+    txt.write_text("一段普通文字，没有行的概念。", encoding="utf-8")
+    s.files = [{"name": f.name, "size": f.stat().st_size, "path": str(f)}
+               for f in (big, txt)]
+
+    reg = server._converse_tools(s)
+
+    class _Ctx:
+        approved = True
+        pending: list = []
+
+    multi = await reg.call("material.rows", {"file": "big.xlsx"}, _Ctx(), scope="converse")
+    assert multi["多张工作表"] == {"流程节点问题": 520, "字段表": 520}   # 不替用户瞎猜
+
+    cut = await reg.call("material.rows",
+                         {"file": "big.xlsx", "sheet": "字段表"}, _Ctx(), scope="converse")
+    assert cut["已列出"] == server._ROWS_MAX
+    assert cut["总行数"] == 520
+    assert "20 行没列" in cut["只显示了前几行"]        # 剩下多少要写清楚
+
+    bad = await reg.call("material.rows", {"file": "说明.txt"}, _Ctx(), scope="converse")
+    assert "evidence.search" in bad["error"]           # 指到对的路上，不是干说"不行"
+
+    gone = await reg.call("material.rows", {"file": "不存在.xlsx"}, _Ctx(), scope="converse")
+    assert "error" in gone
