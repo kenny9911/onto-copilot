@@ -167,6 +167,7 @@ class Repo(Protocol):
 
     async def add_files(self, sid: str, files: Sequence[FileRow]) -> list[FileRow]: ...
     async def list_files(self, sid: str) -> list[FileRow]: ...
+    async def remove_file(self, sid: str, name: str) -> bool: ...
 
     async def save_state(self, sid: str, docs: dict[str, Any], *,
                          conflicts: Sequence[dict[str, Any]] | None = None,
@@ -293,6 +294,10 @@ class MemoryRepo:
 
     async def list_files(self, sid: str) -> list[FileRow]:
         return list(self._files.get(sid, {}).values())
+
+    async def remove_file(self, sid: str, name: str) -> bool:
+        """撤掉一份材料。返回是否真的删到了 —— 删不存在的不是错误，但要如实回答。"""
+        return self._files.get(sid, {}).pop(name, None) is not None
 
     # ── 状态 ─────────────────────────────────────────────────────
     async def save_state(self, sid: str, docs: dict[str, Any], *,
@@ -601,6 +606,16 @@ class PgRepo:
             )).mappings().all()
         return [FileRow(name=r["name"], rel_path=r["rel_path"],
                         size=r["size_bytes"], sha256=r["sha256"]) for r in rs]
+
+    async def remove_file(self, sid: str, name: str) -> bool:
+        """撤掉一份材料。返回是否真的删到了 —— 删不存在的不是错误，但要如实回答。"""
+        from . import schema as t
+        import sqlalchemy as sa
+        async with self._engine.begin() as conn:
+            r = await conn.execute(sa.delete(t.session_file).where(
+                sa.and_(t.session_file.c.session_id == sid,
+                        t.session_file.c.name == name)))
+        return bool(r.rowcount)
 
     # ── 状态 ─────────────────────────────────────────────────────
     async def save_state(self, sid: str, docs: dict[str, Any], *,

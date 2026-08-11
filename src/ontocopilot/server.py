@@ -418,6 +418,37 @@ async def upload(sid: str, files: list[UploadFile]) -> dict[str, Any]:
                                        status=s.status)}
 
 
+@app.delete("/api/sessions/{sid}/files/{name}")
+async def remove_material(sid: str, name: str) -> dict[str, Any]:
+    """撤掉一份还没梳理的材料。
+
+    FDE 传错了、传多了要能拿掉再开始 —— 只能重传不能删，等于逼他重开一个会话。
+    删完重跑 ``_preparse``，证据索引与语料摘要跟着收缩，否则聊天还能检索到一份
+    已经不在列表里的材料。
+    """
+    s = await _sess_async(sid)
+    if _busy(s):
+        raise HTTPException(409, "正在梳理，这时候增删材料会和正在跑的解析打架。")
+    fname = Path(name).name          # basename：防路径穿越
+    before = len(s.files)
+    s.files = [f for f in s.files if f["name"] != fname]
+    if len(s.files) == before:
+        raise HTTPException(404, name)
+    p = s.dir / "materials" / fname
+    if p.exists():
+        p.unlink()
+    await get_repo().remove_file(sid, fname)
+    s.emit("files.attached", files=[f["name"] for f in s.files])
+    # 索引/语料要跟着这次删除重算；没材料了就把上一轮的残留清干净。
+    if s.files:
+        await _preparse(s)
+    else:
+        for k in ("_docs", "_index", "_chunks", "_profiles", "_endpoints", "corpus"):
+            s.state.pop(k, None)
+    await _persist(s, status=False)
+    return {"files": s.files, "corpus": s.state.get("corpus")}
+
+
 @app.post("/api/sessions/{sid}/to_work")
 async def to_work(sid: str, request: Request) -> dict[str, Any]:
     """把一个聊天会话转成工作会话：把聊天里传的文件带过去，在那边正式梳理。
@@ -1577,9 +1608,14 @@ def _converse_tools(s: Session) -> Any:
     def _oir_edit_tool(ctx: Any, op: str, **args: Any) -> dict[str, Any]:
         return _do_oir_edit(op, **args)
 
-    @reg.fn("build.start", "开始梳理已上传的材料。**要花钱**（上一轮的花费见 session.status），"
-            "只在用户明确要求开始时调。",
-            {"type": "object", "properties": {}}, danger=Danger.EXTERNAL, scopes=RW)
+    @reg.fn("build.start",
+            "开始梳理已上传的材料：解析 → 抽取 → 建本体与流程图 → 出模板。"
+            "用户表达了「开始梳理 / 帮我分析这些材料 / 跑一遍」这类意思就**直接调，"
+            "不要再反问一次确认**。",
+            # WRITE_LOCAL 而不是 EXTERNAL：梳理是这个产品**本来就要做的事**，
+            # 用户上传材料并说「开始」时再弹一次"这要花钱，确认吗"是多余的一轮，
+            # 而且把主流程挡在确认门后面。花费仍然记账、仍受预算上限约束。
+            {"type": "object", "properties": {}}, danger=Danger.WRITE_LOCAL, scopes=RW)
     def _build(ctx: Any) -> dict[str, Any]:
         if not s.files:
             return {"error": "还没有材料"}

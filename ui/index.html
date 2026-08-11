@@ -1371,9 +1371,23 @@ async function uploadFiles(list){
   S.files = r.files.length; S.filelist = r.files;
   PROMPTS = r.prompts || PROMPTS; FOLLOWUPS = [];   // 材料进来了，能问的完全变了
   render(); go("mat");
-  // 上传即开始：直接跑完整的解析 + AI 梳理，不用再手点「开始梳理」。已经在跑
-  // （parsing/extracting）就别重复触发（后端会 409）；其余状态都重跑。
-  if (!["parsing","extracting"].includes(S.status)) await startBuild();
+  // **上传不自动开跑。** FDE 传完还要增删材料、还要写一句话说清这轮要什么
+  // （"重点看采购包的状态流转"），那句话正是梳理的输入。自动开始等于替他
+  // 决定，而且把他还没传完的材料先跑一遍。他写完 prompt 发出来，或点
+  // 「开始梳理」，再跑。
+}
+
+// 开跑前撤掉一份材料。传错/传多了要能拿掉，不必重开会话。
+async function dropMaterial(name){
+  if (!S) return;
+  if (!confirm(`移除材料「${name}」？`)) return;
+  try {
+    const r = await j(`/api/sessions/${S.id}/files/${encodeURIComponent(name)}`,
+                      {method:"DELETE"});
+    S.filelist = r.files; S.files = r.files.length;
+    if (FILE === name) { FILE = null; }
+    render(); paint();
+  } catch(e){ alert("没能移除：" + e.message); }
 }
 
 // ── 对话 ────────────────────────────────────────────────────────
@@ -1806,8 +1820,11 @@ function paint(){
     const fl = S.filelist || [];
     if (!fl.length) { b.innerHTML = ph("MATERIALS", "还没有上传材料<br><br>") +
       `<div style="text-align:center"><button class="act" onclick="document.getElementById('picker').click()">选择文件</button></div>`; return; }
+    // 每份材料带一个「×」：传错了要能在开跑前拿掉，只能重传等于逼人重开会话。
     const chips = fl.map(f => `<span class="f ${f.name===FILE?"on":""}"
-      onclick="FILE='${esc(f.name)}';loadSource('${esc(f.name)}')">${esc(f.name)}</span>`).join("");
+      onclick="FILE='${esc(f.name)}';loadSource('${esc(f.name)}')">${esc(f.name)}<b
+        onclick="event.stopPropagation();dropMaterial('${esc(f.name)}')"
+        title="移除这份材料" style="margin-left:6px;opacity:.45;cursor:pointer">×</b></span>`).join("");
     const doc = FILE ? SRC[FILE] : null;
     let body;
     if (!FILE) body = `<div class="cap">点一份材料，看它解析成了什么结构</div>`;
