@@ -1834,13 +1834,14 @@ async def _reason(s: Session, text: str, *, hint: str = "",
         raise HTTPException(429, f"这个会话的对话花费已达上限 ${cap}（已花 ${spent:.2f}）。"
                                  f"调 ONTOCOPILOT_CHAT_USD_CAP 或新建会话。")
     tools = _converse_tools(s)
-    # 聊天模式：通用助手 + **完全无工具**（空注册表，连 * 作用域的内建检索都拿不到），
-    # 纯对话不该能触发梳理/改产物/花钱。工作模式才装全套工具、用 FDE 系统提示。
+    # 聊天模式：通用助手 + **只读分析工具**（能检索上传的材料来分析），但**没有任何
+    # 生成产物的工具** —— 不抽本体/不出流程图/不生成模板，那些是工作模式的事。
     if s.state.get("mode") == "chat":
-        from .kernel.tools import ToolRegistry
         from .onto.converse import _CHAT_SYSTEM
-        agent = ConversationAgent(gateway=gw, tools=ToolRegistry(), scope="chat",
-                                  max_steps=3, system=_CHAT_SYSTEM, lang=s.lang)
+        chat_tools = builtin_registry(evidence=s.state.get("_index"),
+                                      oir=s.state.get("_oir"))
+        agent = ConversationAgent(gateway=gw, tools=chat_tools, scope="chat",
+                                  max_steps=4, system=_CHAT_SYSTEM, lang=s.lang)
     else:
         # 工作模式的模型选择器：选了具体模型就让对话直接用它（梳理管线仍按能力路由）
         model_spec = None
