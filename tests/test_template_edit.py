@@ -253,3 +253,58 @@ def test_dropdown_options_that_would_corrupt_the_xlsx_are_rejected():
                                          "options": [f"选项{i}" * 6 for i in range(20)]})
     # 正常的下拉照旧能设
     apply_edit(spec, "set_options", {"sheet": sh, "column": col, "options": ["是", "否"]})
+
+
+# ══════════════════════════════════════════════════════════════════
+#  AI 适配模板（只选 op，不生成 xlsx）
+# ══════════════════════════════════════════════════════════════════
+def test_ai_plan_applies_legal_edits_and_rejects_illegal_ones_independently():
+    """AI 提的改法和人工的走**同一套守卫**：一条违规只丢那一条，骨架不留中间态。"""
+    from ontocopilot.onto.template_plan import apply_plan
+
+    spec, _ = _spec()
+    sh = _obj_sheet(spec)
+    before = [s.name for s in spec.sheets]
+    applied, rejected = apply_plan(spec, [
+        {"op": "set_guide", "sheet": sh, "text": "请确认每个业务对象的口径",
+         "why": "业务方读不懂 apiName"},
+        # 违规：把可回写的列改成没有回写路径的名字
+        {"op": "rename_column", "sheet": sh, "old": "description", "new": "随便改的名",
+         "why": "故意违规"},
+        {"op": "set_options", "sheet": sh, "column": "owner",
+         "options": ["采购部", "财务部"], "why": "取值有限"},
+    ])
+    assert len(applied) == 2 and len(rejected) == 1
+    assert rejected[0]["op"] == "rename_column" and "回写" in rejected[0]["why_rejected"]
+    assert [s.name for s in spec.sheets] == before      # 没有半途破坏
+
+
+def test_ai_plan_cannot_touch_the_round_trip_anchors():
+    """模型永远不产出 xlsx、也不能碰锚点 —— 那是往返回读的命根子。"""
+    from ontocopilot.onto.template_plan import PLAN_SCHEMA, apply_plan
+
+    allowed = set(PLAN_SCHEMA["properties"]["edits"]["items"]["properties"]["op"]["enum"])
+    # 白名单里没有加列/删列：删了锚点或删掉业务方要填的列都是不可逆的
+    assert "drop_column" not in allowed and "add_column" not in allowed
+
+    spec, _ = _spec()
+    sh = _obj_sheet(spec)
+    _, rejected = apply_plan(spec, [
+        {"op": "rename_column", "sheet": sh, "old": ANCHOR_RID, "new": "x", "why": "试试"}])
+    assert len(rejected) == 1 and "锚点" in rejected[0]["why_rejected"]
+
+
+async def test_template_adaptation_degrades_to_the_plain_skeleton():
+    """模型不可用时必须退回确定性骨架 —— 适配是加分项，不能变成单点故障。"""
+    from ontocopilot.onto.template_plan import adapt_template
+
+    spec, _ = _spec()
+    cols_before = {s.name: list(s.columns) for s in spec.sheets}
+
+    class _Boom:
+        async def call(self, *a, **k): raise RuntimeError("gateway down")
+
+    out = await adapt_template(spec, gateway=_Boom(), node_id="T", project="p",
+                               stats={}, vocabulary=[], open_questions=[])
+    assert out["error"] and out["applied"] == []
+    assert {s.name: list(s.columns) for s in spec.sheets} == cols_before
