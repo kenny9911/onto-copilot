@@ -281,6 +281,43 @@ class EvidenceIndex:
     def by_file(self, file_id: str) -> list[Chunk]:
         return [self._chunks[c] for c in self._by_file.get(file_id, ())]
 
+    def by_locator(self, *, file: str = "", container: str = "",
+                   rows: tuple[int, int] | None = None,
+                   limit: int = 60) -> list[Chunk]:
+        """**按位置**取切片，不走关键词检索。
+
+        关键词检索答不了"把第 30 到 46 行给我看看"这种问题：行号不是词，
+        BM25 打不出分。真实材料上模型为此连发两轮同样的检索、拿到同样一批
+        无关切片，然后在推理里写下"检索工具对这批行号不敏感"——它是对的，
+        那个能力当时确实不存在，于是它只能就着看不见的行下结论。
+
+        Args:
+            file: 文件名子串。空则不限。
+            container: sheet / 章节 / 表名子串。空则不限。
+            rows: ``(起, 止)`` 闭区间行号。只对带行号的切片有效。
+            limit: 最多返回几片。
+
+        Returns:
+            按文件内顺序排好的切片。
+        """
+        out: list[Chunk] = []
+        for c in self._chunks.values():
+            if file and file not in c.file_name:
+                continue
+            loc = c.locator or {}
+            if container:
+                where = str(loc.get("sheet") or loc.get("section")
+                            or loc.get("object") or "")
+                if container not in where:
+                    continue
+            if rows is not None:
+                span = loc.get("rows") or ([loc["row"]] * 2 if loc.get("row") else None)
+                if not span or span[-1] < rows[0] or span[0] > rows[1]:
+                    continue
+            out.append(c)
+        out.sort(key=lambda c: (c.file_name, c.order))
+        return out[:limit]
+
     def all_chunks(self) -> list[Chunk]:
         """全部切片。调用方要把**文件名**映回 file_id 时用（模型只看得到文件名）。"""
         return list(self._chunks.values())

@@ -649,3 +649,134 @@ def test_stages_fall_back_to_business_domain_not_fixed_size_chunks():
     assert g.stages
     titles = [st.title for st in g.stages.values()]
     assert all(len(t) <= 40 for t in titles), titles
+
+
+# ══════════════════════════════════════════════════════════════════
+#  流程图 ↔ 接口清单
+# ══════════════════════════════════════════════════════════════════
+def _oir_with_api():
+    """一份和 _REAL 那段流程说明对得上的接口清单。"""
+    from ontocopilot.onto.oir import (
+        OIR, ActionType, ObjectType, Provenance, extracted, inferred)
+
+    prov = Provenance("f1", "x.xlsx", {"kind": "range", "sheet": "行动", "rows": [2, 2]})
+    oir = OIR()
+    oir.add_object(ObjectType(
+        rid="ot_pbp", api_name=inferred("pbpHeader"),
+        display_name=inferred("采购业务计划头"), description=inferred(""),
+        primary_key=inferred([]), aliases=["采购需求计划"]))
+    for api, disp, path in (
+        ("createPbp", "创建PBP", "/msourcing/openapi/v1/createPbp"),
+        ("cancelOpenPbp", "取消PBP", "/msourcing/openapi/v1/cancelPbp"),
+        ("queryOpenPbpHeader", "查询PBP头", "/msourcing/openapi/v1/queryPbpHeader"),
+    ):
+        oir.add_action(ActionType(
+            rid=f"at_{api}", api_name=extracted(api, prov), applies_to=["ot_pbp"],
+            source_endpoint=extracted({"path": path, "display": disp}, prov)))
+    return oir
+
+
+def test_a_process_step_gets_the_interface_that_implements_it():
+    """「创建采购需求计划」这一步背后是 createPbp —— 图上要标出来。
+
+    112 行接口和 17 个流程节点以前是两份互不相干的产物：图上看不出哪一步有系统
+    支撑，接口清单里也看不出这个接口属于流程的哪一环。
+    """
+    from ontocopilot.onto.flow_extract import build_flow, parse_steps
+    from ontocopilot.onto.flow_link import attach_endpoints
+
+    g = build_flow(parse_steps(_REAL, cite="业务规则!A14"), file_name="x.xlsx")
+    report = attach_endpoints(g, _oir_with_api())
+
+    node = next(n for n in g.nodes.values() if n.label.value == "创建采购需求计划")
+    assert "createPbp" in node.endpoint
+    assert "ot_pbp" in node.objects
+    assert report.matched
+
+
+def test_the_verb_has_to_match_not_just_the_object():
+    """「取消采购需求计划」不能挂到 createPbp 上 —— 同一个单据上动词不同就是两回事。"""
+    from ontocopilot.onto.flow_extract import build_flow, parse_steps
+    from ontocopilot.onto.flow_link import attach_endpoints
+
+    g = build_flow(parse_steps(_REAL, cite="业务规则!A14"), file_name="x.xlsx")
+    attach_endpoints(g, _oir_with_api())
+    node = next(n for n in g.nodes.values() if n.label.value == "取消采购需求计划")
+    assert "cancelPbp" in node.endpoint and "createPbp" not in node.endpoint
+
+
+def test_a_step_with_no_interface_becomes_a_question():
+    """「审批采购需求计划」在接口清单里查无此接口 —— 这正是顾问要回答的。"""
+    from ontocopilot.onto.flow_extract import build_flow, parse_steps
+    from ontocopilot.onto.flow_link import attach_endpoints, coverage_gaps
+
+    g = build_flow(parse_steps(_REAL, cite="业务规则!A14"), file_name="x.xlsx")
+    oir = _oir_with_api()
+    gaps = coverage_gaps(attach_endpoints(g, oir), oir)
+    assert any("审批采购需求计划" in x.text for x in gaps)
+
+
+def test_read_only_interfaces_are_not_expected_to_appear_in_the_flow():
+    """查询接口不改数据，它不属于流程的任何一步，别为它造一个问题。"""
+    from ontocopilot.onto.flow_extract import build_flow, parse_steps
+    from ontocopilot.onto.flow_link import attach_endpoints, coverage_gaps
+
+    g = build_flow(parse_steps(_REAL, cite="业务规则!A14"), file_name="x.xlsx")
+    oir = _oir_with_api()
+    gaps = coverage_gaps(attach_endpoints(g, oir), oir)
+    assert not any("queryOpenPbpHeader" in x.text for x in gaps)
+
+
+def test_a_write_interface_missing_from_the_flow_becomes_a_question():
+    from ontocopilot.onto.flow_extract import build_flow, parse_steps
+    from ontocopilot.onto.flow_link import attach_endpoints, coverage_gaps
+    from ontocopilot.onto.oir import ActionType, Provenance, extracted
+
+    oir = _oir_with_api()
+    prov = Provenance("f1", "x.xlsx", {"kind": "range", "sheet": "行动", "rows": [9, 9]})
+    oir.add_action(ActionType(
+        rid="at_split", api_name=extracted("splitPbp", prov), applies_to=["ot_pbp"],
+        source_endpoint=extracted({"path": "/v1/splitPbp", "display": "拆分PBP"}, prov)))
+
+    g = build_flow(parse_steps(_REAL, cite="业务规则!A14"), file_name="x.xlsx")
+    gaps = coverage_gaps(attach_endpoints(g, oir), oir)
+    assert any("splitPbp" in x.text for x in gaps)
+
+
+def test_an_interface_only_material_still_produces_a_workflow():
+    """材料里只有接口清单、没有一段流程说明时，也要出得来一张图。
+
+    以前这种材料的结果是 `flow.skipped` —— 一张图都没有，而 112 行接口里
+    create/approve/cancel 的先后关系本身就是一条可讨论的流程草稿。
+    """
+    from ontocopilot.onto.flow_link import flow_from_actions
+
+    g = flow_from_actions(_oir_with_api())
+    labels = {n.label.value for n in g.nodes.values()}
+    assert "创建PBP" in labels
+    assert g.stages, "一个业务对象一条泳道"
+    for n in g.nodes.values():
+        assert n.stage in g.stages
+    # 顺序是**推的**，必须画成虚线
+    assert all(str(e.kind) == "inferred" for e in g.edges.values() if e.label != "")
+
+
+def test_the_interface_view_leaves_out_read_only_endpoints():
+    """查询接口不是流程的一环，画进去只会把图淹掉。"""
+    from ontocopilot.onto.flow_link import flow_from_actions
+
+    g = flow_from_actions(_oir_with_api())
+    assert not any("查询" in n.label.value for n in g.nodes.values())
+
+
+def test_endpoints_survive_a_save_and_reload():
+    """接口挂在节点上，重启会话之后不能丢。"""
+    from ontocopilot.onto.flow import flow_from_dict
+    from ontocopilot.onto.flow_extract import build_flow, parse_steps
+    from ontocopilot.onto.flow_link import attach_endpoints
+
+    g = build_flow(parse_steps(_REAL, cite="业务规则!A14"), file_name="x.xlsx")
+    attach_endpoints(g, _oir_with_api())
+    back = flow_from_dict(g.to_dict())
+    node = next(n for n in back.nodes.values() if n.label.value == "创建采购需求计划")
+    assert "createPbp" in node.endpoint

@@ -349,6 +349,44 @@ def builtin_registry(
             return {"count": len(hits),
                     "chunks": [{"cite": c.cite(), "text": c.render[:1200]} for c in hits]}
 
+        @reg.fn("evidence.rows",
+                "**按位置**取原文，不走关键词检索。要看某张表的第 30~46 行、"
+                "或某个 sheet 的全部内容时用它 —— 行号不是关键词，"
+                "evidence.search 打不出分，只会返回一堆无关切片。",
+                {"type": "object",
+                 "properties": {
+                     "file": {"type": "string", "description": "文件名，可只写一部分"},
+                     "container": {"type": "string",
+                                   "description": "sheet / 章节 / 表名，可只写一部分"},
+                     "from_row": {"type": "integer", "description": "起始行号（含）"},
+                     "to_row": {"type": "integer", "description": "结束行号（含）"},
+                     "limit": {"type": "integer", "description": "最多返回几片，默认 60"}}},
+                danger=Danger.READ)
+        def _rows(ctx: Any, file: str = "", container: str = "",
+                  from_row: int | None = None, to_row: int | None = None,
+                  limit: int = 60) -> dict[str, Any]:
+            span = None
+            if from_row is not None or to_row is not None:
+                lo = from_row if from_row is not None else 0
+                hi = to_row if to_row is not None else 10**9
+                span = (min(lo, hi), max(lo, hi))
+            hits = evidence.by_locator(file=file, container=container, rows=span,
+                                       limit=limit)
+            if not hits:
+                # 空结果最危险：模型会据此断言"材料里没有"。把实际存在的容器名
+                # 报回去，它才知道是位置写错了、还是真的没有。
+                seen: dict[str, None] = {}
+                for c in evidence.all_chunks():
+                    where = str((c.locator or {}).get("sheet")
+                                or (c.locator or {}).get("section") or "")
+                    if where:
+                        seen.setdefault(f"{c.file_name}!{where}", None)
+                return {"count": 0, "chunks": [],
+                        "note": "这个位置没有内容。现有的表/章节："
+                                f"{list(seen)[:20]}"}
+            return {"count": len(hits),
+                    "chunks": [{"cite": c.cite(), "text": c.render[:1200]} for c in hits]}
+
     if oir is not None:
         @reg.fn("oir.query",
                 "查当前 OIR 里已有的对象/属性/关系。用来避免重复抽取同一个概念。",

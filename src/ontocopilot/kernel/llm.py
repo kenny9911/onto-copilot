@@ -528,12 +528,23 @@ def _parse_json(text: str) -> Any:
     一次就过；这些兜底是给 ScriptedBackend 和降级路径准备的。
     """
     t = text.strip()
-    if m := _FENCE.search(t):
-        t = m.group(1).strip()
+    # **先按整体解析。** 以前是无条件先抠围栏，而 `_FENCE.search` 是全文搜索 ——
+    # 于是当回答**内容里**含一段 ```json（比如用户就是要一份 JSON Schema 范例），
+    # 那段范例会把真正的外层结构顶掉，然后拿范例去当结构化输出解析、失败三次、
+    # 整轮报错。问 JSON/代码问题必挂，正常路径反而没事，很难往这想。
     try:
         return json.loads(t)
     except json.JSONDecodeError:
         pass
+    # 整体不是 JSON，才考虑围栏：**优先开头那个**（那才是模型把答案包起来的写法），
+    # 找不到再退回全文里的第一个。
+    m = re.match(r"```(?:json)?\s*(.+?)\s*```\s*$", t, re.S) or _FENCE.search(t)
+    if m:
+        inner = m.group(1).strip()
+        try:
+            return json.loads(inner)
+        except json.JSONDecodeError:
+            t = inner
     start = min((i for i in (t.find("{"), t.find("[")) if i >= 0), default=-1)
     if start < 0:
         raise ValueError("输出里找不到 JSON")

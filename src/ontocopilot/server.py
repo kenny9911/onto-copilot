@@ -927,7 +927,7 @@ async def _run_pipeline(s: Session, *, tier: str = "full") -> None:
         # 第三条以前不存在：材料没带问卷时，这张表就只剩三四行系统自问自答。
         from .onto.gaps import mine_questions
 
-        mined = mine_questions(oir, docs=docs, chunks=list(index._chunks.values()),  # noqa: SLF001
+        mined = mine_questions(oir, docs=docs, chunks=index.all_chunks(),
                                extra=list(s.state.get("_flow_gaps") or ()))
         for q in mined:
             if q.rid not in oir.questions:
@@ -1561,7 +1561,20 @@ def _converse_tools(s: Session) -> Any:
             ix = self._ix()
             return len(ix) if ix is not None else 0
 
-    reg = builtin_registry(evidence=_LazyIndex(), oir=s.state.get("_oir"),
+    class _LazyOIR:
+        """同理：OIR 也按调用时解析。
+
+        `oir.query` 是**条件注册**的（`if oir is not None`），而工具集在回合开始时
+        就装配好了 —— 一个还没跑过梳理的会话里它压根不存在，等这一轮里梳理跑完
+        （或者 hydrate 把 OIR 载回来），模型仍然查不了自己刚产出的东西。
+        """
+        def __getattr__(self, name: str) -> Any:
+            live = s.state.get("_oir")
+            if live is None:
+                raise RuntimeError("还没有产物（没跑过梳理），查不了本体。")
+            return getattr(live, name)
+
+    reg = builtin_registry(evidence=_LazyIndex(), oir=_LazyOIR(),
                            profiles=s.state.get("_profiles"))
     # RO（只读：看状态、看材料清单、查流程）两个模式都给 —— 聊天也要能就上传的
     # 材料对话。RW（改产物：抽本体、改流程图、出模板、开跑）**只给工作模式**。
@@ -1593,6 +1606,39 @@ def _converse_tools(s: Session) -> Any:
             })
         return {"材料数": len(s.files), "材料": rows,
                 "说明": "要看某份材料的正文，用 evidence.search 并把文件名填进 files"}
+
+    @reg.fn("template.query",
+            "看当前填写模板长什么样：有哪些表、每张表几行、有哪些列、哪些格要业务方填。"
+            "**要改模板之前先看一眼** —— 不知道现在有什么列就改，多半改错。零成本。",
+            {"type": "object", "properties": {
+                "sheet": {"type": "string", "description": "只看某张表；不给则看总览"}}},
+            danger=Danger.READ, scopes=RO)
+    def _tpl_query(ctx: Any, sheet: str = "") -> dict[str, Any]:
+        from .onto.template import TemplateSpec
+
+        sp = s.dir / "template.spec.json"
+        if not sp.exists():
+            return {"error": "还没有模板。跑完一轮梳理才会生成。"}
+        spec = TemplateSpec.load(sp)
+        if sheet:
+            sh = next((x for x in spec.sheets
+                       if x.name == sheet or sheet in x.name), None)
+            if sh is None:
+                return {"error": f"没有表「{sheet}」。现有："
+                                 f"{[x.name for x in spec.sheets]}"}
+            roles: dict[str, int] = {}
+            for row in sh.rows:
+                for c in row.values():
+                    roles[str(c.role)] = roles.get(str(c.role), 0) + 1
+            return {"表": sh.name, "行数": len(sh.rows), "列": list(sh.columns),
+                    "说明": sh.guide, "各类格子数": roles,
+                    "前两行": [{k: v.value for k, v in r.items()}
+                               for r in sh.rows[:2]]}
+        return {"轮次": spec.round, "统计": spec.stats(),
+                "表": [{"表名": x.name, "行数": len(x.rows),
+                        "列": list(x.columns), "说明": (x.guide or "")[:80]}
+                       for x in spec.sheets],
+                "提示": "要看某张表的内容传 sheet=表名；要改结构用 template.edit"}
 
     @reg.fn("ui.table",
             "把一批产物**以表格形式列给用户看**（对象/属性/关系/动作/规则/待澄清问题）。"
@@ -1740,8 +1786,15 @@ def _converse_tools(s: Session) -> Any:
     def _status(ctx: Any) -> dict[str, Any]:
         st = (s.state.get("oir") or {}).get("stats") or {}
         spent = (s.state.get("budget") or {}).get("spent") or {}
-        return {"材料": [f["name"] for f in s.files], "状态": s.status,
+        chunks = s.state.get("_chunks") or {}
+        return {"材料": [f"{f['name']}（{len(chunks.get(f['name']) or [])} 段）"
+                        for f in s.files],
+                "状态": s.status,
                 "产物": st or "还没跑过梳理",
+                # 生成了哪些文件也要能看见 —— 模型总不能对着自己产出的东西说不知道
+                "已生成的文件": s.state.get("artifacts") or "无",
+                "流程图": (s.state.get("flow") or {}).get("stats") or "还没有",
+                "模板": s.state.get("template") or "还没有",
                 "花费美元": round(float(spent.get("usd") or 0), 2),
                 "待拍板": [q.get("title") for q in (s.state.get("questions") or [])],
                 "建议": [{"序号": i + 1, "标题": x["title"], "影响": x["impact"]}

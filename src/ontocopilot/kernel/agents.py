@@ -303,10 +303,11 @@ FDE 的注意力是稀缺资源。问 10 个平庸问题比问 3 个关键问题
 #: 工具作用域 → 该作用域能用哪些工具。抽取 agent 拿不到写工具，
 #: 分析 agent 拿不到沙箱以外的执行能力。
 TOOL_SCOPES: dict[str, tuple[str, ...]] = {
-    "readonly": ("evidence.search", "oir.query"),
-    "extract": ("evidence.search", "oir.query", "profile.column"),
-    "align": ("evidence.search", "oir.query", "profile.column"),
-    "analyze": ("evidence.search", "oir.query", "profile.column", "code.exec"),
+    "readonly": ("evidence.search", "evidence.rows", "oir.query"),
+    "extract": ("evidence.search", "evidence.rows", "oir.query", "profile.column"),
+    "align": ("evidence.search", "evidence.rows", "oir.query", "profile.column"),
+    "analyze": ("evidence.search", "evidence.rows", "oir.query", "profile.column",
+                "code.exec"),
     "compile": ("oir.query", "code.exec"),
 }
 

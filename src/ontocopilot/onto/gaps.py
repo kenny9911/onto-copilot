@@ -32,8 +32,8 @@ from typing import Any
 
 from .oir import OIR, OpenQuestion, Provenance, extracted, make_rid
 
-__all__ = ["Gap", "mine_questions", "undetermined_slots", "empty_containers",
-           "enumerations", "structural_gaps"]
+__all__ = ["Gap", "empty_containers", "enumerations", "mine_questions",
+           "structural_gaps", "undetermined_slots"]
 
 
 # ══════════════════════════════════════════════════════════════════

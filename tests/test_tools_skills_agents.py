@@ -433,3 +433,64 @@ async def test_gate_is_fail_closed_not_decorative():
     from ontocopilot.kernel.loop import AgentLoop
     src = inspect.getsource(AgentLoop)
     assert "node.gate" in src and "NodeFailure" in src, "loop 里没有读 node.gate"
+
+
+# ══════════════════════════════════════════════════════════════════
+#  按位置取证据
+# ══════════════════════════════════════════════════════════════════
+def _row_index():
+    from ontocopilot.kernel.memory.evidence import Chunk, EvidenceIndex
+
+    idx = EvidenceIndex()
+    for i in range(1, 51):
+        idx.add(Chunk(chunk_id=f"c{i}", file_id="f1", file_name="梳理.xlsx",
+                      locator={"kind": "range", "sheet": "业务对象API梳理-行动",
+                               "rows": [i, i]},
+                      render=f"实体编码=code{i}", raw={"实体编码": f"code{i}"},
+                      order=i, tags=["row"]))
+    return idx
+
+
+def test_rows_can_be_fetched_by_number_not_by_keyword():
+    """「把第 30 到 46 行给我看看」—— 行号不是词，BM25 打不出分。
+
+    真实事故：模型为了看这一段连发两轮同样的检索、拿回同样一批无关切片，
+    最后在推理里写下"检索工具对这批行号不敏感"，然后就着看不见的行下了结论。
+    """
+    got = _row_index().by_locator(container="API梳理", rows=(30, 46))
+    assert [c.locator["rows"][0] for c in got] == list(range(30, 47))
+
+
+def test_an_empty_position_says_what_does_exist():
+    """空结果最危险：模型会据此断言"材料里没有"。得告诉它有哪些位置。"""
+    import asyncio
+
+    from ontocopilot.kernel.tools import builtin_registry
+
+    reg = builtin_registry(evidence=_row_index())
+
+    class _Ctx:
+        approved = True
+        pending: list = []
+
+    r = asyncio.run(reg.call("evidence.rows", {"container": "不存在的表"},
+                             _Ctx(), scope="extract"))
+    assert r["count"] == 0
+    assert "业务对象API梳理-行动" in str(r["note"])
+
+
+def test_the_extract_scope_can_reach_it():
+    import asyncio
+
+    from ontocopilot.kernel.tools import builtin_registry
+
+    reg = builtin_registry(evidence=_row_index())
+
+    class _Ctx:
+        approved = True
+        pending: list = []
+
+    r = asyncio.run(reg.call("evidence.rows",
+                             {"container": "API梳理", "from_row": 3, "to_row": 5},
+                             _Ctx(), scope="extract"))
+    assert r["count"] == 3

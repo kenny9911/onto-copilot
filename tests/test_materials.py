@@ -351,3 +351,26 @@ async def test_analyse_an_image_does_not_launch_a_full_build(tmp_path, monkeypat
     assert s.state.get("_chunks", {}).get("flow.png"), "识别结果要进证据索引"
     # 而且没有产出任何产物
     assert not s.state.get("oir") and not s.state.get("flow")
+
+
+def test_an_answer_containing_a_json_example_still_parses():
+    """问「给我一个 JSON Schema 范例」必然失败，而普通问题不会 —— 因为抠围栏是
+    **全文搜索且无条件**：回答内容里的那段 ```json 范例会把真正的外层结构顶掉，
+    然后拿范例去当结构化输出解析，连撞三次报「Expecting property name…」。
+    """
+    import json
+
+    from ontocopilot.kernel.llm import _parse_json
+
+    wrapper = json.dumps({
+        "thought": "给他一份 schema 范例",
+        "answer": "可以这样写：\n```json\n{\n  \"type\": \"object\"\n}\n```\n照着改。",
+        "citations": [], "confidence": 0.9}, ensure_ascii=False)
+    got = _parse_json(wrapper)
+    assert {"thought", "answer"} <= set(got)      # 外层没被范例顶掉
+    assert "```json" in got["answer"]             # 范例原样留在回答里
+
+    # 旧行为不能退化
+    assert _parse_json('{"answer":"hi"}')["answer"] == "hi"
+    assert _parse_json('```json\n{"answer":"ok"}\n```')["answer"] == "ok"
+    assert _parse_json('这是结果：{"answer":"y"} 完毕')["answer"] == "y"

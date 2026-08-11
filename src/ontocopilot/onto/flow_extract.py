@@ -185,6 +185,23 @@ def _ensure_main(g: FlowGraph) -> str:
     return MAIN_STAGE
 
 
+def _raw_prov(file_name: str, cite: str, snippet: str) -> Provenance:
+    """给"只有一串 cite 字符串"的来源建出处。
+
+    `cite` 通常已经是 `文件名!表名!R14-14` 这种完整引用。直接把它塞进
+    `locator.ref`，渲染出来会变成 `文件名#文件名!表名!R14-14` —— 文件名出现两次，
+    看着像 bug，点进去也定位不到。所以这里先把开头那截文件名剥掉。
+    """
+    ref = str(cite or "")
+    for sep in ("!", "#"):
+        head = f"{file_name}{sep}"
+        if file_name and ref.startswith(head):
+            ref = ref[len(head):]
+            break
+    return Provenance("f", file_name, {"kind": "raw", "ref": ref or "未标注位置"},
+                      snippet=snippet[:200], extractor="rule", confidence=1.0)
+
+
 def build_flow(steps: list[ProcessStep], *, stages: dict[int, str] | None = None,
                file_name: str = "", graph: FlowGraph | None = None) -> FlowGraph:
     """把节点列表建成流图。
@@ -201,9 +218,7 @@ def build_flow(steps: list[ProcessStep], *, stages: dict[int, str] | None = None
     produced: list[tuple[str, str, int]] = []   # (规范化名, 事件 rid, 节点号)
 
     for st in steps:
-        prov = Provenance("f", file_name, {"kind": "raw", "ref": st.cite},
-                          snippet=f"（{st.no}）{st.name}：{st.detail}"[:200],
-                          extractor="rule", confidence=1.0)
+        prov = _raw_prov(file_name, st.cite, f"（{st.no}）{st.name}：{st.detail}")
         stage = stages.get(st.no, MAIN_STAGE)
         act = g.add_node(FlowNode(
             rid=make_rid("fn", f"act{st.no}_{st.name}"), kind=NodeKind.ACTION,
@@ -232,9 +247,8 @@ def build_flow(steps: list[ProcessStep], *, stages: dict[int, str] | None = None
         clue = _norm(f"{st.trigger} {st.inputs}")
         hits = [(rid, no) for name, rid, no in produced
                 if no != st.no and name and name in clue]
-        prov = Provenance("f", file_name, {"kind": "raw", "ref": st.cite},
-                          snippet=f"触发条件：{st.trigger}｜输入：{st.inputs}"[:200],
-                          extractor="rule", confidence=1.0)
+        prov = _raw_prov(file_name, st.cite,
+                         f"触发条件：{st.trigger}｜输入：{st.inputs}")
         for rid, _no in hits[:2]:
             g.connect(rid, act_rid, evidence=[prov])
 
@@ -405,7 +419,10 @@ def apply_scene_titles(g: FlowGraph, scenes: list[str]) -> int:
         for i, scene in enumerate(scenes):
             if i in used or subject not in scene:
                 continue
-            st.title = scene
+            # 场景名进**副标题**，不占标题。标题保持"这条泳道在处理哪个单据"，
+            # 六条泳道的标题才是同一种东西；混着「集采计划」和
+            # 「业务场景1｜采购执行计划创建」看起来像出了 bug。
+            st.subtitle = f"{scene} · {st.subtitle}" if st.subtitle else scene
             used.add(i)
             changed += 1
             break
@@ -598,8 +615,7 @@ def attach_gateways(g: FlowGraph, gateways: list[tuple[Gateway, int | None]], *,
     让人看见，它标示着"这条规则我认出来了但不知道插在哪"。
     """
     for gw, node_no in gateways:
-        prov = Provenance("f", file_name, {"kind": "raw", "ref": gw.cite},
-                          snippet=gw.rule_text, extractor="rule", confidence=1.0)
+        prov = _raw_prov(file_name, gw.cite, gw.rule_text)
         anchor = None
         stage = _ensure_main(g)
         if node_no is not None:
@@ -651,8 +667,7 @@ def gaps_to_questions(g: FlowGraph, *, file_name: str = "") -> list[Any]:
 
     def _q(text: str, group: str, node: FlowNode | None = None) -> None:
         ev = (node.label.evidence if node and node.label.evidence
-              else [Provenance("f", file_name, {"kind": "raw"},
-                               snippet=text, extractor="rule", confidence=1.0)])
+              else [_raw_prov(file_name, "", text)])
         qs.append(OpenQuestion(
             rid=make_rid("oq", f"flow_{text[:40]}"),
             text=extracted(text, *ev[:1]), group=group,

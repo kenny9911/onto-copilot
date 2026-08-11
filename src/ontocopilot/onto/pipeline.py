@@ -97,8 +97,10 @@ class Segment:
     def render(self, index: EvidenceIndex, limit: int = SEGMENT_CHUNKS) -> str:
         chunks = [c for cid in self.chunk_ids[:limit] if (c := index.get(cid))]
         body = "\n".join(f"⟦{c.cite()}⟧ {c.render}" for c in chunks)
-        more = (f"\n（本段另有 {len(self.chunk_ids) - limit} 个切片，"
-                f"需要时用 evidence.search 按名字捞）" if len(self.chunk_ids) > limit else "")
+        more = (f"\n（本段另有 {len(self.chunk_ids) - limit} 个切片。按名字找用 "
+                f"evidence.search；要看某几行原文用 evidence.rows —— "
+                f"行号不是关键词，search 找不到它）"
+                if len(self.chunk_ids) > limit else "")
         return f"## {self.label}（来自 {self.file_name}）\n{body}{more}"
 
 
@@ -292,7 +294,9 @@ class ExtractSegment(NodeHandler):
             "规矩：\n"
             "- 出处用 ⟦⟧ 里的原样字符串，不要改写。\n"
             "- 单元格里的说明文字（如「与某某一致」「见附件」）**不是实体名**。\n"
-            "- 材料里没提到的东西一个字都不要补；拿不准就用 evidence.search 去捞原文。"
+            "- 材料里没提到的东西一个字都不要补。拿不准就去捞原文："
+            "按名字找用 evidence.search，按位置（第几行、哪张表）取用 evidence.rows。\n"
+            "- 捞回来是空的**不等于材料里没有** —— 先确认位置写对了再下结论。"
         )
 
     def query(self, inputs: dict[str, Any]) -> str:
