@@ -680,8 +680,19 @@ async def state(sid: str) -> dict[str, Any]:
         public["dialogue"] = dm.to_dict()
         public["decisions"] = [d.to_dict() for d in dm.active_decisions()]
     names = [f["name"] for f in s.files]
+    # 每份材料的**解析状态**要跟着回去。只给名字和大小的话，界面上没有任何地方
+    # 能回答"这份读进来了没有" —— 用户只能去问助手，而助手（在工具回执含糊时）
+    # 会猜。状态是事实，应该看得见，不该靠问。
+    _chunks = s.state.get("_chunks") or {}
+    _scan = (".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tif", ".tiff", ".pdf")
     return {**s.brief(),
-            "filelist": [{"name": f["name"], "size": f["size"]} for f in s.files],
+            "filelist": [{
+                "name": f["name"], "size": f["size"],
+                "chunks": len(_chunks.get(f["name"]) or []),
+                "state": ("parsed" if _chunks.get(f["name"])
+                          else "scan_pending" if f["name"].lower().endswith(_scan)
+                          else "unread"),
+            } for f in s.files],
             "state": public, "events": len(s.events),
             # 一个空白输入框对新用户是最不友好的界面 —— 他知道这工具能分析
             # 业务文档，但不知道该说什么才有用。
@@ -1567,15 +1578,30 @@ def _converse_tools(s: Session) -> Any:
             return {"error": "还没有材料。"}
         if _busy(s):
             return {"error": "梳理正在跑，它自己会解析。"}
+        scan_ext = (".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tif", ".tiff", ".pdf")
         before = dict(s.state.get("_chunks") or {})
         await _preparse(s)                      # 零模型调用；扫描件在这条路上不识别
         after = s.state.get("_chunks") or {}
         got = {k: len(v) for k, v in after.items() if len(v) > len(before.get(k) or [])}
-        pending = [f["name"] for f in s.files if not after.get(f["name"])]
-        return {"已读入": got or "没有新读入的（可能都读过了）",
-                "还没识别": pending or "无",
-                "说明": ("图片/扫描件要视觉模型，点「开始梳理」时才识别"
-                         if pending else "都读进来了，可以用 evidence.search 查内容")}
+        scans = [f["name"] for f in s.files
+                 if not after.get(f["name"]) and f["name"].lower().endswith(scan_ext)]
+        # **措辞必须让模型没法误解成"已经在跑了"。** 这里回过"没有新读入的（可能
+        # 都读过了）"，模型就据此对用户说"系统正在解析中" —— 一句彻头彻尾的假话，
+        # 而其实什么都没启动。工具的回执是模型唯一的事实来源，含糊即等于撒谎。
+        out: dict[str, Any] = {
+            "本次读入": got or "无（没有可用这种方式读的新材料）",
+            "当前状态": s.status,
+            "已读入的材料": {k: len(v) for k, v in after.items() if v} or "无",
+        }
+        if scans:
+            out["读不了的"] = scans
+            out["原因"] = ("这些是图片/扫描件，我在这里读不了 —— 它们要视觉模型识别。")
+            out["下一步"] = ("要分析它们就调 build.start（开始梳理），那一步才会调"
+                             "视觉模型识别。**不要说系统正在解析** —— 在你调用之前"
+                             "什么都没有开始。")
+        elif got:
+            out["下一步"] = "已经读进来了，用 evidence.search 查内容"
+        return out
 
     @reg.fn("material.inspect",
             "看一份材料的结构大纲：分成了哪些段、都是什么类型、解析时发现了什么问题。"

@@ -1876,13 +1876,29 @@ function paint(){
     if (!fl.length) { b.innerHTML = ph("MATERIALS", "还没有上传材料<br><br>") +
       `<div style="text-align:center"><button class="act" onclick="document.getElementById('picker').click()">选择文件</button></div>`; return; }
     // 每份材料带一个「×」：传错了要能在开跑前拿掉，只能重传等于逼人重开会话。
-    const chips = fl.map(f => `<span class="f ${f.name===FILE?"on":""}"
-      onclick="FILE='${esc(f.name)}';loadSource('${esc(f.name)}')">${esc(f.name)}<b
-        onclick="event.stopPropagation();dropMaterial('${esc(f.name)}')"
-        title="移除这份材料" style="margin-left:6px;opacity:.45;cursor:pointer">×</b></span>`).join("");
+    // 也带**解析状态** —— "这份读进来了没有"是个事实，应该看得见，而不是去问助手。
+    const MST = {
+      parsed:       f => ({t:`已读入 ${f.chunks} 段`, c:"var(--accent)"}),
+      scan_pending: () => ({t:"待识别 · 图片", c:"var(--warn, #9a7a12)"}),
+      unread:       () => ({t:"未读入",        c:"var(--ink-3)"}),
+    };
+    const chips = fl.map(f => {
+      const st = (MST[f.state] || MST.unread)(f);
+      return `<span class="f ${f.name===FILE?"on":""}"
+        onclick="FILE='${esc(f.name)}';loadSource('${esc(f.name)}')">${esc(f.name)}
+        <i style="font-style:normal;font-size:10.5px;color:${st.c};margin-left:5px">${st.t}</i><b
+          onclick="event.stopPropagation();dropMaterial('${esc(f.name)}')"
+          title="移除这份材料" style="margin-left:6px;opacity:.45;cursor:pointer">×</b></span>`;
+    }).join("");
+    // 一眼能看出还有没有没读进来的，以及该做什么
+    const nPend = fl.filter(f => f.state !== "parsed").length;
+    const hint = !nPend ? `<div class="cap">材料都已读入，可以开始梳理或直接提问</div>`
+      : fl.some(f => f.state === "scan_pending")
+        ? `<div class="cap">有 ${nPend} 份还没读入；图片/扫描件要点「开始梳理」才会用视觉模型识别</div>`
+        : `<div class="cap">有 ${nPend} 份还没读入；问它内容时助手会自动读，或直接「开始梳理」</div>`;
     const doc = FILE ? SRC[FILE] : null;
     let body;
-    if (!FILE) body = `<div class="cap">点一份材料，看它解析成了什么结构</div>`;
+    if (!FILE) body = hint;
     else if (!doc) body = `<div class="cap">读取中…</div>`;
     else if (doc.error) body = `<div class="fnd">读取失败：${esc(doc.error)}</div>`;
     else {

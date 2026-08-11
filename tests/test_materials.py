@@ -147,7 +147,7 @@ async def test_upload_registers_without_parsing_and_the_ai_decides(tmp_path, mon
     assert "material.parse" in listed["材料"][0]["状态"]     # 文本类：现在就能读
 
     parsed = await reg.call("material.parse", {}, _Ctx(), scope="chat")
-    assert parsed["已读入"]["采购.csv"] == 2
+    assert parsed["本次读入"]["采购.csv"] == 2
 
     hit = await reg.call("evidence.search", {"query": "采购包"}, _Ctx(), scope="chat")
     assert hit["count"] >= 1, "解析完必须能在同一轮内检索到"
@@ -176,3 +176,30 @@ def test_scans_and_text_are_not_described_the_same_way(tmp_path, monkeypatch):
     scan_row = next(r for r in rows if r["文件"] == "b.png")
     assert "material.parse" in text_row["状态"]
     assert "视觉" in scan_row["状态"] and "开始梳理" in scan_row["状态"]
+
+
+async def test_parse_never_implies_work_already_started(tmp_path, monkeypatch):
+    """工具回执是模型唯一的事实来源。含糊即等于撒谎：回过"没有新读入的（可能都
+    读过了）"之后，模型就对用户说"系统正在解析中" —— 而其实什么都没启动，用户
+    在等一个永远不会来的结果。"""
+    import ontocopilot.server as server
+
+    monkeypatch.setattr(server, "ROOT", tmp_path)
+    s = server.Session(id="img9")
+    (s.dir / "materials").mkdir(parents=True, exist_ok=True)
+    p = s.dir / "materials" / "flow.png"
+    p.write_bytes(b"\x89PNG\r\n\x1a\n" + b"0" * 80)
+    s.files = [{"name": p.name, "size": p.stat().st_size, "path": str(p)}]
+
+    reg = server._converse_tools(s)
+
+    class _Ctx:
+        approved = True
+        pending: list = []
+
+    r = await reg.call("material.parse", {}, _Ctx(), scope="chat")
+    blob = str(r)
+    assert "可能都读过了" not in blob            # 这句正是模型误读的来源
+    assert r["读不了的"] == ["flow.png"]
+    assert "build.start" in r["下一步"]
+    assert r["当前状态"] == "idle"               # 事实：什么都没在跑
