@@ -1041,6 +1041,25 @@ function connect(){
       else TRACE.push({...ev.step, ts: ev.ts});
       if (TAB === "think") paint();
     }
+    // 梳理过程的内核推理也要进「推理」面板。以前那一栏只认 chat.step（对话侧），
+    // 于是抽取跑几分钟、AI 一直在想在查，面板却是空的 —— FDE 分不清"在干活"
+    // 还是"卡住了"。这里把内核事件映成同一种行结构，归到「材料梳理」这一轮下。
+    if (ev.kind && ev.kind.indexOf("kernel.") === 0) {
+      const KROW = {
+        "kernel.thought":     x => ({thought: x.detail}),
+        "kernel.plan":        x => ({thought: "计划：" + (x.detail || "")}),
+        "kernel.observation": x => ({tool: x.node || "查证", observation: x.detail}),
+        "kernel.critic":      x => ({observation: "审查：" + (x.detail || "")}),
+        "kernel.node_failed": x => ({observation: `${x.node || ""} 失败：${x.detail || ""}`}),
+        "kernel.degraded":    x => ({observation: "降级：" + (x.detail || "")}),
+      };
+      const mk = KROW[ev.kind];
+      if (mk) {
+        const n = TRACE.filter(x => x.turn === "build").length + 1;
+        TRACE.push({turn:"build", q:"材料梳理", n, ...mk(ev), ts: ev.ts});
+        if (TAB === "think") paint();
+      }
+    }
     if (ev.kind === "chat.turn") {
       if (ev.turn.speaker === "assistant") { STEPS = []; LAST_ASSIST_SEQ = ev.seq; }  // 回答落地，过程收起
       S.state.dialogue = S.state.dialogue || {turns: []};

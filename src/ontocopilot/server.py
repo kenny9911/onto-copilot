@@ -802,8 +802,10 @@ async def _run_pipeline(s: Session, *, tier: str = "full") -> None:
         s.emit("node.entered", node="EXTRACT",
                title=f"抽取 · {len(segments)} 段并行", segments=len(segments))
         _pump_kernel_events(s, gw.rec, bus)
-        outcome = await sched.run(f"run_{s.id}")
-        _pump_kernel_events(s, gw.rec, bus)
+        # 抽取是整条链最长的一段。只在开始/结束各泵一次，等于抽取全程「推理」面板
+        # 一片空白 —— FDE 看到的是一个转圈的进度条，看不见 AI 在想什么、查了什么，
+        # 分不清"在干活"和"卡住了"。这里边跑边泵，让推理实时可见。
+        outcome = await _run_with_live_trace(s, gw.rec, bus, sched.run(f"run_{s.id}"))
 
         if not outcome.ok:
             raise RuntimeError(f"抽取失败：{outcome.error}")
@@ -897,6 +899,26 @@ def _pump_kernel_events(s: Session, rec: Any, bus: Any) -> None:
         s.emit(_KERNEL_TRACE[ev.kind], node=ev.node_id or "",
                detail=_trace_detail(ev))
     s.state["_kernel_seq"] = latest
+
+
+async def _run_with_live_trace(s: Session, rec: Any, bus: Any, coro: Any,
+                               *, every: float = 1.0) -> Any:
+    """跑一段长任务，同时按节拍把内核推理事件泵到会话事件流。
+
+    抽取要跑几分钟；不边跑边泵的话，「推理」面板在这几分钟里是空的，FDE 看不出
+    AI 到底在想什么、有没有卡住。泵本身只是读日志 + emit，很便宜。
+    """
+    task = asyncio.ensure_future(coro)
+    try:
+        while not task.done():
+            try:
+                await asyncio.wait_for(asyncio.shield(task), timeout=every)
+            except asyncio.TimeoutError:
+                pass
+            _pump_kernel_events(s, rec, bus)   # 每拍泵一次，异常不吞（泵失败要暴露）
+        return await task
+    finally:
+        _pump_kernel_events(s, rec, bus)       # 收尾再泵一次，别漏最后几条
 
 
 def _trace_detail(ev: Any) -> str:
