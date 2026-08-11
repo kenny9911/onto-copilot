@@ -119,6 +119,58 @@ def denial_capability(error_text: str) -> Capability | None:
     return None
 
 
+# ══════════════════════════════════════════════════════════════════
+#  从网关模型名推断能力（New-API / one-api 这类聚合网关按各家原名暴露模型）
+# ══════════════════════════════════════════════════════════════════
+# 内置 CARDS 写的是固定名字，对不上网关实际暴露的 id（gpt-4o、gemini-2.5-flash、
+# claude-3-5-sonnet…）。发现时靠名字把网关真有的模型补进目录，尤其视觉 —— 认不出
+# 带视觉的模型，扫描件就永远 OCR 不了。
+_NOT_CHAT_RE = re.compile(
+    r"embedding|whisper|tts|dall-?e|stable-?diffusion|\bflux\b|midjourney|"
+    r"rerank|moderation|image-|-audio|speech|-voice|sora|kling|suno|omni-moderation",
+    re.I)
+_VISION_RE = re.compile(
+    r"gpt-4o|gpt-4\.1|gpt-4-turbo|gpt-4-vision|gpt-4v|gpt-5|chatgpt-4o|"
+    r"\bo1\b|\bo3\b|\bo4\b|gemini|claude-3|claude-4|claude-opus|claude-sonnet|"
+    r"claude-haiku|qwen.*(?:vl|omni)|pixtral|llava|internvl|minicpm-v|glm-4v|"
+    r"glm-4\.\dv|step-1v|grok-2-vision|grok-4|llama-3\.2-(?:11b|90b)|llama-4", re.I)
+_TEXT_ONLY_RE = re.compile(
+    r"gpt-3\.5|deepseek|text-davinci|babbage|moonshot|kimi(?!.*vl)|"
+    r"qwen(?!.*(?:vl|omni))|o1-mini|o3-mini|gemini-embedding", re.I)
+_CHEAP_RE = re.compile(r"mini|flash|haiku|nano|lite|small|8b|turbo|air", re.I)
+_FRONTIER_RE = re.compile(
+    r"opus|gpt-5|-pro\b|ultra|405b|max|claude-3-7|claude-sonnet-4|"
+    r"o1(?!-mini)|o3(?!-mini)|gemini-2\.5-pro|gemini-1\.5-pro", re.I)
+
+
+def is_chat_model(name: str) -> bool:
+    """是不是能对话/理解的模型（排掉 embedding/tts/画图等非对话端点）。"""
+    return not _NOT_CHAT_RE.search(name)
+
+
+def infer_capabilities(name: str) -> frozenset[Capability]:
+    """按模型名推断能力。**保守但够用**：现代对话模型基本都支持 json schema，默认给
+    STRUCTURED；判错网关会报错、record_denial 再抹掉。视觉是重点 —— 宁可多认一个
+    （多试一次），也别漏掉真能 OCR 的模型。"""
+    caps = {C.STRUCTURED, C.LONG_CONTEXT}   # 现代模型基本 ≥128k 且支持结构化输出
+    if _VISION_RE.search(name) and not _TEXT_ONLY_RE.search(name):
+        caps.add(C.VISION)
+    if _CHEAP_RE.search(name):
+        caps.add(C.CHEAP)
+    return frozenset(caps)
+
+
+def card_from_name(name: str) -> ModelCard:
+    """给网关发现、但内置目录里没有的模型现造一张卡（能力靠名字推断）。"""
+    caps = infer_capabilities(name)
+    quality = 4 if _FRONTIER_RE.search(name) else (2 if C.CHEAP in caps else 3)
+    return ModelCard(
+        spec=ModelSpec(name, "frontier" if quality >= 4 else "mid", 2.0, 8.0,
+                       effort=None, thinking=None),
+        capabilities=caps, quality=quality,
+        vendor=name.split("/")[0] if "/" in name else "")
+
+
 class ModelCatalog:
     """能力目录。按能力选模型，按失败学习。"""
 
@@ -191,6 +243,12 @@ class ModelCatalog:
         for n in missing:
             del self._cards[n]
             self.notes.append(f"{n} 网关上不可用，已移除")
+        # 网关上有、目录里没有的：按名字推断能力补进来。New-API 用各家原名，对不上
+        # 内置目录，不补的话这些模型（含真能 OCR 的视觉模型）永远选不到。
+        for name in sorted(live):
+            if name not in self._cards and is_chat_model(name):
+                self._cards[name] = card_from_name(name)
+                self.notes.append(f"{name} 从网关发现，按名字推断能力")
         return sorted(live)
 
     # ── 访问 ────────────────────────────────────────────────────
