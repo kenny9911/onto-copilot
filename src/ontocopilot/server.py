@@ -500,14 +500,35 @@ async def _preparse(s: Session) -> None:
         s.emit("parse.failed", error=f"{type(exc).__name__}: {exc}")
         return
     index = build_index(docs)
+    # **保住上一轮花钱 OCR 出来的切片。** 这里是不带视觉网关的重解析（上传时、
+    # 每次 hydrate 都会跑），扫描件在这条路上恒定产出 0 切片。直接覆盖的话，
+    # build 阶段付费识别出来的内容就在下一次开会话时静默蒸发 —— 而 `/source`
+    # 会对一份明明识别过的材料回"尚未解析"。所以：新解析没读出东西、而旧缓存
+    # 里有的文件，保留旧的，并把它们重新灌回检索索引。
+    from .onto.parse.base import make_chunk
+    prev = s.state.get("_chunks") or {}
+    fresh = {d.file_name: [{"cite": c.cite(), "text": c.render, "locator": c.locator}
+                           for c in d.chunks] for d in docs}
+    kept = 0
+    for fname, saved in prev.items():
+        if fresh.get(fname) or not saved:
+            continue
+        fresh[fname] = saved
+        fid = f"restored_{fname}"
+        for i, c in enumerate(saved):
+            index.add(make_chunk(
+                doc_id=f"r{i}", file_id=fid, file_name=fname,
+                locator=c.get("locator") or {}, render=c.get("text") or "", order=i))
+        kept += len(saved)
     s.state["_docs"] = docs
     s.state["_index"] = index
     s.state["_profiles"] = collect_profiles(docs)
     s.state["_endpoints"] = collect_endpoints(docs)
     s.state["corpus"] = corpus_summary(docs)
-    s.state["_chunks"] = {
-        d.file_name: [{"cite": c.cite(), "text": c.render, "locator": c.locator}
-                      for c in d.chunks] for d in docs}
+    s.state["_chunks"] = fresh
+    if kept:
+        s.emit("corpus.restored", chunks=kept,
+               note="沿用上一轮已识别的扫描件内容，未重新调用视觉模型")
     s.emit("corpus.ready", stats={"files": len(docs), "chunks": len(index)},
            findings=[{"kind": f.kind, "message": f.message,
                       "severity": f.severity, "locator": f.locator}
@@ -957,6 +978,16 @@ _PERSISTED_PRIVATE = ("_flow_versions", "_tpl_versions", "_oir_versions",
 #: 单栈封顶，防一个长命进程每编辑一次就把栈顶到天上。撤销深度 20 够用。
 _VERSION_STACK_CAP = 20
 
+#: 私有的**非栈**状态：整体存、不做尾部截断（上面那圈 `stack[-CAP:]` 是给列表用的，
+#: 套在 dict 上会直接 TypeError）。
+#:
+#: ``_chunks`` 必须在这里：``store/const.py`` 把它排除在 DERIVED_KEYS 之外，理由写得
+#: 很清楚 —— 扫描件重建要再花一次视觉模型的钱，而且 OCR 结果可能和当初抽取时不一样，
+#: 那样"点回原文"看到的就不是系统真正读过的东西。但它从来没被写进任何持久化白名单，
+#: 于是**每次重启，付费 OCR 出来的切片全丢**，`/source` 对一份已经识别过的材料回
+#: "尚未解析"。这就是那条注释描述的后果本身。
+_PERSISTED_PRIVATE_DOCS = ("_chunks",)
+
 
 def _push_version(s: Session, key: str, snap: dict[str, Any]) -> list[Any]:
     """把一个「编辑前」快照压进版本栈并就地封顶，返回该栈（活列表）。
@@ -991,6 +1022,10 @@ async def _persist(s: Session, *, status: bool = True) -> None:
             if stack:
                 s.state[k] = stack[-_VERSION_STACK_CAP:]
                 docs[k] = s.state[k]
+        for k in _PERSISTED_PRIVATE_DOCS:      # 整体存，不截断
+            doc = s.state.get(k)
+            if doc:
+                docs[k] = doc
         conflicts = [c.to_dict() for c in (s.state.get("_conflicts") or [])]
         await repo.save_state(s.id, docs, conflicts=conflicts or None,
                               asked_rids=[q["conflict_rid"]

@@ -373,3 +373,37 @@ def test_scratchpad_is_compacted_during_assembly_when_over_budget():
     ctx = cm.assemble(task="抽取", scratch=pad, run_id="r1")
     assert ctx.compactions > 0
     assert ctx.total_tokens <= cm.budget_tokens
+
+
+# ══════════════════════════════════════════════════════════════════
+#  文件名 → file_id（模型只看得到文件名）
+# ══════════════════════════════════════════════════════════════════
+async def test_evidence_search_accepts_file_names_not_just_ids():
+    """`files=` 按 file_id 过滤，但没有任何工具给过模型 file_id —— 它只看得到
+    文件名。不解析的话模型一填 files 就静默拿到空结果，然后据此断言"材料里没有"。
+    """
+    from ontocopilot.kernel.memory.evidence import EvidenceIndex
+    from ontocopilot.kernel.tools import builtin_registry
+    from ontocopilot.onto.parse.base import make_chunk
+
+    ix = EvidenceIndex()
+    ix.add(make_chunk(doc_id="a", file_id="f_abc123", file_name="采购计划.xlsx",
+                      locator={"kind": "cell"}, render="计划金额 是含税金额", order=0))
+    ix.add(make_chunk(doc_id="b", file_id="f_zzz999", file_name="别的.xlsx",
+                      locator={"kind": "cell"}, render="计划金额 别的文件", order=0))
+    assert ix.file_names()["采购计划.xlsx"] == "f_abc123"
+
+    reg = builtin_registry(evidence=ix)
+
+    class Ctx:
+        approved = True
+        pending: list = []
+
+    hit = await reg.call("evidence.search",
+                         {"query": "计划金额", "files": ["采购计划.xlsx"]}, Ctx())
+    assert hit["count"] == 1                      # 修好前这里是 0
+    assert "采购计划.xlsx" in hit["chunks"][0]["cite"]
+    # 认不出的文件要**说出来**，不能装作查过了没有
+    miss = await reg.call("evidence.search",
+                          {"query": "计划金额", "files": ["不存在.xlsx"]}, Ctx())
+    assert miss["count"] == 0 and "不存在.xlsx" in miss.get("error", "")

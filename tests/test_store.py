@@ -367,3 +367,19 @@ async def test_session_owner_isolation(repo):
     assert {s.id for s in await repo.list_sessions()} == {"a", "b", "c"}
     assert (await repo.get_session("a")).owner == "u1"
     assert (await repo.get_session("c")).owner == ""        # NULL ↔ ""
+
+
+async def test_ocr_chunks_survive_restart(repo):
+    """扫描件切片是**花钱买来的**：重建要再调一次视觉模型，而且 OCR 结果可能和
+    当初抽取时不一样 —— 那样"点回原文"看到的就不是系统真正读过的东西。
+    const.py 把 _chunks 排除在 DERIVED_KEYS 之外正是这个理由，但它一度根本没进
+    任何持久化白名单，于是每次重启付费识别的内容全丢。
+    """
+    await repo.create_session(_sess())
+    chunks = {"扫描件.png": [{"cite": "扫描件.png#p1", "text": "采购包 状态 已发布",
+                             "locator": {"kind": "page", "page": 1}}]}
+    await repo.save_state("s1", {"_chunks": chunks})
+    got = await repo.load_state("s1")
+    assert got["_chunks"] == chunks
+    # 不是 derived —— 按需加载也要留着
+    assert "_chunks" in await repo.load_state("s1", include_derived=False)

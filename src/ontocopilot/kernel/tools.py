@@ -304,7 +304,8 @@ def builtin_registry(
                      "query": {"type": "string", "description": "检索词，用材料里的原词"},
                      "top_k": {"type": "integer", "description": "最多返回几片，默认 12"},
                      "files": {"type": "array", "items": {"type": "string"},
-                               "description": "限定文件 id，不给则全库"},
+                               "description": "限定文件，写**文件名**即可（如 "
+                                              "「实体梳理.xlsx」）；不给则全库"},
                      "kinds": {"type": "array", "items": {"type": "string"},
                                "description": "限定来源类型，如 ddl/json/range/page/cell；"
                                               "不给则不限。想只看物理定义就传 [\"ddl\"]"}}},
@@ -312,6 +313,22 @@ def builtin_registry(
         def _search(ctx: Any, query: str, top_k: int = 12,
                     files: list[str] | None = None,
                     kinds: list[str] | None = None) -> dict[str, Any]:
+            # `files` 按 file_id 过滤，但**没有任何工具向模型给过 file_id** ——
+            # 它看到的只有文件名和 cite。于是模型一填 files 就必然过滤掉全部切片、
+            # 静默拿到空结果（比报错更糟：它会据此断言"材料里没有"）。这里把文件名
+            # 解析成 id；解析不到的原样传下去，仍当 id 用。
+            if files:
+                by_name = evidence.file_names()
+                resolved, unknown = [], []
+                for f in files:
+                    hit = by_name.get(f) or next(
+                        (fid for nm, fid in by_name.items() if f in nm), None)
+                    (resolved.append(hit) if hit else unknown.append(f))
+                if unknown and not resolved:
+                    return {"count": 0, "chunks": [],
+                            "error": f"没有这些材料：{unknown}。现有："
+                                     f"{sorted(by_name)}"}
+                files = resolved or None
             hits = evidence.search(query, top_k=top_k, files=files, kinds=kinds, expand=1)
             return {"count": len(hits),
                     "chunks": [{"cite": c.cite(), "text": c.render[:1200]} for c in hits]}

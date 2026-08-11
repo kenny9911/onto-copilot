@@ -281,5 +281,16 @@ class EvidenceIndex:
     def by_file(self, file_id: str) -> list[Chunk]:
         return [self._chunks[c] for c in self._by_file.get(file_id, ())]
 
+    def all_chunks(self) -> list[Chunk]:
+        """全部切片。调用方要把**文件名**映回 file_id 时用（模型只看得到文件名）。"""
+        return list(self._chunks.values())
+
+    def file_names(self) -> dict[str, str]:
+        """文件名 → file_id。同名取先出现的那个。"""
+        out: dict[str, str] = {}
+        for ch in self._chunks.values():
+            out.setdefault(ch.file_name, ch.file_id)
+        return out
+
     def __len__(self) -> int:
         return len(self._chunks)
