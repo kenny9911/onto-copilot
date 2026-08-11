@@ -367,3 +367,33 @@ def test_custom_agent_can_be_registered():
         system="判定主键。", tool_scope="extract", skills=("实体对齐",)))
     assert "pk_picker" in lib.names()
     assert lib.get("pk_picker").tool_scope == "extract"
+
+
+def test_extract_scope_cannot_reach_code_exec():
+    """P0-1（架构审计）：EXTRACT 直接读用户上传的材料，材料里一段伪装成业务说明的
+    指令就可能诱导模型调 code.exec。TOOL_SCOPES 早就写明只有 analyze/compile 该有
+    它，但 builtin_registry 一律用默认的 ("*",) 注册，那份声明形同虚设。
+    """
+    from ontocopilot.kernel.agents import TOOL_SCOPES
+    from ontocopilot.kernel.tools import builtin_registry
+
+    class _SB:
+        async def exec(self, code, inputs=None):    # pragma: no cover
+            return None
+
+    class _IX:
+        def search(self, *a, **k): return []
+        def file_names(self): return {}
+
+    reg = builtin_registry(evidence=_IX(), sandbox=_SB())
+    names = lambda sc: {t.spec.name for t in reg.for_scope(sc)}
+
+    assert "code.exec" not in names("extract")     # 修好前这里是有的
+    assert "code.exec" not in names("readonly")
+    assert "code.exec" not in names("converse")
+    # 声明里有的作用域仍然拿得到，否则就是把功能关掉而不是收权限
+    for sc, decl in TOOL_SCOPES.items():
+        if "code.exec" in decl:
+            assert "code.exec" in names(sc), sc
+    # 只读工具不受影响
+    assert "evidence.search" in names("extract")

@@ -284,6 +284,22 @@ def _digest(args: dict[str, Any], limit: int = 200) -> dict[str, str]:
 # ══════════════════════════════════════════════════════════════════
 #  内建工具
 # ══════════════════════════════════════════════════════════════════
+def _scopes_for(tool: str) -> tuple[str, ...]:
+    """按 :data:`~.agents.TOOL_SCOPES` 求这个工具该出现在哪些作用域。
+
+    那张表一直是**声明式**的：``builtin_registry`` 全用默认的 ``("*",)`` 注册，
+    于是每个作用域都拿到全部内建工具，表里写的限制一条也没生效。这里把它变成
+    真的授权依据 —— 架构审计列的 P0-1（工具最小权限失效）说的就是这件事。
+
+    表里没提到的工具（纯只读的检索/查询）保持 ``("*",)``：它们不出网、不改状态，
+    限制它们只会让各处忘记加作用域时静默失能。
+    """
+    from .agents import TOOL_SCOPES
+
+    hit = tuple(sc for sc, names in TOOL_SCOPES.items() if tool in names)
+    return hit or ("*",)
+
+
 def builtin_registry(
     *, evidence: Any = None, oir: Any = None, profiles: dict | None = None,
     sandbox: Any = None,
@@ -375,7 +391,11 @@ def builtin_registry(
                  "properties": {
                      "code": {"type": "string", "description": "Python 源码"},
                      "inputs": {"type": "object", "description": "注入为 INPUTS"}}},
-                danger=Danger.COMPUTE)
+                # **最小权限：只给声明了它的作用域。** 默认的 ("*",) 会把执行代码的
+                # 能力发给每一个作用域，包括直接读用户上传材料的 extract —— 材料里
+                # 一段伪装成业务说明的指令就能诱导模型调它。TOOL_SCOPES 早就写明
+                # 只有 analyze/compile 该有，这里让那份声明真正生效。
+                danger=Danger.COMPUTE, scopes=_scopes_for("code.exec"))
         async def _exec(ctx: Any, code: str, inputs: dict | None = None) -> Any:
             res = await sandbox.exec(code, inputs=inputs or {})
             return res.to_dict()

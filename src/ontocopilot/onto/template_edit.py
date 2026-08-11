@@ -153,12 +153,18 @@ def _op_add_column(spec: TemplateSpec, *, sheet: str, name: str,
             f"要么用一个有回写路径的字段名：{sorted(WRITEBACK_FIELDS)}")
     if name in REQUIRED_BLOCKLIST and r is Role.REQUIRED:
         raise EditError(f"「{name}」不适合设成必填（见既有说明），换成展示列。")
+    if options:
+        _check_options([o for o in dict.fromkeys(options) if str(o).strip()])
     sh.columns.append(name)
     for row in sh.rows:
         rid = next(iter(row.values())).rid
-        row[name] = _cell(rid, sheet, name, value, r, owner=owner,
+        # **必须用 sh.name，不是调用方传的 sheet。** _sheet() 是模糊匹配的
+        # （模型说「对象清单」，实际表名是「01_对象清单」），把调用方那个串写进
+        # Cell.sheet 会让这一格的回读身份指向一张不存在的表 —— 业务方填了，
+        # 合并时按 (sheet, rid, field) 对不上，静默丢弃。
+        row[name] = _cell(rid, sh.name, name, value, r, owner=owner,
                           comment=comment, options=options)
-    return f"给「{sheet}」加了一列「{name}」（{role}）。"
+    return f"给「{sh.name}」加了一列「{name}」（{role}）。"
 
 
 def _op_drop_column(spec: TemplateSpec, *, sheet: str, column: str) -> str:
@@ -190,10 +196,14 @@ def _op_rename_column(spec: TemplateSpec, *, sheet: str, old: str, new: str) -> 
         cell = row.pop(old, None)
         if cell is None:
             continue
-        old_role = cell.role
-        # 改名切断回写路径的情形：REQUIRED 列改成一个没有回写 case 的名字
-        if old_role is Role.REQUIRED and new not in WRITEBACK_FIELDS:
-            raise EditError(f"「{old}」是必填列，改名成「{new}」会切断它的回写路径。")
+        # 改名切断回写路径：**任何本来能回写的列**都算，不只是 REQUIRED。
+        # prefilled 的 definition/owner 同样有 merge_into_oir 的 case，业务方
+        # 照样会改它；只守 REQUIRED 的话，把 owner 改成「负责人」就悄悄把这一列
+        # 的回写断了 —— 填了、算进完成度、合并时丢掉。
+        if old in WRITEBACK_FIELDS and new not in WRITEBACK_FIELDS:
+            raise EditError(
+                f"「{old}」的内容能回写进模型，改名成「{new}」会切断这条路径"
+                f"（业务方填了会在合并时静默丢弃）。可用的名字：{sorted(WRITEBACK_FIELDS)}")
         cell.field = new
         cell.expects_prose = new in PROSE_FIELDS and not cell.options
         row[new] = cell
@@ -220,12 +230,31 @@ def _op_set_role(spec: TemplateSpec, *, sheet: str, column: str, role: str) -> s
     return f"把「{sheet}」的「{column}」列改成 {role}。"
 
 
+#: Excel 内联下拉（DataValidation formula1）的硬限制：整串带引号不超过 255 字符，
+#: 且选项里不能有英文逗号（那是分隔符）或双引号（那是定界符）。超了/带了，openpyxl
+#: 照写不误，但**打开的 xlsx 里这一列的下拉是坏的或整表报修复** —— 而我们直到业务方
+#: 打不开文件才会知道。所以在编辑这一步就拒绝，并说清怎么改。
+_DV_MAX = 255
+
+
+def _check_options(opts: list[str]) -> None:
+    bad = [o for o in opts if "," in o or '"' in o]
+    if bad:
+        raise EditError(f"下拉选项里不能带英文逗号或双引号（Excel 用它们做分隔符）："
+                        f"{bad[:3]}。改成顿号或去掉引号。")
+    inline = '"' + ",".join(opts) + '"'
+    if len(inline) > _DV_MAX:
+        raise EditError(f"下拉选项总长 {len(inline)} 字符，超过 Excel 内联下拉的 "
+                        f"{_DV_MAX} 上限（写出去的表会打不开）。减少选项或改用说明文字。")
+
+
 def _op_set_options(spec: TemplateSpec, *, sheet: str, column: str,
                     options: list[str]) -> str:
     sh = _sheet(spec, sheet)
     opts = [o for o in dict.fromkeys(options) if str(o).strip()]
     if len(opts) < 2:
         raise EditError("下拉至少要有两个选项。")
+    _check_options(opts)
     n = 0
     for row in sh.rows:
         if column in row:

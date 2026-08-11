@@ -12,7 +12,7 @@ import pytest
 
 from ontocopilot.onto.oir import OIR, ObjectType, PropertyType, inferred, make_rid
 from ontocopilot.onto.template import ANCHOR_RID, Role, compile_template
-from ontocopilot.onto.template_edit import EditError, apply_edit
+from ontocopilot.onto.template_edit import WRITEBACK_FIELDS, EditError, apply_edit
 
 
 def _spec():
@@ -206,3 +206,50 @@ def test_edited_spec_round_trips_through_json():
     apply_edit(spec, "add_column", {"sheet": sh, "name": "备注", "role": "prefilled"})
     back = TemplateSpec.from_dict(spec.to_dict())
     assert "备注" in next(s for s in back.sheets if s.name == sh).columns
+
+
+# ══════════════════════════════════════════════════════════════════
+#  往返契约的三个漏洞
+# ══════════════════════════════════════════════════════════════════
+def test_add_column_records_the_real_sheet_name_not_the_fuzzy_one():
+    """_sheet() 是模糊匹配的（模型说「对象清单」，真表名是「01_对象清单」）。
+    把调用方那个串写进 Cell.sheet，这一格的回读身份就指向一张不存在的表 ——
+    业务方填了，合并时按 (sheet, rid, field) 对不上，静默丢弃。
+    """
+    spec, _ = _spec()
+    real = _obj_sheet(spec)
+    fuzzy = real.split("_", 1)[-1] if real[:2].isdigit() else real
+    apply_edit(spec, "add_column", {"sheet": fuzzy, "name": "备注", "role": "prefilled"})
+    sh = next(s for s in spec.sheets if s.name == real)
+    assert all(r["备注"].sheet == real for r in sh.rows)     # 修好前是 fuzzy
+
+
+def test_rename_guards_every_writeback_column_not_only_required():
+    """prefilled 的 owner/definition 同样有 merge_into_oir 的回写 case，业务方照样
+    会改。只守 REQUIRED 的话，把 owner 改成「负责人」就悄悄断了这一列的回写。"""
+    spec, _ = _spec()
+    sh = _obj_sheet(spec)
+    col = next((c for c in _cols(spec, sh)
+                if c in WRITEBACK_FIELDS
+                and not any(r[c].role is Role.REQUIRED for r in
+                            next(s for s in spec.sheets if s.name == sh).rows)), None)
+    if col is None:
+        pytest.skip("这份骨架里没有非必填的可回写列")
+    with pytest.raises(EditError, match="回写"):
+        apply_edit(spec, "rename_column", {"sheet": sh, "old": col, "new": "随便改个名"})
+
+
+def test_dropdown_options_that_would_corrupt_the_xlsx_are_rejected():
+    """内联下拉整串带引号不能超 255 字符，选项里不能有英文逗号/双引号。openpyxl
+    照写不误，但业务方打开时这一列的下拉是坏的、甚至整表报修复。"""
+    spec, _ = _spec()
+    sh = _obj_sheet(spec)
+    col = _cols(spec, sh)[1]
+    with pytest.raises(EditError, match="逗号|引号"):
+        apply_edit(spec, "set_options", {"sheet": sh, "column": col,
+                                         "options": ["正常", "含,逗号"]})
+    with pytest.raises(EditError, match="255|上限"):
+        apply_edit(spec, "set_options", {"sheet": sh, "column": col,
+                                         "options": [f"选项{i}" * 6 for i in range(20)]})
+    # 正常的下拉照旧能设
+    apply_edit(spec, "set_options", {"sheet": sh, "column": col, "options": ["是", "否"]})

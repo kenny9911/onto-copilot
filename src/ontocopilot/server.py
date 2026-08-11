@@ -1980,6 +1980,11 @@ async def _reason(s: Session, text: str, *, hint: str = "",
     s.state["_last_reason"] = turn.to_dict()
     s.state["_chat_usd"] = spent + float(turn.usd or 0.0)
     # 记下这一轮被闸门拦下的高危动作，供下一轮确认时直接重放。
+    # **被拦下的动作要全留。** 推理循环遇到 ToolDenied 不中断、继续往下想，所以
+    # 一轮里可能连着撞上好几个要确认的写工具（oir.add 之后又 flow.edit）。只留
+    # ctx.pending[0] 的话，用户点了「确认执行」也只有第一个真的发生，其余静默丢失 ——
+    # 而回答里已经说了都会做。
+    s.state["_pending_actions"] = list(ctx.pending or ())
     s.state["_pending_action"] = ctx.pending[0] if ctx.pending else None
     return turn
 
@@ -2031,11 +2036,15 @@ async def chat(sid: str, body: dict[str, Any]) -> dict[str, Any]:
     # 确认时**直接重放**上一轮被拦的动作，不重新推理。全局 approved bool 不记得
     # 在确认什么，模型重新推理时会把「确认」理解成别的意思（采纳哪条建议）——
     # 用户明明在确认一个模板编辑，却被问"要采纳第几条建议"。重放才是确定的。
-    pending = s.state.get("_pending_action")
-    if approved and pending:
+    pending_all = s.state.get("_pending_actions") or (
+        [p] if (p := s.state.get("_pending_action")) else [])
+    if approved and pending_all:
         _publish_turn(s, Speaker.USER, text, intent="confirm", confidence=1.0)
-        reply = await _replay_pending(s, pending)
+        # 逐个重放，逐个回执 —— 做了几件就说几件，不能只报第一件
+        parts = [await _replay_pending(s, a) for a in pending_all]
+        reply = "\n\n".join(x for x in parts if x)
         turn_seq = _publish_turn(s, Speaker.ASSISTANT, reply)
+        s.state["_pending_actions"] = []
         s.state["_pending_action"] = None
         await _persist(s, status=False)
         asyncio.create_task(_emit_ai_prompts(s, slot="followup", turn=turn_seq,
