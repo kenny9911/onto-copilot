@@ -78,6 +78,10 @@ def to_mermaid(g: FlowGraph, *, direction: str = "LR",
         label = _mlabel(n.label.value)
         if show_codes and n.code:
             label = f"{label}<br/><small>{n.code}</small>"
+        if n.endpoint:
+            # mermaid 是给人手改的那一级产物，接口路径直接写进标签 ——
+            # 在 mermaid live editor 里能读、能搜、能一起改。
+            label = f"{label}<br/><small>{_mlabel(n.endpoint)}</small>"
         if not n.grounded:
             # 没有材料依据的节点标出来。**分不清哪里是猜的流程图比没有图更危险**，
             # 因为它看起来同样确定。
@@ -205,12 +209,12 @@ def to_svg(g: FlowGraph, *, title: str = "业务流程总览",
     p = palette or Palette()
     by_stage = g.by_stage()
     ordered = sorted(g.stages.values(), key=lambda x: x.order)
-    if not ordered:
-        ordered = [type(next(iter(g.stages.values()), None)) and None]  # noqa
-    stage_keys = [s.key for s in ordered if by_stage.get(s.key)]
-    for k in by_stage:
-        if k not in stage_keys:
-            stage_keys.append(k)
+    # 泳道顺序：先按注册顺序排已注册的，再补上有节点却没注册的（那本身是个 bug，
+    # 但**渲染不该因此崩**——一张少个标题的图，也远好过一个 AttributeError 把整条
+    # 建图链路带走）。上一版这里是 `[type(...) and None]`，零泳道时产出 [None]，
+    # 下一行取 .key 直接抛异常，而"材料里没有流程说明"恰恰会走到这条路。
+    stage_keys = [st.key for st in ordered if by_stage.get(st.key)]
+    stage_keys += [k for k in by_stage if k not in stage_keys]
 
     pos: dict[str, tuple[float, float]] = {}
     bands: list[tuple[str, float, float, float]] = []   # key, y, h, w
@@ -244,11 +248,17 @@ def to_svg(g: FlowGraph, *, title: str = "业务流程总览",
         f'fill="{p.ink}">{html.escape(title)}</text>',
     ]
     st = g.stats()
+    # 「多少个环节有接口撑着」是拿这张图开会时第一个被问到的数。没接上任何接口时
+    # 不写这一句 —— 一句「0 个环节已对上接口」只会让人以为系统什么都没有。
+    wired = sum(1 for n in g.nodes.values()
+                if n.kind is NodeKind.ACTION and n.endpoint)
+    acts = sum(1 for n in g.nodes.values() if n.kind is NodeKind.ACTION)
     out.append(
         f'<text x="{MARGIN}" y="{MARGIN + 32}" font-size="11" fill="{p.dim}">'
         f'{st["actions"]} 个 Action ｜ {st["events"]} 个 Event ｜ '
         f'{st["stages"]} 个阶段 ｜ {st["inferred_edges"]} 条边为系统推断，需人工确认'
-        f'</text>')
+        + (f' ｜ {wired}/{acts} 个环节已对上接口' if wired else "")
+        + '</text>')
 
     # 泳道
     for key, by, bh, _w in bands:
@@ -322,6 +332,16 @@ def to_svg(g: FlowGraph, *, title: str = "业务流程总览",
             out.append(f'<text x="{x + NODE_W / 2:.0f}" y="{ny + NODE_H - 6:.0f}" '
                        f'font-size="7" fill="{p.dim}" text-anchor="middle" '
                        f'font-family="ui-monospace,monospace">{html.escape(n.code)}</text>')
+        if n.endpoint:
+            # 接口路径在 168px 宽的框里放不下，硬塞会把标签挤掉。用一个角标表示
+            # "这一步有系统支撑"，完整路径进 <title> —— 鼠标停上去就能看全。
+            out.append(f'<circle cx="{x + NODE_W - 9:.0f}" cy="{ny + 9:.0f}" r="3.5" '
+                       f'fill="{p.action_line}"><title>{html.escape(n.endpoint)}'
+                       f'</title></circle>')
 
+    out.append(
+        f'<text x="{MARGIN}" y="{H - 8:.0f}" font-size="9" fill="{p.dim}">'
+        '虚线 = 系统推断的顺序，材料里没有明写　·　右上角圆点 = 这一步有接口实现，'
+        '悬停看路径</text>')
     out.append("</svg>")
     return "\n".join(out)

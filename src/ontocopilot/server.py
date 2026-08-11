@@ -920,15 +920,20 @@ async def _run_pipeline(s: Session, *, tier: str = "full") -> None:
 
         merged = outcome.outputs.get("MERGE") or {}
         oir = build_oir(merged, index)
-        # 待澄清问题的三个来源在这里合流，客户不需要知道哪条是谁提的：
+        # 流程图和接口清单在这里接起来。图是 PARSE 阶段就出的（那时还没有 OIR），
+        # 所以只能等到这一步：每个流程环节标上实现它的接口，接完再重出一次产物。
+        link_gaps = _link_flow_to_api(s, oir)
+        # 待澄清问题的四个来源在这里合流，客户不需要知道哪条是谁提的：
         #   · 材料里本来就有的问卷（规则逐行搬进来的，asked_by=customer）
         #   · 流程图上标黄的缺口 —— 不只画图，还指出图里哪儿是空的
+        #   · 流程与接口对不上的地方 —— 哪一步没有系统支撑、哪个写接口不在流程里
         #   · 从证据里挖的缺口 —— 占位符、空表、待确认的取值清单、结构空位
-        # 第三条以前不存在：材料没带问卷时，这张表就只剩三四行系统自问自答。
+        # 后两条以前都不存在：材料没带问卷时，这张表就只剩三四行系统自问自答。
         from .onto.gaps import mine_questions
 
         mined = mine_questions(oir, docs=docs, chunks=index.all_chunks(),
-                               extra=list(s.state.get("_flow_gaps") or ()))
+                               extra=list(s.state.get("_flow_gaps") or ()),
+                               extra_gaps=link_gaps)
         for q in mined:
             if q.rid not in oir.questions:
                 oir.add_question(q)
@@ -1366,6 +1371,35 @@ async def _build_flow_diagram(s: Session, docs: list[Any]) -> None:
            issues={"死路": [n.label.value for n in g.dead_ends()][:6],
                    "无标签分支": [n.label.value for n in g.unlabeled_branches()][:6],
                    "有动作无事件": [n.label.value for n in g.actions_without_events()][:6]})
+
+
+def _link_flow_to_api(s: Session, oir: Any) -> list[Any]:
+    """把接口清单接到流程图上，重出产物，返回对不上的缺口。**零模型调用。**
+
+    时序上必须在这里：流程图在 PARSE 之后就出来了（那时 OIR 还不存在），而接口
+    清单要等 EXTRACT 跑完。两者以前就一直是两份互不相干的产物 —— 图上看不出哪
+    一步有系统支撑，接口清单里也看不出这个接口落在流程的哪一环。
+
+    材料里**没有**流程说明时（`_flow` 不存在），退一步用接口清单本身建一张接口
+    视角的草图：同一个单据上 create → approve → cancel 的先后关系本身就能拿去和
+    客户对，比一张白纸有用。顺序是推的，图上是虚线。
+    """
+    from .onto.flow_link import attach_endpoints, coverage_gaps, flow_from_actions
+
+    g = s.state.get("_flow")
+    if g is None:
+        if not oir.actions:
+            return []
+        g = flow_from_actions(oir, file_name=s.files[0]["name"] if s.files else "")
+        if not g.nodes:
+            return []
+        s.emit("flow.from_api", nodes=len(g.nodes),
+               why="材料里没有流程说明，这张图是按接口清单的生命周期推的，全部待确认")
+    report = attach_endpoints(g, oir)
+    _rewrite_flow_artifacts(s, g)
+    gaps = coverage_gaps(report, oir)
+    s.emit("flow.linked", **report.summary(), gaps=len(gaps))
+    return gaps
 
 
 async def _compile(s: Session) -> None:

@@ -334,6 +334,7 @@ def _first_prov(assertion: Any) -> Provenance | None:
 def mine_questions(oir: OIR, *, docs: list[Any] | None = None,
                    chunks: list[Any] | None = None,
                    extra: list[OpenQuestion] | None = None,
+                   extra_gaps: list[Gap] | None = None,
                    limit: int = 60) -> list[OpenQuestion]:
     """四条通道一起挖，去重后按权重排序。
 
@@ -342,6 +343,9 @@ def mine_questions(oir: OIR, *, docs: list[Any] | None = None,
         docs: 解析结果，用来发现空容器。
         chunks: 全部证据切片，用来扫占位符和枚举。
         extra: 别处已经生成的问题（如流程图缺口），一起参与去重与排序。
+        extra_gaps: 别的模块挖出来的缺口（如流程与接口对不上的地方），
+            和这里挖的一起排序 —— 它们竞争的是同一份注意力，分开排会让某一类
+            无条件排在另一类前面。
         limit: 最多产出多少条。**不是越多越好** —— 一份 200 行的问题清单
             发出去，回来的就是 200 个空格。
 
@@ -351,7 +355,7 @@ def mine_questions(oir: OIR, *, docs: list[Any] | None = None,
     chunks = list(chunks or ())
     docs = list(docs or ())
     gaps = [*empty_containers(docs), *undetermined_slots(chunks),
-            *enumerations(chunks), *structural_gaps(oir)]
+            *enumerations(chunks), *structural_gaps(oir), *(extra_gaps or ())]
     gaps.sort(key=lambda g: -g.weight)
 
     out: list[OpenQuestion] = []

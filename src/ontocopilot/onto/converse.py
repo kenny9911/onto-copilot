@@ -187,6 +187,17 @@ STRATEGY_LABEL = {
     "react": "边查边想",
     "plan_execute": "先列计划再执行",
 }
+#: 推理面板里的这几行也要跟界面语言走 —— 界面切成英文、推理栏还在冒中文，
+#: 是最扎眼的那种半吊子本地化。
+STRATEGY_LABEL_EN = {
+    "single_shot": "answer directly",
+    "react": "search as I reason",
+    "plan_execute": "plan first, then execute",
+}
+
+
+def strategy_label(strategy: str, lang: str = "zh") -> str:
+    return (STRATEGY_LABEL_EN if lang == "en" else STRATEGY_LABEL).get(strategy, strategy)
 
 #: 一句话里连着好几件事的信号词。
 _MULTI = re.compile(r"然后|接着|再(?:把|给|帮|重|出|加|改)|并且|同时|一起|依次|分别|"
@@ -337,6 +348,9 @@ class ConversationAgent:
         #: 固定推理方式；``None`` = 每轮按请求自动选（见 :func:`pick_strategy`）。
         #: 测试和特殊场景可以钉死，正常运行让它自己选。
         self.strategy = strategy
+        #: 界面语言。推理面板里那几行由我们自己拼，得跟着它走 —— 界面切成英文、
+        #: 推理栏还在冒中文，是最扎眼的那种半吊子本地化。
+        self.lang = lang
         #: 系统提示可覆盖 —— 聊天模式换成通用助手 `_CHAT_SYSTEM`，工作模式用 FDE 版。
         self.system = system or _SYSTEM
         if lang == "en":
@@ -366,7 +380,10 @@ class ConversationAgent:
         # ── 选推理方式，并让它在推理面板里看得见 ──────────────────────
         turn.strategy = self.strategy or pick_strategy(text, has_tools=bool(specs))
         if on_step:
-            on_step({"n": 0, "thought": f"这一轮按「{STRATEGY_LABEL[turn.strategy]}」来。",
+            _lbl = strategy_label(turn.strategy, self.lang)
+            on_step({"n": 0,
+                     "thought": (f"This turn: {_lbl}." if self.lang == "en"
+                                 else f"这一轮按「{_lbl}」来。"),
                      "tool": "", "args": {}})
 
         if turn.strategy == "single_shot":
@@ -403,7 +420,9 @@ class ConversationAgent:
                 lines = "；".join(f"{i+1}. {x['goal']}" for i, x in enumerate(turn.plan))
                 transcript.append(f"【本轮计划】{lines}")
                 if on_step:
-                    on_step({"n": 0, "thought": f"计划：{lines}", "tool": "", "args": {}})
+                    on_step({"n": 0, "tool": "", "args": {},
+                             "thought": (f"Plan: {lines}" if self.lang == "en"
+                                         else f"计划：{lines}")})
             else:
                 turn.strategy = "react"
 

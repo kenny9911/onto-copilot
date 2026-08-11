@@ -478,7 +478,7 @@ body.dense .stream{padding:0 16px}
             onclick="document.getElementById('picker').click()">+</button>
           <span class="cfiles" id="chip"></span>
           <select class="msel" id="modelsel" title="这轮对话用哪个模型"
-            onchange="setModel(this.value)"><option value="">自动选模型</option></select>
+            onchange="setModel(this.value)"><option value=""></option></select>
           <span class="cspacer"></span>
           <button class="cbtn go" id="send" title="发送" onclick="sendChat()">↑</button>
         </div>
@@ -608,6 +608,14 @@ const I18N = {
     "status.stopped":"已停止",
     "composer.placeholder":"说点什么，或直接把材料拖进来",
     "action.refresh":"刷新", "preview.title":"预览",
+    "model.auto":"自动选模型",
+    "mat.parsed":"已读入 {n} 段", "mat.scanPending":"待识别 · 图片", "mat.unread":"未读入",
+    "mat.remove":"移除这份材料", "mat.allRead":"材料都已读入，可以开始梳理或直接提问",
+    "mat.pendingScan":"有 {n} 份还没读入；图片/扫描件要点「开始梳理」才会用视觉模型识别",
+    "mat.pendingText":"有 {n} 份还没读入；问它内容时助手会自动读，或直接「开始梳理」",
+    "mat.count":"{n} 份材料",
+    "table.expand":"展开全部 {n} 条", "table.collapse":"收起", "table.total":"共 {n} 条",
+    "session.newChat":"新对话", "session.newWork":"新会话",
     "login.title":"登录", "login.subtitle":"登录后继续使用 OntoCopilot",
     "login.username":"用户名", "login.password":"密码", "login.submit":"登录",
     "login.bad":"用户名或密码错误", "login.throttled":"尝试太多，请稍后再试",
@@ -651,6 +659,15 @@ const I18N = {
     "status.stopped":"Stopped",
     "composer.placeholder":"Say something, or drop materials in",
     "action.refresh":"Refresh", "preview.title":"Preview",
+    "model.auto":"Auto-select model",
+    "mat.parsed":"{n} segments read", "mat.scanPending":"Pending OCR · image",
+    "mat.unread":"Not read", "mat.remove":"Remove this material",
+    "mat.allRead":"All materials read — start the run, or just ask",
+    "mat.pendingScan":"{n} not read yet; images need “Start run” to be recognised",
+    "mat.pendingText":"{n} not read yet; the assistant reads them when you ask, or start the run",
+    "mat.count":"{n} materials",
+    "table.expand":"Show all {n}", "table.collapse":"Collapse", "table.total":"{n} rows",
+    "session.newChat":"New chat", "session.newWork":"New session",
     "login.title":"Sign in", "login.subtitle":"Sign in to continue using OntoCopilot",
     "login.username":"Username", "login.password":"Password", "login.submit":"Sign in",
     "login.bad":"Incorrect username or password", "login.throttled":"Too many attempts, try again later",
@@ -686,7 +703,12 @@ const I18N = {
   },
 };
 let LANG = localStorage.getItem("oc_lang") || "zh";
-function t(key, fallback){ return (I18N[LANG] && I18N[LANG][key]) ?? (I18N.zh[key]) ?? fallback ?? key; }
+// vars 用来填 "{n} 份材料" 这类占位。不给 vars 时行为和以前完全一致。
+function t(key, fallback, vars){
+  let s = (I18N[LANG] && I18N[LANG][key]) ?? (I18N.zh[key]) ?? fallback ?? key;
+  if (vars) for (const k in vars) s = s.split("{" + k + "}").join(String(vars[k]));
+  return s;
+}
 
 // ── 外观：主题 / 强调色 / 字号 / 密度 ──────────────────────────────
 // 每个预设给浅色、深色两份色值 —— 同一个强调色直接照搬到深色背景上，
@@ -988,7 +1010,8 @@ async function loadSessions(){
   // 聊天与工作各自一份列表（像 ChatGPT 的对话 vs 项目），按当前模式过滤
   const all = await j("/api/sessions");
   const list = all.filter(s => (s.mode || "work") === MODE);
-  const meta = s => MODE === "chat" ? t("sidebar.chatMeta") : `${statusText(s.status)} · ${s.files} 份材料`;
+  const meta = s => MODE === "chat" ? t("sidebar.chatMeta")
+    : `${statusText(s.status)} · ${t("mat.count","",{n:s.files})}`;
   const emptyHint = MODE === "chat" ? t("sidebar.emptyChat") : t("sidebar.emptyWork");
   $("convs").innerHTML = list.length ? list.map(s => `
     <div class="conv ${S && s.id===S.id ? "on" : ""}" onclick="openSession('${s.id}')">
@@ -1006,7 +1029,9 @@ const statusText = s => t("status." + s, s);
 
 async function newSession(silent){
   S = await j("/api/sessions", {method:"POST", headers:{"content-type":"application/json"},
-    body: JSON.stringify({title: MODE === "chat" ? "新对话" : "新会话", mode: MODE})});
+    body: JSON.stringify({
+      title: MODE === "chat" ? t("session.newChat") : t("session.newWork"),
+      mode: MODE})});
   S.state = {}; S.events = []; ANSWERS = {}; SRC = {}; FILE = null; PENDING = []; MAT_N = 100;
   S.filelist = []; S.files = 0; PROMPTS = []; FOLLOWUPS = [];
   // 每 per-session 状态都得清，否则会残留上一个会话的内容（推理 tab 尤其明显）
@@ -1156,7 +1181,7 @@ function render(){
   // 输入框永远可用 —— 跑着的时候恰恰是最想插话的时候。
   $("cin").disabled = !S;
   $("cin").placeholder = !S ? "" : t("composer.placeholder");
-  $("chip").textContent = S?.files ? `${S.files} 份材料` : "";
+  $("chip").textContent = S?.files ? t("mat.count", "", {n: S.files}) : "";
   paintSendBtn();
   paintActions();
 
@@ -1262,8 +1287,8 @@ function evCard(ev){
       </table></div>
       ${rows.length > 30 ? `<button class="act" style="margin-top:6px"
         onclick="toggleTable(${N})">${TBL_OPEN.has(N)
-          ? "收起" : `展开全部 ${rows.length} 条`}</button>` : ""}
-      <div class="cap" style="margin-top:4px">共 ${rows.length} 条</div></div>`;
+          ? t("table.collapse") : t("table.expand","",{n:rows.length})}</button>` : ""}
+      <div class="cap" style="margin-top:4px">${t("table.total","",{n:rows.length})}</div></div>`;
   }
   if (ev.kind === "run.failed")
     return `<div class="card"><h4>没跑完</h4><div class="cap">${esc(ev.error || "")}</div></div>`;
@@ -1441,7 +1466,7 @@ async function loadModels(){
     const sel = $("modelsel");
     if (!sel) return;
     const cur = (S && S.model) || "";
-    sel.innerHTML = `<option value="">自动选模型</option>` + MODELS.map(m =>
+    sel.innerHTML = `<option value="">${esc(t("model.auto"))}</option>` + MODELS.map(m =>
       `<option value="${esc(m.name)}"${m.name===cur?" selected":""}>${esc(m.name)}${
         (m.capabilities||[]).includes("vision") ? " 👁" : ""}</option>`).join("");
   } catch(e) { /* 模型列表拉不到不该挡住输入框 */ }
@@ -1907,9 +1932,9 @@ function paint(){
     // 每份材料带一个「×」：传错了要能在开跑前拿掉，只能重传等于逼人重开会话。
     // 也带**解析状态** —— "这份读进来了没有"是个事实，应该看得见，而不是去问助手。
     const MST = {
-      parsed:       f => ({t:`已读入 ${f.chunks} 段`, c:"var(--accent)"}),
-      scan_pending: () => ({t:"待识别 · 图片", c:"var(--warn, #9a7a12)"}),
-      unread:       () => ({t:"未读入",        c:"var(--ink-3)"}),
+      parsed:       f => ({t:t("mat.parsed","",{n:f.chunks}), c:"var(--accent)"}),
+      scan_pending: () => ({t:t("mat.scanPending"), c:"var(--warn, #9a7a12)"}),
+      unread:       () => ({t:t("mat.unread"),      c:"var(--ink-3)"}),
     };
     const chips = fl.map(f => {
       const st = (MST[f.state] || MST.unread)(f);
@@ -1917,14 +1942,13 @@ function paint(){
         onclick="FILE='${esc(f.name)}';loadSource('${esc(f.name)}')">${esc(f.name)}
         <i style="font-style:normal;font-size:10.5px;color:${st.c};margin-left:5px">${st.t}</i><b
           onclick="event.stopPropagation();dropMaterial('${esc(f.name)}')"
-          title="移除这份材料" style="margin-left:6px;opacity:.45;cursor:pointer">×</b></span>`;
+          title="${t("mat.remove")}" style="margin-left:6px;opacity:.45;cursor:pointer">×</b></span>`;
     }).join("");
     // 一眼能看出还有没有没读进来的，以及该做什么
     const nPend = fl.filter(f => f.state !== "parsed").length;
-    const hint = !nPend ? `<div class="cap">材料都已读入，可以开始梳理或直接提问</div>`
-      : fl.some(f => f.state === "scan_pending")
-        ? `<div class="cap">有 ${nPend} 份还没读入；图片/扫描件要点「开始梳理」才会用视觉模型识别</div>`
-        : `<div class="cap">有 ${nPend} 份还没读入；问它内容时助手会自动读，或直接「开始梳理」</div>`;
+    const hint = `<div class="cap">${!nPend ? t("mat.allRead")
+      : fl.some(f => f.state === "scan_pending") ? t("mat.pendingScan","",{n:nPend})
+      : t("mat.pendingText","",{n:nPend})}</div>`;
     const doc = FILE ? SRC[FILE] : null;
     let body;
     if (!FILE) body = hint;
