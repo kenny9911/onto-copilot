@@ -104,6 +104,15 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .mdbody .mdik{font-family:var(--mono);font-size:.9em;background:var(--accent-tint);padding:1px 5px;border-radius:4px}
 .mdbody .mdcode{font-family:var(--mono);font-size:12px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 11px;overflow-x:auto;white-space:pre-wrap;margin:6px 0}
 .mdbody .cur{display:inline-block;width:6px;height:1em;background:var(--ink-3);vertical-align:-2px;animation:blink 1s infinite;margin-left:1px}
+/* 回答里的表格。**外面必须套一层能横向滚动的容器** —— 六列的调研问题表比聊天
+   栏宽得多，不兜住的话整个页面会被撑出横向滚动条。 */
+.mdbody .mdtw{overflow-x:auto;margin:8px 0;border:1px solid var(--line);border-radius:8px}
+.mdbody .mdt{border-collapse:collapse;width:100%;font-size:12.5px}
+.mdbody .mdt th,.mdbody .mdt td{padding:6px 9px;border-bottom:1px solid var(--line-soft);
+  border-right:1px solid var(--line-soft);text-align:left;vertical-align:top;min-width:90px}
+.mdbody .mdt th{background:var(--bg);font-weight:600;white-space:nowrap;position:sticky;top:0}
+.mdbody .mdt tr:last-child td{border-bottom:0}
+.mdbody .mdt th:last-child,.mdbody .mdt td:last-child{border-right:0}
 
 .stream{flex:1;overflow-y:auto;padding:0 22px}
 .wrap{max-width:680px;margin:0 auto;padding:24px 0}
@@ -1840,7 +1849,26 @@ function md(src){
   s = s.replace(/^#{1,3}\s+(.+)$/gm, '<div class="mdh">$1</div>');
   const lines = s.split("\n"); let out = [], ul = false, ol = false;
   const close = () => { if (ul){ out.push("</ul>"); ul = false; } if (ol){ out.push("</ol>"); ol = false; } };
-  for (const ln of lines){
+  const isRow = x => /^\s*\|.*\|\s*$/.test(x);
+  const isSep = x => /^\s*\|[\s:|-]+\|\s*$/.test(x);
+  const cells = x => x.trim().replace(/^\||\|$/g, "").split("|").map(c => c.trim());
+  for (let li = 0; li < lines.length; li++){
+    const ln = lines[li];
+    // ── 表格 ────────────────────────────────────────────────────
+    // 模型一列清单/做对比就用 markdown 表格。不认它的话满屏竖线，看着就是坏的。
+    if (isRow(ln) && li + 1 < lines.length && isSep(lines[li + 1])){
+      close();
+      const head = cells(ln), body = [];
+      li += 2;
+      while (li < lines.length && isRow(lines[li])){ body.push(cells(lines[li])); li++; }
+      li--;
+      out.push('<div class="mdtw"><table class="mdt"><thead><tr>'
+        + head.map(c => `<th>${c}</th>`).join("")
+        + '</tr></thead><tbody>'
+        + body.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join("")}</tr>`).join("")
+        + '</tbody></table></div>');
+      continue;
+    }
     let m;
     if ((m = ln.match(/^\s*\d+\.\s+(.+)$/))){
       if (!ol){ close(); out.push('<ol class="mdl">'); ol = true; } out.push(`<li>${m[1]}</li>`);
@@ -1851,6 +1879,8 @@ function md(src){
   close(); s = out.join("\n");
   s = s.replace(/\n{2,}/g, "<br><br>").replace(/\n/g, "<br>");
   s = s.replace(/(<\/(?:ul|ol|pre|div)>)(?:<br>)+/g, "$1").replace(/(?:<br>)+(<(?:ul|ol|pre|div))/g, "$1");
+  // 表格单元格里模型爱写字面量 <br> 换行；esc 之后成了可见的 &lt;br&gt;
+  s = s.replace(/&lt;br\s*\/?&gt;/g, "<br>");
   return s.replace(/ (\d+) /g, (_, i) => stash[i]);
 }
 
@@ -1858,19 +1888,39 @@ function md(src){
 // 「思考」气泡收起后，答案一段段流出来，而不是整块蹦出来。
 function startStream(text){
   if (STREAM) clearInterval(STREAM.timer);
-  STREAM = { full: text || "", i: 0, timer: null };
-  render();
-  const step = Math.max(3, Math.ceil(STREAM.full.length / 140));  // 长回答也别拖太久
+  // **按墙钟时间揭示，不按 tick 数。** 以前是每 tick 推进固定字数，而浏览器在
+  // 标签页切走时会把 setInterval 节流到一秒甚至几秒一次 —— 实测切后台后 47 秒
+  // 才推进 21/68 个字。用户回来看到的就是一条卡在半截的回答，只能刷新。
+  // 改成按经过的时间算进度：无论 tick 多稀，到点就是全文。
+  const DUR = 900;                       // 整段揭示时长（毫秒），与长度无关
+  STREAM = { full: text || "", i: 0, timer: null, t0: Date.now() };
+  try { render(); } catch (e) {}         // 首帧画不出来也要把流跑起来
   STREAM.timer = setInterval(() => {
     if (!STREAM){ return; }
-    STREAM.i = Math.min(STREAM.full.length, STREAM.i + step);
-    const el = [...document.querySelectorAll('.stream .bub.oc .mdbody')].pop();
-    if (el){
-      const done = STREAM.i >= STREAM.full.length;
-      el.innerHTML = md(STREAM.full.slice(0, STREAM.i)) + (done ? "" : '<span class="cur"></span>');
+    const p = Math.min(1, (Date.now() - STREAM.t0) / DUR);
+    STREAM.i = Math.ceil(STREAM.full.length * p);
+    const done = p >= 1;
+    const timer = STREAM.timer;
+    // 画这一帧。**整段包在 try 里**：渲染再怎么出错，也不能挡住下面的收尾 ——
+    // 否则这条流永远结束不了，定时器一直空转。
+    try {
+      const el = [...document.querySelectorAll('.stream .bub.oc .mdbody')].pop();
+      if (el){
+        el.innerHTML = md(STREAM.full.slice(0, STREAM.i)) + (done ? "" : '<span class="cur"></span>');
+      } else {
+        // 找不到那个气泡就整体重画。**不能什么都不做** —— 直写 DOM 是个捷径，
+        // 一旦没写上（气泡还没渲染、或被别的 render 换掉了），这条回答就永远
+        // 停在半截，只有刷新页面才会出现。用户看到的正是这个。
+        render();
+      }
+      const box = $("stream"); if (box) box.scrollTop = box.scrollHeight;
+    } catch (e) { /* 这一帧没画上，下一帧再说；收尾照常走 */ }
+    if (done){
+      clearInterval(timer);
+      STREAM = null;
+      // 收尾重画一次，让最终文本落进正常渲染路径，而不是只躺在那次直写里。
+      try { render(); } catch (e) {}
     }
-    const box = $("stream"); if (box) box.scrollTop = box.scrollHeight;
-    if (STREAM.i >= STREAM.full.length){ clearInterval(STREAM.timer); STREAM = null; }
   }, 16);
 }
 
