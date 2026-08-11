@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import base64
 import io
 from pathlib import Path
@@ -133,12 +134,28 @@ class VisionParser(Parser):
         order = 0
         all_relations: list[dict[str, Any]] = []
         for pno, data_uri in enumerate(pages, start=1):
-            comp = await self.gateway.call(
-                self.node_id,
-                f"识别第 {pno} 页的全部内容。",
-                needs={Capability.VISION, Capability.STRUCTURED},
-                prefer=self.prefer, system=OCR_SYSTEM, schema=OCR_SCHEMA,
-                max_tokens=8000, images=[data_uri], key=f"ocr:p{pno}")
+            # 视觉调用必须**有超时、且失败不炸整条 build**。否则网关上没有可用视觉模型
+            # （require 抛错）或调用卡住时，PARSE 会一直挂在这里 —— 界面上就是「一直
+            # 正在梳理」，而根因（没有视觉模型）被埋在一个永不返回的 await 里。
+            try:
+                comp = await asyncio.wait_for(
+                    self.gateway.call(
+                        self.node_id,
+                        f"识别第 {pno} 页的全部内容。",
+                        needs={Capability.VISION, Capability.STRUCTURED},
+                        prefer=self.prefer, system=OCR_SYSTEM, schema=OCR_SCHEMA,
+                        max_tokens=8000, images=[data_uri], key=f"ocr:p{pno}"),
+                    timeout=150)
+            except Exception as exc:  # noqa: BLE001 — 视觉失败如实登记，不拖垮/卡住 build
+                why = "网关上没有可用的视觉模型" if isinstance(exc, LookupError) \
+                    else ("视觉识别超时" if isinstance(exc, asyncio.TimeoutError)
+                          else f"视觉识别失败（{type(exc).__name__}）")
+                doc.findings.append(Finding(
+                    "vision_failed",
+                    f"扫描件第 {pno} 页{why}。请在网关上确认有带视觉的模型"
+                    f"（gemini-* / gpt-4o / claude-3 等），这份材料的内容没有进入产物。",
+                    {}, severity="warn"))
+                break   # 一页就失败，后面多半也一样 —— 别把超时乘以页数
             page = comp.data or {}
 
             for b in page.get("blocks", ()):
