@@ -180,6 +180,10 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .cbtn.stop{background:var(--btn);color:#fff;border-color:var(--btn);font-size:11px}
 .cbtn.stop:hover{opacity:.85}
 .cfiles{font-size:11.5px;color:var(--ink-3)}
+/* 模型选择：跟 .cfiles 一个视觉重量，是输入框的附属信息，不该抢主按钮的注意力 */
+.msel{font:inherit;font-size:11.5px;color:var(--ink-3);background:transparent;
+  border:1px solid var(--line);border-radius:7px;padding:2px 6px;max-width:200px;cursor:pointer}
+.msel:hover{background:var(--bg);color:var(--ink-2)}
 .cbox.drag{border-color:var(--accent);background:var(--accent-tint)}
 /* .cbox 是块级容器，不是 flex 行 —— 这里必须 width:100%。写 flex:1 的话
    textarea 会退回 cols 属性的默认宽度（约 20 字符），一句话就换行。 */
@@ -473,6 +477,8 @@ body.dense .stream{padding:0 16px}
           <button class="cbtn" id="attach" title="添加材料"
             onclick="document.getElementById('picker').click()">+</button>
           <span class="cfiles" id="chip"></span>
+          <select class="msel" id="modelsel" title="这轮对话用哪个模型"
+            onchange="setModel(this.value)"><option value="">自动选模型</option></select>
           <span class="cspacer"></span>
           <button class="cbtn go" id="send" title="发送" onclick="sendChat()">↑</button>
         </div>
@@ -838,6 +844,7 @@ let CURRENT_USER = null;
   bindComposer();
   bindDrop();
   bindResize();
+  loadModels();          // 模型下拉：拉网关实际可用的列表
 })();
 
 // ── 认证：登录 / 首次启动引导 ──────────────────────────────────────
@@ -1017,6 +1024,8 @@ async function openSession(id){
   // 视图跟随会话自身的模式（聊天/工作），并同步顶部切换
   if (st.mode && st.mode !== MODE) { MODE = st.mode; localStorage.setItem("oc_mode", MODE); }
   applyMode();
+  S.model = st.model || "";
+  loadModels();          // 下拉要反映**这个**会话选的模型
   S.files = (st.filelist || []).length;
   await loadSessions(); connect(); render(); paint();
 }
@@ -1394,6 +1403,33 @@ async function uploadFiles(list){
   // （"重点看采购包的状态流转"），那句话正是梳理的输入。自动开始等于替他
   // 决定，而且把他还没传完的材料先跑一遍。他写完 prompt 发出来，或点
   // 「开始梳理」，再跑。
+}
+
+// ── 模型选择 ────────────────────────────────────────────────────
+// 「自动」= 按难度路由。选了具体模型就用它对话。**梳理管线不受影响** ——
+// 扫描件 OCR 这类需要视觉的环节仍按能力自动挑带视觉的模型，否则选了个纯文本
+// 模型就等于把 OCR 关掉了。
+let MODELS = [];
+async function loadModels(){
+  try {
+    const r = await j("/api/models");
+    MODELS = r.models || [];
+    const sel = $("modelsel");
+    if (!sel) return;
+    const cur = (S && S.model) || "";
+    sel.innerHTML = `<option value="">自动选模型</option>` + MODELS.map(m =>
+      `<option value="${esc(m.name)}"${m.name===cur?" selected":""}>${esc(m.name)}${
+        (m.capabilities||[]).includes("vision") ? " 👁" : ""}</option>`).join("");
+  } catch(e) { /* 模型列表拉不到不该挡住输入框 */ }
+}
+
+async function setModel(name){
+  if (!S) return;
+  try {
+    await j(`/api/sessions/${S.id}/model`, {method:"POST",
+      headers:{"content-type":"application/json"}, body: JSON.stringify({model:name})});
+    S.model = name;
+  } catch(e){ alert("没能切换模型：" + e.message); }
 }
 
 // 开跑前撤掉一份材料。传错/传多了要能拿掉，不必重开会话。

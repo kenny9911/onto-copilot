@@ -33,6 +33,15 @@ class ModelError(HarnessError):
     """模型调用失败或输出不合 schema。"""
 
 
+class ModelTruncated(ModelError):
+    """思考型模型把 max_tokens 全花在推理上，没留下正文。
+
+    **可恢复**：加大预算重试就行，不是模型不会做。会思考的模型（gemini-2.5+ /
+    o 系列等）推理 token 也计入 max_tokens，密集内容（一张上百节点的流程图）
+    按老预算必然被截断 —— 直接失败等于这份材料白传。
+    """
+
+
 class ModelRefusal(ModelError):
     """安全分类器拒绝了请求。
 
@@ -405,15 +414,26 @@ class ModelGateway:
 
         async def do() -> dict[str, Any]:
             last_err = ""
+            # 思考型模型的推理 token 也计进 max_tokens：密集内容（上百节点的流程图）
+            # 按初始预算必然被截断成"只有推理、没有正文"。那不是模型不会做，是预算
+            # 给小了 —— 逐次加大重试，而不是让这份材料白传。
+            budget = max_tokens
             for attempt in range(1 + self.max_schema_retries):
                 p = prompt if attempt == 0 else (
                     f"{prompt}\n\n【上次输出不合要求】{last_err}\n"
                     "请只输出符合 schema 的 JSON，不要任何解释文字。"
                 )
-                text, usage = await self.backend.generate(
-                    model=spec, prompt=p, system=system, schema=schema,
-                    max_tokens=max_tokens, images=images,
-                )
+                try:
+                    text, usage = await self.backend.generate(
+                        model=spec, prompt=p, system=system, schema=schema,
+                        max_tokens=budget, images=images,
+                    )
+                except ModelTruncated as exc:
+                    if attempt >= self.max_schema_retries:
+                        raise
+                    budget = min(budget * 3, 64_000)
+                    last_err = str(exc)
+                    continue
                 out = {"text": text, "attempts": attempt + 1, "usage": usage.to_dict()}
                 if schema is None:
                     return {**out, "data": None}

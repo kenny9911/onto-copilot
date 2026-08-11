@@ -18,7 +18,7 @@ import json
 import random
 from typing import Any
 
-from .llm import LLMBackend, ModelError, ModelRefusal, ModelSpec, Usage
+from .llm import LLMBackend, ModelError, ModelRefusal, ModelSpec, ModelTruncated, Usage
 
 #: 超过这个 max_tokens 必须走流式，否则会撞 HTTP 超时。
 STREAM_THRESHOLD = 16_000
@@ -260,9 +260,10 @@ class OpenAICompatBackend(LLMBackend):
 
         text = msg.get("content") or ""
         if not text and msg.get("reasoning"):
-            # 只出了思考没出正文 —— 通常是 max_tokens 被思考吃光了，说清楚而不是
-            # 返回空串让上层的 schema 校验报一个看不懂的错。
-            raise ModelError(
+            # 只出了思考没出正文 —— max_tokens 被思考吃光了。抛**可重试**的
+            # ModelTruncated，让网关加大预算再来一次；抛普通 ModelError 的话
+            # 这份材料就直接白传了。
+            raise ModelTruncated(
                 f"{model.name} 只返回了推理内容、没有正文，"
                 f"多半是 max_tokens 不够（本次 finish_reason="
                 f"{choices[0].get('finish_reason')}）"
