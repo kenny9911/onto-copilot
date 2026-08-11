@@ -854,7 +854,17 @@ async def _run_pipeline(s: Session, *, tier: str = "full") -> None:
                                         for g in segments],
                note="段数来自材料结构（有几个 sheet/章节），不来自内容 —— 计划冻结成立")
         if not segments:
-            raise RuntimeError("材料里没有可抽取的内容")
+            # 「材料里没有可抽取的内容」对着一份明明有内容的流程图说，等于什么都
+            # 没说 —— 真正发生的多半是**上游没读出东西**（扫描件识别失败/超时）。
+            # 把每份材料的实际情况和解析阶段的告警一起说出来，别让人去猜。
+            detail = "；".join(
+                f"{d.file_name} 读出 {len(d.chunks)} 段" for d in docs) or "没有材料"
+            warns = [f.message for d in docs for f in d.findings
+                     if f.kind in ("vision_failed", "empty_ocr", "no_vision_model")]
+            raise RuntimeError(
+                "没有可抽取的内容：" + detail
+                + ("。原因：" + "；".join(warns[:3]) if warns else
+                   "。材料可能是空的，或格式无法解析。"))
 
         # ── 装配 Harness ───────────────────────────────────────
         s.status = "extracting"
@@ -2452,9 +2462,12 @@ async def _ai_recommend(s: Session, *, slot: str, user_text: str | None = None,
             + (f"\n## 他刚问的\n{user_text}\n" if user_text else "")
             + (f"\n## 刚给他的回复\n{reply}\n" if reply else ""))
         _, gw, _, _ = _gateways(s.dir, f"rec_{uuid.uuid4().hex[:8]}")
+        # 400 太紧了：会思考的模型（gemini-2.5+/o 系列）推理 token 也算进这个额度，
+        # 实测三条推荐问题连撞三次「JSON 不完整」然后整个失败。这几百 token 的差价
+        # 远小于"每轮推荐问题都算不出来"的代价。
         comp = await gw.call("CHAT.recommend", prompt, system=_FDE_SYSTEM,
                              difficulty=Difficulty.LOW, schema=_FOLLOWUPS_SCHEMA,
-                             max_tokens=400)
+                             max_tokens=4000)
         s.state["_chat_usd"] = spent + float(getattr(comp, "usd", 0) or 0)
         out: list[dict[str, Any]] = []
         for q in (comp.data or {}).get("questions") or []:

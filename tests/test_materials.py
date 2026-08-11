@@ -203,3 +203,26 @@ async def test_parse_never_implies_work_already_started(tmp_path, monkeypatch):
     assert r["读不了的"] == ["flow.png"]
     assert "build.start" in r["下一步"]
     assert r["当前状态"] == "idle"               # 事实：什么都没在跑
+
+
+async def test_truncated_output_escalates_the_budget_instead_of_retrying_the_same():
+    """输出被截断和"格式写错了"是两回事：前者重试多少次都一样，除非把预算加大。
+    实测 recommend 用 400 token 连撞三次「JSON 不完整」，然后整条链路失败。"""
+    from ontocopilot.kernel.llm import _looks_truncated
+
+    assert _looks_truncated("JSON 不完整（输出被截断）")
+    assert _looks_truncated("Unterminated string starting at")
+    assert _looks_truncated("Expecting ',' delimiter")
+    # 真·格式错误不该被当成截断（那样只会白花更多钱）
+    assert not _looks_truncated("字段 foo 不是 string")
+    assert not _looks_truncated("schema 里没有这个枚举值")
+
+
+def test_ocr_budget_and_timeout_fit_a_dense_diagram():
+    """一张上百节点的流程图，blocks+relations 就要一两万 token。预算给 8000 会让
+    输出中途截断；超时给 150s 会把**正在正常出结果**的调用掐掉（而取消不留
+    effect.failed，日志里只剩一条孤零零的 requested，极难排查）。"""
+    from ontocopilot.onto.parse import vision
+
+    assert vision.OCR_MAX_TOKENS >= 16_000
+    assert vision.OCR_TIMEOUT_S >= 240

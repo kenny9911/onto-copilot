@@ -33,6 +33,15 @@ class ModelError(HarnessError):
     """模型调用失败或输出不合 schema。"""
 
 
+#: 输出被截断的迹象。这类失败重试同样的预算是没用的，必须加大。
+_TRUNC_HINT = ("不完整", "截断", "Unterminated", "Expecting value",
+               "Expecting ',' delimiter", "Expecting property name")
+
+
+def _looks_truncated(err: str) -> bool:
+    return any(h in err for h in _TRUNC_HINT)
+
+
 class ModelTruncated(ModelError):
     """思考型模型把 max_tokens 全花在推理上，没留下正文。
 
@@ -443,6 +452,12 @@ class ModelGateway:
                     return {**out, "data": data}
                 except (ValueError, TypeError) as exc:
                     last_err = str(exc)
+                    # 输出被**截断**（JSON 没写完）和"格式写错了"是两回事：前者
+                    # 重试多少次都一样，除非把预算加大。密集内容 + 会思考的模型
+                    # 尤其容易撞上 —— 实测 recommend 用 400 token 连撞三次全是
+                    # 「JSON 不完整」，然后整条链路失败。
+                    if _looks_truncated(last_err):
+                        budget = min(budget * 3, 64_000)
             raise ModelError(
                 f"{spec.name} 连续 {1 + self.max_schema_retries} 次输出不合 schema: {last_err}"
             )
@@ -524,7 +539,7 @@ def _parse_json(text: str) -> Any:
         raise ValueError("输出里找不到 JSON")
     end = max(t.rfind("}"), t.rfind("]"))
     if end <= start:
-        raise ValueError("JSON 不完整")
+        raise ValueError("JSON 不完整（输出被截断）")
     try:
         return json.loads(t[start : end + 1])
     except json.JSONDecodeError as exc:

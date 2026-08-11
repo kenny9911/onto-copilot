@@ -27,6 +27,16 @@ from .base import Finding, ParsedDoc, Parser, make_chunk
 #: 有效分辨率大约到这个量级。
 MAX_EDGE = 2000
 
+#: 一页 OCR 的输出预算。一张上百节点的业务流程图，光 blocks + relations 就要
+#: 一两万 token；8000 会让输出在中途被截断，然后 schema 校验报「JSON 不完整」，
+#: 重试同样的预算再撞两次，整份材料就废了。会思考的模型还要再吃掉一部分预算。
+OCR_MAX_TOKENS = 24_000
+
+#: 单页识别的时间上限。密集图 + 大预算本来就慢，卡太紧会把**正在正常出结果**的
+#: 调用掐掉（而取消不会留下 effect.failed，日志里只剩一条孤零零的 requested，
+#: 极难排查）。给足时间，但必须有上限 —— 无限等就是界面上永远的"解析中"。
+OCR_TIMEOUT_S = 300
+
 #: PDF 渲染倍率。2.0 对应约 144 DPI，中文小字够认。
 PDF_ZOOM = 2.0
 
@@ -148,8 +158,9 @@ class VisionParser(Parser):
                         f"识别第 {pno} 页的全部内容。",
                         needs={Capability.VISION, Capability.STRUCTURED},
                         prefer=self.prefer, system=OCR_SYSTEM, schema=OCR_SCHEMA,
-                        max_tokens=8000, images=[data_uri], key=f"ocr:p{pno}"),
-                    timeout=150)
+                        max_tokens=OCR_MAX_TOKENS, images=[data_uri],
+                        key=f"ocr:p{pno}"),
+                    timeout=OCR_TIMEOUT_S)
             except Exception as exc:  # noqa: BLE001 — 视觉失败如实登记，不拖垮/卡住 build
                 why = "网关上没有可用的视觉模型" if isinstance(exc, LookupError) \
                     else ("视觉识别超时" if isinstance(exc, asyncio.TimeoutError)
