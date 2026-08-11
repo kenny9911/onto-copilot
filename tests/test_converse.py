@@ -226,7 +226,10 @@ async def test_steps_are_streamed_as_they_happen():
         "问", ctx=_Ctx(), on_step=seen.append)
     # 一个工具步回调两次（发起时、拿到 observation 后），收尾步回调一次
     assert len(seen) >= 3
-    assert seen[0]["thought"] == "查一下"
+    # 第一条是"这一轮按哪种方式来"（推理方式的选择本身也是要给人看的推理），
+    # 随后才是真正的工具步 —— 所以这里按**存在**断言，不按下标。
+    assert any("按「" in x.get("thought", "") for x in seen), "没说明选了哪种推理方式"
+    assert any(x.get("thought") == "查一下" for x in seen)
     assert any("observation" in x for x in seen)
     assert seen[-1]["kind"] == "answer", "收尾步没有被流式发出"
 
@@ -262,3 +265,81 @@ async def test_an_empty_thought_is_reported_not_hidden():
                "citations": [], "confidence": 0.5}])
     turn = await ConversationAgent(gateway=gw, tools=_registry()).run("问", ctx=_Ctx())
     assert "没有给出思考" in turn.steps[-1]["thought"]
+
+
+# ══════════════════════════════════════════════════════════════════
+#  推理方式的选择（ReAct / 计划-执行 / 直接回答）
+# ══════════════════════════════════════════════════════════════════
+def test_strategy_is_picked_by_whether_the_path_is_enumerable():
+    """判据是**路径可不可枚举**，不是难不难。纯规则、零模型调用。"""
+    from ontocopilot.onto.converse import pick_strategy
+
+    assert pick_strategy("你好", has_tools=False) == "single_shot"
+    assert pick_strategy("材料里关于框架协议是怎么说的？", has_tools=True) == "react"
+    # 一句里连着好几个改产物的动作 → 先列计划
+    assert pick_strategy("把采购包连到订单，然后重出模板", has_tools=True) == "plan_execute"
+    # 只是问问题，哪怕带「然后」，也不该上计划
+    assert pick_strategy("这份材料里有什么？", has_tools=True) == "react"
+
+
+async def test_single_shot_does_not_burn_five_steps_on_chitchat():
+    """没有工具可用时空转五步纯属浪费 —— 一次调用直接出答。"""
+    from ontocopilot.kernel.tools import ToolRegistry
+    from ontocopilot.onto.converse import ConversationAgent
+
+    class _Comp:
+        def __init__(self, d): self.data = d; self.usd = 0.0
+
+    class _Gw:
+        def __init__(self): self.keys = []
+        async def call(self, node, prompt, **kw):
+            self.keys.append(kw.get("key"))
+            return _Comp({"thought": "寒暄", "answer": "在。",
+                          "citations": [], "confidence": 0.9})
+
+    class _Ctx:
+        turn_id = "t"; approved = True; pending: list = []; rec = None
+
+    gw = _Gw()
+    turn = await ConversationAgent(gateway=gw, tools=ToolRegistry()).run("你好", ctx=_Ctx())
+    assert turn.strategy == "single_shot"
+    assert gw.keys == ["single"]          # 只调了一次
+    assert turn.answer == "在。"
+
+
+async def test_plan_execute_lists_the_steps_before_doing_them():
+    """FDE 该在动手前看见要做哪几件事，而不是做完了才知道动了什么。"""
+    from ontocopilot.kernel.tools import builtin_registry
+    from ontocopilot.onto.converse import ConversationAgent
+
+    class _Comp:
+        def __init__(self, d): self.data = d; self.usd = 0.0
+
+    class _Gw:
+        def __init__(self, script): self.script = script; self.keys = []
+        async def call(self, node, prompt, **kw):
+            self.keys.append(kw.get("key"))
+            return _Comp(self.script.pop(0))
+
+    class _IX:
+        def search(self, *a, **k): return []
+        def file_names(self): return {}
+
+    class _Ctx:
+        turn_id = "t"; approved = True; pending: list = []; rec = None
+
+    gw = _Gw([
+        {"steps": [{"goal": "把采购包连到订单"}, {"goal": "重出模板"}]},
+        {"kind": "answer", "thought": "做完了", "answer": "两件事都办了。",
+         "citations": [], "confidence": 0.9},
+    ])
+    agent = ConversationAgent(gateway=gw, tools=builtin_registry(evidence=_IX()),
+                              scope="converse")
+    seen: list = []
+    turn = await agent.run("把采购包连到订单，然后重出模板", ctx=_Ctx(),
+                           on_step=lambda r: seen.append(r))
+    assert turn.strategy == "plan_execute"
+    assert gw.keys[0] == "plan"                       # 先列计划
+    assert [x["goal"] for x in turn.plan] == ["把采购包连到订单", "重出模板"]
+    assert any("计划" in s.get("thought", "") for s in seen)   # 面板里看得见
+    assert {"strategy", "plan"} <= set(turn.to_dict())

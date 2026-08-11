@@ -153,6 +153,10 @@ class ConverseTurn:
     steps: list[dict[str, Any]] = field(default_factory=list)
     findings: list[Finding] = field(default_factory=list)
     usd: float = 0.0
+    #: 这一轮选了哪种推理方式，以及（plan_execute 时）列出的计划。
+    #: 要能在推理面板里看见 —— "它凭什么这么想"和"它想了什么"一样重要。
+    strategy: str = "react"
+    plan: list[dict[str, Any]] = field(default_factory=list)
 
     @property
     def grounded(self) -> bool:
@@ -162,8 +166,66 @@ class ConverseTurn:
         return {"text": self.text, "answer": self.answer, "citations": self.citations,
                 "confidence": round(self.confidence, 2), "followup": self.followup,
                 "steps": self.steps, "grounded": self.grounded,
+                "strategy": self.strategy, "plan": self.plan,
                 "findings": [f.to_dict() for f in self.findings],
                 "usd": round(self.usd, 4)}
+
+
+# ══════════════════════════════════════════════════════════════════
+#  推理方式的选择
+# ══════════════════════════════════════════════════════════════════
+#: 三种推理方式。和 :class:`~..kernel.dag.NodeMode` 同名同义 —— 抽取节点用的是
+#: 那一套，对话侧以前只有一条固定循环，不管问什么都按"边想边查"跑五步。
+#:
+#: 判据是**路径可不可枚举**，不是难不难：
+#:   - 不需要查任何东西（寒暄、常识、就事论事的解释）→ 一次出答，别空转五步；
+#:   - 要查、但查什么取决于上一步看到什么 → ReAct；
+#:   - 目标明确、步骤当场就能列全（"把 X 连到 Y，然后重出模板"）→ 先列计划再执行，
+#:     让 FDE 在动手前看见要做哪几件事。
+STRATEGY_LABEL = {
+    "single_shot": "直接回答",
+    "react": "边查边想",
+    "plan_execute": "先列计划再执行",
+}
+
+#: 一句话里连着好几件事的信号词。
+_MULTI = re.compile(r"然后|接着|再(?:把|给|帮|重|出|加|改)|并且|同时|一起|依次|分别|"
+                    r"最后|之后|顺便")
+#: 改产物的动作词。计划模式是给"做事"准备的，不是给"问问题"准备的。
+_DO_VERB = re.compile(r"改|加|删|连|补|标|设|生成|重出|导出|撤销|采纳|排除|移到|重命名")
+
+
+def pick_strategy(text: str, *, has_tools: bool) -> str:
+    """选这一轮用哪种推理方式。**便宜、可解释** —— 纯规则，零模型调用。
+
+    选错的代价不对称：该查的没查会给出想当然的答案；不该列计划却列了，只是多
+    一次调用。所以只在**明显**是多步动作时才上 plan_execute。
+    """
+    if not has_tools:
+        return "single_shot"
+    t = str(text or "")
+    if _MULTI.search(t) and len(_DO_VERB.findall(t)) >= 2:
+        return "plan_execute"
+    return "react"
+
+
+_PLAN_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "required": ["steps"],
+    "properties": {
+        "steps": {
+            "type": "array", "maxItems": 6,
+            "description": "要做的几件事，按顺序。只列**这一轮真要做**的，别写待办清单",
+            "items": {
+                "type": "object", "required": ["goal"],
+                "properties": {
+                    "goal": {"type": "string", "description": "这一步要达成什么，一句话"},
+                    "tool": {"type": "string", "description": "打算用哪个工具，不确定就留空"},
+                },
+            },
+        },
+    },
+}
 
 
 _SYSTEM = """你是 OntoCopilot 的对话侧，面对的是一位 FDE 工程师。
@@ -245,11 +307,15 @@ class ConversationAgent:
 
     def __init__(self, *, gateway: Any, tools: Any, scope: str = "readonly",
                  max_steps: int = 5, system: str | None = None,
-                 model: Any = None, lang: str = "zh") -> None:
+                 model: Any = None, lang: str = "zh",
+                 strategy: str | None = None) -> None:
         self.gw = gateway
         self.tools = tools
         self.scope = scope
         self.max_steps = max_steps
+        #: 固定推理方式；``None`` = 每轮按请求自动选（见 :func:`pick_strategy`）。
+        #: 测试和特殊场景可以钉死，正常运行让它自己选。
+        self.strategy = strategy
         #: 系统提示可覆盖 —— 聊天模式换成通用助手 `_CHAT_SYSTEM`，工作模式用 FDE 版。
         self.system = system or _SYSTEM
         if lang == "en":
@@ -275,6 +341,50 @@ class ConversationAgent:
         observed: list[str] = []
         transcript: list[str] = []
         specs = self.tools.for_scope(self.scope)
+
+        # ── 选推理方式，并让它在推理面板里看得见 ──────────────────────
+        turn.strategy = self.strategy or pick_strategy(text, has_tools=bool(specs))
+        if on_step:
+            on_step({"n": 0, "thought": f"这一轮按「{STRATEGY_LABEL[turn.strategy]}」来。",
+                     "tool": "", "args": {}})
+
+        if turn.strategy == "single_shot":
+            # 不需要查东西就别空转五步：一次调用直接出答案。
+            try:
+                comp = await self.gw.call(
+                    f"CHAT.{ctx.turn_id}",
+                    self._prompt(text, context, transcript, specs, final=True),
+                    system=self.system, difficulty=Difficulty.MEDIUM, model=self.model,
+                    schema=ANSWER_SCHEMA, key="single")
+            except Exception as exc:  # noqa: BLE001
+                turn.answer = f"这轮没跑通：{type(exc).__name__}: {exc}"
+                turn.findings.append(Finding(Severity.HIGH, "GATEWAY_ERROR", "-",
+                                             str(exc), verifier="rule:gateway"))
+                return turn
+            turn.usd += float(getattr(comp, "usd", 0.0) or 0.0)
+            return self._finish(turn, comp.data if isinstance(comp.data, dict) else {},
+                                observed, on_step)
+
+        if turn.strategy == "plan_execute":
+            # 先把这一轮要做的几件事列出来 —— FDE 在动手前就该看见清单，而不是
+            # 等做完了才知道动了什么。列不出来就退回边查边想，不要卡住。
+            try:
+                pc = await self.gw.call(
+                    f"CHAT.{ctx.turn_id}",
+                    self._plan_prompt(text, context, specs),
+                    system=self.system, difficulty=Difficulty.MEDIUM, model=self.model,
+                    schema=_PLAN_SCHEMA, key="plan")
+                turn.usd += float(getattr(pc, "usd", 0.0) or 0.0)
+                turn.plan = [x for x in ((pc.data or {}).get("steps") or []) if x.get("goal")]
+            except Exception:  # noqa: BLE001 — 列不出计划不该让这轮失败
+                turn.plan = []
+            if turn.plan:
+                lines = "；".join(f"{i+1}. {x['goal']}" for i, x in enumerate(turn.plan))
+                transcript.append(f"【本轮计划】{lines}")
+                if on_step:
+                    on_step({"n": 0, "thought": f"计划：{lines}", "tool": "", "args": {}})
+            else:
+                turn.strategy = "react"
 
         for step in range(self.max_steps):
             last = step == self.max_steps - 1
@@ -363,6 +473,18 @@ class ConversationAgent:
             head.append(f"## 可用工具\n{tools}\n\n"
                         "查够了就把 kind 设成 answer 直接回答；还需要查就设成 tool。")
         return "\n".join(x for x in head if x)
+
+    def _plan_prompt(self, text: str, context: str, specs: list[Any]) -> str:
+        """列计划用的提示。**只列这一轮真要做的几件事**，不是写待办清单。"""
+        tools = "\n".join(t.spec.render() for t in specs)
+        return "\n".join(x for x in [
+            f"## 当前会话状态\n{context}\n" if context else "",
+            f"## FDE 要做的\n{text}\n",
+            f"## 可用工具\n{tools}\n",
+            "他这一句里包含好几件事。**先把要做的按顺序列出来**（最多 6 步），"
+            "每步一句话说清要达成什么、打算用哪个工具。只列这一轮真要做的；"
+            "他没要求的别自作主张加。列完就会按这个顺序执行。",
+        ] if x)
 
 
 #: 中间步骤的契约。和最终回答共用一个 schema 会让模型在没查够的时候就急着
