@@ -486,6 +486,24 @@ async def to_work(sid: str, request: Request) -> dict[str, Any]:
     return {"id": ws.id, "files": len(ws.files)}
 
 
+#: 切片缓存里每段留多少字符。整段全存会让一份 477 段的语料把 session_state 撑成
+#: 几 MB；1500 足够"点回原文"显示上下文，检索本身走 EvidenceIndex 不靠它。
+_CHUNK_TEXT_CAP = 1500
+
+
+def _chunk_cache(docs: list[Any]) -> dict[str, list[dict[str, Any]]]:
+    """把解析结果摊成可持久化的切片缓存。**解析的两条路共用这一个形状。**
+
+    以前上传那条路存全文、不带 tags，梳理管线那条存截断到 1500、带 tags —— 谁最后
+    跑谁说了算。下游按 tags 过滤时，取决于当时是哪条路写的，行为会莫名其妙地变，
+    而且不报错。
+    """
+    return {d.file_name: [{"cite": c.cite(), "text": c.render[:_CHUNK_TEXT_CAP],
+                           "tags": list(c.tags or []), "locator": c.locator}
+                          for c in d.chunks]
+            for d in docs}
+
+
 async def _preparse(s: Session) -> None:
     """上传后立刻解析出证据索引，让对话马上能查材料。
 
@@ -507,8 +525,7 @@ async def _preparse(s: Session) -> None:
     # 里有的文件，保留旧的，并把它们重新灌回检索索引。
     from .onto.parse.base import make_chunk
     prev = s.state.get("_chunks") or {}
-    fresh = {d.file_name: [{"cite": c.cite(), "text": c.render, "locator": c.locator}
-                           for c in d.chunks] for d in docs}
+    fresh = _chunk_cache(docs)
     kept = 0
     for fname, saved in prev.items():
         if fresh.get(fname) or not saved:
@@ -520,7 +537,9 @@ async def _preparse(s: Session) -> None:
                 doc_id=f"r{i}", file_id=fid, file_name=fname,
                 locator=c.get("locator") or {}, render=c.get("text") or "", order=i))
         kept += len(saved)
-    s.state["_docs"] = docs
+    # `_docs` 曾经存在这里，但只被写、从没被读（唯一提到它的地方是删材料时的
+    # pop 列表）。存一份活的 ParsedDoc 列表在 state 里既占内存又是第二份真相 ——
+    # 需要文档的地方（建流程图、切段）都在解析当场就拿到了。
     s.state["_index"] = index
     s.state["_profiles"] = collect_profiles(docs)
     s.state["_endpoints"] = collect_endpoints(docs)
@@ -769,12 +788,7 @@ async def _run_pipeline(s: Session, *, tier: str = "full") -> None:
         s.state["_index"] = index
         summary = corpus_summary(docs)
         s.state["corpus"] = summary
-        s.state["_chunks"] = {
-            d.file_name: [{"cite": c.cite(), "text": c.render[:1500], "tags": c.tags,
-                          "locator": c.locator}
-                          for c in d.chunks]
-            for d in docs
-        }
+        s.state["_chunks"] = _chunk_cache(docs)
         await _build_flow_diagram(s, docs)
         await _persist(s)
         s.emit("node.completed", node="PARSE",

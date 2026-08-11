@@ -89,6 +89,10 @@ class ParserRegistry:
             self._fallback = parser
         return self
 
+    @staticmethod
+    def _content_id(path: Path) -> str:      # 兼容旧调用点的别名
+        return content_file_id(path)
+
     def for_path(self, path: Path) -> Parser:
         for p in self._parsers:
             if p.accepts(path):
@@ -101,8 +105,7 @@ class ParserRegistry:
         p = Path(path)
         if not p.exists():
             raise FileNotFoundError(p)
-        fid = file_id or f"f_{sha256_hex(p.name)[:8]}"
-        return self.for_path(p).parse(p, file_id=fid)
+        return self.for_path(p).parse(p, file_id=file_id or content_file_id(p))
 
     def parse_all(self, paths: list[Path | str]) -> list[ParsedDoc]:
         return [self.parse(p) for p in paths]
@@ -111,16 +114,39 @@ class ParserRegistry:
         p = Path(path)
         if not p.exists():
             raise FileNotFoundError(p)
-        fid = file_id or f"f_{sha256_hex(p.name)[:8]}"
-        return await self.for_path(p).aparse(p, file_id=fid)
+        return await self.for_path(p).aparse(p, file_id=file_id or content_file_id(p))
 
-    async def aparse_all(self, paths: list[Path | str]) -> list[ParsedDoc]:
+    async def aparse_all(self, paths: list[Path | str], *,
+                         file_ids: dict[str, str] | None = None) -> list[ParsedDoc]:
         """异步解析全部材料。
 
         扫描件要调模型，所以整条链路要有异步入口 —— 否则只能悄悄跳过扫描件，
         而那是"产物看起来正常，只是少了一整个来源"的经典失败。
+
+        Args:
+            file_ids: 文件名 → 指定的 file_id。缓存/边车按 id 索引，重解析时要能
+                钉住同一个 id，否则同一份材料换个 id 就成了"另一份"。
         """
-        return [await self.aparse(p) for p in paths]
+        out = []
+        for p in paths:
+            fid = (file_ids or {}).get(Path(p).name)
+            out.append(await self.aparse(p, file_id=fid))
+        return out
+
+
+def content_file_id(path: Path) -> str:
+    """按**内容**派生 file_id。
+
+    以前是按文件名（``f_{sha256(name)[:8]}``）：两个会话里同名的不同材料会撞成
+    同一个 id，而改个名的同一份材料又会变成"另一份" —— 缓存、边车、按 file 过滤
+    的检索全都跟着错位。内容寻址还顺带让"这份材料解析过没有"变成可判定的。
+
+    读不到内容（权限/竞态）时退回文件名，宁可退化也不要在解析入口抛。
+    """
+    try:
+        return "f_" + sha256_hex(path.read_bytes())[:12]
+    except OSError:
+        return "f_" + sha256_hex(path.name)[:12]
 
 
 def make_chunk(
