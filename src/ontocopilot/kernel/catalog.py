@@ -293,9 +293,17 @@ class SmartGateway:
         needs: set[Capability] | frozenset[Capability] = frozenset(),
         prefer: str = "quality",
         max_candidates: int = 3,
+        prefer_models: tuple[str, ...] = (),
         **kw: Any,
     ) -> Any:
         """按能力选型并调用，失败自动切下一个候选。
+
+        Args:
+            prefer_models: 优先试这几个（按序）。**给定任务上实测更好的模型，
+                排在通用的质量/成本排序之前** —— 比如流程图 OCR，实测
+                gemini-3.5-flash 读出的连线关系是 opus 的两倍多、还快一倍，
+                而"连线"恰恰是流程图的核心信息。不在目录里的名字自动跳过，
+                所以网关换了也不会因此失败。
 
         Raises:
             LookupError: 目录里没有满足能力要求的模型。**不静默降级** ——
@@ -304,6 +312,11 @@ class SmartGateway:
         from .llm import ModelError
 
         cands = self.catalog.require(set(needs), prefer=prefer, limit=max_candidates)
+        if prefer_models:
+            head = [c for n in prefer_models
+                    if (c := self.catalog.get(n)) is not None and c.has(set(needs))]
+            seen = {c.name for c in head}
+            cands = head + [c for c in cands if c.name not in seen]
         errors: list[str] = []
 
         for i, card in enumerate(cands):

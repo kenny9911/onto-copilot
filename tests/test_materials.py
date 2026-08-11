@@ -200,8 +200,9 @@ async def test_parse_never_implies_work_already_started(tmp_path, monkeypatch):
     r = await reg.call("material.parse", {}, _Ctx(), scope="chat")
     blob = str(r)
     assert "可能都读过了" not in blob            # 这句正是模型误读的来源
-    assert r["读不了的"] == ["flow.png"]
-    assert "build.start" in r["下一步"]
+    assert r["还没识别的图片"] == ["flow.png"]
+    # 「看一下」和「梳理」要指向不同的动作：先给 ocr=true，别一上来就 build
+    assert "ocr=true" in r["下一步"]
     assert r["当前状态"] == "idle"               # 事实：什么都没在跑
 
 
@@ -301,3 +302,52 @@ async def test_listing_202_objects_is_not_retyped_by_the_model(tmp_path, monkeyp
 
     empty = await reg.call("ui.table", {"kind": "rules"}, _Ctx(), scope="converse")
     assert "error" in empty                      # 没有的类别要说清，不要给空表
+
+
+async def test_analyse_an_image_does_not_launch_a_full_build(tmp_path, monkeypatch):
+    """「分析一下这张图」和「开始梳理」是两件事，代价差一个数量级：前者几毛钱看懂
+    一张图，后者是几分钟 + 几美元跑完整条抽取管线。看错方向的代价不对称，所以
+    material.parse(ocr=true) 必须是独立可用的一条路 —— 只识别，不产出任何产物。"""
+    import ontocopilot.server as server
+
+    monkeypatch.setattr(server, "ROOT", tmp_path)
+    s = server.Session(id="an1")
+    (s.dir / "materials").mkdir(parents=True, exist_ok=True)
+    p = s.dir / "materials" / "flow.png"
+    p.write_bytes(b"\x89PNG\r\n\x1a\n" + b"0" * 80)
+    s.files = [{"name": p.name, "size": p.stat().st_size, "path": str(p)}]
+
+    started: list = []
+    monkeypatch.setattr(server, "_run_pipeline",
+                        lambda *a, **k: started.append(1))
+
+    # 假的视觉网关：identify 一次就返回内容，不触网
+    import ontocopilot.onto.parse.vision as V
+    monkeypatch.setattr(V, "render_pages", lambda p, max_pages=20: ["data:image/png;base64,AA"])
+
+    class _Smart:
+        async def call(self, *a, **k):
+            class _C:
+                data = {"blocks": [{"text": "采购包 已创建", "bbox": [0, 0, 1, 1],
+                                    "kind": "entity_box"}],
+                        "tables": [], "relations": []}
+            return _C()
+
+    monkeypatch.setattr(server, "_gateways",
+                        lambda *a, **k: (None, None, _Smart(), None))
+    monkeypatch.setattr(server, "_ensure_catalog", lambda: _noop())
+
+    async def _noop():
+        return None
+
+    reg = server._converse_tools(s)
+
+    class _Ctx:
+        approved = True
+        pending: list = []
+
+    out = await reg.call("material.parse", {"ocr": True}, _Ctx(), scope="chat")
+    assert not started, "只是分析一张图，不该启动整条梳理管线"
+    assert s.state.get("_chunks", {}).get("flow.png"), "识别结果要进证据索引"
+    # 而且没有产出任何产物
+    assert not s.state.get("oir") and not s.state.get("flow")

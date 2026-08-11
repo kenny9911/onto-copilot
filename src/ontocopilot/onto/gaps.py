@@ -151,30 +151,38 @@ def undetermined_slots(chunks: list[Any], *, limit: int = 40) -> list[Gap]:
 # ══════════════════════════════════════════════════════════════════
 #  2. 声明了却空着的容器
 # ══════════════════════════════════════════════════════════════════
+#: 解析器报出来的"这个容器是空的"。不同解析器用不同的 kind，都归到这里 ——
+#: 判据是解析层已经做出的事实判断，不是我们再猜一遍。
+_EMPTY_FINDINGS = ("empty_sheet", "empty_section", "unparsed_sheet")
+
+
 def empty_containers(docs: list[Any]) -> list[Gap]:
     """有名字、没内容的表或章节。
 
     「实体间关系-待梳理」这种表名本身就是一句话：客户知道这里要有东西，只是还
     没写。这类缺口在任何材料上都成立 —— 判据是"声明了一个容器却一行都没有"，
     和这一份材料写了什么无关。
+
+    数据源是解析器的 findings。解析 xlsx 的时候它已经逐个 sheet 判过空并记了
+    一条 ``empty_sheet``；那条记录以前只是发给用户看一眼就没了下文，而它其实
+    是整份材料里**最确定**的一处缺口。
     """
     out: list[Gap] = []
     for d in docs:
-        rows: dict[str, int] = {}
-        for c in getattr(d, "chunks", ()) or ():
-            key = str(c.locator.get("sheet") or c.locator.get("section") or "")
-            if not key:
+        for f in getattr(d, "findings", ()) or ():
+            if getattr(f, "kind", "") not in _EMPTY_FINDINGS:
                 continue
-            tags = set(getattr(c, "tags", ()) or ())
-            rows[key] = rows.get(key, 0) + (0 if tags & {"schema", "meta"} else 1)
-        for name, n in rows.items():
-            if n:
+            name = str((getattr(f, "locator", None) or {}).get("sheet") or "").strip()
+            if not name:
                 continue
             out.append(Gap(
-                text=f"材料里有一张叫「{name}」的表，但里面是空的。"
-                     f"这部分内容能补上吗？如果已经在别的文档里，请指出是哪一份。",
+                text=f"材料里有一张叫「{name}」的表，但里面一行内容都没有。"
+                     f"这部分能补上吗？如果内容已经在别的文档里，请指出是哪一份。",
                 group=name, kind="empty_container",
-                cite=f"{d.file_name}!{name}", snippet=f"（{name} 整张表为空）",
+                prov=Provenance(getattr(d, "file_id", "f"), d.file_name,
+                                {"kind": "range", "sheet": name, "rows": [1, 1]},
+                                snippet=getattr(f, "message", ""),
+                                extractor="rule", confidence=1.0),
                 weight=5.0))
     return out
 
@@ -185,9 +193,40 @@ def empty_containers(docs: list[Any]) -> list[Gap]:
 #: 「进度状态标准：未开始、执行中、部分完成、已完成、已暂停、已取消」
 #: 冒号前是清单的名字，冒号后是至少三个短取值。三个是下限 —— 两个的多半是
 #: 一句被顿号断开的话，不是枚举。
+#: 分隔符**只认顿号**。真实取值清单从头到尾用同一个分隔符；一旦混进逗号，
+#: 那多半是「关键物料，会造成项目停工、关键里程碑跳票」这种并列分句 ——
+#: 逗号在中文里分的是句子，顿号分的才是并列的词。这一条判据比任何长度阈值
+#: 都干净，而且不认任何业务词。
 _ENUM_RE = re.compile(
-    r"(?P<name>[^\n：:；;。，,]{2,20})\s*[：:]\s*"
-    r"(?P<body>[^\n。；;]{2,12}(?:[、，,][^\n。；;]{1,12}){2,})")
+    r"(?P<name>[^\n：:；;。，,、）)]{2,20})\s*[：:]\s*"
+    r"(?P<body>[^\n。；;：:，,]{1,10}(?:、[^\n。；;：:，,]{1,10}){2,})")
+
+#: 一个取值域里的取值有多长。**这条判据是把枚举和"被顿号断开的一句话"分开的
+#: 关键** —— 「未开始/执行中/已完成」都是 3~4 个字，而
+#: 「局部轻微滞后/不影响整体项目节点/可由采购员自行协调处理」长度从 6 跳到 11，
+#: 那是三个并列的分句，不是三个取值。
+_ENUM_ITEM_MAX = 8
+_ENUM_SPREAD_MAX = 5
+
+#: 名字里带这些就不是取值域的名字：拼接出来的列名、编号、半截括号。
+_BAD_NAME = re.compile(r"col\d|=|[（(【]|^\d|[一二三四五六七八九十]{1,2}[、.)]")
+
+
+def _is_value_domain(name: str, items: list[str]) -> bool:
+    """这串东西是不是一个**取值域**。
+
+    判据全部是结构性的（个数、长度、长度离散度、名字形态），不认任何业务词 ——
+    换一份材料、换一个行业，同一套判据照样成立。
+    """
+    if len(name) < 2 or _BAD_NAME.search(name):
+        return False
+    if not 3 <= len(items) <= 10:
+        return False
+    lens = [len(x) for x in items]
+    if max(lens) > _ENUM_ITEM_MAX or max(lens) - min(lens) > _ENUM_SPREAD_MAX:
+        return False
+    # 取值里不该出现句读或结果引导词 —— 那说明这是句子不是标签
+    return not any(w in x for x in items for w in ("，", "。", "则", "需", "可由", "并"))
 
 
 def enumerations(chunks: list[Any], *, limit: int = 12) -> list[Gap]:
@@ -200,20 +239,17 @@ def enumerations(chunks: list[Any], *, limit: int = 12) -> list[Gap]:
     seen: set[str] = set()
     for c in chunks:
         text = str(getattr(c, "render", "") or "")
-        cite = c.cite() if hasattr(c, "cite") else ""
         for m in _ENUM_RE.finditer(text):
-            name = m.group("name").strip(" 　\n0123456789.、）)")
-            items = [x.strip() for x in re.split(r"[、，,]", m.group("body")) if x.strip()]
-            if len(name) < 2 or len(items) < 3 or any(len(x) > 12 for x in items):
-                continue
-            if name in seen:
+            name = m.group("name").strip(" 　\n0123456789.、）)①②③④⑤⑥⑦⑧⑨⑩")
+            items = [x.strip() for x in m.group("body").split("、") if x.strip()]
+            if not _is_value_domain(name, items) or name in seen:
                 continue
             seen.add(name)
             out.append(Gap(
                 text=f"「{name}」目前列了 {len(items)} 个取值：{'、'.join(items)}。"
                      f"这份清单完整吗？还有没有别的取值？",
-                group=_sheet_of(cite) or "取值清单", kind="enum",
-                cite=cite, snippet=m.group(0)[:200],
+                group=_container_of(c) or "取值清单", kind="enum",
+                prov=_prov_of(c, m.group(0)),
                 options=[*items, "就这些，没有遗漏"], weight=2.5))
             if len(out) >= limit:
                 return out
@@ -245,7 +281,7 @@ def structural_gaps(oir: OIR) -> list[Gap]:
                  + (f"（{ep.get('display')}）" if ep.get("display") else "")
                  + "在材料里找不到它操作的业务对象。它改的是哪张单据？",
             group="接口归属", kind="action_no_host",
-            cite=_cite_of(a.api_name), snippet=str(ep.get("path") or ""), weight=4.0))
+            prov=_first_prov(a.api_name), weight=4.0))
     if len(orphan) > _PER_KIND:
         out.append(Gap(
             text=f"另有 {len(orphan) - _PER_KIND} 个接口同样挂不上业务对象，"
@@ -258,7 +294,7 @@ def structural_gaps(oir: OIR) -> list[Gap]:
         out.append(Gap(
             text=f"这条规则管的是哪个单据？「{r.statement.value[:70]}」",
             group="规则归属", kind="rule_no_host",
-            cite=_cite_of(r.statement), snippet=r.statement.value[:200], weight=3.0))
+            prov=_first_prov(r.statement), weight=3.0))
 
     # 基数靠猜的关系 —— 一对多还是多对多，直接决定下游能不能建对工作流
     guessed = [lt for lt in oir.links.values() if not lt.cardinality.evidence]
@@ -272,7 +308,7 @@ def structural_gaps(oir: OIR) -> list[Gap]:
                  f"一条对应几条？材料里没写，系统按常见做法填的是 "
                  f"{lt.cardinality.value}。",
             group="对应关系", kind="link_cardinality",
-            cite=_cite_of(lt.api_name), options=["一对一", "一对多", "多对多"],
+            prov=_first_prov(lt.api_name), options=["一对一", "一对多", "多对多"],
             applies_to=[lt.source, lt.target], weight=2.0))
 
     # 有名字没口径的对象 —— 只报总数，不逐个问：逐个问是「对象清单」表的活
@@ -286,9 +322,10 @@ def structural_gaps(oir: OIR) -> list[Gap]:
     return out
 
 
-def _cite_of(assertion: Any) -> str:
+def _first_prov(assertion: Any) -> Provenance | None:
+    """断言的第一条出处。结构缺口的出处就是"这条断言是从哪儿抽出来的"。"""
     ev = getattr(assertion, "evidence", None) or ()
-    return ev[0].cite() if ev else ""
+    return ev[0] if ev else None
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -317,14 +354,13 @@ def mine_questions(oir: OIR, *, docs: list[Any] | None = None,
             *enumerations(chunks), *structural_gaps(oir)]
     gaps.sort(key=lambda g: -g.weight)
 
-    file_name = getattr(docs[0], "file_name", "") if docs else ""
     out: list[OpenQuestion] = []
     seen: set[str] = {q.rid for q in (extra or ())}
     # 材料里本来就有的问题（客户自己写的问卷）永远排在最前 —— 那是他自己
     # 提的疑问，比我们发现的任何缺口都更该先答。
     out.extend(q for q in (extra or ()))
     for g in gaps:
-        q = g.to_question(file_name)
+        q = g.to_question()
         if q.rid in seen:
             continue
         seen.add(q.rid)

@@ -378,6 +378,25 @@ def _sheet_actions(oir: OIR) -> Sheet:
 
 
 
+#: 问题表可能出现的列，按**这份材料实际有的东西**取子集。
+#:
+#: 以前这五列是写死的（节点 | 编号 | 澄清问题 | 参考选项 | 答复），照抄的是某一位
+#: 客户那份问卷的样子。换一份没有问卷的材料，「编号」和「参考选项」就是两列
+#: 从头空到尾的空格 —— 业务方看到空列的第一反应是"这是不是要我填"，而它们
+#: 根本没有内容可填。列要么有内容，要么不出现。
+_Q_COLUMNS: tuple[tuple[str, Any], ...] = (
+    ("所属部分", lambda q: q.group),
+    ("编号", lambda q: q.code),
+    ("澄清问题", lambda q: q.text.value),
+    ("参考选项", lambda q: "　".join(f"{i + 1}）{o}" for i, o in enumerate(q.options))),
+    ("答复", lambda q: ""),
+    ("材料出处", lambda q: q.text.evidence[0].cite() if q.text.evidence else ""),
+)
+
+#: 无论如何都要出的两列。没有问题正文就没有这张表，没有答复栏就没法回收。
+_Q_REQUIRED_COLUMNS = frozenset({"澄清问题", "答复"})
+
+
 def _sheet_questions(oir: OIR) -> Sheet:
     """待澄清问题。
 
@@ -385,27 +404,34 @@ def _sheet_questions(oir: OIR) -> Sheet:
     整份 OIR 里**信息密度最高**的内容：客户自己写的、按流程节点分好组、带参考
     选项、只差一个答复。
 
-    形态直接照抄客户那份问卷（节点 | 编号 | 澄清问题 | 参考选项 | 答复），
-    因为那正是业务人员真正会填、也填得动的样子。参考选项**原样保留 ①②③ 不做
-    下拉** —— 有的问题答案不在选项里，做成下拉等于逼人二选一。
+    问题的来源现在有三条（客户问卷 / 流程图缺口 / 证据里挖出来的缺口），三条给的
+    字段不一样：问卷带编号和参考选项，挖出来的带出处和分组。所以**列是算出来的**
+    ——哪一列有内容才出哪一列。参考选项原样保留 ①②③ 不做下拉：有的问题答案不在
+    选项里，做成下拉等于逼人二选一。
+
+    「材料出处」是新加的一列。业务方对一个问题的第一反应通常是"这是从哪儿冒出来
+    的"，答不上来他就跳过了；写清楚"业务规则!R47"，他能自己翻回去看上下文。
     """
+    pending = [q for q in oir.questions.values() if not q.answered]
+    # 客户自己提的排最前 —— 那是他本来就想问的，比我们发现的任何缺口都该先答。
+    pending.sort(key=lambda q: (q.asked_by != "customer", q.group, q.code))
+
+    cols = [name for name, get in _Q_COLUMNS
+            if name in _Q_REQUIRED_COLUMNS or any(str(get(q)).strip() for q in pending)]
     sh = Sheet("02_待澄清问题",
                "这些是梳理过程中没法从材料里确定的事。答复栏按你了解的实际情况填，"
-               "拿不准就写「不确定」——写不确定比猜一个有用。",
-               ["节点", "编号", "澄清问题", "参考选项", "答复"])
-    for q in oir.questions.values():
-        if q.answered:
-            continue  # 已答的是事实，不用再问一遍
-        sh.rows.append({
-            "节点": _cell(q.rid, sh.name, "节点", q.group, Role.LOCKED),
-            "编号": _cell(q.rid, sh.name, "编号", q.code, Role.LOCKED),
-            "澄清问题": _cell(q.rid, sh.name, "澄清问题", q.text.value, Role.LOCKED,
-                          comment=_evidence_note(q.text)),
-            "参考选项": _cell(q.rid, sh.name, "参考选项",
-                          "　".join(f"{i + 1}）{o}" for i, o in enumerate(q.options)),
-                          Role.LOCKED),
-            "答复": _cell(q.rid, sh.name, "答复", "", Role.REQUIRED),
-        })
+               "拿不准就写「不确定」——写不确定比猜一个有用。"
+               + ("　带「材料出处」的可以按出处翻回原文核对。" if "材料出处" in cols else ""),
+               cols)
+    getters = dict(_Q_COLUMNS)
+    for q in pending:
+        row = {}
+        for name in cols:
+            row[name] = _cell(
+                q.rid, sh.name, name, str(getters[name](q)),
+                Role.REQUIRED if name == "答复" else Role.LOCKED,
+                comment=_evidence_note(q.text) if name == "澄清问题" else "")
+        sh.rows.append(row)
     return sh
 
 

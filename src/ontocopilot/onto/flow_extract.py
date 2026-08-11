@@ -35,7 +35,10 @@ from typing import Any
 from .flow import EdgeKind, FlowGraph, FlowNode, NodeKind, Stage
 from .oir import Provenance, extracted, inferred, make_rid
 
-__all__ = ["ProcessStep", "parse_steps", "build_flow", "looks_like_process"]
+__all__ = ["ProcessStep", "parse_steps", "build_flow", "looks_like_process",
+           "scene_headers", "stages_by_domain", "stages_from_survey",
+           "apply_scene_titles",
+           "survey_stage_groups", "MAIN_STAGE"]
 
 
 #: 一个节点的开头：（1） / (1) / 1. / 1、
@@ -163,6 +166,25 @@ def _norm(s: str) -> str:
     return re.sub(r"[的了个条份项\s]", "", s)
 
 
+#: 没有任何阶段依据时，所有节点落进这一条泳道。它**必须被注册**，否则画出来是
+#: 一条标题写着内部 key 的空白泳道 —— 真实材料上 50 个节点里有 49 个是这样的。
+MAIN_STAGE = "main"
+
+
+def _ensure_main(g: FlowGraph) -> str:
+    """保证兜底泳道**存在于 g.stages 里**，返回它的 key。
+
+    以前各处只是把节点的 stage 字段填成 ``"main"``，而 "main" 从来没被注册过 ——
+    渲染时 `g.stages.get(key)` 拿到 None，泳道标题就直接印出内部 key。真实材料上
+    50 个节点里有 49 个落在这条无名泳道里。
+    """
+    if MAIN_STAGE not in g.stages:
+        g.stages[MAIN_STAGE] = Stage(
+            key=MAIN_STAGE, order=len(g.stages) + 1, title="其它环节",
+            subtitle="材料里没有说明这些环节属于哪个阶段")
+    return MAIN_STAGE
+
+
 def build_flow(steps: list[ProcessStep], *, stages: dict[int, str] | None = None,
                file_name: str = "", graph: FlowGraph | None = None) -> FlowGraph:
     """把节点列表建成流图。
@@ -173,6 +195,8 @@ def build_flow(steps: list[ProcessStep], *, stages: dict[int, str] | None = None
     """
     g = graph or FlowGraph()
     stages = stages or {}
+    if any(st.no not in stages for st in steps):
+        _ensure_main(g)
     # 每个节点产出的事件，供后面按"输出↔触发条件"接边
     produced: list[tuple[str, str, int]] = []   # (规范化名, 事件 rid, 节点号)
 
@@ -180,7 +204,7 @@ def build_flow(steps: list[ProcessStep], *, stages: dict[int, str] | None = None
         prov = Provenance("f", file_name, {"kind": "raw", "ref": st.cite},
                           snippet=f"（{st.no}）{st.name}：{st.detail}"[:200],
                           extractor="rule", confidence=1.0)
-        stage = stages.get(st.no, "main")
+        stage = stages.get(st.no, MAIN_STAGE)
         act = g.add_node(FlowNode(
             rid=make_rid("fn", f"act{st.no}_{st.name}"), kind=NodeKind.ACTION,
             stage=stage, label=extracted(st.name, prov),
@@ -251,9 +275,51 @@ def stages_from_groups(groups: dict[str, list[int]],
 #: 问卷「节点」列里的 `（N）xxx`。这是节点到阶段的**权威归属** —— 客户自己
 #: 就是按这个分组讨论的，比我们按编号切分强得多。
 _SURVEY_NODE = re.compile(r"[（(]\s*(\d{1,3})\s*[）)]\s*(.+)")
+
+#: 节点标签有多长。问卷「节点」列里写的是`（1）编制集采计划`这种**标题**；
+#: 一个合并单元格里塞着 17 个节点全文的那种 700 字段落不是标题。
+#: 真实事故：那 700 字被当成节点 1 的名字，整张图于是只有一个阶段、标题是半段
+#: 说明文，另外 16 个节点全落进一条没注册的泳道。
+_NODE_LABEL_MAX = 40
+
 #: 「业务场景一：采购执行计划创建（重点覆盖节点6—10）」这类场景标题。
-_SCENE = re.compile(r"业务场景[一二三四五六七八九十]+\s*[:：]?\s*(?P<name>[^（(\n]+)"
-                    r"(?:[（(]\s*(?:重点覆盖)?节点\s*(?P<lo>\d+)\s*[—\-~到至]\s*(?P<hi>\d+))?")
+#:
+#: 编号**三种写法都要认**：中文数字、阿拉伯数字、全角数字。只认中文数字的版本
+#: 在写「业务场景1」的材料上一个场景都抽不到，于是整张图退回到"按编号每 4 个
+#: 切一刀"，阶段标题全是系统编的 —— 而客户明明已经把场景划好写在那儿了。
+_SCENE = re.compile(
+    r"业务场景\s*(?P<no>[一二三四五六七八九十]+|\d{1,2}|[０-９]{1,2})\s*[:：]?\s*"
+    r"(?P<name>[^（(\n]*)"
+    r"(?:[（(]\s*(?:重点覆盖)?节点\s*(?P<lo>\d+)\s*[—\-~到至]\s*(?P<hi>\d+))?")
+
+
+def scene_headers(cells: list[str]) -> list[str]:
+    """从一行/一列单元格里读出场景标题。
+
+    场景编号和场景名常常**分在两个单元格**（A 列写「业务场景1」，B 列写
+    「采购执行计划创建」）。只读第一列就只剩一串没有名字的编号，做出来的泳道
+    标题是「业务场景1」——对着这张图开会的人不知道它指什么。
+
+    Args:
+        cells: 同一片区域里按顺序排列的单元格文本。
+
+    Returns:
+        ``["业务场景1｜采购执行计划创建", …]``，按出现顺序。
+    """
+    out: list[str] = []
+    for i, cell in enumerate(cells):
+        text = str(cell or "").strip()
+        m = _SCENE.match(text)
+        if not m:
+            continue
+        name = (m.group("name") or "").strip(" 　:：")
+        if not name:
+            # 名字在下一个单元格。太长的不要 —— 那是正文不是标题。
+            nxt = str(cells[i + 1] or "").strip() if i + 1 < len(cells) else ""
+            name = nxt if 0 < len(nxt) <= _NODE_LABEL_MAX and "\n" not in nxt else ""
+        head = text.split("：")[0].split(":")[0].strip()
+        out.append(f"{head}｜{name}" if name else head)
+    return out
 
 
 def stages_from_survey(survey_groups: list[tuple[str, list[int]]],
@@ -279,6 +345,92 @@ def stages_from_survey(survey_groups: list[tuple[str, list[int]]],
         for no in nos:
             mapping[no] = key
     return g, mapping
+
+
+def stages_by_domain(steps: list[ProcessStep], graph: FlowGraph | None = None,
+                     ) -> tuple[FlowGraph, dict[int, str]]:
+    """没有场景标题时的阶段划分：**按业务域切**，不按固定条数切。
+
+    以前的兜底是"每 4 个节点切一刀，标题拼成`阶段1｜编制集采计划…审批采购需求
+    计划`"。那个 4 没有任何依据 —— 它切出来的边界纯属巧合，而拼出来的标题长到
+    在泳道上放不下。
+
+    业务域是从节点名里认出来的（:func:`~.flow.domain_code`：集采计划 / 采购需求
+    计划 / 采购执行计划 / 采购申请 / 采购包…）。相邻且同域的节点归一段，域一变
+    就换一段 —— 这条边界是材料自己给的：客户写流程的时候本来就是一个单据写完
+    再写下一个。认不出域的节点单独成段，标题用它自己的名字，不硬塞进别人那一段。
+    """
+    g = graph or FlowGraph()
+    mapping: dict[int, str] = {}
+    if not steps:
+        return g, mapping
+
+    from .flow import domain_code
+
+    runs: list[tuple[str, list[ProcessStep]]] = []
+    for st in sorted(steps, key=lambda x: x.no):
+        dom = domain_code(st.name) or domain_code(st.detail)
+        if runs and runs[-1][0] == dom and dom:
+            runs[-1][1].append(st)
+        else:
+            runs.append((dom, [st]))
+
+    for i, (_dom, group) in enumerate(runs, start=1):
+        key = f"s{i}"
+        # 标题用**这一段的主体**，不是首尾节点名拼接。「采购执行计划」比
+        # 「阶段2｜创建采购执行计划…审批采购执行计划」在泳道上好读得多。
+        title = _common_subject(group) or group[0].name
+        g.stages[key] = Stage(key=key, order=i, title=title[:_NODE_LABEL_MAX],
+                              subtitle=f"节点 {group[0].no}–{group[-1].no}"
+                                       f"（按业务对象切分，待人工确认）")
+        for st in group:
+            mapping[st.no] = key
+    return g, mapping
+
+
+def apply_scene_titles(g: FlowGraph, scenes: list[str]) -> int:
+    """用客户自己写的场景名给泳道改标题。返回改了几条。
+
+    材料里明写着「业务场景1｜采购执行计划创建」，而我们按业务域切出来的那一段
+    标题是「采购执行计划」——同一段东西，客户的说法更完整，也是他开会时会用的
+    词。**只在两者真的指同一段时才换**：场景名里要出现泳道的主体词。对不上的
+    保持原样，不硬凑 —— 硬凑的后果是给一段流程贴上另一段的名字。
+    """
+    used: set[int] = set()
+    changed = 0
+    for st in sorted(g.stages.values(), key=lambda x: x.order):
+        subject = st.title.split("｜")[-1]
+        if len(subject) < 2:
+            continue
+        for i, scene in enumerate(scenes):
+            if i in used or subject not in scene:
+                continue
+            st.title = scene
+            used.add(i)
+            changed += 1
+            break
+    return changed
+
+
+#: 动作前缀。切标题时把它们剥掉，剩下的才是这一段在处理的单据。
+_ACTION_PREFIX = re.compile(
+    r"^(?:编制|创建|新建|修改|变更|调整|取消|作废|删除|审批|审核|提交|分配|"
+    r"发布|下达|确认|执行|录入|导入|同步)")
+
+
+def _common_subject(steps: list[ProcessStep]) -> str:
+    """一段节点共同处理的单据名。取不出就返回空串 —— 不硬编一个。"""
+    names = [_ACTION_PREFIX.sub("", st.name).strip("（）() ") for st in steps]
+    names = [n for n in names if n]
+    if not names:
+        return ""
+    head = names[0]
+    for n in names[1:]:
+        while head and head not in n:
+            head = head[:-1]
+        if not head:
+            return ""
+    return head if len(head) >= 2 else ""
 
 
 def survey_stage_groups(sheets: dict[str, list[str]]) -> list[tuple[str, list[int]]]:
@@ -310,7 +462,12 @@ def survey_stage_groups(sheets: dict[str, list[str]]) -> list[tuple[str, list[in
     nodes: list[tuple[int, str]] = []
     for col in sheets.values():
         for cell in col:
-            m = _SURVEY_NODE.match(cell.strip())
+            text = cell.strip()
+            # **标题才算标题。** 一个塞了 17 个节点全文的合并单元格同样以
+            # `（1）` 开头，认下去就会把整段说明当成节点 1 的名字。
+            if len(text) > _NODE_LABEL_MAX or "\n" in text:
+                continue
+            m = _SURVEY_NODE.match(text)
             if m:
                 nodes.append((int(m.group(1)), m.group(2).strip()))
     if not nodes:
@@ -337,11 +494,19 @@ def survey_stage_groups(sheets: dict[str, list[str]]) -> list[tuple[str, list[in
 #:
 #: 「如」要在**从句开头**（前面是句首或标点），否则「如果」「例如」「比如」里
 #: 那个「如」会把半句话当成条件。用「如果」写的整句也要认，所以「果」可选。
+#:
+#: 结果引导词前面加了否定前瞻：「如所需服务/物资**无需**再进行采购」里的「需」
+#: 不是结果引导词，它是「无需」的后半个字。少了这道前瞻，条件会被切成
+#: 「所需服务/物资无」—— 一个读不懂的半截短语，画在菱形里比不画还糟。
 _COND = re.compile(
     r"(?:^|[，,；;。：:、\s])(?:如果?|若|倘若|当|一旦)\s*"
     r"(?P<cond>[^，,；;。：]{3,40}?)\s*[，,]?\s*"
-    r"(?:则|即|就需?|需要?|应当?|自动|会|方可|才能)\s*"
+    r"(?<![无不未])(?:则|即|就需?|需要?|应当?|自动|会|方可|才能)\s*"
     r"(?P<then>[^，,；;。]{2,50})")
+
+#: 条件的结尾。以这些字收尾说明这句话被切断了 —— 「单一来源等」后面还有内容，
+#: 「采购物资和」更是明显只剩半句。宁可丢一个网关，也不要在图上放一句读不懂的话。
+_TRUNCATED_TAIL = ("、", "，", "和", "或", "等", "及", "与", "的")
 
 #: 分叉的第二条边：「如满足…否则…」「可满足…如不满足…」。
 _ELSE = re.compile(r"(?:否则|反之|如不|若不|不满足|超出|无法)")
@@ -394,7 +559,7 @@ def parse_gateways(text: str, *, cite: str = "") -> list[Gateway]:
         if not m:
             continue
         cond = m.group("cond").strip()
-        if len(cond) < 3 or cond.endswith(("、", "，", "和", "或")):
+        if len(cond) < 3 or cond.endswith(_TRUNCATED_TAIL):
             continue  # 半截条件，多半是被切坏的，宁可丢不要糊弄
         then = m.group("then").strip()
         branches = [(_branch_label(then), then[:30])]
@@ -436,7 +601,7 @@ def attach_gateways(g: FlowGraph, gateways: list[tuple[Gateway, int | None]], *,
         prov = Provenance("f", file_name, {"kind": "raw", "ref": gw.cite},
                           snippet=gw.rule_text, extractor="rule", confidence=1.0)
         anchor = None
-        stage = "main"
+        stage = _ensure_main(g)
         if node_no is not None:
             anchor = g.nodes.get(make_rid("fn", f"act{node_no}_"))
             # act rid 带名字，得按前缀找

@@ -526,15 +526,18 @@ def _chunk_cache(docs: list[Any]) -> dict[str, list[dict[str, Any]]]:
             for d in docs}
 
 
-async def _preparse(s: Session) -> None:
-    """上传后立刻解析出证据索引，让对话马上能查材料。
+async def _preparse(s: Session, *, vision: Any = None) -> None:
+    """解析材料、建证据索引，让对话能查材料。**不产出任何本体/流程图/模板。**
 
-    **不传 vision_gateway** —— 扫描件在这里只登记不识别，findings 里会明说
-    "内容没有进入产物"，不静默跳过。真正的 OCR 留到 build，因为它要花钱，
-    而花钱这件事不该由"拖了个文件进来"触发。
+    ``vision`` 默认不给：扫描件在这条路上只登记不识别 —— 识别要调模型、要花钱，
+    不该由"拖了个文件进来"触发。给了就连图片一起识别，用于用户明确说"分析一下
+    这张图"的场景（他要的是读懂这张图，不是启动整条梳理管线）。
     """
     try:
-        reg = default_registry()
+        reg = default_registry(
+            vision_gateway=vision,
+            vision_progress=(lambda m: s.emit("flow.step", cite="", found=m))
+            if vision else None)
         docs = await reg.aparse_all([f["path"] for f in s.files])
     except Exception as exc:  # noqa: BLE001 — 解析失败不该让上传失败
         s.emit("parse.failed", error=f"{type(exc).__name__}: {exc}")
@@ -917,11 +920,20 @@ async def _run_pipeline(s: Session, *, tier: str = "full") -> None:
 
         merged = outcome.outputs.get("MERGE") or {}
         oir = build_oir(merged, index)
-        # 流程图缺口生成的问题合流进来。图上标黄的地方 = 客户要回答的问题，
-        # 这是这个工具的价值落点：不只画图，还指出图里哪儿是空的。
-        for q in s.state.get("_flow_gaps") or ():
+        # 待澄清问题的三个来源在这里合流，客户不需要知道哪条是谁提的：
+        #   · 材料里本来就有的问卷（规则逐行搬进来的，asked_by=customer）
+        #   · 流程图上标黄的缺口 —— 不只画图，还指出图里哪儿是空的
+        #   · 从证据里挖的缺口 —— 占位符、空表、待确认的取值清单、结构空位
+        # 第三条以前不存在：材料没带问卷时，这张表就只剩三四行系统自问自答。
+        from .onto.gaps import mine_questions
+
+        mined = mine_questions(oir, docs=docs, chunks=list(index._chunks.values()),  # noqa: SLF001
+                               extra=list(s.state.get("_flow_gaps") or ()))
+        for q in mined:
             if q.rid not in oir.questions:
                 oir.add_question(q)
+        s.emit("gaps.mined", count=len(mined),
+               groups=sorted({q.group for q in mined if q.group})[:12])
         s.emit("node.completed", node="EXTRACT",
                stats=oir.stats(), segments=len(segments),
                usd=round(budget.snapshot()["spent"]["usd"], 4))
@@ -1184,12 +1196,6 @@ async def _recompile(s: Session) -> None:
 
 
 
-#: 材料里的流程说明常常没有阶段划分 —— 它只给一串编号节点。阶段是**人划的**，
-#: 不是猜的：猜阶段会让整张图的骨架建立在没人确认过的判断上。
-#: 这里给一个按节点号均分的兜底，并在图上注明"阶段划分待确认"。
-_STAGE_CHUNK = 4
-
-
 def _rewrite_flow_artifacts(s: Session, g: Any) -> None:
     """把一张流图落成全部产物：全图 SVG、主干 SVG、mermaid、flow.json，并刷新内存态
     与产物列表。**首次建图 / flow.edit / flow.undo 共用这一条**——否则三处各写各的，
@@ -1244,13 +1250,15 @@ async def _build_flow_diagram(s: Session, docs: list[Any]) -> None:
     流程图。抽不出来就不出图 —— 出一张空图比不出更糟，它会让人以为材料里
     没有流程。
     """
-    from .onto.flow import FlowGraph, Stage
     from .onto.flow_extract import (
+        apply_scene_titles,
         attach_gateways,
         build_flow,
         looks_like_process,
         parse_gateways,
         parse_steps,
+        scene_headers,
+        stages_by_domain,
         stages_from_survey,
         survey_stage_groups,
     )
@@ -1258,6 +1266,7 @@ async def _build_flow_diagram(s: Session, docs: list[Any]) -> None:
     steps: list[Any] = []
     rule_texts: list[tuple[str, str]] = []   # (原文, cite) 供网关抽取
     survey_cols: dict[str, list[str]] = {}   # 供阶段划分
+    scenes: list[str] = []                   # 材料里写明的业务场景标题
     seen_text: set[str] = set()              # 同段被 raw/render 各扫一遍，去重
     for d in docs:
         for c in d.chunks:
@@ -1288,6 +1297,10 @@ async def _build_flow_diagram(s: Session, docs: list[Any]) -> None:
             first = next(iter(raw.values()), "") if raw else ""
             if isinstance(first, str) and first.strip():
                 survey_cols.setdefault(d.file_name, []).append(first.strip())
+            # 场景标题：编号和名字常常分在**相邻的两个单元格**里
+            # （A 列「业务场景1」、B 列「采购执行计划创建」），只读第一列
+            # 就只剩一串没有名字的编号。
+            scenes += scene_headers([str(v or "") for v in raw.values()])
     if not steps:
         s.emit("flow.skipped", reason="材料里没有找到「触发条件/输入/输出」这种"
                                       "结构化的流程说明")
@@ -1295,22 +1308,24 @@ async def _build_flow_diagram(s: Session, docs: list[Any]) -> None:
 
     steps.sort(key=lambda x: x.no)
 
-    # ── 阶段：优先用问卷的节点分组，退回按编号切 ──────────────────
+    # ── 阶段：三条依据按可信度排队，全部来自材料 ────────────────────
+    #   1. 问卷/场景明写了节点区间（「业务场景一（重点覆盖节点6—10）」）—— 最硬；
+    #   2. 问卷「节点」列的 `（N）短名` 分组 —— 客户自己就是按这个讨论的；
+    #   3. 都没有，按**业务域**切（相邻且处理同一个单据的节点归一段）。
+    # 第 3 条以前是"每 4 个切一刀"，那个 4 没有任何依据，切出来的边界纯属巧合。
     groups = survey_stage_groups(survey_cols) if survey_cols else []
     if groups:
         g, mapping = stages_from_survey(groups)
+        basis = "问卷节点分组"
     else:
-        g = FlowGraph()
-        mapping = {}
-        for i in range(0, len(steps), _STAGE_CHUNK):
-            grp = steps[i:i + _STAGE_CHUNK]
-            key = f"s{i // _STAGE_CHUNK + 1}"
-            g.stages[key] = Stage(
-                key=key, order=i // _STAGE_CHUNK + 1,
-                title=f"阶段{i // _STAGE_CHUNK + 1}｜{grp[0].name}…{grp[-1].name}",
-                subtitle="阶段划分由系统按节点顺序切分，待人工确认")
-            for st in grp:
-                mapping[st.no] = key
+        g, mapping = stages_by_domain(steps)
+        basis = "业务对象切分"
+    if scenes:
+        # 客户自己给场景起的名字比我们切出来的标题更完整，也是他开会时会用的词。
+        # 对得上的泳道换成他的说法，对不上的保持原样 —— 硬凑会给一段流程贴上
+        # 另一段的名字。
+        renamed = apply_scene_titles(g, scenes)
+        s.emit("flow.scenes", scenes=scenes[:12], basis=basis, renamed=renamed)
 
     fname = docs[0].file_name if docs else ""
     g = build_flow(steps, stages=mapping, file_name=fname, graph=g)
@@ -1644,22 +1659,35 @@ def _converse_tools(s: Session) -> Any:
                         f"{label}，见下表」就够了，**不要再逐条复述**。"}
 
     @reg.fn("material.parse",
-            "把还没读过的材料读进来（表格/CSV/SQL/文档是**零成本**的，读完就能检索）。"
-            "用户问材料里的事、而 material.list 显示还没读入时，**先调它再回答** —— "
-            "没读进来就检索，只会查到空。图片/扫描件要视觉模型识别，那个留到"
-            "「开始梳理」时做，这里不碰。",
+            "把还没读过的材料**读进来**（不产出任何本体/流程图/模板）。"
+            "表格/CSV/SQL/文档零成本。**图片/扫描件要传 ocr=true**，那会调视觉模型"
+            "把图里的内容识别出来（要花钱，但只识别、不梳理）。\n"
+            "用户说「分析一下这张图/这份材料」「这图讲了什么」时用它 —— 读完再用 "
+            "evidence.search 看内容然后回答。**这不是「开始梳理」**：他只是想看看，"
+            "没让你产出本体和流程图。",
             {"type": "object", "properties": {
                 "files": {"type": "array", "items": {"type": "string"},
-                          "description": "只读这几份（文件名）；不给就把还没读的都读了"}}},
+                          "description": "只读这几份（文件名）；不给就把还没读的都读了"},
+                "ocr": {"type": "boolean",
+                        "description": "图片/扫描件要识别就传 true（会调视觉模型）"}}},
             danger=Danger.WRITE_LOCAL, scopes=RO_PARSE)
-    async def _mat_parse(ctx: Any, files: list[str] | None = None) -> dict[str, Any]:
+    async def _mat_parse(ctx: Any, files: list[str] | None = None,
+                         ocr: bool = False) -> dict[str, Any]:
         if not s.files:
             return {"error": "还没有材料。"}
         if _busy(s):
             return {"error": "梳理正在跑，它自己会解析。"}
         scan_ext = (".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tif", ".tiff", ".pdf")
         before = dict(s.state.get("_chunks") or {})
-        await _preparse(s)                      # 零模型调用；扫描件在这条路上不识别
+        if ocr:
+            # **只识别，不梳理。** 用户说"分析一下这张图"时要的就是这个：把图读懂，
+            # 而不是启动一整条抽本体/出流程图/编模板的管线。识别结果进证据索引，
+            # 接下来用 evidence.search 就能就图作答。
+            await _ensure_catalog()
+            _, _, smart, _ = _gateways(s.dir, f"ocr_{uuid.uuid4().hex[:8]}")
+            await _preparse(s, vision=smart)
+        else:
+            await _preparse(s)                  # 零模型调用；扫描件在这条路上不识别
         after = s.state.get("_chunks") or {}
         got = {k: len(v) for k, v in after.items() if len(v) > len(before.get(k) or [])}
         scans = [f["name"] for f in s.files
@@ -1673,11 +1701,12 @@ def _converse_tools(s: Session) -> Any:
             "已读入的材料": {k: len(v) for k, v in after.items() if v} or "无",
         }
         if scans:
-            out["读不了的"] = scans
-            out["原因"] = ("这些是图片/扫描件，我在这里读不了 —— 它们要视觉模型识别。")
-            out["下一步"] = ("要分析它们就调 build.start（开始梳理），那一步才会调"
-                             "视觉模型识别。**不要说系统正在解析** —— 在你调用之前"
-                             "什么都没有开始。")
+            out["还没识别的图片"] = scans
+            out["下一步"] = ("这些是图片/扫描件。**要看懂它们就再调一次本工具、"
+                             "带上 ocr=true**（会调视觉模型识别，只识别不梳理），"
+                             "然后用 evidence.search 查内容作答。只有当用户明确要"
+                             "**产出**本体/流程图/模板时，才用 build.start。"
+                             "**不要说系统正在解析** —— 在你调用之前什么都没开始。")
         elif got:
             out["下一步"] = "已经读进来了，用 evidence.search 查内容"
         return out

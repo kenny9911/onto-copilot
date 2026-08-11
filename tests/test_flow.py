@@ -585,3 +585,67 @@ def test_flow_round_trips_through_dict():
     if n.label.evidence:
         assert n2.label.evidence
         assert n2.label.evidence[0].extractor == n.label.evidence[0].extractor
+
+
+# ══════════════════════════════════════════════════════════════════
+#  阶段划分：来自材料，不来自一条只认中文数字的正则
+# ══════════════════════════════════════════════════════════════════
+def test_scene_headers_written_with_arabic_digits_are_recognised():
+    """材料写的是「业务场景1」不是「业务场景一」。
+
+    只认中文数字的正则在这份材料上一个场景都抽不到，于是整张图退到"按编号每
+    4 个切一段"，阶段标题全是系统编的。
+    """
+    from ontocopilot.onto.flow_extract import scene_headers
+
+    got = scene_headers(["业务场景1", "采购执行计划创建"])
+    assert got == ["业务场景1｜采购执行计划创建"]
+
+
+def test_a_scene_title_can_live_in_the_next_cell():
+    """「业务场景1」在 A 列、「采购执行计划创建」在 B 列 —— 只读 A 列就只剩编号。"""
+    from ontocopilot.onto.flow_extract import scene_headers
+
+    assert scene_headers(["业务场景2", "采购包创建", "业务规则：\n1、…"]) == \
+        ["业务场景2｜采购包创建"]
+
+
+def test_a_paragraph_is_not_a_node_label():
+    """一个合并单元格里塞着 17 个节点的全文，不是问卷里那种「（1）编制集采计划」。
+
+    真实事故：那 700 字被当成节点 1 的名字，于是整张图只有一个阶段、标题是
+    半段说明文，另外 16 个节点全落进一个没注册的泳道。
+    """
+    from ontocopilot.onto.flow_extract import survey_stage_groups
+
+    blob = ("（1）编制集采计划：集中采购专业机构根据集采原则，选取、分析、整合相关项目，"
+            "对采购计划、历史采购数据进行系统性梳理与分析，编制集采计划\n"
+            "触发条件：无\n输入：策略\n输出：一级集采计划\n执行者：采购计划员\n"
+            "（2）审核集采计划：对集采计划进行审批\n触发条件：编制已完成\n")
+    assert survey_stage_groups({"业务规则": [blob]}) == []
+
+
+def test_every_node_lands_in_a_registered_stage():
+    """泳道标题不能是内部 key。
+
+    `build_flow` 给没分到阶段的节点填了 "main"，而 "main" 从来没进过
+    `g.stages` —— 画出来就是一条标题写着 `main` 的泳道。
+    """
+    from ontocopilot.onto.flow_extract import build_flow, parse_steps
+
+    g = build_flow(parse_steps(_REAL, cite="业务规则!A14"), file_name="x.xlsx")
+    assert g.nodes
+    for n in g.nodes.values():
+        assert n.stage in g.stages, f"节点「{n.label.value}」落在没注册的泳道 {n.stage!r}"
+
+
+def test_stages_fall_back_to_business_domain_not_fixed_size_chunks():
+    """没有场景标题时，按业务域切段，而不是每 4 个硬切一刀。"""
+    from ontocopilot.onto.flow_extract import build_flow, parse_steps, stages_by_domain
+
+    steps = parse_steps(_REAL, cite="业务规则!A14")
+    g, mapping = stages_by_domain(steps)
+    build_flow(steps, stages=mapping, file_name="x.xlsx", graph=g)
+    assert g.stages
+    titles = [st.title for st in g.stages.values()]
+    assert all(len(t) <= 40 for t in titles), titles

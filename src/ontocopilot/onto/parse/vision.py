@@ -47,6 +47,22 @@ OCR_MAX_TOKENS = 24_000
 #: 永远的"解析中"。
 OCR_TIMEOUT_S = 600
 
+#: 优先用来做识别的模型（按序，缺的自动跳过）。
+#:
+#: 同一张上百节点的流程图实测：
+#:     gemini-3.5-flash  152s   44 blocks / **34 relations**
+#:     claude-opus-4.8   287s  114 blocks /   14 relations
+#:     gpt-5.4-mini       19s   89 blocks /    0 relations
+#: 按通用的"质量优先"会挑 opus —— 最贵最慢，**连线却只有一半**。而对流程图来说
+#: 连线（谁触发谁）就是核心信息，缺了它这张图只是一堆孤立的框。所以这里按
+#: **这个任务上的实测表现**排，而不是按模型的通用档位。
+OCR_PREFER_MODELS = (
+    "google/gemini-3.5-flash",
+    "google/gemini-3.6-flash",
+    "google/gemini-3-flash-preview",
+    "google/gemini-3.1-pro-preview",
+)
+
 #: PDF 渲染倍率。2.0 对应约 144 DPI，中文小字够认。
 PDF_ZOOM = 2.0
 
@@ -182,6 +198,7 @@ class VisionParser(Parser):
                         self.node_id,
                         f"识别第 {pno} 页的全部内容。",
                         needs={Capability.VISION, Capability.STRUCTURED},
+                        prefer_models=OCR_PREFER_MODELS,
                         prefer=self.prefer, system=OCR_SYSTEM, schema=OCR_SCHEMA,
                         max_tokens=OCR_MAX_TOKENS, images=[data_uri],
                         key=f"ocr:p{pno}"),
