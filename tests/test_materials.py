@@ -78,3 +78,42 @@ async def test_file_id_is_content_addressed_not_name_addressed(corpus):
     want = "f_" + sha256_hex(p.read_bytes())[:12]
     docs = await default_registry().aparse_all([p], file_ids={p.name: want})
     assert docs[0].file_id == want
+
+
+# ══════════════════════════════════════════════════════════════════
+#  材料工具：AI 得能看见文件里有什么
+# ══════════════════════════════════════════════════════════════════
+async def test_material_tools_expose_the_inventory_and_the_unread_ones(tmp_path,
+                                                                       monkeypatch):
+    """只给文件名的话，模型分不清一份材料是**内容都在**还是**只登记了文件名**
+    （图片没识别时就是后者），于是会对着空气回答。"""
+    import ontocopilot.server as server
+
+    monkeypatch.setattr(server, "ROOT", tmp_path)
+    s = server.Session(id="mat1")
+    s.dir.mkdir(parents=True, exist_ok=True)
+    s.files = [{"name": "采购计划.xlsx", "size": 41000, "path": "x"},
+               {"name": "流程图.png", "size": 2_300_000, "path": "y"}]
+    s.state["_chunks"] = {"采购计划.xlsx": [
+        {"cite": "采购计划.xlsx!S!R1", "text": "计划金额 含税", "tags": ["row"]}]}
+
+    reg = server._converse_tools(s)
+
+    class _Ctx:
+        approved = True
+        pending: list = []
+
+    got = await reg.call("material.list", {}, _Ctx(), scope="converse")
+    assert got["材料数"] == 2
+    unread = next(r for r in got["材料"] if r["文件"] == "流程图.png")
+    assert unread["已读入段数"] == 0 and "尚未" in unread["状态"] or "还没" in unread["状态"]
+
+    # 按名字片段也能查到，且给出下一步怎么查正文
+    ins = await reg.call("material.inspect", {"file": "采购计划"}, _Ctx(), scope="converse")
+    assert ins["段数"] == 1 and "evidence.search" in ins["下一步"]
+    miss = await reg.call("material.inspect", {"file": "不存在"}, _Ctx(), scope="converse")
+    assert "error" in miss
+
+    # 清单要进每轮的上下文，而不是只能靠模型主动查
+    brief = server._context_brief(s)
+    assert "流程图.png" in brief and "尚未识别" in brief

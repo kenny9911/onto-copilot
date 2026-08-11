@@ -1504,6 +1504,46 @@ def _converse_tools(s: Session) -> Any:
     # 保证零工具（见 _reason），所以这里不再需要单独的 chat 作用域。
     RO, RW = ("converse",), ("converse",)
 
+    @reg.fn("material.list",
+            "列出这次会话的全部材料：文件名、体量、已经读进来多少段、有没有还没识别的。"
+            "**要判断某份材料值不值得细看、或者用户问「都有什么材料」时，先调它。** 零成本。",
+            {"type": "object", "properties": {}}, danger=Danger.READ, scopes=RO)
+    def _mat_list(ctx: Any) -> dict[str, Any]:
+        chunks = s.state.get("_chunks") or {}
+        rows = []
+        for f in s.files:
+            cs = chunks.get(f["name"]) or []
+            rows.append({
+                "文件": f["name"], "大小KB": round((f.get("size") or 0) / 1024),
+                "已读入段数": len(cs),
+                "状态": "已读入" if cs else "还没读到内容（图片/扫描件要开始梳理才识别）",
+            })
+        return {"材料数": len(s.files), "材料": rows,
+                "说明": "要看某份材料的正文，用 evidence.search 并把文件名填进 files"}
+
+    @reg.fn("material.inspect",
+            "看一份材料的结构大纲：分成了哪些段、都是什么类型、解析时发现了什么问题。"
+            "**这是目录不是正文** —— 要正文用 evidence.search。零成本。",
+            {"type": "object", "required": ["file"],
+             "properties": {"file": {"type": "string", "description": "文件名"}}},
+            danger=Danger.READ, scopes=RO)
+    def _mat_inspect(ctx: Any, file: str) -> dict[str, Any]:
+        chunks = s.state.get("_chunks") or {}
+        name = file if file in chunks else next(
+            (k for k in chunks if file in k), "")
+        if not name:
+            return {"error": f"没有材料「{file}」。现有：{sorted(chunks) or '（还没上传）'}"}
+        cs = chunks[name]
+        by_tag: dict[str, int] = {}
+        for c in cs:
+            for t in (c.get("tags") or ["未分类"]):
+                by_tag[t] = by_tag.get(t, 0) + 1
+        return {"文件": name, "段数": len(cs),
+                "各类段落": by_tag,
+                "前几段": [{"出处": c.get("cite"), "摘录": (c.get("text") or "")[:160]}
+                           for c in cs[:5]],
+                "下一步": f"要查具体内容：evidence.search(query=…, files=[\"{name}\"])"}
+
     @reg.fn("session.status", "查当前会话的状态：材料、产物统计、待拍板的问题、建议、花费。"
             "回答『进度』『现在什么情况』这类问题前先调它。",
             {"type": "object", "properties": {}}, danger=Danger.READ, scopes=RO)
@@ -2055,7 +2095,17 @@ def _context_brief(s: Session) -> str:
     st = (s.state.get("oir") or {}).get("stats")
     if st:
         parts.append("当前产物：" + "、".join(f"{k}={v}" for k, v in st.items()))
-    parts.append(f"材料：{'、'.join(f['name'] for f in s.files) or '（还没上传）'}")
+    # 材料清单带上"读进来多少段"：只给文件名的话，模型分不清一份材料是**内容都在**
+    # 还是**只登记了文件名**（图片没识别时就是后者），于是会对着空气回答。
+    chunks = s.state.get("_chunks") or {}
+    if s.files:
+        inv = "、".join(
+            f"{f['name']}（{len(chunks.get(f['name']) or [])} 段"
+            + ("" if chunks.get(f["name"]) else "，尚未识别内容") + "）"
+            for f in s.files)
+        parts.append(f"材料：{inv}")
+    else:
+        parts.append("材料：（还没上传）")
     dm = s.state.get("_dialogue")
     if dm is not None:
         ds = dm.active_decisions()
