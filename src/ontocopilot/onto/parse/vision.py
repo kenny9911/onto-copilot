@@ -119,10 +119,14 @@ class VisionParser(Parser):
     async def aparse(self, path: Path, *, file_id: str) -> ParsedDoc:
         doc = ParsedDoc(file_id=file_id, file_name=path.name, kind=self.kind)
         if self.gateway is None:
+            # 上传时这条路是**故意**不带视觉网关的：识别要调模型、要花钱，不该由
+            # "拖了个文件进来"触发，留到梳理时做。以前这里一律报"没有配置视觉网关"，
+            # 读起来像配置坏了 —— 用户会去查网关，而其实什么都没坏，只是还没到时候。
             doc.findings.append(Finding(
-                "no_vision_model",
-                "没有配置视觉网关，扫描件未被识别。这份材料的内容完全没有进入产物。",
-                {}, severity="warn"))
+                "vision_pending",
+                f"{path.name} 是图片/扫描件，要用视觉模型识别。**点「开始梳理」时"
+                f"才会识别**（识别要调模型），现在只登记了文件、还没读内容。",
+                {}, severity="info"))
             return doc
 
         pages = render_pages(path, max_pages=self.max_pages)
@@ -203,6 +207,14 @@ class VisionParser(Parser):
         if not doc.chunks:
             doc.findings.append(Finding(
                 "empty_ocr", "视觉模型没有从这份材料里读出任何内容", {}, severity="warn"))
+        else:
+            # **识别成功也要明说。** 只在失败时说话，用户看到的是一片沉默 ——
+            # 分不清"读出来了"和"又卡住了"。
+            doc.findings.append(Finding(
+                "vision_ok",
+                f"已识别 {path.name}：{len(pages)} 页、{len(doc.chunks)} 段内容"
+                + (f"、{len(all_relations)} 条连线关系" if all_relations else ""),
+                {}, severity="info"))
         return doc
 
 

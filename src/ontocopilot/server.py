@@ -744,6 +744,18 @@ async def _run_pipeline(s: Session, *, tier: str = "full") -> None:
         backend, gw, smart, budget = _gateways(s.dir, f"run_{s.id}")
 
         paths = [Path(f["path"]) for f in s.files]
+        # 扫描件/图片要过视觉模型，一页可能几十秒。不预告的话界面上就是"解析中"
+        # 一动不动，用户分不清在识别还是卡死了。先说清有几份要识别、用什么识别。
+        scans = [p for p in paths if p.suffix.lower() in
+                 (".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tif", ".tiff", ".pdf")]
+        if scans:
+            cat = _CATALOG or ModelCatalog()
+            vis = (cat.by_capability().get("vision") or [])
+            s.emit("flow.step", cite="", found=(
+                f"{len(scans)} 份图片/扫描件要用视觉模型识别（"
+                + (f"可用：{'、'.join(vis[:3])}" if vis
+                   else "⚠ 网关上没有带视觉的模型，识别会失败")
+                + "），单页可能要几十秒。"))
         docs = await default_registry(vision_gateway=smart).aparse_all(paths)
         index = build_index(docs)
         endpoints = collect_endpoints(docs)
