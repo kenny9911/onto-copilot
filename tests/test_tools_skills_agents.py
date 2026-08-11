@@ -397,3 +397,39 @@ def test_extract_scope_cannot_reach_code_exec():
             assert "code.exec" in names(sc), sc
     # 只读工具不受影响
     assert "evidence.search" in names("extract")
+
+
+async def test_gate_is_fail_closed_not_decorative():
+    """Gate 一直是实现好的，但没有任何地方读 NodeSpec.gate —— critic 判了不通过，
+    节点照样把产出交出去。质量门不阻断就只是一句声明。"""
+    from ontocopilot.kernel.critic import (
+        Decision,
+        Gate,
+        GateResult,
+        Verdict,
+        metrics_from,
+    )
+    from ontocopilot.kernel.critic import Finding, Severity
+
+    bad = [Verdict(lens="provenance", passed=False,
+                   findings=[Finding(Severity.HIGH, "CITATION_FABRICATED", "-", "编的出处")])]
+    good = [Verdict(lens="provenance", passed=True, findings=[])]
+
+    gate = Gate("交付门",
+                require=[("全部通过", lambda m: m["all_passed"]),
+                         ("无高危", lambda m: m["high_findings"] == 0)],
+                on_fail=lambda m: GateResult(Decision.ABORT, f"未过：{m['failed']}"))
+
+    class _Rec:
+        def emit(self, *a, **k): pass
+
+    assert gate.evaluate(metrics_from(good), _Rec(), "N").decision is Decision.PASS
+    blocked = gate.evaluate(metrics_from(bad), _Rec(), "N")
+    assert blocked.decision is Decision.ABORT
+
+    # 而且 loop 真的会因此抛 NodeFailure（而不是把产出放行）
+    import inspect
+
+    from ontocopilot.kernel.loop import AgentLoop
+    src = inspect.getsource(AgentLoop)
+    assert "node.gate" in src and "NodeFailure" in src, "loop 里没有读 node.gate"

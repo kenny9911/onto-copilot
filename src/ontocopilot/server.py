@@ -225,9 +225,28 @@ async def _ensure_catalog() -> ModelCatalog:
     return _CATALOG
 
 
-def _gateways(out: Path, run_id: str) -> tuple[Any, ModelGateway, SmartGateway, Budget]:
+def _run_id_for(s: Session) -> str:
+    """这次梳理的 Run id：会话 + **语料指纹**。
+
+    以前固定用 ``run_<sid>``，且 Recorder 不开 resume —— 于是进程一崩，上一轮已经
+    付费跑完的模型调用全部作废，重跑从头再花一遍钱。
+
+    指纹进 id 是为了让 resume **安全**：同一批材料重跑 → 同一个 id → 命中日志里
+    已完成的 effect，直接读回不重花钱；材料一变（加了/删了文件）→ 新 id → 干净的
+    新日志，不会拿旧提示的结果去冒充新语料的答案（那正是 DeterminismViolation
+    要防的）。
+    """
+    from .kernel.ids import fingerprint
+
+    sig = sorted((f["name"], int(f.get("size") or 0)) for f in s.files)
+    return f"run_{s.id}_{fingerprint(sig)[:8]}"
+
+
+def _gateways(out: Path, run_id: str, *, resume: bool = False
+              ) -> tuple[Any, ModelGateway, SmartGateway, Budget]:
     cfg = appconfig.resolved_llm_config()          # 设置 → env → 抛错
-    rec = Recorder(run_id, FileJournal(out / "journal"), FileBlobStore(out / "blobs"))
+    rec = Recorder(run_id, FileJournal(out / "journal"), FileBlobStore(out / "blobs"),
+                   resume=resume)
     # 一份几百行的梳理表要跑十来个抽取节点，每个节点还可能因 critic 打回重来。
     # 上限设太紧的后果不是省钱，是跑到一半 HALT、前面花掉的钱全打水漂。
     budget = Budget(tokens=4_000_000, usd=appconfig.usd_cap())
@@ -760,7 +779,15 @@ async def _run_pipeline(s: Session, *, tier: str = "full") -> None:
         s.status = "parsing"
         s.emit("node.entered", node="PARSE", title="解析材料")
         await _ensure_catalog()          # 按网关可用模型过滤目录（视觉网关/OCR 靠它）
-        backend, gw, smart, budget = _gateways(s.dir, f"run_{s.id}")
+        # resume=True：这条 Run 的日志还在盘上就接着用。上次跑到一半崩了/被停了，
+        # 已完成的模型调用直接从日志读回，不重花钱；语料变了 run_id 就变了，
+        # 不会误用旧结果。
+        run_id = _run_id_for(s)
+        resumed = (s.dir / "journal" / f"{run_id}.jsonl").exists()
+        backend, gw, smart, budget = _gateways(s.dir, run_id, resume=resumed)
+        if resumed:
+            s.emit("flow.step", cite="",
+                   found="上次这批材料跑到一半中断了，已完成的部分直接接着用，不重跑。")
 
         paths = [Path(f["path"]) for f in s.files]
         # 扫描件/图片要过视觉模型，一页可能几十秒。不预告的话界面上就是"解析中"
@@ -852,7 +879,9 @@ async def _run_pipeline(s: Session, *, tier: str = "full") -> None:
         # 抽取是整条链最长的一段。只在开始/结束各泵一次，等于抽取全程「推理」面板
         # 一片空白 —— FDE 看到的是一个转圈的进度条，看不见 AI 在想什么、查了什么，
         # 分不清"在干活"和"卡住了"。这里边跑边泵，让推理实时可见。
-        outcome = await _run_with_live_trace(s, gw.rec, bus, sched.run(f"run_{s.id}"))
+        # 用同一个 run_id —— 调度器另起一个 id 的话，恢复索引和它写的日志就对不上，
+        # resume 会永远命不中。
+        outcome = await _run_with_live_trace(s, gw.rec, bus, sched.run(run_id))
 
         if not outcome.ok:
             raise RuntimeError(f"抽取失败：{outcome.error}")
@@ -1439,7 +1468,8 @@ async def _reconcile_on_boot() -> None:
         if r.status in ("parsing", "extracting"):
             await repo.set_status(
                 r.id, "failed",
-                error="上次运行被中断（进程退出）。材料和已拍板的决定都在，可以重新开始。")
+                error="上次运行被进程退出打断。材料、决定和**已经跑完的那部分**都还在 ——"
+                      "再点一次「开始梳理」会接着上次的进度跑，不重复花钱。")
             n += 1
     if n:
         print(f"[store] 启动对账：{n} 个会话上次没跑完，已标记为中断")

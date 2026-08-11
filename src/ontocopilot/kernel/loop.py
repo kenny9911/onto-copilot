@@ -16,7 +16,7 @@ from typing import Any
 
 from .budget import Budget
 from .bus.bus import AgentBus
-from .critic import CriticContext, CriticPanel, Verdict, metrics_from
+from .critic import CriticContext, CriticPanel, Decision, Verdict, metrics_from
 from .dag import Difficulty, NodeMode, NodeSpec
 from .errors import NodeFailure
 from .events import EventKind
@@ -242,6 +242,20 @@ class AgentLoop:
             draft, verdicts, done = await self._critique(
                 node, draft, rctx, difficulty, rounds, pad
             )
+
+        # ── 硬门：**fail-closed** ─────────────────────────────────
+        # Gate 一直是实现好的，但没有任何地方读 NodeSpec.gate —— critic 判了不通过，
+        # 节点照样把产出交出去，"质量门"只是一句声明。这里让它真的挡住：判不过就
+        # 抛 NodeFailure，由调度器按 retryable 决定重试还是让整次 Run 失败。
+        if node.gate is not None:
+            gr = node.gate.evaluate(metrics_from(verdicts), self.rec, node.id)
+            if gr.decision in (Decision.ABORT, Decision.ROUND_TRIP):
+                raise NodeFailure(node.id, f"质量门「{node.gate.name}」未通过：{gr.reason}",
+                                  retryable=False)
+            if gr.decision is Decision.REVISE:
+                # 还能修就让调度器重试这个节点，而不是把半成品放行
+                raise NodeFailure(node.id, f"质量门「{node.gate.name}」要求重做：{gr.reason}",
+                                  retryable=True)
 
         rendered = self.cm.assemble(
             task=handler.task(inputs), query=handler.query(inputs),
