@@ -240,7 +240,7 @@ class AgentLoop:
         done = 0
         if node.critics and rounds:
             draft, verdicts, done = await self._critique(
-                node, draft, rctx, difficulty, rounds, pad
+                node, handler, inputs, draft, rctx, difficulty, rounds, pad
             )
 
         # ── 硬门：**fail-closed** ─────────────────────────────────
@@ -368,6 +368,8 @@ class AgentLoop:
     async def _critique(
         self,
         node: NodeSpec,
+        handler: NodeHandler,
+        inputs: dict[str, Any],
         draft: Any,
         rctx: RunContext,
         difficulty: Difficulty,
@@ -399,11 +401,15 @@ class AgentLoop:
             comp = await self.gw.call(
                 node.id,
                 _refine_prompt(draft, verdicts),
-                difficulty=difficulty, schema=self.handlers[node.handler].for_node(node.id).schema,
+                difficulty=difficulty, schema=handler.schema,
                 key=f"refine:{r}",
             )
             if comp.data is not None:
-                draft = comp.data
+                # 修订产物同样要过 finalize。模型重出的那版 JSON 里只有它这次改的
+                # 东西 —— 规则逐行抽好的部分（一段 45 行行动表的全部 action）不在
+                # 里面，直接赋值就等于把它们删了。真实事故：168 行接口全部消失，
+                # 而 critic 下一轮报的是「一个行动都没有」，看着像模型没抽。
+                draft = handler.finalize(comp.data, inputs)
             pad.append(action=f"refine#{r}", observation=f"按 {len(verdicts)} 条评审意见修订")
 
         return draft, verdicts, done

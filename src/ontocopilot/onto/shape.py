@@ -88,6 +88,12 @@ class ColumnView:
     distinct_ratio: float
     mean_len: float
     samples: list[str] = field(default_factory=list)
+    #: 第一行填没填。合并单元格的分组列**一定**是从第一行开始的（第一组的组名
+    #: 写在表首），而一列漏填几格的普通列不会正好只有第一行有值。
+    first_filled: bool = False
+    #: 非空取值的去重个数。分组列有几层嵌套时，靠它分辨粗细 ——
+    #: 「应用模块」4 个值、「业务对象」14 个值，后者才是宿主那一层。
+    distinct: int = 0
 
     def to_dict(self) -> dict[str, Any]:
         return {"name": self.name, "role": self.role.value, "fill": round(self.fill, 3),
@@ -159,16 +165,24 @@ def classify_columns(rows: list[dict[str, Any]]) -> list[ColumnView]:
         role, fill, dratio, mlen = _role_of(name, vals)
         samples = list(dict.fromkeys(v for v in vals if v.strip()))[:5]
         out.append(ColumnView(name=name, role=role, fill=fill,
-                              distinct_ratio=dratio, mean_len=mlen, samples=samples))
+                              distinct_ratio=dratio, mean_len=mlen, samples=samples,
+                              first_filled=bool(vals and vals[0].strip()),
+                              distinct=len({v for v in vals if v.strip()})))
 
     # 稀疏分组列：整表别的列都填满，唯独这一列只在每组第一行写一次、下面留空
     # 继承。Excel 里最常见的写法。单看一列判不出来 —— 它的取值互不重复，看着
     # 就是个普通名称列；只有和"别的列是满的"放在一起才知道那些空是继承不是缺失。
+    #
+    # 判据是**第一行有值**，不是"填充率高于某个数"。填充率下界曾经写死 0.02，
+    # 意思是"500 行里少于 10 个组就不算分组列" —— 这个数没有任何依据，而且
+    # 表越长越容易把真的分组列判丢。合并单元格的结构特征是：第一组的组名写在
+    # 表首，后面每组换一次。第一行空着的稀疏列则多半是真的漏填。
     dense = any(c.fill >= 0.9 for c in out)
     if dense:
         for c in out:
             if (c.role in (ColumnRole.LABEL, ColumnRole.UNKNOWN)
-                    and 0.02 <= c.fill <= 0.6 and c.mean_len <= _PROSE_LEN):
+                    and c.first_filled and 0 < c.fill <= 0.6
+                    and c.mean_len <= _PROSE_LEN):
                 c.role = ColumnRole.GROUP
     return out
 
@@ -423,7 +437,9 @@ def infer_shape(rows: list[dict[str, Any]]) -> SegmentShape:
 #  规则抽取
 # ══════════════════════════════════════════════════════════════════
 def structural_extract(rows: list[dict[str, Any]], cites: list[str],
-                       shape: SegmentShape) -> dict[str, list[dict[str, Any]]]:
+                       shape: SegmentShape,
+                       carry_in: dict[str, str] | None = None,
+                       ) -> dict[str, list[dict[str, Any]]]:
     """把规则能确定的行直接抽出来，一行都不丢。
 
     只处理 ``shape.rule_decidable`` 认可的形状 —— 也就是"一行一实体"和
@@ -432,12 +448,15 @@ def structural_extract(rows: list[dict[str, Any]], cites: list[str],
     Args:
         rows: 每行的 ``raw`` 字典，与 ``cites`` 一一对应。
         cites: 每行的出处串，直接进 provenance。
+        carry_in: 本段第一行之前各列最后一个非空取值。一张表被切成多段时，
+            后面几段的组首在上一段里 —— 没有它，那些行的分组列全是空的。
     """
     out: dict[str, list[dict[str, Any]]] = {"objects": [], "properties": [],
                                             "links": [], "actions": [], "questions": []}
+    carry_in = carry_in or {}
 
     if Yield.QUESTIONS in shape.rule_decidable:
-        _extract_questions(rows, cites, shape, out)
+        _extract_questions(rows, cites, shape, out, carry_in)
         return out
 
     if not (shape.rule_decidable & {Yield.OBJECTS, Yield.ACTIONS}):
@@ -447,13 +466,20 @@ def structural_extract(rows: list[dict[str, Any]], cites: list[str],
     endpoint = shape.col(ColumnRole.ENDPOINT)
     # 模块用满填充的枚举列；宿主对象用稀疏分组列（要向下继承）
     module = next((c for c in shape.cols(ColumnRole.ENUM) if c.fill >= 0.9), None)
-    host = next((c for c in shape.cols(ColumnRole.GROUP) if c.fill < 0.9), None)
+    host = _host_column(shape)
+    if module is None and host is not None:
+        # 分组常有两层（应用模块 > 业务对象）。细的那层是宿主，粗的那层是模块 ——
+        # 以前粗的那层直接被丢掉，材料里明明写着的归属信息就此消失。
+        module = next((c for c in shape.cols(ColumnRole.GROUP)
+                       if c is not host and c.fill < 0.9), None)
     labels = [c for c in shape.cols(ColumnRole.LABEL) if c.fill >= 0.5]
     label = max(labels, key=lambda c: c.fill) if labels else None
     if ident is None and label is None:
         return out
 
-    carry = ""  # 分组列的继承值
+    # 分组列的继承值。**从上一段接过来** —— 组首可能落在别的段里。
+    carry = carry_in.get(host.name, "") if host else ""
+    mod_carry = carry_in.get(module.name, "") if module else ""
 
     seen: set[str] = set()
     for row, cite in zip(rows, cites, strict=False):
@@ -463,6 +489,8 @@ def structural_extract(rows: list[dict[str, Any]], cites: list[str],
         disp = str(row.get(label.name, "")).strip() if label else ""
         if host:  # 空 = 继承上一组，不是缺失
             carry = str(row.get(host.name, "")).strip() or carry
+        if module:
+            mod_carry = str(row.get(module.name, "")).strip() or mod_carry
         if not api and not disp:
             continue
         key = api or disp
@@ -470,10 +498,8 @@ def structural_extract(rows: list[dict[str, Any]], cites: list[str],
             seen.add(key)
             obj: dict[str, Any] = {"api_name": api or disp, "display_name": disp or api,
                                    "source_locator": cite, "_origin": "rule"}
-            if module:
-                mod = str(row.get(module.name, "")).strip()
-                if mod:
-                    obj["module"] = mod
+            if mod_carry:
+                obj["module"] = mod_carry
             if carry:
                 obj["group"] = carry
             out["objects"].append(obj)
@@ -487,9 +513,23 @@ def structural_extract(rows: list[dict[str, Any]], cites: list[str],
                 "api_name": api or _action_name(url, owner or disp),
                 "display_name": disp or api,
                 # 宿主写中文名，apiName 由下游命名归一/实体对齐解析
-                "object_display": owner, "endpoint": url,
+                "object_display": owner, "module": mod_carry, "endpoint": url,
                 "source_locator": cite, "_origin": "rule"})
     return out
+
+
+def _host_column(shape: SegmentShape) -> ColumnView | None:
+    """哪一列写的是宿主业务对象。
+
+    分组常有两层：「应用模块」（4 个取值）套着「业务对象」（14 个取值）。
+    宿主是**细的那一层** —— 取值越多，分得越细。取值一样多时取靠右的那列，
+    因为表格是从粗到细往右排的。
+    """
+    groups = [c for c in shape.cols(ColumnRole.GROUP) if c.fill < 0.9]
+    if not groups:
+        return None
+    order = {id(c): i for i, c in enumerate(shape.columns)}
+    return max(groups, key=lambda c: (c.distinct, order[id(c)]))
 
 
 _VERB_HINTS = {
@@ -520,7 +560,8 @@ def _action_name(url: str, obj_key: str) -> str:
 
 def _extract_questions(rows: list[dict[str, Any]], cites: list[str],
                        shape: SegmentShape,
-                       out: dict[str, list[dict[str, Any]]]) -> None:
+                       out: dict[str, list[dict[str, Any]]],
+                       carry_in: dict[str, str] | None = None) -> None:
     """问卷 → 待澄清问题。一行一问，映射完全确定，不进模型。
 
     让模型复述 150 行问题既会截断丢行，又要为零信息量的复制付 Opus 的钱 ——
@@ -535,7 +576,7 @@ def _extract_questions(rows: list[dict[str, Any]], cites: list[str],
     if q_col is None:
         return
 
-    carry = ""
+    carry = (carry_in or {}).get(grp.name, "") if grp else ""
     for row, cite in zip(rows, cites, strict=False):
         if not isinstance(row, dict):
             continue

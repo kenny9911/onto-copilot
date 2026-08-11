@@ -562,6 +562,9 @@ let STREAM = null;   // {full, i, timer} —— 助手回答的打字机流式�
 let MAT_N = 100;
 // 材料预览：哪些 sheet 是展开的。默认第一张展开，其余折叠。
 let MAT_OPEN = new Set();
+// AI 列出来的表格默认只显示前 30 行，展开状态按事件 seq 记 —— 202 条一次铺开
+// 会把聊天流冲垮，但"全部列出来"的承诺又必须能兑现。
+let TBL_OPEN = new Set();
 // 乐观上屏的消息。服务端回执到达后由 S.state.dialogue 接管，这里清空 ——
 // 不清的话同一句话会显示两遍。
 let PENDING = [];
@@ -1241,6 +1244,27 @@ function evCard(ev){
       <div class="cap">${st.sheets ?? 0} 张表 · ${st.business_required ?? 0} 格待业务方填写</div>
       <a class="act" href="${API}/api/sessions/${S.id}/artifacts/${encodeURIComponent(ev.name)}">下载</a></div>`;
   }
+  // AI 列清单用的动态表格。**数据由服务端直接从产物出**，不经模型复述 ——
+  // 202 个对象让模型一条条打出来，必然截断、还可能记错，而且很贵。
+  if (ev.kind === "ui.table") {
+    const cols = ev.columns || [], rows = ev.rows || [];
+    const N = ev.seq;                       // 每张表独立的“展开”状态
+    const shown = (TBL_OPEN.has(N) ? rows : rows.slice(0, 30));
+    return `<div class="card"><h4>${esc(ev.title || "清单")}</h4>
+      <div style="overflow:auto;max-height:420px;margin-top:6px">
+      <table style="border-collapse:collapse;width:100%;font-size:12.5px">
+        <thead><tr>${cols.map(c=>`<th style="text-align:left;padding:5px 8px;
+          border-bottom:1px solid var(--line);position:sticky;top:0;
+          background:var(--panel);white-space:nowrap">${esc(c)}</th>`).join("")}</tr></thead>
+        <tbody>${shown.map(r=>`<tr>${r.map(v=>`<td style="padding:5px 8px;
+          border-bottom:1px solid var(--line-soft);vertical-align:top">${esc(String(v??""))}</td>`
+          ).join("")}</tr>`).join("")}</tbody>
+      </table></div>
+      ${rows.length > 30 ? `<button class="act" style="margin-top:6px"
+        onclick="toggleTable(${N})">${TBL_OPEN.has(N)
+          ? "收起" : `展开全部 ${rows.length} 条`}</button>` : ""}
+      <div class="cap" style="margin-top:4px">共 ${rows.length} 条</div></div>`;
+  }
   if (ev.kind === "run.failed")
     return `<div class="card"><h4>没跑完</h4><div class="cap">${esc(ev.error || "")}</div></div>`;
   if (ev.kind === "session.restored")
@@ -1690,6 +1714,11 @@ function bindResize(){
     document.body.style.userSelect = "";
     localStorage.setItem("oc_pv_w", String(parseInt(pv.style.width, 10) || 400));
   });
+}
+
+function toggleTable(seq){
+  if (TBL_OPEN.has(seq)) TBL_OPEN.delete(seq); else TBL_OPEN.add(seq);
+  render();
 }
 
 function toggleSheet(sheet){

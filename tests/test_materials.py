@@ -263,3 +263,41 @@ async def test_vision_reports_progress_per_page():
     assert any("开始识别" in m for m in seen)
     assert any("第 1/2 页" in m for m in seen)
     assert any("识别完成" in m and "连线" in m for m in seen), "完成时要报读出了什么"
+
+
+async def test_listing_202_objects_is_not_retyped_by_the_model(tmp_path, monkeypatch):
+    """用户要"列出全部实体"，模型自己逐条打的结果是：截断，然后回一句"其余 199 个
+    未能呈现" —— 而那 199 个正是他要的。表由服务端直接从产物出，模型只说一句。"""
+    import ontocopilot.server as server
+
+    monkeypatch.setattr(server, "ROOT", tmp_path)
+    s = server.Session(id="tbl1")
+    s.dir.mkdir(parents=True, exist_ok=True)
+    s.state["oir"] = {"objects": [
+        {"rid": f"ot_{i}", "apiName": {"value": f"obj{i}"},
+         "displayName": {"value": f"对象{i}"},
+         "description": {"value": f"第 {i} 个对象"}, "status": "candidate"}
+        for i in range(202)]}
+
+    reg = server._converse_tools(s)
+
+    class _Ctx:
+        approved = True
+        pending: list = []
+
+    out = await reg.call("ui.table", {"kind": "objects"}, _Ctx(), scope="converse")
+    assert out["已列出"] == 202
+    assert "不要再逐条复述" in out["说明"]        # 明确不让模型重打一遍
+
+    ev = [e for e in s.events if e["kind"] == "ui.table"][-1]
+    assert len(ev["rows"]) == 202                # 一条不少，没有 60 条上限
+    assert ev["rows"][-1][0] == "对象201"
+    assert ev["columns"][0] == "名称"
+
+    # 能按关键词筛
+    sub = await reg.call("ui.table", {"kind": "objects", "contains": "对象7"},
+                         _Ctx(), scope="converse")
+    assert 0 < sub["已列出"] < 202
+
+    empty = await reg.call("ui.table", {"kind": "rules"}, _Ctx(), scope="converse")
+    assert "error" in empty                      # 没有的类别要说清，不要给空表

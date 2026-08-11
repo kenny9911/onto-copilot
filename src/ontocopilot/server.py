@@ -1579,6 +1579,70 @@ def _converse_tools(s: Session) -> Any:
         return {"材料数": len(s.files), "材料": rows,
                 "说明": "要看某份材料的正文，用 evidence.search 并把文件名填进 files"}
 
+    @reg.fn("ui.table",
+            "把一批产物**以表格形式列给用户看**（对象/属性/关系/动作/规则/待澄清问题）。"
+            "用户说「列出来」「全部列一遍」「有哪些」这类要求时**用它，不要自己在回答里"
+            "一条条打出来** —— 你打字既会截断、又可能记错；这个表由系统直接从产物里出，"
+            "一条不少。调完在回答里说一句「已列出 N 条，见下表」即可。",
+            {"type": "object", "required": ["kind"],
+             "properties": {
+                 "kind": {"type": "string",
+                          "enum": ["objects", "properties", "links", "actions",
+                                   "rules", "questions"]},
+                 "contains": {"type": "string",
+                              "description": "只列名字/内容里含这个词的；不给则全部"},
+                 "title": {"type": "string", "description": "给这张表起个标题"}}},
+            danger=Danger.READ, scopes=RO)
+    def _ui_table(ctx: Any, kind: str, contains: str = "",
+                  title: str = "") -> dict[str, Any]:
+        oir = s.state.get("oir") or {}
+        items = list(oir.get(kind) or [])
+        if not items:
+            return {"error": f"还没有 {kind}。先跑一轮梳理。"}
+
+        def val(x: Any) -> str:
+            return str((x or {}).get("value", "") if isinstance(x, dict) else (x or ""))
+
+        # 每类挑**业务方看得懂**的列，不是把内部结构原样倒出来
+        cols: dict[str, list[tuple[str, Any]]] = {
+            "objects": [("名称", lambda o: val(o.get("displayName"))),
+                        ("API 名", lambda o: val(o.get("apiName"))),
+                        ("说明", lambda o: val(o.get("description"))[:120]),
+                        ("状态", lambda o: o.get("status", ""))],
+            "properties": [("所属对象", lambda p: p.get("parent", "")),
+                           ("字段", lambda p: val(p.get("displayName"))),
+                           ("API 名", lambda p: val(p.get("apiName"))),
+                           ("类型", lambda p: val(p.get("baseType"))),
+                           ("口径", lambda p: val(p.get("definition"))[:100])],
+            "links": [("从", lambda l: l.get("from", "")),
+                      ("到", lambda l: l.get("to", "")),
+                      ("名称", lambda l: val(l.get("apiName"))),
+                      ("基数", lambda l: val(l.get("cardinality")))],
+            "actions": [("动作", lambda a: val(a.get("apiName"))),
+                        ("作用对象", lambda a: "、".join(a.get("appliesTo") or []))],
+            "rules": [("规则", lambda r: val(r.get("statement"))),
+                      ("类别", lambda r: val(r.get("ruleKind"))),
+                      ("角色", lambda r: val(r.get("actor")))],
+            "questions": [("问题", lambda q: val(q.get("text"))),
+                          ("答复", lambda q: val(q.get("answer"))),
+                          ("编号", lambda q: q.get("code", ""))],
+        }[kind]
+
+        if contains:
+            k = contains.lower()
+            items = [x for x in items
+                     if k in json.dumps(x, ensure_ascii=False).lower()]
+        rows = [[fn(x) for _, fn in cols] for x in items]
+        head = [name for name, _ in cols]
+        label = {"objects": "业务对象", "properties": "属性", "links": "关系",
+                 "actions": "动作", "rules": "业务规则", "questions": "待澄清问题"}[kind]
+        s.emit("ui.table", title=title or f"{label}（{len(rows)} 条）",
+               columns=head, rows=rows)
+        # 返回给模型的是**摘要**，不是全部行 —— 它不需要、也不该把这些再打一遍
+        return {"已列出": len(rows), "类型": label,
+                "说明": f"表格已经显示给用户了。回答里说一句「已列出 {len(rows)} 条"
+                        f"{label}，见下表」就够了，**不要再逐条复述**。"}
+
     @reg.fn("material.parse",
             "把还没读过的材料读进来（表格/CSV/SQL/文档是**零成本**的，读完就能检索）。"
             "用户问材料里的事、而 material.list 显示还没读入时，**先调它再回答** —— "

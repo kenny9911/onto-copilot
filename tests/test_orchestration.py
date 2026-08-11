@@ -438,3 +438,49 @@ async def test_unfrozen_dag_is_rejected():
     rec = _rec()
     with pytest.raises(RuntimeError, match="冻结是安全边界"):
         Scheduler(dag, None, rec, AgentBus(rec), Budget())
+
+
+async def test_rule_extracted_content_survives_the_critic_refine_round():
+    """critic 让模型改一版，规则抽好的那部分**不能**跟着蒸发。
+
+    真实事故：一段 45 行的行动表，规则逐行抽出 45 个 action，critic 报的是
+    「对象缺失」；模型按意见重出一版 JSON，里面只有对象、没有 action —— 45 个
+    行动就此消失，最终 OIR 里 168 行接口一个都没进去。修订的产物同样要过
+    ``finalize``，规则那份才是权威。
+    """
+
+    class RuleBacked(NodeHandler):
+        schema = {"type": "object",
+                  "properties": {"objects": {"type": "array"},
+                                 "actions": {"type": "array"}}}
+
+        def finalize(self, draft, inputs):
+            out = dict(draft or {})
+            out["actions"] = [{"api_name": "createPbp"}]      # 规则抽好的
+            return out
+
+    class WantsObjects(Critic):
+        name = "coverage"
+        needs_llm = False
+
+        async def judge(self, draft, ctx):
+            missing = not (draft or {}).get("objects")
+            return Verdict(lens=self.name, passed=not missing,
+                           findings=[Finding(Severity.HIGH, "OBJECTS_MISSING", "s0",
+                                             "应该能抽出对象，实际一个都没有")]
+                           if missing else [])
+
+    # 模型第一版没给对象；被打回后重出一版**只有对象**的 JSON
+    backend = ScriptedBackend([(r"评审提出了下面这些问题", '{"objects":[{"api_name":"pbpHeader"}]}')],
+                              default='{"objects":[]}')
+    dag = Dag("t").add(NodeSpec("EXTRACT", NodeMode.SINGLE_SHOT, "x",
+                                critics=("coverage",), critic_rounds=2))
+    sched, rec, journal, blobs = _harness(dag, {"x": RuleBacked()}, backend=backend)
+    sched.loop.panel = CriticPanel({"coverage": WantsObjects()}, rec)
+
+    out = await sched.run("r1")
+    assert out.ok
+    got = out.outputs["EXTRACT"]
+    assert [o["api_name"] for o in got["objects"]] == ["pbpHeader"], "修订产物要保留"
+    assert [a["api_name"] for a in got["actions"]] == ["createPbp"], \
+        "规则抽好的行动被 critic 修订环吃掉了"

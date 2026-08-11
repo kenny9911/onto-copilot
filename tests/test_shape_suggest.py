@@ -601,3 +601,220 @@ def test_required_cells_stay_within_a_weeks_work():
                                   source_endpoint=inferred({"path": f"/v1/queryThing{i}"})))
     n = len(_required(_tpl(oir)))
     assert n < 300, f"{n} 个必填格 —— 一周填不完"
+
+
+# ══════════════════════════════════════════════════════════════════
+#  任务描述与 critic 判据必须是同一份契约
+# ══════════════════════════════════════════════════════════════════
+def _seg(rows, key="s0", label="业务对象API梳理-行动"):
+    return Segment(key=key, label=label, file_name="x.xlsx",
+                   chunk_ids=[f"c{i}" for i in range(len(rows))],
+                   shape=infer_shape(rows))
+
+
+class _RowIdx(_Idx):
+    """按 chunk 顺序还原 rows 的假索引 —— 只够 ExtractSegment 用。"""
+
+    def __init__(self, rows, cites):
+        self._rows = {f"c{i}": (r, cites[i]) for i, r in enumerate(rows)}
+
+    def get(self, cid):
+        pair = self._rows.get(cid)
+        if pair is None:
+            return None
+
+        class _C:
+            raw = pair[0]
+            render = str(pair[0])
+
+            def cite(self_inner):
+                return pair[1]
+
+        return _C()
+
+
+def _task_text(rows):
+    from ontocopilot.kernel.agents import default_agents
+    from ontocopilot.onto.pipeline import ExtractSegment
+
+    agent = default_agents().get("extractor")
+    h = ExtractSegment(_seg(rows), _RowIdx(rows, _cites(rows)), agent, "")
+    return h.task({})
+
+
+def _extract_handler(rows):
+    from ontocopilot.kernel.agents import default_agents
+    from ontocopilot.onto.pipeline import ExtractSegment
+
+    return ExtractSegment(_seg(rows), _RowIdx(rows, _cites(rows)),
+                          default_agents().get("extractor"), "")
+
+
+def test_the_task_asks_for_everything_the_critic_will_check():
+    """契约必须闭合：critic 判缺失的每一类，任务描述里都得点名要。
+
+    真实事故：行动表段的 critic 判「对象缺失」，而任务描述从头到尾没提过要抽
+    对象 —— 模型照着任务做完被打回，重出一版反而把规则抽好的行动冲掉了。
+    """
+    from ontocopilot.onto.pipeline import _ASK
+
+    for rows in (ACTIONS, FIELDS, REGISTRY):
+        h = _extract_handler(rows)
+        text = h.task({})
+        assert h.wants() == [y for y in h.wants()]           # 稳定
+        for y in h.wants():
+            assert _ASK[y] in text, f"{h.segment.shape.row_unit} 段欠 {y.value}，任务里却没点名要"
+
+
+def test_the_critic_judges_exactly_what_the_task_asked_for():
+    """反向闭合：模型把任务点名要的都交了，critic 就不该再判缺失。"""
+    h = _extract_handler(ACTIONS)
+    draft = h.finalize({"objects": [{"api_name": "pbpHeader"}]}, {})
+    v = _judge(ACTIONS, draft)
+    assert v.passed, [f.claim for f in v.findings]
+
+
+def test_action_segment_shows_the_model_the_host_names_it_must_name():
+    """宿主对象名就写在分组列里，直接给模型看，别让它去猜、去检索。
+
+    真实材料上模型为了找这个名字连着四轮 evidence.search，最后一个对象也没抽出来。
+    """
+    from ontocopilot.onto.shape import Yield
+
+    h = _extract_handler(ACTIONS)
+    assert Yield.OBJECTS in h.wants()
+    assert "这一段的宿主业务对象" in h.task({})
+    assert "采购需求计划" in h.task({}).split("这一段的宿主业务对象")[1][:200]
+
+
+def test_long_camel_case_api_names_are_not_prose():
+    """`bdPurchaseDocSubtypeMapping` 是个规规矩矩的 apiName，不是说明文字。
+
+    真实事故：长度 > 24 一律判散文，把合法的长驼峰实体名报成噪声。
+    """
+    from ontocopilot.onto.pipeline import _looks_like_prose
+
+    assert not _looks_like_prose("bdPurchaseDocSubtypeMapping")
+    assert not _looks_like_prose("poChangeApplicationHeader")
+    assert _looks_like_prose("与采购需求计划一致")
+    assert _looks_like_prose("这一列的取值和上面那张表里写的口径保持一致即可")
+
+
+def test_actions_attach_to_the_host_object_named_in_the_group_column():
+    """行动表写的是中文业务对象名，实体表按同一个名字分组 —— 两边接得上。
+
+    接不上的后果是 112 行接口全成孤儿：模板里看不到、流程图上挂不上。
+    """
+    reg_shape = infer_shape(REGISTRY)
+    reg = structural_extract(REGISTRY, _cites(REGISTRY), reg_shape)
+    act_shape = infer_shape(ACTIONS)
+    act = structural_extract(ACTIONS, _cites(ACTIONS), act_shape)
+
+    oir = build_oir({"objects": reg["objects"], "actions": act["actions"]})
+    assert oir.stats()["actions"] == len(ACTIONS)
+    attached = [a for a in oir.actions.values() if a.applies_to]
+    assert len(attached) == len(ACTIONS), "行动全挂到「采购需求计划」这个宿主上"
+    host = oir.objects[attached[0].applies_to[0]]
+    assert host.api_name.value == "pbpHeader"
+
+
+# ══════════════════════════════════════════════════════════════════
+#  切段不能破坏表的形状与合并单元格继承
+# ══════════════════════════════════════════════════════════════════
+def _doc(sheet: str, rows: list[dict], *, file_name="x.xlsx", extra=()):
+    """伪造一份解析结果：一行一个 range/row 切片，外加若干非数据切片。"""
+    from ontocopilot.kernel.memory.evidence import Chunk
+
+    class _Doc:
+        pass
+
+    d = _Doc()
+    d.file_name = file_name
+    d.chunks = [
+        Chunk(chunk_id=f"{sheet}_{i}", file_id="f1", file_name=file_name,
+              locator={"kind": "range", "sheet": sheet, "rows": [i + 2, i + 2]},
+              render=str(r), raw=r, order=i, tags=["row"])
+        for i, r in enumerate(rows)
+    ] + list(extra)
+    return d
+
+
+def test_a_sheet_split_in_two_keeps_the_group_it_inherited():
+    """合并单元格只在组首写一次。把表拦腰切开，后半段就再也读不到组名了。
+
+    真实事故：112 行接口表被按 45 行切成三段，第二段开头正卡在「采购订单」组
+    中间 —— 那一组 22 个行动全部丢了宿主，最后成了挂不上任何对象的孤儿。
+    """
+    from ontocopilot.kernel.memory.evidence import EvidenceIndex
+    from ontocopilot.onto.pipeline import SEGMENT_CHUNKS, segment_corpus
+
+    rows = [{"应用模块": "采购计划管理", "业务对象": "采购需求计划",
+             "实体编码": "createPbp", "实体名称": "创建PBP",
+             "url": "/v1/createPbp"}]
+    rows += [{"应用模块": "", "业务对象": "", "实体编码": f"queryPbp{i}",
+              "实体名称": f"查询{i}", "url": f"/v1/queryPbp{i}"}
+             for i in range(SEGMENT_CHUNKS + 10)]
+
+    doc = _doc("行动", rows)
+    index = EvidenceIndex()
+    for c in doc.chunks:
+        index.add(c)
+    segs = segment_corpus(index, [doc])
+    assert len(segs) > 1, "这份材料本来就该被切成多段"
+
+    hosts = []
+    for s in segs:
+        r, cites = s.rows(index)
+        out = structural_extract(r, cites, s.shape, carry_in=s.carry_in)
+        hosts += [a["object_display"] for a in out["actions"]]
+    assert len(hosts) == len(rows)
+    assert set(hosts) == {"采购需求计划"}, "切开之后半张表的宿主丢了"
+
+
+def test_shape_is_inferred_from_the_whole_sheet_not_one_window():
+    """后半段里「业务对象」整列是空的，单看这一段判不出它是分组列。"""
+    from ontocopilot.kernel.memory.evidence import EvidenceIndex
+    from ontocopilot.onto.pipeline import SEGMENT_CHUNKS, segment_corpus
+
+    rows = [{"应用模块": "采购", "业务对象": "采购订单", "实体编码": "poHeader",
+             "实体名称": "采购订单头"}]
+    rows += [{"应用模块": "", "业务对象": "", "实体编码": f"poLine{i}",
+              "实体名称": f"行{i}"} for i in range(SEGMENT_CHUNKS + 5)]
+    doc = _doc("实体", rows)
+    index = EvidenceIndex()
+    for c in doc.chunks:
+        index.add(c)
+    segs = segment_corpus(index, [doc])
+    assert {s.shape.row_unit for s in segs} == {"object"}, "同一张表的两段形状必须一致"
+
+
+def test_column_profile_chunks_are_not_data_rows():
+    """解析器为每张表额外产一片列画像。它不是一行数据。
+
+    真实事故：那片画像被当成一行，抽出一个 apiName 是整坨 profile JSON 的"实体"，
+    还一路混进了模板和 critic 的报告里。
+    """
+    from ontocopilot.kernel.memory.evidence import Chunk, EvidenceIndex
+    from ontocopilot.onto.pipeline import segment_corpus
+
+    rows = [{"实体编码": f"po{i}", "实体名称": f"名{i}"} for i in range(8)]
+    schema = Chunk(chunk_id="schema", file_id="f1", file_name="x.xlsx",
+                   locator={"kind": "range", "sheet": "实体", "rows": [1, 1]},
+                   render="列画像", order=99,
+                   raw={"实体编码": {"name": "实体编码", "count": 8, "null_rate": 0.0}},
+                   tags=["schema"])
+    doc = _doc("实体", rows, extra=[schema])
+    index = EvidenceIndex()
+    for c in doc.chunks:
+        index.add(c)
+    seg = next(s for s in segment_corpus(index, [doc]) if s.shape.row_count)
+    got, _ = seg.rows(index)
+    assert len(got) == len(rows), "列画像切片混进数据行了"
+
+
+def test_prose_never_becomes_an_action_name():
+    """「与采购需求计划一致」是单元格里的说明文字，不是接口名。"""
+    oir = build_oir({"objects": [],
+                     "actions": [{"api_name": "与采购需求计划一致"},
+                                 {"api_name": "createPbp"}]})
+    assert [a.api_name.value for a in oir.actions.values()] == ["createPbp"]
