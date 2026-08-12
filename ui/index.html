@@ -174,6 +174,12 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .act.pri{background:var(--btn);color:#fff;border-color:var(--btn)}
 .act.pri:hover{opacity:.85;color:#fff}
 .act[disabled]{opacity:.4;cursor:default}
+/* 表格卡片下面那排：展开 + 「存为」各格式。格式按钮做小一号，它们是次要动作，
+   不该和「展开全部 192 条」抢注意力。 */
+.tacts{display:flex;align-items:center;gap:6px;margin-top:8px;flex-wrap:wrap}
+.tacts .tsave{margin-left:2px}
+.tacts a.act{padding:3px 8px;font-size:11px;font-family:var(--mono);
+  letter-spacing:.3px;text-decoration:none;color:var(--ink-2)}
 
 .comp{flex:0 0 auto;padding:12px 22px 18px}
 .cbox{max-width:680px;margin:0 auto;border:1px solid var(--line);border-radius:14px;
@@ -627,6 +633,7 @@ const I18N = {
     "mat.pendingText":"有 {n} 份还没读入；问它内容时助手会自动读，或直接「开始梳理」",
     "mat.count":"{n} 份材料",
     "table.expand":"展开全部 {n} 条", "table.collapse":"收起", "table.total":"共 {n} 条",
+    "table.saveAs":"存为", "export.download":"下载 {name}",
     "session.newChat":"新对话", "session.newWork":"新会话",
     "login.title":"登录", "login.subtitle":"登录后继续使用 OntoCopilot",
     "login.username":"用户名", "login.password":"密码", "login.submit":"登录",
@@ -679,6 +686,7 @@ const I18N = {
     "mat.pendingText":"{n} not read yet; the assistant reads them when you ask, or start the run",
     "mat.count":"{n} materials",
     "table.expand":"Show all {n}", "table.collapse":"Collapse", "table.total":"{n} rows",
+    "table.saveAs":"Save as", "export.download":"Download {name}",
     "session.newChat":"New chat", "session.newWork":"New session",
     "login.title":"Sign in", "login.subtitle":"Sign in to continue using OntoCopilot",
     "login.username":"Username", "login.password":"Password", "login.submit":"Sign in",
@@ -773,6 +781,13 @@ function fmtWhen(epochSec){
     try { return new Intl.DateTimeFormat(undefined, {dateStyle:"short", timeStyle:"short"}).format(new Date(epochSec * 1000)); }
     catch(e2) { return ""; }
   }
+}
+
+function fmtSize(n){
+  n = +n || 0;
+  if (n < 1024) return n + " B";
+  if (n < 1024 * 1024) return (n / 1024).toFixed(1) + " KB";
+  return (n / 1048576).toFixed(1) + " MB";
 }
 
 // 本地存储的 key 名和后端 /api/me/prefs 的字段名不完全一样（oc_tz ↔ timezone，
@@ -1226,14 +1241,13 @@ function render(){
   }
 
   const parts = [`<div class="wrap">`, intro, traceCard()];
-  for (const ev of S.events) parts.push(evCard(ev));
   // 待办（决策 + 建议）作为**对话流里的一条消息**，插在梳理刚完成、用户还没
   // 开口那个时间点。用户一旦提问，后面的气泡自然把它推上去 —— 它不再钉在
   // 最下方，而是像所有消息一样往上滚。这是一个连续的聊天窗口，不是两块区域。
   // 待办卡片钉在**它发生的时间点** —— 梳理刚完成、第一句对话之前。之后每一句
   // 对话都排在它后面，自然把它往上推。它不再永远在最下方（那正是用户抱怨的）。
   parts.push(pendingCard());
-  for (const t of dlg) parts.push(bubble(t));
+  for (const it of timeline(dlg)) parts.push(it.html);
   for (const t of PENDING) parts.push(bubble(t));
   if (STEPS.length) parts.push(stepsCard());
   if (THINKING) parts.push(thinkingBubble());
@@ -1259,6 +1273,36 @@ function render(){
   if (atBottom) box.scrollTop = box.scrollHeight;
 }
 
+
+// 事件卡片和聊天气泡以前是**两段拼起来的**：先 push 全部事件，再 push 全部气泡。
+// 于是一张在对话末尾产生的表（AI 调 ui.table 列出 192 条问题）被画在**整段对话的
+// 最上方**，而渲染完又自动滚到底 —— 用户看到的是助手说"请见下表"，下面什么都没有。
+// 他两次报"表没画出来"，其实每次都画了，只是画在他看不到的地方。
+//
+// 两边都带绝对时间戳 ts（事件有，Utterance.to_dict 也有），按它归并成一条时间线。
+// 用 ts 而不是 seq：seq 是进程内计数，重启后 s.events 从 0 重新开始，而历史轮次
+// 是从库里读回来的 —— 两套 seq 撞在一起就乱了，ts 不会。
+function timeline(dlg){
+  const isAsst = t => String(t.speaker || "").toLowerCase().includes("assistant");
+  const asc = dlg.map(t => ({ts: +t.ts || 0, a: isAsst(t)})).sort((x, y) => x.ts - y.ts);
+  const nextTurn = ts => {                       // 紧随这一刻之后的那条发言
+    let lo = 0, hi = asc.length;
+    while (lo < hi){ const m = (lo + hi) >> 1; if (asc[m].ts > ts) hi = m; else lo = m + 1; }
+    return asc[lo] || null;
+  };
+
+  const items = dlg.map(t => ({key: +t.ts || 0, ord: 0, html: bubble(t)}));
+  S.events.forEach((ev, i) => {
+    const ts = +ev.ts || 0;
+    // 工具在助手这一轮里产出的卡片，时间上**早于**助手那句话（先调工具后成文），
+    // 但读起来属于那句话之后 —— 他写的是"已列出 192 条，见下表"。所以挂到紧随
+    // 其后的那条助手发言之后，而不是插在提问和回答中间。梳理过程自己产出的卡片
+    // （后面没有助手发言）按自己的时刻排，位置不变。
+    const n = nextTurn(ts);
+    items.push({key: n && n.a ? n.ts : ts, ord: 1 + i * 1e-6, html: evCard(ev)});
+  });
+  return items.filter(x => x.html).sort((a, b) => a.key - b.key || a.ord - b.ord);
+}
 
 // 值得单独占一张卡片的事件。大多数事件只进推理轨迹那条时间线，
 // 只有**需要人读全文**的才升级成卡片：材料里发现的问题、人拍的板、产出的东西。
@@ -1297,11 +1341,26 @@ function evCard(ev){
           border-bottom:1px solid var(--line-soft);vertical-align:top">${esc(String(v??""))}</td>`
           ).join("")}</tr>`).join("")}</tbody>
       </table></div>
-      ${rows.length > 30 ? `<button class="act" style="margin-top:6px"
+      <div class="tacts">
+      ${rows.length > 30 ? `<button class="act"
         onclick="toggleTable(${N})">${TBL_OPEN.has(N)
           ? t("table.collapse") : t("table.expand","",{n:rows.length})}</button>` : ""}
+      <span class="cap tsave">${t("table.saveAs")}</span>
+      ${["xlsx","csv","docx","pdf","md"].map(f =>
+        `<a class="act" download href="${API}/api/sessions/${S.id}/export?seq=${N}&format=${f}"
+         >${f.toUpperCase()}</a>`).join("")}
+      </div>
       <div class="cap" style="margin-top:4px">${t("table.total","",{n:rows.length})}</div></div>`;
   }
+  // 对话里导出的文件。**不进产物列表** —— 产物是梳理跑出来的东西，这是他随口要的
+  // 一份拷贝，混在一起会让"全部产物"变成一个垃圾堆。
+  if (ev.kind === "export.ready")
+    return `<div class="card"><h4>${esc(ev.title || ev.name || "导出")}</h4>
+      <div class="cap">${esc(ev.label || "")} · ${fmtSize(ev.size)}${
+        ev.rows ? ` · ${ev.rows} 行` : ""}</div>
+      <a class="act pri" style="margin-top:8px" download
+         href="${API}/api/sessions/${S.id}/exports/${encodeURIComponent(ev.name)}"
+        >${t("export.download","",{name: ev.name})}</a></div>`;
   if (ev.kind === "run.failed")
     return `<div class="card"><h4>没跑完</h4><div class="cap">${esc(ev.error || "")}</div></div>`;
   if (ev.kind === "session.restored")
@@ -1320,7 +1379,8 @@ function traceCard(){
     "plan.frozen":"冻结计划","node.entered":"进入","node.completed":"完成",
     "clarify.request":"待拍板","suggest.ready":"建议","human.recorded":"决策",
     "artifact.ready":"产物","run.completed":"结束","run.failed":"失败",
-    "run.suspended":"挂起","audit.completed":"审核"};
+    "run.suspended":"挂起","audit.completed":"审核",
+    "ui.table":"列表","export.ready":"导出"};
 
   // 统计用人话说。{"objects":172,"properties":0,...} 这种 JSON 摆在界面上
   // 等于没说 —— 用户得自己在脑子里翻译一遍。

@@ -127,6 +127,14 @@ class Session:
         """
         ev = {"seq": len(self.events), "ts": time.time(), **payload, "kind": kind}
         self.events.append(ev)
+        # 事件流本身是**进程内**的，重启即清空。绝大多数事件无所谓（进度、步骤），
+        # 但少数几种是**内容**：AI 列出来的那张 192 行的表、导出的那个文件。会话
+        # 一重开就没了，用户看到的是"表又不见了"。这几种单独留一份跟着状态落库。
+        if kind in _CARD_EVENT_KINDS:
+            cards = self.state.setdefault("_cards", [])
+            cards.append(ev)
+            if len(cards) > _CARD_EVENT_CAP:
+                del cards[:-_CARD_EVENT_CAP]
         for q in list(self.subscribers):
             q.put_nowait(ev)
         return ev
@@ -669,6 +677,13 @@ async def _hydrate(sid: str) -> Session:
     if s.files:
         await _preparse(s)          # 证据索引重建，零模型调用
     s.state["artifacts"] = [x.name for x in d.iterdir() if x.is_file()]
+    # 承载内容的卡片先灌回事件流，再发 session.restored —— 它们的 ts 是当初那一刻，
+    # 前端按 ts 归并，于是重开会话时那张表还在它原来的位置上，而不是跳到最后。
+    # 注意：这里直接 append，不走 emit（emit 会把它们再存一遍进 _cards）。seq 重新
+    # 按位置编号 —— 它是本进程事件流里的序号，把上一进程的号码带回来会和新事件撞，
+    # 而前端拿 seq 当表格的展开状态键。
+    for c in (s.state.get("_cards") or []):
+        s.events.append({**c, "seq": len(s.events)})
     s.emit("session.restored", files=len(s.files),
            stats=(s.state.get("oir") or {}).get("stats"))
     return s
@@ -1092,7 +1107,137 @@ _VERSION_STACK_CAP = 20
 #: 那样"点回原文"看到的就不是系统真正读过的东西。但它从来没被写进任何持久化白名单，
 #: 于是**每次重启，付费 OCR 出来的切片全丢**，`/source` 对一份已经识别过的材料回
 #: "尚未解析"。这就是那条注释描述的后果本身。
-_PERSISTED_PRIVATE_DOCS = ("_chunks",)
+#: ``_cards`` 同理：事件流是进程内的，但其中**承载内容**的那几条（AI 列出来的表、
+#: 导出的文件）重开会话必须还在，否则用户以为东西丢了。见 ``Session.emit``。
+_PERSISTED_PRIVATE_DOCS = ("_chunks", "_cards")
+
+#: 产物 → 给业务方看的表：每类挑**看得懂**的列，不是把内部结构原样倒出来。
+#:
+#: 放在模块级而不是 `_ui_table` 里面，是因为**导出必须和屏幕上看到的是同一张表**。
+#: 各写一份的话，AI 列出来的表和导出的 xlsx 迟早会不一样列、不一样条数，而用户
+#: 会拿导出的那份去跟客户对话 —— 那时候没人知道哪份是对的。
+_OIR_LABEL = {"objects": "业务对象", "properties": "属性", "links": "关系",
+              "actions": "动作", "rules": "业务规则", "questions": "待澄清问题"}
+
+
+def _oir_val(x: Any) -> str:
+    return str((x or {}).get("value", "") if isinstance(x, dict) else (x or ""))
+
+
+_OIR_COLS: dict[str, list[tuple[str, Any]]] = {
+    "objects": [("名称", lambda o: _oir_val(o.get("displayName"))),
+                ("API 名", lambda o: _oir_val(o.get("apiName"))),
+                ("说明", lambda o: _oir_val(o.get("description"))[:120]),
+                ("状态", lambda o: o.get("status", ""))],
+    "properties": [("所属对象", lambda p: p.get("parent", "")),
+                   ("字段", lambda p: _oir_val(p.get("displayName"))),
+                   ("API 名", lambda p: _oir_val(p.get("apiName"))),
+                   ("类型", lambda p: _oir_val(p.get("baseType"))),
+                   ("口径", lambda p: _oir_val(p.get("definition"))[:100])],
+    "links": [("从", lambda l: l.get("from", "")),
+              ("到", lambda l: l.get("to", "")),
+              ("名称", lambda l: _oir_val(l.get("apiName"))),
+              ("基数", lambda l: _oir_val(l.get("cardinality")))],
+    "actions": [("动作", lambda a: _oir_val(a.get("apiName"))),
+                ("作用对象", lambda a: "、".join(a.get("appliesTo") or []))],
+    "rules": [("规则", lambda r: _oir_val(r.get("statement"))),
+              ("类别", lambda r: _oir_val(r.get("ruleKind"))),
+              ("角色", lambda r: _oir_val(r.get("actor")))],
+    "questions": [("问题", lambda q: _oir_val(q.get("text"))),
+                  ("答复", lambda q: _oir_val(q.get("answer"))),
+                  ("编号", lambda q: q.get("code", ""))],
+}
+
+
+def _oir_table(oir: dict[str, Any], kind: str,
+               contains: str = "") -> tuple[str, list[str], list[list[str]]]:
+    """产物里的一类东西 → (中文类名, 表头, 行)。"""
+    items = list((oir or {}).get(kind) or [])
+    cols = _OIR_COLS[kind]
+    if contains:
+        k = contains.lower()
+        items = [x for x in items if k in json.dumps(x, ensure_ascii=False).lower()]
+    return (_OIR_LABEL[kind], [name for name, _ in cols],
+            [[fn(x) for _, fn in cols] for x in items])
+
+
+def _last_table(s: Session) -> dict[str, Any] | None:
+    """上一次列给用户看的那张表。"""
+    for ev in reversed(s.events):
+        if ev.get("kind") == "ui.table":
+            return ev
+    for ev in reversed(s.state.get("_cards") or []):     # 事件流是进程内的，兜一层
+        if ev.get("kind") == "ui.table":
+            return ev
+    return None
+
+
+def _export_doc(s: Session, source: str, contains: str,
+                title: str) -> tuple[Any, dict[str, Any]]:
+    """按 source 组装要导出的内容。返回 (ExportDoc | None, 组不出来时的回执)。
+
+    组不出来时**要说清是哪一步没有东西**：一句"导出失败"会让模型转头跟用户说
+    "系统限制"，而真实原因往往是他还没列过表、或者还没跑梳理 —— 那是能补的。
+    """
+    from .onto import export as X
+
+    if source in _OIR_COLS:
+        oir = s.state.get("oir") or {}
+        if not (oir.get(source) or []):
+            return None, {"error": f"还没有 {source} —— 梳理还没跑过或这一类是空的。",
+                          "下一步": "如果他要导的是**自己上传的表**，先用 material.rows "
+                                    "列出来，再用 source=last_table 导。"}
+        label, head, rows = _oir_table(oir, source, contains)
+        if not rows:
+            return None, {"error": f"{label}里没有含「{contains}」的条目，导出会是空表。"}
+        name = title or (f"{label}（含{contains}）" if contains else label)
+        return X.ExportDoc(title=name, blocks=X.table_block(head, rows),
+                           note=f"共 {len(rows)} 条，由 OntoCopilot 从本次梳理产物导出"), {}
+
+    if source == "last_table":
+        ev = _last_table(s)
+        if ev is None:
+            return None, {"error": "还没有列过表，没有「这个表」可导。",
+                          "下一步": "先用 ui.table（产物）或 material.rows（上传的表）"
+                                    "把内容列给他看，再导出。"}
+        head = list(ev.get("columns") or [])
+        rows = [list(r) for r in (ev.get("rows") or [])]
+        if contains:
+            k = contains.lower()
+            rows = [r for r in rows if k in " ".join(str(c) for c in r).lower()]
+            if not rows:
+                return None, {"error": f"这张表里没有含「{contains}」的行。"}
+        name = title or str(ev.get("title") or "清单")
+        return X.ExportDoc(title=name, blocks=X.table_block(head, rows),
+                           note=f"共 {len(rows)} 条，由 OntoCopilot 导出"), {}
+
+    turns = [t for t in _dialogue(s).turns if str(t.speaker) != "system"]
+    if source == "last_answer":
+        answer = next((t for t in reversed(turns) if str(t.speaker) == "assistant"), None)
+        if answer is None:
+            return None, {"error": "这轮之前还没有过回答，没有「刚才那段」可导。"}
+        return X.ExportDoc(title=title or "OntoCopilot 回答",
+                           blocks=X.blocks_from_markdown(answer.text),
+                           note="由 OntoCopilot 导出"), {}
+
+    if source == "conversation":
+        if not turns:
+            return None, {"error": "这个会话还没有对话内容。"}
+        blocks: list[Any] = []
+        for t in turns:
+            who = "FDE" if str(t.speaker) == "user" else "OntoCopilot"
+            blocks.append(X.Block("heading", who, level=2))
+            blocks.extend(X.blocks_from_markdown(t.text))
+        return X.ExportDoc(title=title or (s.title or "对话记录"), blocks=blocks,
+                           note=f"共 {len(turns)} 轮，由 OntoCopilot 导出"), {}
+
+    return None, {"error": f"不认识的 source「{source}」。"}
+
+
+#: 值得跨重启留下来的事件类型 —— 判据是「里面装的是内容，不是进度」。
+_CARD_EVENT_KINDS = ("ui.table", "export.ready")
+#: 留最近几条就够。一张 192 行的表 JSON 就有几十 KB，不封顶会把状态文档撑爆。
+_CARD_EVENT_CAP = 12
 
 
 def _push_version(s: Session, key: str, snap: dict[str, Any]) -> list[Any]:
@@ -1707,48 +1852,76 @@ def _converse_tools(s: Session) -> Any:
                               "（比如他自己整理好的问题清单），用 material.rows"
                               "(file=…) 直接把那张表列出来，不用先梳理。"}
 
-        def val(x: Any) -> str:
-            return str((x or {}).get("value", "") if isinstance(x, dict) else (x or ""))
-
-        # 每类挑**业务方看得懂**的列，不是把内部结构原样倒出来
-        cols: dict[str, list[tuple[str, Any]]] = {
-            "objects": [("名称", lambda o: val(o.get("displayName"))),
-                        ("API 名", lambda o: val(o.get("apiName"))),
-                        ("说明", lambda o: val(o.get("description"))[:120]),
-                        ("状态", lambda o: o.get("status", ""))],
-            "properties": [("所属对象", lambda p: p.get("parent", "")),
-                           ("字段", lambda p: val(p.get("displayName"))),
-                           ("API 名", lambda p: val(p.get("apiName"))),
-                           ("类型", lambda p: val(p.get("baseType"))),
-                           ("口径", lambda p: val(p.get("definition"))[:100])],
-            "links": [("从", lambda l: l.get("from", "")),
-                      ("到", lambda l: l.get("to", "")),
-                      ("名称", lambda l: val(l.get("apiName"))),
-                      ("基数", lambda l: val(l.get("cardinality")))],
-            "actions": [("动作", lambda a: val(a.get("apiName"))),
-                        ("作用对象", lambda a: "、".join(a.get("appliesTo") or []))],
-            "rules": [("规则", lambda r: val(r.get("statement"))),
-                      ("类别", lambda r: val(r.get("ruleKind"))),
-                      ("角色", lambda r: val(r.get("actor")))],
-            "questions": [("问题", lambda q: val(q.get("text"))),
-                          ("答复", lambda q: val(q.get("answer"))),
-                          ("编号", lambda q: q.get("code", ""))],
-        }[kind]
-
-        if contains:
-            k = contains.lower()
-            items = [x for x in items
-                     if k in json.dumps(x, ensure_ascii=False).lower()]
-        rows = [[fn(x) for _, fn in cols] for x in items]
-        head = [name for name, _ in cols]
-        label = {"objects": "业务对象", "properties": "属性", "links": "关系",
-                 "actions": "动作", "rules": "业务规则", "questions": "待澄清问题"}[kind]
+        label, head, rows = _oir_table(oir, kind, contains)
         s.emit("ui.table", title=title or f"{label}（{len(rows)} 条）",
                columns=head, rows=rows)
         # 返回给模型的是**摘要**，不是全部行 —— 它不需要、也不该把这些再打一遍
         return {"已列出": len(rows), "类型": label,
                 "说明": f"表格已经显示给用户了。回答里说一句「已列出 {len(rows)} 条"
                         f"{label}，见下表」就够了，**不要再逐条复述**。"}
+
+    @reg.fn("export.file",
+            "把**刚刚给用户看的那份内容**存成一个可下载的文件。他说「把这个表转成 "
+            "excel 给我」「导出成 word / pdf」「能不能下载」时用它，调完他那边就会出现"
+            "一个下载按钮。\n"
+            "source 选哪个：他说「这个表/刚才那个清单」→ last_table（默认，就是你上一次"
+            "列给他看的那张表，不管它是产物还是他上传的材料）；他指名要某一类产物 → "
+            "objects/properties/links/actions/rules/questions；他说「把你刚才那段回答"
+            "存下来」→ last_answer；「把我们这段对话导出来」→ conversation。\n"
+            "格式挑不准就按内容挑：**表格类给 xlsx**（能筛能排能粘），**成文的东西给 "
+            "docx 或 pdf**，要留档给 md。",
+            {"type": "object", "required": ["format"],
+             "properties": {
+                 "format": {"type": "string",
+                            "enum": ["xlsx", "docx", "pdf", "md", "csv"]},
+                 "source": {"type": "string",
+                            "enum": ["last_table", "objects", "properties", "links",
+                                     "actions", "rules", "questions",
+                                     "last_answer", "conversation"],
+                            "description": "导什么；不给就是上一张表"},
+                 "contains": {"type": "string",
+                              "description": "只导含这个词的行（对表格类有效）"},
+                 "title": {"type": "string",
+                           "description": "文件名/标题；不给就按内容起一个"}}},
+            danger=Danger.WRITE_LOCAL, scopes=RO)
+    def _export_file(ctx: Any, format: str, source: str = "last_table",  # noqa: A002
+                     contains: str = "", title: str = "") -> dict[str, Any]:
+        from .onto import export as X
+
+        try:
+            fmt = X.resolve_format(format)
+            if not fmt:
+                return {"error": f"不支持的格式「{format}」。可用："
+                                 f"{'/'.join(X.FORMATS)}"}
+        except Exception as exc:                                  # noqa: BLE001
+            return {"error": str(exc)}
+
+        doc, receipt = _export_doc(s, source, contains, title)
+        if doc is None:
+            return receipt                       # 组不出内容时 receipt 里是 error
+
+        try:
+            data, spec = X.render(doc, fmt)
+        except ImportError as exc:               # 某个格式的库没装：只影响这一种
+            return {"error": f"这台机器上导不出 {fmt}：{exc}"}
+        except Exception as exc:                                  # noqa: BLE001
+            return {"error": f"写 {fmt} 失败：{type(exc).__name__}: {exc}"}
+
+        # 写进 exports/ **子目录**：会话根目录下的散文件会被当成产物（artifacts 是
+        # "根目录下所有文件"算出来的），于是导出件会混进产物列表、混进交付包 zip，
+        # 一个叫「问题清单.xlsx」的导出还可能被「下载填写模板」按钮抓走。
+        outdir = s.dir / "exports"
+        outdir.mkdir(parents=True, exist_ok=True)
+        name = X.safe_name(doc.title, spec.ext)
+        (outdir / name).write_bytes(data)
+
+        rows = sum(len(t.rows) for t in doc.tables)
+        s.emit("export.ready", name=name, label=spec.label, size=len(data),
+               rows=rows, title=doc.title)
+        return {"已生成": name, "格式": spec.label, "大小字节": len(data),
+                "表格行数": rows or "不适用",
+                "说明": f"下载按钮已经显示给用户了。回答里说一句「已导出「{name}」，"
+                        f"点下面就能下载」即可，**不要贴链接、不要说存在哪个目录**。"}
 
     @reg.fn("material.parse",
             "把还没读过的材料**读进来**（不产出任何本体/流程图/模板）。"
@@ -3012,12 +3185,62 @@ async def artifact(sid: str, name: str) -> FileResponse:
     return FileResponse(p, filename=p.name)
 
 
-def _content_disposition(name: str) -> str:
+@app.get("/api/sessions/{sid}/export")
+async def export_table(sid: str, seq: int, format: str = "xlsx") -> Response:  # noqa: A002
+    """把界面上某一张表直接导成文件（表格卡片上那排格式按钮走这条）。
+
+    在内存里生成、不落盘：这条路是"看到什么就下什么"，没有留档的意义，落盘只会
+    在会话目录里堆垃圾。AI 用 ``export.file`` 工具导的那份才落盘 —— 那是他明确
+    要来的东西，下次打开会话还得在。
+    """
+    from .onto import export as X
+
+    s = _sess(sid)
+    ev = next((e for e in reversed(s.events)
+               if e.get("seq") == seq and e.get("kind") == "ui.table"), None)
+    if ev is None:
+        raise HTTPException(404, "没有这张表（可能服务重启过）")
+    fmt = X.resolve_format(format)
+    if not fmt:
+        raise HTTPException(400, f"不支持的格式 {format}")
+    rows = [list(r) for r in (ev.get("rows") or [])]
+    doc = X.ExportDoc(title=str(ev.get("title") or "清单"),
+                      blocks=X.table_block(list(ev.get("columns") or []), rows),
+                      note=f"共 {len(rows)} 条，由 OntoCopilot 导出")
+    data, spec = X.render(doc, fmt)
+    name = X.safe_name(doc.title, spec.ext)
+    return Response(content=data, media_type=spec.media_type,
+                    headers={"Content-Disposition": _content_disposition(name)})
+
+
+@app.get("/api/sessions/{sid}/exports/{name}")
+async def export_download(sid: str, name: str) -> FileResponse:
+    """下载对话里导出的文件。
+
+    单独一个目录、单独一个路由 —— 导出件**不是产物**。产物列表是"会话根目录下所有
+    文件"算出来的，把导出塞在那儿会让它混进产物 tab、混进交付包 zip，一个叫
+    「问题清单.xlsx」的导出还会被「下载填写模板」按钮抓走（它取第一个 .xlsx）。
+    """
+    s = _sess(sid)
+    p = s.dir / "exports" / Path(name).name      # basename：防路径穿越
+    if not p.exists():
+        raise HTTPException(404, name)
+    return FileResponse(p, filename=p.name,
+                        headers={"Content-Disposition": _content_disposition(p.name)})
+
+
+def _content_disposition(name: str, *, ascii_fallback: str = "") -> str:
     """带中文文件名的 Content-Disposition：ASCII 兜底 + RFC 5987 filename*，
-    让中文包名在各浏览器都能正确落地。"""
+    让中文包名在各浏览器都能正确落地。
+
+    兜底名以前**硬编码成 bundle.zip** —— 只有交付包一个调用方时没露馅，但任何其他
+    格式复用它，都会在忽略 filename* 的客户端上存成一个 .zip。按真实后缀生成。
+    """
     from urllib.parse import quote
 
-    return f"attachment; filename=\"bundle.zip\"; filename*=UTF-8''{quote(name)}"
+    ext = Path(name).suffix or ".bin"
+    fallback = ascii_fallback or f"download{ext}"
+    return f"attachment; filename=\"{fallback}\"; filename*=UTF-8''{quote(name)}"
 
 
 @app.get("/api/sessions/{sid}/bundle")
