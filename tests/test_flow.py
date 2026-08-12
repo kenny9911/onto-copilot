@@ -654,6 +654,29 @@ def test_stages_fall_back_to_business_domain_not_fixed_size_chunks():
 # ══════════════════════════════════════════════════════════════════
 #  流程图 ↔ 接口清单
 # ══════════════════════════════════════════════════════════════════
+# 材料原文里「采购需求计划」这一段的四个节点：创建 / 修改 / 取消 / 审批。
+_REAL_PBP = """（3）创建采购需求计划：基于已审批集采计划自动注入；
+触发条件：集采计划审批完成；
+输入：已审批集采计划；
+输出：未审批采购需求计划；
+执行者：需求申请人
+（4）修改采购需求计划：如采购需求有变化，可进行修改并审批；
+触发条件：采购需求需调整；
+输入：数量、金额等调整；
+输出：修改后采购需求计划；
+执行者：需求申请人
+（5）取消采购需求计划：执行采购需求计划取消流程进行取消；
+触发条件：无需继续采购；
+输入：需求取消；
+输出：已取消采购需求计划；
+执行者：需求申请人
+（6）审批采购需求计划：对已完成编制的采购需求计划进行审批；
+触发条件：采购需求计划已编制；
+输入：采购需求计划；
+输出：已审批采购需求计划；
+执行者：需求申请人及部门领导"""
+
+
 def _oir_with_api():
     """一份和 _REAL 那段流程说明对得上的接口清单。"""
     from ontocopilot.onto.oir import (
@@ -699,7 +722,7 @@ def test_the_verb_has_to_match_not_just_the_object():
     from ontocopilot.onto.flow_extract import build_flow, parse_steps
     from ontocopilot.onto.flow_link import attach_endpoints
 
-    g = build_flow(parse_steps(_REAL, cite="业务规则!A14"), file_name="x.xlsx")
+    g = build_flow(parse_steps(_REAL_PBP, cite="业务规则!A14"), file_name="x.xlsx")
     attach_endpoints(g, _oir_with_api())
     node = next(n for n in g.nodes.values() if n.label.value == "取消采购需求计划")
     assert "cancelPbp" in node.endpoint and "createPbp" not in node.endpoint
@@ -710,10 +733,13 @@ def test_a_step_with_no_interface_becomes_a_question():
     from ontocopilot.onto.flow_extract import build_flow, parse_steps
     from ontocopilot.onto.flow_link import attach_endpoints, coverage_gaps
 
-    g = build_flow(parse_steps(_REAL, cite="业务规则!A14"), file_name="x.xlsx")
+    g = build_flow(parse_steps(_REAL_PBP, cite="业务规则!A14"), file_name="x.xlsx")
     oir = _oir_with_api()
     gaps = coverage_gaps(attach_endpoints(g, oir), oir)
-    assert any("审批采购需求计划" in x.text for x in gaps)
+    hit = next(x for x in gaps if "审批采购需求计划" in x.text)
+    # 顺带告诉顾问这个单据上**有**哪几类接口 —— 他才判断得了是漏了还是线下做的。
+    # 而且要说中文：动词码是我们内部对齐用的，摆到问卷上等于要求对方先学词表。
+    assert "创建" in hit.text and "CREATE" not in hit.text
 
 
 def test_read_only_interfaces_are_not_expected_to_appear_in_the_flow():
@@ -721,7 +747,7 @@ def test_read_only_interfaces_are_not_expected_to_appear_in_the_flow():
     from ontocopilot.onto.flow_extract import build_flow, parse_steps
     from ontocopilot.onto.flow_link import attach_endpoints, coverage_gaps
 
-    g = build_flow(parse_steps(_REAL, cite="业务规则!A14"), file_name="x.xlsx")
+    g = build_flow(parse_steps(_REAL_PBP, cite="业务规则!A14"), file_name="x.xlsx")
     oir = _oir_with_api()
     gaps = coverage_gaps(attach_endpoints(g, oir), oir)
     assert not any("queryOpenPbpHeader" in x.text for x in gaps)
@@ -738,7 +764,7 @@ def test_a_write_interface_missing_from_the_flow_becomes_a_question():
         rid="at_split", api_name=extracted("splitPbp", prov), applies_to=["ot_pbp"],
         source_endpoint=extracted({"path": "/v1/splitPbp", "display": "拆分PBP"}, prov)))
 
-    g = build_flow(parse_steps(_REAL, cite="业务规则!A14"), file_name="x.xlsx")
+    g = build_flow(parse_steps(_REAL_PBP, cite="业务规则!A14"), file_name="x.xlsx")
     gaps = coverage_gaps(attach_endpoints(g, oir), oir)
     assert any("splitPbp" in x.text for x in gaps)
 
@@ -780,3 +806,68 @@ def test_endpoints_survive_a_save_and_reload():
     back = flow_from_dict(g.to_dict())
     node = next(n for n in back.nodes.values() if n.label.value == "创建采购需求计划")
     assert "createPbp" in node.endpoint
+
+
+def test_the_diagram_shows_which_steps_have_system_support():
+    """图上要一眼看出哪一步有接口撑着 —— 这正是拿去开会时第一个被问的。"""
+    from ontocopilot.onto.flow_extract import build_flow, parse_steps
+    from ontocopilot.onto.flow_link import attach_endpoints
+
+    g = build_flow(parse_steps(_REAL_PBP, cite="业务规则!A14"), file_name="x.xlsx")
+    attach_endpoints(g, _oir_with_api())
+
+    svg = to_svg(g)
+    assert "个环节已对上接口" in svg
+    assert "/msourcing/openapi/v1/createPbp" in svg   # 悬停能看到完整路径
+    mmd = to_mermaid(g)
+    assert "createPbp" in mmd
+
+
+def test_a_diagram_without_any_endpoint_says_nothing_about_them():
+    """一个接口都没接上时，不要在图上留一句「0 个环节已对上接口」的空话。"""
+    from ontocopilot.onto.flow_extract import build_flow, parse_steps
+
+    g = build_flow(parse_steps(_REAL_PBP, cite="业务规则!A14"), file_name="x.xlsx")
+    assert "个环节已对上接口" not in to_svg(g)
+
+
+def test_an_empty_graph_renders_instead_of_crashing():
+    """材料里没有流程说明时图是空的 —— 渲染器不能就地抛异常。
+
+    `to_svg` 里有一行 `[type(...) and None]`，在零泳道的图上会产出 `[None]`，
+    下一行取 `.key` 直接 AttributeError。整条建图链路会连同它一起挂掉。
+    """
+    svg = to_svg(FlowGraph())
+    assert svg.startswith("<svg") and svg.rstrip().endswith("</svg>")
+
+
+def test_a_graph_with_nodes_but_no_stage_still_renders():
+    g = FlowGraph()
+    g.add_node(FlowNode(rid="fn_x", kind=NodeKind.ACTION, label=inferred("孤立环节")))
+    svg = to_svg(g)
+    assert "孤立环节" in svg
+
+
+def test_the_verb_can_come_after_the_document_name():
+    """材料里既写「创建采购包」也写「采购包分配」—— 动词在后面同样要认出来。"""
+    from ontocopilot.onto.flow_link import canonical_verb
+
+    assert canonical_verb("创建采购包") == "CREATE"
+    assert canonical_verb("采购包分配") == "ALLOCATE"
+    assert canonical_verb("采购需求计划审批") == "APPROVE"
+
+
+def test_a_parenthesised_aside_is_not_part_of_the_document_name():
+    """「创建采购申请单（立项）」处理的单据是采购申请单，不是「采购申请单（立项」。"""
+    from ontocopilot.onto.flow_link import _subject
+
+    assert _subject("创建采购申请单（立项）") == "采购申请单"
+    assert _subject("采购包分配") == "采购包"
+
+
+def test_a_query_verb_buried_mid_name_does_not_win():
+    """`queryPoApproveHistory` 查的是审批历史，不是执行审批 —— 动词看第一段。"""
+    from ontocopilot.onto.flow_link import canonical_verb
+
+    assert canonical_verb("queryPoApproveHistory") == "QUERY"
+    assert canonical_verb("cancelOpenPbp") == "CANCEL"

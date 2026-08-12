@@ -68,11 +68,13 @@ class ProcessStep:
     outputs: str = ""
     actor: str = ""
     cite: str = ""
+    file_name: str = ""
 
     def to_dict(self) -> dict[str, Any]:
         return {"no": self.no, "name": self.name, "detail": self.detail,
                 "trigger": self.trigger, "inputs": self.inputs,
-                "outputs": self.outputs, "actor": self.actor, "cite": self.cite}
+                "outputs": self.outputs, "actor": self.actor, "cite": self.cite,
+                "file_name": self.file_name}
 
 
 def looks_like_process(text: str) -> bool:
@@ -106,7 +108,7 @@ def _split_fields(body: str) -> dict[str, str]:
     return out
 
 
-def parse_steps(text: str, *, cite: str = "") -> list[ProcessStep]:
+def parse_steps(text: str, *, cite: str = "", file_name: str = "") -> list[ProcessStep]:
     """把一段流程说明拆成节点列表。一行不丢。"""
     t = str(text or "")
     heads = list(_STEP_HEAD.finditer(t))
@@ -131,7 +133,8 @@ def parse_steps(text: str, *, cite: str = "") -> list[ProcessStep]:
             no=no, name=name.strip().strip("；;。\n "),
             detail=detail.strip().strip("；;。\n ")[:300],
             trigger=f.get("trigger", ""), inputs=f.get("inputs", ""),
-            outputs=f.get("outputs", ""), actor=f.get("actor", ""), cite=cite))
+            outputs=f.get("outputs", ""), actor=f.get("actor", ""), cite=cite,
+            file_name=file_name))
     return steps
 
 
@@ -218,7 +221,8 @@ def build_flow(steps: list[ProcessStep], *, stages: dict[int, str] | None = None
     produced: list[tuple[str, str, int]] = []   # (规范化名, 事件 rid, 节点号)
 
     for st in steps:
-        prov = _raw_prov(file_name, st.cite, f"（{st.no}）{st.name}：{st.detail}")
+        source_file = st.file_name or file_name
+        prov = _raw_prov(source_file, st.cite, f"（{st.no}）{st.name}：{st.detail}")
         stage = stages.get(st.no, MAIN_STAGE)
         act = g.add_node(FlowNode(
             rid=make_rid("fn", f"act{st.no}_{st.name}"), kind=NodeKind.ACTION,
@@ -247,7 +251,7 @@ def build_flow(steps: list[ProcessStep], *, stages: dict[int, str] | None = None
         clue = _norm(f"{st.trigger} {st.inputs}")
         hits = [(rid, no) for name, rid, no in produced
                 if no != st.no and name and name in clue]
-        prov = _raw_prov(file_name, st.cite,
+        prov = _raw_prov(st.file_name or file_name, st.cite,
                          f"触发条件：{st.trigger}｜输入：{st.inputs}")
         for rid, _no in hits[:2]:
             g.connect(rid, act_rid, evidence=[prov])

@@ -10,8 +10,20 @@
 
 from .const import DERIVED_KEYS, EVENT_INLINE_LIMIT
 from .engine import Store, database_url
-from .repo import DecisionRow, EventRow, FileRow, MemoryRepo, Repo, SessionRow, build_repo
+from .repo import (
+    DecisionRecordRow,
+    DecisionRow,
+    EventRow,
+    FileRow,
+    MemoryRepo,
+    QuestionRow,
+    Repo,
+    RevisionRow,
+    SessionRow,
+    build_repo,
+)
 
 __all__ = ["Store", "database_url", "Repo", "MemoryRepo", "build_repo",
-           "SessionRow", "FileRow", "EventRow", "DecisionRow",
+           "SessionRow", "FileRow", "EventRow", "DecisionRow", "QuestionRow",
+           "DecisionRecordRow", "RevisionRow",
            "DERIVED_KEYS", "EVENT_INLINE_LIMIT"]

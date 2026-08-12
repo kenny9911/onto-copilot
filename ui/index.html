@@ -230,8 +230,8 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .preview{width:400px;flex:0 0 400px;background:var(--bg)}
 .phead{display:flex;align-items:center;padding:14px 16px 10px}
 .phead .pt{font-size:13px;flex:1}
-.tabs{display:flex;background:#f0eee9;border-radius:9px;padding:3px;margin:0 16px 12px}
-.tab{flex:1;padding:5px;font-size:12.3px;color:var(--ink-2);border-radius:7px;text-align:center}
+.tabs{display:flex;flex-wrap:wrap;gap:2px;background:#f0eee9;border-radius:9px;padding:3px;margin:0 16px 12px}
+.tab{flex:1;min-width:calc(25% - 2px);padding:5px;font-size:12.3px;color:var(--ink-2);border-radius:7px;text-align:center}
 .tab.on{background:var(--panel);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.05)}
 .pbody{flex:1;overflow-y:auto;padding:0 16px 20px}
 .files{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
@@ -250,6 +250,36 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .ph .ic{font-family:var(--mono);font-size:10px;letter-spacing:2px;margin-bottom:8px;color:#c8c4ba}
 pre.j{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:9px 10px;font-family:var(--mono);font-size:10.3px;line-height:1.65;overflow-x:auto;color:var(--ink-2);white-space:pre-wrap;word-break:break-all}
 input[type=file]{display:none}
+
+/* FDE 问题工作台。完整 backlog 放在右栏，不再把 100+ 条问题塞进聊天气泡；
+   卡片仍保持紧凑，访谈现场可在同屏看流程、证据和回答状态。 */
+.qwbhead{display:flex;align-items:flex-start;gap:8px;margin-bottom:9px}
+.qwbtitle{font-weight:600;font-size:13px;flex:1}
+.qwbsum{font-family:var(--mono);font-size:10px;color:var(--ink-3);margin-top:2px}
+.qfilters{display:flex;gap:4px;flex-wrap:wrap;margin:7px 0 10px}
+.qfilter{border:1px solid var(--line);border-radius:12px;padding:3px 8px;font-size:10.5px;color:var(--ink-2);background:var(--panel)}
+.qfilter.on{border-color:var(--accent-line);background:var(--accent-tint);color:var(--accent)}
+.qnotice{border:1px solid var(--warn-line);background:var(--warn-tint);color:var(--warn);border-radius:6px;padding:7px 9px;font-size:10.8px;margin-bottom:8px}
+.qdeliver{border:1px solid var(--accent-line);background:var(--accent-tint);border-radius:8px;padding:9px 10px;margin-bottom:10px}
+.qdeliver .acts{margin-top:6px;display:flex;gap:5px;flex-wrap:wrap}
+.qcard{border:1px solid var(--line);border-radius:8px;background:var(--panel);padding:10px;margin-bottom:8px}
+.qcard.answered{border-left:3px solid var(--accent)}
+.qcard.deferred{opacity:.78;border-left:3px solid var(--ink-3)}
+.qmeta{display:flex;gap:5px;align-items:center;flex-wrap:wrap;margin-bottom:5px}
+.qbadge{font-family:var(--mono);font-size:9px;border-radius:8px;padding:1px 6px;background:var(--hover);color:var(--ink-2)}
+.qbadge.high,.qbadge.blocking{background:var(--danger-tint);color:var(--danger)}
+.qbadge.medium{background:var(--warn-tint);color:var(--warn)}
+.qbadge.answered{background:var(--accent-tint);color:var(--accent)}
+.qtext{font-size:12.6px;line-height:1.6;font-weight:550;word-break:break-word}
+.qwhy{font-size:10.8px;line-height:1.55;color:var(--ink-2);margin:5px 0}
+.qimpact{font-size:10.3px;color:var(--warn);margin:4px 0}
+.qfields{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin:7px 0}
+.qinput,.qselect,.qanswer{width:100%;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:6px;padding:5px 7px;font:inherit;font-size:10.8px}
+.qanswer{resize:vertical;min-height:48px;line-height:1.5}
+.qactions{display:flex;gap:5px;align-items:center;flex-wrap:wrap;margin-top:7px}
+.qactions .act{font-size:10.5px;padding:4px 8px}
+.qmore{width:100%;border:1px solid var(--line);border-radius:7px;padding:7px;color:var(--ink-2);font-size:11px;background:var(--panel)}
+.qempty{padding:24px 8px;text-align:center;color:var(--ink-3);font-size:11.5px}
 
 .sgc{border:1px solid var(--line);border-left:2px solid var(--accent-line);border-radius:3px;
      padding:12px 14px;margin:10px 0;background:var(--panel)}
@@ -380,7 +410,9 @@ input[type=file]{display:none}
 .langsw button{border:0;background:transparent;color:var(--ink-2);font-size:11.5px;padding:4px 9px;border-radius:7px;cursor:pointer}
 .langsw button.on{background:var(--panel);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.05)}
 
-.identity{padding-bottom:10px;margin-bottom:10px;border-bottom:1px solid var(--line-soft)}
+/* 这条分隔线以前是钉死的，用来隔开账户行和下面那行数据库状态。状态行现在只在
+   出问题时才有内容 —— 线跟着内容走，否则侧栏底部会挂一条底下什么都没有的横线。 */
+#store:not(:empty){padding-top:10px;margin-top:10px;border-top:1px solid var(--line-soft)}
 .idrow{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink)}
 .idname{font-weight:500}
 .idrole{font-family:var(--mono);font-size:9.5px;color:var(--ink-3);background:var(--hover);border-radius:4px;padding:1px 6px}
@@ -401,6 +433,9 @@ input[type=file]{display:none}
 .acctitem .ai{width:15px;text-align:center;color:var(--ink-2);flex:0 0 auto}
 .acctlang{cursor:default}.acctlang:hover{background:transparent}.acctlang .acctlangl{flex:1}
 .acctsep{height:1px;background:var(--line-soft);margin:5px 4px}
+/* 本地模式的头像淡一档：它不是一个"人"，只是还没登录。实心深底会让人以为
+   自己已经是某个账号了。 */
+.acctava.ghosted{background:var(--hover-2);color:var(--ink-2);box-shadow:inset 0 0 0 1px var(--line)}
 
 .overlay{position:fixed;inset:0;background:rgba(10,10,8,.5);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px}
 .opanel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:24px 26px;
@@ -513,6 +548,7 @@ body.dense .stream{padding:0 16px}
       <button class="tab on" data-t="mat" onclick="go('mat')">材料</button>
       <button class="tab" data-t="ent" onclick="go('ent')">实体</button>
       <button class="tab" data-t="cf" onclick="go('cf')">冲突</button>
+      <button class="tab" data-t="q" onclick="go('q')">问题</button>
       <button class="tab" data-t="art" onclick="go('art')">产物</button>
       <button class="tab" data-t="flow" onclick="go('flow')">流程图</button>
       <button class="tab" data-t="think" onclick="go('think')">推理</button>
@@ -536,15 +572,25 @@ body.dense .stream{padding:0 16px}
     <button class="act pri" id="loginSubmit" style="width:100%;margin-top:8px" onclick="doAuthSubmit()"></button>
     <p class="cap" id="loginToggle" style="text-align:center;margin-top:10px;cursor:pointer;color:var(--accent)"
        onclick="toggleAuthMode()"></p>
+    <!-- 从账户菜单主动点开时才给"以后再说"：强制鉴权下这层是闸，不能关 -->
+    <p class="cap" id="loginCancel" style="text-align:center;margin-top:2px;cursor:pointer;display:none"
+       onclick="closeLogin()"></p>
   </div>
 </div>
 
-<!-- 首次启动：还没有管理员账号，指引在主机上创建 -->
-<div class="overlay" id="bootstrapOverlay" style="display:none">
+<!-- 改密码：后端一直有 /api/me/password，界面上一直没有入口 -->
+<div class="overlay" id="pwOverlay" style="display:none">
   <div class="opanel">
-    <h3 id="bsTitle"></h3>
-    <p class="cap" id="bsBody" style="white-space:pre-wrap"></p>
-    <button class="act pri" id="bsRetry" style="width:100%;margin-top:8px" onclick="retryBootstrap()"></button>
+    <h3 id="pwTitle"></h3>
+    <p class="cap" id="pwSubtitle"></p>
+    <div class="field"><label id="pwOldLabel"></label>
+      <input class="input" id="pwOld" type="password" autocomplete="current-password"></div>
+    <div class="field"><label id="pwNewLabel"></label>
+      <input class="input" id="pwNew" type="password" autocomplete="new-password"></div>
+    <div class="err" id="pwErr"></div>
+    <button class="act pri" id="pwSubmit" style="width:100%;margin-top:8px" onclick="doPassword()"></button>
+    <p class="cap" id="pwCancel" style="text-align:center;margin-top:10px;cursor:pointer"
+       onclick="closePassword()"></p>
   </div>
 </div>
 
@@ -574,6 +620,9 @@ body.dense .stream{padding:0 16px}
 <script>
 const API = "";
 let S = null, TAB = "mat", FILE = null, SRC = {}, ES = null, ANSWERS = {};
+// 服务端新 Question Ledger 不可用时，仍从 state.oir.questions 与冲突卡合成只读 backlog。
+// 这样升级可渐进部署：前端先到不会让现有工作台失效，后端到后自动启用写操作。
+let Q_BACKLOG = [], Q_API = false, Q_FILTER = "open", Q_LIMIT = 40, Q_BUSY = new Set();
 let MODE = localStorage.getItem("oc_mode") || "work";   // 聊天 / 工作 双模式
 let STREAM = null;   // {full, i, timer} —— 助手回答的打字机流式呈现
 // 477 个切片全渲染会让面板卡住，也没人会一次看完。
@@ -605,6 +654,8 @@ let LAST_ASSIST_SEQ = -1;
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+const eattr = s => String(s ?? "").replace(/[&<>"']/g, c => ({
+  "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const j = async (u, o) => {
   const r = await fetch(API + u, o);
   // 401 意味着会话过期或从未登录 —— 除了登录请求本身，任何接口踩到这个都该
@@ -619,7 +670,7 @@ const I18N = {
   zh: {
     "nav.newSession":"+ 新会话", "nav.sessions":"会话",
     "sidebar.chatMeta":"对话", "sidebar.emptyChat":"还没有对话", "sidebar.emptyWork":"还没有工作会话",
-    "tab.mat":"材料", "tab.ent":"实体", "tab.cf":"冲突", "tab.art":"产物", "tab.flow":"流程图", "tab.think":"推理",
+    "tab.mat":"材料", "tab.ent":"实体", "tab.cf":"冲突", "tab.q":"问题", "tab.art":"产物", "tab.flow":"流程图", "tab.think":"推理",
     "mode.chat":"聊天", "mode.work":"工作",
     "status.idle":"待上传", "status.parsing":"解析中", "status.extracting":"抽取中",
     "status.awaiting_answer":"待拍板", "status.done":"已完成", "status.failed":"失败", "status.ready":"就绪",
@@ -641,9 +692,15 @@ const I18N = {
     "register.title":"注册", "register.subtitle":"创建账号并登录（首个账号是管理员）",
     "register.submit":"注册", "register.short":"密码至少 6 位", "register.dup":"用户名已存在",
     "auth.to_register":"没有账号？注册", "auth.to_login":"已有账号？登录",
-    "bootstrap.title":"实例尚未初始化",
-    "bootstrap.body":"还没有管理员账号。请在部署这个实例的主机上运行：\n\nontocopilot useradd --admin <用户名>\n\n创建首个管理员账号后点重试。",
-    "bootstrap.retry":"重试",
+    "register.subtitleLocal":"本机的会话会归到这个账号名下，不会丢",
+    "auth.signIn":"登录 / 创建账号", "auth.later":"以后再说",
+    "auth.changePassword":"修改密码",
+    "pw.title":"修改密码", "pw.subtitle":"改完需要重新登录",
+    "pw.old":"当前密码", "pw.new":"新密码（至少 6 位）", "pw.submit":"确认修改",
+    "auth.pwTooShort":"新密码至少 6 位", "auth.pwWrong":"当前密码不对",
+    "auth.pwFailed":"改不了，稍后再试", "common.cancel":"取消",
+    "store.memory":"内存模式", "store.memoryHint":"会话在服务重启后会丢失",
+    "store.error":"数据库异常", "auth.adopted":"已把 {n} 个会话归到这个账号",
     "auth.logout":"退出", "auth.local":"本地模式", "auth.accounts":"账户管理", "auth.settings":"设置", "auth.language":"语言",
     "role.admin":"管理员", "role.user":"用户",
     "accounts.title":"账户管理", "accounts.username":"用户名", "accounts.role":"角色", "accounts.active":"启用",
@@ -671,7 +728,7 @@ const I18N = {
   en: {
     "nav.newSession":"+ New session", "nav.sessions":"Sessions",
     "sidebar.chatMeta":"Chat", "sidebar.emptyChat":"No conversations yet", "sidebar.emptyWork":"No work sessions yet",
-    "tab.mat":"Materials", "tab.ent":"Entities", "tab.cf":"Conflicts", "tab.art":"Artifacts", "tab.flow":"Flow", "tab.think":"Reasoning",
+    "tab.mat":"Materials", "tab.ent":"Entities", "tab.cf":"Conflicts", "tab.q":"Questions", "tab.art":"Artifacts", "tab.flow":"Flow", "tab.think":"Reasoning",
     "mode.chat":"Chat", "mode.work":"Work",
     "status.idle":"Pending upload", "status.parsing":"Parsing", "status.extracting":"Extracting",
     "status.awaiting_answer":"Awaiting decision", "status.done":"Done", "status.failed":"Failed", "status.ready":"Ready",
@@ -694,9 +751,17 @@ const I18N = {
     "register.title":"Create account", "register.subtitle":"Register and sign in (the first account is admin)",
     "register.submit":"Register", "register.short":"Password must be at least 6 characters", "register.dup":"Username already taken",
     "auth.to_register":"No account? Register", "auth.to_login":"Have an account? Sign in",
-    "bootstrap.title":"Instance not initialized",
-    "bootstrap.body":"There's no admin account yet. On the host running this instance, run:\n\nontocopilot useradd --admin <username>\n\nthen retry once the first admin is created.",
-    "bootstrap.retry":"Retry",
+    "register.subtitleLocal":"Sessions on this machine move to this account — nothing is lost",
+    "auth.signIn":"Sign in / Create account", "auth.later":"Not now",
+    "auth.changePassword":"Change password",
+    "pw.title":"Change password", "pw.subtitle":"You'll need to sign in again afterwards",
+    "pw.old":"Current password", "pw.new":"New password (min 6 characters)",
+    "pw.submit":"Change password",
+    "auth.pwTooShort":"New password must be at least 6 characters",
+    "auth.pwWrong":"Current password is wrong",
+    "auth.pwFailed":"Couldn't change it, try again later", "common.cancel":"Cancel",
+    "store.memory":"In-memory mode", "store.memoryHint":"Sessions are lost when the server restarts",
+    "store.error":"Database error", "auth.adopted":"{n} session(s) moved to this account",
     "auth.logout":"Log out", "auth.local":"Local mode", "auth.accounts":"Accounts", "auth.settings":"Settings", "auth.language":"Language",
     "role.admin":"Admin", "role.user":"User",
     "accounts.title":"Accounts", "accounts.username":"Username", "accounts.role":"Role", "accounts.active":"Active",
@@ -882,16 +947,25 @@ let CURRENT_USER = null;
   renderIdentity();
 
   try {
-    const h = await j("/api/health");
-    // 这里只放**用户需要知道的**：数据会不会丢。模型能力计数是实现细节，
-    // 摆在侧栏只是噪声。
-    const db = h.database || {};
+    // **只在出问题时说话。** 以前这里常驻一行"● 已连接数据库 / schema v0" ——
+    // 一切正常时它没有告诉用户任何他能用上的事，只是把实现细节钉在侧栏底部。
+    // 真正值得占这个位置的只有一件：**你的东西会不会丢**。
+    const db = (await j("/api/health")).database || {};
     $("store").innerHTML = db.mode === "memory"
-      ? `<span style="color:var(--warn)">● 内存模式</span><br>会话在服务重启后会丢失`
-      : db.ok ? `<span style="color:var(--accent)">● 已连接数据库</span><br>schema v${db.schema_version ?? "?"}`
-      : `<span style="color:var(--danger)">● 数据库异常</span><br>${esc(String(db.error||"").slice(0,60))}`;
+      ? `<span style="color:var(--warn)">● ${esc(t("store.memory"))}</span><br>${esc(t("store.memoryHint"))}`
+      : db.ok ? ""
+      : `<span style="color:var(--danger)">● ${esc(t("store.error"))}</span><br>${esc(String(db.error||"").slice(0,60))}`;
   } catch(e) { /* 健康检查失败不该在界面上留一行技术说明 */ }
   await loadSessions();
+  // 刚建完首个账号：告诉他原来的会话已经归到这个账号名下。少了这一句，他看到的
+  // 是"注册完界面变了" —— 而会话列表长度没变这件事，他不会主动去核对。
+  const adopted = sessionStorage.getItem("oc_adopted");
+  if (adopted) {
+    sessionStorage.removeItem("oc_adopted");
+    const el = $("store");
+    if (el) el.innerHTML = `<span style="color:var(--accent)">● ${
+      esc(t("auth.adopted", "", {n: adopted}))}</span>`;
+  }
   $("picker").onchange = uploadPicked;
   bindComposer();
   bindDrop();
@@ -905,22 +979,46 @@ function bindAuthForms(){
     if (e.key === "Enter") { e.preventDefault(); fn(); } }); };
   onEnter("loginUser", doAuthSubmit);
   onEnter("loginPass", doAuthSubmit);
+  onEnter("pwOld", doPassword);
+  onEnter("pwNew", doPassword);
+  // Esc 关掉可关的遮罩。强制鉴权那次 closeLogin 自己会拒绝。
+  document.addEventListener("keydown", e => {
+    if (e.key !== "Escape") return;
+    if ($("pwOverlay") && $("pwOverlay").style.display === "flex") closePassword();
+    else if ($("loginOverlay") && $("loginOverlay").style.display === "flex") closeLogin();
+  });
 }
 
 let AUTH_MODE = "login";   // login | register —— 共用同一套表单
 
-function showLogin(mode){
+// 主动点开的（本地模式下从账户菜单进来）可以关掉；强制鉴权弹出来的那次不行 ——
+// 那是闸，关掉只会看到一个空壳应用。
+let AUTH_DISMISSIBLE = false;
+
+function showLogin(mode, dismissible){
   AUTH_MODE = (mode === "register") ? "register" : "login";
+  if (dismissible !== undefined) AUTH_DISMISSIBLE = !!dismissible;
   const reg = AUTH_MODE === "register";
   $("loginTitle").textContent = t(reg ? "register.title" : "login.title");
-  $("loginSubtitle").textContent = t(reg ? "register.subtitle" : "login.subtitle");
+  $("loginSubtitle").textContent = t(
+    AUTH_DISMISSIBLE && reg ? "register.subtitleLocal"
+      : (reg ? "register.subtitle" : "login.subtitle"));
   $("loginUserLabel").textContent = t("login.username");
   $("loginPassLabel").textContent = t("login.password");
   $("loginPass").setAttribute("autocomplete", reg ? "new-password" : "current-password");
   $("loginSubmit").textContent = t(reg ? "register.submit" : "login.submit");
   $("loginToggle").textContent = t(reg ? "auth.to_login" : "auth.to_register");
   $("loginErr").style.display = "none";
+  const cancel = $("loginCancel");
+  cancel.textContent = t("auth.later");
+  cancel.style.display = AUTH_DISMISSIBLE ? "" : "none";
   $("loginOverlay").style.display = "flex";
+  $("loginUser").focus();
+}
+
+function closeLogin(){
+  if (!AUTH_DISMISSIBLE) return;
+  $("loginOverlay").style.display = "none";
 }
 
 function toggleAuthMode(){ showLogin(AUTH_MODE === "login" ? "register" : "login"); }
@@ -966,6 +1064,10 @@ async function doRegister(){
     if (r.status === 429) { errEl.textContent = t("login.throttled"); errEl.style.display = "block"; return; }
     if (r.status === 400) { errEl.textContent = t("register.short"); errEl.style.display = "block"; return; }
     if (!r.ok) { errEl.textContent = (await r.text()).slice(0,200); errEl.style.display = "block"; return; }
+    // 首个账号会把开放模式下建的会话认领过来。这件事不能悄悄发生 —— 用户刚点了
+    // "创建账户"，界面整个变一次，得让他知道东西还在、去哪了。
+    const body = await r.json().catch(() => ({}));
+    if (body.adopted_sessions) sessionStorage.setItem("oc_adopted", body.adopted_sessions);
     location.reload();   // 注册即登录
   } catch(e) {
     errEl.textContent = String(e.message || e); errEl.style.display = "block";
@@ -974,20 +1076,9 @@ async function doRegister(){
   }
 }
 
-function showBootstrap(){
-  $("bsTitle").textContent = t("bootstrap.title");
-  $("bsBody").textContent = t("bootstrap.body");
-  $("bsRetry").textContent = t("bootstrap.retry");
-  $("bootstrapOverlay").style.display = "flex";
-}
-
-async function retryBootstrap(){
-  try {
-    const st = await j("/api/auth/status");
-    if (st.bootstrap_needed) { showBootstrap(); return; }
-    location.reload();
-  } catch(e) { /* 保持挂起，用户可以再点一次 */ }
-}
+// showBootstrap/retryBootstrap 删了：/api/auth/status 早就不返回 bootstrap_needed
+// （自助注册那次改动去掉了这个分支），这两个函数从此没人调用，那层遮罩也永远不会
+// 出现。而它写的是"请到主机上敲 ontocopilot useradd" —— 现在账户菜单里就能建号。
 
 async function doLogout(){
   try { await fetch(API + "/api/logout", {method:"POST"}); } catch(e) {}
@@ -1022,15 +1113,63 @@ function renderIdentity(){
           <button data-lang="en" class="${lon("en").trim()}" onclick="setLang('en')">EN</button>
         </span>
       </div>
+      ${!local ? `<button class="acctitem" onclick="closeAcctMenu();openPassword()"><span class="ai">✳</span>${esc(t("auth.changePassword"))}</button>` : ""}
       ${isAdmin && !local ? `<button class="acctitem" onclick="closeAcctMenu();openAccounts()"><span class="ai">◉</span>${esc(t("auth.accounts"))}</button>` : ""}
-      ${!local ? `<div class="acctsep"></div><button class="acctitem" onclick="doLogout()"><span class="ai">⏻</span>${esc(t("auth.logout"))}</button>` : ""}
+      <div class="acctsep"></div>
+      ${local
+        // **本地模式下也要有一个登录入口。** 后端的注册/登录一直是通的，但界面上
+        // 只有"已经开了鉴权"这一条路会弹登录框 —— 而默认没开，于是没有任何地方
+        // 能建出第一个账号，只能去命令行敲 `ontocopilot useradd`。
+        ? `<button class="acctitem" onclick="closeAcctMenu();showLogin('register', true)"><span class="ai">→</span>${esc(t("auth.signIn"))}</button>`
+        : `<button class="acctitem" onclick="doLogout()"><span class="ai">⏻</span>${esc(t("auth.logout"))}</button>`}
     </div>
     <button class="acct" onclick="toggleAcctMenu(event)">
-      <span class="acctava">${esc(ava)}</span>
+      <span class="acctava${local ? " ghosted" : ""}">${esc(ava)}</span>
       <span class="acctname">${esc(name)}</span>
       ${!local && isAdmin ? `<span class="idrole">${esc(t("role.admin"))}</span>` : ""}
       <span class="acctcaret">⌄</span>
     </button>`;
+}
+
+// 改密码。后端 /api/me/password 一直存在、也一直没有入口 —— 一个"账户系统"里
+// 用户改不了自己的密码，说不过去。复用登录框那套 .opanel/.field/.input/.err。
+function openPassword(){
+  const o = $("pwOverlay");
+  if (!o) return;
+  // 文案在打开时填，不在启动时填 —— 切语言后再打开要跟着变
+  $("pwTitle").textContent = t("pw.title");
+  $("pwSubtitle").textContent = t("pw.subtitle");
+  $("pwOldLabel").textContent = t("pw.old");
+  $("pwNewLabel").textContent = t("pw.new");
+  $("pwSubmit").textContent = t("pw.submit");
+  $("pwCancel").textContent = t("common.cancel");
+  $("pwOld").value = ""; $("pwNew").value = ""; $("pwErr").textContent = "";
+  o.style.display = "flex";
+  $("pwOld").focus();
+}
+function closePassword(){ const o = $("pwOverlay"); if (o) o.style.display = "none"; }
+
+async function doPassword(){
+  const err = $("pwErr");
+  const oldp = $("pwOld").value, newp = $("pwNew").value;
+  if (newp.length < 6) { err.textContent = t("auth.pwTooShort"); return; }
+  const btn = $("pwSubmit");
+  btn.disabled = true;
+  try {
+    const r = await fetch(API + "/api/me/password", {
+      method: "POST", headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({old_password: oldp, new_password: newp})});
+    if (!r.ok) {
+      err.textContent = r.status === 401 || r.status === 403
+        ? t("auth.pwWrong") : t("auth.pwFailed");
+      return;
+    }
+    // 改密码会踢掉这个账号的**全部**会话，包括当前这条 —— 直接回登录页，
+    // 比让他点下一个按钮时莫名其妙 401 要清楚。
+    closePassword();
+    location.reload();
+  } catch(e) { err.textContent = t("auth.pwFailed"); }
+  finally { btn.disabled = false; }
 }
 
 async function loadSessions(){
@@ -1061,6 +1200,7 @@ async function newSession(silent){
       mode: MODE})});
   S.state = {}; S.events = []; ANSWERS = {}; SRC = {}; FILE = null; PENDING = []; MAT_N = 100;
   S.filelist = []; S.files = 0; PROMPTS = []; FOLLOWUPS = [];
+  Q_BACKLOG = []; Q_API = false; Q_FILTER = "open"; Q_LIMIT = 40;
   // 每 per-session 状态都得清，否则会残留上一个会话的内容（推理 tab 尤其明显）
   TRACE = []; STEPS = []; NEEDS_CONFIRM = false; CONFIRM_NEXT = false; stopThinking();
   // 新会话立刻拿开场提示 —— 不然第一屏是个空白输入框
@@ -1074,6 +1214,7 @@ async function openSession(id){
   const st = await j(`/api/sessions/${id}/state`);
   S = st; S.events = []; ANSWERS = {}; SRC = {}; FILE = null; PENDING = []; MAT_N = 100;
   PROMPTS = st.prompts || []; FOLLOWUPS = [];
+  Q_BACKLOG = []; Q_API = false; Q_FILTER = "open"; Q_LIMIT = 40;
   // 切会话同样要清掉推理/待确认/思考残留 —— TRACE 是「推理」tab 唯一数据源
   TRACE = []; STEPS = []; NEEDS_CONFIRM = false; CONFIRM_NEXT = false; stopThinking();
   // 视图跟随会话自身的模式（聊天/工作），并同步顶部切换
@@ -1082,7 +1223,8 @@ async function openSession(id){
   S.model = st.model || "";
   loadModels();          // 下拉要反映**这个**会话选的模型
   S.files = (st.filelist || []).length;
-  await loadSessions(); connect(); render(); paint();
+  await loadSessions(); connect(); render();
+  await loadQuestions(); paint();
 }
 
 // ── 事件流 ──────────────────────────────────────────────────────
@@ -1093,7 +1235,7 @@ function connect(){
   ES.onmessage = e => {
     const ev = JSON.parse(e.data);
     S.events = S.events.filter(x => x.seq !== ev.seq).concat([ev]).sort((a,b)=>a.seq-b.seq);
-    if (ev.kind === "clarify.request") S.state.questions = ev.questions;
+    if (ev.kind === "clarify.request") { S.state.questions = ev.questions; loadQuestions(); }
     if (ev.kind === "suggest.ready") S.state.suggestions = ev.suggestions;
     if (ev.kind === "chat.step") {
       // 同一步会回调两次（发起时、拿到结果后），按 n 就地更新而不是追加
@@ -1139,10 +1281,10 @@ function connect(){
       else if (ev.slot === "followup" && ev.turn === LAST_ASSIST_SEQ) FOLLOWUPS = ev.questions || [];
     }
     if (ev.kind === "node.completed" && ev.node === "CONFLICT") S.state.conflicts = ev.conflicts;
-    if (["run.completed","run.failed","run.suspended","run.cancelled","artifact.ready","human.recorded"].includes(ev.kind))
+    if (["run.completed","run.failed","run.suspended","run.cancelled","artifact.ready","human.recorded","question.updated","question.answered"].includes(ev.kind))
       fetch(`${API}/api/sessions/${S.id}/state`).then(r=>r.json()).then(st => {
         const evs = S.events; Object.assign(S, st); S.events = evs;
-        S.files = (st.filelist || []).length; render(); paint();
+        S.files = (st.filelist || []).length; loadQuestions(); render(); paint();
       });
     render();
   };
@@ -1195,6 +1337,139 @@ async function submitAnswer(qid, conflictRid){
   await j(`/api/sessions/${S.id}/answer`, {method:"POST", headers:{"content-type":"application/json"},
     body: JSON.stringify({conflict_rid: conflictRid, option_id: oid, note: "由 FDE 在界面上确认", lang:LANG})});
   await refresh();
+}
+
+// ── FDE 问题工作台 ──────────────────────────────────────────────
+// 新 Question Ledger 与历史 OIR/clarify 形态在这里收口。前端后续只认这一种结构，
+// 避免每个卡片各自猜字段，也让后端可以渐进迁移已有会话。
+const qval = v => (v && typeof v === "object" && "value" in v) ? v.value : (v ?? "");
+function normalizeQuestion(raw, source){
+  const activeDecision = raw.activeDecision || raw.decision || {};
+  const answer = String(qval(raw.answer) ?? qval(activeDecision.answer) ?? "").trim();
+  let status = String(raw.status || "").toLowerCase().replace(/^status\./, "");
+  if (answer) status = "answered";
+  else if (status === "candidate" || status === "draft" || !status) status = "open";
+  else if (status === "confirmed") status = "answered";
+  else if (status === "rejected") status = "cancelled";
+  else if (!["open","assigned","blocked","answered","deferred","cancelled"].includes(status)) status = "open";
+  const impactN = Number(raw.blastRadius || raw.blast_radius || raw.impact_count || raw.impactCount || 0);
+  let priority = String(raw.priority || raw.severity || "").toLowerCase();
+  if (!priority) priority = (raw.blocking || raw.reversible === false || impactN >= 10)
+    ? "high" : impactN >= 3 ? "medium" : "normal";
+  const options = (raw.options || []).map((o, i) => typeof o === "object"
+    ? {id:String(o.id ?? i), label:String(o.label ?? o.value ?? ""), rationale:o.rationale || ""}
+    : {id:String(i), label:String(o), rationale:""}).filter(o => o.label);
+  const applies = raw.appliesTo || raw.applies_to || raw.blockedArtifacts || [];
+  return {
+    id: String(raw.id || raw.rid || raw.conflict_rid || `q_${source}_${Math.random()}`),
+    text: String(qval(raw.text) || raw.title || raw.q || "（未命名问题）"),
+    status, priority, answer, options,
+    owner: String(raw.ownerUserId || raw.owner_user_id || raw.owner || ""),
+    role: String(raw.audienceRole || raw.audience_role || raw.role || raw.audience || raw.askedBy || ""),
+    why: String(raw.why || raw.rationale || raw.group || raw.reason || ""),
+    impact: String(raw.impact || raw.impactSummary || (impactN ? `影响 ${impactN} 个实体` : "")),
+    applies: Array.isArray(applies) ? applies.map(String) : [String(applies)],
+    evidence: raw.evidence || raw.citations || raw.evidenceIds || raw.evidence_ids || [], code: String(raw.code || ""),
+    source: String(raw.sourceKind || raw.source_kind || raw.source || source || "system"), conflictRid: raw.conflict_rid || raw.conflictRid || "",
+    revision: raw.revision ?? raw.version ?? raw.updated_at ?? null, raw,
+  };
+}
+
+function localQuestionBacklog(){
+  if (!S) return [];
+  const out = [], seen = new Set();
+  const add = (raw, source) => {
+    const q = normalizeQuestion(raw, source);
+    const key = String(q.text || "").trim().toLocaleLowerCase() || q.id;
+    if (!seen.has(key)) { seen.add(key); out.push(q); }
+  };
+  for (const q of (S.state?.oir?.questions || [])) add(q, q.askedBy || "oir");
+  const answered = new Set(S.state?.answered || []);
+  for (const q of (S.state?.questions || [])) {
+    const copy = {...q};
+    if (answered.has(q.conflict_rid)) copy.status = "answered";
+    add(copy, "conflict");
+  }
+  return out;
+}
+
+async function loadQuestions(){
+  if (!S) { Q_BACKLOG = []; Q_API = false; return; }
+  const sid = S.id;
+  try {
+    const r = await fetch(`${API}/api/sessions/${sid}/questions`);
+    if (r.status === 401) showLogin();
+    if (!r.ok) throw new Error(String(r.status));
+    const body = await r.json();
+    if (!S || S.id !== sid) return;             // 切会话后的迟到响应不能污染新会话
+    const rows = Array.isArray(body) ? body : (body.questions || []);
+    Q_BACKLOG = rows.map(q => normalizeQuestion(q, q.source || "ledger"));
+    Q_API = true;
+  } catch(e) {
+    if (!S || S.id !== sid) return;
+    Q_BACKLOG = localQuestionBacklog();
+    Q_API = false;
+  }
+  if (TAB === "q") paint();
+}
+
+function qSetFilter(v){ Q_FILTER = v; Q_LIMIT = 40; paint(); }
+function qRow(i){ return Q_BACKLOG[i]; }
+function qCard(i){ return document.querySelector(`.qcard[data-qidx="${i}"]`); }
+
+async function qRequest(i, path, method, body){
+  const q = qRow(i);
+  if (!q || !S || Q_BUSY.has(q.id)) return false;
+  if (!Q_API) {
+    alert("当前服务端尚未启用 Question Ledger；问题可查看和下载，但分派、延期与自由文本回答需要升级后端。");
+    return false;
+  }
+  Q_BUSY.add(q.id); paint();
+  try {
+    const payload = {...body};
+    if (q.revision !== null && q.revision !== undefined) payload.expected_revision = q.revision;
+    const r = await fetch(`${API}/api/sessions/${S.id}/questions/${encodeURIComponent(q.id)}${path}`, {
+      method, headers:{"content-type":"application/json"}, body:JSON.stringify(payload)});
+    if (r.status === 409) throw new Error("问题已被其他人更新，请刷新后重试");
+    if (!r.ok) throw new Error((await r.text()).slice(0,240) || `HTTP ${r.status}`);
+    await loadQuestions();
+    return true;
+  } catch(e) { alert(`没有保存：${e.message || e}`); return false; }
+  finally { Q_BUSY.delete(q.id); paint(); }
+}
+
+async function qSaveMeta(i){
+  const card = qCard(i); if (!card) return;
+  await qRequest(i, "", "PATCH", {
+    ownerUserId: card.querySelector("[data-q-owner]")?.value.trim() || null,
+    audienceRole: card.querySelector("[data-q-role]")?.value || null,
+    priority: card.querySelector("[data-q-priority]")?.value || "normal",
+  });
+}
+async function qDefer(i){
+  const reason = prompt("延期原因（可选）", "等待相关业务人员确认") ?? null;
+  if (reason === null) return;
+  await qRequest(i, "", "PATCH", {status:"deferred", reason});
+}
+async function qReopen(i){ await qRequest(i, "/reopen", "POST", {reason:"FDE 重新打开"}); }
+async function qSubmit(i){
+  const q = qRow(i), card = qCard(i); if (!q || !card) return;
+  const answer = card.querySelector("[data-q-answer]")?.value.trim() || "";
+  const optionId = card.querySelector("[data-q-option]")?.value || "";
+  const option = q.options.find(o => o.id === optionId);
+  const text = answer || option?.label || "";
+  if (!text) { alert("请先选择选项或填写答案"); return; }
+  // 旧冲突卡仍走稳定的 /answer；Ledger API 到位后所有问题统一走 answer endpoint。
+  if (!Q_API && q.conflictRid && optionId) {
+    try {
+      await j(`/api/sessions/${S.id}/answer`, {method:"POST", headers:{"content-type":"application/json"},
+        body:JSON.stringify({conflict_rid:q.conflictRid, option_id:optionId,
+          note:answer || "由 FDE 在问题工作台确认", lang:LANG})});
+      await refresh();
+    } catch(e) { alert(`没有保存：${e.message || e}`); }
+    return;
+  }
+  await qRequest(i, "/answer", "POST", {answer:text, option_id:optionId || null, actor:"fde"});
 }
 
 // ── 渲染：中栏 ──────────────────────────────────────────────────
@@ -2040,7 +2315,11 @@ function bubble(t){
 }
 
 // ── 渲染：右栏 ──────────────────────────────────────────────────
-function go(t){ TAB = t; document.querySelectorAll(".tab").forEach(b => b.classList.toggle("on", b.dataset.t === TAB)); paint(); }
+function go(t){
+  TAB = t;
+  document.querySelectorAll(".tab").forEach(b => b.classList.toggle("on", b.dataset.t === TAB));
+  if (t === "q" && S) loadQuestions(); else paint();
+}
 
 async function openSource(file, cite){
   // 证据 chip 有时只给 cite、不给文件名（流程图/建议里的引用就是 openSource('', cite)）。
@@ -2072,6 +2351,89 @@ async function loadSource(file){
   catch(e){ SRC[file] = {error: e.message, chunks: []}; }
   _openFirstSheet(file);
   paint();
+}
+
+function questionWorkbench(){
+  const counts = {open:0, answered:0, deferred:0};
+  const active = q => ["open","assigned","blocked"].includes(q.status);
+  Q_BACKLOG.forEach(q => {
+    const bucket = active(q) ? "open" : q.status;
+    counts[bucket] = (counts[bucket] || 0) + 1;
+  });
+  const filtered = Q_BACKLOG.map((q, i) => ({q, i})).filter(({q}) => {
+    if (Q_FILTER === "all") return true;
+    if (Q_FILTER === "open") return active(q);
+    if (Q_FILTER === "high") return active(q) && ["high","blocking"].includes(q.priority);
+    return q.status === Q_FILTER;
+  });
+  const shown = filtered.slice(0, Q_LIMIT);
+  const artifacts = (S.state?.artifacts || []).filter(a => /问题|question|ontology|oir\.json|flow\.json|流程图/i.test(a));
+  const version = S.state_version ?? S.revision ?? S.state?.revision?.id ?? "当前会话快照";
+  const deliver = `<div class="qdeliver">
+    <div class="qtext">访谈清单与当前交付版本</div>
+    <div class="qwbsum">${Q_BACKLOG.length} 个问题 · ${artifacts.length} 份关联产物 · ${esc(version)}</div>
+    <div class="acts">
+      ${Q_API ? ["xlsx","md","json"].map(f => `<a class="act" download
+        href="${API}/api/sessions/${encodeURIComponent(S.id)}/questions/export?format=${f}">${f.toUpperCase()}</a>`).join("") : ""}
+      ${artifacts.slice(0,5).map(a => `<a class="act" download title="${eattr(a)}"
+        href="${API}/api/sessions/${encodeURIComponent(S.id)}/artifacts/${encodeURIComponent(a)}">${esc(a)}</a>`).join("")}
+      <a class="act pri" download href="${API}/api/sessions/${encodeURIComponent(S.id)}/bundle">Bundle</a>
+    </div></div>`;
+  const notice = Q_API ? "" : `<div class="qnotice">兼容模式：已汇总材料问卷与冲突问题；当前后端未启用统一 Question Ledger，分派、延期和自由文本回答暂为只读。</div>`;
+  const filters = [
+    ["open", `待回答 ${counts.open||0}`], ["high", "高优先级"],
+    ["answered", `已回答 ${counts.answered||0}`], ["deferred", `已延期 ${counts.deferred||0}`],
+    ["all", `全部 ${Q_BACKLOG.length}`],
+  ].map(([k, label]) => `<button class="qfilter ${Q_FILTER===k?"on":""}" onclick="qSetFilter('${k}')">${esc(label)}</button>`).join("");
+  const cards = shown.map(({q, i}) => {
+    const busy = Q_BUSY.has(q.id), done = ["answered","cancelled"].includes(q.status), deferred = q.status === "deferred";
+    const statusLabel = {open:"待回答",assigned:"已分派",blocked:"受阻",answered:"已回答",deferred:"已延期",cancelled:"已取消"}[q.status] || q.status;
+    const roleOptions = ["", "业务负责人", "流程负责人", "ERP顾问", "数据负责人", "财务/法务", "FDE"];
+    if (q.role && !roleOptions.includes(q.role)) roleOptions.push(q.role);
+    const evidence = (q.evidence || []).slice(0,3).map(e => {
+      const cite = typeof e === "object" ? (e.cite || e.location || e.id || "") : String(e);
+      const file = typeof e === "object" ? (e.file_name || e.file || "") : "";
+      return cite ? `<button class="ev" data-file="${eattr(file)}" data-cite="${eattr(cite)}"
+        onclick="openSource(this.dataset.file,this.dataset.cite)">◧ ${esc(cite)}</button>` : "";
+    }).join("");
+    return `<div class="qcard ${done?"answered":deferred?"deferred":""}" data-qidx="${i}">
+      <div class="qmeta">
+        <span class="qbadge ${eattr(q.status)}">${esc(statusLabel)}</span>
+        <span class="qbadge ${eattr(q.priority)}">${q.priority==="high"||q.priority==="blocking"?"高":q.priority==="medium"?"中":"普通"}优先级</span>
+        ${q.code ? `<span class="qbadge">${esc(q.code)}</span>` : ""}
+        <span class="qbadge">${esc(q.source)}</span>
+      </div>
+      <div class="qtext">${esc(q.text)}</div>
+      ${q.why ? `<div class="qwhy">为什么问：${esc(q.why)}</div>` : ""}
+      ${q.impact ? `<div class="qimpact">影响：${esc(q.impact)}</div>` : ""}
+      ${q.applies.length ? `<div class="cap">关联：${esc(q.applies.join("、"))}</div>` : ""}
+      ${evidence}
+      <div class="qfields">
+        <input class="qinput" data-q-owner aria-label="负责人" placeholder="负责人 / owner" value="${eattr(q.owner)}" ${busy?"disabled":""}>
+        <select class="qselect" data-q-role aria-label="应答角色" ${busy?"disabled":""}>${roleOptions.map(x =>
+          `<option value="${eattr(x)}" ${x===q.role?"selected":""}>${esc(x || "应答角色")}</option>`).join("")}</select>
+        <select class="qselect" data-q-priority aria-label="优先级" ${busy?"disabled":""}>
+          ${[["normal","普通优先级"],["medium","中优先级"],["high","高优先级"],["blocking","阻塞交付"]].map(([v,l]) =>
+            `<option value="${v}" ${v===q.priority?"selected":""}>${l}</option>`).join("")}
+        ${q.options.length ? `<select class="qselect" data-q-option aria-label="参考选项" ${busy||done?"disabled":""}>
+          <option value="">选择参考答案（可选）</option>${q.options.map(o =>
+            `<option value="${eattr(o.id)}" ${q.answer===o.label?"selected":""}>${esc(o.label)}</option>`).join("")}</select>` : `<span></span>`}
+      </div>
+      <textarea class="qanswer" data-q-answer aria-label="问题答案" placeholder="记录业务人员的原话；可补充背景、例外和证据" ${busy||done?"disabled":""}>${esc(q.answer)}</textarea>
+      <div class="qactions">
+        ${done ? `<button class="act" onclick="qReopen(${i})" ${busy?"disabled":""}>重新打开</button>` : `
+          <button class="act pri" onclick="qSubmit(${i})" ${busy?"disabled":""}>${busy?"保存中…":"提交回答"}</button>
+          ${deferred ? `<button class="act" onclick="qReopen(${i})" ${busy?"disabled":""}>恢复待答</button>`
+            : `<button class="act" onclick="qDefer(${i})" ${busy?"disabled":""}>延期</button>`}`}
+        <button class="act" onclick="qSaveMeta(${i})" ${busy?"disabled":""}>保存分派</button>
+      </div></div>`;
+  }).join("");
+  return `<div class="qwbhead"><div><div class="qwbtitle">FDE 问题工作台</div>
+      <div class="qwbsum">回答会更新 Decision Ledger，并触发受影响产物的增量重算</div></div>
+      <button class="act" onclick="loadQuestions()">刷新</button></div>
+    ${deliver}${notice}<div class="qfilters">${filters}</div>
+    ${cards || `<div class="qempty">这个筛选下没有问题</div>`}
+    ${filtered.length > shown.length ? `<button class="qmore" onclick="Q_LIMIT+=40;paint()">再显示 ${Math.min(40, filtered.length-shown.length)} 条</button>` : ""}`;
 }
 
 function paint(){
@@ -2155,6 +2517,10 @@ function paint(){
       <div class="c">${esc(c.kind)} · ${esc(c.handling)}</div>${esc(c.summary)}
       ${(c.evidence||[]).slice(0,2).map(e => `<span class="ev" onclick="openSource('${esc(e.file_name)}','${esc(e.cite)}')">◧ ${esc(e.cite)}</span>`).join("")}
       </div>`).join("");
+    return;
+  }
+  if (TAB === "q") {
+    b.innerHTML = questionWorkbench();
     return;
   }
   if (TAB === "flow") {

@@ -19,6 +19,7 @@ from ontocopilot.auth import (
     token_hash,
     verify_password,
 )
+from ontocopilot import server
 from ontocopilot.server import app
 from ontocopilot.store.deps import set_repo_for_tests
 from ontocopilot.store.repo import MemoryRepo, SessionRow, UserRow
@@ -310,3 +311,52 @@ async def test_open_mode_has_no_isolation(monkeypatch):
         await repo.create_session(SessionRow(id="s_open", owner="whoever", created=1.0))
         # 开放模式（合成管理员）不隔离 —— 看得到别人 owner 的会话
         assert any(x["id"] == "s_open" for x in (await c.get("/api/sessions")).json())
+
+
+async def test_first_registration_adopts_the_sessions_made_in_open_mode(monkeypatch, tmp_path):
+    """开放模式下干了一天活的人，点一下"创建账户"，不该看见自己的东西全没了。
+
+    建号这个动作会顺带把整个实例翻进强制鉴权（有账号就强制）。而开放模式下建的
+    会话归属都记的是合成管理员 `__local__` —— 一旦强制，列表按真实 user id 过滤、
+    中间件对不属于你的会话回 404。从用户视角，那就是他自己点了个按钮然后数据没了。
+    """
+    monkeypatch.delenv("ONTOCOPILOT_AUTH", raising=False)
+    # 开放模式的列表还会合并"盘上的孤儿目录"，不隔离出来就会读到真实 workspace
+    monkeypatch.setattr(server, "ROOT", tmp_path)
+    monkeypatch.setattr(server, "SESSIONS", {})
+    repo = MemoryRepo()
+    async with _client(repo) as c:
+        assert (await c.get("/api/auth/status")).json()["auth_enabled"] is False
+        made = [(await c.post("/api/sessions", json={"title": f"梳理 {i}"})).json()["id"]
+                for i in range(3)]
+        assert len((await c.get("/api/sessions")).json()) == 3
+
+        r = await c.post("/api/register",
+                         json={"username": "yuhan", "password": "pw-yuhan-1"})
+        assert r.status_code == 200
+        assert r.json()["adopted_sessions"] == 3      # 认领这件事要说出来，不是悄悄做
+
+        # 注册即登录，且实例已翻进强制鉴权 —— 会话必须还在，而且还能打开
+        assert (await c.get("/api/auth/status")).json()["auth_enabled"] is True
+        after = [s["id"] for s in (await c.get("/api/sessions")).json()]
+        assert sorted(after) == sorted(made)
+        for sid in made:
+            assert (await c.get(f"/api/sessions/{sid}/state")).status_code == 200
+
+
+async def test_second_account_does_not_inherit_anyone_elses_sessions(monkeypatch, tmp_path):
+    """认领只发生在**首个**账号身上。第二个人注册时把别人的会话收走，
+    就从"不丢数据"变成了"越权看别人的东西"。"""
+    monkeypatch.delenv("ONTOCOPILOT_AUTH", raising=False)
+    monkeypatch.setattr(server, "ROOT", tmp_path)
+    monkeypatch.setattr(server, "SESSIONS", {})
+    repo = MemoryRepo()
+    async with _client(repo) as c:
+        sid = (await c.post("/api/sessions", json={"title": "alice 的活"})).json()["id"]
+        await c.post("/api/register", json={"username": "alice", "password": "pw-alice-1"})
+        c.cookies.clear()
+
+        r = await c.post("/api/register", json={"username": "bob", "password": "pw-bob-11"})
+        assert r.status_code == 200 and r.json()["adopted_sessions"] == 0
+        assert (await c.get("/api/sessions")).json() == []
+        assert (await c.get(f"/api/sessions/{sid}/state")).status_code == 404

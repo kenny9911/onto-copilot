@@ -232,10 +232,22 @@ async def register(request: Request, body: dict, repo: Repo = Depends(get_repo))
             id=uuid.uuid4().hex, username=username, password_hash=ph, role=role))
     except DuplicateUsername:
         raise HTTPException(409, "用户名已存在") from None
+    # **首个账号要把开放模式下建的会话认领过来。**
+    #
+    # 建号这个动作会顺带把整个实例翻进强制鉴权（见 `_enforce`：有账号就强制）。
+    # 而开放模式下建的每个会话，归属都记的是合成管理员 `__local__` —— 一旦强制，
+    # 列表按真实 user id 过滤，中间件对不属于你的会话回 404，于是**他昨天梳理的
+    # 全部东西在注册的那一秒集体消失**。从用户视角这就是数据丢了，而且是他自己
+    # 点了"创建账户"之后丢的。
+    adopted = 0
+    if role == "admin":
+        for old in (SYNTHETIC_ADMIN.id, ""):
+            adopted += await repo.reassign_sessions(old, user.id)
+
     token, th = mint_token()
     await repo.create_auth_session(AuthSessionRow(
         token_hash=th, user_id=user.id, expires=time.time() + session_ttl_seconds()))
-    resp = JSONResponse({"user": user.public()})
+    resp = JSONResponse({"user": user.public(), "adopted_sessions": adopted})
     _set_cookie(resp, token)                        # 注册即登录
     return resp
 

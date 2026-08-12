@@ -108,6 +108,107 @@ class DecisionRow:
 
 
 @dataclass(slots=True)
+class QuestionRow:
+    """统一问题表的持久化 DTO；``doc`` 是完整领域契约。"""
+
+    id: str
+    text: str
+    status: str = "open"
+    owner_user_id: str = ""
+    audience_role: str = ""
+    answer_schema: dict[str, Any] = field(default_factory=dict)
+    priority: str = "normal"
+    dependencies: list[str] = field(default_factory=list)
+    blocked_artifacts: list[str] = field(default_factory=list)
+    source_kind: str = "manual"
+    source_ref: str = ""
+    doc: dict[str, Any] = field(default_factory=dict)
+    version: int = 0
+    created: float = 0.0
+    updated: float = 0.0
+
+    @classmethod
+    def from_domain(cls, question: Any) -> "QuestionRow":
+        d = question.to_dict()
+        return cls(
+            id=d["id"], text=d["text"], status=d["status"],
+            owner_user_id=d.get("ownerUserId", ""),
+            audience_role=d.get("audienceRole", ""),
+            answer_schema=dict(d.get("answerSchema") or {}),
+            priority=d.get("priority", "normal"),
+            dependencies=list(d.get("dependencies") or []),
+            blocked_artifacts=list(d.get("blockedArtifacts") or []),
+            source_kind=d.get("sourceKind", "manual"), source_ref=d.get("sourceRef", ""),
+            doc=d, version=int(d.get("version") or 0),
+            created=float(d.get("createdAt") or 0), updated=float(d.get("updatedAt") or 0))
+
+
+@dataclass(slots=True)
+class DecisionRecordRow:
+    """统一 DecisionLedger 的 append-only 行。"""
+
+    id: str
+    question_id: str
+    answer: Any
+    actor: str
+    actor_role: str = ""
+    authority: str = ""
+    source_turn: str = ""
+    affected_ids: list[str] = field(default_factory=list)
+    supersedes: str | None = None
+    revision: int | None = None
+    idempotency_key: str = ""
+    semantic_hash: str = ""
+    rationale: str = ""
+    metadata: dict[str, Any] = field(default_factory=dict)
+    created: float = 0.0
+
+    @classmethod
+    def from_domain(cls, decision: Any) -> "DecisionRecordRow":
+        d = decision.to_dict()
+        return cls(
+            id=d["id"], question_id=d["questionId"], answer=d.get("answer"),
+            actor=d.get("actor", "user"), actor_role=d.get("actorRole", ""),
+            authority=d.get("authority", ""), source_turn=d.get("sourceTurn", ""),
+            affected_ids=list(d.get("affectedIds") or []), supersedes=d.get("supersedes"),
+            revision=d.get("revision"), idempotency_key=d.get("idempotencyKey", ""),
+            semantic_hash=decision.fingerprint, rationale=d.get("rationale", ""),
+            metadata=dict(d.get("metadata") or {}), created=float(d.get("createdAt") or 0))
+
+
+@dataclass(slots=True)
+class RevisionRow:
+    """一次 proposed/applied/rejected/rolled_back 的耐久版本记录。"""
+
+    id: str
+    ordinal: int
+    parent_id: str | None
+    kind: str
+    status: str
+    doc: dict[str, Any]
+    patch_set: dict[str, Any] | None = None
+    changed_ids: list[str] = field(default_factory=list)
+    invalidated_artifacts: list[str] = field(default_factory=list)
+    actor: str = "agent"
+    source_turn: str = ""
+    snapshot_hash: str = ""
+    idempotency_key: str = ""
+    created: float = 0.0
+
+    @classmethod
+    def from_domain(cls, revision: Any, *, idempotency_key: str = "") -> "RevisionRow":
+        d = revision.to_dict()
+        return cls(
+            id=d["id"], ordinal=int(d["ordinal"]), parent_id=d.get("parentId"),
+            kind=d.get("kind", "edit"), status=d.get("status", "proposed"), doc=d,
+            patch_set=d.get("patchSet"), changed_ids=list(d.get("changedIds") or []),
+            invalidated_artifacts=list(d.get("invalidatedArtifacts") or []),
+            actor=d.get("actor", "agent"), source_turn=d.get("sourceTurn", ""),
+            snapshot_hash=d.get("snapshotHash", ""), idempotency_key=idempotency_key,
+            created=float(d.get("createdAt") or 0))
+
+
+@dataclass(slots=True)
 class UserRow:
     """账号。``password_hash`` 只进不出 —— :meth:`public` 绝不带它。"""
 
@@ -164,6 +265,7 @@ class Repo(Protocol):
                             owner: str | None = None) -> list[SessionRow]: ...
     async def set_status(self, sid: str, status: str, *, error: str = "") -> None: ...
     async def delete_session(self, sid: str) -> bool: ...
+    async def reassign_sessions(self, frm: str, to: str) -> int: ...
 
     async def add_files(self, sid: str, files: Sequence[FileRow]) -> list[FileRow]: ...
     async def list_files(self, sid: str) -> list[FileRow]: ...
@@ -181,6 +283,18 @@ class Repo(Protocol):
     async def list_decisions(self, sid: str, *, active_only: bool = False
                              ) -> list[DecisionRow]: ...
     async def answered_rids(self, sid: str) -> set[str]: ...
+
+    async def upsert_questions(self, sid: str,
+                               rows: Sequence[QuestionRow]) -> list[QuestionRow]: ...
+    async def list_questions(self, sid: str, *, statuses: Sequence[str] | None = None
+                             ) -> list[QuestionRow]: ...
+    async def get_question(self, sid: str, qid: str) -> QuestionRow | None: ...
+    async def record_decision_v1(self, sid: str,
+                                 row: DecisionRecordRow) -> tuple[DecisionRecordRow, bool]: ...
+    async def list_decisions_v1(self, sid: str) -> list[DecisionRecordRow]: ...
+    async def record_revision(self, sid: str,
+                              row: RevisionRow) -> tuple[RevisionRow, bool]: ...
+    async def list_revisions(self, sid: str) -> list[RevisionRow]: ...
 
     async def append_event(self, sid: str, kind: str,
                            payload: dict[str, Any]) -> EventRow: ...
@@ -237,6 +351,9 @@ class MemoryRepo:
         self._state: dict[str, dict[str, Any]] = {}
         self._conflicts: dict[str, dict[str, dict[str, Any]]] = {}
         self._decisions: dict[str, list[DecisionRow]] = {}
+        self._questions_v1: dict[str, dict[str, QuestionRow]] = {}
+        self._decisions_v1: dict[str, list[DecisionRecordRow]] = {}
+        self._revisions: dict[str, list[RevisionRow]] = {}
         self._events: dict[str, list[EventRow]] = {}
         self._runs: dict[str, dict[str, Any]] = {}
         #: 账号、登录会话、全局设置。**顶层**，与建模会话无关 —— 故意不进
@@ -255,6 +372,9 @@ class MemoryRepo:
         self._state.setdefault(row.id, {})
         self._conflicts.setdefault(row.id, {})
         self._decisions.setdefault(row.id, [])
+        self._questions_v1.setdefault(row.id, {})
+        self._decisions_v1.setdefault(row.id, [])
+        self._revisions.setdefault(row.id, [])
         self._events.setdefault(row.id, [])
         return row
 
@@ -267,6 +387,14 @@ class MemoryRepo:
         if owner is not None:                      # 只看归属自己的；无归属("")天然被排除
             rows = [s for s in rows if s.owner == owner]
         return sorted(rows, key=lambda s: -s.created)[:limit]
+
+    async def reassign_sessions(self, frm: str, to: str) -> int:
+        n = 0
+        for s in self._sessions.values():
+            if (s.owner or "") == frm:
+                s.owner = to
+                n += 1
+        return n
 
     async def set_status(self, sid: str, status: str, *, error: str = "") -> None:
         s = self._sessions[sid]
@@ -281,7 +409,8 @@ class MemoryRepo:
         if sid not in self._sessions:
             return False
         for d in (self._sessions, self._files, self._state, self._conflicts,
-                  self._decisions, self._events):
+                  self._decisions, self._questions_v1, self._decisions_v1,
+                  self._revisions, self._events):
             d.pop(sid, None)
         return True
 
@@ -360,6 +489,70 @@ class MemoryRepo:
     async def answered_rids(self, sid: str) -> set[str]:
         return {d.target_rid for d in self._decisions.get(sid, [])
                 if d.kind == "answer" and d.active and d.target_rid}
+
+    # ── Question / Decision / Revision v1 ──────────────────────
+    async def upsert_questions(self, sid: str,
+                               rows: Sequence[QuestionRow]) -> list[QuestionRow]:
+        now = time.time()
+        bag = self._questions_v1.setdefault(sid, {})
+        for row in rows:
+            old = bag.get(row.id)
+            row.created = row.created or (old.created if old else now)
+            row.updated = row.updated or now
+            bag[row.id] = row
+        return list(bag.values())
+
+    async def list_questions(self, sid: str, *, statuses: Sequence[str] | None = None
+                             ) -> list[QuestionRow]:
+        rows = list(self._questions_v1.get(sid, {}).values())
+        if statuses is not None:
+            want = set(statuses)
+            rows = [r for r in rows if r.status in want]
+        return sorted(rows, key=lambda r: (r.created, r.id))
+
+    async def get_question(self, sid: str, qid: str) -> QuestionRow | None:
+        return self._questions_v1.get(sid, {}).get(qid)
+
+    async def record_decision_v1(self, sid: str,
+                                 row: DecisionRecordRow) -> tuple[DecisionRecordRow, bool]:
+        bag = self._decisions_v1.setdefault(sid, [])
+        old = next((x for x in bag if x.idempotency_key == row.idempotency_key), None)
+        if old:
+            if old.semantic_hash != row.semantic_hash:
+                from ..onto.questions import IdempotencyConflict
+                raise IdempotencyConflict(
+                    f"幂等键 {row.idempotency_key!r} 已用于另一份回答")
+            return old, False
+        row.created = row.created or time.time()
+        active = _active_decision_v1(bag, row.question_id)
+        if active:
+            row.supersedes = active.id
+        bag.append(row)
+        return row, True
+
+    async def list_decisions_v1(self, sid: str) -> list[DecisionRecordRow]:
+        return list(self._decisions_v1.get(sid, []))
+
+    async def record_revision(self, sid: str,
+                              row: RevisionRow) -> tuple[RevisionRow, bool]:
+        bag = self._revisions.setdefault(sid, [])
+        if row.idempotency_key:
+            old = next((x for x in bag if x.idempotency_key == row.idempotency_key), None)
+            if old:
+                if old.doc != row.doc:
+                    from ..onto.questions import IdempotencyConflict
+                    raise IdempotencyConflict(
+                        f"幂等键 {row.idempotency_key!r} 已用于另一个 revision")
+                return old, False
+        if any(x.id == row.id or x.ordinal == row.ordinal for x in bag):
+            raise ValueError(f"Revision id/ordinal 已存在: {row.id}/{row.ordinal}")
+        row.created = row.created or time.time()
+        bag.append(row)
+        bag.sort(key=lambda x: x.ordinal)
+        return row, True
+
+    async def list_revisions(self, sid: str) -> list[RevisionRow]:
+        return list(self._revisions.get(sid, []))
 
     # ── 事件 ─────────────────────────────────────────────────────
     async def append_event(self, sid: str, kind: str,
@@ -564,6 +757,19 @@ class PgRepo:
                                      .limit(limit))).mappings().all()
         return [_session_row(r) for r in rs]
 
+    async def reassign_sessions(self, frm: str, to: str) -> int:
+        from . import schema as t
+        import sqlalchemy as sa
+        # 无归属在库里是 NULL，在内存里是 ""，两边都要认 —— 只匹配其中一种，
+        # 换个 repo 实现就会漏掉一半会话。
+        cond = (t.session.c.owner.is_(None) if not frm
+                else t.session.c.owner == frm)
+        if not frm:
+            cond = sa.or_(cond, t.session.c.owner == "")
+        async with self._engine.begin() as conn:
+            r = await conn.execute(t.session.update().where(cond).values(owner=to))
+        return int(r.rowcount or 0)
+
     async def set_status(self, sid: str, status: str, *, error: str = "") -> None:
         from . import schema as t
         async with self._engine.begin() as conn:
@@ -578,7 +784,12 @@ class PgRepo:
         孤儿行，而且要等到下一次 JOIN 才会暴露。
         """
         from . import schema as t
+        import sqlalchemy as sa
         async with self._engine.begin() as conn:
+            # SQLite 测试默认不启用 foreign_keys；显式删除三张新领域表，避免行为
+            # 和 Postgres 的 ON DELETE CASCADE 分叉。
+            for child in (t.decision_record, t.revision_record, t.question_item):
+                await conn.execute(sa.delete(child).where(child.c.session_id == sid))
             r = await conn.execute(t.session.delete().where(t.session.c.id == sid))
         return bool(r.rowcount)
 
@@ -758,6 +969,147 @@ class PgRepo:
                     t.decision.c.superseded_by.is_(None),
                     t.decision.c.target_rid != "")))).scalars().all()
         return set(rs)
+
+    # ── Question / Decision / Revision v1 ──────────────────────
+    async def upsert_questions(self, sid: str,
+                               rows: Sequence[QuestionRow]) -> list[QuestionRow]:
+        from datetime import UTC, datetime
+
+        from . import schema as t
+        async with self._engine.begin() as conn:
+            for row in rows:
+                now = time.time()
+                created = datetime.fromtimestamp(row.created or now, tz=UTC)
+                updated = datetime.fromtimestamp(row.updated or now, tz=UTC)
+                await conn.execute(self._upsert(
+                    t.question_item,
+                    {"session_id": sid, "id": row.id, "text": row.text,
+                     "status": row.status, "owner_user_id": row.owner_user_id,
+                     "audience_role": row.audience_role,
+                     "answer_schema": row.answer_schema, "priority": row.priority,
+                     "dependencies": row.dependencies,
+                     "blocked_artifacts": row.blocked_artifacts,
+                     "source_kind": row.source_kind, "source_ref": row.source_ref,
+                     "doc": row.doc, "version": row.version,
+                     "created_at": created, "updated_at": updated},
+                    index_elements=["session_id", "id"],
+                    update=["text", "status", "owner_user_id", "audience_role",
+                            "answer_schema", "priority", "dependencies",
+                            "blocked_artifacts", "source_kind", "source_ref", "doc",
+                            "version", "updated_at"]))
+        return await self.list_questions(sid)
+
+    async def list_questions(self, sid: str, *, statuses: Sequence[str] | None = None
+                             ) -> list[QuestionRow]:
+        from . import schema as t
+        import sqlalchemy as sa
+        q = sa.select(t.question_item).where(t.question_item.c.session_id == sid)
+        if statuses is not None:
+            q = q.where(t.question_item.c.status.in_(list(statuses)))
+        async with self._engine.connect() as conn:
+            rows = (await conn.execute(q.order_by(t.question_item.c.created_at,
+                                                   t.question_item.c.id))).mappings().all()
+        return [_question_row(r) for r in rows]
+
+    async def get_question(self, sid: str, qid: str) -> QuestionRow | None:
+        from . import schema as t
+        import sqlalchemy as sa
+        async with self._engine.connect() as conn:
+            row = (await conn.execute(sa.select(t.question_item).where(sa.and_(
+                t.question_item.c.session_id == sid,
+                t.question_item.c.id == qid)))).mappings().first()
+        return _question_row(row) if row else None
+
+    async def record_decision_v1(self, sid: str,
+                                 row: DecisionRecordRow) -> tuple[DecisionRecordRow, bool]:
+        from datetime import UTC, datetime
+
+        import sqlalchemy as sa
+
+        from ..onto.questions import IdempotencyConflict
+        from . import schema as t
+        async with self._engine.begin() as conn:
+            existing = (await conn.execute(sa.select(t.decision_record).where(sa.and_(
+                t.decision_record.c.session_id == sid,
+                t.decision_record.c.idempotency_key == row.idempotency_key
+            )))).mappings().first()
+            if existing:
+                prior = _decision_record_row(existing)
+                if prior.semantic_hash != row.semantic_hash:
+                    raise IdempotencyConflict(
+                        f"幂等键 {row.idempotency_key!r} 已用于另一份回答")
+                return prior, False
+
+            # 当前有效记录 = 没有被同问题的另一行 supersedes 指向的记录。
+            rows = (await conn.execute(sa.select(t.decision_record).where(sa.and_(
+                t.decision_record.c.session_id == sid,
+                t.decision_record.c.question_id == row.question_id
+            )).order_by(t.decision_record.c.created_at))).mappings().all()
+            prior_rows = [_decision_record_row(r) for r in rows]
+            active = _active_decision_v1(prior_rows, row.question_id)
+            if active:
+                row.supersedes = active.id
+            row.created = row.created or time.time()
+            await conn.execute(t.decision_record.insert().values(
+                session_id=sid, id=row.id, question_id=row.question_id,
+                answer=row.answer, actor=row.actor, actor_role=row.actor_role,
+                authority=row.authority, source_turn=row.source_turn,
+                affected_ids=row.affected_ids, supersedes=row.supersedes,
+                revision=row.revision, idempotency_key=row.idempotency_key,
+                semantic_hash=row.semantic_hash, rationale=row.rationale,
+                metadata=row.metadata,
+                created_at=datetime.fromtimestamp(row.created, tz=UTC)))
+        return row, True
+
+    async def list_decisions_v1(self, sid: str) -> list[DecisionRecordRow]:
+        from . import schema as t
+        import sqlalchemy as sa
+        async with self._engine.connect() as conn:
+            rows = (await conn.execute(sa.select(t.decision_record).where(
+                t.decision_record.c.session_id == sid
+            ).order_by(t.decision_record.c.created_at,
+                       t.decision_record.c.id))).mappings().all()
+        return [_decision_record_row(r) for r in rows]
+
+    async def record_revision(self, sid: str,
+                              row: RevisionRow) -> tuple[RevisionRow, bool]:
+        from datetime import UTC, datetime
+
+        import sqlalchemy as sa
+
+        from ..onto.questions import IdempotencyConflict
+        from . import schema as t
+        async with self._engine.begin() as conn:
+            if row.idempotency_key:
+                existing = (await conn.execute(sa.select(t.revision_record).where(sa.and_(
+                    t.revision_record.c.session_id == sid,
+                    t.revision_record.c.idempotency_key == row.idempotency_key
+                )))).mappings().first()
+                if existing:
+                    prior = _revision_row(existing)
+                    if prior.doc != row.doc:
+                        raise IdempotencyConflict(
+                            f"幂等键 {row.idempotency_key!r} 已用于另一个 revision")
+                    return prior, False
+            row.created = row.created or time.time()
+            await conn.execute(t.revision_record.insert().values(
+                session_id=sid, id=row.id, ordinal=row.ordinal,
+                parent_id=row.parent_id, kind=row.kind, status=row.status,
+                patch_set=row.patch_set, changed_ids=row.changed_ids,
+                invalidated_artifacts=row.invalidated_artifacts, actor=row.actor,
+                source_turn=row.source_turn, snapshot_hash=row.snapshot_hash,
+                idempotency_key=row.idempotency_key, doc=row.doc,
+                created_at=datetime.fromtimestamp(row.created, tz=UTC)))
+        return row, True
+
+    async def list_revisions(self, sid: str) -> list[RevisionRow]:
+        from . import schema as t
+        import sqlalchemy as sa
+        async with self._engine.connect() as conn:
+            rows = (await conn.execute(sa.select(t.revision_record).where(
+                t.revision_record.c.session_id == sid
+            ).order_by(t.revision_record.c.ordinal))).mappings().all()
+        return [_revision_row(r) for r in rows]
 
     # ── 事件 ─────────────────────────────────────────────────────
     async def append_event(self, sid: str, kind: str,
@@ -1043,6 +1395,47 @@ def _session_row(r: Any) -> SessionRow:
         state_version=r["state_version"], owner=r["owner"] or "")
 
 
+def _active_decision_v1(rows: Sequence[DecisionRecordRow],
+                        question_id: str) -> DecisionRecordRow | None:
+    superseded = {r.supersedes for r in rows if r.supersedes}
+    return next((r for r in reversed(rows)
+                 if r.question_id == question_id and r.id not in superseded), None)
+
+
+def _question_row(r: Any) -> QuestionRow:
+    return QuestionRow(
+        id=r["id"], text=r["text"], status=r["status"],
+        owner_user_id=r["owner_user_id"], audience_role=r["audience_role"],
+        answer_schema=dict(r["answer_schema"] or {}), priority=r["priority"],
+        dependencies=list(r["dependencies"] or []),
+        blocked_artifacts=list(r["blocked_artifacts"] or []),
+        source_kind=r["source_kind"], source_ref=r["source_ref"],
+        doc=dict(r["doc"] or {}), version=int(r["version"]),
+        created=r["created_at"].timestamp(), updated=r["updated_at"].timestamp())
+
+
+def _decision_record_row(r: Any) -> DecisionRecordRow:
+    return DecisionRecordRow(
+        id=r["id"], question_id=r["question_id"], answer=r["answer"],
+        actor=r["actor"], actor_role=r["actor_role"], authority=r["authority"],
+        source_turn=r["source_turn"], affected_ids=list(r["affected_ids"] or []),
+        supersedes=r["supersedes"], revision=r["revision"],
+        idempotency_key=r["idempotency_key"], semantic_hash=r["semantic_hash"],
+        rationale=r["rationale"], metadata=dict(r["metadata"] or {}),
+        created=r["created_at"].timestamp())
+
+
+def _revision_row(r: Any) -> RevisionRow:
+    return RevisionRow(
+        id=r["id"], ordinal=int(r["ordinal"]), parent_id=r["parent_id"],
+        kind=r["kind"], status=r["status"], doc=dict(r["doc"] or {}),
+        patch_set=dict(r["patch_set"]) if r["patch_set"] is not None else None,
+        changed_ids=list(r["changed_ids"] or []),
+        invalidated_artifacts=list(r["invalidated_artifacts"] or []),
+        actor=r["actor"], source_turn=r["source_turn"], snapshot_hash=r["snapshot_hash"],
+        idempotency_key=r["idempotency_key"], created=r["created_at"].timestamp())
+
+
 def _user_row(r: Any) -> UserRow:
     return UserRow(
         id=r["id"], username=r["username"], password_hash=r["password_hash"],
@@ -1063,5 +1456,6 @@ def build_repo(store: Any) -> Repo:
 
 
 __all__ = ["Repo", "MemoryRepo", "PgRepo", "SessionRow", "FileRow", "EventRow",
-           "DecisionRow", "UserRow", "AuthSessionRow", "SettingRow",
+           "DecisionRow", "QuestionRow", "DecisionRecordRow", "RevisionRow",
+           "UserRow", "AuthSessionRow", "SettingRow",
            "DuplicateUsername", "build_repo"]

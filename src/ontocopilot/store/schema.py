@@ -161,6 +161,103 @@ sa.Index("decision_live_answer_uq", decision.c.session_id, decision.c.target_rid
          postgresql_where=sa.text("kind = 'answer' AND superseded_by IS NULL"),
          sqlite_where=sa.text("kind = 'answer' AND superseded_by IS NULL"))
 
+
+# ══════════════════════════════════════════════════════════════════
+#  统一 Question / Decision / Revision（v1）
+# ══════════════════════════════════════════════════════════════════
+# 保留上面的 legacy decision：DialogueMemory 与 conflict /answer 仍按 ordinal 工作。
+# 新表承接所有来源的问题和自由文本/结构化回答；两套数据可由兼容投影逐步迁移，
+# 不要求一次性改完 server.py 的所有调用点。
+question_item = sa.Table(
+    "question_item", metadata,
+    sa.Column("session_id", sa.Text,
+              sa.ForeignKey("session.id", ondelete="CASCADE"), primary_key=True),
+    sa.Column("id", sa.Text, primary_key=True),
+    sa.Column("text", sa.Text, nullable=False),
+    sa.Column("status", sa.Text, nullable=False, server_default="open"),
+    sa.Column("owner_user_id", sa.Text, nullable=False, server_default=""),
+    sa.Column("audience_role", sa.Text, nullable=False, server_default=""),
+    _json("answer_schema", nullable=False, server_default="{}"),
+    sa.Column("priority", sa.Text, nullable=False, server_default="normal"),
+    _json("dependencies", nullable=False, server_default="[]"),
+    _json("blocked_artifacts", nullable=False, server_default="[]"),
+    sa.Column("source_kind", sa.Text, nullable=False, server_default="manual"),
+    sa.Column("source_ref", sa.Text, nullable=False, server_default=""),
+    _json("doc", nullable=False),
+    sa.Column("version", sa.BigInteger, nullable=False, server_default="0"),
+    sa.Column("created_at", sa.DateTime(timezone=True), nullable=False,
+              server_default=sa.func.now()),
+    sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False,
+              server_default=sa.func.now()),
+    sa.CheckConstraint(
+        "status IN ('open','assigned','blocked','answered','deferred','cancelled')",
+        name="question_item_status_ck"),
+    sa.CheckConstraint(
+        "priority IN ('blocking','high','normal','low')",
+        name="question_item_priority_ck"),
+)
+sa.Index("question_item_queue_idx", question_item.c.session_id,
+         question_item.c.status, question_item.c.priority)
+sa.Index("question_item_source_idx", question_item.c.session_id,
+         question_item.c.source_kind, question_item.c.source_ref)
+
+
+decision_record = sa.Table(
+    "decision_record", metadata,
+    sa.Column("session_id", sa.Text,
+              sa.ForeignKey("session.id", ondelete="CASCADE"), primary_key=True),
+    sa.Column("id", sa.Text, primary_key=True),
+    sa.Column("question_id", sa.Text, nullable=False),
+    _json("answer", nullable=False),
+    sa.Column("actor", sa.Text, nullable=False),
+    sa.Column("actor_role", sa.Text, nullable=False, server_default=""),
+    sa.Column("authority", sa.Text, nullable=False, server_default=""),
+    sa.Column("source_turn", sa.Text, nullable=False, server_default=""),
+    _json("affected_ids", nullable=False, server_default="[]"),
+    sa.Column("supersedes", sa.Text),
+    sa.Column("revision", sa.BigInteger),
+    sa.Column("idempotency_key", sa.Text, nullable=False),
+    sa.Column("semantic_hash", sa.Text, nullable=False),
+    sa.Column("rationale", sa.Text, nullable=False, server_default=""),
+    _json("metadata", nullable=False, server_default="{}"),
+    sa.Column("created_at", sa.DateTime(timezone=True), nullable=False,
+              server_default=sa.func.now()),
+)
+sa.Index("decision_record_question_idx", decision_record.c.session_id,
+         decision_record.c.question_id, decision_record.c.created_at)
+sa.Index("decision_record_idempotency_uq", decision_record.c.session_id,
+         decision_record.c.idempotency_key, unique=True)
+
+
+revision_record = sa.Table(
+    "revision_record", metadata,
+    sa.Column("session_id", sa.Text,
+              sa.ForeignKey("session.id", ondelete="CASCADE"), primary_key=True),
+    sa.Column("id", sa.Text, primary_key=True),
+    sa.Column("ordinal", sa.BigInteger, nullable=False),
+    sa.Column("parent_id", sa.Text),
+    sa.Column("kind", sa.Text, nullable=False),
+    sa.Column("status", sa.Text, nullable=False),
+    _json("patch_set", nullable=True),
+    _json("changed_ids", nullable=False, server_default="[]"),
+    _json("invalidated_artifacts", nullable=False, server_default="[]"),
+    sa.Column("actor", sa.Text, nullable=False, server_default="agent"),
+    sa.Column("source_turn", sa.Text, nullable=False, server_default=""),
+    sa.Column("snapshot_hash", sa.Text, nullable=False, server_default=""),
+    sa.Column("idempotency_key", sa.Text, nullable=False, server_default=""),
+    _json("doc", nullable=False),
+    sa.Column("created_at", sa.DateTime(timezone=True), nullable=False,
+              server_default=sa.func.now()),
+    sa.UniqueConstraint("session_id", "ordinal", name="revision_record_ordinal_uq"),
+    sa.CheckConstraint(
+        "status IN ('proposed','applied','rejected','rolled_back')",
+        name="revision_record_status_ck"),
+)
+sa.Index("revision_record_idempotency_uq", revision_record.c.session_id,
+         revision_record.c.idempotency_key, unique=True,
+         postgresql_where=sa.text("idempotency_key <> ''"),
+         sqlite_where=sa.text("idempotency_key <> ''"))
+
 chat_turn = sa.Table(
     "chat_turn", metadata,
     sa.Column("session_id", sa.Text,
@@ -260,7 +357,8 @@ app_setting = sa.Table(
 
 __all__ = [
     "metadata", "schema_migration", "session", "session_file", "run",
-    "session_state", "conflict", "decision", "chat_turn", "session_event",
-    "kernel_event", "blob", "app_user", "auth_session", "app_setting",
+    "session_state", "conflict", "decision", "question_item", "decision_record",
+    "revision_record", "chat_turn", "session_event", "kernel_event", "blob",
+    "app_user", "auth_session", "app_setting",
     "DERIVED_KEYS", "EVENT_INLINE_LIMIT",
 ]

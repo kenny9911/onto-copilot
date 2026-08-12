@@ -244,9 +244,22 @@ def _run_id_for(s: Session) -> str:
     新日志，不会拿旧提示的结果去冒充新语料的答案（那正是 DeterminismViolation
     要防的）。
     """
-    from .kernel.ids import fingerprint
+    from .kernel.ids import fingerprint, sha256_hex
 
-    sig = sorted((f["name"], int(f.get("size") or 0)) for f in s.files)
+    # 文件名 + 大小不是内容指纹：两个同名、同字节数但内容不同的 CSV 会误命中
+    # 上一轮模型 effect。上传时会写 sha256；旧会话没有时在这里补算一次，保证迁移
+    # 前创建的项目也不会复用错误结果。
+    sig = []
+    for f in s.files:
+        digest = str(f.get("sha256") or "")
+        if not digest:
+            try:
+                digest = sha256_hex(Path(f["path"]).read_bytes())
+            except OSError:
+                digest = f"missing:{f['name']}:{int(f.get('size') or 0)}"
+            f["sha256"] = digest
+        sig.append((f["name"], digest))
+    sig.sort()
     return f"run_{s.id}_{fingerprint(sig)[:8]}"
 
 
@@ -418,25 +431,38 @@ async def delete_session(sid: str, purge: bool = False) -> dict[str, Any]:
 
 @app.post("/api/sessions/{sid}/files")
 async def upload(sid: str, files: list[UploadFile]) -> dict[str, Any]:
-    s = _sess(sid)
+    from .kernel.ids import sha256_hex
+
+    s = await _sess_async(sid)
+    if _busy(s):
+        raise HTTPException(409, "正在梳理，不能同时替换材料。")
     mats = s.dir / "materials"
     mats.mkdir(parents=True, exist_ok=True)
+    added: list[dict[str, Any]] = []
     for f in files:
         dest = mats / Path(f.filename or "unnamed").name
-        dest.write_bytes(await f.read())
-        s.files.append({"name": dest.name, "size": dest.stat().st_size,
-                        "path": str(dest)})
+        content = await f.read()
+        limit = int(os.getenv("ONTOCOPILOT_MAX_UPLOAD_MB", "100")) * 1024 * 1024
+        if len(content) > limit:
+            raise HTTPException(413, f"{dest.name} 超过单文件 {limit // 1024 // 1024}MB 限制")
+        dest.write_bytes(content)
+        item = {"name": dest.name, "size": len(content), "path": str(dest),
+                "sha256": sha256_hex(content)}
+        # 同名上传是替换，不是把同一材料在语料清单里追加两遍。
+        s.files = [old for old in s.files if old["name"] != dest.name]
+        s.files.append(item)
+        added.append(item)
     await get_repo().add_files(sid, [
         FileRow(name=f["name"], rel_path=str(Path(f["path"]).relative_to(ROOT)),
-                size=f["size"], sha256="")
-        for f in s.files[-len(files):]])
+                size=f["size"], sha256=f["sha256"])
+        for f in added])
     s.emit("files.attached", files=[f["name"] for f in s.files])
     # **上传只登记，不解析。** 解析是不是现在做、做哪几份，交给 AI 判断（它有
     # material.list 看清单、material.parse 去读）。上传即解析看着"贴心"，实际是
     # 替 FDE 和 AI 都做了决定：他可能还要再传两份、可能只想先聊聊，而 AI 也没有
     # 机会说"这份跟你要问的没关系，先不读"。
     s.emit("materials.registered",
-           files=[f["name"] for f in s.files[-len(files):]],
+           files=[f["name"] for f in added],
            note="已登记，还没读内容。要读时由助手调用解析。")
     public = {k: v for k, v in s.state.items() if not k.startswith("_")}
     # 材料进来、结构解析好了 —— 让 AI 结合刚读到的语料出一版更贴的开场问题，
@@ -600,11 +626,17 @@ async def _restore_dialogue(s: Session) -> None:
     不装的话，"我记下了你的口径约定"在重启之后就成了空话 —— 库里明明有，
     但下一次 Run 的 ContextManager 读的是内存里的 DialogueMemory，那是空的。
     """
+    saved = s.state.pop("dialogue", None)
+    if saved:
+        try:
+            s.state["_dialogue"] = DialogueMemory.from_dict(saved)
+        except (KeyError, TypeError, ValueError):
+            s.emit("hydrate.partial", error="对话历史格式损坏，已只恢复已拍板决定")
     rows = await get_repo().list_decisions(s.id)
-    if not rows:
-        return
     dm = _dialogue(s)
-    for r in rows:
+    # dialogue 文档和 decision 表有重叠：前者保留轮次，后者是决定的权威审计表。
+    # 只补文档尚未包含的尾部，避免每次 hydrate 都把同一批决定复制一遍。
+    for r in rows[len(dm.decisions):]:
         d = Decision(kind=DecisionKind(r.kind), statement=r.statement,
                      scope_refs=list(r.scope_refs or []), turn_index=r.turn_index,
                      ts=r.ts)
@@ -641,7 +673,9 @@ async def _hydrate(sid: str) -> Session:
 
     mats = d / "materials"
     if mats.exists():
-        s.files = [{"name": f.name, "size": f.stat().st_size, "path": str(f)}
+        from .kernel.ids import sha256_hex
+        s.files = [{"name": f.name, "size": f.stat().st_size, "path": str(f),
+                    "sha256": sha256_hex(f.read_bytes())}
                    for f in sorted(mats.iterdir()) if f.is_file()]
     if row is not None:
         s.state.update(await get_repo().load_state(sid))
@@ -762,11 +796,13 @@ async def stream(sid: str, since: int = 0) -> StreamingResponse:
 # ══════════════════════════════════════════════════════════════════
 @app.post("/api/sessions/{sid}/build")
 async def build(sid: str, tier: str = "full") -> dict[str, Any]:
-    s = _sess(sid)
+    s = await _sess_async(sid)
     if not s.files:
         raise HTTPException(400, "还没有上传材料")
     if s.status in ("parsing", "extracting"):
         raise HTTPException(409, "已经在跑了")
+    if s.status == "awaiting_answer":
+        raise HTTPException(409, "当前正在等待业务回答；请先回答、暂缓或导出问题清单。")
     # tier=flow_preview：只解析 + 出流程图，跳过付费抽取。默认 full 走完整管线。
     tier = tier if tier in ("full", "flow_preview") else "full"
     s.run_task = asyncio.create_task(_run_pipeline(s, tier=tier))
@@ -940,6 +976,10 @@ async def _run_pipeline(s: Session, *, tier: str = "full") -> None:
 
         merged = outcome.outputs.get("MERGE") or {}
         oir = build_oir(merged, index)
+        stale_oir = _replay_oir_patches(s, oir)
+        if stale_oir:
+            s.emit("oir.stale_edits", count=len(stale_oir),
+                   items=[{"op": x["op"], "why": x["why"]} for x in stale_oir])
         # 流程图和接口清单在这里接起来。图是 PARSE 阶段就出的（那时还没有 OIR），
         # 所以只能等到这一步：每个流程环节标上实现它的接口，接完再重出一次产物。
         link_gaps = _link_flow_to_api(s, oir)
@@ -973,7 +1013,6 @@ async def _run_pipeline(s: Session, *, tier: str = "full") -> None:
             kinds[str(c.kind)] = kinds.get(str(c.kind), 0) + 1
         s.emit("node.completed", node="ALIGN", stats=res["align"],
                merged=res["merged"], uncertain=res["uncertain"])
-        await _persist(s)
         s.emit("node.completed", node="CONFLICT", kinds=kinds,
                auto_repaired=res["auto_repaired"],
                conflicts=[c.to_dict() for c in conflicts])
@@ -998,17 +1037,22 @@ async def _run_pipeline(s: Session, *, tier: str = "full") -> None:
         if cs.questions:
             s.status = "awaiting_answer"
             s.emit("run.suspended", reason="等待 FDE 拍板")
+            # OIR、冲突与问题在等待人回答前必须是同一个持久检查点。以前持久化发生
+            # 在这些字段赋值之前，主 HITL 路径一重启就只剩旧版本。
+            await _persist(s)
             return
         await _compile(s)
     except asyncio.CancelledError:
         # 用户点了停止 —— CancelledError 是 BaseException，不会被下面的
         # `except Exception` 吞掉。收尾后**照常重抛**，让任务干净地结束。
         _on_run_cancelled(s)
+        await _persist(s)
         raise
     except Exception as exc:  # noqa: BLE001 — 服务边界，错误要送到前端而不是吞掉
         s.status = "failed"
         s.error = f"{type(exc).__name__}: {exc}"
         s.emit("run.failed", error=s.error)
+        await _persist(s)
     finally:
         if backend is not None:
             await backend.aclose()
@@ -1085,8 +1129,9 @@ def _trace_detail(ev: Any) -> str:
 
 #: 会持久化的公开状态 key。私有（``_`` 开头）的一律不存 —— 它们要么是活对象
 #: （OIR、证据索引），要么是能重算的（列画像），存了反而制造第二份真相。
-_PERSISTED = ("oir", "template", "artifacts", "questions", "suggestions",
-              "corpus", "budget", "routing", "answered", "audit", "mode", "model")
+_PERSISTED = ("oir", "template", "artifacts", "questions", "question_backlog",
+              "suggestions", "corpus", "budget", "routing", "answered", "audit",
+              "mode", "model", "artifact_revision", "ontology_package")
 
 #: 私有的版本/补丁栈也要落库 —— 它们是「撤销历史」和「重跑时要重放的人工补丁」，
 #: 恰恰是最不该随重启丢掉的一份状态（`_flow_versions`/`_tpl_versions` 以前只在内存，
@@ -1109,7 +1154,7 @@ _VERSION_STACK_CAP = 20
 #: "尚未解析"。这就是那条注释描述的后果本身。
 #: ``_cards`` 同理：事件流是进程内的，但其中**承载内容**的那几条（AI 列出来的表、
 #: 导出的文件）重开会话必须还在，否则用户以为东西丢了。见 ``Session.emit``。
-_PERSISTED_PRIVATE_DOCS = ("_chunks", "_cards")
+_PERSISTED_PRIVATE_DOCS = ("_chunks", "_cards", "_pending_actions", "_pending_action")
 
 #: 产物 → 给业务方看的表：每类挑**看得懂**的列，不是把内部结构原样倒出来。
 #:
@@ -1283,6 +1328,9 @@ async def _persist(s: Session, *, status: bool = True) -> None:
                                           for q in (s.state.get("questions") or [])])
         dm = s.state.get("_dialogue")
         if dm is not None:
+            # 逐行 chat_turn 尚未接入服务主链时，至少把压缩后的 DialogueMemory 作为
+            # 一个耐久文档保存；否则“刚才那个字段”在重启后没有任何可解析上下文。
+            await repo.save_state(s.id, {"dialogue": dm.to_dict()})
             await _persist_decisions(s, dm)
     except Exception as exc:  # noqa: BLE001
         s.emit("persist.failed", error=f"{type(exc).__name__}: {exc}")
@@ -1348,6 +1396,19 @@ async def _recompile(s: Session) -> None:
     s.state["suggestions"] = res.get("suggestions") or []
     await _compile(s)
     s.emit("suggest.ready", suggestions=s.state["suggestions"])
+
+
+def _replay_oir_patches(s: Session, oir: Any) -> list[dict[str, Any]]:
+    """把 FDE 的结构化 OIR 修改重放到新抽取结果；冲突项显式返回而不是静默丢失。"""
+    from .onto.oir_edit import OIREditError, apply_oir_edit
+
+    stale: list[dict[str, Any]] = []
+    for patch in s.state.get("_oir_patch_log") or []:
+        try:
+            apply_oir_edit(oir, patch["op"], patch.get("args") or {})
+        except OIREditError as exc:
+            stale.append({**patch, "why": str(exc)})
+    return stale
 
 
 
@@ -1435,7 +1496,7 @@ async def _build_flow_diagram(s: Session, docs: list[Any]) -> None:
                 # 「如…则…」（"如不满足，则创建执行计划"），用 elif 会让它被
                 # 流程通道吃掉、进不了网关抽取，于是网关只剩零星几个。
                 if looks_like_process(text):
-                    got = parse_steps(text, cite=c.cite())
+                    got = parse_steps(text, cite=c.cite(), file_name=d.file_name)
                     known = {x.no for x in steps}
                     fresh = [x for x in got if x.no not in known]
                     steps += fresh
@@ -1561,6 +1622,7 @@ async def _compile(s: Session) -> None:
     spec.save(s.dir / "template.spec.json")
     (s.dir / "oir.json").write_text(
         json.dumps(oir.to_dict(), ensure_ascii=False, indent=1), encoding="utf-8")
+    _write_canonical_artifacts(s)
     # oir.json 写了、state 里的快照没刷 —— 前端读的是快照，于是磁盘上是新的、
     # 界面上是旧的。这种不一致只有对着文件核对才会发现。
     s.state["oir"] = oir.to_dict()
@@ -1574,6 +1636,49 @@ async def _compile(s: Session) -> None:
     await _drain_queue(s)
     s.emit("run.completed", stats=oir.stats())
     asyncio.create_task(_emit_ai_prompts(s, slot="opening"))
+
+
+def _write_canonical_artifacts(s: Session) -> dict[str, Any]:
+    """生成 OntologyPackage 及下游常用的五个稳定 JSON 视图。"""
+    from .onto.canonical import ONTOLOGY_PACKAGE_JSON_SCHEMA, build_package
+
+    oir = s.state.get("_oir")
+    if oir is None:
+        return {}
+    current = int(s.state.get("artifact_revision") or 0)
+    revision = current + 1
+    decisions = []
+    dm = s.state.get("_dialogue")
+    if dm is not None:
+        decisions = [d.to_dict() for d in dm.decisions]
+    package = build_package(
+        oir, s.state.get("_flow"), package_id=f"pkg.{s.id}", revision=revision,
+        base_revision=current or None, decisions=decisions)
+    data = package.to_dict()
+    (s.dir / "ontology.package.json").write_text(
+        json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+    (s.dir / "ontology-package.schema.json").write_text(
+        json.dumps(ONTOLOGY_PACKAGE_JSON_SCHEMA, ensure_ascii=False, indent=2),
+        encoding="utf-8")
+    views = {
+        "data-objects.json": data["dataObjects"],
+        "actions.json": data["actions"],
+        "events.json": data["events"],
+        "rules.json": data["rules"],
+        "questions.json": data["questions"],
+    }
+    for name, rows in views.items():
+        (s.dir / name).write_text(
+            json.dumps({"schemaVersion": data["schemaVersion"], "revision": revision,
+                        "items": rows}, ensure_ascii=False, indent=2), encoding="utf-8")
+    s.state["artifact_revision"] = revision
+    s.state["ontology_package"] = {
+        "schemaVersion": data["schemaVersion"], "packageId": data["packageId"],
+        "revision": revision, "validation": data["validation"],
+        "stats": {k: len(data[k]) for k in
+                  ("dataObjects", "actions", "events", "rules", "questions")},
+    }
+    return data
 
 
 @app.post("/api/sessions/{sid}/answer")
@@ -2262,6 +2367,27 @@ def _converse_tools(s: Session) -> Any:
         return {"已改": note, "当前": oir.stats(),
                 "下一步": "说「重出模板」按新结果重编译（会保留你的模板手工修改）"}
 
+    @reg.fn("oir.undo", "撤销上一次人工本体编辑，并恢复对应证据与来源。",
+            {"type": "object", "properties": {}},
+            danger=Danger.WRITE_LOCAL, scopes=RW)
+    def _oir_undo(ctx: Any) -> dict[str, Any]:
+        if _busy(s):
+            return {"error": "梳理正在跑，暂时不能撤销本体编辑。"}
+        versions = s.state.get("_oir_versions") or []
+        if not versions:
+            return {"error": "没有可撤销的本体编辑。"}
+        previous = versions.pop()
+        if s.state.get("_oir_patch_log"):
+            s.state["_oir_patch_log"].pop()
+        restored = oir_from_dict(previous)
+        s.state["_oir"] = restored
+        s.state["oir"] = restored.to_dict()
+        (s.dir / "oir.json").write_text(
+            json.dumps(previous, ensure_ascii=False, indent=1), encoding="utf-8")
+        s.emit("oir.edited", op="undo", note="已撤销上一次本体编辑",
+               stats=restored.stats())
+        return {"已撤销": True, "当前": restored.stats(), "剩余版本": len(versions)}
+
     @reg.fn("oir.add",
             "口述新增本体事实：加对象/属性/关系/业务规则/枚举状态值。FDE 说出材料没写"
             "但他知道的事实（如「采购包创建后状态变成已发布」= 给采购包.状态加取值"
@@ -2365,6 +2491,8 @@ def _converse_tools(s: Session) -> Any:
     def _flow_edit(ctx: Any, op: str, **args: Any) -> dict[str, Any]:
         from .onto.flow_edit import FlowEditError, apply_flow_edit
 
+        if _busy(s):
+            return {"error": "梳理正在跑，流程图编辑要等当前版本提交后再执行。"}
         g = s.state.get("_flow")
         if g is None:
             return {"error": "还没有流程图。材料里要有结构化的流程说明才抽得出来。"}
@@ -2393,10 +2521,14 @@ def _converse_tools(s: Session) -> Any:
     def _flow_undo(ctx: Any) -> dict[str, Any]:
         from .onto.flow import flow_from_dict
 
+        if _busy(s):
+            return {"error": "梳理正在跑，暂时不能撤销流程图。"}
         versions = s.state.get("_flow_versions") or []
         if not versions:
             return {"error": "没有可撤销的流程图编辑。"}
         prev = versions.pop()
+        if s.state.get("_flow_patch_log"):
+            s.state["_flow_patch_log"].pop()
         # flow_from_dict 原样还原 human/extracted/inferred 溯源 —— 回退不该把
         # 人工加的节点降级成推断，也不该把材料证据抹平
         g = flow_from_dict(prev)
@@ -2445,6 +2577,8 @@ def _converse_tools(s: Session) -> Any:
         from .onto.template import TemplateSpec
         from .onto.template_edit import EditError, apply_edit
 
+        if _busy(s):
+            return {"error": "梳理正在跑，模板编辑要等当前版本提交后再执行。"}
         sp = s.dir / "template.spec.json"
         if not sp.exists():
             return {"error": "还没有模板可以改，先跑一轮梳理。"}
@@ -2476,6 +2610,8 @@ def _converse_tools(s: Session) -> Any:
     def _tpl_undo(ctx: Any) -> dict[str, Any]:
         from .onto.template import TemplateSpec
 
+        if _busy(s):
+            return {"error": "梳理正在跑，暂时不能撤销模板。"}
         versions = s.state.get("_tpl_versions") or []
         if not versions:
             return {"error": "没有可撤销的编辑。"}
@@ -2628,6 +2764,9 @@ async def _reason(s: Session, text: str, *, hint: str = "",
         s.emit("chat.step", step={**rec, "turn": run_id, "q": text[:40]})
 
     ctx_text = _context_brief(s)
+    dm = s.state.get("_dialogue")
+    if dm is not None and dm.turns:
+        ctx_text += "\n\n最近对话（用于解析‘刚才那个/上一版’等指代）：\n" + dm.render_recent(limit=6)
     # 聊天模式里用户传了文件 → 把文本摘录塞进上下文，模型才能就它对话（聊天无工具）
     if s.state.get("mode") == "chat" and s.state.get("_chunks"):
         ctx_text += "\n\n" + _chat_docs_brief(s)
@@ -2923,7 +3062,8 @@ async def _ai_recommend(s: Session, *, slot: str, user_text: str | None = None,
         corpus = s.state.get("corpus") or {}
         findings = "；".join(f.get("message", "")
                              for f in (corpus.get("findings") or [])[:5])
-        dlg = ((s.state.get("dialogue") or {}).get("turns") or [])
+        dm = s.state.get("_dialogue")
+        dlg = (dm.to_dict().get("turns") if dm is not None else []) or []
         recent = "\n".join(f"{t.get('speaker')}: {str(t.get('text', ''))[:200]}"
                            for t in dlg[-4:] if t.get("speaker") != "system")
         prompt = (
@@ -3397,6 +3537,3 @@ async def index() -> HTMLResponse:
     return HTMLResponse(body, headers={
         "Cache-Control": "no-store, no-cache, must-revalidate",
         "Pragma": "no-cache"})
-
-
-
