@@ -1,0 +1,1277 @@
+{
+ "round": 1,
+ "sheets": [
+  {
+   "name": "02_待澄清问题",
+   "guide": "这些是梳理过程中没法从材料里确定的事。答复栏按你了解的实际情况填，拿不准就写「不确定」——写不确定比猜一个有用。　带「材料出处」的可以按出处翻回原文核对。",
+   "columns": [
+    "所属部分",
+    "澄清问题",
+    "参考选项",
+    "答复",
+    "材料出处"
+   ],
+   "rows": [
+    {
+     "所属部分": {
+      "rid": "oq_slot_数值未定_1_需进行采购包总金额上线控制_如超出xx金额_则采购包创建",
+      "sheet": "02_待澄清问题",
+      "field": "所属部分",
+      "value": "业务规则",
+      "role": "locked",
+      "owner": null,
+      "comment": "",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "澄清问题": {
+      "rid": "oq_slot_数值未定_1_需进行采购包总金额上线控制_如超出xx金额_则采购包创建",
+      "sheet": "02_待澄清问题",
+      "field": "澄清问题",
+      "value": "「1、需进行采购包总金额上线控制，如超出XX金额，则采购包创建失败」—— 这里的取值是多少？材料里写的是占位符。",
+      "role": "locked",
+      "owner": null,
+      "comment": "依据\n材料.xlsx!业务规则!R2-2：1、需进行采购包总金额上线控制，如超出XX金额，则采购包创建失败",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "参考选项": {
+      "rid": "oq_slot_数值未定_1_需进行采购包总金额上线控制_如超出xx金额_则采购包创建",
+      "sheet": "02_待澄清问题",
+      "field": "参考选项",
+      "value": "",
+      "role": "locked",
+      "owner": null,
+      "comment": "",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "答复": {
+      "rid": "oq_slot_数值未定_1_需进行采购包总金额上线控制_如超出xx金额_则采购包创建",
+      "sheet": "02_待澄清问题",
+      "field": "答复",
+      "value": "",
+      "role": "required",
+      "owner": null,
+      "comment": "",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "材料出处": {
+      "rid": "oq_slot_数值未定_1_需进行采购包总金额上线控制_如超出xx金额_则采购包创建",
+      "sheet": "02_待澄清问题",
+      "field": "材料出处",
+      "value": "材料.xlsx!业务规则!R2-2",
+      "role": "locked",
+      "owner": null,
+      "comment": "",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     }
+    },
+    {
+     "所属部分": {
+      "rid": "oq_slot_数值未定_2_实际与计划基线对比_如提前xx天需要进行预警提醒_这里的",
+      "sheet": "02_待澄清问题",
+      "field": "所属部分",
+      "value": "业务规则",
+      "role": "locked",
+      "owner": null,
+      "comment": "",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "澄清问题": {
+      "rid": "oq_slot_数值未定_2_实际与计划基线对比_如提前xx天需要进行预警提醒_这里的",
+      "sheet": "02_待澄清问题",
+      "field": "澄清问题",
+      "value": "「2、实际与计划基线对比，如提前XX天需要进行预警提醒」—— 这里的取值是多少？材料里写的是占位符。",
+      "role": "locked",
+      "owner": null,
+      "comment": "依据\n材料.xlsx!业务规则!R2-2：2、实际与计划基线对比，如提前XX天需要进行预警提醒",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "参考选项": {
+      "rid": "oq_slot_数值未定_2_实际与计划基线对比_如提前xx天需要进行预警提醒_这里的",
+      "sheet": "02_待澄清问题",
+      "field": "参考选项",
+      "value": "",
+      "role": "locked",
+      "owner": null,
+      "comment": "",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "答复": {
+      "rid": "oq_slot_数值未定_2_实际与计划基线对比_如提前xx天需要进行预警提醒_这里的",
+      "sheet": "02_待澄清问题",
+      "field": "答复",
+      "value": "",
+      "role": "required",
+      "owner": null,
+      "comment": "",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "材料出处": {
+      "rid": "oq_slot_数值未定_2_实际与计划基线对比_如提前xx天需要进行预警提醒_这里的",
+      "sheet": "02_待澄清问题",
+      "field": "材料出处",
+      "value": "材料.xlsx!业务规则!R2-2",
+      "role": "locked",
+      "owner": null,
+      "comment": "",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     }
+    },
+    {
+     "所属部分": {
+      "rid": "oq_enum_进度状态标准_目前列了_6_个取值_未开始_执行中_部分完成_已完成_",
+      "sheet": "02_待澄清问题",
+      "field": "所属部分",
+      "value": "业务规则",
+      "role": "locked",
+      "owner": null,
+      "comment": "",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "澄清问题": {
+      "rid": "oq_enum_进度状态标准_目前列了_6_个取值_未开始_执行中_部分完成_已完成_",
+      "sheet": "02_待澄清问题",
+      "field": "澄清问题",
+      "value": "「进度状态标准」目前列了 6 个取值：未开始、执行中、部分完成、已完成、已暂停、已取消。这份清单完整吗？还有没有别的取值？",
+      "role": "locked",
+      "owner": null,
+      "comment": "依据\n材料.xlsx!业务规则!R2-2：进度状态标准：未开始、执行中、部分完成、已完成、已暂停、已取消",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "参考选项": {
+      "rid": "oq_enum_进度状态标准_目前列了_6_个取值_未开始_执行中_部分完成_已完成_",
+      "sheet": "02_待澄清问题",
+      "field": "参考选项",
+      "value": "1）未开始　2）执行中　3）部分完成　4）已完成　5）已暂停　6）已取消　7）就这些，没有遗漏",
+      "role": "locked",
+      "owner": null,
+      "comment": "",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "答复": {
+      "rid": "oq_enum_进度状态标准_目前列了_6_个取值_未开始_执行中_部分完成_已完成_",
+      "sheet": "02_待澄清问题",
+      "field": "答复",
+      "value": "",
+      "role": "required",
+      "owner": null,
+      "comment": "",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "材料出处": {
+      "rid": "oq_enum_进度状态标准_目前列了_6_个取值_未开始_执行中_部分完成_已完成_",
+      "sheet": "02_待澄清问题",
+      "field": "材料出处",
+      "value": "材料.xlsx!业务规则!R2-2",
+      "role": "locked",
+      "owner": null,
+      "comment": "",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     }
+    },
+    {
+     "所属部分": {
+      "rid": "oq_empty_container_材料里有一张叫_实体间关系_待梳理_的表_但里面",
+      "sheet": "02_待澄清问题",
+      "field": "所属部分",
+      "value": "实体间关系-待梳理",
+      "role": "locked",
+      "owner": null,
+      "comment": "",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "澄清问题": {
+      "rid": "oq_empty_container_材料里有一张叫_实体间关系_待梳理_的表_但里面",
+      "sheet": "02_待澄清问题",
+      "field": "澄清问题",
+      "value": "材料里有一张叫「实体间关系-待梳理」的表，但里面一行内容都没有。这部分能补上吗？如果内容已经在别的文档里，请指出是哪一份。",
+      "role": "locked",
+      "owner": null,
+      "comment": "依据\n材料.xlsx!实体间关系-待梳理!R1-1：工作表「实体间关系-待梳理」是空的，已跳过",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "参考选项": {
+      "rid": "oq_empty_container_材料里有一张叫_实体间关系_待梳理_的表_但里面",
+      "sheet": "02_待澄清问题",
+      "field": "参考选项",
+      "value": "",
+      "role": "locked",
+      "owner": null,
+      "comment": "",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "答复": {
+      "rid": "oq_empty_container_材料里有一张叫_实体间关系_待梳理_的表_但里面",
+      "sheet": "02_待澄清问题",
+      "field": "答复",
+      "value": "",
+      "role": "required",
+      "owner": null,
+      "comment": "",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "材料出处": {
+      "rid": "oq_empty_container_材料里有一张叫_实体间关系_待梳理_的表_但里面",
+      "sheet": "02_待澄清问题",
+      "field": "材料出处",
+      "value": "材料.xlsx!实体间关系-待梳理!R1-1",
+      "role": "locked",
+      "owner": null,
+      "comment": "",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     }
+    },
+    {
+     "所属部分": {
+      "rid": "oq_object_no_description_有_7_个业务对象只有名字_没有一句",
+      "sheet": "02_待澄清问题",
+      "field": "所属部分",
+      "value": "对象口径",
+      "role": "locked",
+      "owner": null,
+      "comment": "",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "澄清问题": {
+      "rid": "oq_object_no_description_有_7_个业务对象只有名字_没有一句",
+      "sheet": "02_待澄清问题",
+      "field": "澄清问题",
+      "value": "有 7 个业务对象只有名字、没有一句说明（如 采购业务计划头、采购业务计划行、采购业务计划头行关系、采购订单头、采购订单行）。这些是同一套系统里的表吗？其中哪些是业务方真正会打交道的单据？",
+      "role": "locked",
+      "owner": null,
+      "comment": "",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "参考选项": {
+      "rid": "oq_object_no_description_有_7_个业务对象只有名字_没有一句",
+      "sheet": "02_待澄清问题",
+      "field": "参考选项",
+      "value": "",
+      "role": "locked",
+      "owner": null,
+      "comment": "",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "答复": {
+      "rid": "oq_object_no_description_有_7_个业务对象只有名字_没有一句",
+      "sheet": "02_待澄清问题",
+      "field": "答复",
+      "value": "",
+      "role": "required",
+      "owner": null,
+      "comment": "",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "材料出处": {
+      "rid": "oq_object_no_description_有_7_个业务对象只有名字_没有一句",
+      "sheet": "02_待澄清问题",
+      "field": "材料出处",
+      "value": "",
+      "role": "locked",
+      "owner": null,
+      "comment": "",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     }
+    }
+   ]
+  },
+  {
+   "name": "01_对象清单",
+   "guide": "本表列出系统从材料中识别出的业务对象。灰底=已定，无需改动；黄底=需要你确认或补充。",
+   "columns": [
+    "apiName",
+    "displayName",
+    "description",
+    "primaryKey",
+    "owner"
+   ],
+   "rows": [
+    {
+     "apiName": {
+      "rid": "ot_pbpheader",
+      "sheet": "01_对象清单",
+      "field": "apiName",
+      "value": "pbpHeader",
+      "role": "locked",
+      "owner": null,
+      "comment": "依据\n材料.xlsx!业务对象实体梳理!R2-2：应用模块=采购计划管理 | 业务对象=采购需求计划 | 实体编码=pbpHeader | 实体名称=采购业务计划头",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "displayName": {
+      "rid": "ot_pbpheader",
+      "sheet": "01_对象清单",
+      "field": "displayName",
+      "value": "采购业务计划头",
+      "role": "prefilled",
+      "owner": null,
+      "comment": "依据\n材料.xlsx!业务对象实体梳理!R2-2：应用模块=采购计划管理 | 业务对象=采购需求计划 | 实体编码=pbpHeader | 实体名称=采购业务计划头",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "description": {
+      "rid": "ot_pbpheader",
+      "sheet": "01_对象清单",
+      "field": "description",
+      "value": "",
+      "role": "required",
+      "owner": null,
+      "comment": "请一句话说明这个对象在业务里代表什么",
+      "options": null,
+      "conflict": false,
+      "expects_prose": true
+     },
+     "primaryKey": {
+      "rid": "ot_pbpheader",
+      "sheet": "01_对象清单",
+      "field": "primaryKey",
+      "value": "",
+      "role": "locked",
+      "owner": null,
+      "comment": "（无证据支撑，系统推断）",
+      "options": null,
+      "conflict": true,
+      "expects_prose": false
+     },
+     "owner": {
+      "rid": "ot_pbpheader",
+      "sheet": "01_对象清单",
+      "field": "owner",
+      "value": "",
+      "role": "locked",
+      "owner": null,
+      "comment": "pbpHeader: 未声明主键\npbpHeader 与任何对象都没有关系，可能是遗漏",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     }
+    },
+    {
+     "apiName": {
+      "rid": "ot_pbpline",
+      "sheet": "01_对象清单",
+      "field": "apiName",
+      "value": "pbpLine",
+      "role": "locked",
+      "owner": null,
+      "comment": "依据\n材料.xlsx!业务对象实体梳理!R3-3：应用模块=采购计划管理 | 业务对象=采购需求计划 | 实体编码=pbpLine | 实体名称=采购业务计划行",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "displayName": {
+      "rid": "ot_pbpline",
+      "sheet": "01_对象清单",
+      "field": "displayName",
+      "value": "采购业务计划行",
+      "role": "prefilled",
+      "owner": null,
+      "comment": "依据\n材料.xlsx!业务对象实体梳理!R3-3：应用模块=采购计划管理 | 业务对象=采购需求计划 | 实体编码=pbpLine | 实体名称=采购业务计划行",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "description": {
+      "rid": "ot_pbpline",
+      "sheet": "01_对象清单",
+      "field": "description",
+      "value": "",
+      "role": "required",
+      "owner": null,
+      "comment": "请一句话说明这个对象在业务里代表什么",
+      "options": null,
+      "conflict": false,
+      "expects_prose": true
+     },
+     "primaryKey": {
+      "rid": "ot_pbpline",
+      "sheet": "01_对象清单",
+      "field": "primaryKey",
+      "value": "",
+      "role": "locked",
+      "owner": null,
+      "comment": "（无证据支撑，系统推断）",
+      "options": null,
+      "conflict": true,
+      "expects_prose": false
+     },
+     "owner": {
+      "rid": "ot_pbpline",
+      "sheet": "01_对象清单",
+      "field": "owner",
+      "value": "",
+      "role": "locked",
+      "owner": null,
+      "comment": "pbpLine: 未声明主键\npbpLine 与任何对象都没有关系，可能是遗漏\n5 个对象没有任何 ActionType；OpenAPI 里没有可用端点",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     }
+    },
+    {
+     "apiName": {
+      "rid": "ot_pbprel",
+      "sheet": "01_对象清单",
+      "field": "apiName",
+      "value": "pbpRel",
+      "role": "locked",
+      "owner": null,
+      "comment": "依据\n材料.xlsx!业务对象实体梳理!R4-4：应用模块=采购计划管理 | 业务对象=采购需求计划 | 实体编码=pbpRel | 实体名称=采购业务计划头行关系",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "displayName": {
+      "rid": "ot_pbprel",
+      "sheet": "01_对象清单",
+      "field": "displayName",
+      "value": "采购业务计划头行关系",
+      "role": "prefilled",
+      "owner": null,
+      "comment": "依据\n材料.xlsx!业务对象实体梳理!R4-4：应用模块=采购计划管理 | 业务对象=采购需求计划 | 实体编码=pbpRel | 实体名称=采购业务计划头行关系",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "description": {
+      "rid": "ot_pbprel",
+      "sheet": "01_对象清单",
+      "field": "description",
+      "value": "",
+      "role": "required",
+      "owner": null,
+      "comment": "请一句话说明这个对象在业务里代表什么",
+      "options": null,
+      "conflict": false,
+      "expects_prose": true
+     },
+     "primaryKey": {
+      "rid": "ot_pbprel",
+      "sheet": "01_对象清单",
+      "field": "primaryKey",
+      "value": "",
+      "role": "locked",
+      "owner": null,
+      "comment": "（无证据支撑，系统推断）",
+      "options": null,
+      "conflict": true,
+      "expects_prose": false
+     },
+     "owner": {
+      "rid": "ot_pbprel",
+      "sheet": "01_对象清单",
+      "field": "owner",
+      "value": "",
+      "role": "locked",
+      "owner": null,
+      "comment": "pbpRel: 未声明主键\npbpRel 与任何对象都没有关系，可能是遗漏\n5 个对象没有任何 ActionType；OpenAPI 里没有可用端点",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     }
+    },
+    {
+     "apiName": {
+      "rid": "ot_poheader",
+      "sheet": "01_对象清单",
+      "field": "apiName",
+      "value": "poHeader",
+      "role": "locked",
+      "owner": null,
+      "comment": "依据\n材料.xlsx!业务对象实体梳理!R5-5：应用模块=采购订单管理 | 业务对象=采购订单 | 实体编码=poHeader | 实体名称=采购订单头",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "displayName": {
+      "rid": "ot_poheader",
+      "sheet": "01_对象清单",
+      "field": "displayName",
+      "value": "采购订单头",
+      "role": "prefilled",
+      "owner": null,
+      "comment": "依据\n材料.xlsx!业务对象实体梳理!R5-5：应用模块=采购订单管理 | 业务对象=采购订单 | 实体编码=poHeader | 实体名称=采购订单头",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "description": {
+      "rid": "ot_poheader",
+      "sheet": "01_对象清单",
+      "field": "description",
+      "value": "",
+      "role": "required",
+      "owner": null,
+      "comment": "请一句话说明这个对象在业务里代表什么",
+      "options": null,
+      "conflict": false,
+      "expects_prose": true
+     },
+     "primaryKey": {
+      "rid": "ot_poheader",
+      "sheet": "01_对象清单",
+      "field": "primaryKey",
+      "value": "",
+      "role": "locked",
+      "owner": null,
+      "comment": "（无证据支撑，系统推断）",
+      "options": null,
+      "conflict": true,
+      "expects_prose": false
+     },
+     "owner": {
+      "rid": "ot_poheader",
+      "sheet": "01_对象清单",
+      "field": "owner",
+      "value": "",
+      "role": "locked",
+      "owner": null,
+      "comment": "poHeader: 未声明主键\npoHeader 与任何对象都没有关系，可能是遗漏",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     }
+    },
+    {
+     "apiName": {
+      "rid": "ot_poline",
+      "sheet": "01_对象清单",
+      "field": "apiName",
+      "value": "poLine",
+      "role": "locked",
+      "owner": null,
+      "comment": "依据\n材料.xlsx!业务对象实体梳理!R6-6：应用模块=采购订单管理 | 业务对象=采购订单 | 实体编码=poLine | 实体名称=采购订单行",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "displayName": {
+      "rid": "ot_poline",
+      "sheet": "01_对象清单",
+      "field": "displayName",
+      "value": "采购订单行",
+      "role": "prefilled",
+      "owner": null,
+      "comment": "依据\n材料.xlsx!业务对象实体梳理!R6-6：应用模块=采购订单管理 | 业务对象=采购订单 | 实体编码=poLine | 实体名称=采购订单行",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "description": {
+      "rid": "ot_poline",
+      "sheet": "01_对象清单",
+      "field": "description",
+      "value": "",
+      "role": "required",
+      "owner": null,
+      "comment": "请一句话说明这个对象在业务里代表什么",
+      "options": null,
+      "conflict": false,
+      "expects_prose": true
+     },
+     "primaryKey": {
+      "rid": "ot_poline",
+      "sheet": "01_对象清单",
+      "field": "primaryKey",
+      "value": "",
+      "role": "locked",
+      "owner": null,
+      "comment": "（无证据支撑，系统推断）",
+      "options": null,
+      "conflict": true,
+      "expects_prose": false
+     },
+     "owner": {
+      "rid": "ot_poline",
+      "sheet": "01_对象清单",
+      "field": "owner",
+      "value": "",
+      "role": "locked",
+      "owner": null,
+      "comment": "poLine: 未声明主键\npoLine 与任何对象都没有关系，可能是遗漏\n5 个对象没有任何 ActionType；OpenAPI 里没有可用端点",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     }
+    },
+    {
+     "apiName": {
+      "rid": "ot_potaxline",
+      "sheet": "01_对象清单",
+      "field": "apiName",
+      "value": "poTaxLine",
+      "role": "locked",
+      "owner": null,
+      "comment": "依据\n材料.xlsx!业务对象实体梳理!R7-7：应用模块=采购订单管理 | 业务对象=采购订单 | 实体编码=poTaxLine | 实体名称=采购订单税行",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "displayName": {
+      "rid": "ot_potaxline",
+      "sheet": "01_对象清单",
+      "field": "displayName",
+      "value": "采购订单税行",
+      "role": "prefilled",
+      "owner": null,
+      "comment": "依据\n材料.xlsx!业务对象实体梳理!R7-7：应用模块=采购订单管理 | 业务对象=采购订单 | 实体编码=poTaxLine | 实体名称=采购订单税行",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "description": {
+      "rid": "ot_potaxline",
+      "sheet": "01_对象清单",
+      "field": "description",
+      "value": "",
+      "role": "required",
+      "owner": null,
+      "comment": "请一句话说明这个对象在业务里代表什么",
+      "options": null,
+      "conflict": false,
+      "expects_prose": true
+     },
+     "primaryKey": {
+      "rid": "ot_potaxline",
+      "sheet": "01_对象清单",
+      "field": "primaryKey",
+      "value": "",
+      "role": "locked",
+      "owner": null,
+      "comment": "（无证据支撑，系统推断）",
+      "options": null,
+      "conflict": true,
+      "expects_prose": false
+     },
+     "owner": {
+      "rid": "ot_potaxline",
+      "sheet": "01_对象清单",
+      "field": "owner",
+      "value": "",
+      "role": "locked",
+      "owner": null,
+      "comment": "poTaxLine: 未声明主键\npoTaxLine 与任何对象都没有关系，可能是遗漏\n5 个对象没有任何 ActionType；OpenAPI 里没有可用端点",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     }
+    },
+    {
+     "apiName": {
+      "rid": "ot_poactionlog",
+      "sheet": "01_对象清单",
+      "field": "apiName",
+      "value": "poActionLog",
+      "role": "locked",
+      "owner": null,
+      "comment": "依据\n材料.xlsx!业务对象实体梳理!R8-8：应用模块=采购订单管理 | 业务对象=采购订单 | 实体编码=poActionLog | 实体名称=采购订单操作日志",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "displayName": {
+      "rid": "ot_poactionlog",
+      "sheet": "01_对象清单",
+      "field": "displayName",
+      "value": "采购订单操作日志",
+      "role": "prefilled",
+      "owner": null,
+      "comment": "依据\n材料.xlsx!业务对象实体梳理!R8-8：应用模块=采购订单管理 | 业务对象=采购订单 | 实体编码=poActionLog | 实体名称=采购订单操作日志",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "description": {
+      "rid": "ot_poactionlog",
+      "sheet": "01_对象清单",
+      "field": "description",
+      "value": "",
+      "role": "required",
+      "owner": null,
+      "comment": "请一句话说明这个对象在业务里代表什么",
+      "options": null,
+      "conflict": false,
+      "expects_prose": true
+     },
+     "primaryKey": {
+      "rid": "ot_poactionlog",
+      "sheet": "01_对象清单",
+      "field": "primaryKey",
+      "value": "",
+      "role": "locked",
+      "owner": null,
+      "comment": "（无证据支撑，系统推断）",
+      "options": null,
+      "conflict": true,
+      "expects_prose": false
+     },
+     "owner": {
+      "rid": "ot_poactionlog",
+      "sheet": "01_对象清单",
+      "field": "owner",
+      "value": "",
+      "role": "locked",
+      "owner": null,
+      "comment": "poActionLog: 未声明主键\npoActionLog 与任何对象都没有关系，可能是遗漏\n5 个对象没有任何 ActionType；OpenAPI 里没有可用端点",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     }
+    }
+   ]
+  },
+  {
+   "name": "04_动作清单",
+   "guide": "带「待确认」的是系统从 OpenAPI 反推的草稿。请核对参数与影响范围 —— 改比从零写快得多，但草稿未经确认不算数。",
+   "columns": [
+    "apiName",
+    "appliesTo",
+    "sourceEndpoint",
+    "effects",
+    "confirmed"
+   ],
+   "rows": [
+    {
+     "apiName": {
+      "rid": "at_createpbp",
+      "sheet": "04_动作清单",
+      "field": "apiName",
+      "value": "createPbp",
+      "role": "prefilled",
+      "owner": null,
+      "comment": "依据\n材料.xlsx!业务对象API梳理-行动!R2-2：应用模块=采购计划管理 | 业务对象=采购需求计划 | 实体编码=createPbp | 实体名称=创建PBP | url=/v1/createPbp",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "appliesTo": {
+      "rid": "at_createpbp",
+      "sheet": "04_动作清单",
+      "field": "appliesTo",
+      "value": "ot_pbpheader",
+      "role": "prefilled",
+      "owner": null,
+      "comment": "",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "sourceEndpoint": {
+      "rid": "at_createpbp",
+      "sheet": "04_动作清单",
+      "field": "sourceEndpoint",
+      "value": "/v1/createPbp",
+      "role": "locked",
+      "owner": null,
+      "comment": "依据\n材料.xlsx!业务对象API梳理-行动!R2-2：应用模块=采购计划管理 | 业务对象=采购需求计划 | 实体编码=createPbp | 实体名称=创建PBP | url=/v1/createPbp",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "effects": {
+      "rid": "at_createpbp",
+      "sheet": "04_动作清单",
+      "field": "effects",
+      "value": "",
+      "role": "required",
+      "owner": null,
+      "comment": "",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "confirmed": {
+      "rid": "at_createpbp",
+      "sheet": "04_动作清单",
+      "field": "confirmed",
+      "value": "已确认",
+      "role": "prefilled",
+      "owner": null,
+      "comment": "",
+      "options": [
+       "已确认",
+       "待确认",
+       "不适用"
+      ],
+      "conflict": false,
+      "expects_prose": false
+     }
+    },
+    {
+     "apiName": {
+      "rid": "at_cancelopenpbp",
+      "sheet": "04_动作清单",
+      "field": "apiName",
+      "value": "cancelOpenPbp",
+      "role": "prefilled",
+      "owner": null,
+      "comment": "依据\n材料.xlsx!业务对象API梳理-行动!R3-3：应用模块=采购计划管理 | 业务对象=采购需求计划 | 实体编码=cancelOpenPbp | 实体名称=取消PBP | url=/v1/cancelPbp",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "appliesTo": {
+      "rid": "at_cancelopenpbp",
+      "sheet": "04_动作清单",
+      "field": "appliesTo",
+      "value": "ot_pbpheader",
+      "role": "prefilled",
+      "owner": null,
+      "comment": "",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "sourceEndpoint": {
+      "rid": "at_cancelopenpbp",
+      "sheet": "04_动作清单",
+      "field": "sourceEndpoint",
+      "value": "/v1/cancelPbp",
+      "role": "locked",
+      "owner": null,
+      "comment": "依据\n材料.xlsx!业务对象API梳理-行动!R3-3：应用模块=采购计划管理 | 业务对象=采购需求计划 | 实体编码=cancelOpenPbp | 实体名称=取消PBP | url=/v1/cancelPbp",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "effects": {
+      "rid": "at_cancelopenpbp",
+      "sheet": "04_动作清单",
+      "field": "effects",
+      "value": "",
+      "role": "required",
+      "owner": null,
+      "comment": "",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "confirmed": {
+      "rid": "at_cancelopenpbp",
+      "sheet": "04_动作清单",
+      "field": "confirmed",
+      "value": "已确认",
+      "role": "prefilled",
+      "owner": null,
+      "comment": "",
+      "options": [
+       "已确认",
+       "待确认",
+       "不适用"
+      ],
+      "conflict": false,
+      "expects_prose": false
+     }
+    },
+    {
+     "apiName": {
+      "rid": "at_queryopenpbpheader",
+      "sheet": "04_动作清单",
+      "field": "apiName",
+      "value": "queryOpenPbpHeader",
+      "role": "prefilled",
+      "owner": null,
+      "comment": "依据\n材料.xlsx!业务对象API梳理-行动!R4-4：应用模块=采购计划管理 | 业务对象=采购需求计划 | 实体编码=queryOpenPbpHeader | 实体名称=查询PBP头 | url=/v1/quer",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "appliesTo": {
+      "rid": "at_queryopenpbpheader",
+      "sheet": "04_动作清单",
+      "field": "appliesTo",
+      "value": "ot_pbpheader",
+      "role": "prefilled",
+      "owner": null,
+      "comment": "",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "sourceEndpoint": {
+      "rid": "at_queryopenpbpheader",
+      "sheet": "04_动作清单",
+      "field": "sourceEndpoint",
+      "value": "/v1/queryPbpHeader",
+      "role": "locked",
+      "owner": null,
+      "comment": "依据\n材料.xlsx!业务对象API梳理-行动!R4-4：应用模块=采购计划管理 | 业务对象=采购需求计划 | 实体编码=queryOpenPbpHeader | 实体名称=查询PBP头 | url=/v1/quer",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "effects": {
+      "rid": "at_queryopenpbpheader",
+      "sheet": "04_动作清单",
+      "field": "effects",
+      "value": "只读，不改动单据",
+      "role": "locked",
+      "owner": null,
+      "comment": "",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "confirmed": {
+      "rid": "at_queryopenpbpheader",
+      "sheet": "04_动作清单",
+      "field": "confirmed",
+      "value": "已确认",
+      "role": "prefilled",
+      "owner": null,
+      "comment": "",
+      "options": [
+       "已确认",
+       "待确认",
+       "不适用"
+      ],
+      "conflict": false,
+      "expects_prose": false
+     }
+    },
+    {
+     "apiName": {
+      "rid": "at_createpo",
+      "sheet": "04_动作清单",
+      "field": "apiName",
+      "value": "createPo",
+      "role": "prefilled",
+      "owner": null,
+      "comment": "依据\n材料.xlsx!业务对象API梳理-行动!R5-5：应用模块=采购订单管理 | 业务对象=采购订单 | 实体编码=createPo | 实体名称=创建采购订单 | url=/v1/createPo",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "appliesTo": {
+      "rid": "at_createpo",
+      "sheet": "04_动作清单",
+      "field": "appliesTo",
+      "value": "ot_poheader",
+      "role": "prefilled",
+      "owner": null,
+      "comment": "",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "sourceEndpoint": {
+      "rid": "at_createpo",
+      "sheet": "04_动作清单",
+      "field": "sourceEndpoint",
+      "value": "/v1/createPo",
+      "role": "locked",
+      "owner": null,
+      "comment": "依据\n材料.xlsx!业务对象API梳理-行动!R5-5：应用模块=采购订单管理 | 业务对象=采购订单 | 实体编码=createPo | 实体名称=创建采购订单 | url=/v1/createPo",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "effects": {
+      "rid": "at_createpo",
+      "sheet": "04_动作清单",
+      "field": "effects",
+      "value": "",
+      "role": "required",
+      "owner": null,
+      "comment": "",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "confirmed": {
+      "rid": "at_createpo",
+      "sheet": "04_动作清单",
+      "field": "confirmed",
+      "value": "已确认",
+      "role": "prefilled",
+      "owner": null,
+      "comment": "",
+      "options": [
+       "已确认",
+       "待确认",
+       "不适用"
+      ],
+      "conflict": false,
+      "expects_prose": false
+     }
+    },
+    {
+     "apiName": {
+      "rid": "at_updatepo",
+      "sheet": "04_动作清单",
+      "field": "apiName",
+      "value": "updatePo",
+      "role": "prefilled",
+      "owner": null,
+      "comment": "依据\n材料.xlsx!业务对象API梳理-行动!R6-6：应用模块=采购订单管理 | 业务对象=采购订单 | 实体编码=updatePo | 实体名称=修改采购订单 | url=/v1/updatePo",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "appliesTo": {
+      "rid": "at_updatepo",
+      "sheet": "04_动作清单",
+      "field": "appliesTo",
+      "value": "ot_poheader",
+      "role": "prefilled",
+      "owner": null,
+      "comment": "",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "sourceEndpoint": {
+      "rid": "at_updatepo",
+      "sheet": "04_动作清单",
+      "field": "sourceEndpoint",
+      "value": "/v1/updatePo",
+      "role": "locked",
+      "owner": null,
+      "comment": "依据\n材料.xlsx!业务对象API梳理-行动!R6-6：应用模块=采购订单管理 | 业务对象=采购订单 | 实体编码=updatePo | 实体名称=修改采购订单 | url=/v1/updatePo",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "effects": {
+      "rid": "at_updatepo",
+      "sheet": "04_动作清单",
+      "field": "effects",
+      "value": "",
+      "role": "required",
+      "owner": null,
+      "comment": "",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "confirmed": {
+      "rid": "at_updatepo",
+      "sheet": "04_动作清单",
+      "field": "confirmed",
+      "value": "已确认",
+      "role": "prefilled",
+      "owner": null,
+      "comment": "",
+      "options": [
+       "已确认",
+       "待确认",
+       "不适用"
+      ],
+      "conflict": false,
+      "expects_prose": false
+     }
+    },
+    {
+     "apiName": {
+      "rid": "at_querypoheader",
+      "sheet": "04_动作清单",
+      "field": "apiName",
+      "value": "queryPoHeader",
+      "role": "prefilled",
+      "owner": null,
+      "comment": "依据\n材料.xlsx!业务对象API梳理-行动!R7-7：应用模块=采购订单管理 | 业务对象=采购订单 | 实体编码=queryPoHeader | 实体名称=查询采购订单头 | url=/v1/queryPoHea",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "appliesTo": {
+      "rid": "at_querypoheader",
+      "sheet": "04_动作清单",
+      "field": "appliesTo",
+      "value": "ot_poheader",
+      "role": "prefilled",
+      "owner": null,
+      "comment": "",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "sourceEndpoint": {
+      "rid": "at_querypoheader",
+      "sheet": "04_动作清单",
+      "field": "sourceEndpoint",
+      "value": "/v1/queryPoHeader",
+      "role": "locked",
+      "owner": null,
+      "comment": "依据\n材料.xlsx!业务对象API梳理-行动!R7-7：应用模块=采购订单管理 | 业务对象=采购订单 | 实体编码=queryPoHeader | 实体名称=查询采购订单头 | url=/v1/queryPoHea",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "effects": {
+      "rid": "at_querypoheader",
+      "sheet": "04_动作清单",
+      "field": "effects",
+      "value": "只读，不改动单据",
+      "role": "locked",
+      "owner": null,
+      "comment": "",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "confirmed": {
+      "rid": "at_querypoheader",
+      "sheet": "04_动作清单",
+      "field": "confirmed",
+      "value": "已确认",
+      "role": "prefilled",
+      "owner": null,
+      "comment": "",
+      "options": [
+       "已确认",
+       "待确认",
+       "不适用"
+      ],
+      "conflict": false,
+      "expects_prose": false
+     }
+    }
+   ]
+  },
+  {
+   "name": "05_术语表",
+   "guide": "系统识别到的别名。如果某个别名其实指的是别的东西，请在这里指出。",
+   "columns": [
+    "standard",
+    "aliases",
+    "correct"
+   ],
+   "rows": [
+    {
+     "standard": {
+      "rid": "ot_pbpheader",
+      "sheet": "05_术语表",
+      "field": "standard",
+      "value": "采购业务计划头",
+      "role": "locked",
+      "owner": null,
+      "comment": "",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "aliases": {
+      "rid": "ot_pbpheader",
+      "sheet": "05_术语表",
+      "field": "aliases",
+      "value": "采购需求计划",
+      "role": "prefilled",
+      "owner": null,
+      "comment": "",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "correct": {
+      "rid": "ot_pbpheader",
+      "sheet": "05_术语表",
+      "field": "correct",
+      "value": "",
+      "role": "required",
+      "owner": null,
+      "comment": "",
+      "options": [
+       "正确",
+       "有误"
+      ],
+      "conflict": false,
+      "expects_prose": false
+     }
+    },
+    {
+     "standard": {
+      "rid": "ot_poheader",
+      "sheet": "05_术语表",
+      "field": "standard",
+      "value": "采购订单头",
+      "role": "locked",
+      "owner": null,
+      "comment": "",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "aliases": {
+      "rid": "ot_poheader",
+      "sheet": "05_术语表",
+      "field": "aliases",
+      "value": "采购订单",
+      "role": "prefilled",
+      "owner": null,
+      "comment": "",
+      "options": null,
+      "conflict": false,
+      "expects_prose": false
+     },
+     "correct": {
+      "rid": "ot_poheader",
+      "sheet": "05_术语表",
+      "field": "correct",
+      "value": "",
+      "role": "required",
+      "owner": null,
+      "comment": "",
+      "options": [
+       "正确",
+       "有误"
+      ],
+      "conflict": false,
+      "expects_prose": false
+     }
+    }
+   ]
+  }
+ ]
+}

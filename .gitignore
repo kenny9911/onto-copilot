@@ -18,3 +18,7 @@ artifacts/
 
 # OS cruft
 .DS_Store
+
+# TS 迁移：依赖与构建产物不进版本库
+ts/node_modules/
+ts/dist/

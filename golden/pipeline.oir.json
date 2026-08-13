@@ -1,0 +1,1126 @@
+{
+ "objects": [
+  {
+   "rid": "ot_pbpheader",
+   "kind": "ObjectType",
+   "apiName": {
+    "value": "pbpHeader",
+    "origin": "extracted",
+    "confidence": 0.8,
+    "evidence": [
+     {
+      "file_id": "f_cd97296397f0",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务对象实体梳理",
+       "rows": [
+        2,
+        2
+       ]
+      },
+      "snippet": "应用模块=采购计划管理 | 业务对象=采购需求计划 | 实体编码=pbpHeader | 实体名称=采购业务计划头",
+      "extractor": "rule",
+      "confidence": 1.0,
+      "cite": "材料.xlsx!业务对象实体梳理!R2-2"
+     }
+    ]
+   },
+   "displayName": {
+    "value": "采购业务计划头",
+    "origin": "extracted",
+    "confidence": 0.8,
+    "evidence": [
+     {
+      "file_id": "f_cd97296397f0",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务对象实体梳理",
+       "rows": [
+        2,
+        2
+       ]
+      },
+      "snippet": "应用模块=采购计划管理 | 业务对象=采购需求计划 | 实体编码=pbpHeader | 实体名称=采购业务计划头",
+      "extractor": "rule",
+      "confidence": 1.0,
+      "cite": "材料.xlsx!业务对象实体梳理!R2-2"
+     }
+    ]
+   },
+   "description": {
+    "value": "",
+    "origin": "inferred",
+    "confidence": 0.4,
+    "evidence": []
+   },
+   "primaryKey": {
+    "value": [],
+    "origin": "inferred",
+    "confidence": 0.4,
+    "evidence": []
+   },
+   "properties": [],
+   "aliases": [
+    "采购需求计划"
+   ],
+   "owner": null,
+   "status": "candidate",
+   "conflicts": [
+    "cf_missing_required_b1dfeaf7c0",
+    "cf_orphan_d7167ff3a8"
+   ]
+  },
+  {
+   "rid": "ot_pbpline",
+   "kind": "ObjectType",
+   "apiName": {
+    "value": "pbpLine",
+    "origin": "extracted",
+    "confidence": 0.8,
+    "evidence": [
+     {
+      "file_id": "f_cd97296397f0",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务对象实体梳理",
+       "rows": [
+        3,
+        3
+       ]
+      },
+      "snippet": "应用模块=采购计划管理 | 业务对象=采购需求计划 | 实体编码=pbpLine | 实体名称=采购业务计划行",
+      "extractor": "rule",
+      "confidence": 1.0,
+      "cite": "材料.xlsx!业务对象实体梳理!R3-3"
+     }
+    ]
+   },
+   "displayName": {
+    "value": "采购业务计划行",
+    "origin": "extracted",
+    "confidence": 0.8,
+    "evidence": [
+     {
+      "file_id": "f_cd97296397f0",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务对象实体梳理",
+       "rows": [
+        3,
+        3
+       ]
+      },
+      "snippet": "应用模块=采购计划管理 | 业务对象=采购需求计划 | 实体编码=pbpLine | 实体名称=采购业务计划行",
+      "extractor": "rule",
+      "confidence": 1.0,
+      "cite": "材料.xlsx!业务对象实体梳理!R3-3"
+     }
+    ]
+   },
+   "description": {
+    "value": "",
+    "origin": "inferred",
+    "confidence": 0.4,
+    "evidence": []
+   },
+   "primaryKey": {
+    "value": [],
+    "origin": "inferred",
+    "confidence": 0.4,
+    "evidence": []
+   },
+   "properties": [],
+   "aliases": [],
+   "owner": null,
+   "status": "candidate",
+   "conflicts": [
+    "cf_missing_required_0a38663ff8",
+    "cf_orphan_e76d23801a",
+    "cf_missing_action_99cb1f4bbc"
+   ]
+  },
+  {
+   "rid": "ot_pbprel",
+   "kind": "ObjectType",
+   "apiName": {
+    "value": "pbpRel",
+    "origin": "extracted",
+    "confidence": 0.8,
+    "evidence": [
+     {
+      "file_id": "f_cd97296397f0",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务对象实体梳理",
+       "rows": [
+        4,
+        4
+       ]
+      },
+      "snippet": "应用模块=采购计划管理 | 业务对象=采购需求计划 | 实体编码=pbpRel | 实体名称=采购业务计划头行关系",
+      "extractor": "rule",
+      "confidence": 1.0,
+      "cite": "材料.xlsx!业务对象实体梳理!R4-4"
+     }
+    ]
+   },
+   "displayName": {
+    "value": "采购业务计划头行关系",
+    "origin": "extracted",
+    "confidence": 0.8,
+    "evidence": [
+     {
+      "file_id": "f_cd97296397f0",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务对象实体梳理",
+       "rows": [
+        4,
+        4
+       ]
+      },
+      "snippet": "应用模块=采购计划管理 | 业务对象=采购需求计划 | 实体编码=pbpRel | 实体名称=采购业务计划头行关系",
+      "extractor": "rule",
+      "confidence": 1.0,
+      "cite": "材料.xlsx!业务对象实体梳理!R4-4"
+     }
+    ]
+   },
+   "description": {
+    "value": "",
+    "origin": "inferred",
+    "confidence": 0.4,
+    "evidence": []
+   },
+   "primaryKey": {
+    "value": [],
+    "origin": "inferred",
+    "confidence": 0.4,
+    "evidence": []
+   },
+   "properties": [],
+   "aliases": [],
+   "owner": null,
+   "status": "candidate",
+   "conflicts": [
+    "cf_missing_required_bba1d3f422",
+    "cf_orphan_1aa0fb470e",
+    "cf_missing_action_99cb1f4bbc"
+   ]
+  },
+  {
+   "rid": "ot_poheader",
+   "kind": "ObjectType",
+   "apiName": {
+    "value": "poHeader",
+    "origin": "extracted",
+    "confidence": 0.8,
+    "evidence": [
+     {
+      "file_id": "f_cd97296397f0",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务对象实体梳理",
+       "rows": [
+        5,
+        5
+       ]
+      },
+      "snippet": "应用模块=采购订单管理 | 业务对象=采购订单 | 实体编码=poHeader | 实体名称=采购订单头",
+      "extractor": "rule",
+      "confidence": 1.0,
+      "cite": "材料.xlsx!业务对象实体梳理!R5-5"
+     }
+    ]
+   },
+   "displayName": {
+    "value": "采购订单头",
+    "origin": "extracted",
+    "confidence": 0.8,
+    "evidence": [
+     {
+      "file_id": "f_cd97296397f0",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务对象实体梳理",
+       "rows": [
+        5,
+        5
+       ]
+      },
+      "snippet": "应用模块=采购订单管理 | 业务对象=采购订单 | 实体编码=poHeader | 实体名称=采购订单头",
+      "extractor": "rule",
+      "confidence": 1.0,
+      "cite": "材料.xlsx!业务对象实体梳理!R5-5"
+     }
+    ]
+   },
+   "description": {
+    "value": "",
+    "origin": "inferred",
+    "confidence": 0.4,
+    "evidence": []
+   },
+   "primaryKey": {
+    "value": [],
+    "origin": "inferred",
+    "confidence": 0.4,
+    "evidence": []
+   },
+   "properties": [],
+   "aliases": [
+    "采购订单"
+   ],
+   "owner": null,
+   "status": "candidate",
+   "conflicts": [
+    "cf_missing_required_4e2f79418e",
+    "cf_orphan_0f2a359c35"
+   ]
+  },
+  {
+   "rid": "ot_poline",
+   "kind": "ObjectType",
+   "apiName": {
+    "value": "poLine",
+    "origin": "extracted",
+    "confidence": 0.8,
+    "evidence": [
+     {
+      "file_id": "f_cd97296397f0",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务对象实体梳理",
+       "rows": [
+        6,
+        6
+       ]
+      },
+      "snippet": "应用模块=采购订单管理 | 业务对象=采购订单 | 实体编码=poLine | 实体名称=采购订单行",
+      "extractor": "rule",
+      "confidence": 1.0,
+      "cite": "材料.xlsx!业务对象实体梳理!R6-6"
+     }
+    ]
+   },
+   "displayName": {
+    "value": "采购订单行",
+    "origin": "extracted",
+    "confidence": 0.8,
+    "evidence": [
+     {
+      "file_id": "f_cd97296397f0",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务对象实体梳理",
+       "rows": [
+        6,
+        6
+       ]
+      },
+      "snippet": "应用模块=采购订单管理 | 业务对象=采购订单 | 实体编码=poLine | 实体名称=采购订单行",
+      "extractor": "rule",
+      "confidence": 1.0,
+      "cite": "材料.xlsx!业务对象实体梳理!R6-6"
+     }
+    ]
+   },
+   "description": {
+    "value": "",
+    "origin": "inferred",
+    "confidence": 0.4,
+    "evidence": []
+   },
+   "primaryKey": {
+    "value": [],
+    "origin": "inferred",
+    "confidence": 0.4,
+    "evidence": []
+   },
+   "properties": [],
+   "aliases": [],
+   "owner": null,
+   "status": "candidate",
+   "conflicts": [
+    "cf_missing_required_c9f3d22a25",
+    "cf_orphan_64205d1818",
+    "cf_missing_action_99cb1f4bbc"
+   ]
+  },
+  {
+   "rid": "ot_potaxline",
+   "kind": "ObjectType",
+   "apiName": {
+    "value": "poTaxLine",
+    "origin": "extracted",
+    "confidence": 0.8,
+    "evidence": [
+     {
+      "file_id": "f_cd97296397f0",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务对象实体梳理",
+       "rows": [
+        7,
+        7
+       ]
+      },
+      "snippet": "应用模块=采购订单管理 | 业务对象=采购订单 | 实体编码=poTaxLine | 实体名称=采购订单税行",
+      "extractor": "rule",
+      "confidence": 1.0,
+      "cite": "材料.xlsx!业务对象实体梳理!R7-7"
+     }
+    ]
+   },
+   "displayName": {
+    "value": "采购订单税行",
+    "origin": "extracted",
+    "confidence": 0.8,
+    "evidence": [
+     {
+      "file_id": "f_cd97296397f0",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务对象实体梳理",
+       "rows": [
+        7,
+        7
+       ]
+      },
+      "snippet": "应用模块=采购订单管理 | 业务对象=采购订单 | 实体编码=poTaxLine | 实体名称=采购订单税行",
+      "extractor": "rule",
+      "confidence": 1.0,
+      "cite": "材料.xlsx!业务对象实体梳理!R7-7"
+     }
+    ]
+   },
+   "description": {
+    "value": "",
+    "origin": "inferred",
+    "confidence": 0.4,
+    "evidence": []
+   },
+   "primaryKey": {
+    "value": [],
+    "origin": "inferred",
+    "confidence": 0.4,
+    "evidence": []
+   },
+   "properties": [],
+   "aliases": [],
+   "owner": null,
+   "status": "candidate",
+   "conflicts": [
+    "cf_missing_required_81d7063381",
+    "cf_orphan_2c4f3c8676",
+    "cf_missing_action_99cb1f4bbc"
+   ]
+  },
+  {
+   "rid": "ot_poactionlog",
+   "kind": "ObjectType",
+   "apiName": {
+    "value": "poActionLog",
+    "origin": "extracted",
+    "confidence": 0.8,
+    "evidence": [
+     {
+      "file_id": "f_cd97296397f0",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务对象实体梳理",
+       "rows": [
+        8,
+        8
+       ]
+      },
+      "snippet": "应用模块=采购订单管理 | 业务对象=采购订单 | 实体编码=poActionLog | 实体名称=采购订单操作日志",
+      "extractor": "rule",
+      "confidence": 1.0,
+      "cite": "材料.xlsx!业务对象实体梳理!R8-8"
+     }
+    ]
+   },
+   "displayName": {
+    "value": "采购订单操作日志",
+    "origin": "extracted",
+    "confidence": 0.8,
+    "evidence": [
+     {
+      "file_id": "f_cd97296397f0",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务对象实体梳理",
+       "rows": [
+        8,
+        8
+       ]
+      },
+      "snippet": "应用模块=采购订单管理 | 业务对象=采购订单 | 实体编码=poActionLog | 实体名称=采购订单操作日志",
+      "extractor": "rule",
+      "confidence": 1.0,
+      "cite": "材料.xlsx!业务对象实体梳理!R8-8"
+     }
+    ]
+   },
+   "description": {
+    "value": "",
+    "origin": "inferred",
+    "confidence": 0.4,
+    "evidence": []
+   },
+   "primaryKey": {
+    "value": [],
+    "origin": "inferred",
+    "confidence": 0.4,
+    "evidence": []
+   },
+   "properties": [],
+   "aliases": [],
+   "owner": null,
+   "status": "candidate",
+   "conflicts": [
+    "cf_missing_required_8d9b834db3",
+    "cf_orphan_979cf80a17",
+    "cf_missing_action_99cb1f4bbc"
+   ]
+  }
+ ],
+ "properties": [],
+ "links": [],
+ "rules": [],
+ "questions": [
+  {
+   "rid": "oq_empty_container_材料里有一张叫_实体间关系_待梳理_的表_但里面",
+   "kind": "OpenQuestion",
+   "text": {
+    "value": "材料里有一张叫「实体间关系-待梳理」的表，但里面一行内容都没有。这部分能补上吗？如果内容已经在别的文档里，请指出是哪一份。",
+    "origin": "extracted",
+    "confidence": 0.8,
+    "evidence": [
+     {
+      "file_id": "f_cd97296397f0",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "实体间关系-待梳理",
+       "rows": [
+        1,
+        1
+       ]
+      },
+      "snippet": "工作表「实体间关系-待梳理」是空的，已跳过",
+      "extractor": "rule",
+      "confidence": 1.0,
+      "cite": "材料.xlsx!实体间关系-待梳理!R1-1"
+     }
+    ]
+   },
+   "options": [],
+   "answer": {
+    "value": "",
+    "origin": "inferred",
+    "confidence": 0.4,
+    "evidence": []
+   },
+   "group": "实体间关系-待梳理",
+   "code": "",
+   "appliesTo": [],
+   "askedBy": "system",
+   "owner": null,
+   "status": "candidate"
+  },
+  {
+   "rid": "oq_slot_数值未定_1_需进行采购包总金额上线控制_如超出xx金额_则采购包创建",
+   "kind": "OpenQuestion",
+   "text": {
+    "value": "「1、需进行采购包总金额上线控制，如超出XX金额，则采购包创建失败」—— 这里的取值是多少？材料里写的是占位符。",
+    "origin": "extracted",
+    "confidence": 0.8,
+    "evidence": [
+     {
+      "file_id": "f_cd97296397f0",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务规则",
+       "rows": [
+        2,
+        2
+       ]
+      },
+      "snippet": "1、需进行采购包总金额上线控制，如超出XX金额，则采购包创建失败",
+      "extractor": "rule",
+      "confidence": 1.0,
+      "cite": "材料.xlsx!业务规则!R2-2"
+     }
+    ]
+   },
+   "options": [],
+   "answer": {
+    "value": "",
+    "origin": "inferred",
+    "confidence": 0.4,
+    "evidence": []
+   },
+   "group": "业务规则",
+   "code": "",
+   "appliesTo": [],
+   "askedBy": "system",
+   "owner": null,
+   "status": "candidate"
+  },
+  {
+   "rid": "oq_slot_数值未定_2_实际与计划基线对比_如提前xx天需要进行预警提醒_这里的",
+   "kind": "OpenQuestion",
+   "text": {
+    "value": "「2、实际与计划基线对比，如提前XX天需要进行预警提醒」—— 这里的取值是多少？材料里写的是占位符。",
+    "origin": "extracted",
+    "confidence": 0.8,
+    "evidence": [
+     {
+      "file_id": "f_cd97296397f0",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务规则",
+       "rows": [
+        2,
+        2
+       ]
+      },
+      "snippet": "2、实际与计划基线对比，如提前XX天需要进行预警提醒",
+      "extractor": "rule",
+      "confidence": 1.0,
+      "cite": "材料.xlsx!业务规则!R2-2"
+     }
+    ]
+   },
+   "options": [],
+   "answer": {
+    "value": "",
+    "origin": "inferred",
+    "confidence": 0.4,
+    "evidence": []
+   },
+   "group": "业务规则",
+   "code": "",
+   "appliesTo": [],
+   "askedBy": "system",
+   "owner": null,
+   "status": "candidate"
+  },
+  {
+   "rid": "oq_enum_进度状态标准_目前列了_6_个取值_未开始_执行中_部分完成_已完成_",
+   "kind": "OpenQuestion",
+   "text": {
+    "value": "「进度状态标准」目前列了 6 个取值：未开始、执行中、部分完成、已完成、已暂停、已取消。这份清单完整吗？还有没有别的取值？",
+    "origin": "extracted",
+    "confidence": 0.8,
+    "evidence": [
+     {
+      "file_id": "f_cd97296397f0",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务规则",
+       "rows": [
+        2,
+        2
+       ]
+      },
+      "snippet": "进度状态标准：未开始、执行中、部分完成、已完成、已暂停、已取消",
+      "extractor": "rule",
+      "confidence": 1.0,
+      "cite": "材料.xlsx!业务规则!R2-2"
+     }
+    ]
+   },
+   "options": [
+    "未开始",
+    "执行中",
+    "部分完成",
+    "已完成",
+    "已暂停",
+    "已取消",
+    "就这些，没有遗漏"
+   ],
+   "answer": {
+    "value": "",
+    "origin": "inferred",
+    "confidence": 0.4,
+    "evidence": []
+   },
+   "group": "业务规则",
+   "code": "",
+   "appliesTo": [],
+   "askedBy": "system",
+   "owner": null,
+   "status": "candidate"
+  },
+  {
+   "rid": "oq_object_no_description_有_7_个业务对象只有名字_没有一句",
+   "kind": "OpenQuestion",
+   "text": {
+    "value": "有 7 个业务对象只有名字、没有一句说明（如 采购业务计划头、采购业务计划行、采购业务计划头行关系、采购订单头、采购订单行）。这些是同一套系统里的表吗？其中哪些是业务方真正会打交道的单据？",
+    "origin": "extracted",
+    "confidence": 0.8,
+    "evidence": []
+   },
+   "options": [],
+   "answer": {
+    "value": "",
+    "origin": "inferred",
+    "confidence": 0.4,
+    "evidence": []
+   },
+   "group": "对象口径",
+   "code": "",
+   "appliesTo": [],
+   "askedBy": "system",
+   "owner": null,
+   "status": "candidate"
+  }
+ ],
+ "actions": [
+  {
+   "rid": "at_createpbp",
+   "kind": "ActionType",
+   "apiName": {
+    "value": "createPbp",
+    "origin": "extracted",
+    "confidence": 0.8,
+    "evidence": [
+     {
+      "file_id": "f_cd97296397f0",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务对象API梳理-行动",
+       "rows": [
+        2,
+        2
+       ]
+      },
+      "snippet": "应用模块=采购计划管理 | 业务对象=采购需求计划 | 实体编码=createPbp | 实体名称=创建PBP | url=/v1/createPbp",
+      "extractor": "rule",
+      "confidence": 1.0,
+      "cite": "材料.xlsx!业务对象API梳理-行动!R2-2"
+     }
+    ]
+   },
+   "appliesTo": [
+    "ot_pbpheader"
+   ],
+   "parameters": {
+    "value": [],
+    "origin": "inferred",
+    "confidence": 0.4,
+    "evidence": []
+   },
+   "effects": {
+    "value": [],
+    "origin": "inferred",
+    "confidence": 0.4,
+    "evidence": []
+   },
+   "sourceEndpoint": {
+    "value": {
+     "path": "/v1/createPbp",
+     "display": "创建PBP"
+    },
+    "origin": "extracted",
+    "confidence": 0.8,
+    "evidence": [
+     {
+      "file_id": "f_cd97296397f0",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务对象API梳理-行动",
+       "rows": [
+        2,
+        2
+       ]
+      },
+      "snippet": "应用模块=采购计划管理 | 业务对象=采购需求计划 | 实体编码=createPbp | 实体名称=创建PBP | url=/v1/createPbp",
+      "extractor": "rule",
+      "confidence": 1.0,
+      "cite": "材料.xlsx!业务对象API梳理-行动!R2-2"
+     }
+    ]
+   },
+   "status": "candidate"
+  },
+  {
+   "rid": "at_cancelopenpbp",
+   "kind": "ActionType",
+   "apiName": {
+    "value": "cancelOpenPbp",
+    "origin": "extracted",
+    "confidence": 0.8,
+    "evidence": [
+     {
+      "file_id": "f_cd97296397f0",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务对象API梳理-行动",
+       "rows": [
+        3,
+        3
+       ]
+      },
+      "snippet": "应用模块=采购计划管理 | 业务对象=采购需求计划 | 实体编码=cancelOpenPbp | 实体名称=取消PBP | url=/v1/cancelPbp",
+      "extractor": "rule",
+      "confidence": 1.0,
+      "cite": "材料.xlsx!业务对象API梳理-行动!R3-3"
+     }
+    ]
+   },
+   "appliesTo": [
+    "ot_pbpheader"
+   ],
+   "parameters": {
+    "value": [],
+    "origin": "inferred",
+    "confidence": 0.4,
+    "evidence": []
+   },
+   "effects": {
+    "value": [],
+    "origin": "inferred",
+    "confidence": 0.4,
+    "evidence": []
+   },
+   "sourceEndpoint": {
+    "value": {
+     "path": "/v1/cancelPbp",
+     "display": "取消PBP"
+    },
+    "origin": "extracted",
+    "confidence": 0.8,
+    "evidence": [
+     {
+      "file_id": "f_cd97296397f0",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务对象API梳理-行动",
+       "rows": [
+        3,
+        3
+       ]
+      },
+      "snippet": "应用模块=采购计划管理 | 业务对象=采购需求计划 | 实体编码=cancelOpenPbp | 实体名称=取消PBP | url=/v1/cancelPbp",
+      "extractor": "rule",
+      "confidence": 1.0,
+      "cite": "材料.xlsx!业务对象API梳理-行动!R3-3"
+     }
+    ]
+   },
+   "status": "candidate"
+  },
+  {
+   "rid": "at_queryopenpbpheader",
+   "kind": "ActionType",
+   "apiName": {
+    "value": "queryOpenPbpHeader",
+    "origin": "extracted",
+    "confidence": 0.8,
+    "evidence": [
+     {
+      "file_id": "f_cd97296397f0",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务对象API梳理-行动",
+       "rows": [
+        4,
+        4
+       ]
+      },
+      "snippet": "应用模块=采购计划管理 | 业务对象=采购需求计划 | 实体编码=queryOpenPbpHeader | 实体名称=查询PBP头 | url=/v1/queryPbpHeader",
+      "extractor": "rule",
+      "confidence": 1.0,
+      "cite": "材料.xlsx!业务对象API梳理-行动!R4-4"
+     }
+    ]
+   },
+   "appliesTo": [
+    "ot_pbpheader"
+   ],
+   "parameters": {
+    "value": [],
+    "origin": "inferred",
+    "confidence": 0.4,
+    "evidence": []
+   },
+   "effects": {
+    "value": [],
+    "origin": "inferred",
+    "confidence": 0.4,
+    "evidence": []
+   },
+   "sourceEndpoint": {
+    "value": {
+     "path": "/v1/queryPbpHeader",
+     "display": "查询PBP头"
+    },
+    "origin": "extracted",
+    "confidence": 0.8,
+    "evidence": [
+     {
+      "file_id": "f_cd97296397f0",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务对象API梳理-行动",
+       "rows": [
+        4,
+        4
+       ]
+      },
+      "snippet": "应用模块=采购计划管理 | 业务对象=采购需求计划 | 实体编码=queryOpenPbpHeader | 实体名称=查询PBP头 | url=/v1/queryPbpHeader",
+      "extractor": "rule",
+      "confidence": 1.0,
+      "cite": "材料.xlsx!业务对象API梳理-行动!R4-4"
+     }
+    ]
+   },
+   "status": "candidate"
+  },
+  {
+   "rid": "at_createpo",
+   "kind": "ActionType",
+   "apiName": {
+    "value": "createPo",
+    "origin": "extracted",
+    "confidence": 0.8,
+    "evidence": [
+     {
+      "file_id": "f_cd97296397f0",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务对象API梳理-行动",
+       "rows": [
+        5,
+        5
+       ]
+      },
+      "snippet": "应用模块=采购订单管理 | 业务对象=采购订单 | 实体编码=createPo | 实体名称=创建采购订单 | url=/v1/createPo",
+      "extractor": "rule",
+      "confidence": 1.0,
+      "cite": "材料.xlsx!业务对象API梳理-行动!R5-5"
+     }
+    ]
+   },
+   "appliesTo": [
+    "ot_poheader"
+   ],
+   "parameters": {
+    "value": [],
+    "origin": "inferred",
+    "confidence": 0.4,
+    "evidence": []
+   },
+   "effects": {
+    "value": [],
+    "origin": "inferred",
+    "confidence": 0.4,
+    "evidence": []
+   },
+   "sourceEndpoint": {
+    "value": {
+     "path": "/v1/createPo",
+     "display": "创建采购订单"
+    },
+    "origin": "extracted",
+    "confidence": 0.8,
+    "evidence": [
+     {
+      "file_id": "f_cd97296397f0",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务对象API梳理-行动",
+       "rows": [
+        5,
+        5
+       ]
+      },
+      "snippet": "应用模块=采购订单管理 | 业务对象=采购订单 | 实体编码=createPo | 实体名称=创建采购订单 | url=/v1/createPo",
+      "extractor": "rule",
+      "confidence": 1.0,
+      "cite": "材料.xlsx!业务对象API梳理-行动!R5-5"
+     }
+    ]
+   },
+   "status": "candidate"
+  },
+  {
+   "rid": "at_updatepo",
+   "kind": "ActionType",
+   "apiName": {
+    "value": "updatePo",
+    "origin": "extracted",
+    "confidence": 0.8,
+    "evidence": [
+     {
+      "file_id": "f_cd97296397f0",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务对象API梳理-行动",
+       "rows": [
+        6,
+        6
+       ]
+      },
+      "snippet": "应用模块=采购订单管理 | 业务对象=采购订单 | 实体编码=updatePo | 实体名称=修改采购订单 | url=/v1/updatePo",
+      "extractor": "rule",
+      "confidence": 1.0,
+      "cite": "材料.xlsx!业务对象API梳理-行动!R6-6"
+     }
+    ]
+   },
+   "appliesTo": [
+    "ot_poheader"
+   ],
+   "parameters": {
+    "value": [],
+    "origin": "inferred",
+    "confidence": 0.4,
+    "evidence": []
+   },
+   "effects": {
+    "value": [],
+    "origin": "inferred",
+    "confidence": 0.4,
+    "evidence": []
+   },
+   "sourceEndpoint": {
+    "value": {
+     "path": "/v1/updatePo",
+     "display": "修改采购订单"
+    },
+    "origin": "extracted",
+    "confidence": 0.8,
+    "evidence": [
+     {
+      "file_id": "f_cd97296397f0",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务对象API梳理-行动",
+       "rows": [
+        6,
+        6
+       ]
+      },
+      "snippet": "应用模块=采购订单管理 | 业务对象=采购订单 | 实体编码=updatePo | 实体名称=修改采购订单 | url=/v1/updatePo",
+      "extractor": "rule",
+      "confidence": 1.0,
+      "cite": "材料.xlsx!业务对象API梳理-行动!R6-6"
+     }
+    ]
+   },
+   "status": "candidate"
+  },
+  {
+   "rid": "at_querypoheader",
+   "kind": "ActionType",
+   "apiName": {
+    "value": "queryPoHeader",
+    "origin": "extracted",
+    "confidence": 0.8,
+    "evidence": [
+     {
+      "file_id": "f_cd97296397f0",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务对象API梳理-行动",
+       "rows": [
+        7,
+        7
+       ]
+      },
+      "snippet": "应用模块=采购订单管理 | 业务对象=采购订单 | 实体编码=queryPoHeader | 实体名称=查询采购订单头 | url=/v1/queryPoHeader",
+      "extractor": "rule",
+      "confidence": 1.0,
+      "cite": "材料.xlsx!业务对象API梳理-行动!R7-7"
+     }
+    ]
+   },
+   "appliesTo": [
+    "ot_poheader"
+   ],
+   "parameters": {
+    "value": [],
+    "origin": "inferred",
+    "confidence": 0.4,
+    "evidence": []
+   },
+   "effects": {
+    "value": [],
+    "origin": "inferred",
+    "confidence": 0.4,
+    "evidence": []
+   },
+   "sourceEndpoint": {
+    "value": {
+     "path": "/v1/queryPoHeader",
+     "display": "查询采购订单头"
+    },
+    "origin": "extracted",
+    "confidence": 0.8,
+    "evidence": [
+     {
+      "file_id": "f_cd97296397f0",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务对象API梳理-行动",
+       "rows": [
+        7,
+        7
+       ]
+      },
+      "snippet": "应用模块=采购订单管理 | 业务对象=采购订单 | 实体编码=queryPoHeader | 实体名称=查询采购订单头 | url=/v1/queryPoHeader",
+      "extractor": "rule",
+      "confidence": 1.0,
+      "cite": "材料.xlsx!业务对象API梳理-行动!R7-7"
+     }
+    ]
+   },
+   "status": "candidate"
+  }
+ ],
+ "stats": {
+  "objects": 7,
+  "properties": 0,
+  "links": 0,
+  "actions": 6,
+  "rules": 0,
+  "questions": 5,
+  "open_questions": 5,
+  "orphans": 7,
+  "confirmed": 0
+ }
+}

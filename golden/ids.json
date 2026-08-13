@@ -1,0 +1,226 @@
+{
+ "canonical_json": [
+  {
+   "in": {
+    "b": 1,
+    "a": 2
+   },
+   "out": "{\"a\":2,\"b\":1}"
+  },
+  {
+   "in": {
+    "n": 1.0,
+    "m": 1,
+    "z": -0.0,
+    "big": 1152921504606846976
+   },
+   "out": "{\"big\":1152921504606846976,\"m\":1,\"n\":1.0,\"z\":-0.0}"
+  },
+  {
+   "in": {
+    "s": "中文键",
+    "emoji": "🐍🦀",
+    "empty": [],
+    "null": null,
+    "t": true
+   },
+   "out": "{\"emoji\":\"🐍🦀\",\"empty\":[],\"null\":null,\"s\":\"中文键\",\"t\":true}"
+  },
+  {
+   "in": [
+    3,
+    1,
+    2,
+    {
+     "nested": {
+      "y": [
+       1.5,
+       "1.5"
+      ],
+      "x": null
+     }
+    }
+   ],
+   "out": "[3,1,2,{\"nested\":{\"x\":null,\"y\":[1.5,\"1.5\"]}}]"
+  },
+  {
+   "in": {
+    "金额": 10.25,
+    "税率": 0.13,
+    "备注": "含税；口径=年度累计"
+   },
+   "out": "{\"备注\":\"含税；口径=年度累计\",\"税率\":0.13,\"金额\":10.25}"
+  },
+  {
+   "in": "纯字符串",
+   "out": "\"纯字符串\""
+  },
+  {
+   "in": [],
+   "out": "[]"
+  },
+  {
+   "in": {},
+   "out": "{}"
+  }
+ ],
+ "fingerprint": [
+  {
+   "in": {
+    "b": 1,
+    "a": 2
+   },
+   "out": "d3626ac30a87e6f7"
+  },
+  {
+   "in": {
+    "n": 1.0,
+    "m": 1,
+    "z": -0.0,
+    "big": 1152921504606846976
+   },
+   "out": "702299e748d30b2d"
+  },
+  {
+   "in": {
+    "s": "中文键",
+    "emoji": "🐍🦀",
+    "empty": [],
+    "null": null,
+    "t": true
+   },
+   "out": "f36603fb27a32513"
+  },
+  {
+   "in": [
+    3,
+    1,
+    2,
+    {
+     "nested": {
+      "y": [
+       1.5,
+       "1.5"
+      ],
+      "x": null
+     }
+    }
+   ],
+   "out": "004f867c63a0f0d0"
+  },
+  {
+   "in": {
+    "金额": 10.25,
+    "税率": 0.13,
+    "备注": "含税；口径=年度累计"
+   },
+   "out": "2842df129a847506"
+  },
+  {
+   "in": "纯字符串",
+   "out": "b805f11020aa9eee"
+  },
+  {
+   "in": [],
+   "out": "4f53cda18c2baa0c"
+  },
+  {
+   "in": {},
+   "out": "44136fa355b3678a"
+  }
+ ],
+ "sha256_hex": [
+  {
+   "in": "",
+   "out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "in": "abc",
+   "out": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+  },
+  {
+   "in": "中文",
+   "out": "72726d8818f693066ceb69afa364218b692e62ea92b385782363780f47529c21"
+  },
+  {
+   "in": "🐍",
+   "out": "fe67b225ad6fbb0951faf74a1fb448beb6586c1d788f430830253b35eb50c2bd"
+  }
+ ],
+ "slug": [
+  {
+   "in": "采购计划管理",
+   "out": "采购计划管理"
+  },
+  {
+   "in": "PO Header 采购订单头",
+   "out": "po_header_采购订单头"
+  },
+  {
+   "in": "  spaces  ",
+   "out": "spaces"
+  },
+  {
+   "in": "ALL-CAPS_and.dots",
+   "out": "all_caps_and_dots"
+  },
+  {
+   "in": "日本語テスト",
+   "out": "日本語テスト"
+  },
+  {
+   "in": "emoji🐍mixed",
+   "out": "emoji_mixed"
+  },
+  {
+   "in": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "out": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  {
+   "in": "",
+   "out": "xe3b0c442"
+  }
+ ],
+ "rid": [
+  {
+   "kind": "ot",
+   "name": "采购订单头",
+   "out": "ot_采购订单头"
+  },
+  {
+   "kind": "pt",
+   "name": "poHeader_金额_3",
+   "out": "pt_poheader_金额_3"
+  },
+  {
+   "kind": "at",
+   "name": "createPbp",
+   "out": "at_createpbp"
+  },
+  {
+   "kind": "oq",
+   "name": "slot:数值未定_「超出XX金额」",
+   "out": "oq_slot_数值未定_超出xx金额"
+  }
+ ],
+ "content_ref": [
+  {
+   "in": "abc",
+   "out": "blob:ba7816bf8f01cfea414140de5dae2223"
+  },
+  {
+   "in": "中文内容",
+   "out": "blob:082516888f2d11c0affc46ead329ad83"
+  }
+ ],
+ "child_id": [
+  {
+   "parent": "EXTRACT",
+   "parts": [
+    "s0",
+    1
+   ],
+   "out": "EXTRACT#s0#1"
+  }
+ ]
+}

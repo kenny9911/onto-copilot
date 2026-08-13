@@ -1,0 +1,367 @@
+{
+ "stages": [
+  {
+   "key": "main",
+   "title": "其它环节",
+   "subtitle": "材料里没有说明这些环节属于哪个阶段",
+   "order": 1
+  }
+ ],
+ "workflows": [],
+ "nodes": [
+  {
+   "rid": "fn_act1_创建采购需求计划",
+   "kind": "action",
+   "code": "ACT-PBP-CREATE",
+   "label": {
+    "value": "创建采购需求计划",
+    "origin": "extracted",
+    "confidence": 0.8,
+    "evidence": [
+     {
+      "file_id": "f",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "raw",
+       "ref": "业务规则!R0-0"
+      },
+      "snippet": "（1）创建采购需求计划：基于已审批集采计划自动注入；\\n",
+      "extractor": "rule",
+      "confidence": 1.0,
+      "cite": "材料.xlsx#业务规则!R0-0"
+     }
+    ]
+   },
+   "stage": "main",
+   "actor": {
+    "value": "需求申请人\\n",
+    "origin": "extracted",
+    "confidence": 0.8,
+    "evidence": [
+     {
+      "file_id": "f",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "raw",
+       "ref": "业务规则!R0-0"
+      },
+      "snippet": "（1）创建采购需求计划：基于已审批集采计划自动注入；\\n",
+      "extractor": "rule",
+      "confidence": 1.0,
+      "cite": "材料.xlsx#业务规则!R0-0"
+     }
+    ]
+   },
+   "objects": [],
+   "endpoint": "",
+   "status": "candidate",
+   "grounded": true
+  },
+  {
+   "rid": "fn_evt1_未审批采购需求计划",
+   "kind": "event",
+   "code": "EVT-PBP-43D4",
+   "label": {
+    "value": "未审批采购需求计划",
+    "origin": "extracted",
+    "confidence": 0.8,
+    "evidence": [
+     {
+      "file_id": "f",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "raw",
+       "ref": "业务规则!R0-0"
+      },
+      "snippet": "（1）创建采购需求计划：基于已审批集采计划自动注入；\\n",
+      "extractor": "rule",
+      "confidence": 1.0,
+      "cite": "材料.xlsx#业务规则!R0-0"
+     }
+    ]
+   },
+   "stage": "main",
+   "actor": {
+    "value": "",
+    "origin": "inferred",
+    "confidence": 0.4,
+    "evidence": []
+   },
+   "objects": [
+    "\\n"
+   ],
+   "endpoint": "",
+   "status": "candidate",
+   "grounded": true
+  },
+  {
+   "rid": "fn_act2_审批采购需求计划",
+   "kind": "action",
+   "code": "ACT-PBP-APPROVE",
+   "label": {
+    "value": "审批采购需求计划",
+    "origin": "extracted",
+    "confidence": 0.8,
+    "evidence": [
+     {
+      "file_id": "f",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "raw",
+       "ref": "业务规则!R0-0"
+      },
+      "snippet": "（2）审批采购需求计划：对已编制的采购需求计划进行审批；\\n",
+      "extractor": "rule",
+      "confidence": 1.0,
+      "cite": "材料.xlsx#业务规则!R0-0"
+     }
+    ]
+   },
+   "stage": "main",
+   "actor": {
+    "value": "部门领导\\n",
+    "origin": "extracted",
+    "confidence": 0.8,
+    "evidence": [
+     {
+      "file_id": "f",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "raw",
+       "ref": "业务规则!R0-0"
+      },
+      "snippet": "（2）审批采购需求计划：对已编制的采购需求计划进行审批；\\n",
+      "extractor": "rule",
+      "confidence": 1.0,
+      "cite": "材料.xlsx#业务规则!R0-0"
+     }
+    ]
+   },
+   "objects": [],
+   "endpoint": "",
+   "status": "candidate",
+   "grounded": true
+  },
+  {
+   "rid": "fn_evt2_已审批采购需求计划",
+   "kind": "event",
+   "code": "EVT-PBP-C043",
+   "label": {
+    "value": "已审批采购需求计划",
+    "origin": "extracted",
+    "confidence": 0.8,
+    "evidence": [
+     {
+      "file_id": "f",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "raw",
+       "ref": "业务规则!R0-0"
+      },
+      "snippet": "（2）审批采购需求计划：对已编制的采购需求计划进行审批；\\n",
+      "extractor": "rule",
+      "confidence": 1.0,
+      "cite": "材料.xlsx#业务规则!R0-0"
+     }
+    ]
+   },
+   "stage": "main",
+   "actor": {
+    "value": "",
+    "origin": "inferred",
+    "confidence": 0.4,
+    "evidence": []
+   },
+   "objects": [
+    "\\n"
+   ],
+   "endpoint": "",
+   "status": "candidate",
+   "grounded": true
+  },
+  {
+   "rid": "fn_act3_取消采购需求计划",
+   "kind": "action",
+   "code": "ACT-PBP-CANCEL",
+   "label": {
+    "value": "取消采购需求计划",
+    "origin": "extracted",
+    "confidence": 0.8,
+    "evidence": [
+     {
+      "file_id": "f",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "raw",
+       "ref": "业务规则!R0-0"
+      },
+      "snippet": "（3）取消采购需求计划：执行采购需求计划取消流程；\\n",
+      "extractor": "rule",
+      "confidence": 1.0,
+      "cite": "材料.xlsx#业务规则!R0-0"
+     }
+    ]
+   },
+   "stage": "main",
+   "actor": {
+    "value": "需求申请人', '业务规则：\\n1、需进行采购包总金额上线控制，如超出XX金额，则采购包创建失败；\\n2、实际与计划基线对比，如提前XX天需要进行预警提醒；\\n3、进度状态标准：未开始、执行中、部分完成、已完成、已暂停、已取消；']}",
+    "origin": "extracted",
+    "confidence": 0.8,
+    "evidence": [
+     {
+      "file_id": "f",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "raw",
+       "ref": "业务规则!R0-0"
+      },
+      "snippet": "（3）取消采购需求计划：执行采购需求计划取消流程；\\n",
+      "extractor": "rule",
+      "confidence": 1.0,
+      "cite": "材料.xlsx#业务规则!R0-0"
+     }
+    ]
+   },
+   "objects": [],
+   "endpoint": "",
+   "status": "candidate",
+   "grounded": true
+  },
+  {
+   "rid": "fn_evt3_已取消采购需求计划",
+   "kind": "event",
+   "code": "EVT-PBP-CANCELLED",
+   "label": {
+    "value": "已取消采购需求计划",
+    "origin": "extracted",
+    "confidence": 0.8,
+    "evidence": [
+     {
+      "file_id": "f",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "raw",
+       "ref": "业务规则!R0-0"
+      },
+      "snippet": "（3）取消采购需求计划：执行采购需求计划取消流程；\\n",
+      "extractor": "rule",
+      "confidence": 1.0,
+      "cite": "材料.xlsx#业务规则!R0-0"
+     }
+    ]
+   },
+   "stage": "main",
+   "actor": {
+    "value": "",
+    "origin": "inferred",
+    "confidence": 0.4,
+    "evidence": []
+   },
+   "objects": [
+    "\\n"
+   ],
+   "endpoint": "",
+   "status": "candidate",
+   "grounded": true
+  }
+ ],
+ "edges": [
+  {
+   "rid": "fe_fn_act1_创建采购需求计划_fn_evt1_未审批采购需求计划",
+   "from": "fn_act1_创建采购需求计划",
+   "to": "fn_evt1_未审批采购需求计划",
+   "kind": "flow",
+   "label": "",
+   "grounded": true,
+   "evidence": [
+    {
+     "file_id": "f",
+     "file_name": "材料.xlsx",
+     "locator": {
+      "kind": "raw",
+      "ref": "业务规则!R0-0"
+     },
+     "snippet": "（1）创建采购需求计划：基于已审批集采计划自动注入；\\n",
+     "extractor": "rule",
+     "confidence": 1.0,
+     "cite": "材料.xlsx#业务规则!R0-0"
+    }
+   ]
+  },
+  {
+   "rid": "fe_fn_act2_审批采购需求计划_fn_evt2_已审批采购需求计划",
+   "from": "fn_act2_审批采购需求计划",
+   "to": "fn_evt2_已审批采购需求计划",
+   "kind": "flow",
+   "label": "",
+   "grounded": true,
+   "evidence": [
+    {
+     "file_id": "f",
+     "file_name": "材料.xlsx",
+     "locator": {
+      "kind": "raw",
+      "ref": "业务规则!R0-0"
+     },
+     "snippet": "（2）审批采购需求计划：对已编制的采购需求计划进行审批；\\n",
+     "extractor": "rule",
+     "confidence": 1.0,
+     "cite": "材料.xlsx#业务规则!R0-0"
+    }
+   ]
+  },
+  {
+   "rid": "fe_fn_act3_取消采购需求计划_fn_evt3_已取消采购需求计划",
+   "from": "fn_act3_取消采购需求计划",
+   "to": "fn_evt3_已取消采购需求计划",
+   "kind": "flow",
+   "label": "",
+   "grounded": true,
+   "evidence": [
+    {
+     "file_id": "f",
+     "file_name": "材料.xlsx",
+     "locator": {
+      "kind": "raw",
+      "ref": "业务规则!R0-0"
+     },
+     "snippet": "（3）取消采购需求计划：执行采购需求计划取消流程；\\n",
+     "extractor": "rule",
+     "confidence": 1.0,
+     "cite": "材料.xlsx#业务规则!R0-0"
+    }
+   ]
+  },
+  {
+   "rid": "fe_fn_evt1_未审批采购需求计划_fn_act2_审批采购需求计划_推断顺序",
+   "from": "fn_evt1_未审批采购需求计划",
+   "to": "fn_act2_审批采购需求计划",
+   "kind": "inferred",
+   "label": "推断顺序",
+   "grounded": false,
+   "evidence": []
+  },
+  {
+   "rid": "fe_fn_evt2_已审批采购需求计划_fn_act3_取消采购需求计划_推断顺序",
+   "from": "fn_evt2_已审批采购需求计划",
+   "to": "fn_act3_取消采购需求计划",
+   "kind": "inferred",
+   "label": "推断顺序",
+   "grounded": false,
+   "evidence": []
+  }
+ ],
+ "stats": {
+  "stages": 1,
+  "workflows": 0,
+  "actions": 3,
+  "events": 3,
+  "gateways": 0,
+  "terminals": 0,
+  "externals": 0,
+  "edges": 5,
+  "inferred_edges": 2,
+  "dangling": 0,
+  "dead_ends": 1
+ }
+}
