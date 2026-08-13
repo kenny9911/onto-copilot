@@ -12,6 +12,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import ClassVar
 
 from ontocopilot.onto.parse import (
     build_index,
@@ -517,7 +518,7 @@ async def test_build_start_never_says_running_when_nothing_is(tmp_path, monkeypa
     抢不到租约时退回的是**会话真实状态**，它完全可能就是 idle（一次事务争用）。
     那不是"在跑"，是"这次没抢到"。
     """
-    import ontocopilot.server as server
+    from ontocopilot import server
 
     monkeypatch.setattr(server, "ROOT", tmp_path)
     s = server.Session(id="bs1")
@@ -537,7 +538,7 @@ async def test_build_start_never_says_running_when_nothing_is(tmp_path, monkeypa
 
     class _Ctx:
         approved = True
-        pending: list = []
+        pending: ClassVar[list] = []
 
     out = await reg.call("build.start", {}, _Ctx(), scope="converse")
     assert len(calls) == 2, "状态本来就可启动时应该重试一次，而不是直接下结论"
@@ -549,7 +550,7 @@ async def test_build_start_never_says_running_when_nothing_is(tmp_path, monkeypa
 
 async def test_build_start_still_says_running_when_it_actually_is(tmp_path, monkeypatch):
     """真在跑的时候要照说不误 —— 不能为了不撒谎就把这条也删了。"""
-    import ontocopilot.server as server
+    from ontocopilot import server
 
     monkeypatch.setattr(server, "ROOT", tmp_path)
     s = server.Session(id="bs2")
@@ -563,7 +564,7 @@ async def test_build_start_still_says_running_when_it_actually_is(tmp_path, monk
 
     class _Ctx:
         approved = True
-        pending: list = []
+        pending: ClassVar[list] = []
 
     out = await reg.call("build.start", {}, _Ctx(), scope="converse")
     assert out["error"].startswith("已经在跑了")
@@ -577,7 +578,7 @@ async def test_a_percent_encoded_filename_means_the_same_file_everywhere(
     模型于是以为文件没读进来，转头去猜答案。"""
     from urllib.parse import quote
 
-    import ontocopilot.server as server
+    from ontocopilot import server
 
     monkeypatch.setattr(server, "ROOT", tmp_path)
     s = server.Session(id="enc1")
@@ -596,7 +597,7 @@ async def test_a_percent_encoded_filename_means_the_same_file_everywhere(
 
     class _Ctx:
         approved = True
-        pending: list = []
+        pending: ClassVar[list] = []
 
     out = await reg.call("material.rows", {"file": encoded}, _Ctx(), scope="converse")
     assert "error" not in out, out

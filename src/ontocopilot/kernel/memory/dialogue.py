@@ -159,8 +159,10 @@ Digester = Callable[[list[Utterance]], str]
 
 #: markdown 小标题 / 加粗行 —— 助手用它们给自己产出的东西起名，而用户后来正是
 #: 用这个名字来指它（"把那张 AI 招聘业务流程梳理表导出来"）。
-_TITLE_LINE = re.compile(r"^\s*(?:#{1,6}\s*|\*\*)(.{2,60}?)(?:\*\*)?\s*$", re.M)
-_TABLE_LINE = re.compile(r"^\s*\|.*\|\s*$", re.M)
+_TITLE_LINE = re.compile(
+    r"^\s*(?:#{1,6}\s*|\*\*)(.{2,60}?)(?:\*\*)?\s*$", re.MULTILINE
+)
+_TABLE_LINE = re.compile(r"^\s*\|.*\|\s*$", re.MULTILINE)
 
 
 def _produced_in(text: str) -> list[str]:

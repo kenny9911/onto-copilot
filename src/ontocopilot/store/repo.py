@@ -1291,8 +1291,6 @@ class PgRepo:
     async def create_session(self, row: SessionRow) -> SessionRow:
         from datetime import UTC, datetime
 
-        import sqlalchemy as sa
-
         from . import schema as t
         row.created = row.created or time.time()
         # created_at 必须写调用方给的时间，不能一律 now()。

@@ -13,8 +13,6 @@ from __future__ import annotations
 import asyncio
 import sqlite3
 
-import pytest
-
 from ontocopilot.store.engine import Store
 from ontocopilot.store.repo import SessionRow, build_repo
 
