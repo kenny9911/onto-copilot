@@ -151,20 +151,11 @@ export interface ExportApi {
   safeName(title: string, ext: string): string;
 }
 
-/**
- * `onto.flow_edit.FlowEditError`。
- *
- * `onto/flow_edit.ts` 还没落地，所以这里先声明。落地后**换成 import 那一个** ——
- * 两份 Error 类的症状是 `instanceof` 假阴性，而这里假阴性会让一次被守卫拒绝的
- * 流程图编辑直接冒成 500，版本栈和补丁日志都不回滚。
- */
-export class FlowEditError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "FlowEditError";
-    Object.setPrototypeOf(this, FlowEditError.prototype);
-  }
-}
+// flow_edit.ts 已落地，换成 import 它那一份（这里原本是占位声明）。
+// 两份 Error 类的症状是 `instanceof` 假阴性 —— 一次被守卫拒绝的流程图编辑会
+// 直接冒成 500，版本栈和补丁日志都不回滚。
+import { FlowEditError } from "../../onto/flow_edit.js";
+export { FlowEditError };
 
 /** `_material_table` 的返回：`(文件名, 表名, 列, **全部**行, 附注)`。 */
 export type MaterialTable = readonly [string, string, string[], string[][], Record<string, unknown>];

@@ -1,0 +1,734 @@
+{
+  "balance_when_probe_fails": {
+    "known": false
+  },
+  "defaults": {
+    "chat_usd_cap": 3.0,
+    "usd_cap": 15.0
+  },
+  "env_view": [
+    {
+      "name": "CUSTOM_LLM_BASE_URL",
+      "restart": false,
+      "secret": false,
+      "set": true,
+      "value": "https://gw.example.com/v1/"
+    },
+    {
+      "name": "CUSTOM_LLM_API_KEY",
+      "restart": false,
+      "secret": true,
+      "set": true,
+      "value": "sk-abc…wxyz"
+    },
+    {
+      "name": "DATABASE_URL",
+      "restart": true,
+      "secret": true,
+      "set": true,
+      "value": "postgresql+asyncpg://oc:***@db.internal:5432/onto?sslmode=require"
+    },
+    {
+      "name": "ONTOCOPILOT_WORKSPACE",
+      "restart": true,
+      "secret": false,
+      "set": true,
+      "value": "/data/workspace"
+    },
+    {
+      "name": "ONTOCOPILOT_NO_DB",
+      "restart": true,
+      "secret": false,
+      "set": false,
+      "value": ""
+    },
+    {
+      "name": "ONTOCOPILOT_AUTH",
+      "restart": true,
+      "secret": false,
+      "set": true,
+      "value": "1"
+    },
+    {
+      "name": "ONTOCOPILOT_COOKIE_SECURE",
+      "restart": true,
+      "secret": false,
+      "set": false,
+      "value": ""
+    },
+    {
+      "name": "ONTOCOPILOT_SESSION_TTL_HOURS",
+      "restart": true,
+      "secret": false,
+      "set": true,
+      "value": "72"
+    },
+    {
+      "name": "ONTOCOPILOT_CORS_ORIGINS",
+      "restart": true,
+      "secret": false,
+      "set": true,
+      "value": "https://a.example.com,https://b.example.com"
+    },
+    {
+      "name": "ONTOCOPILOT_USD_CAP",
+      "restart": false,
+      "secret": false,
+      "set": true,
+      "value": "25"
+    },
+    {
+      "name": "ONTOCOPILOT_CHAT_USD_CAP",
+      "restart": false,
+      "secret": false,
+      "set": true,
+      "value": "4.5"
+    }
+  ],
+  "gateway_creds": [
+    "https://gw.example.com/v1",
+    "sk-abcdefghijklmnopqrstuvwxyz"
+  ],
+  "model_overrides": [
+    {
+      "cache": {},
+      "out": {}
+    },
+    {
+      "cache": {
+        "gateway.model.low": "a/b"
+      },
+      "out": {
+        "low": "a/b"
+      }
+    },
+    {
+      "cache": {
+        "gateway.model.high": "c/d",
+        "gateway.model.low": ""
+      },
+      "out": {
+        "high": "c/d"
+      }
+    },
+    {
+      "cache": {
+        "gateway.model.low": 0,
+        "gateway.model.medium": false
+      },
+      "out": {}
+    },
+    {
+      "cache": {
+        "gateway.model.critical": 12
+      },
+      "out": {
+        "critical": "12"
+      }
+    },
+    {
+      "cache": {
+        "gateway.model.unknown_tier": "x/y"
+      },
+      "out": {}
+    }
+  ],
+  "num": [
+    {
+      "cached": null,
+      "env": "",
+      "usd_cap": 15.0
+    },
+    {
+      "cached": null,
+      "env": "25",
+      "usd_cap": 25.0
+    },
+    {
+      "cached": null,
+      "env": "0",
+      "usd_cap": 0.0
+    },
+    {
+      "cached": null,
+      "env": "abc",
+      "usd_cap": 15.0
+    },
+    {
+      "cached": null,
+      "env": " 7.5 ",
+      "usd_cap": 7.5
+    },
+    {
+      "cached": null,
+      "env": "1e2",
+      "usd_cap": 100.0
+    },
+    {
+      "cached": null,
+      "env": "inf",
+      "usd_cap": "Infinity"
+    },
+    {
+      "cached": null,
+      "env": "1_0",
+      "usd_cap": 10.0
+    },
+    {
+      "cached": null,
+      "env": "-3",
+      "usd_cap": -3.0
+    },
+    {
+      "cached": 5,
+      "env": "",
+      "usd_cap": 5.0
+    },
+    {
+      "cached": 5.5,
+      "env": "25",
+      "usd_cap": 5.5
+    },
+    {
+      "cached": "8",
+      "env": "25",
+      "usd_cap": 8.0
+    },
+    {
+      "cached": "",
+      "env": "25",
+      "usd_cap": 25.0
+    },
+    {
+      "cached": "abc",
+      "env": "25",
+      "usd_cap": 25.0
+    },
+    {
+      "cached": true,
+      "env": "",
+      "usd_cap": 1.0
+    },
+    {
+      "cached": [],
+      "env": "25",
+      "usd_cap": 25.0
+    },
+    {
+      "cached": {
+        "a": 1
+      },
+      "env": "25",
+      "usd_cap": 25.0
+    },
+    {
+      "cached": 0,
+      "env": "25",
+      "usd_cap": 0.0
+    }
+  ],
+  "redact_db_url": [
+    [
+      "",
+      ""
+    ],
+    [
+      "postgresql+asyncpg://oc:s3cr3t@db.internal:5432/onto",
+      "postgresql+asyncpg://oc:***@db.internal:5432/onto"
+    ],
+    [
+      "postgresql://oc:s3cr3t@db:5432/onto?sslmode=require#frag",
+      "postgresql://oc:***@db:5432/onto?sslmode=require#frag"
+    ],
+    [
+      "postgresql://oc@db:5432/onto",
+      "postgresql://oc@db:5432/onto"
+    ],
+    [
+      "postgresql://oc:@db:5432/onto",
+      "postgresql://oc:@db:5432/onto"
+    ],
+    [
+      "sqlite+aiosqlite:///workspace/ontocopilot.db",
+      "sqlite+aiosqlite:///workspace/ontocopilot.db"
+    ],
+    [
+      "postgresql://o:c:d@db/x",
+      "postgresql://o:***@db/x"
+    ],
+    [
+      "postgresql://u%40h:p%3Aw@db/x",
+      "postgresql://u%40h:***@db/x"
+    ],
+    [
+      "not a url at all",
+      "not a url at all"
+    ]
+  ],
+  "redact_secret": [
+    [
+      "",
+      ""
+    ],
+    [
+      "short",
+      "…"
+    ],
+    [
+      "0123456789ab",
+      "…"
+    ],
+    [
+      "0123456789abc",
+      "012345…9abc"
+    ],
+    [
+      "sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "sk-xxx…xxxx"
+    ],
+    [
+      "中文密钥中文密钥中文密钥中文",
+      "中文密钥中文…密钥中文"
+    ]
+  ],
+  "resolved_llm_config": [
+    {
+      "cache": {},
+      "env": {},
+      "out": {
+        "error": "缺少 LLM 网关配置 ['gateway.base_url', 'gateway.api_key']：在设置页填写，或写进 .env"
+      }
+    },
+    {
+      "cache": {},
+      "env": {
+        "CUSTOM_LLM_API_KEY": "k",
+        "CUSTOM_LLM_BASE_URL": "https://x/"
+      },
+      "out": {
+        "api_key": "k",
+        "base_url": "https://x",
+        "insecure": false,
+        "redacted_key": "…"
+      }
+    },
+    {
+      "cache": {
+        "gateway.api_key": "k2",
+        "gateway.base_url": "https://y//"
+      },
+      "env": {},
+      "out": {
+        "api_key": "k2",
+        "base_url": "https://y",
+        "insecure": false,
+        "redacted_key": "…"
+      }
+    },
+    {
+      "cache": {
+        "gateway.base_url": "https://y"
+      },
+      "env": {
+        "CUSTOM_LLM_API_KEY": "k3"
+      },
+      "out": {
+        "api_key": "k3",
+        "base_url": "https://y",
+        "insecure": false,
+        "redacted_key": "…"
+      }
+    },
+    {
+      "cache": {
+        "gateway.api_key": "k4"
+      },
+      "env": {
+        "CUSTOM_LLM_BASE_URL": "https://z"
+      },
+      "out": {
+        "api_key": "k4",
+        "base_url": "https://z",
+        "insecure": false,
+        "redacted_key": "…"
+      }
+    },
+    {
+      "cache": {},
+      "env": {
+        "CUSTOM_LLM_BASE_URL": "https://only-base"
+      },
+      "out": {
+        "error": "缺少 LLM 网关配置 ['gateway.api_key']：在设置页填写，或写进 .env"
+      }
+    },
+    {
+      "cache": {
+        "gateway.api_key": "",
+        "gateway.base_url": ""
+      },
+      "env": {
+        "CUSTOM_LLM_API_KEY": "envk",
+        "CUSTOM_LLM_BASE_URL": "https://env"
+      },
+      "out": {
+        "api_key": "envk",
+        "base_url": "https://env",
+        "insecure": false,
+        "redacted_key": "…"
+      }
+    }
+  ],
+  "snapshot": {
+    "budget": {
+      "chat_usd_cap": 4.5,
+      "usd_cap": 25.0
+    },
+    "env": [
+      {
+        "name": "CUSTOM_LLM_BASE_URL",
+        "restart": false,
+        "secret": false,
+        "set": true,
+        "value": "https://gw.example.com/v1/"
+      },
+      {
+        "name": "CUSTOM_LLM_API_KEY",
+        "restart": false,
+        "secret": true,
+        "set": true,
+        "value": "sk-abc…wxyz"
+      },
+      {
+        "name": "DATABASE_URL",
+        "restart": true,
+        "secret": true,
+        "set": true,
+        "value": "postgresql+asyncpg://oc:***@db.internal:5432/onto?sslmode=require"
+      },
+      {
+        "name": "ONTOCOPILOT_WORKSPACE",
+        "restart": true,
+        "secret": false,
+        "set": true,
+        "value": "/data/workspace"
+      },
+      {
+        "name": "ONTOCOPILOT_NO_DB",
+        "restart": true,
+        "secret": false,
+        "set": false,
+        "value": ""
+      },
+      {
+        "name": "ONTOCOPILOT_AUTH",
+        "restart": true,
+        "secret": false,
+        "set": true,
+        "value": "1"
+      },
+      {
+        "name": "ONTOCOPILOT_COOKIE_SECURE",
+        "restart": true,
+        "secret": false,
+        "set": false,
+        "value": ""
+      },
+      {
+        "name": "ONTOCOPILOT_SESSION_TTL_HOURS",
+        "restart": true,
+        "secret": false,
+        "set": true,
+        "value": "72"
+      },
+      {
+        "name": "ONTOCOPILOT_CORS_ORIGINS",
+        "restart": true,
+        "secret": false,
+        "set": true,
+        "value": "https://a.example.com,https://b.example.com"
+      },
+      {
+        "name": "ONTOCOPILOT_USD_CAP",
+        "restart": false,
+        "secret": false,
+        "set": true,
+        "value": "25"
+      },
+      {
+        "name": "ONTOCOPILOT_CHAT_USD_CAP",
+        "restart": false,
+        "secret": false,
+        "set": true,
+        "value": "4.5"
+      }
+    ],
+    "gateway": {
+      "api_key": "sk-abc…wxyz",
+      "base_url": "https://gw.example.com/v1",
+      "insecure": false,
+      "key_set": true
+    },
+    "tiers": {
+      "critical": {
+        "default": "anthropic/claude-sonnet-5",
+        "effort": "xhigh",
+        "model": "anthropic/claude-sonnet-5",
+        "overridden": false
+      },
+      "high": {
+        "default": "anthropic/claude-sonnet-5",
+        "effort": "high",
+        "model": "anthropic/claude-sonnet-5",
+        "overridden": false
+      },
+      "low": {
+        "default": "google/gemini-3.5-flash",
+        "effort": null,
+        "model": "google/gemini-3.5-flash",
+        "overridden": false
+      },
+      "medium": {
+        "default": "google/gemini-3.5-flash",
+        "effort": null,
+        "model": "google/gemini-3.5-flash",
+        "overridden": false
+      }
+    }
+  },
+  "snapshot_catalog": [
+    {
+      "capabilities": [
+        "cheap",
+        "long_context",
+        "structured",
+        "vision"
+      ],
+      "effort": null,
+      "name": "anthropic/claude-haiku-4.5",
+      "quality": 2,
+      "vendor": "anthropic"
+    },
+    {
+      "capabilities": [
+        "effort",
+        "long_context",
+        "structured",
+        "vision"
+      ],
+      "effort": "high",
+      "name": "anthropic/claude-opus-4.8",
+      "quality": 5,
+      "vendor": "anthropic"
+    },
+    {
+      "capabilities": [
+        "effort",
+        "long_context",
+        "structured",
+        "vision"
+      ],
+      "effort": "medium",
+      "name": "anthropic/claude-sonnet-5",
+      "quality": 4,
+      "vendor": "anthropic"
+    },
+    {
+      "capabilities": [
+        "cheap",
+        "long_context",
+        "structured"
+      ],
+      "effort": null,
+      "name": "deepseek/deepseek-v3.2",
+      "quality": 3,
+      "vendor": "deepseek"
+    },
+    {
+      "capabilities": [
+        "long_context",
+        "structured",
+        "vision"
+      ],
+      "effort": null,
+      "name": "google/gemini-3.1-pro-preview",
+      "quality": 4,
+      "vendor": "google"
+    },
+    {
+      "capabilities": [
+        "cheap",
+        "long_context",
+        "structured",
+        "vision"
+      ],
+      "effort": null,
+      "name": "google/gemini-3.5-flash",
+      "quality": 3,
+      "vendor": "google"
+    },
+    {
+      "capabilities": [
+        "cheap",
+        "long_context",
+        "structured"
+      ],
+      "effort": null,
+      "name": "moonshotai/kimi-k2.6",
+      "quality": 3,
+      "vendor": "moonshot"
+    },
+    {
+      "capabilities": [
+        "cheap",
+        "long_context",
+        "structured",
+        "vision"
+      ],
+      "effort": null,
+      "name": "openai/gpt-5.4-mini",
+      "quality": 2,
+      "vendor": "openai"
+    },
+    {
+      "capabilities": [
+        "effort",
+        "long_context",
+        "structured",
+        "vision"
+      ],
+      "effort": "high",
+      "name": "openai/gpt-5.5",
+      "quality": 5,
+      "vendor": "openai"
+    },
+    {
+      "capabilities": [
+        "cheap",
+        "long_context",
+        "structured"
+      ],
+      "effort": null,
+      "name": "z-ai/glm-5.2",
+      "quality": 3,
+      "vendor": "zhipu"
+    }
+  ],
+  "snapshot_from_db": {
+    "budget": {
+      "chat_usd_cap": 4.5,
+      "usd_cap": 25.0
+    },
+    "env": [
+      {
+        "name": "CUSTOM_LLM_BASE_URL",
+        "restart": false,
+        "secret": false,
+        "set": true,
+        "value": "https://gw.example.com/v1/"
+      },
+      {
+        "name": "CUSTOM_LLM_API_KEY",
+        "restart": false,
+        "secret": true,
+        "set": true,
+        "value": "sk-abc…wxyz"
+      },
+      {
+        "name": "DATABASE_URL",
+        "restart": true,
+        "secret": true,
+        "set": true,
+        "value": "postgresql+asyncpg://oc:***@db.internal:5432/onto?sslmode=require"
+      },
+      {
+        "name": "ONTOCOPILOT_WORKSPACE",
+        "restart": true,
+        "secret": false,
+        "set": true,
+        "value": "/data/workspace"
+      },
+      {
+        "name": "ONTOCOPILOT_NO_DB",
+        "restart": true,
+        "secret": false,
+        "set": false,
+        "value": ""
+      },
+      {
+        "name": "ONTOCOPILOT_AUTH",
+        "restart": true,
+        "secret": false,
+        "set": true,
+        "value": "1"
+      },
+      {
+        "name": "ONTOCOPILOT_COOKIE_SECURE",
+        "restart": true,
+        "secret": false,
+        "set": false,
+        "value": ""
+      },
+      {
+        "name": "ONTOCOPILOT_SESSION_TTL_HOURS",
+        "restart": true,
+        "secret": false,
+        "set": true,
+        "value": "72"
+      },
+      {
+        "name": "ONTOCOPILOT_CORS_ORIGINS",
+        "restart": true,
+        "secret": false,
+        "set": true,
+        "value": "https://a.example.com,https://b.example.com"
+      },
+      {
+        "name": "ONTOCOPILOT_USD_CAP",
+        "restart": false,
+        "secret": false,
+        "set": true,
+        "value": "25"
+      },
+      {
+        "name": "ONTOCOPILOT_CHAT_USD_CAP",
+        "restart": false,
+        "secret": false,
+        "set": true,
+        "value": "4.5"
+      }
+    ],
+    "gateway": {
+      "api_key": "sk-in-…7890",
+      "base_url": "http://insecure.example.com",
+      "insecure": true,
+      "key_set": true
+    },
+    "tiers": {
+      "critical": {
+        "default": "anthropic/claude-sonnet-5",
+        "effort": "xhigh",
+        "model": "anthropic/claude-sonnet-5",
+        "overridden": false
+      },
+      "high": {
+        "default": "anthropic/claude-sonnet-5",
+        "effort": "high",
+        "model": "anthropic/claude-sonnet-5",
+        "overridden": false
+      },
+      "low": {
+        "default": "google/gemini-3.5-flash",
+        "effort": null,
+        "model": "google/gemini-3.5-flash",
+        "overridden": false
+      },
+      "medium": {
+        "default": "google/gemini-3.5-flash",
+        "effort": null,
+        "model": "google/gemini-3.5-flash",
+        "overridden": false
+      }
+    }
+  }
+}

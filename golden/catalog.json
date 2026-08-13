@@ -1,0 +1,5271 @@
+{
+ "capability_values": [
+  "vision",
+  "structured",
+  "effort",
+  "long_context",
+  "cheap"
+ ],
+ "card_from_name": [
+  {
+   "name": "gpt-4o",
+   "spec": {
+    "effort": null,
+    "name": "gpt-4o",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured",
+     "vision"
+    ],
+    "effort": null,
+    "name": "gpt-4o",
+    "quality": 3,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "gpt-4o-mini",
+   "spec": {
+    "effort": null,
+    "name": "gpt-4o-mini",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "cheap",
+     "long_context",
+     "structured",
+     "vision"
+    ],
+    "effort": null,
+    "name": "gpt-4o-mini",
+    "quality": 2,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "gpt-4.1",
+   "spec": {
+    "effort": null,
+    "name": "gpt-4.1",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured",
+     "vision"
+    ],
+    "effort": null,
+    "name": "gpt-4.1",
+    "quality": 3,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "gpt-4-turbo",
+   "spec": {
+    "effort": null,
+    "name": "gpt-4-turbo",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "cheap",
+     "long_context",
+     "structured",
+     "vision"
+    ],
+    "effort": null,
+    "name": "gpt-4-turbo",
+    "quality": 2,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "gpt-4-vision-preview",
+   "spec": {
+    "effort": null,
+    "name": "gpt-4-vision-preview",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured",
+     "vision"
+    ],
+    "effort": null,
+    "name": "gpt-4-vision-preview",
+    "quality": 3,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "gpt-4v",
+   "spec": {
+    "effort": null,
+    "name": "gpt-4v",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured",
+     "vision"
+    ],
+    "effort": null,
+    "name": "gpt-4v",
+    "quality": 3,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "gpt-5",
+   "spec": {
+    "effort": null,
+    "name": "gpt-5",
+    "thinking": null,
+    "tier": "frontier",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured",
+     "vision"
+    ],
+    "effort": null,
+    "name": "gpt-5",
+    "quality": 4,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "gpt-5-mini",
+   "spec": {
+    "effort": null,
+    "name": "gpt-5-mini",
+    "thinking": null,
+    "tier": "frontier",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "cheap",
+     "long_context",
+     "structured",
+     "vision"
+    ],
+    "effort": null,
+    "name": "gpt-5-mini",
+    "quality": 4,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "chatgpt-4o-latest",
+   "spec": {
+    "effort": null,
+    "name": "chatgpt-4o-latest",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured",
+     "vision"
+    ],
+    "effort": null,
+    "name": "chatgpt-4o-latest",
+    "quality": 3,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "o1",
+   "spec": {
+    "effort": null,
+    "name": "o1",
+    "thinking": null,
+    "tier": "frontier",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured",
+     "vision"
+    ],
+    "effort": null,
+    "name": "o1",
+    "quality": 4,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "o1-mini",
+   "spec": {
+    "effort": null,
+    "name": "o1-mini",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "cheap",
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "o1-mini",
+    "quality": 2,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "o3",
+   "spec": {
+    "effort": null,
+    "name": "o3",
+    "thinking": null,
+    "tier": "frontier",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured",
+     "vision"
+    ],
+    "effort": null,
+    "name": "o3",
+    "quality": 4,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "o3-mini",
+   "spec": {
+    "effort": null,
+    "name": "o3-mini",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "cheap",
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "o3-mini",
+    "quality": 2,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "o4-mini",
+   "spec": {
+    "effort": null,
+    "name": "o4-mini",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "cheap",
+     "long_context",
+     "structured",
+     "vision"
+    ],
+    "effort": null,
+    "name": "o4-mini",
+    "quality": 2,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "gemini-2.5-pro",
+   "spec": {
+    "effort": null,
+    "name": "gemini-2.5-pro",
+    "thinking": null,
+    "tier": "frontier",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "cheap",
+     "long_context",
+     "structured",
+     "vision"
+    ],
+    "effort": null,
+    "name": "gemini-2.5-pro",
+    "quality": 4,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "gemini-2.5-flash",
+   "spec": {
+    "effort": null,
+    "name": "gemini-2.5-flash",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "cheap",
+     "long_context",
+     "structured",
+     "vision"
+    ],
+    "effort": null,
+    "name": "gemini-2.5-flash",
+    "quality": 2,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "gemini-1.5-pro",
+   "spec": {
+    "effort": null,
+    "name": "gemini-1.5-pro",
+    "thinking": null,
+    "tier": "frontier",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "cheap",
+     "long_context",
+     "structured",
+     "vision"
+    ],
+    "effort": null,
+    "name": "gemini-1.5-pro",
+    "quality": 4,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "gemini-embedding-001",
+   "spec": {
+    "effort": null,
+    "name": "gemini-embedding-001",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "cheap",
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "gemini-embedding-001",
+    "quality": 2,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "claude-3-5-sonnet",
+   "spec": {
+    "effort": null,
+    "name": "claude-3-5-sonnet",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured",
+     "vision"
+    ],
+    "effort": null,
+    "name": "claude-3-5-sonnet",
+    "quality": 3,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "claude-3-7-sonnet",
+   "spec": {
+    "effort": null,
+    "name": "claude-3-7-sonnet",
+    "thinking": null,
+    "tier": "frontier",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured",
+     "vision"
+    ],
+    "effort": null,
+    "name": "claude-3-7-sonnet",
+    "quality": 4,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "claude-4-opus",
+   "spec": {
+    "effort": null,
+    "name": "claude-4-opus",
+    "thinking": null,
+    "tier": "frontier",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured",
+     "vision"
+    ],
+    "effort": null,
+    "name": "claude-4-opus",
+    "quality": 4,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "claude-opus-4.8",
+   "spec": {
+    "effort": null,
+    "name": "claude-opus-4.8",
+    "thinking": null,
+    "tier": "frontier",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured",
+     "vision"
+    ],
+    "effort": null,
+    "name": "claude-opus-4.8",
+    "quality": 4,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "claude-sonnet-4",
+   "spec": {
+    "effort": null,
+    "name": "claude-sonnet-4",
+    "thinking": null,
+    "tier": "frontier",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured",
+     "vision"
+    ],
+    "effort": null,
+    "name": "claude-sonnet-4",
+    "quality": 4,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "claude-haiku-4.5",
+   "spec": {
+    "effort": null,
+    "name": "claude-haiku-4.5",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "cheap",
+     "long_context",
+     "structured",
+     "vision"
+    ],
+    "effort": null,
+    "name": "claude-haiku-4.5",
+    "quality": 2,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "qwen-vl-max",
+   "spec": {
+    "effort": null,
+    "name": "qwen-vl-max",
+    "thinking": null,
+    "tier": "frontier",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured",
+     "vision"
+    ],
+    "effort": null,
+    "name": "qwen-vl-max",
+    "quality": 4,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "qwen2.5-omni",
+   "spec": {
+    "effort": null,
+    "name": "qwen2.5-omni",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured",
+     "vision"
+    ],
+    "effort": null,
+    "name": "qwen2.5-omni",
+    "quality": 3,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "qwen2.5-72b",
+   "spec": {
+    "effort": null,
+    "name": "qwen2.5-72b",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "qwen2.5-72b",
+    "quality": 3,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "qwen-turbo",
+   "spec": {
+    "effort": null,
+    "name": "qwen-turbo",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "cheap",
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "qwen-turbo",
+    "quality": 2,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "pixtral-large",
+   "spec": {
+    "effort": null,
+    "name": "pixtral-large",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured",
+     "vision"
+    ],
+    "effort": null,
+    "name": "pixtral-large",
+    "quality": 3,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "llava-1.6",
+   "spec": {
+    "effort": null,
+    "name": "llava-1.6",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured",
+     "vision"
+    ],
+    "effort": null,
+    "name": "llava-1.6",
+    "quality": 3,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "internvl2-8b",
+   "spec": {
+    "effort": null,
+    "name": "internvl2-8b",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "cheap",
+     "long_context",
+     "structured",
+     "vision"
+    ],
+    "effort": null,
+    "name": "internvl2-8b",
+    "quality": 2,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "minicpm-v-2.6",
+   "spec": {
+    "effort": null,
+    "name": "minicpm-v-2.6",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "cheap",
+     "long_context",
+     "structured",
+     "vision"
+    ],
+    "effort": null,
+    "name": "minicpm-v-2.6",
+    "quality": 2,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "glm-4v",
+   "spec": {
+    "effort": null,
+    "name": "glm-4v",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured",
+     "vision"
+    ],
+    "effort": null,
+    "name": "glm-4v",
+    "quality": 3,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "glm-4.5v",
+   "spec": {
+    "effort": null,
+    "name": "glm-4.5v",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured",
+     "vision"
+    ],
+    "effort": null,
+    "name": "glm-4.5v",
+    "quality": 3,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "glm-4-air",
+   "spec": {
+    "effort": null,
+    "name": "glm-4-air",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "cheap",
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "glm-4-air",
+    "quality": 2,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "step-1v-8k",
+   "spec": {
+    "effort": null,
+    "name": "step-1v-8k",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured",
+     "vision"
+    ],
+    "effort": null,
+    "name": "step-1v-8k",
+    "quality": 3,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "grok-2-vision-1212",
+   "spec": {
+    "effort": null,
+    "name": "grok-2-vision-1212",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured",
+     "vision"
+    ],
+    "effort": null,
+    "name": "grok-2-vision-1212",
+    "quality": 3,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "grok-4",
+   "spec": {
+    "effort": null,
+    "name": "grok-4",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured",
+     "vision"
+    ],
+    "effort": null,
+    "name": "grok-4",
+    "quality": 3,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "grok-3",
+   "spec": {
+    "effort": null,
+    "name": "grok-3",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "grok-3",
+    "quality": 3,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "llama-3.2-11b-vision",
+   "spec": {
+    "effort": null,
+    "name": "llama-3.2-11b-vision",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured",
+     "vision"
+    ],
+    "effort": null,
+    "name": "llama-3.2-11b-vision",
+    "quality": 3,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "llama-3.2-90b",
+   "spec": {
+    "effort": null,
+    "name": "llama-3.2-90b",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured",
+     "vision"
+    ],
+    "effort": null,
+    "name": "llama-3.2-90b",
+    "quality": 3,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "llama-3.2-3b",
+   "spec": {
+    "effort": null,
+    "name": "llama-3.2-3b",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "llama-3.2-3b",
+    "quality": 3,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "llama-4-scout",
+   "spec": {
+    "effort": null,
+    "name": "llama-4-scout",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured",
+     "vision"
+    ],
+    "effort": null,
+    "name": "llama-4-scout",
+    "quality": 3,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "llama-3.1-405b",
+   "spec": {
+    "effort": null,
+    "name": "llama-3.1-405b",
+    "thinking": null,
+    "tier": "frontier",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "llama-3.1-405b",
+    "quality": 4,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "gpt-3.5-turbo",
+   "spec": {
+    "effort": null,
+    "name": "gpt-3.5-turbo",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "cheap",
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "gpt-3.5-turbo",
+    "quality": 2,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "deepseek-v3.2",
+   "spec": {
+    "effort": null,
+    "name": "deepseek-v3.2",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "deepseek-v3.2",
+    "quality": 3,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "deepseek-r1",
+   "spec": {
+    "effort": null,
+    "name": "deepseek-r1",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "deepseek-r1",
+    "quality": 3,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "moonshot-v1-8k",
+   "spec": {
+    "effort": null,
+    "name": "moonshot-v1-8k",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "moonshot-v1-8k",
+    "quality": 3,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "kimi-k2.6",
+   "spec": {
+    "effort": null,
+    "name": "kimi-k2.6",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "kimi-k2.6",
+    "quality": 3,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "kimi-vl-a3b",
+   "spec": {
+    "effort": null,
+    "name": "kimi-vl-a3b",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "kimi-vl-a3b",
+    "quality": 3,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "text-davinci-003",
+   "spec": {
+    "effort": null,
+    "name": "text-davinci-003",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "text-davinci-003",
+    "quality": 3,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "babbage-002",
+   "spec": {
+    "effort": null,
+    "name": "babbage-002",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "babbage-002",
+    "quality": 3,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "mistral-small",
+   "spec": {
+    "effort": null,
+    "name": "mistral-small",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "cheap",
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "mistral-small",
+    "quality": 2,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "mistral-large",
+   "spec": {
+    "effort": null,
+    "name": "mistral-large",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "mistral-large",
+    "quality": 3,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "yi-lightning",
+   "spec": {
+    "effort": null,
+    "name": "yi-lightning",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "yi-lightning",
+    "quality": 3,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "ernie-4.0-8k",
+   "spec": {
+    "effort": null,
+    "name": "ernie-4.0-8k",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "ernie-4.0-8k",
+    "quality": 3,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "abab6.5s",
+   "spec": {
+    "effort": null,
+    "name": "abab6.5s",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "abab6.5s",
+    "quality": 3,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "hunyuan-lite",
+   "spec": {
+    "effort": null,
+    "name": "hunyuan-lite",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "cheap",
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "hunyuan-lite",
+    "quality": 2,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "spark-max",
+   "spec": {
+    "effort": null,
+    "name": "spark-max",
+    "thinking": null,
+    "tier": "frontier",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "spark-max",
+    "quality": 4,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "doubao-pro-32k",
+   "spec": {
+    "effort": null,
+    "name": "doubao-pro-32k",
+    "thinking": null,
+    "tier": "frontier",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "doubao-pro-32k",
+    "quality": 4,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "doubao-lite-4k",
+   "spec": {
+    "effort": null,
+    "name": "doubao-lite-4k",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "cheap",
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "doubao-lite-4k",
+    "quality": 2,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "text-embedding-3-small",
+   "spec": {
+    "effort": null,
+    "name": "text-embedding-3-small",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "cheap",
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "text-embedding-3-small",
+    "quality": 2,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "bge-large-zh",
+   "spec": {
+    "effort": null,
+    "name": "bge-large-zh",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "bge-large-zh",
+    "quality": 3,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "whisper-1",
+   "spec": {
+    "effort": null,
+    "name": "whisper-1",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "whisper-1",
+    "quality": 3,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "tts-1-hd",
+   "spec": {
+    "effort": null,
+    "name": "tts-1-hd",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "tts-1-hd",
+    "quality": 3,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "dall-e-3",
+   "spec": {
+    "effort": null,
+    "name": "dall-e-3",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "dall-e-3",
+    "quality": 3,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "dalle-2",
+   "spec": {
+    "effort": null,
+    "name": "dalle-2",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "dalle-2",
+    "quality": 3,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "stable-diffusion-3",
+   "spec": {
+    "effort": null,
+    "name": "stable-diffusion-3",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "stable-diffusion-3",
+    "quality": 3,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "flux-pro",
+   "spec": {
+    "effort": null,
+    "name": "flux-pro",
+    "thinking": null,
+    "tier": "frontier",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "flux-pro",
+    "quality": 4,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "midjourney-v6",
+   "spec": {
+    "effort": null,
+    "name": "midjourney-v6",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "midjourney-v6",
+    "quality": 3,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "bge-reranker-v2",
+   "spec": {
+    "effort": null,
+    "name": "bge-reranker-v2",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "bge-reranker-v2",
+    "quality": 3,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "omni-moderation-latest",
+   "spec": {
+    "effort": null,
+    "name": "omni-moderation-latest",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "omni-moderation-latest",
+    "quality": 3,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "text-moderation-stable",
+   "spec": {
+    "effort": null,
+    "name": "text-moderation-stable",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "text-moderation-stable",
+    "quality": 3,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "image-01",
+   "spec": {
+    "effort": null,
+    "name": "image-01",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "image-01",
+    "quality": 3,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "gpt-4o-audio-preview",
+   "spec": {
+    "effort": null,
+    "name": "gpt-4o-audio-preview",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured",
+     "vision"
+    ],
+    "effort": null,
+    "name": "gpt-4o-audio-preview",
+    "quality": 3,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "speech-02",
+   "spec": {
+    "effort": null,
+    "name": "speech-02",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "speech-02",
+    "quality": 3,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "cosyvoice-voice",
+   "spec": {
+    "effort": null,
+    "name": "cosyvoice-voice",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "cosyvoice-voice",
+    "quality": 3,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "sora-2",
+   "spec": {
+    "effort": null,
+    "name": "sora-2",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "sora-2",
+    "quality": 3,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "kling-v1",
+   "spec": {
+    "effort": null,
+    "name": "kling-v1",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "kling-v1",
+    "quality": 3,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "suno-v4",
+   "spec": {
+    "effort": null,
+    "name": "suno-v4",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "suno-v4",
+    "quality": 3,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "anthropic/claude-opus-4.8",
+   "spec": {
+    "effort": null,
+    "name": "anthropic/claude-opus-4.8",
+    "thinking": null,
+    "tier": "frontier",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured",
+     "vision"
+    ],
+    "effort": null,
+    "name": "anthropic/claude-opus-4.8",
+    "quality": 4,
+    "vendor": "anthropic"
+   }
+  },
+  {
+   "name": "google/gemini-3.5-flash",
+   "spec": {
+    "effort": null,
+    "name": "google/gemini-3.5-flash",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "cheap",
+     "long_context",
+     "structured",
+     "vision"
+    ],
+    "effort": null,
+    "name": "google/gemini-3.5-flash",
+    "quality": 2,
+    "vendor": "google"
+   }
+  },
+  {
+   "name": "openai/gpt-5.5",
+   "spec": {
+    "effort": null,
+    "name": "openai/gpt-5.5",
+    "thinking": null,
+    "tier": "frontier",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured",
+     "vision"
+    ],
+    "effort": null,
+    "name": "openai/gpt-5.5",
+    "quality": 4,
+    "vendor": "openai"
+   }
+  },
+  {
+   "name": "deepseek/deepseek-v3.2",
+   "spec": {
+    "effort": null,
+    "name": "deepseek/deepseek-v3.2",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "deepseek/deepseek-v3.2",
+    "quality": 3,
+    "vendor": "deepseek"
+   }
+  },
+  {
+   "name": "z-ai/glm-5.2",
+   "spec": {
+    "effort": null,
+    "name": "z-ai/glm-5.2",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "z-ai/glm-5.2",
+    "quality": 3,
+    "vendor": "z-ai"
+   }
+  },
+  {
+   "name": "a/b/c",
+   "spec": {
+    "effort": null,
+    "name": "a/b/c",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "a/b/c",
+    "quality": 3,
+    "vendor": "a"
+   }
+  },
+  {
+   "name": "gemini-embedding-exp",
+   "spec": {
+    "effort": null,
+    "name": "gemini-embedding-exp",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "cheap",
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "gemini-embedding-exp",
+    "quality": 2,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "qwen-vl-plus",
+   "spec": {
+    "effort": null,
+    "name": "qwen-vl-plus",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured",
+     "vision"
+    ],
+    "effort": null,
+    "name": "qwen-vl-plus",
+    "quality": 3,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "qwen-omni-turbo",
+   "spec": {
+    "effort": null,
+    "name": "qwen-omni-turbo",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "cheap",
+     "long_context",
+     "structured",
+     "vision"
+    ],
+    "effort": null,
+    "name": "qwen-omni-turbo",
+    "quality": 2,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "influx-model",
+   "spec": {
+    "effort": null,
+    "name": "influx-model",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "influx-model",
+    "quality": 3,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "flux-1-dev",
+   "spec": {
+    "effort": null,
+    "name": "flux-1-dev",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "flux-1-dev",
+    "quality": 3,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "",
+   "spec": {
+    "effort": null,
+    "name": "",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "",
+    "quality": 3,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "   ",
+   "spec": {
+    "effort": null,
+    "name": "   ",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "   ",
+    "quality": 3,
+    "vendor": ""
+   }
+  },
+  {
+   "name": "-",
+   "spec": {
+    "effort": null,
+    "name": "-",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 2.0,
+    "usd_per_mtok_out": 8.0
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "-",
+    "quality": 3,
+    "vendor": ""
+   }
+  }
+ ],
+ "cards": [
+  {
+   "spec": {
+    "effort": "high",
+    "name": "anthropic/claude-opus-4.8",
+    "thinking": true,
+    "tier": "frontier",
+    "usd_per_mtok_in": 5,
+    "usd_per_mtok_out": 25
+   },
+   "to_dict": {
+    "capabilities": [
+     "effort",
+     "long_context",
+     "structured",
+     "vision"
+    ],
+    "effort": "high",
+    "name": "anthropic/claude-opus-4.8",
+    "quality": 5,
+    "vendor": "anthropic"
+   }
+  },
+  {
+   "spec": {
+    "effort": "medium",
+    "name": "anthropic/claude-sonnet-5",
+    "thinking": true,
+    "tier": "frontier",
+    "usd_per_mtok_in": 3,
+    "usd_per_mtok_out": 15
+   },
+   "to_dict": {
+    "capabilities": [
+     "effort",
+     "long_context",
+     "structured",
+     "vision"
+    ],
+    "effort": "medium",
+    "name": "anthropic/claude-sonnet-5",
+    "quality": 4,
+    "vendor": "anthropic"
+   }
+  },
+  {
+   "spec": {
+    "effort": null,
+    "name": "anthropic/claude-haiku-4.5",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 1,
+    "usd_per_mtok_out": 5
+   },
+   "to_dict": {
+    "capabilities": [
+     "cheap",
+     "long_context",
+     "structured",
+     "vision"
+    ],
+    "effort": null,
+    "name": "anthropic/claude-haiku-4.5",
+    "quality": 2,
+    "vendor": "anthropic"
+   }
+  },
+  {
+   "spec": {
+    "effort": "high",
+    "name": "openai/gpt-5.5",
+    "thinking": true,
+    "tier": "frontier",
+    "usd_per_mtok_in": 5,
+    "usd_per_mtok_out": 25
+   },
+   "to_dict": {
+    "capabilities": [
+     "effort",
+     "long_context",
+     "structured",
+     "vision"
+    ],
+    "effort": "high",
+    "name": "openai/gpt-5.5",
+    "quality": 5,
+    "vendor": "openai"
+   }
+  },
+  {
+   "spec": {
+    "effort": null,
+    "name": "openai/gpt-5.4-mini",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 0.5,
+    "usd_per_mtok_out": 2
+   },
+   "to_dict": {
+    "capabilities": [
+     "cheap",
+     "long_context",
+     "structured",
+     "vision"
+    ],
+    "effort": null,
+    "name": "openai/gpt-5.4-mini",
+    "quality": 2,
+    "vendor": "openai"
+   }
+  },
+  {
+   "spec": {
+    "effort": null,
+    "name": "google/gemini-3.5-flash",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 1,
+    "usd_per_mtok_out": 4
+   },
+   "to_dict": {
+    "capabilities": [
+     "cheap",
+     "long_context",
+     "structured",
+     "vision"
+    ],
+    "effort": null,
+    "name": "google/gemini-3.5-flash",
+    "quality": 3,
+    "vendor": "google"
+   }
+  },
+  {
+   "spec": {
+    "effort": null,
+    "name": "google/gemini-3.1-pro-preview",
+    "thinking": null,
+    "tier": "frontier",
+    "usd_per_mtok_in": 3,
+    "usd_per_mtok_out": 12
+   },
+   "to_dict": {
+    "capabilities": [
+     "long_context",
+     "structured",
+     "vision"
+    ],
+    "effort": null,
+    "name": "google/gemini-3.1-pro-preview",
+    "quality": 4,
+    "vendor": "google"
+   }
+  },
+  {
+   "spec": {
+    "effort": null,
+    "name": "deepseek/deepseek-v3.2",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 0.3,
+    "usd_per_mtok_out": 1.2
+   },
+   "to_dict": {
+    "capabilities": [
+     "cheap",
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "deepseek/deepseek-v3.2",
+    "quality": 3,
+    "vendor": "deepseek"
+   }
+  },
+  {
+   "spec": {
+    "effort": null,
+    "name": "moonshotai/kimi-k2.6",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 0.6,
+    "usd_per_mtok_out": 2.5
+   },
+   "to_dict": {
+    "capabilities": [
+     "cheap",
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "moonshotai/kimi-k2.6",
+    "quality": 3,
+    "vendor": "moonshot"
+   }
+  },
+  {
+   "spec": {
+    "effort": null,
+    "name": "z-ai/glm-5.2",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 0.5,
+    "usd_per_mtok_out": 2
+   },
+   "to_dict": {
+    "capabilities": [
+     "cheap",
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "z-ai/glm-5.2",
+    "quality": 3,
+    "vendor": "zhipu"
+   }
+  }
+ ],
+ "default_catalog": {
+  "by_capability": {
+   "cheap": [
+    "anthropic/claude-haiku-4.5",
+    "deepseek/deepseek-v3.2",
+    "google/gemini-3.5-flash",
+    "moonshotai/kimi-k2.6",
+    "openai/gpt-5.4-mini",
+    "z-ai/glm-5.2"
+   ],
+   "effort": [
+    "anthropic/claude-opus-4.8",
+    "anthropic/claude-sonnet-5",
+    "openai/gpt-5.5"
+   ],
+   "long_context": [
+    "anthropic/claude-haiku-4.5",
+    "anthropic/claude-opus-4.8",
+    "anthropic/claude-sonnet-5",
+    "deepseek/deepseek-v3.2",
+    "google/gemini-3.1-pro-preview",
+    "google/gemini-3.5-flash",
+    "moonshotai/kimi-k2.6",
+    "openai/gpt-5.4-mini",
+    "openai/gpt-5.5",
+    "z-ai/glm-5.2"
+   ],
+   "structured": [
+    "anthropic/claude-haiku-4.5",
+    "anthropic/claude-opus-4.8",
+    "anthropic/claude-sonnet-5",
+    "deepseek/deepseek-v3.2",
+    "google/gemini-3.1-pro-preview",
+    "google/gemini-3.5-flash",
+    "moonshotai/kimi-k2.6",
+    "openai/gpt-5.4-mini",
+    "openai/gpt-5.5",
+    "z-ai/glm-5.2"
+   ],
+   "vision": [
+    "anthropic/claude-haiku-4.5",
+    "anthropic/claude-opus-4.8",
+    "anthropic/claude-sonnet-5",
+    "google/gemini-3.1-pro-preview",
+    "google/gemini-3.5-flash",
+    "openai/gpt-5.4-mini",
+    "openai/gpt-5.5"
+   ]
+  },
+  "describe": [
+   {
+    "capabilities": [
+     "cheap",
+     "long_context",
+     "structured",
+     "vision"
+    ],
+    "effort": null,
+    "name": "anthropic/claude-haiku-4.5",
+    "quality": 2,
+    "vendor": "anthropic"
+   },
+   {
+    "capabilities": [
+     "effort",
+     "long_context",
+     "structured",
+     "vision"
+    ],
+    "effort": "high",
+    "name": "anthropic/claude-opus-4.8",
+    "quality": 5,
+    "vendor": "anthropic"
+   },
+   {
+    "capabilities": [
+     "effort",
+     "long_context",
+     "structured",
+     "vision"
+    ],
+    "effort": "medium",
+    "name": "anthropic/claude-sonnet-5",
+    "quality": 4,
+    "vendor": "anthropic"
+   },
+   {
+    "capabilities": [
+     "cheap",
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "deepseek/deepseek-v3.2",
+    "quality": 3,
+    "vendor": "deepseek"
+   },
+   {
+    "capabilities": [
+     "long_context",
+     "structured",
+     "vision"
+    ],
+    "effort": null,
+    "name": "google/gemini-3.1-pro-preview",
+    "quality": 4,
+    "vendor": "google"
+   },
+   {
+    "capabilities": [
+     "cheap",
+     "long_context",
+     "structured",
+     "vision"
+    ],
+    "effort": null,
+    "name": "google/gemini-3.5-flash",
+    "quality": 3,
+    "vendor": "google"
+   },
+   {
+    "capabilities": [
+     "cheap",
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "moonshotai/kimi-k2.6",
+    "quality": 3,
+    "vendor": "moonshot"
+   },
+   {
+    "capabilities": [
+     "cheap",
+     "long_context",
+     "structured",
+     "vision"
+    ],
+    "effort": null,
+    "name": "openai/gpt-5.4-mini",
+    "quality": 2,
+    "vendor": "openai"
+   },
+   {
+    "capabilities": [
+     "effort",
+     "long_context",
+     "structured",
+     "vision"
+    ],
+    "effort": "high",
+    "name": "openai/gpt-5.5",
+    "quality": 5,
+    "vendor": "openai"
+   },
+   {
+    "capabilities": [
+     "cheap",
+     "long_context",
+     "structured"
+    ],
+    "effort": null,
+    "name": "z-ai/glm-5.2",
+    "quality": 3,
+    "vendor": "zhipu"
+   }
+  ],
+  "empty_list_falls_back": [
+   "anthropic/claude-haiku-4.5",
+   "anthropic/claude-opus-4.8",
+   "anthropic/claude-sonnet-5",
+   "deepseek/deepseek-v3.2",
+   "google/gemini-3.1-pro-preview",
+   "google/gemini-3.5-flash",
+   "moonshotai/kimi-k2.6",
+   "openai/gpt-5.4-mini",
+   "openai/gpt-5.5",
+   "z-ai/glm-5.2"
+  ],
+  "get_missing": null,
+  "names": [
+   "anthropic/claude-haiku-4.5",
+   "anthropic/claude-opus-4.8",
+   "anthropic/claude-sonnet-5",
+   "deepseek/deepseek-v3.2",
+   "google/gemini-3.1-pro-preview",
+   "google/gemini-3.5-flash",
+   "moonshotai/kimi-k2.6",
+   "openai/gpt-5.4-mini",
+   "openai/gpt-5.5",
+   "z-ai/glm-5.2"
+  ],
+  "one_card": [
+   "anthropic/claude-opus-4.8"
+  ]
+ },
+ "denial_capability": [
+  {
+   "out": "vision",
+   "text": "No endpoints found that support image input"
+  },
+  {
+   "out": "vision",
+   "text": "no endpoints found that support image input."
+  },
+  {
+   "out": "vision",
+   "text": "This model does not support vision"
+  },
+  {
+   "out": "structured",
+   "text": "model not support response_format"
+  },
+  {
+   "out": "effort",
+   "text": "unsupported parameter: reasoning.effort"
+  },
+  {
+   "out": "structured",
+   "text": "invalid json_schema for this model"
+  },
+  {
+   "out": null,
+   "text": "该模型不支持图片输入"
+  },
+  {
+   "out": "structured",
+   "text": "该模型不支持 structured 输出"
+  },
+  {
+   "out": "effort",
+   "text": "不支持 effort 参数"
+  },
+  {
+   "out": "vision",
+   "text": "Invalid multimodal request"
+  },
+  {
+   "out": null,
+   "text": "UNSUPPORTED: image_input"
+  },
+  {
+   "out": null,
+   "text": ""
+  },
+  {
+   "out": null,
+   "text": "   "
+  },
+  {
+   "out": null,
+   "text": "Internal server error"
+  },
+  {
+   "out": null,
+   "text": "rate limit exceeded"
+  },
+  {
+   "out": null,
+   "text": "insufficient_user_quota"
+  },
+  {
+   "out": null,
+   "text": "connection reset by peer"
+  },
+  {
+   "out": null,
+   "text": "does not support this request"
+  },
+  {
+   "out": null,
+   "text": "unsupported region"
+  },
+  {
+   "out": null,
+   "text": "vision model ready"
+  },
+  {
+   "out": null,
+   "text": "response_format accepted"
+  },
+  {
+   "out": "vision",
+   "text": "server busy; also this model does not support multimodal"
+  },
+  {
+   "out": "vision",
+   "text": "NOT   SUPPORT image input"
+  },
+  {
+   "out": "vision",
+   "text": "not\nsupport vision"
+  },
+  {
+   "out": "vision",
+   "text": "does not support image input with response_format"
+  },
+  {
+   "out": null,
+   "text": "unsupported: effortless mode"
+  },
+  {
+   "out": "effort",
+   "text": "unsupported: effort mode"
+  }
+ ],
+ "discover": [
+  {
+   "base": "http://gw.test/v1",
+   "by_capability": {
+    "cheap": [
+     "gemini-2.5-flash",
+     "google/gemini-3.5-flash",
+     "gpt-4o-mini"
+    ],
+    "effort": [
+     "anthropic/claude-opus-4.8"
+    ],
+    "long_context": [
+     "anthropic/claude-opus-4.8",
+     "deepseek-r1",
+     "gemini-2.5-flash",
+     "google/gemini-3.5-flash",
+     "gpt-4o",
+     "gpt-4o-mini"
+    ],
+    "structured": [
+     "anthropic/claude-opus-4.8",
+     "deepseek-r1",
+     "gemini-2.5-flash",
+     "google/gemini-3.5-flash",
+     "gpt-4o",
+     "gpt-4o-mini"
+    ],
+    "vision": [
+     "anthropic/claude-opus-4.8",
+     "gemini-2.5-flash",
+     "google/gemini-3.5-flash",
+     "gpt-4o",
+     "gpt-4o-mini"
+    ]
+   },
+   "describe": [
+    {
+     "capabilities": [
+      "effort",
+      "long_context",
+      "structured",
+      "vision"
+     ],
+     "effort": "high",
+     "name": "anthropic/claude-opus-4.8",
+     "quality": 5,
+     "vendor": "anthropic"
+    },
+    {
+     "capabilities": [
+      "long_context",
+      "structured"
+     ],
+     "effort": null,
+     "name": "deepseek-r1",
+     "quality": 3,
+     "vendor": ""
+    },
+    {
+     "capabilities": [
+      "cheap",
+      "long_context",
+      "structured",
+      "vision"
+     ],
+     "effort": null,
+     "name": "gemini-2.5-flash",
+     "quality": 2,
+     "vendor": ""
+    },
+    {
+     "capabilities": [
+      "cheap",
+      "long_context",
+      "structured",
+      "vision"
+     ],
+     "effort": null,
+     "name": "google/gemini-3.5-flash",
+     "quality": 3,
+     "vendor": "google"
+    },
+    {
+     "capabilities": [
+      "long_context",
+      "structured",
+      "vision"
+     ],
+     "effort": null,
+     "name": "gpt-4o",
+     "quality": 3,
+     "vendor": ""
+    },
+    {
+     "capabilities": [
+      "cheap",
+      "long_context",
+      "structured",
+      "vision"
+     ],
+     "effort": null,
+     "name": "gpt-4o-mini",
+     "quality": 2,
+     "vendor": ""
+    }
+   ],
+   "key": "sk-k",
+   "live": [
+    "anthropic/claude-opus-4.8",
+    "dall-e-3",
+    "deepseek-r1",
+    "gemini-2.5-flash",
+    "google/gemini-3.5-flash",
+    "gpt-4o",
+    "gpt-4o-mini",
+    "text-embedding-3-small",
+    "whisper-1"
+   ],
+   "name": "mixed",
+   "names": [
+    "anthropic/claude-opus-4.8",
+    "deepseek-r1",
+    "gemini-2.5-flash",
+    "google/gemini-3.5-flash",
+    "gpt-4o",
+    "gpt-4o-mini"
+   ],
+   "notes": [
+    "anthropic/claude-sonnet-5 网关上不可用，已移除",
+    "anthropic/claude-haiku-4.5 网关上不可用，已移除",
+    "openai/gpt-5.5 网关上不可用，已移除",
+    "openai/gpt-5.4-mini 网关上不可用，已移除",
+    "google/gemini-3.1-pro-preview 网关上不可用，已移除",
+    "deepseek/deepseek-v3.2 网关上不可用，已移除",
+    "moonshotai/kimi-k2.6 网关上不可用，已移除",
+    "z-ai/glm-5.2 网关上不可用，已移除",
+    "deepseek-r1 从网关发现，按名字推断能力",
+    "gemini-2.5-flash 从网关发现，按名字推断能力",
+    "gpt-4o 从网关发现，按名字推断能力",
+    "gpt-4o-mini 从网关发现，按名字推断能力"
+   ],
+   "seen": [
+    {
+     "authorization": "Bearer sk-k",
+     "method": "GET",
+     "url": "http://gw.test/v1/models"
+    }
+   ],
+   "select_vision": [
+    "anthropic/claude-opus-4.8",
+    "google/gemini-3.5-flash",
+    "gpt-4o",
+    "gemini-2.5-flash"
+   ]
+  },
+  {
+   "base": "http://gw.test/v1///",
+   "by_capability": {
+    "effort": [
+     "anthropic/claude-opus-4.8"
+    ],
+    "long_context": [
+     "anthropic/claude-opus-4.8"
+    ],
+    "structured": [
+     "anthropic/claude-opus-4.8"
+    ],
+    "vision": [
+     "anthropic/claude-opus-4.8"
+    ]
+   },
+   "describe": [
+    {
+     "capabilities": [
+      "effort",
+      "long_context",
+      "structured",
+      "vision"
+     ],
+     "effort": "high",
+     "name": "anthropic/claude-opus-4.8",
+     "quality": 5,
+     "vendor": "anthropic"
+    }
+   ],
+   "key": "sk-k",
+   "live": [
+    "anthropic/claude-opus-4.8"
+   ],
+   "name": "trailing-slashes",
+   "names": [
+    "anthropic/claude-opus-4.8"
+   ],
+   "notes": [
+    "anthropic/claude-sonnet-5 网关上不可用，已移除",
+    "anthropic/claude-haiku-4.5 网关上不可用，已移除",
+    "openai/gpt-5.5 网关上不可用，已移除",
+    "openai/gpt-5.4-mini 网关上不可用，已移除",
+    "google/gemini-3.5-flash 网关上不可用，已移除",
+    "google/gemini-3.1-pro-preview 网关上不可用，已移除",
+    "deepseek/deepseek-v3.2 网关上不可用，已移除",
+    "moonshotai/kimi-k2.6 网关上不可用，已移除",
+    "z-ai/glm-5.2 网关上不可用，已移除"
+   ],
+   "seen": [
+    {
+     "authorization": "Bearer sk-k",
+     "method": "GET",
+     "url": "http://gw.test/v1/models"
+    }
+   ],
+   "select_vision": [
+    "anthropic/claude-opus-4.8"
+   ]
+  },
+  {
+   "base": "http://gw.test/v1",
+   "by_capability": {
+    "long_context": [
+     "some-house-model"
+    ],
+    "structured": [
+     "some-house-model"
+    ]
+   },
+   "describe": [
+    {
+     "capabilities": [
+      "long_context",
+      "structured"
+     ],
+     "effort": null,
+     "name": "some-house-model",
+     "quality": 3,
+     "vendor": ""
+    }
+   ],
+   "key": "sk-k",
+   "live": [
+    "some-house-model"
+   ],
+   "name": "all-unknown",
+   "names": [
+    "some-house-model"
+   ],
+   "notes": [
+    "anthropic/claude-opus-4.8 网关上不可用，已移除",
+    "anthropic/claude-sonnet-5 网关上不可用，已移除",
+    "anthropic/claude-haiku-4.5 网关上不可用，已移除",
+    "openai/gpt-5.5 网关上不可用，已移除",
+    "openai/gpt-5.4-mini 网关上不可用，已移除",
+    "google/gemini-3.5-flash 网关上不可用，已移除",
+    "google/gemini-3.1-pro-preview 网关上不可用，已移除",
+    "deepseek/deepseek-v3.2 网关上不可用，已移除",
+    "moonshotai/kimi-k2.6 网关上不可用，已移除",
+    "z-ai/glm-5.2 网关上不可用，已移除",
+    "some-house-model 从网关发现，按名字推断能力"
+   ],
+   "seen": [
+    {
+     "authorization": "Bearer sk-k",
+     "method": "GET",
+     "url": "http://gw.test/v1/models"
+    }
+   ],
+   "select_vision": []
+  },
+  {
+   "base": "http://gw.test/v1",
+   "by_capability": {},
+   "describe": [],
+   "key": "sk-k",
+   "live": [],
+   "name": "null-data",
+   "names": [],
+   "notes": [
+    "anthropic/claude-opus-4.8 网关上不可用，已移除",
+    "anthropic/claude-sonnet-5 网关上不可用，已移除",
+    "anthropic/claude-haiku-4.5 网关上不可用，已移除",
+    "openai/gpt-5.5 网关上不可用，已移除",
+    "openai/gpt-5.4-mini 网关上不可用，已移除",
+    "google/gemini-3.5-flash 网关上不可用，已移除",
+    "google/gemini-3.1-pro-preview 网关上不可用，已移除",
+    "deepseek/deepseek-v3.2 网关上不可用，已移除",
+    "moonshotai/kimi-k2.6 网关上不可用，已移除",
+    "z-ai/glm-5.2 网关上不可用，已移除"
+   ],
+   "seen": [
+    {
+     "authorization": "Bearer sk-k",
+     "method": "GET",
+     "url": "http://gw.test/v1/models"
+    }
+   ],
+   "select_vision": []
+  },
+  {
+   "base": "http://gw.test/v1",
+   "by_capability": {},
+   "describe": [],
+   "key": "sk-k",
+   "live": [],
+   "name": "no-data-key",
+   "names": [],
+   "notes": [
+    "anthropic/claude-opus-4.8 网关上不可用，已移除",
+    "anthropic/claude-sonnet-5 网关上不可用，已移除",
+    "anthropic/claude-haiku-4.5 网关上不可用，已移除",
+    "openai/gpt-5.5 网关上不可用，已移除",
+    "openai/gpt-5.4-mini 网关上不可用，已移除",
+    "google/gemini-3.5-flash 网关上不可用，已移除",
+    "google/gemini-3.1-pro-preview 网关上不可用，已移除",
+    "deepseek/deepseek-v3.2 网关上不可用，已移除",
+    "moonshotai/kimi-k2.6 网关上不可用，已移除",
+    "z-ai/glm-5.2 网关上不可用，已移除"
+   ],
+   "seen": [
+    {
+     "authorization": "Bearer sk-k",
+     "method": "GET",
+     "url": "http://gw.test/v1/models"
+    }
+   ],
+   "select_vision": []
+  },
+  {
+   "base": "http://gw.test/v1",
+   "by_capability": {
+    "effort": [
+     "openai/gpt-5.5"
+    ],
+    "long_context": [
+     "gpt-4o",
+     "openai/gpt-5.5"
+    ],
+    "structured": [
+     "gpt-4o",
+     "openai/gpt-5.5"
+    ],
+    "vision": [
+     "gpt-4o",
+     "openai/gpt-5.5"
+    ]
+   },
+   "describe": [
+    {
+     "capabilities": [
+      "long_context",
+      "structured",
+      "vision"
+     ],
+     "effort": null,
+     "name": "gpt-4o",
+     "quality": 3,
+     "vendor": ""
+    },
+    {
+     "capabilities": [
+      "effort",
+      "long_context",
+      "structured",
+      "vision"
+     ],
+     "effort": "high",
+     "name": "openai/gpt-5.5",
+     "quality": 5,
+     "vendor": "openai"
+    }
+   ],
+   "key": "sk-k",
+   "live": [
+    "gpt-4o",
+    "openai/gpt-5.5"
+   ],
+   "name": "dupe-ids",
+   "names": [
+    "gpt-4o",
+    "openai/gpt-5.5"
+   ],
+   "notes": [
+    "anthropic/claude-opus-4.8 网关上不可用，已移除",
+    "anthropic/claude-sonnet-5 网关上不可用，已移除",
+    "anthropic/claude-haiku-4.5 网关上不可用，已移除",
+    "openai/gpt-5.4-mini 网关上不可用，已移除",
+    "google/gemini-3.5-flash 网关上不可用，已移除",
+    "google/gemini-3.1-pro-preview 网关上不可用，已移除",
+    "deepseek/deepseek-v3.2 网关上不可用，已移除",
+    "moonshotai/kimi-k2.6 网关上不可用，已移除",
+    "z-ai/glm-5.2 网关上不可用，已移除",
+    "gpt-4o 从网关发现，按名字推断能力"
+   ],
+   "seen": [
+    {
+     "authorization": "Bearer sk-k",
+     "method": "GET",
+     "url": "http://gw.test/v1/models"
+    }
+   ],
+   "select_vision": [
+    "openai/gpt-5.5",
+    "gpt-4o"
+   ]
+  }
+ ],
+ "discover_fail": [
+  {
+   "exc": "HTTPStatusError",
+   "name": "http-500",
+   "names_intact": [
+    "anthropic/claude-haiku-4.5",
+    "anthropic/claude-opus-4.8",
+    "anthropic/claude-sonnet-5",
+    "deepseek/deepseek-v3.2",
+    "google/gemini-3.1-pro-preview",
+    "google/gemini-3.5-flash",
+    "moonshotai/kimi-k2.6",
+    "openai/gpt-5.4-mini",
+    "openai/gpt-5.5",
+    "z-ai/glm-5.2"
+   ],
+   "notes": []
+  },
+  {
+   "exc": "HTTPStatusError",
+   "name": "http-401",
+   "names_intact": [
+    "anthropic/claude-haiku-4.5",
+    "anthropic/claude-opus-4.8",
+    "anthropic/claude-sonnet-5",
+    "deepseek/deepseek-v3.2",
+    "google/gemini-3.1-pro-preview",
+    "google/gemini-3.5-flash",
+    "moonshotai/kimi-k2.6",
+    "openai/gpt-5.4-mini",
+    "openai/gpt-5.5",
+    "z-ai/glm-5.2"
+   ],
+   "notes": []
+  }
+ ],
+ "infer_capabilities": [
+  {
+   "name": "gpt-4o",
+   "out": [
+    "long_context",
+    "structured",
+    "vision"
+   ]
+  },
+  {
+   "name": "gpt-4o-mini",
+   "out": [
+    "cheap",
+    "long_context",
+    "structured",
+    "vision"
+   ]
+  },
+  {
+   "name": "gpt-4.1",
+   "out": [
+    "long_context",
+    "structured",
+    "vision"
+   ]
+  },
+  {
+   "name": "gpt-4-turbo",
+   "out": [
+    "cheap",
+    "long_context",
+    "structured",
+    "vision"
+   ]
+  },
+  {
+   "name": "gpt-4-vision-preview",
+   "out": [
+    "long_context",
+    "structured",
+    "vision"
+   ]
+  },
+  {
+   "name": "gpt-4v",
+   "out": [
+    "long_context",
+    "structured",
+    "vision"
+   ]
+  },
+  {
+   "name": "gpt-5",
+   "out": [
+    "long_context",
+    "structured",
+    "vision"
+   ]
+  },
+  {
+   "name": "gpt-5-mini",
+   "out": [
+    "cheap",
+    "long_context",
+    "structured",
+    "vision"
+   ]
+  },
+  {
+   "name": "chatgpt-4o-latest",
+   "out": [
+    "long_context",
+    "structured",
+    "vision"
+   ]
+  },
+  {
+   "name": "o1",
+   "out": [
+    "long_context",
+    "structured",
+    "vision"
+   ]
+  },
+  {
+   "name": "o1-mini",
+   "out": [
+    "cheap",
+    "long_context",
+    "structured"
+   ]
+  },
+  {
+   "name": "o3",
+   "out": [
+    "long_context",
+    "structured",
+    "vision"
+   ]
+  },
+  {
+   "name": "o3-mini",
+   "out": [
+    "cheap",
+    "long_context",
+    "structured"
+   ]
+  },
+  {
+   "name": "o4-mini",
+   "out": [
+    "cheap",
+    "long_context",
+    "structured",
+    "vision"
+   ]
+  },
+  {
+   "name": "gemini-2.5-pro",
+   "out": [
+    "cheap",
+    "long_context",
+    "structured",
+    "vision"
+   ]
+  },
+  {
+   "name": "gemini-2.5-flash",
+   "out": [
+    "cheap",
+    "long_context",
+    "structured",
+    "vision"
+   ]
+  },
+  {
+   "name": "gemini-1.5-pro",
+   "out": [
+    "cheap",
+    "long_context",
+    "structured",
+    "vision"
+   ]
+  },
+  {
+   "name": "gemini-embedding-001",
+   "out": [
+    "cheap",
+    "long_context",
+    "structured"
+   ]
+  },
+  {
+   "name": "claude-3-5-sonnet",
+   "out": [
+    "long_context",
+    "structured",
+    "vision"
+   ]
+  },
+  {
+   "name": "claude-3-7-sonnet",
+   "out": [
+    "long_context",
+    "structured",
+    "vision"
+   ]
+  },
+  {
+   "name": "claude-4-opus",
+   "out": [
+    "long_context",
+    "structured",
+    "vision"
+   ]
+  },
+  {
+   "name": "claude-opus-4.8",
+   "out": [
+    "long_context",
+    "structured",
+    "vision"
+   ]
+  },
+  {
+   "name": "claude-sonnet-4",
+   "out": [
+    "long_context",
+    "structured",
+    "vision"
+   ]
+  },
+  {
+   "name": "claude-haiku-4.5",
+   "out": [
+    "cheap",
+    "long_context",
+    "structured",
+    "vision"
+   ]
+  },
+  {
+   "name": "qwen-vl-max",
+   "out": [
+    "long_context",
+    "structured",
+    "vision"
+   ]
+  },
+  {
+   "name": "qwen2.5-omni",
+   "out": [
+    "long_context",
+    "structured",
+    "vision"
+   ]
+  },
+  {
+   "name": "qwen2.5-72b",
+   "out": [
+    "long_context",
+    "structured"
+   ]
+  },
+  {
+   "name": "qwen-turbo",
+   "out": [
+    "cheap",
+    "long_context",
+    "structured"
+   ]
+  },
+  {
+   "name": "pixtral-large",
+   "out": [
+    "long_context",
+    "structured",
+    "vision"
+   ]
+  },
+  {
+   "name": "llava-1.6",
+   "out": [
+    "long_context",
+    "structured",
+    "vision"
+   ]
+  },
+  {
+   "name": "internvl2-8b",
+   "out": [
+    "cheap",
+    "long_context",
+    "structured",
+    "vision"
+   ]
+  },
+  {
+   "name": "minicpm-v-2.6",
+   "out": [
+    "cheap",
+    "long_context",
+    "structured",
+    "vision"
+   ]
+  },
+  {
+   "name": "glm-4v",
+   "out": [
+    "long_context",
+    "structured",
+    "vision"
+   ]
+  },
+  {
+   "name": "glm-4.5v",
+   "out": [
+    "long_context",
+    "structured",
+    "vision"
+   ]
+  },
+  {
+   "name": "glm-4-air",
+   "out": [
+    "cheap",
+    "long_context",
+    "structured"
+   ]
+  },
+  {
+   "name": "step-1v-8k",
+   "out": [
+    "long_context",
+    "structured",
+    "vision"
+   ]
+  },
+  {
+   "name": "grok-2-vision-1212",
+   "out": [
+    "long_context",
+    "structured",
+    "vision"
+   ]
+  },
+  {
+   "name": "grok-4",
+   "out": [
+    "long_context",
+    "structured",
+    "vision"
+   ]
+  },
+  {
+   "name": "grok-3",
+   "out": [
+    "long_context",
+    "structured"
+   ]
+  },
+  {
+   "name": "llama-3.2-11b-vision",
+   "out": [
+    "long_context",
+    "structured",
+    "vision"
+   ]
+  },
+  {
+   "name": "llama-3.2-90b",
+   "out": [
+    "long_context",
+    "structured",
+    "vision"
+   ]
+  },
+  {
+   "name": "llama-3.2-3b",
+   "out": [
+    "long_context",
+    "structured"
+   ]
+  },
+  {
+   "name": "llama-4-scout",
+   "out": [
+    "long_context",
+    "structured",
+    "vision"
+   ]
+  },
+  {
+   "name": "llama-3.1-405b",
+   "out": [
+    "long_context",
+    "structured"
+   ]
+  },
+  {
+   "name": "gpt-3.5-turbo",
+   "out": [
+    "cheap",
+    "long_context",
+    "structured"
+   ]
+  },
+  {
+   "name": "deepseek-v3.2",
+   "out": [
+    "long_context",
+    "structured"
+   ]
+  },
+  {
+   "name": "deepseek-r1",
+   "out": [
+    "long_context",
+    "structured"
+   ]
+  },
+  {
+   "name": "moonshot-v1-8k",
+   "out": [
+    "long_context",
+    "structured"
+   ]
+  },
+  {
+   "name": "kimi-k2.6",
+   "out": [
+    "long_context",
+    "structured"
+   ]
+  },
+  {
+   "name": "kimi-vl-a3b",
+   "out": [
+    "long_context",
+    "structured"
+   ]
+  },
+  {
+   "name": "text-davinci-003",
+   "out": [
+    "long_context",
+    "structured"
+   ]
+  },
+  {
+   "name": "babbage-002",
+   "out": [
+    "long_context",
+    "structured"
+   ]
+  },
+  {
+   "name": "mistral-small",
+   "out": [
+    "cheap",
+    "long_context",
+    "structured"
+   ]
+  },
+  {
+   "name": "mistral-large",
+   "out": [
+    "long_context",
+    "structured"
+   ]
+  },
+  {
+   "name": "yi-lightning",
+   "out": [
+    "long_context",
+    "structured"
+   ]
+  },
+  {
+   "name": "ernie-4.0-8k",
+   "out": [
+    "long_context",
+    "structured"
+   ]
+  },
+  {
+   "name": "abab6.5s",
+   "out": [
+    "long_context",
+    "structured"
+   ]
+  },
+  {
+   "name": "hunyuan-lite",
+   "out": [
+    "cheap",
+    "long_context",
+    "structured"
+   ]
+  },
+  {
+   "name": "spark-max",
+   "out": [
+    "long_context",
+    "structured"
+   ]
+  },
+  {
+   "name": "doubao-pro-32k",
+   "out": [
+    "long_context",
+    "structured"
+   ]
+  },
+  {
+   "name": "doubao-lite-4k",
+   "out": [
+    "cheap",
+    "long_context",
+    "structured"
+   ]
+  },
+  {
+   "name": "text-embedding-3-small",
+   "out": [
+    "cheap",
+    "long_context",
+    "structured"
+   ]
+  },
+  {
+   "name": "bge-large-zh",
+   "out": [
+    "long_context",
+    "structured"
+   ]
+  },
+  {
+   "name": "whisper-1",
+   "out": [
+    "long_context",
+    "structured"
+   ]
+  },
+  {
+   "name": "tts-1-hd",
+   "out": [
+    "long_context",
+    "structured"
+   ]
+  },
+  {
+   "name": "dall-e-3",
+   "out": [
+    "long_context",
+    "structured"
+   ]
+  },
+  {
+   "name": "dalle-2",
+   "out": [
+    "long_context",
+    "structured"
+   ]
+  },
+  {
+   "name": "stable-diffusion-3",
+   "out": [
+    "long_context",
+    "structured"
+   ]
+  },
+  {
+   "name": "flux-pro",
+   "out": [
+    "long_context",
+    "structured"
+   ]
+  },
+  {
+   "name": "midjourney-v6",
+   "out": [
+    "long_context",
+    "structured"
+   ]
+  },
+  {
+   "name": "bge-reranker-v2",
+   "out": [
+    "long_context",
+    "structured"
+   ]
+  },
+  {
+   "name": "omni-moderation-latest",
+   "out": [
+    "long_context",
+    "structured"
+   ]
+  },
+  {
+   "name": "text-moderation-stable",
+   "out": [
+    "long_context",
+    "structured"
+   ]
+  },
+  {
+   "name": "image-01",
+   "out": [
+    "long_context",
+    "structured"
+   ]
+  },
+  {
+   "name": "gpt-4o-audio-preview",
+   "out": [
+    "long_context",
+    "structured",
+    "vision"
+   ]
+  },
+  {
+   "name": "speech-02",
+   "out": [
+    "long_context",
+    "structured"
+   ]
+  },
+  {
+   "name": "cosyvoice-voice",
+   "out": [
+    "long_context",
+    "structured"
+   ]
+  },
+  {
+   "name": "sora-2",
+   "out": [
+    "long_context",
+    "structured"
+   ]
+  },
+  {
+   "name": "kling-v1",
+   "out": [
+    "long_context",
+    "structured"
+   ]
+  },
+  {
+   "name": "suno-v4",
+   "out": [
+    "long_context",
+    "structured"
+   ]
+  },
+  {
+   "name": "anthropic/claude-opus-4.8",
+   "out": [
+    "long_context",
+    "structured",
+    "vision"
+   ]
+  },
+  {
+   "name": "google/gemini-3.5-flash",
+   "out": [
+    "cheap",
+    "long_context",
+    "structured",
+    "vision"
+   ]
+  },
+  {
+   "name": "openai/gpt-5.5",
+   "out": [
+    "long_context",
+    "structured",
+    "vision"
+   ]
+  },
+  {
+   "name": "deepseek/deepseek-v3.2",
+   "out": [
+    "long_context",
+    "structured"
+   ]
+  },
+  {
+   "name": "z-ai/glm-5.2",
+   "out": [
+    "long_context",
+    "structured"
+   ]
+  },
+  {
+   "name": "a/b/c",
+   "out": [
+    "long_context",
+    "structured"
+   ]
+  },
+  {
+   "name": "gemini-embedding-exp",
+   "out": [
+    "cheap",
+    "long_context",
+    "structured"
+   ]
+  },
+  {
+   "name": "qwen-vl-plus",
+   "out": [
+    "long_context",
+    "structured",
+    "vision"
+   ]
+  },
+  {
+   "name": "qwen-omni-turbo",
+   "out": [
+    "cheap",
+    "long_context",
+    "structured",
+    "vision"
+   ]
+  },
+  {
+   "name": "influx-model",
+   "out": [
+    "long_context",
+    "structured"
+   ]
+  },
+  {
+   "name": "flux-1-dev",
+   "out": [
+    "long_context",
+    "structured"
+   ]
+  },
+  {
+   "name": "",
+   "out": [
+    "long_context",
+    "structured"
+   ]
+  },
+  {
+   "name": "   ",
+   "out": [
+    "long_context",
+    "structured"
+   ]
+  },
+  {
+   "name": "-",
+   "out": [
+    "long_context",
+    "structured"
+   ]
+  }
+ ],
+ "is_chat_model": [
+  {
+   "name": "gpt-4o",
+   "out": true
+  },
+  {
+   "name": "gpt-4o-mini",
+   "out": true
+  },
+  {
+   "name": "gpt-4.1",
+   "out": true
+  },
+  {
+   "name": "gpt-4-turbo",
+   "out": true
+  },
+  {
+   "name": "gpt-4-vision-preview",
+   "out": true
+  },
+  {
+   "name": "gpt-4v",
+   "out": true
+  },
+  {
+   "name": "gpt-5",
+   "out": true
+  },
+  {
+   "name": "gpt-5-mini",
+   "out": true
+  },
+  {
+   "name": "chatgpt-4o-latest",
+   "out": true
+  },
+  {
+   "name": "o1",
+   "out": true
+  },
+  {
+   "name": "o1-mini",
+   "out": true
+  },
+  {
+   "name": "o3",
+   "out": true
+  },
+  {
+   "name": "o3-mini",
+   "out": true
+  },
+  {
+   "name": "o4-mini",
+   "out": true
+  },
+  {
+   "name": "gemini-2.5-pro",
+   "out": true
+  },
+  {
+   "name": "gemini-2.5-flash",
+   "out": true
+  },
+  {
+   "name": "gemini-1.5-pro",
+   "out": true
+  },
+  {
+   "name": "gemini-embedding-001",
+   "out": false
+  },
+  {
+   "name": "claude-3-5-sonnet",
+   "out": true
+  },
+  {
+   "name": "claude-3-7-sonnet",
+   "out": true
+  },
+  {
+   "name": "claude-4-opus",
+   "out": true
+  },
+  {
+   "name": "claude-opus-4.8",
+   "out": true
+  },
+  {
+   "name": "claude-sonnet-4",
+   "out": true
+  },
+  {
+   "name": "claude-haiku-4.5",
+   "out": true
+  },
+  {
+   "name": "qwen-vl-max",
+   "out": true
+  },
+  {
+   "name": "qwen2.5-omni",
+   "out": true
+  },
+  {
+   "name": "qwen2.5-72b",
+   "out": true
+  },
+  {
+   "name": "qwen-turbo",
+   "out": true
+  },
+  {
+   "name": "pixtral-large",
+   "out": true
+  },
+  {
+   "name": "llava-1.6",
+   "out": true
+  },
+  {
+   "name": "internvl2-8b",
+   "out": true
+  },
+  {
+   "name": "minicpm-v-2.6",
+   "out": true
+  },
+  {
+   "name": "glm-4v",
+   "out": true
+  },
+  {
+   "name": "glm-4.5v",
+   "out": true
+  },
+  {
+   "name": "glm-4-air",
+   "out": true
+  },
+  {
+   "name": "step-1v-8k",
+   "out": true
+  },
+  {
+   "name": "grok-2-vision-1212",
+   "out": true
+  },
+  {
+   "name": "grok-4",
+   "out": true
+  },
+  {
+   "name": "grok-3",
+   "out": true
+  },
+  {
+   "name": "llama-3.2-11b-vision",
+   "out": true
+  },
+  {
+   "name": "llama-3.2-90b",
+   "out": true
+  },
+  {
+   "name": "llama-3.2-3b",
+   "out": true
+  },
+  {
+   "name": "llama-4-scout",
+   "out": true
+  },
+  {
+   "name": "llama-3.1-405b",
+   "out": true
+  },
+  {
+   "name": "gpt-3.5-turbo",
+   "out": true
+  },
+  {
+   "name": "deepseek-v3.2",
+   "out": true
+  },
+  {
+   "name": "deepseek-r1",
+   "out": true
+  },
+  {
+   "name": "moonshot-v1-8k",
+   "out": true
+  },
+  {
+   "name": "kimi-k2.6",
+   "out": true
+  },
+  {
+   "name": "kimi-vl-a3b",
+   "out": true
+  },
+  {
+   "name": "text-davinci-003",
+   "out": true
+  },
+  {
+   "name": "babbage-002",
+   "out": true
+  },
+  {
+   "name": "mistral-small",
+   "out": true
+  },
+  {
+   "name": "mistral-large",
+   "out": true
+  },
+  {
+   "name": "yi-lightning",
+   "out": true
+  },
+  {
+   "name": "ernie-4.0-8k",
+   "out": true
+  },
+  {
+   "name": "abab6.5s",
+   "out": true
+  },
+  {
+   "name": "hunyuan-lite",
+   "out": true
+  },
+  {
+   "name": "spark-max",
+   "out": true
+  },
+  {
+   "name": "doubao-pro-32k",
+   "out": true
+  },
+  {
+   "name": "doubao-lite-4k",
+   "out": true
+  },
+  {
+   "name": "text-embedding-3-small",
+   "out": false
+  },
+  {
+   "name": "bge-large-zh",
+   "out": true
+  },
+  {
+   "name": "whisper-1",
+   "out": false
+  },
+  {
+   "name": "tts-1-hd",
+   "out": false
+  },
+  {
+   "name": "dall-e-3",
+   "out": false
+  },
+  {
+   "name": "dalle-2",
+   "out": false
+  },
+  {
+   "name": "stable-diffusion-3",
+   "out": false
+  },
+  {
+   "name": "flux-pro",
+   "out": false
+  },
+  {
+   "name": "midjourney-v6",
+   "out": false
+  },
+  {
+   "name": "bge-reranker-v2",
+   "out": false
+  },
+  {
+   "name": "omni-moderation-latest",
+   "out": false
+  },
+  {
+   "name": "text-moderation-stable",
+   "out": false
+  },
+  {
+   "name": "image-01",
+   "out": false
+  },
+  {
+   "name": "gpt-4o-audio-preview",
+   "out": false
+  },
+  {
+   "name": "speech-02",
+   "out": false
+  },
+  {
+   "name": "cosyvoice-voice",
+   "out": false
+  },
+  {
+   "name": "sora-2",
+   "out": false
+  },
+  {
+   "name": "kling-v1",
+   "out": false
+  },
+  {
+   "name": "suno-v4",
+   "out": false
+  },
+  {
+   "name": "anthropic/claude-opus-4.8",
+   "out": true
+  },
+  {
+   "name": "google/gemini-3.5-flash",
+   "out": true
+  },
+  {
+   "name": "openai/gpt-5.5",
+   "out": true
+  },
+  {
+   "name": "deepseek/deepseek-v3.2",
+   "out": true
+  },
+  {
+   "name": "z-ai/glm-5.2",
+   "out": true
+  },
+  {
+   "name": "a/b/c",
+   "out": true
+  },
+  {
+   "name": "gemini-embedding-exp",
+   "out": false
+  },
+  {
+   "name": "qwen-vl-plus",
+   "out": true
+  },
+  {
+   "name": "qwen-omni-turbo",
+   "out": true
+  },
+  {
+   "name": "influx-model",
+   "out": true
+  },
+  {
+   "name": "flux-1-dev",
+   "out": false
+  },
+  {
+   "name": "",
+   "out": true
+  },
+  {
+   "name": "   ",
+   "out": true
+  },
+  {
+   "name": "-",
+   "out": true
+  }
+ ],
+ "record_denial": {
+  "final_by_capability": {
+   "cheap": [
+    "anthropic/claude-haiku-4.5",
+    "deepseek/deepseek-v3.2",
+    "google/gemini-3.5-flash",
+    "moonshotai/kimi-k2.6",
+    "openai/gpt-5.4-mini",
+    "z-ai/glm-5.2"
+   ],
+   "effort": [
+    "anthropic/claude-opus-4.8",
+    "anthropic/claude-sonnet-5"
+   ],
+   "long_context": [
+    "anthropic/claude-haiku-4.5",
+    "anthropic/claude-opus-4.8",
+    "anthropic/claude-sonnet-5",
+    "deepseek/deepseek-v3.2",
+    "google/gemini-3.1-pro-preview",
+    "google/gemini-3.5-flash",
+    "moonshotai/kimi-k2.6",
+    "openai/gpt-5.4-mini",
+    "openai/gpt-5.5",
+    "z-ai/glm-5.2"
+   ],
+   "structured": [
+    "anthropic/claude-haiku-4.5",
+    "anthropic/claude-opus-4.8",
+    "anthropic/claude-sonnet-5",
+    "deepseek/deepseek-v3.2",
+    "google/gemini-3.1-pro-preview",
+    "google/gemini-3.5-flash",
+    "moonshotai/kimi-k2.6",
+    "openai/gpt-5.4-mini",
+    "openai/gpt-5.5",
+    "z-ai/glm-5.2"
+   ],
+   "vision": [
+    "anthropic/claude-haiku-4.5",
+    "anthropic/claude-sonnet-5",
+    "google/gemini-3.1-pro-preview",
+    "google/gemini-3.5-flash",
+    "openai/gpt-5.4-mini",
+    "openai/gpt-5.5"
+   ]
+  },
+  "final_names": [
+   "anthropic/claude-haiku-4.5",
+   "anthropic/claude-opus-4.8",
+   "anthropic/claude-sonnet-5",
+   "deepseek/deepseek-v3.2",
+   "google/gemini-3.1-pro-preview",
+   "google/gemini-3.5-flash",
+   "moonshotai/kimi-k2.6",
+   "openai/gpt-5.4-mini",
+   "openai/gpt-5.5",
+   "z-ai/glm-5.2"
+  ],
+  "steps": [
+   {
+    "card": {
+     "capabilities": [
+      "effort",
+      "long_context",
+      "structured"
+     ],
+     "effort": "high",
+     "name": "anthropic/claude-opus-4.8",
+     "quality": 5,
+     "vendor": "anthropic"
+    },
+    "lost": "vision",
+    "model": "anthropic/claude-opus-4.8",
+    "notes": [
+     "anthropic/claude-opus-4.8 实测不支持 vision，已从目录移除该能力"
+    ],
+    "text": "No endpoints found that support image input"
+   },
+   {
+    "card": {
+     "capabilities": [
+      "effort",
+      "long_context",
+      "structured"
+     ],
+     "effort": "high",
+     "name": "anthropic/claude-opus-4.8",
+     "quality": 5,
+     "vendor": "anthropic"
+    },
+    "lost": null,
+    "model": "anthropic/claude-opus-4.8",
+    "notes": [
+     "anthropic/claude-opus-4.8 实测不支持 vision，已从目录移除该能力"
+    ],
+    "text": "No endpoints found that support image input"
+   },
+   {
+    "card": null,
+    "lost": null,
+    "model": "nope/never",
+    "notes": [
+     "anthropic/claude-opus-4.8 实测不支持 vision，已从目录移除该能力"
+    ],
+    "text": "does not support vision"
+   },
+   {
+    "card": {
+     "capabilities": [
+      "effort",
+      "long_context",
+      "structured",
+      "vision"
+     ],
+     "effort": "high",
+     "name": "openai/gpt-5.5",
+     "quality": 5,
+     "vendor": "openai"
+    },
+    "lost": null,
+    "model": "openai/gpt-5.5",
+    "notes": [
+     "anthropic/claude-opus-4.8 实测不支持 vision，已从目录移除该能力"
+    ],
+    "text": "Internal server error"
+   },
+   {
+    "card": {
+     "capabilities": [
+      "cheap",
+      "long_context",
+      "structured"
+     ],
+     "effort": null,
+     "name": "deepseek/deepseek-v3.2",
+     "quality": 3,
+     "vendor": "deepseek"
+    },
+    "lost": null,
+    "model": "deepseek/deepseek-v3.2",
+    "notes": [
+     "anthropic/claude-opus-4.8 实测不支持 vision，已从目录移除该能力"
+    ],
+    "text": "unsupported parameter: reasoning.effort"
+   },
+   {
+    "card": {
+     "capabilities": [
+      "long_context",
+      "structured",
+      "vision"
+     ],
+     "effort": "high",
+     "name": "openai/gpt-5.5",
+     "quality": 5,
+     "vendor": "openai"
+    },
+    "lost": "effort",
+    "model": "openai/gpt-5.5",
+    "notes": [
+     "anthropic/claude-opus-4.8 实测不支持 vision，已从目录移除该能力",
+     "openai/gpt-5.5 实测不支持 effort，已从目录移除该能力"
+    ],
+    "text": "unsupported parameter: reasoning.effort"
+   }
+  ],
+  "vision_after": [
+   "anthropic/claude-haiku-4.5",
+   "anthropic/claude-sonnet-5",
+   "google/gemini-3.1-pro-preview",
+   "google/gemini-3.5-flash",
+   "openai/gpt-5.4-mini",
+   "openai/gpt-5.5"
+  ]
+ },
+ "require_error": [
+  {
+   "error": "目录里没有同时具备 ['cheap', 'effort', 'vision'] 的模型。可用模型：['anthropic/claude-haiku-4.5', 'anthropic/claude-opus-4.8', 'anthropic/claude-sonnet-5', 'deepseek/deepseek-v3.2', 'google/gemini-3.1-pro-preview', 'google/gemini-3.5-flash', 'moonshotai/kimi-k2.6', 'openai/gpt-5.4-mini', 'openai/gpt-5.5', 'z-ai/glm-5.2']",
+   "needs": [
+    "vision",
+    "effort",
+    "cheap"
+   ]
+  },
+  {
+   "error": "目录里没有同时具备 ['cheap', 'effort', 'long_context', 'structured', 'vision'] 的模型。可用模型：['anthropic/claude-haiku-4.5', 'anthropic/claude-opus-4.8', 'anthropic/claude-sonnet-5', 'deepseek/deepseek-v3.2', 'google/gemini-3.1-pro-preview', 'google/gemini-3.5-flash', 'moonshotai/kimi-k2.6', 'openai/gpt-5.4-mini', 'openai/gpt-5.5', 'z-ai/glm-5.2']",
+   "needs": [
+    "vision",
+    "cheap",
+    "effort",
+    "long_context",
+    "structured"
+   ]
+  }
+ ],
+ "select": [
+  {
+   "exclude_vendors": [],
+   "limit": 4,
+   "needs": [],
+   "out": [
+    "anthropic/claude-opus-4.8",
+    "openai/gpt-5.5",
+    "google/gemini-3.1-pro-preview",
+    "anthropic/claude-sonnet-5"
+   ],
+   "prefer": "quality"
+  },
+  {
+   "exclude_vendors": [],
+   "limit": 100,
+   "needs": [],
+   "out": [
+    "anthropic/claude-opus-4.8",
+    "openai/gpt-5.5",
+    "google/gemini-3.1-pro-preview",
+    "anthropic/claude-sonnet-5",
+    "deepseek/deepseek-v3.2",
+    "z-ai/glm-5.2",
+    "moonshotai/kimi-k2.6",
+    "google/gemini-3.5-flash",
+    "openai/gpt-5.4-mini",
+    "anthropic/claude-haiku-4.5"
+   ],
+   "prefer": "quality"
+  },
+  {
+   "exclude_vendors": [],
+   "limit": 100,
+   "needs": [],
+   "out": [
+    "deepseek/deepseek-v3.2",
+    "z-ai/glm-5.2",
+    "openai/gpt-5.4-mini",
+    "moonshotai/kimi-k2.6",
+    "google/gemini-3.5-flash",
+    "anthropic/claude-haiku-4.5",
+    "google/gemini-3.1-pro-preview",
+    "anthropic/claude-sonnet-5",
+    "anthropic/claude-opus-4.8",
+    "openai/gpt-5.5"
+   ],
+   "prefer": "cost"
+  },
+  {
+   "exclude_vendors": [],
+   "limit": 100,
+   "needs": [
+    "vision"
+   ],
+   "out": [
+    "anthropic/claude-opus-4.8",
+    "openai/gpt-5.5",
+    "google/gemini-3.1-pro-preview",
+    "anthropic/claude-sonnet-5",
+    "google/gemini-3.5-flash",
+    "openai/gpt-5.4-mini",
+    "anthropic/claude-haiku-4.5"
+   ],
+   "prefer": "quality"
+  },
+  {
+   "exclude_vendors": [],
+   "limit": 3,
+   "needs": [
+    "vision"
+   ],
+   "out": [
+    "openai/gpt-5.4-mini",
+    "google/gemini-3.5-flash",
+    "anthropic/claude-haiku-4.5"
+   ],
+   "prefer": "cost"
+  },
+  {
+   "exclude_vendors": [],
+   "limit": 3,
+   "needs": [
+    "vision",
+    "structured"
+   ],
+   "out": [
+    "anthropic/claude-opus-4.8",
+    "openai/gpt-5.5",
+    "google/gemini-3.1-pro-preview"
+   ],
+   "prefer": "quality"
+  },
+  {
+   "exclude_vendors": [],
+   "limit": 100,
+   "needs": [
+    "effort"
+   ],
+   "out": [
+    "anthropic/claude-opus-4.8",
+    "openai/gpt-5.5",
+    "anthropic/claude-sonnet-5"
+   ],
+   "prefer": "quality"
+  },
+  {
+   "exclude_vendors": [],
+   "limit": 100,
+   "needs": [
+    "cheap"
+   ],
+   "out": [
+    "deepseek/deepseek-v3.2",
+    "z-ai/glm-5.2",
+    "openai/gpt-5.4-mini",
+    "moonshotai/kimi-k2.6",
+    "google/gemini-3.5-flash",
+    "anthropic/claude-haiku-4.5"
+   ],
+   "prefer": "cost"
+  },
+  {
+   "exclude_vendors": [
+    "anthropic",
+    "openai"
+   ],
+   "limit": 100,
+   "needs": [
+    "long_context"
+   ],
+   "out": [
+    "google/gemini-3.1-pro-preview",
+    "deepseek/deepseek-v3.2",
+    "z-ai/glm-5.2",
+    "moonshotai/kimi-k2.6",
+    "google/gemini-3.5-flash"
+   ],
+   "prefer": "quality"
+  },
+  {
+   "exclude_vendors": [
+    "anthropic",
+    "openai",
+    "google"
+   ],
+   "limit": 100,
+   "needs": [
+    "vision"
+   ],
+   "out": [],
+   "prefer": "quality"
+  },
+  {
+   "exclude_vendors": [],
+   "limit": 0,
+   "needs": [],
+   "out": [],
+   "prefer": "quality"
+  },
+  {
+   "exclude_vendors": [],
+   "limit": -2,
+   "needs": [],
+   "out": [
+    "anthropic/claude-opus-4.8",
+    "openai/gpt-5.5",
+    "google/gemini-3.1-pro-preview",
+    "anthropic/claude-sonnet-5",
+    "deepseek/deepseek-v3.2",
+    "z-ai/glm-5.2",
+    "moonshotai/kimi-k2.6",
+    "google/gemini-3.5-flash"
+   ],
+   "prefer": "quality"
+  },
+  {
+   "exclude_vendors": [],
+   "limit": 3,
+   "needs": [],
+   "out": [
+    "anthropic/claude-opus-4.8",
+    "openai/gpt-5.5",
+    "google/gemini-3.1-pro-preview"
+   ],
+   "prefer": ""
+  },
+  {
+   "exclude_vendors": [],
+   "limit": 3,
+   "needs": [],
+   "out": [
+    "anthropic/claude-opus-4.8",
+    "openai/gpt-5.5",
+    "google/gemini-3.1-pro-preview"
+   ],
+   "prefer": "COST"
+  }
+ ],
+ "smart": [
+  {
+   "calls": [
+    {
+     "effort": "high",
+     "key": null,
+     "model": "anthropic/claude-opus-4.8",
+     "node": "n1",
+     "prompt": "p",
+     "rest": {}
+    }
+   ],
+   "exc": null,
+   "kw": {},
+   "max_candidates": 3,
+   "name": "first-wins",
+   "needs": [
+    "vision",
+    "structured"
+   ],
+   "out": "completion:anthropic/claude-opus-4.8",
+   "prefer": "quality",
+   "prefer_models": [],
+   "report": {
+    "attempts": [
+     {
+      "attempt": 1,
+      "model": "anthropic/claude-opus-4.8",
+      "node": "n1",
+      "ok": true
+     }
+    ],
+    "by_capability": {
+     "cheap": [
+      "anthropic/claude-haiku-4.5",
+      "deepseek/deepseek-v3.2",
+      "google/gemini-3.5-flash",
+      "moonshotai/kimi-k2.6",
+      "openai/gpt-5.4-mini",
+      "z-ai/glm-5.2"
+     ],
+     "effort": [
+      "anthropic/claude-opus-4.8",
+      "anthropic/claude-sonnet-5",
+      "openai/gpt-5.5"
+     ],
+     "long_context": [
+      "anthropic/claude-haiku-4.5",
+      "anthropic/claude-opus-4.8",
+      "anthropic/claude-sonnet-5",
+      "deepseek/deepseek-v3.2",
+      "google/gemini-3.1-pro-preview",
+      "google/gemini-3.5-flash",
+      "moonshotai/kimi-k2.6",
+      "openai/gpt-5.4-mini",
+      "openai/gpt-5.5",
+      "z-ai/glm-5.2"
+     ],
+     "structured": [
+      "anthropic/claude-haiku-4.5",
+      "anthropic/claude-opus-4.8",
+      "anthropic/claude-sonnet-5",
+      "deepseek/deepseek-v3.2",
+      "google/gemini-3.1-pro-preview",
+      "google/gemini-3.5-flash",
+      "moonshotai/kimi-k2.6",
+      "openai/gpt-5.4-mini",
+      "openai/gpt-5.5",
+      "z-ai/glm-5.2"
+     ],
+     "vision": [
+      "anthropic/claude-haiku-4.5",
+      "anthropic/claude-opus-4.8",
+      "anthropic/claude-sonnet-5",
+      "google/gemini-3.1-pro-preview",
+      "google/gemini-3.5-flash",
+      "openai/gpt-5.4-mini",
+      "openai/gpt-5.5"
+     ]
+    },
+    "catalog_notes": []
+   }
+  },
+  {
+   "calls": [
+    {
+     "effort": "high",
+     "key": null,
+     "model": "anthropic/claude-opus-4.8",
+     "node": "n1",
+     "prompt": "p",
+     "rest": {}
+    },
+    {
+     "effort": "high",
+     "key": null,
+     "model": "openai/gpt-5.5",
+     "node": "n1",
+     "prompt": "p",
+     "rest": {}
+    }
+   ],
+   "exc": null,
+   "kw": {},
+   "max_candidates": 3,
+   "name": "vision-denied-then-ok",
+   "needs": [
+    "vision",
+    "structured"
+   ],
+   "out": "completion:openai/gpt-5.5",
+   "prefer": "quality",
+   "prefer_models": [],
+   "report": {
+    "attempts": [
+     {
+      "attempt": 1,
+      "error": "No endpoints found that support image input",
+      "lost_capability": "vision",
+      "model": "anthropic/claude-opus-4.8",
+      "node": "n1",
+      "ok": false
+     },
+     {
+      "attempt": 2,
+      "model": "openai/gpt-5.5",
+      "node": "n1",
+      "ok": true
+     }
+    ],
+    "by_capability": {
+     "cheap": [
+      "anthropic/claude-haiku-4.5",
+      "deepseek/deepseek-v3.2",
+      "google/gemini-3.5-flash",
+      "moonshotai/kimi-k2.6",
+      "openai/gpt-5.4-mini",
+      "z-ai/glm-5.2"
+     ],
+     "effort": [
+      "anthropic/claude-opus-4.8",
+      "anthropic/claude-sonnet-5",
+      "openai/gpt-5.5"
+     ],
+     "long_context": [
+      "anthropic/claude-haiku-4.5",
+      "anthropic/claude-opus-4.8",
+      "anthropic/claude-sonnet-5",
+      "deepseek/deepseek-v3.2",
+      "google/gemini-3.1-pro-preview",
+      "google/gemini-3.5-flash",
+      "moonshotai/kimi-k2.6",
+      "openai/gpt-5.4-mini",
+      "openai/gpt-5.5",
+      "z-ai/glm-5.2"
+     ],
+     "structured": [
+      "anthropic/claude-haiku-4.5",
+      "anthropic/claude-opus-4.8",
+      "anthropic/claude-sonnet-5",
+      "deepseek/deepseek-v3.2",
+      "google/gemini-3.1-pro-preview",
+      "google/gemini-3.5-flash",
+      "moonshotai/kimi-k2.6",
+      "openai/gpt-5.4-mini",
+      "openai/gpt-5.5",
+      "z-ai/glm-5.2"
+     ],
+     "vision": [
+      "anthropic/claude-haiku-4.5",
+      "anthropic/claude-sonnet-5",
+      "google/gemini-3.1-pro-preview",
+      "google/gemini-3.5-flash",
+      "openai/gpt-5.4-mini",
+      "openai/gpt-5.5"
+     ]
+    },
+    "catalog_notes": [
+     "anthropic/claude-opus-4.8 实测不支持 vision，已从目录移除该能力"
+    ]
+   }
+  },
+  {
+   "calls": [
+    {
+     "effort": "high",
+     "key": null,
+     "model": "anthropic/claude-opus-4.8",
+     "node": "n1",
+     "prompt": "p",
+     "rest": {}
+    },
+    {
+     "effort": "high",
+     "key": null,
+     "model": "openai/gpt-5.5",
+     "node": "n1",
+     "prompt": "p",
+     "rest": {}
+    },
+    {
+     "effort": null,
+     "key": null,
+     "model": "google/gemini-3.1-pro-preview",
+     "node": "n1",
+     "prompt": "p",
+     "rest": {}
+    }
+   ],
+   "error": "能力 ['vision'] 的 3 个候选全部失败：\nanthropic/claude-opus-4.8: boom-1\nopenai/gpt-5.5: boom-2 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\ngoogle/gemini-3.1-pro-preview: 网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃",
+   "exc": "ModelError",
+   "kw": {},
+   "max_candidates": 3,
+   "name": "all-fail",
+   "needs": [
+    "vision"
+   ],
+   "out": null,
+   "prefer": "quality",
+   "prefer_models": [],
+   "report": {
+    "attempts": [
+     {
+      "attempt": 1,
+      "error": "boom-1",
+      "lost_capability": null,
+      "model": "anthropic/claude-opus-4.8",
+      "node": "n1",
+      "ok": false
+     },
+     {
+      "attempt": 2,
+      "error": "boom-2 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "lost_capability": null,
+      "model": "openai/gpt-5.5",
+      "node": "n1",
+      "ok": false
+     },
+     {
+      "attempt": 3,
+      "error": "网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃网关炸了🙃",
+      "lost_capability": null,
+      "model": "google/gemini-3.1-pro-preview",
+      "node": "n1",
+      "ok": false
+     }
+    ],
+    "by_capability": {
+     "cheap": [
+      "anthropic/claude-haiku-4.5",
+      "deepseek/deepseek-v3.2",
+      "google/gemini-3.5-flash",
+      "moonshotai/kimi-k2.6",
+      "openai/gpt-5.4-mini",
+      "z-ai/glm-5.2"
+     ],
+     "effort": [
+      "anthropic/claude-opus-4.8",
+      "anthropic/claude-sonnet-5",
+      "openai/gpt-5.5"
+     ],
+     "long_context": [
+      "anthropic/claude-haiku-4.5",
+      "anthropic/claude-opus-4.8",
+      "anthropic/claude-sonnet-5",
+      "deepseek/deepseek-v3.2",
+      "google/gemini-3.1-pro-preview",
+      "google/gemini-3.5-flash",
+      "moonshotai/kimi-k2.6",
+      "openai/gpt-5.4-mini",
+      "openai/gpt-5.5",
+      "z-ai/glm-5.2"
+     ],
+     "structured": [
+      "anthropic/claude-haiku-4.5",
+      "anthropic/claude-opus-4.8",
+      "anthropic/claude-sonnet-5",
+      "deepseek/deepseek-v3.2",
+      "google/gemini-3.1-pro-preview",
+      "google/gemini-3.5-flash",
+      "moonshotai/kimi-k2.6",
+      "openai/gpt-5.4-mini",
+      "openai/gpt-5.5",
+      "z-ai/glm-5.2"
+     ],
+     "vision": [
+      "anthropic/claude-haiku-4.5",
+      "anthropic/claude-opus-4.8",
+      "anthropic/claude-sonnet-5",
+      "google/gemini-3.1-pro-preview",
+      "google/gemini-3.5-flash",
+      "openai/gpt-5.4-mini",
+      "openai/gpt-5.5"
+     ]
+    },
+    "catalog_notes": []
+   }
+  },
+  {
+   "calls": [
+    {
+     "effort": null,
+     "key": null,
+     "model": "google/gemini-3.5-flash",
+     "node": "n1",
+     "prompt": "p",
+     "rest": {}
+    },
+    {
+     "effort": "high",
+     "key": null,
+     "model": "openai/gpt-5.5",
+     "node": "n1",
+     "prompt": "p",
+     "rest": {}
+    }
+   ],
+   "exc": null,
+   "kw": {},
+   "max_candidates": 2,
+   "name": "prefer-models-head-fails",
+   "needs": [
+    "vision"
+   ],
+   "out": "completion:openai/gpt-5.5",
+   "prefer": "quality",
+   "prefer_models": [
+    "google/gemini-3.5-flash",
+    "openai/gpt-5.5"
+   ],
+   "report": {
+    "attempts": [
+     {
+      "attempt": 1,
+      "error": "boom-flash",
+      "lost_capability": null,
+      "model": "google/gemini-3.5-flash",
+      "node": "n1",
+      "ok": false
+     },
+     {
+      "attempt": 2,
+      "model": "openai/gpt-5.5",
+      "node": "n1",
+      "ok": true
+     }
+    ],
+    "by_capability": {
+     "cheap": [
+      "anthropic/claude-haiku-4.5",
+      "deepseek/deepseek-v3.2",
+      "google/gemini-3.5-flash",
+      "moonshotai/kimi-k2.6",
+      "openai/gpt-5.4-mini",
+      "z-ai/glm-5.2"
+     ],
+     "effort": [
+      "anthropic/claude-opus-4.8",
+      "anthropic/claude-sonnet-5",
+      "openai/gpt-5.5"
+     ],
+     "long_context": [
+      "anthropic/claude-haiku-4.5",
+      "anthropic/claude-opus-4.8",
+      "anthropic/claude-sonnet-5",
+      "deepseek/deepseek-v3.2",
+      "google/gemini-3.1-pro-preview",
+      "google/gemini-3.5-flash",
+      "moonshotai/kimi-k2.6",
+      "openai/gpt-5.4-mini",
+      "openai/gpt-5.5",
+      "z-ai/glm-5.2"
+     ],
+     "structured": [
+      "anthropic/claude-haiku-4.5",
+      "anthropic/claude-opus-4.8",
+      "anthropic/claude-sonnet-5",
+      "deepseek/deepseek-v3.2",
+      "google/gemini-3.1-pro-preview",
+      "google/gemini-3.5-flash",
+      "moonshotai/kimi-k2.6",
+      "openai/gpt-5.4-mini",
+      "openai/gpt-5.5",
+      "z-ai/glm-5.2"
+     ],
+     "vision": [
+      "anthropic/claude-haiku-4.5",
+      "anthropic/claude-opus-4.8",
+      "anthropic/claude-sonnet-5",
+      "google/gemini-3.1-pro-preview",
+      "google/gemini-3.5-flash",
+      "openai/gpt-5.4-mini",
+      "openai/gpt-5.5"
+     ]
+    },
+    "catalog_notes": []
+   }
+  },
+  {
+   "calls": [
+    {
+     "effort": null,
+     "key": null,
+     "model": "google/gemini-3.5-flash",
+     "node": "n1",
+     "prompt": "p",
+     "rest": {}
+    }
+   ],
+   "exc": null,
+   "kw": {},
+   "max_candidates": 3,
+   "name": "prefer-models",
+   "needs": [
+    "vision"
+   ],
+   "out": "completion:google/gemini-3.5-flash",
+   "prefer": "quality",
+   "prefer_models": [
+    "google/gemini-3.5-flash",
+    "deepseek/deepseek-v3.2",
+    "nope/never",
+    "anthropic/claude-opus-4.8"
+   ],
+   "report": {
+    "attempts": [
+     {
+      "attempt": 1,
+      "model": "google/gemini-3.5-flash",
+      "node": "n1",
+      "ok": true
+     }
+    ],
+    "by_capability": {
+     "cheap": [
+      "anthropic/claude-haiku-4.5",
+      "deepseek/deepseek-v3.2",
+      "google/gemini-3.5-flash",
+      "moonshotai/kimi-k2.6",
+      "openai/gpt-5.4-mini",
+      "z-ai/glm-5.2"
+     ],
+     "effort": [
+      "anthropic/claude-opus-4.8",
+      "anthropic/claude-sonnet-5",
+      "openai/gpt-5.5"
+     ],
+     "long_context": [
+      "anthropic/claude-haiku-4.5",
+      "anthropic/claude-opus-4.8",
+      "anthropic/claude-sonnet-5",
+      "deepseek/deepseek-v3.2",
+      "google/gemini-3.1-pro-preview",
+      "google/gemini-3.5-flash",
+      "moonshotai/kimi-k2.6",
+      "openai/gpt-5.4-mini",
+      "openai/gpt-5.5",
+      "z-ai/glm-5.2"
+     ],
+     "structured": [
+      "anthropic/claude-haiku-4.5",
+      "anthropic/claude-opus-4.8",
+      "anthropic/claude-sonnet-5",
+      "deepseek/deepseek-v3.2",
+      "google/gemini-3.1-pro-preview",
+      "google/gemini-3.5-flash",
+      "moonshotai/kimi-k2.6",
+      "openai/gpt-5.4-mini",
+      "openai/gpt-5.5",
+      "z-ai/glm-5.2"
+     ],
+     "vision": [
+      "anthropic/claude-haiku-4.5",
+      "anthropic/claude-opus-4.8",
+      "anthropic/claude-sonnet-5",
+      "google/gemini-3.1-pro-preview",
+      "google/gemini-3.5-flash",
+      "openai/gpt-5.4-mini",
+      "openai/gpt-5.5"
+     ]
+    },
+    "catalog_notes": []
+   }
+  },
+  {
+   "calls": [
+    {
+     "effort": "high",
+     "key": "ocr:p1:0",
+     "model": "anthropic/claude-opus-4.8",
+     "node": "n1",
+     "prompt": "p",
+     "rest": {
+      "max_tokens": 8000
+     }
+    },
+    {
+     "effort": "high",
+     "key": null,
+     "model": "openai/gpt-5.5",
+     "node": "n1",
+     "prompt": "p",
+     "rest": {
+      "max_tokens": 8000
+     }
+    },
+    {
+     "effort": null,
+     "key": null,
+     "model": "google/gemini-3.1-pro-preview",
+     "node": "n1",
+     "prompt": "p",
+     "rest": {
+      "max_tokens": 8000
+     }
+    }
+   ],
+   "exc": null,
+   "kw": {
+    "key": "ocr:p1",
+    "max_tokens": 8000
+   },
+   "max_candidates": 3,
+   "name": "key-popped-after-first",
+   "needs": [
+    "vision"
+   ],
+   "out": "completion:google/gemini-3.1-pro-preview",
+   "prefer": "quality",
+   "prefer_models": [],
+   "report": {
+    "attempts": [
+     {
+      "attempt": 1,
+      "error": "boom",
+      "lost_capability": null,
+      "model": "anthropic/claude-opus-4.8",
+      "node": "n1",
+      "ok": false
+     },
+     {
+      "attempt": 2,
+      "error": "boom",
+      "lost_capability": null,
+      "model": "openai/gpt-5.5",
+      "node": "n1",
+      "ok": false
+     },
+     {
+      "attempt": 3,
+      "model": "google/gemini-3.1-pro-preview",
+      "node": "n1",
+      "ok": true
+     }
+    ],
+    "by_capability": {
+     "cheap": [
+      "anthropic/claude-haiku-4.5",
+      "deepseek/deepseek-v3.2",
+      "google/gemini-3.5-flash",
+      "moonshotai/kimi-k2.6",
+      "openai/gpt-5.4-mini",
+      "z-ai/glm-5.2"
+     ],
+     "effort": [
+      "anthropic/claude-opus-4.8",
+      "anthropic/claude-sonnet-5",
+      "openai/gpt-5.5"
+     ],
+     "long_context": [
+      "anthropic/claude-haiku-4.5",
+      "anthropic/claude-opus-4.8",
+      "anthropic/claude-sonnet-5",
+      "deepseek/deepseek-v3.2",
+      "google/gemini-3.1-pro-preview",
+      "google/gemini-3.5-flash",
+      "moonshotai/kimi-k2.6",
+      "openai/gpt-5.4-mini",
+      "openai/gpt-5.5",
+      "z-ai/glm-5.2"
+     ],
+     "structured": [
+      "anthropic/claude-haiku-4.5",
+      "anthropic/claude-opus-4.8",
+      "anthropic/claude-sonnet-5",
+      "deepseek/deepseek-v3.2",
+      "google/gemini-3.1-pro-preview",
+      "google/gemini-3.5-flash",
+      "moonshotai/kimi-k2.6",
+      "openai/gpt-5.4-mini",
+      "openai/gpt-5.5",
+      "z-ai/glm-5.2"
+     ],
+     "vision": [
+      "anthropic/claude-haiku-4.5",
+      "anthropic/claude-opus-4.8",
+      "anthropic/claude-sonnet-5",
+      "google/gemini-3.1-pro-preview",
+      "google/gemini-3.5-flash",
+      "openai/gpt-5.4-mini",
+      "openai/gpt-5.5"
+     ]
+    },
+    "catalog_notes": []
+   }
+  },
+  {
+   "calls": [
+    {
+     "effort": null,
+     "key": null,
+     "model": "deepseek/deepseek-v3.2",
+     "node": "n1",
+     "prompt": "p",
+     "rest": {
+      "system": "s"
+     }
+    }
+   ],
+   "exc": null,
+   "kw": {
+    "system": "s"
+   },
+   "max_candidates": 2,
+   "name": "no-key",
+   "needs": [
+    "cheap"
+   ],
+   "out": "completion:deepseek/deepseek-v3.2",
+   "prefer": "cost",
+   "prefer_models": [],
+   "report": {
+    "attempts": [
+     {
+      "attempt": 1,
+      "model": "deepseek/deepseek-v3.2",
+      "node": "n1",
+      "ok": true
+     }
+    ],
+    "by_capability": {
+     "cheap": [
+      "anthropic/claude-haiku-4.5",
+      "deepseek/deepseek-v3.2",
+      "google/gemini-3.5-flash",
+      "moonshotai/kimi-k2.6",
+      "openai/gpt-5.4-mini",
+      "z-ai/glm-5.2"
+     ],
+     "effort": [
+      "anthropic/claude-opus-4.8",
+      "anthropic/claude-sonnet-5",
+      "openai/gpt-5.5"
+     ],
+     "long_context": [
+      "anthropic/claude-haiku-4.5",
+      "anthropic/claude-opus-4.8",
+      "anthropic/claude-sonnet-5",
+      "deepseek/deepseek-v3.2",
+      "google/gemini-3.1-pro-preview",
+      "google/gemini-3.5-flash",
+      "moonshotai/kimi-k2.6",
+      "openai/gpt-5.4-mini",
+      "openai/gpt-5.5",
+      "z-ai/glm-5.2"
+     ],
+     "structured": [
+      "anthropic/claude-haiku-4.5",
+      "anthropic/claude-opus-4.8",
+      "anthropic/claude-sonnet-5",
+      "deepseek/deepseek-v3.2",
+      "google/gemini-3.1-pro-preview",
+      "google/gemini-3.5-flash",
+      "moonshotai/kimi-k2.6",
+      "openai/gpt-5.4-mini",
+      "openai/gpt-5.5",
+      "z-ai/glm-5.2"
+     ],
+     "vision": [
+      "anthropic/claude-haiku-4.5",
+      "anthropic/claude-opus-4.8",
+      "anthropic/claude-sonnet-5",
+      "google/gemini-3.1-pro-preview",
+      "google/gemini-3.5-flash",
+      "openai/gpt-5.4-mini",
+      "openai/gpt-5.5"
+     ]
+    },
+    "catalog_notes": []
+   }
+  },
+  {
+   "calls": [],
+   "error": "目录里没有同时具备 ['cheap', 'effort', 'vision'] 的模型。可用模型：['anthropic/claude-haiku-4.5', 'anthropic/claude-opus-4.8', 'anthropic/claude-sonnet-5', 'deepseek/deepseek-v3.2', 'google/gemini-3.1-pro-preview', 'google/gemini-3.5-flash', 'moonshotai/kimi-k2.6', 'openai/gpt-5.4-mini', 'openai/gpt-5.5', 'z-ai/glm-5.2']",
+   "exc": "LookupError",
+   "kw": {},
+   "max_candidates": 3,
+   "name": "lookup-error",
+   "needs": [
+    "vision",
+    "effort",
+    "cheap"
+   ],
+   "out": null,
+   "prefer": "quality",
+   "prefer_models": [],
+   "report": {
+    "attempts": [],
+    "by_capability": {
+     "cheap": [
+      "anthropic/claude-haiku-4.5",
+      "deepseek/deepseek-v3.2",
+      "google/gemini-3.5-flash",
+      "moonshotai/kimi-k2.6",
+      "openai/gpt-5.4-mini",
+      "z-ai/glm-5.2"
+     ],
+     "effort": [
+      "anthropic/claude-opus-4.8",
+      "anthropic/claude-sonnet-5",
+      "openai/gpt-5.5"
+     ],
+     "long_context": [
+      "anthropic/claude-haiku-4.5",
+      "anthropic/claude-opus-4.8",
+      "anthropic/claude-sonnet-5",
+      "deepseek/deepseek-v3.2",
+      "google/gemini-3.1-pro-preview",
+      "google/gemini-3.5-flash",
+      "moonshotai/kimi-k2.6",
+      "openai/gpt-5.4-mini",
+      "openai/gpt-5.5",
+      "z-ai/glm-5.2"
+     ],
+     "structured": [
+      "anthropic/claude-haiku-4.5",
+      "anthropic/claude-opus-4.8",
+      "anthropic/claude-sonnet-5",
+      "deepseek/deepseek-v3.2",
+      "google/gemini-3.1-pro-preview",
+      "google/gemini-3.5-flash",
+      "moonshotai/kimi-k2.6",
+      "openai/gpt-5.4-mini",
+      "openai/gpt-5.5",
+      "z-ai/glm-5.2"
+     ],
+     "vision": [
+      "anthropic/claude-haiku-4.5",
+      "anthropic/claude-opus-4.8",
+      "anthropic/claude-sonnet-5",
+      "google/gemini-3.1-pro-preview",
+      "google/gemini-3.5-flash",
+      "openai/gpt-5.4-mini",
+      "openai/gpt-5.5"
+     ]
+    },
+    "catalog_notes": []
+   }
+  }
+ ]
+}

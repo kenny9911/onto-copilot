@@ -25,7 +25,7 @@ import { describe, expect, it } from "vitest";
 import { canonicalJson, sha256Hex } from "../src/kernel/ids.js";
 import {
   COLLECTIONS,
-  EvidenceIndex,
+  PackageEvidenceIndex,
   KeyError,
   ONTOLOGY_PACKAGE_JSON_SCHEMA,
   OntologyPackage,
@@ -233,10 +233,10 @@ describe("pyValue —— 断言拆包", () => {
 // ══════════════════════════════════════════════════════════════════
 //  证据索引
 // ══════════════════════════════════════════════════════════════════
-describe("EvidenceIndex", () => {
+describe("PackageEvidenceIndex", () => {
   it.each((EVIDENCE["add"] as Dict[]).map((c, i) => [i, c] as const))(
     "add #%i 内容寻址的 id 与记录", (_i, c) => {
-      const idx = new EvidenceIndex();
+      const idx = new PackageEvidenceIndex();
       const eid = idx.add(c["in"] as Dict);
       expect(eid).toBe(c["id"]);
       expect(idx.items.get(eid)).toEqual(c["item"]);
@@ -244,7 +244,7 @@ describe("EvidenceIndex", () => {
 
   it("同一条证据的 snake_case 与 camelCase 写法收敛到同一个 id", () => {
     const shared = EVIDENCE["shared_index"] as Dict;
-    const idx = new EvidenceIndex();
+    const idx = new PackageEvidenceIndex();
     const ids = (EVIDENCE["add"] as Dict[]).map((c) => idx.add(c["in"] as Dict));
     expect(ids).toEqual(shared["ids"]);
     expect([...idx.items.values()]).toEqual(shared["items"]);
@@ -254,14 +254,14 @@ describe("EvidenceIndex", () => {
 
   it.each((EVIDENCE["reference"] as Dict[]).map((c, i) => [i, c] as const))(
     "reference #%i %o", (_i, c) => {
-      const idx = new EvidenceIndex();
+      const idx = new PackageEvidenceIndex();
       expect(idx.reference(c["in"])).toBe(c["out"]);
       expect([...idx.items.values()]).toEqual(c["items"]);
     });
 
   it.each((EVIDENCE["assertion"] as Dict[]).map((c, i) => [i, c] as const))(
     "assertion #%i", (_i, c) => {
-      const idx = new EvidenceIndex();
+      const idx = new PackageEvidenceIndex();
       expect(idx.assertion(...(c["in"] as unknown[]))).toEqual(c["out"]);
       expect([...idx.items.values()]).toEqual(c["items"]);
     });
@@ -271,7 +271,7 @@ describe("EvidenceIndex", () => {
     // 值，只能写 "1"。sha256 的输入不同 → ev.* 不同。这是 ids.ts 已钉住的语言
     // 边界（见该文件头注释），不是 canonical 层能修的：JS 没有 float 类型。
     const div = EVIDENCE["float_divergence"] as Dict;
-    const idx = new EvidenceIndex();
+    const idx = new PackageEvidenceIndex();
     const tsId = idx.add(div["in"] as Dict);
     expect(tsId).not.toBe(div["id"]);
     // 但**记录本身**（JSON 结构）是一致的，只有 id 的那 16 位十六进制不同。
@@ -612,7 +612,7 @@ describe("Python 垫片", () => {
 
   it("snippet 按 code point 切到 300，不劈开代理对", () => {
     const c = DIVERGENCE["slice_300"] as Dict;
-    const idx = new EvidenceIndex();
+    const idx = new PackageEvidenceIndex();
     const eid = idx.add({ snippet: c["in"] });
     expect(idx.items.get(eid)!["snippet"]).toBe(c["out"]);
     expect([...(c["out"] as string)].length).toBe(300);

@@ -125,6 +125,23 @@ export class ValueError extends Error {
 }
 
 
+/**
+ * Python 的 `KeyError`。
+ *
+ * `str(KeyError("x"))` 是 `"'x'"`（**带引号的 repr**），不是裸 key —— 这条消息
+ * 会顺着 API 冒到用户面前，形态不能自己发明。
+ *
+ * 与 ValueError 同理，**只许有一份**：两份同名类是两个类身份，`instanceof`
+ * 会漏掉其中一份而且不报错。
+ */
+export class KeyError extends Error {
+  constructor(readonly key: string) {
+    super(pyRepr(key));
+    this.name = "KeyError";
+    Object.setPrototypeOf(this, KeyError.prototype);
+  }
+}
+
 /** 内核层错误基类。 */
 export class HarnessError extends Error {
   constructor(message: string) {

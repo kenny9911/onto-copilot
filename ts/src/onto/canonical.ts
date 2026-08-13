@@ -54,7 +54,7 @@
 /*
  * ── 关于导出面 ──────────────────────────────────────────────────
  * Python 侧 `_canonical_id` / `_package_id` / `_value` / `_data_kind` /
- * `_EvidenceIndex` 这些带下划线的都是私有的，`__all__` 里没有它们。TS 侧把它们
+ * `_PackageEvidenceIndex` 这些带下划线的都是私有的，`__all__` 里没有它们。TS 侧把它们
  * **导出**，是刻意的：归一规则宽一格就会静默合并两个业务对象，这种错不会在
  * 端到端断言里露头（产物只是少一行），必须逐条钉住。同理导出 `pyStr` /
  * `pyStrip` / `pyJsonDumps` 三个 Python 垫片 —— 它们的正确性同样只能被直接
@@ -117,15 +117,10 @@ export const ONTOLOGY_PACKAGE_JSON_SCHEMA: Dict = {
 import { ValueError } from "../kernel/errors.js";
 export { ValueError };
 
-/** Python 的 `KeyError`。`str(KeyError("x"))` 是 `"'x'"`（带引号的 repr），
- * 不是裸 key —— 消息进日志，形态不能漂。 */
-export class KeyError extends Error {
-  constructor(readonly key: string) {
-    super(pyRepr(key));
-    this.name = "KeyError";
-    Object.setPrototypeOf(this, KeyError.prototype);
-  }
-}
+// KeyError 收在 kernel/errors.ts —— 两份同名类就是两个类身份，
+// `instanceof` 会漏掉其中一份且不报错（ValueError 已经这样翻过一次车）。
+import { KeyError } from "../kernel/errors.js";
+export { KeyError };
 
 // ══════════════════════════════════════════════════════════════════
 //  Python 语义垫片
@@ -683,7 +678,11 @@ export function stableInputId(prefix: string, value: unknown, ...legacyPrefixes:
 //  证据索引
 // ══════════════════════════════════════════════════════════════════
 
-export class EvidenceIndex {
+// Python 侧这个类叫 `_EvidenceIndex`（私有、不在 __all__ 里），命名就是为了不和
+// memory/evidence.py 里那个公开的 EvidenceIndex 撞名 —— 两者是完全不同的东西：
+// 那边是 BM25 检索索引，这里是导出包的去重索引。TS 侧不用下划线前缀，改叫
+// PackageEvidenceIndex 把同一个区分表达出来。
+export class PackageEvidenceIndex {
   // 键是 `ev.<hex>`，不会撞上整数样式，但外部数据喂进来的键一律用 Map。
   readonly items = new Map<string, Dict>();
 
@@ -913,7 +912,7 @@ export function buildPackage(
 
   const oirData = rawOf(oir);
   const flowData = rawOf(flow);
-  const evidence = new EvidenceIndex();
+  const evidence = new PackageEvidenceIndex();
   const pkg = new OntologyPackage({
     packageId: packageIdOf(options.packageId ?? "pkg.default"),
     revision,

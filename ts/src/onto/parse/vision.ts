@@ -28,6 +28,7 @@
 import { readFile } from "node:fs/promises";
 import { basename, extname } from "node:path";
 
+import { Capability, LookupError as NoCapableModel } from "../../kernel/catalog.js";
 import { formatFixed0 } from "../../kernel/errors.js";
 import { SidecarClient, sidecarFromEnv } from "../../sidecar/client.js";
 import type { ParsedDoc } from "./base.js";
@@ -87,12 +88,10 @@ export const OCR_PREFER_MODELS: readonly string[] = [
 /** PDF 渲染倍率。2.0 对应约 144 DPI，中文小字够认。 */
 export const PDF_ZOOM = 2.0;
 
-/**
- * 需要的模型能力。**枚举的家在 `kernel/catalog.ts`（尚未移植）**，那边落地后
- * 这里应改成 `[Capability.VISION, Capability.STRUCTURED]`。字面量与 catalog.py
- * 的 `StrEnum` 取值逐字相同，所以那次替换是纯改写、不改行为。
- */
-export const OCR_NEEDS: readonly string[] = ["vision", "structured"];
+/** 需要的模型能力。catalog.ts 已落地，用它的枚举 —— 写成 `readonly string[]`
+ * 的话 `SmartGateway` 结构上就不满足下面那个端口，接线处只能靠 `as` 把类型
+ * 对不上这件事藏起来。 */
+export const OCR_NEEDS: readonly Capability[] = [Capability.VISION, Capability.STRUCTURED];
 
 export const OCR_SCHEMA = {
   type: "object",
@@ -175,21 +174,20 @@ export interface VisionGateway {
     preferModels: readonly string[];
     prefer: string;
     system: string;
-    schema: unknown;
+    // 与 llm.ts 的 CallOptions 同口径 —— `unknown` 会让 SmartGateway 赋不进来。
+    schema: Record<string, unknown> | null;
     maxTokens: number;
     images: readonly string[];
     key: string;
   }): Promise<VisionCompletion>;
 }
 
-/** 网关上没有满足能力要求的模型。== Python 侧 `catalog.require` 抛的 `LookupError`。 */
-export class NoCapableModel extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "LookupError";
-    Object.setPrototypeOf(this, NoCapableModel.prototype);
-  }
-}
+// 「网关上没有满足能力要求的模型」== catalog.require 抛的 LookupError，
+// **是同一件事**，所以用同一个类。各写一份的话 `instanceof NoCapableModel`
+// 对 catalog 抛出来的那个恒为 false —— 症状不是崩溃，是 vision 把「网关上
+// 没有视觉模型」降级成一句泛泛的「视觉识别失败」，用户照着这句话永远查不到
+// 该去网关上开一个带视觉的模型，扫描件内容就一直不进产物。
+export { NoCapableModel };
 
 /** 单页识别超时。== Python 的 `asyncio.TimeoutError`。 */
 export class VisionTimeout extends Error {

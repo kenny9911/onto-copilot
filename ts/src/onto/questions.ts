@@ -246,20 +246,10 @@ export type RevisionStatus = (typeof RevisionStatus)[keyof typeof RevisionStatus
 import { ValueError } from "../kernel/errors.js";
 export { ValueError };
 
-/**
- * Python `KeyError` 的替身。
- *
- * `backlog.questions[qid]` 缺键时 Python 抛的就是它，而 `str(e)` **只有键的 repr**
- * （`'没有这个问题'`），不带 "KeyError:" 前缀 —— 这条消息会顺着 API 冒到用户面前，
- * 形态不能自己发明。
- */
-export class KeyError extends Error {
-  constructor(readonly key: string) {
-    super(pyRepr(key));
-    this.name = "KeyError";
-    Object.setPrototypeOf(this, KeyError.prototype);
-  }
-}
+// KeyError 收在 kernel/errors.ts —— 两份同名类就是两个类身份，
+// `instanceof` 会漏掉其中一份且不报错（ValueError 已经这样翻过一次车）。
+import { KeyError } from "../kernel/errors.js";
+export { KeyError };
 
 /** 问题状态转换不合法。 */
 export class QuestionTransitionError extends ValueError {

@@ -281,3 +281,45 @@ describe("ValueError 只有一份类身份", () => {
     expect(() => validateUsageRow(bad)).toThrow("usage kind 不支持: nope");
   });
 });
+
+describe("跨模块的类身份只有一份（instanceof 假阴性是静默的）", () => {
+  // 同一个语义各写一份类，`instanceof` 对另一份恒为 false 且**不报错**。
+  // 三处症状各不相同，但都不会崩：
+  //   ValueError    —— 用户的输入错误被当成系统故障报出去
+  //   KeyError      —— 消息形态（'x' 带引号的 repr）会漂
+  //   LookupError   —— vision 把「网关上没有视觉模型」降级成泛泛的「视觉识别失败」，
+  //                    用户照着这句话永远查不到该去开一个带视觉的模型
+  //   FlowEditError —— 被守卫拒绝的流程图编辑直接冒成 500，版本栈不回滚
+  it("ValueError / KeyError 三个模块导出同一个类", async () => {
+    const [k, c, q] = await Promise.all([
+      import("../src/kernel/errors.js"),
+      import("../src/onto/canonical.js"),
+      import("../src/onto/questions.js"),
+    ]);
+    expect(c.ValueError).toBe(k.ValueError);
+    expect(q.ValueError).toBe(k.ValueError);
+    expect(c.KeyError).toBe(k.KeyError);
+    expect(q.KeyError).toBe(k.KeyError);
+  });
+
+  it("vision 的 NoCapableModel 就是 catalog 的 LookupError", async () => {
+    const [cat, vis] = await Promise.all([
+      import("../src/kernel/catalog.js"),
+      import("../src/onto/parse/vision.js"),
+    ]);
+    expect(vis.NoCapableModel).toBe(cat.LookupError);
+  });
+
+  it("dialogue 端口的 FlowEditError 就是 flow_edit 的那一个", async () => {
+    const [fe, ports] = await Promise.all([
+      import("../src/onto/flow_edit.js"),
+      import("../src/server/dialogue/ports.js"),
+    ]);
+    expect(ports.FlowEditError).toBe(fe.FlowEditError);
+  });
+
+  it("KeyError 的消息是带引号的 repr —— 它会顺着 API 冒到用户面前", async () => {
+    const { KeyError } = await import("../src/kernel/errors.js");
+    expect(new KeyError("没有这个问题").message).toBe("'没有这个问题'");
+  });
+});
