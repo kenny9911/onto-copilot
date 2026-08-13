@@ -179,7 +179,7 @@ class ScriptedBackend(LLMBackend):
                            "images": len(images or ())})
         body = self.default
         for pattern, resp in self.rules:
-            if re.search(pattern, prompt, re.S):
+            if re.search(pattern, prompt, re.DOTALL):
                 body = resp(prompt) if callable(resp) else resp
                 break
         from .memory.types import est_tokens
@@ -208,6 +208,13 @@ class RoutingTable:
     models: dict[Difficulty, ModelSpec] = field(default_factory=dict)
     #: 评委池。:meth:`judge_for` 会剔除与生成者同名的，保证异构。
     judges: list[ModelSpec] = field(default_factory=list)
+    #: 辅助调用（推荐问题这类锦上添花的）用的"最低推理档"。``None`` = 这套路由
+    #: 没有这一档，调用方照常按难度路由。
+    #:
+    #: 为什么是路由表的一格而不是调用处的一个参数：能不能压推理、压到哪一档
+    #: 是**厂商/网关的事实**（同一个 effort 字符串在另一家后端是 400），只有
+    #: 路由函数知道自己接的是谁。
+    fast: ModelSpec | None = None
 
     max_iterations: dict[Difficulty, int] = field(default_factory=lambda: {
         Difficulty.LOW: 1, Difficulty.MEDIUM: 4,
@@ -267,6 +274,12 @@ GATEWAY_MODELS: dict[str, ModelSpec] = {
     # 都置空 —— 传了会 400。
     "flash": ModelSpec("google/gemini-3.5-flash", "mid", 1.0, 4.0,
                        effort=None, thinking=None),
+    # 同一个 Flash，但把推理压到最低档 —— 给"猜三条推荐问题"这种锦上添花的调用。
+    # 这个端点**关不掉思考**（reasoning.enabled=false / max_tokens=0 / effort=none
+    # 一律 400："Reasoning is mandatory for this endpoint"），但 minimal 认。
+    # 实测同一句提示：不带 reasoning 7.8s / 934 出 token，minimal 3.5s / 202。
+    "flash_min": ModelSpec("google/gemini-3.5-flash", "mid", 1.0, 4.0,
+                           effort="minimal", thinking=None),
     # 高难度档暂用 Sonnet。Sonnet 支持 effort，CRITICAL 给更深的 xhigh，
     # 保留"错了代价最大的判断用更深推理"这条纪律。
     "sonnet": ModelSpec("anthropic/claude-sonnet-5", "mid", 3.0, 15.0, effort="high"),
@@ -345,7 +358,9 @@ def gateway_routing(model_overrides: dict[str, str] | None = None,
         if not [j for j in judges if j.name != spec.name]:
             raise ModelError(f"{spec.name} 没有可用的异构评委（评委池："
                              f"{[j.name for j in judges]}）")
-    return RoutingTable(models=tiers, judges=judges)
+    # fast 只用于辅助调用，不跟着 model_overrides 走 —— 管理员在设置页选的是
+    # "干活用哪个模型"，不该顺带把"猜三条提示"也换成一个贵且慢的。
+    return RoutingTable(models=tiers, judges=judges, fast=m["flash_min"])
 
 
 def stub_routing() -> RoutingTable:
@@ -380,12 +395,17 @@ class ModelGateway:
         routing: RoutingTable | None = None,
         budget: Budget | None = None,
         max_schema_retries: int = 2,
+        usage_sink: Callable[[dict[str, Any]], None] | None = None,
     ) -> None:
         self.backend = backend
         self.rec = recorder
         self.routing = routing or stub_routing()
         self.budget = budget or Budget()
         self.max_schema_retries = max_schema_retries
+        #: 用量账本的落库口子。**这里是全部模型调用的唯一收口** —— judge、
+        #: SmartGateway、对话、视觉 OCR、评委全都最终走 `call`，所以钩在这里
+        #: 就是 100% 覆盖。kernel 不认识存储，具体怎么落由服务端注入。
+        self.usage_sink = usage_sink
 
     async def call(
         self,
@@ -421,8 +441,51 @@ class ModelGateway:
             "images": [sha256_hex(i)[:16] for i in (images or ())],
         }
 
+        # 这一次调用**有没有真的打到模型**。Recorder.effect 在重放时直接返回历史
+        # 结果、根本不跑 do()，而记账必须只记真花了钱的那次 —— 否则 resume 一次
+        # 账单翻一倍。闭包里置位是唯一能区分二者的信号（effect 本身不返回这个）。
+        fired: dict[str, Any] = {
+            "hit": False, "billed": None, "attempts": 0,
+            "usd": 0.0, "usd_source": "estimated",
+        }
+
         async def do() -> dict[str, Any]:
             last_err = ""
+            fired["hit"] = True
+            # **每一次重试都是真金白银。** 以前只把最后一次的 usage 带出去，于是
+            # 一次调用重试三回、账上只算一回。schema 不合重试、截断加预算重试都
+            # 会走到这里，密集材料上并不罕见。
+            billed = Usage(usd=0.0)
+
+            def bill(u: Usage) -> Usage:
+                if int(fired["attempts"]) == 0:
+                    fired["usd_source"] = "gateway" if u.usd is not None else "estimated"
+                billed.tok_in += u.tok_in
+                billed.tok_out += u.tok_out
+                billed.cache_read += u.cache_read
+                billed.cache_write += u.cache_write
+                attempt_usd = u.usd
+                if u.usd is None:
+                    # Some providers omit a cost even when another retry returned one.
+                    # Sum known gateway costs plus a local estimate for missing attempts,
+                    # and label the aggregate estimated rather than presenting a partial
+                    # gateway total as authoritative.
+                    attempt_usd = spec.cost(
+                        u.tok_in, u.tok_out, u.cache_read, u.cache_write,
+                    )
+                    fired["usd_source"] = "estimated"
+                fired["usd"] = float(fired["usd"]) + float(attempt_usd or 0.0)
+                # Usage.usd means "provider-reported actual cost". Preserve that
+                # contract: a mixed/estimated aggregate keeps usage.usd=None while the
+                # deterministic billed_usd field below carries the amount to Budget.
+                billed.usd = (
+                    float(fired["usd"])
+                    if fired["usd_source"] == "gateway" else None
+                )
+                fired["billed"] = billed
+                fired["attempts"] = int(fired["attempts"]) + 1
+                return u
+
             # 思考型模型的推理 token 也计进 max_tokens：密集内容（上百节点的流程图）
             # 按初始预算必然被截断成"只有推理、没有正文"。那不是模型不会做，是预算
             # 给小了 —— 逐次加大重试，而不是让这份材料白传。
@@ -438,12 +501,20 @@ class ModelGateway:
                         max_tokens=budget, images=images,
                     )
                 except ModelTruncated as exc:
+                    # 截断也是打过一次、也计费了；exc 带不带 usage 都要留个痕
+                    bill(getattr(exc, "usage", None) or Usage())
                     if attempt >= self.max_schema_retries:
                         raise
                     budget = min(budget * 3, 64_000)
                     last_err = str(exc)
                     continue
-                out = {"text": text, "attempts": attempt + 1, "usage": usage.to_dict()}
+                bill(usage)
+                out = {
+                    "text": text, "attempts": attempt + 1,
+                    "usage": usage.to_dict(), "billed": billed.to_dict(),
+                    "billed_usd": fired["usd"],
+                    "billed_usd_source": fired["usd_source"],
+                }
                 if schema is None:
                     return {**out, "data": None}
                 try:
@@ -462,28 +533,106 @@ class ModelGateway:
                 f"{spec.name} 连续 {1 + self.max_schema_retries} 次输出不合 schema: {last_err}"
             )
 
-        raw = await self.rec.effect(node_id, "llm.call", req, do, key=key)
+        try:
+            raw = await self.rec.effect(node_id, "llm.call", req, do, key=key)
+        except Exception:
+            # **打出去了但最终失败的那些次也花了钱。** 以前这里什么都不记，于是
+            # 一次连撞三回 schema 然后放弃的调用，在账上等于没发生过。
+            self._log_usage(node_id, spec, fired, status="failed")
+            billed: Usage = fired.get("billed") or Usage()
+            self._charge_usage(
+                node_id, spec, billed,
+                attempts=int(fired.get("attempts") or 1),
+                status="failed", emit=bool(fired.get("hit")),
+                usd=float(fired.get("usd") or 0.0),
+            )
+            raise
 
-        u = Usage(**raw["usage"])
+        # ``usage`` 是最后一次模型响应的历史字段；``billed`` 才是这个逻辑调用
+        # 的真实总花费（含 schema/截断重试）。旧 journal 没有 billed 时回退到
+        # usage，保证升级后仍能确定性重放。
+        u = Usage(**(raw.get("billed") or raw["usage"]))
+        usd = float(raw.get("billed_usd", self._usage_cost(spec, u)))
         comp = Completion(
             text=raw["text"], data=raw.get("data"), model=spec.name,
             usage=u,
-            usd=u.usd if u.usd is not None
-            else spec.cost(u.tok_in, u.tok_out, u.cache_read, u.cache_write),
+            usd=usd,
             attempts=raw["attempts"],
         )
-        self.budget.spend(tokens=u.total, usd=comp.usd)
-        self.rec.emit(
-            EventKind.BUDGET_SPENT,
-            node_id=node_id,
-            payload={
-                "model": comp.model, "effort": spec.effort,
-                "tok_in": u.tok_in, "tok_out": u.tok_out,
-                "cache_read": u.cache_read, "usd": round(comp.usd, 5),
-                "level": int(self.budget.level),
-            },
+        self._log_usage(node_id, spec, fired, status="ok")
+        self._charge_usage(
+            node_id, spec, u, attempts=comp.attempts, status="ok",
+            # 回放要把新建的内存 Budget 恢复到正确水位，但 journal 已有首次
+            # BUDGET_SPENT；再追加一条会让事件审计看起来像付了两次钱。
+            emit=bool(fired.get("hit")), usd=usd,
         )
         return comp
+
+    @staticmethod
+    def _usage_cost(spec: ModelSpec, usage: Usage) -> float:
+        return usage.usd if usage.usd is not None else spec.cost(
+            usage.tok_in, usage.tok_out, usage.cache_read, usage.cache_write,
+        )
+
+    def _charge_usage(
+        self,
+        node_id: str,
+        spec: ModelSpec,
+        usage: Usage,
+        *,
+        attempts: int,
+        status: str,
+        emit: bool,
+        usd: float | None = None,
+    ) -> float:
+        """把一次逻辑调用的**全部尝试**计入运行预算。
+
+        Durable usage ledger 只在真的触发后端时写一行；Budget 则是当前进程里的
+        运行投影，Recorder 回放时也要按历史 billed 恢复。因此 spend 与 emit
+        故意分开：回放 spend、但不制造第二条付费事件。
+        """
+        charged_usd = self._usage_cost(spec, usage) if usd is None else usd
+        self.budget.spend(tokens=usage.total, usd=charged_usd)
+        if emit:
+            self.rec.emit(
+                EventKind.BUDGET_SPENT,
+                node_id=node_id,
+                payload={
+                    "model": spec.name, "effort": spec.effort,
+                    "tok_in": usage.tok_in, "tok_out": usage.tok_out,
+                    "cache_read": usage.cache_read, "cache_write": usage.cache_write,
+                    "usd": round(charged_usd, 5), "attempts": attempts, "status": status,
+                    "level": int(self.budget.level),
+                },
+            )
+        return charged_usd
+
+    def _log_usage(self, node_id: str, spec: ModelSpec,
+                   fired: dict[str, Any], *, status: str) -> None:
+        """把这次调用记进用量账本。**只记真打出去的那次。**
+
+        ``usage_sink`` 由外面注入（服务端塞一个写库的），kernel 这层不认识存储。
+        沉不进去不该把一次模型调用带下去 —— 记账失败是记账的事。
+        """
+        if self.usage_sink is None or not fired.get("hit"):
+            return
+        u: Usage = fired.get("billed") or Usage()
+        try:
+            self.usage_sink({
+                "node_id": node_id, "model": spec.name, "effort": spec.effort or "",
+                "tok_in": u.tok_in, "tok_out": u.tok_out,
+                "cache_read": u.cache_read, "cache_write": u.cache_write,
+                # 网关回了真实账单就用它，并**标明来源** —— 本地价目表对经网关
+                # 发现的模型是编的（catalog 统一填 2.0/8.0），估出来的金额看着
+                # 精确其实是错的，界面据此决定敢不敢把它当钱显示。
+                "usd": float(fired.get("usd") or 0.0),
+                "usd_source": fired.get("usd_source") or "estimated",
+                "attempts": int(fired.get("attempts") or 1),
+                "status": status,
+                "run_id": getattr(self.rec, "run_id", "") or "",
+            })
+        except Exception:               # noqa: BLE001 —— 用量 sink 是旁路
+            return
 
     async def judge(
         self,
@@ -518,7 +667,7 @@ class ModelGateway:
 # ══════════════════════════════════════════════════════════════════
 #  结构化输出
 # ══════════════════════════════════════════════════════════════════
-_FENCE = re.compile(r"```(?:json)?\s*(.+?)\s*```", re.S)
+_FENCE = re.compile(r"```(?:json)?\s*(.+?)\s*```", re.DOTALL)
 
 
 def _parse_json(text: str) -> Any:
@@ -538,7 +687,7 @@ def _parse_json(text: str) -> Any:
         pass
     # 整体不是 JSON，才考虑围栏：**优先开头那个**（那才是模型把答案包起来的写法），
     # 找不到再退回全文里的第一个。
-    m = re.match(r"```(?:json)?\s*(.+?)\s*```\s*$", t, re.S) or _FENCE.search(t)
+    m = re.match(r"```(?:json)?\s*(.+?)\s*```\s*$", t, re.DOTALL) or _FENCE.search(t)
     if m:
         inner = m.group(1).strip()
         try:

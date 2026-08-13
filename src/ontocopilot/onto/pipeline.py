@@ -17,7 +17,6 @@
 
 from __future__ import annotations
 
-import json
 import re
 from dataclasses import dataclass, field
 from typing import Any
@@ -35,26 +34,26 @@ from ..kernel.dag import Dag, Difficulty, NodeBudget, NodeMode, NodeSpec, ScopeS
 from ..kernel.loop import NodeHandler, RunContext
 from ..kernel.memory.evidence import Chunk, EvidenceIndex
 from .align import align_and_apply
-from .shape import SegmentShape, Yield, infer_shape, structural_extract
 from .clarify import ClarificationEngine
 from .conflict import auto_repair, detect_all
 from .oir import (
     OIR,
     ActionType,
-    BusinessRule,
     BaseType,
+    BusinessRule,
     Cardinality,
-    RuleKind,
-    Status,
     LinkType,
     ObjectType,
     OpenQuestion,
     PropertyType,
     Provenance,
+    RuleKind,
+    Status,
     extracted,
     inferred,
     make_rid,
 )
+from .shape import SegmentShape, Yield, infer_shape, structural_extract
 from .suggest import suggest
 from .template import compile_template
 
@@ -423,8 +422,8 @@ class MergeSegments(NodeHandler):
         for out in inputs.values():
             if not isinstance(out, dict):
                 continue
-            for k in merged:
-                merged[k].extend(out.get(k) or [])
+            for k, values in merged.items():
+                values.extend(out.get(k) or [])
         return merged
 
 
@@ -471,13 +470,12 @@ def build_oir(data: dict[str, Any], index: EvidenceIndex | None = None) -> OIR:
             else inferred(""),
             primary_key=inferred([])))
         by_api[api.lower()] = rid
-        if group:
-            if group not in by_group:
-                by_group[group] = rid
-                # 组首同时以业务名示人。这是一条**推断**，所以要进术语表让业务方
-                # 确认 —— 「采购需求计划 = 采购业务计划头」对不对，只有他知道。
-                if group not in oir.objects[rid].aliases:
-                    oir.objects[rid].aliases.append(group)
+        if group and group not in by_group:
+            by_group[group] = rid
+            # 组首同时以业务名示人。这是一条**推断**，所以要进术语表让业务方
+            # 确认 —— 「采购需求计划 = 采购业务计划头」对不对，只有他知道。
+            if group not in oir.objects[rid].aliases:
+                oir.objects[rid].aliases.append(group)
 
     for i, p in enumerate(data.get("properties", ())):
         parent = by_api.get(str(p.get("parent_api_name") or "").lower())
@@ -679,7 +677,7 @@ _CITE_CACHE: dict[int, dict[str, Chunk]] = {}
 def _cite_index(index: EvidenceIndex) -> dict[str, Chunk]:
     key = id(index)
     if key not in _CITE_CACHE:
-        _CITE_CACHE[key] = {c.cite(): c for c in index._chunks.values()}  # noqa: SLF001
+        _CITE_CACHE[key] = {c.cite(): c for c in index._chunks.values()}
     return _CITE_CACHE[key]
 
 
@@ -711,7 +709,6 @@ class CoverageCritic(Critic):
             findings=findings, note=f"覆盖率视角 · {len(findings)} 条")
 
     def _check(self, draft: Any, segment: Segment) -> list[Finding]:
-        index = self.index
         if not isinstance(draft, dict):
             return [Finding(Severity.HIGH, "EXTRACT_EMPTY", segment.key,
                             "抽取没有返回结构化结果", verifier="type")]
@@ -793,7 +790,7 @@ class CoverageCritic(Critic):
 def provenance_critic() -> RuleCritic:
     """溯源视角 —— 每条断言都要指向材料里真实存在的位置。"""
 
-    def check(draft: Any) -> list[Finding]:  # noqa: D401
+    def check(draft: Any) -> list[Finding]:
         if not isinstance(draft, dict):
             return []
         out: list[Finding] = []

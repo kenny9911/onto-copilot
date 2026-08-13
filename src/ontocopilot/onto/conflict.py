@@ -171,7 +171,7 @@ def primary_clause(text: str) -> str:
     # （"口径（Excel 批注）：含税，年度累计"），照切会把正文整个丢掉。
     for i in sorted(i for m in _ANNOTATION_MARKERS if (i := t.find(m)) > 0):
         head = t[:i]
-        if any(re.search(p, head, re.I) for opts in _AXES.values() for _, p in opts):
+        if any(re.search(p, head, re.IGNORECASE) for opts in _AXES.values() for _, p in opts):
             return head.strip(" 。；;,，")
     return t.strip(" 。；;,，")
 
@@ -198,7 +198,7 @@ def parse_axes(text: str, *, whole: bool = False) -> dict[str, str]:
         if axis in unclear:
             continue
         hits = [(m.start(), label) for label, pattern in options
-                if (m := re.search(pattern, body, re.I))]
+                if (m := re.search(pattern, body, re.IGNORECASE))]
         if hits:
             out[axis] = min(hits)[1]
     return out
@@ -211,7 +211,7 @@ def axis_ambiguities(text: str) -> list[str]:
     """
     body = primary_clause(text)
     return [axis for axis, options in _AXES.items()
-            if sum(1 for _, p in options if re.search(p, body, re.I)) > 1]
+            if sum(1 for _, p in options if re.search(p, body, re.IGNORECASE)) > 1]
 
 
 def axis_diff(a: str, b: str) -> dict[str, tuple[str, str]]:
@@ -480,10 +480,10 @@ def _divergence_options(
             effect={"split": split_rids, "axes": ax},
         ),
         Option("unify_a", f"统一为 A 口径（{_short(a.definition.value)}）",
-               f"B 处标记为派生，需补换算规则", evidence=list(a.definition.evidence[:1]),
+               "B 处标记为派生，需补换算规则", evidence=list(a.definition.evidence[:1]),
                effect={"unify_to": a.rid}),
         Option("unify_b", f"统一为 B 口径（{_short(b.definition.value)}）",
-               f"A 处标记为派生，历史数据需回溯", evidence=list(b.definition.evidence[:1]),
+               "A 处标记为派生，历史数据需回溯", evidence=list(b.definition.evidence[:1]),
                effect={"unify_to": b.rid}),
         Option("defer_to_template", "先不定，转成模板里的业务必填项",
                "推迟到业务方填写时消解", effect={"defer": True}),

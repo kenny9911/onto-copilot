@@ -8,8 +8,6 @@ from __future__ import annotations
 
 import json
 
-import pytest
-
 from ontocopilot.kernel.critic import Severity
 from ontocopilot.kernel.intent import Intent, IntentMatch, RuleIntentParser
 from ontocopilot.kernel.tools import Danger, ToolRegistry
@@ -298,7 +296,10 @@ async def test_single_shot_does_not_burn_five_steps_on_chitchat():
                           "citations": [], "confidence": 0.9})
 
     class _Ctx:
-        turn_id = "t"; approved = True; pending: list = []; rec = None
+        turn_id = "t"; approved = True; rec = None
+
+        def __init__(self):
+            self.pending: list = []
 
     gw = _Gw()
     turn = await ConversationAgent(gateway=gw, tools=ToolRegistry()).run("你好", ctx=_Ctx())
@@ -326,7 +327,10 @@ async def test_plan_execute_lists_the_steps_before_doing_them():
         def file_names(self): return {}
 
     class _Ctx:
-        turn_id = "t"; approved = True; pending: list = []; rec = None
+        turn_id = "t"; approved = True; rec = None
+
+        def __init__(self):
+            self.pending: list = []
 
     gw = _Gw([
         {"steps": [{"goal": "把采购包连到订单"}, {"goal": "重出模板"}]},
@@ -343,3 +347,73 @@ async def test_plan_execute_lists_the_steps_before_doing_them():
     assert [x["goal"] for x in turn.plan] == ["把采购包连到订单", "重出模板"]
     assert any("计划" in s.get("thought", "") for s in seen)   # 面板里看得见
     assert {"strategy", "plan"} <= set(turn.to_dict())
+
+
+# ══════════════════════════════════════════════════════════════════
+#  推荐问题跟着回答一起出
+# ══════════════════════════════════════════════════════════════════
+async def test_answer_carries_its_own_next_questions():
+    """追问和回答同一次调用出来 —— 另起一次调用要等 7~8 秒，答案早读完了。"""
+    gw = _Gw([{"kind": "answer", "answer": "这张图讲的是采购计划流程。",
+               "citations": [], "confidence": 0.8,
+               "next_questions": ["异常场景只建了整单取消，部分驳回怎么办？",
+                                  "这些事件流要定义哪些状态机字段？"]}])
+    turn = await ConversationAgent(gateway=gw, tools=_registry()).run(
+        "这张图讲了什么", ctx=_Ctx())
+    assert turn.next_questions == ["异常场景只建了整单取消，部分驳回怎么办？",
+                                   "这些事件流要定义哪些状态机字段？"]
+    assert turn.to_dict()["next_questions"] == turn.next_questions
+
+
+async def test_answering_early_still_carries_next_questions():
+    """回归：**最常见的一步就答上来**走的是 _STEP_SCHEMA，不是最终 schema。
+
+    只给最终 schema 加字段的话，这条路上永远拿不到推荐问题 —— 实跑一次才发现，
+    浏览器里 chips 仍然是启发式那批、后台照旧多花一次调用。
+    """
+    gw = _Gw([{"kind": "answer", "thought": "这个不用查", "answer": "一般分四步走。",
+               "citations": [], "confidence": 0.6,
+               "next_questions": ["第一阶段该找客户要哪些材料？"]}])
+    turn = await ConversationAgent(gateway=gw, tools=_registry()).run(
+        "这类项目怎么推进", ctx=_Ctx())
+    assert gw.calls == 1                       # 没有第二次调用
+    assert turn.next_questions == ["第一阶段该找客户要哪些材料？"]
+
+
+async def test_next_questions_are_deduped_and_capped():
+    """三条一样的提示等于一条，白占那三个位置。"""
+    gw = _Gw([{"kind": "answer", "answer": "答", "citations": [], "confidence": 0.5,
+               "next_questions": [" 一 ", "", "一", "二", "三", "四"]}])
+    turn = await ConversationAgent(gateway=gw, tools=_registry()).run("问", ctx=_Ctx())
+    assert turn.next_questions == ["一", "二", "三"]
+
+
+async def test_missing_next_questions_is_not_an_error():
+    """模型漏填就是空数组，调用方据此退回启发式 —— 不该让这一轮失败。"""
+    gw = _Gw([{"kind": "answer", "answer": "答", "citations": [], "confidence": 0.5}])
+    turn = await ConversationAgent(gateway=gw, tools=_registry()).run("问", ctx=_Ctx())
+    assert turn.next_questions == []
+
+
+def test_the_answer_contract_actually_asks_for_next_questions():
+    """契约本身要钉住，不能只钉解析。
+
+    上面那几条用例走的是回放网关：schema 连同其余 kw 一起被丢掉，所以**它们
+    看不见 schema**。真把这个字段从 schema 里删掉，测试照样全绿，而线上会静默
+    退化 —— strict json_schema 下 backends.strictify 会给每个 object 补
+    `additionalProperties: False`，字段一旦不在 properties 里，模型就再也吐不出
+    它，每一轮都退回启发式，7~8 秒那套延迟原样回来。
+
+    两个 schema 都要有：模型**可以在任何一步直接作答**（_STEP_SCHEMA 的
+    kind=answer），那恰恰是最常见的一步就答上来。
+    """
+    from ontocopilot.kernel.backends import strictify
+    from ontocopilot.onto.converse import _STEP_SCHEMA, ANSWER_SCHEMA
+
+    for name, schema in (("ANSWER_SCHEMA", ANSWER_SCHEMA), ("_STEP_SCHEMA", _STEP_SCHEMA)):
+        assert "next_questions" in schema["properties"], name
+        field = schema["properties"]["next_questions"]
+        assert field["type"] == "array" and field["maxItems"] == 3, name
+        # strict 模式会把所有属性列进 required —— 模型没有"漏填"这个选项，
+        # 想不出就得显式交空数组。
+        assert "next_questions" in strictify(schema)["required"], name

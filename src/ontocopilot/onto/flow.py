@@ -38,8 +38,18 @@ from typing import Any
 from ..kernel.ids import sha256_hex
 from .oir import Assertion, Provenance, Status, inferred, make_rid
 
-__all__ = ["NodeKind", "EdgeKind", "FlowNode", "FlowEdge", "Stage", "Workflow",
-           "FlowGraph", "code_for", "domain_code", "flow_from_dict"]
+__all__ = [
+    "EdgeKind",
+    "FlowEdge",
+    "FlowGraph",
+    "FlowNode",
+    "NodeKind",
+    "Stage",
+    "Workflow",
+    "code_for",
+    "domain_code",
+    "flow_from_dict",
+]
 
 
 class NodeKind(StrEnum):
@@ -299,7 +309,7 @@ class FlowGraph:
         return out
 
     # ── 规模化 ──────────────────────────────────────────────────
-    def main_path(self) -> "FlowGraph":
+    def main_path(self) -> FlowGraph:
         """只留主干：有材料依据的节点和边。
 
         47 个 Action + 101 个 Event 全画出来会边全交叉、字全重叠 —— 一张看不清
@@ -382,7 +392,7 @@ class FlowGraph:
         }
 
 
-def flow_from_dict(data: dict[str, Any]) -> "FlowGraph":
+def flow_from_dict(data: dict[str, Any]) -> FlowGraph:
     """从 :meth:`FlowGraph.to_dict` 还原。
 
     恢复会话时要用 —— ``_flow`` 是活对象，重启后没了，只剩磁盘上的 flow.json。

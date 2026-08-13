@@ -7,10 +7,8 @@
 
 from __future__ import annotations
 
-import pytest
-
 from ontocopilot.kernel.critic import CriticContext, Severity
-from ontocopilot.onto.oir import BusinessRule, OIR, ObjectType, RuleKind, extracted, inferred
+from ontocopilot.onto.oir import OIR, BusinessRule, ObjectType, RuleKind, inferred
 from ontocopilot.onto.parse.tabular import detect_header_row
 from ontocopilot.onto.pipeline import CoverageCritic, Segment, build_oir
 from ontocopilot.onto.shape import (
@@ -280,7 +278,7 @@ def test_sparse_group_column_is_not_mistaken_for_the_answer_slot():
 class _Idx:
     """够 CoverageCritic 用的最小索引替身。"""
 
-    def get(self, _cid):  # noqa: D102
+    def get(self, _cid):
         return None
 
 
@@ -410,8 +408,8 @@ def test_suggestions_are_ranked_by_impact_times_confidence():
 # ══════════════════════════════════════════════════════════════════
 # 在此之前 suggest() 只产出数据，没有任何代码消费 payload —— 界面上点"采纳"
 # 一句话，产物纹丝不动。一个采纳不了的建议不如不给。
-from ontocopilot.onto.oir import Status  # noqa: E402
-from ontocopilot.onto.suggest import apply_suggestion  # noqa: E402
+from ontocopilot.onto.oir import Status
+from ontocopilot.onto.suggest import apply_suggestion
 
 
 def _adopt(oir, kind: str):
@@ -486,7 +484,7 @@ def test_bind_rule_escalates_but_never_guesses_the_host():
 # ══════════════════════════════════════════════════════════════════
 # 实测过的三个数字：原样交回 completeness=0.0000；每格认真填满也只有 0.8861，
 # 永远够不到 0.95；627 格被判填写、只有 172 条写回 OIR。下面钉住这几条的修复。
-from ontocopilot.onto.template import Role, compile_template  # noqa: E402
+from ontocopilot.onto.template import Role, compile_template
 
 
 def _tpl(oir):
@@ -538,7 +536,8 @@ def test_open_questions_reach_the_template():
 
 
 def test_answered_questions_are_not_asked_again():
-    from ontocopilot.onto.oir import OpenQuestion, Status as _S
+    from ontocopilot.onto.oir import OpenQuestion
+    from ontocopilot.onto.oir import Status as _S
 
     oir = _oir_with(["pbpHeader"])
     oir.add_question(OpenQuestion(rid="oq_1", text=inferred("已经答过的问题？"),
@@ -558,7 +557,8 @@ def test_business_people_are_not_asked_for_primary_keys():
 def test_agreeing_with_a_correct_prefill_is_not_a_required_cell():
     """111 行全预填「已确认」再要人确认一遍，他核对后不动就被判敷衍。
     「我同意」是业务方最常做的动作，不该被罚。"""
-    from ontocopilot.onto.oir import ActionType, Status as _S
+    from ontocopilot.onto.oir import ActionType
+    from ontocopilot.onto.oir import Status as _S
 
     oir = _oir_with(["pbpHeader"])
     oir.add_action(ActionType(rid="at_1", api_name=inferred("createPbp"),

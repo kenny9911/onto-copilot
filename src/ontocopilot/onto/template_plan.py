@@ -27,7 +27,7 @@ from typing import Any
 
 from .template_edit import EditError, apply_edit
 
-__all__ = ["PLAN_SCHEMA", "plan_prompt", "apply_plan", "adapt_template"]
+__all__ = ["PLAN_SCHEMA", "adapt_template", "apply_plan", "plan_prompt"]
 
 
 #: AI 只能选 op + 参数。**没有"直接给我一张表"这个选项** —— 那会丢掉锚点。
@@ -74,16 +74,16 @@ def plan_prompt(*, project: str, stats: dict[str, Any], sheets: list[dict[str, A
         f"## 已抽出的产物规模\n{stats}\n",
         f"## 当前模板骨架\n{sheet_lines}\n",
         f"## 材料里出现的业务词\n{'、'.join(vocabulary[:40])}\n" if vocabulary else "",
-        f"## 待澄清的问题\n" + "\n".join(f"- {q}" for q in open_questions[:8]) + "\n"
+        "## 待澄清的问题\n" + "\n".join(f"- {q}" for q in open_questions[:8]) + "\n"
         if open_questions else "",
-        "这张模板要发给**业务方**填。他们不是建模的人：`apiName`、`baseType`、"
-        "`cardinality` 这些词他们读不懂，也不知道该往哪一列写什么。\n\n"
-        "在**不改变有哪些行、值从哪来**的前提下，提一组改法让它更好填：\n"
-        "- 把列名换成客户材料里的说法（用上面那些业务词，别自己造词）；\n"
-        "- 给每张表写一句说明：这张表要他回答什么、答到什么程度算完；\n"
-        "- 取值有限的列做成下拉（选项要来自材料里真出现过的值）；\n"
-        "- 把最该他答、只有他答得了的表排前面。\n\n"
-        "每条都要写 why。**没有把握就少提几条** —— 提一条错的改法比不提更糟。",
+        ("这张模板要发给**业务方**填。他们不是建模的人：`apiName`、`baseType`、"
+         "`cardinality` 这些词他们读不懂，也不知道该往哪一列写什么。\n\n"
+         "在**不改变有哪些行、值从哪来**的前提下，提一组改法让它更好填：\n"
+         "- 把列名换成客户材料里的说法（用上面那些业务词，别自己造词）；\n"
+         "- 给每张表写一句说明：这张表要他回答什么、答到什么程度算完；\n"
+         "- 取值有限的列做成下拉（选项要来自材料里真出现过的值）；\n"
+         "- 把最该他答、只有他答得了的表排前面。\n\n"
+         "每条都要写 why。**没有把握就少提几条** —— 提一条错的改法比不提更糟。"),
     ] if x)
 
 

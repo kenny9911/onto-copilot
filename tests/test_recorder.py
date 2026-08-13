@@ -77,6 +77,58 @@ async def test_explicit_key_survives_reordered_concurrency(store):
     assert out == [f"{ln}:ok" for ln in reversed(lenses)]
 
 
+async def test_same_explicit_key_is_single_flight_under_concurrency(store):
+    """同一幂等键并发请求只能执行一次副作用。"""
+    import asyncio
+
+    journal, blobs = store
+    rec = Recorder("r1", journal, blobs)
+    calls = 0
+    entered = asyncio.Event()
+    release = asyncio.Event()
+
+    async def effect():
+        nonlocal calls
+        calls += 1
+        entered.set()
+        await release.wait()
+        return {"ok": True}
+
+    first = asyncio.create_task(
+        rec.effect("N", "tool.call", {"id": 1}, effect, key="same"))
+    await entered.wait()
+    second = asyncio.create_task(
+        rec.effect("N", "tool.call", {"id": 1}, effect, key="same"))
+    await asyncio.sleep(0)
+    release.set()
+    assert await asyncio.gather(first, second) == [{"ok": True}, {"ok": True}]
+    assert calls == 1
+    requested = [e for e in journal.read("r1") if e.kind is EventKind.EFFECT_REQUESTED]
+    completed = [e for e in journal.read("r1") if e.kind is EventKind.EFFECT_COMPLETED]
+    assert len(requested) == len(completed) == 1
+
+
+async def test_same_inflight_key_with_different_request_fails_closed(store):
+    import asyncio
+
+    journal, blobs = store
+    rec = Recorder("r1", journal, blobs)
+    entered = asyncio.Event()
+    release = asyncio.Event()
+
+    async def effect():
+        entered.set()
+        await release.wait()
+        return "ok"
+
+    first = asyncio.create_task(rec.effect("N", "x", {"v": 1}, effect, key="k"))
+    await entered.wait()
+    with pytest.raises(DeterminismViolation):
+        await rec.effect("N", "x", {"v": 2}, effect, key="k")
+    release.set()
+    assert await first == "ok"
+
+
 async def test_large_result_goes_to_blob_store(store):
     journal, blobs = store
     rec = Recorder("r1", journal, blobs)

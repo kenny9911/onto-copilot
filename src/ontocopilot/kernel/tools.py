@@ -44,6 +44,9 @@ class ToolSpec:
     danger: Danger = Danger.READ
     #: 供应方。``builtin`` 可信；``mcp:<server>`` 要过安全闸。
     origin: str = "builtin"
+    #: 工具返回值契约。MCP 工具不能只校验入参：被攻陷的 server
+    #: 可以在返回值中偷塞指令、凭证或超大 payload。
+    output_schema: dict[str, Any] | None = None
 
     @property
     def requires_approval(self) -> bool:
@@ -54,7 +57,9 @@ class ToolSpec:
         import json
 
         return sha256_hex(
-            self.description + json.dumps(self.input_schema, sort_keys=True))[:16]
+            self.description
+            + json.dumps(self.input_schema, sort_keys=True)
+            + json.dumps(self.output_schema, sort_keys=True))[:16]
 
     def render(self) -> str:
         """进 prompt 的形态。
@@ -109,8 +114,9 @@ POISON_PATTERNS = (
     (r"\.ssh|id_rsa|\.env\b|credentials", "指向凭证文件"),
 )
 
-#: 不可见字符 —— 藏在描述里的指令用它们躲过肉眼审查。
-_INVISIBLE = re.compile(r"[​-‏‪-‮⁠-⁤﻿]")
+#: 不可见字符 —— 藏在描述里的指令用它们躲过肉眼审查。必须写成 escape，
+#: 源码本身不能真的含这些双向/零宽控制字符。
+_INVISIBLE = re.compile(r"[\u200b-\u200f\u202a-\u202e\u2060-\u2064\ufeff]")
 
 
 def scan_description(text: str) -> list[str]:
@@ -120,7 +126,7 @@ def scan_description(text: str) -> list[str]:
         hits.append("含不可见控制字符（可能藏有隐藏指令）")
     normalized = unicodedata.normalize("NFKC", text)
     for pattern, reason in POISON_PATTERNS:
-        if re.search(pattern, normalized, re.I):
+        if re.search(pattern, normalized, re.IGNORECASE):
             hits.append(reason)
     if len(text) > 4000:
         hits.append("描述异常长（正常工具描述不需要几千字）")
@@ -144,6 +150,10 @@ class MCPGateway:
     quarantined: dict[str, list[str]] = field(default_factory=dict)
     #: 出网白名单。空 = 不允许任何出网。
     egress_allowlist: tuple[str, ...] = ()
+    #: 安全默认：首次出现的 MCP 工具只进隔离区，不自动变成已批准。
+    #: 开发环境若确实要保留旧行为，可显式设 ``auto_approve_first=True``。
+    auto_approve_first: bool = False
+    max_result_bytes: int = 1_048_576
 
     def admit(self, spec: ToolSpec, *, force: bool = False) -> tuple[bool, str]:
         """接入一个 MCP 工具。返回 ``(是否放行, 说明)``。"""
@@ -155,8 +165,11 @@ class MCPGateway:
         fp = spec.fingerprint()
         known = self.approved.get(spec.name)
         if known is None:
+            if not self.auto_approve_first:
+                self.quarantined[spec.name] = ["首次接入，等待管理员审批指纹"]
+                return False, f"首次接入，已隔离待审（指纹 {fp}）"
             self.approved[spec.name] = fp
-            return True, "首次接入，指纹已登记"
+            return True, "首次接入，开发模式已自动登记指纹"
         if known != fp:
             self.quarantined[spec.name] = ["描述或 schema 与已批准版本不一致"]
             return False, (
@@ -164,17 +177,48 @@ class MCPGateway:
                 "工具已禁用，需人工复审后重新登记。")
         return True, "指纹匹配"
 
+    def approve(self, spec: ToolSpec) -> str:
+        """管理员显式批准当前版本，返回锁定的指纹。
+
+        批准也不能跳过投毒扫描；描述/schema 任一变化后旧批准自动失效。
+        """
+        if hits := scan_description(spec.description):
+            self.quarantined[spec.name] = hits
+            raise ToolDenied(f"{spec.name} 描述命中投毒特征：{'；'.join(hits)}")
+        fp = spec.fingerprint()
+        self.approved[spec.name] = fp
+        self.quarantined.pop(spec.name, None)
+        return fp
+
     def validate_args(self, spec: ToolSpec, args: dict[str, Any]) -> dict[str, Any]:
         """按声明 schema 过滤入参。**未声明的字段直接丢弃**，不是报错。
 
         丢弃比报错好：报错会让调用方知道哪些字段被拒，反而给了试探边界的信号。
         """
         props = (spec.input_schema or {}).get("properties") or {}
-        missing = [r for r in (spec.input_schema or {}).get("required", ())
-                   if r not in args]
-        if missing:
-            raise ToolDenied(f"{spec.name} 缺少必填参数 {missing}")
-        return {k: v for k, v in args.items() if k in props}
+        clean = {k: v for k, v in args.items() if k in props}
+        _validate_schema(clean, spec.input_schema or {"type": "object"},
+                         path=f"{spec.name}.args")
+        return clean
+
+    def validate_result(self, spec: ToolSpec, result: Any) -> Any:
+        """校验工具返回值的形状与体积。
+
+        只对声明了 ``output_schema`` 的工具做结构校验；体积上限对所有
+        工具生效，防止工具结果把 Agent context 和日志撑爆。
+        """
+        import json
+
+        try:
+            size = len(json.dumps(result, ensure_ascii=False, default=str).encode("utf-8"))
+        except (TypeError, ValueError) as exc:
+            raise ToolDenied(f"{spec.name} 返回值无法序列化：{exc}") from exc
+        if size > self.max_result_bytes:
+            raise ToolDenied(
+                f"{spec.name} 返回 {size} 字节，超过上限 {self.max_result_bytes}")
+        if spec.output_schema:
+            _validate_schema(result, spec.output_schema, path=f"{spec.name}.result")
+        return result
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -196,6 +240,8 @@ class ToolRegistry:
     # ── 注册 ────────────────────────────────────────────────────
     def register(self, tool: Tool, *, scopes: tuple[str, ...] = ("*",)) -> ToolRegistry:
         name = tool.spec.name
+        if name in self._tools:
+            raise ValueError(f"工具 {name!r} 已注册，拒绝静默覆盖")
         if tool.spec.origin.startswith("mcp:"):
             ok, why = self.gateway.admit(tool.spec)
             if not ok:
@@ -208,11 +254,13 @@ class ToolRegistry:
     def fn(
         self, name: str, description: str, schema: dict[str, Any], *,
         danger: Danger = Danger.READ, scopes: tuple[str, ...] = ("*",),
+        output_schema: dict[str, Any] | None = None,
     ) -> Callable[[Callable], Callable]:
         """装饰器写法。"""
 
         def deco(f: Callable) -> Callable:
-            self.register(FnTool(ToolSpec(name, description, schema, danger), f),
+            self.register(FnTool(ToolSpec(name, description, schema, danger,
+                                          output_schema=output_schema), f),
                           scopes=scopes)
             return f
 
@@ -266,11 +314,87 @@ class ToolRegistry:
             raise ToolDenied(
                 f"{name} 会改变产物或花钱（{tool.spec.danger.name}），要用户确认后才能执行。"
                 f"请把你打算做什么、影响多大告诉他，让他说一句确认。")
+        budget = getattr(ctx, "budget", None)
+        spend_node_call = getattr(ctx, "spend_tool_call", None)
+        if callable(spend_node_call):
+            spend_node_call()
+        if budget is not None:
+            budget.check("tool_calls")
+            budget.spend(tool_calls=1)
+
+        async def invoke() -> Any:
+            result = await tool.run(clean, ctx)
+            return self.gateway.validate_result(tool.spec, result)
+
+        # 非确定性工具与 LLM 一样走 Recorder.effect：首次执行记完整
+        # requested/completed/failed，恢复时直接读回结果，不重复修文档或付费。
         if rec is not None:
-            rec.emit(EventKind.EFFECT_REQUESTED, node_id=node,
-                     payload={"kind": "tool.call", "tool": name,
-                              "danger": tool.spec.danger.name, "args": _digest(clean)})
-        return await tool.run(clean, ctx)
+            effect_key = getattr(ctx, "tool_effect_key", None)
+            if not effect_key and clean.get("idempotency_key"):
+                effect_key = f"tool:{name}:{clean['idempotency_key']}"
+            return await rec.effect(
+                node or "TOOL", "tool.call",
+                {"tool": name, "scope": scope, "danger": tool.spec.danger.name,
+                 "fingerprint": tool.spec.fingerprint(), "args": clean},
+                invoke, key=effect_key)
+        return await invoke()
+
+
+def _validate_schema(value: Any, schema: dict[str, Any], *, path: str) -> None:
+    """严格校验工具契约需要的 JSON Schema 子集。
+
+    支持 type/enum/const/required/properties/items/长度/数值范围；未识别的
+    keyword 留给上层完整 validator，但已声明的约束绝不 fail-open。
+    """
+    if not schema:
+        return
+    if "const" in schema and value != schema["const"]:
+        raise ToolDenied(f"{path} 必须等于 {schema['const']!r}")
+    if "enum" in schema and value not in schema["enum"]:
+        raise ToolDenied(f"{path} 必须是 {schema['enum']!r} 之一")
+    kinds = schema.get("type")
+    kinds = [kinds] if isinstance(kinds, str) else list(kinds or [])
+    checks = {
+        "null": lambda x: x is None,
+        "boolean": lambda x: isinstance(x, bool),
+        "integer": lambda x: isinstance(x, int) and not isinstance(x, bool),
+        "number": lambda x: isinstance(x, (int, float)) and not isinstance(x, bool),
+        "string": lambda x: isinstance(x, str),
+        "array": lambda x: isinstance(x, list),
+        "object": lambda x: isinstance(x, dict),
+    }
+    if kinds and not any(checks.get(k, lambda _: True)(value) for k in kinds):
+        raise ToolDenied(f"{path} 类型必须是 {kinds}，实际是 {type(value).__name__}")
+    if isinstance(value, dict):
+        missing = [x for x in schema.get("required") or [] if x not in value]
+        if missing:
+            raise ToolDenied(f"{path} 缺少必填参数 {missing}")
+        props = schema.get("properties") or {}
+        for key, sub in props.items():
+            if key in value and isinstance(sub, dict):
+                _validate_schema(value[key], sub, path=f"{path}.{key}")
+        if schema.get("additionalProperties") is False:
+            extra = sorted(set(value) - set(props))
+            if extra:
+                raise ToolDenied(f"{path} 含未声明字段 {extra}")
+    if isinstance(value, list):
+        if schema.get("minItems") is not None and len(value) < int(schema["minItems"]):
+            raise ToolDenied(f"{path} 数量少于 {schema['minItems']}")
+        if schema.get("maxItems") is not None and len(value) > int(schema["maxItems"]):
+            raise ToolDenied(f"{path} 数量多于 {schema['maxItems']}")
+        if isinstance(schema.get("items"), dict):
+            for i, item in enumerate(value):
+                _validate_schema(item, schema["items"], path=f"{path}[{i}]")
+    if isinstance(value, str):
+        if schema.get("minLength") is not None and len(value) < int(schema["minLength"]):
+            raise ToolDenied(f"{path} 长度小于 {schema['minLength']}")
+        if schema.get("maxLength") is not None and len(value) > int(schema["maxLength"]):
+            raise ToolDenied(f"{path} 长度大于 {schema['maxLength']}")
+    if isinstance(value, (int, float)) and not isinstance(value, bool):
+        if schema.get("minimum") is not None and value < schema["minimum"]:
+            raise ToolDenied(f"{path} 不能小于 {schema['minimum']}")
+        if schema.get("maximum") is not None and value > schema["maximum"]:
+            raise ToolDenied(f"{path} 不能大于 {schema['maximum']}")
 
 
 def _digest(args: dict[str, Any], limit: int = 200) -> dict[str, str]:
@@ -337,8 +461,21 @@ def builtin_registry(
                 by_name = evidence.file_names()
                 resolved, unknown = [], []
                 for f in files:
-                    hit = by_name.get(f) or next(
-                        (fid for nm, fid in by_name.items() if f in nm), None)
+                    # 模型很爱把中文文件名**百分号编码**了再传
+                    # （"%E9%87%87%E8%B4%AD…xlsx"）—— 大概是把它当 URL 片段。
+                    # material.parse 那边靠子串匹配蒙混过去了，这里按全名查就
+                    # 全军覆没，回一句"没有这些材料"，而它上一秒刚读进来。
+                    # 认一下解码后的形态，别让同一个名字在两个工具里一个认一个不认。
+                    cand = [f]
+                    if "%" in f:
+                        from urllib.parse import unquote
+                        dec = unquote(f)
+                        if dec != f:
+                            cand.append(dec)
+                    hit = next((by_name.get(x) for x in cand if by_name.get(x)), None)
+                    if hit is None:
+                        hit = next((fid for nm, fid in by_name.items()
+                                    if any(x in nm for x in cand)), None)
                     (resolved.append(hit) if hit else unknown.append(f))
                 if unknown and not resolved:
                     return {"count": 0, "chunks": [],

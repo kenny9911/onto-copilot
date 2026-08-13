@@ -29,20 +29,28 @@
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 from .flow import EdgeKind, FlowGraph, FlowNode, NodeKind, Stage
 from .oir import Provenance, extracted, inferred, make_rid
 
-__all__ = ["ProcessStep", "parse_steps", "build_flow", "looks_like_process",
-           "scene_headers", "stages_by_domain", "stages_from_survey",
-           "apply_scene_titles",
-           "survey_stage_groups", "MAIN_STAGE"]
+__all__ = [
+    "MAIN_STAGE",
+    "ProcessStep",
+    "apply_scene_titles",
+    "build_flow",
+    "looks_like_process",
+    "parse_steps",
+    "scene_headers",
+    "stages_by_domain",
+    "stages_from_survey",
+    "survey_stage_groups",
+]
 
 
 #: 一个节点的开头：（1） / (1) / 1. / 1、
-_STEP_HEAD = re.compile(r"[（(]\s*(\d{1,3})\s*[）)]\s*|^\s*(\d{1,3})\s*[.、]\s*", re.M)
+_STEP_HEAD = re.compile(r"[（(]\s*(\d{1,3})\s*[）)]\s*|^\s*(\d{1,3})\s*[.、]\s*", re.MULTILINE)
 
 #: 四个字段。「执行着」是材料里的错别字 —— 真实材料就是会有错别字，
 #: 认不出它就会丢掉一整个节点的执行者。
@@ -470,7 +478,7 @@ def survey_stage_groups(sheets: dict[str, list[str]]) -> list[tuple[str, list[in
     """
     # 先看有没有明写区间的场景（最强的信号）
     scenes: list[tuple[str, int, int]] = []
-    for _sheet, col in sheets.items():
+    for col in sheets.values():
         for cell in col:
             m = _SCENE.search(cell)
             if m and m.group("lo") and m.group("hi"):

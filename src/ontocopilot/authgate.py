@@ -21,6 +21,7 @@ from __future__ import annotations
 import os
 import time
 import uuid
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
@@ -75,6 +76,24 @@ def cors_origins() -> list[str]:
     raw = os.getenv("ONTOCOPILOT_CORS_ORIGINS", "")
     # 带凭证时禁止通配 —— 浏览器也禁，这里显式挡掉误配的 "*"/空串。
     return [o.strip() for o in raw.split(",") if o.strip() and o.strip() != "*"]
+
+
+async def adopt_local_sessions(repo: Repo, user: UserRow) -> int:
+    """把开放模式下建的会话认领给这个（首个）账号，返回认领了几个。
+
+    **建第一个账号会顺带把整个实例翻进强制鉴权**（见 :func:`_enforce`：有账号就
+    强制）。而开放模式下建的每个会话，归属记的都是合成管理员 ``__local__`` ——
+    一旦强制，列表按真实 user id 过滤、中间件对不属于你的会话回 404，于是**他
+    昨天梳理的全部东西在建号的那一秒集体消失**。从用户视角这就是数据没了，而且
+    是他自己点了"创建账户"之后没的。
+
+    两条建号路径都要走这里：``POST /api/register`` 和 ``ontocopilot useradd``。
+    只在其中一条上做，另一条就成了"照文档操作，然后数据全丢"。
+    """
+    n = 0
+    for old in (SYNTHETIC_ADMIN.id, ""):
+        n += await repo.reassign_sessions(old, user.id)
+    return n
 
 
 async def _enforce(repo: Repo) -> bool:
@@ -168,6 +187,27 @@ def _clear_cookie(resp: JSONResponse) -> None:
     resp.delete_cookie(COOKIE, path="/")
 
 
+#: 名字的长度上限（按码点算，一个汉字算一个）。够写全名和「张伟（采购）」这类备注，
+#: 又不至于把界面撑破 —— 它会出现在空状态问候语和账号列表里。
+_DISPLAY_NAME_MAX = 40
+
+
+def clean_display_name(raw: str) -> str:
+    """规整用户填的名字。
+
+    **不复用 normalize_username** —— 那个做 ``strip().lower()``，会把「Yuhan」变成
+    「yuhan」，而这一列存在的全部意义就是原样称呼人。这里只折叠空白（含换行与
+    制表符：带 ``\\n`` 的名字会撑破账号列表的一行），两端去空。
+
+    空串是合法结果 = 没填。要不要允许没填由**调用方**决定：自助注册要求填，
+    管理员建号和 CLI 不要求。
+    """
+    name = " ".join(str(raw or "").split())
+    if len(name) > _DISPLAY_NAME_MAX:
+        raise HTTPException(400, f"名字不能超过 {_DISPLAY_NAME_MAX} 个字")
+    return name
+
+
 # ── 登录限流（进程内、按 IP、固定窗口）──────────────────────────────
 _ATTEMPTS: dict[str, tuple[float, int]] = {}
 _THROTTLE_MAX = 10
@@ -190,10 +230,11 @@ def _throttle(request: Request) -> None:
 #  路由：登录 / 登出 / 我是谁 / 门禁状态
 # ══════════════════════════════════════════════════════════════════
 router = APIRouter(prefix="/api")
+RepoDep = Annotated[Repo, Depends(get_repo)]
 
 
 @router.post("/login")
-async def login(request: Request, body: dict, repo: Repo = Depends(get_repo)):
+async def login(request: Request, body: dict, repo: RepoDep):
     _throttle(request)
     username = normalize_username(str(body.get("username", "")))
     password = str(body.get("password", ""))
@@ -213,14 +254,20 @@ async def login(request: Request, body: dict, repo: Repo = Depends(get_repo)):
 
 
 @router.post("/register")
-async def register(request: Request, body: dict, repo: Repo = Depends(get_repo)):
+async def register(request: Request, body: dict, repo: RepoDep):
     """自助注册。**首个注册的账号自动成为管理员**（可改网关/全局配置），其余为普通
     用户。开放注册：任何人都能建号（联网部署请自行评估是否加邀请码）。"""
     _throttle(request)
     username = normalize_username(str(body.get("username", "")))
     password = str(body.get("password", ""))
+    # 自助注册**要求填名字**：界面要拿它称呼人（"欢迎回来，程宇涵"），
+    # 而 username 是被 lower() 过的登录标识，不适合当称呼。
+    # 管理员建号 / CLI 建号仍可不填 —— 那两条路上没人当场问得到。
+    display_name = clean_display_name(body.get("display_name", ""))
     if not username or not password:
         raise HTTPException(400, "用户名和密码不能为空")
+    if not display_name:
+        raise HTTPException(400, "请填写你的名字")
     if len(password) < 6:
         raise HTTPException(400, "密码至少 6 位")
     # 库里还没有账号 → 这个人就是管理员。有 TOCTOU 窗口（两人同时抢首个），
@@ -229,20 +276,11 @@ async def register(request: Request, body: dict, repo: Repo = Depends(get_repo))
     ph = await run_in_threadpool(hash_password, password)
     try:
         user = await repo.create_user(UserRow(
-            id=uuid.uuid4().hex, username=username, password_hash=ph, role=role))
+            id=uuid.uuid4().hex, username=username, password_hash=ph, role=role,
+            display_name=display_name))
     except DuplicateUsername:
         raise HTTPException(409, "用户名已存在") from None
-    # **首个账号要把开放模式下建的会话认领过来。**
-    #
-    # 建号这个动作会顺带把整个实例翻进强制鉴权（见 `_enforce`：有账号就强制）。
-    # 而开放模式下建的每个会话，归属都记的是合成管理员 `__local__` —— 一旦强制，
-    # 列表按真实 user id 过滤，中间件对不属于你的会话回 404，于是**他昨天梳理的
-    # 全部东西在注册的那一秒集体消失**。从用户视角这就是数据丢了，而且是他自己
-    # 点了"创建账户"之后丢的。
-    adopted = 0
-    if role == "admin":
-        for old in (SYNTHETIC_ADMIN.id, ""):
-            adopted += await repo.reassign_sessions(old, user.id)
+    adopted = await adopt_local_sessions(repo, user) if role == "admin" else 0
 
     token, th = mint_token()
     await repo.create_auth_session(AuthSessionRow(
@@ -253,7 +291,7 @@ async def register(request: Request, body: dict, repo: Repo = Depends(get_repo))
 
 
 @router.post("/logout")
-async def logout(request: Request, repo: Repo = Depends(get_repo)):
+async def logout(request: Request, repo: RepoDep):
     tok = request.cookies.get(COOKIE)
     if tok:
         await repo.delete_auth_session(token_hash(tok))
@@ -266,11 +304,12 @@ async def logout(request: Request, repo: Repo = Depends(get_repo)):
 async def me(request: Request):
     user = require_user(request)
     return {"id": user.id, "username": user.username, "role": user.role,
-            "active": user.active, "prefs": user.prefs}
+            "active": user.active, "prefs": user.prefs,
+            "display_name": user.display_name}
 
 
 @router.get("/auth/status")
-async def auth_status(request: Request, repo: Repo = Depends(get_repo)):
+async def auth_status(request: Request, repo: RepoDep):
     enforce = await _enforce(repo)
     user = getattr(request.state, "user", None)
     n = await repo.count_users()
@@ -280,13 +319,16 @@ async def auth_status(request: Request, repo: Repo = Depends(get_repo)):
         "registration_open": True,
         "first_user_is_admin": enforce and n == 0,
         "authenticated": user is not None,
+        # 前端唯一无条件调用的身份端点就是这里 —— 空状态那句问候语的名字只能从
+        # 这个投影拿到。漏了 display_name 的表现是：库里存着、界面上永远空白。
         "user": ({"id": user.id, "username": user.username, "role": user.role,
-                  "prefs": user.prefs} if user else None),
+                  "prefs": user.prefs, "display_name": user.display_name}
+                 if user else None),
     }
 
 
 @router.post("/me/password")
-async def change_own_password(request: Request, body: dict, repo: Repo = Depends(get_repo)):
+async def change_own_password(request: Request, body: dict, repo: RepoDep):
     user = require_user(request)
     if user.id == SYNTHETIC_ADMIN.id:
         raise HTTPException(400, "开放模式下没有可改的账号")
@@ -305,12 +347,33 @@ async def change_own_password(request: Request, body: dict, repo: Repo = Depends
     return resp
 
 
+@router.post("/me/profile")
+async def update_own_profile(request: Request, body: dict, repo: RepoDep):
+    """改自己的个人资料。目前只有名字。
+
+    **账号是账号，资料是资料**：username 是登录标识，改了会影响登录，这里不碰；
+    名字只是个称呼，随时可改，改完立刻反映在界面上（问候语、左下角、头像首字）。
+
+    和改密码不同，这里**不踢登录会话** —— 换个称呼不是安全事件。
+    """
+    user = require_user(request)
+    if user.id == SYNTHETIC_ADMIN.id:
+        raise HTTPException(400, "开放模式下没有可改的账号")
+    display_name = clean_display_name(body.get("display_name", ""))
+    if not display_name:
+        raise HTTPException(400, "请填写你的名字")
+    updated = await repo.update_user(user.id, display_name=display_name)
+    if updated is None:
+        raise HTTPException(404, "账号不存在")
+    return {"user": updated.public()}
+
+
 #: 允许自助保存的外观/语言偏好键。其它键一律忽略（前端别想借它塞乱数据）。
 _PREF_KEYS = frozenset({"theme", "accent", "lang", "timezone", "font_scale", "density"})
 
 
 @router.patch("/me/prefs")
-async def update_prefs(request: Request, body: dict, repo: Repo = Depends(get_repo)):
+async def update_prefs(request: Request, body: dict, repo: RepoDep):
     user = require_user(request)
     patch = {k: v for k, v in (body or {}).items() if k in _PREF_KEYS}
     tz = patch.get("timezone")
@@ -338,15 +401,18 @@ async def _active_admins(repo: Repo) -> list[UserRow]:
 
 
 @users_router.get("")
-async def list_users(repo: Repo = Depends(get_repo)):
+async def list_users(repo: RepoDep):
     return [u.public() for u in await repo.list_users()]
 
 
 @users_router.post("")
-async def create_user(body: dict, repo: Repo = Depends(get_repo)):
+async def create_user(body: dict, repo: RepoDep):
     username = normalize_username(str(body.get("username", "")))
     password = str(body.get("password", ""))
     role = body.get("role", "user")
+    # 管理员替别人建号时**不强制**填名字 —— 他多半只知道对方的登录名。
+    # 没填就空着，界面回落到 username；本人以后可以自己补。
+    display_name = clean_display_name(body.get("display_name", ""))
     if not username or not password:
         raise HTTPException(400, "用户名和密码不能为空")
     if role not in ("admin", "user"):
@@ -354,14 +420,15 @@ async def create_user(body: dict, repo: Repo = Depends(get_repo)):
     ph = await run_in_threadpool(hash_password, password)
     try:
         u = await repo.create_user(UserRow(
-            id=uuid.uuid4().hex, username=username, password_hash=ph, role=role))
+            id=uuid.uuid4().hex, username=username, password_hash=ph, role=role,
+            display_name=display_name))
     except DuplicateUsername:
         raise HTTPException(409, "用户名已存在") from None
     return u.public()
 
 
 @users_router.patch("/{uid}")
-async def patch_user(uid: str, body: dict, repo: Repo = Depends(get_repo)):
+async def patch_user(uid: str, body: dict, repo: RepoDep):
     target = await repo.get_user(uid)
     if target is None:
         raise HTTPException(404, "用户不存在")
@@ -382,7 +449,7 @@ async def patch_user(uid: str, body: dict, repo: Repo = Depends(get_repo)):
 
 
 @users_router.post("/{uid}/reset-password")
-async def reset_password(uid: str, body: dict, repo: Repo = Depends(get_repo)):
+async def reset_password(uid: str, body: dict, repo: RepoDep):
     if await repo.get_user(uid) is None:
         raise HTTPException(404, "用户不存在")
     password = str(body.get("password", ""))
@@ -395,7 +462,7 @@ async def reset_password(uid: str, body: dict, repo: Repo = Depends(get_repo)):
 
 
 @users_router.delete("/{uid}")
-async def delete_user(uid: str, request: Request, repo: Repo = Depends(get_repo)):
+async def delete_user(uid: str, request: Request, repo: RepoDep):
     admin = require_admin(request)
     if uid == admin.id:
         raise HTTPException(409, "不能删除自己")
@@ -410,6 +477,14 @@ async def delete_user(uid: str, request: Request, repo: Repo = Depends(get_repo)
     return {"ok": True}
 
 
-__all__ = ["auth_middleware", "require_user", "require_admin", "router",
-           "users_router", "cors_origins", "resolve_cookie_user", "COOKIE",
-           "SYNTHETIC_ADMIN"]
+__all__ = [
+    "COOKIE",
+    "SYNTHETIC_ADMIN",
+    "auth_middleware",
+    "cors_origins",
+    "require_admin",
+    "require_user",
+    "resolve_cookie_user",
+    "router",
+    "users_router",
+]

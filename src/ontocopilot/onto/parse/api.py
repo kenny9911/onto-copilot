@@ -41,9 +41,14 @@ class OpenApiParser(Parser):
         except json.JSONDecodeError as exc:
             try:
                 import yaml  # 可选依赖：yaml 版 spec 很常见
-
+            except ImportError:
+                doc.findings.append(Finding(
+                    "parse_failed", f"既不是合法 JSON 也读不成 YAML：{exc}", {},
+                    severity="warn"))
+                return doc
+            try:
                 spec = yaml.safe_load(text)
-            except Exception:
+            except (TypeError, ValueError, yaml.YAMLError):
                 doc.findings.append(Finding(
                     "parse_failed", f"既不是合法 JSON 也读不成 YAML：{exc}", {},
                     severity="warn"))

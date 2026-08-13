@@ -14,16 +14,19 @@ dependencies = [
     "python-multipart>=0.0.9",
     "pillow>=10.0",
     "pymupdf>=1.24",
+    # 零配置本地模式承诺的是持久 SQLite；驱动若只存在于 dev extra，正式安装
+    # 会在用户不知情时退成内存并于重启后丢数据。
+    "sqlalchemy[asyncio]>=2.0",
+    "aiosqlite>=0.20",
 ]
 
 [project.optional-dependencies]
-# Postgres 是**可选依赖**。没配 DATABASE_URL 的部署、以及现有 244 个测试，
-# 一行 SQLAlchemy 都不 import —— store.repo.MemoryRepo 只用标准库。
-postgres = ["sqlalchemy[asyncio]>=2.0", "asyncpg>=0.30"]
-# aiosqlite 只给测试：仓储用例在 SQLite 内存库上跑第二遍，
-# 用来证明两个实现行为一致。不需要容器。
-dev = ["pytest>=8.0", "pytest-asyncio>=0.24", "ruff>=0.7",
-       "sqlalchemy[asyncio]>=2.0", "aiosqlite>=0.20"]
+# Postgres 是**可选依赖**。没配 DATABASE_URL 的部署使用基础依赖中的
+# SQLAlchemy + aiosqlite；显式内存模式则仍由 store.repo.MemoryRepo 提供。
+postgres = ["asyncpg>=0.30"]
+# 开发依赖只保留测试与静态检查工具；SQLAlchemy/aiosqlite 已是基础依赖，
+# 因为零配置运行模式本身承诺使用持久 SQLite，而不只是测试替身。
+dev = ["pytest>=8.0", "pytest-asyncio>=0.24", "ruff>=0.7"]
 
 [project.scripts]
 ontocopilot = "ontocopilot.cli:main"
@@ -35,6 +38,14 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/ontocopilot"]
+
+[tool.hatch.build.targets.wheel.force-include]
+# 单文件 Web 工作台也是产品运行时，不是仓库里的开发附件。wheel 内放进包目录，
+# server 同时支持源码 checkout 与安装后的两种位置。
+"ui/index.html" = "ontocopilot/ui/index.html"
+# PostgreSQL 迁移是服务端的运行时资产；安装 wheel 后仍必须能执行
+# ``python -m ontocopilot.store.migrate``，不能要求旁边恰好还有源码仓库。
+"migrations" = "ontocopilot/migrations"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

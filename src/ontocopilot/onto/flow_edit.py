@@ -17,7 +17,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from .flow import EdgeKind, FlowEdge, FlowGraph, FlowNode, NodeKind
+from .flow import EdgeKind, FlowGraph, FlowNode, NodeKind
 from .oir import Provenance, extracted, inferred, make_rid
 
 __all__ = ["FlowEditError", "apply_flow_edit"]

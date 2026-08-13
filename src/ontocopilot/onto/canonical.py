@@ -230,6 +230,13 @@ def _package_id(value: str) -> str:
     return f"pkg.{slug(value).replace('_', '.')}"
 
 
+def _stable_input_id(prefix: str, value: Any, *legacy_prefixes: str) -> str:
+    """Canonicalize a legacy ID while leaving an already canonical ID unchanged."""
+    text = str(value or "").strip()
+    return text if text.startswith(f"{prefix}.") else _canonical_id(
+        prefix, text, *legacy_prefixes)
+
+
 class _EvidenceIndex:
     def __init__(self) -> None:
         self.items: dict[str, dict[str, Any]] = {}
@@ -247,6 +254,29 @@ class _EvidenceIndex:
         eid = f"ev.{sha256_hex(canonical_json(stable))[:16]}"
         self.items.setdefault(eid, {"id": eid, **stable})
         return eid
+
+    def reference(self, value: Any) -> str | None:
+        """Turn a backlog evidence reference into a package-owned Evidence ID.
+
+        Unified Questions intentionally store only evidence IDs.  During the migration
+        window those IDs may be a canonical ``ev.*`` ID, a legacy cite string, or a full
+        evidence object.  Canonical IDs are retained; legacy cites become deterministic
+        placeholder Evidence records instead of dangling references.
+        """
+        if isinstance(value, Mapping):
+            return self.add(value)
+        text = str(value or "").strip()
+        if not text:
+            return None
+        if text.startswith("ev."):
+            self.items.setdefault(text, {
+                "id": text, "fileId": "", "fileName": "", "locator": {},
+                "snippet": "", "extractor": "question-backlog", "confidence": 0.5,
+                "cite": text,
+            })
+            return text
+        return self.add({"cite": text, "extractor": "question-backlog",
+                         "confidence": 0.5})
 
     def assertion(self, *values: Any) -> dict[str, Any]:
         origins: list[str] = []
@@ -295,21 +325,22 @@ def _normalise_decision(raw: Any, index: int, question_ids: dict[str, str]) -> d
         raw.to_dict() if hasattr(raw, "to_dict") else vars(raw)
     )
     legacy_id = str(data.get("id") or data.get("key") or f"decision-{index}")
-    refs = list(data.get("affectedIds") or data.get("scope_refs") or [])
-    question = str(data.get("questionId") or "")
+    refs = list(data.get("affectedIds") or data.get("affected_ids")
+                or data.get("scope_refs") or [])
+    question = str(data.get("questionId") or data.get("question_id") or "")
     if not question:
         question = next((question_ids[r] for r in refs if r in question_ids), "")
     answer = data.get("answer", data.get("statement"))
     out = {
-        "id": _canonical_id("dec", legacy_id, "dec_", "dlg_"),
+        "id": _stable_input_id("dec", legacy_id, "dec_", "dlg_"),
         "questionId": question_ids.get(question, question) or None,
         "answer": answer,
         "kind": str(data.get("kind") or "answer"),
         "actor": data.get("actor"),
-        "actorRole": data.get("actorRole"),
+        "actorRole": data.get("actorRole", data.get("actor_role")),
         "authority": data.get("authority"),
-        "sourceTurn": data.get("sourceTurn", data.get("turn")),
-        "effectiveAt": data.get("effectiveAt", data.get("ts")),
+        "sourceTurn": data.get("sourceTurn", data.get("source_turn", data.get("turn"))),
+        "effectiveAt": data.get("effectiveAt", data.get("createdAt", data.get("ts"))),
         "supersedes": data.get("supersedes"),
         "affectedIds": refs,
         "revision": data.get("revision"),
@@ -318,14 +349,47 @@ def _normalise_decision(raw: Any, index: int, question_ids: dict[str, str]) -> d
     return out
 
 
+def _question_input(source: Any) -> list[dict[str, Any]]:
+    """Accept QuestionBacklog, its JSON form, a single Question, or an iterable.
+
+    Keeping this adapter structural avoids a dependency from the canonical IR back to
+    the question-domain implementation and lets persisted older payloads build too.
+    """
+    if source is None:
+        return []
+    if hasattr(source, "to_dict"):
+        source = source.to_dict()
+    if isinstance(source, Mapping):
+        if "questions" in source:
+            source = source.get("questions") or []
+        elif "id" in source or "rid" in source:
+            source = [source]
+        else:
+            source = list(source.values())
+    if isinstance(source, (str, bytes)):
+        raise TypeError("questions/backlog must not be a string")
+    out: list[dict[str, Any]] = []
+    for item in source:
+        if hasattr(item, "to_dict"):
+            item = item.to_dict()
+        if not isinstance(item, Mapping):
+            raise TypeError(f"question must be an object, got {type(item).__name__}")
+        out.append(deepcopy(dict(item)))
+    return out
+
+
 def build_package(oir: OIR | Mapping[str, Any],
                   flow: FlowGraph | Mapping[str, Any] | None = None, *,
                   package_id: str = "pkg.default", revision: int = 1,
                   base_revision: int | None = None, generated_at: str | None = None,
-                  decisions: Iterable[Any] = ()) -> OntologyPackage:
+                  decisions: Iterable[Any] = (), questions: Any | None = None,
+                  backlog: Any | None = None) -> OntologyPackage:
     """Build OntologyPackage v1 from current OIR and FlowGraph representations.
 
     Both live objects and their existing ``to_dict()`` payloads are accepted.
+    ``questions`` and its ``backlog`` alias accept the unified QuestionBacklog (or its
+    persisted JSON).  When supplied it overrides the lifecycle fields of matching OIR
+    OpenQuestions and adds conflict/manual questions that OIR cannot represent.
     Stable canonical IDs are derived from legacy RIDs and every canonical item
     carries ``legacyId`` during the migration window.
     """
@@ -418,6 +482,9 @@ def build_package(oir: OIR | Mapping[str, Any],
         text = str(_value(name) or "").strip()
         if not text:
             return None
+        if text.startswith("role."):
+            role_ids.setdefault(text.removeprefix("role."), text)
+            return text
         rid = _canonical_id("role", text)
         role_ids.setdefault(text, rid)
         return rid
@@ -484,39 +551,110 @@ def build_package(oir: OIR | Mapping[str, Any],
             "legacyId": legacy_id,
         })
 
+    if questions is not None and backlog is not None:
+        raise ValueError("pass either questions or backlog, not both")
+    supplied_questions = _question_input(
+        questions if questions is not None else backlog) if (
+            questions is not None or backlog is not None) else []
+
     question_ids: dict[str, str] = {}
     answered: list[tuple[str, Mapping[str, Any]]] = []
-    for item in oir_data.get("questions") or []:
-        legacy_id = str(item.get("rid") or "")
-        question_id = _canonical_id("q", legacy_id, "oq_", "q_")
-        question_ids[legacy_id] = question_id
+    legacy_questions = list(oir_data.get("questions") or [])
+    # The unified backlog is authoritative for lifecycle/routing fields.  Preserve OIR
+    # assertions only for questions not represented there, and merge matching legacy
+    # answers/evidence into the backlog row without producing duplicate Question IDs.
+    by_id: dict[str, dict[str, Any]] = {}
+    for item in legacy_questions:
+        legacy_id = str(item.get("rid") or item.get("id") or "")
+        by_id[legacy_id] = deepcopy(dict(item))
+    for item in supplied_questions:
+        legacy_id = str(item.get("id") or item.get("rid") or "")
+        source_ref = str(item.get("sourceRef") or item.get("source_ref") or "")
+        prior_key = (legacy_id if legacy_id in by_id else
+                     source_ref if source_ref in by_id else "")
+        prior = by_id.get(prior_key) or {}
+        merged = {**prior, **item}
+        # Backlog has no answer field by design; retain a legacy OIR answer when it is
+        # the only decision source, while explicit Decisions remain authoritative.
+        if item.get("answer") is None and prior.get("answer") is not None:
+            merged["answer"] = prior["answer"]
+        key = legacy_id or source_ref
+        if prior_key and prior_key != key:
+            by_id.pop(prior_key, None)
+        by_id[key] = merged
+
+    question_rows = list(by_id.values())
+    # Resolve every alias before converting dependency references, including forward
+    # dependencies to a Question that appears later in the backlog.
+    for index, item in enumerate(question_rows, 1):
+        legacy_id = str(item.get("id") or item.get("rid") or "")
+        source_ref = str(item.get("sourceRef") or item.get("source_ref") or "")
+        legacy_id = legacy_id or source_ref or f"question-{index}"
+        canonical_id = _stable_input_id("q", legacy_id, "oq_", "q_")
+        question_ids[legacy_id] = canonical_id
+        if source_ref:
+            question_ids[source_ref] = canonical_id
+
+    for item in question_rows:
+        legacy_id = str(item.get("id") or item.get("rid") or "")
+        source_ref = str(item.get("sourceRef") or item.get("source_ref") or "")
+        if not legacy_id:
+            legacy_id = source_ref or f"question-{len(question_ids) + 1}"
+        question_id = question_ids[legacy_id]
         answer = str(_value(item.get("answer")) or "")
+        raw_blocked = (item.get("blockedArtifacts") or item.get("blocked_artifacts")
+                       or item.get("appliesTo") or [])
         applies = [object_ids.get(r, action_ids.get(r, rule_ids.get(r, r)))
-                   for r in item.get("appliesTo") or []]
-        applies = [r for r in applies if r in set(object_ids.values())
-                   | set(action_ids.values()) | set(rule_ids.values())]
+                   for r in raw_blocked]
+        known_semantics = (set(object_ids.values()) | set(action_ids.values())
+                           | set(rule_ids.values()))
+        # ``blockedArtifacts`` may include artifact-lineage IDs that are not semantic
+        # entities. Keep already-canonical package references; legacy unknowns cannot be
+        # validated in OntologyPackage v1 and are omitted instead of emitted dangling.
+        applies = [r for r in applies if r in known_semantics]
+        raw_evidence = item.get("evidenceIds") or item.get("evidence_ids") or []
+        evidence_ids = [eid for value in raw_evidence
+                        if (eid := evidence.reference(value)) is not None]
+        if not evidence_ids:
+            evidence_ids = evidence.assertion(item.get("text"))["evidenceIds"]
+        raw_dependencies = list(item.get("dependencies") or [])
+        audience = (item.get("audienceRole") or item.get("audience_role")
+                    or "")
         package.questions.append({
             "id": question_id,
-            "gapId": None,
+            "gapId": item.get("gapId") or item.get("gap_id"),
             "code": str(item.get("code") or ""),
             "text": str(_value(item.get("text"))),
-            "audienceRole": role_for(item.get("owner")),
-            "ownerUserId": item.get("owner"),
-            "answerSchema": ({"type": "string", "enum": list(item.get("options") or [])}
-                             if item.get("options") else {"type": "string"}),
-            "why": str(item.get("group") or ""),
-            "evidenceIds": evidence.assertion(item.get("text"))["evidenceIds"],
+            "audienceRole": role_for(audience),
+            "ownerUserId": (item.get("ownerUserId") or item.get("owner_user_id")
+                            or item.get("owner")),
+            "answerSchema": deepcopy(dict(
+                item.get("answerSchema") or item.get("answer_schema") or (
+                    {"type": "string", "enum": list(item.get("options") or [])}
+                    if item.get("options") else {"type": "string"}))),
+            "why": str(item.get("why") or item.get("group") or ""),
+            "evidenceIds": evidence_ids,
             "blockedArtifacts": applies,
-            "dependencies": [],
-            "informationGain": None,
-            "blastRadius": len(applies),
-            "priority": "normal",
-            "status": "answered" if answer else "open",
-            "askedBy": str(item.get("askedBy") or "customer"),
+            # Canonical IDs are resolved after all questions are enumerated below.
+            "dependencies": raw_dependencies,
+            "informationGain": item.get("informationGain", item.get("information_gain")),
+            "blastRadius": int(item.get("blastRadius", item.get("blast_radius"))
+                               or len(applies)),
+            "priority": str(item.get("priority") or "normal").lower(),
+            "status": ("answered" if answer and not supplied_questions else
+                       str(item.get("status") or "open").lower().removeprefix("status.")),
+            "askedBy": str(item.get("askedBy") or item.get("sourceKind") or "customer"),
+            "sourceKind": str(item.get("sourceKind") or item.get("source_kind") or ""),
+            "sourceRef": source_ref or None,
+            "version": int(item.get("version") or 0),
             "legacyId": legacy_id,
         })
         if answer:
             answered.append((question_id, item))
+
+    for item in package.questions:
+        item["dependencies"] = [question_ids.get(str(ref), str(ref))
+                                for ref in item["dependencies"]]
 
     flow_nodes = list(flow_data.get("nodes") or [])
     process_node_ids = {
@@ -663,9 +801,10 @@ def build_package(oir: OIR | Mapping[str, Any],
                     raw_decision.to_dict() if hasattr(raw_decision, "to_dict") else
                     vars(raw_decision))
         legacy_id = str(raw_data.get("id") or raw_data.get("key") or f"decision-{index}")
-        decision_ids[legacy_id] = _canonical_id("dec", legacy_id, "dec_", "dlg_")
+        decision_ids[legacy_id] = _stable_input_id("dec", legacy_id, "dec_", "dlg_")
     for index, raw_decision in enumerate(raw_decisions, 1):
         decision = _normalise_decision(raw_decision, index, question_ids)
+        decision["actorRole"] = role_for(decision.get("actorRole"))
         decision["affectedIds"] = [
             object_ids.get(r, action_ids.get(r, rule_ids.get(r, event_ids.get(r, r))))
             for r in decision["affectedIds"]

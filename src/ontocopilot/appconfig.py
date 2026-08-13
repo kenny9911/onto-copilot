@@ -96,6 +96,16 @@ async def apply(repo: Any, updates: dict[str, Any]) -> None:
     await refresh(repo)
 
 
-__all__ = ["refresh", "get", "usd_cap", "chat_usd_cap", "model_overrides",
-           "resolved_llm_config", "apply", "GATEWAY_BASE_URL", "GATEWAY_API_KEY",
-           "BUDGET_USD_CAP", "BUDGET_CHAT_USD_CAP"]
+__all__ = [
+    "BUDGET_CHAT_USD_CAP",
+    "BUDGET_USD_CAP",
+    "GATEWAY_API_KEY",
+    "GATEWAY_BASE_URL",
+    "apply",
+    "chat_usd_cap",
+    "get",
+    "model_overrides",
+    "refresh",
+    "resolved_llm_config",
+    "usd_cap",
+]

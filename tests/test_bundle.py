@@ -82,10 +82,31 @@ def test_build_zip_contains_manifest_readme_and_files_with_matching_hashes():
     # manifest 里每个文件的 sha256 与 zip 成员字节一致
     m = json.loads(zf.read("manifest.json"))
     assert m["schema"] == B.BUNDLE_SCHEMA
-    assert m["bundle_id"] == B.bundle_id(files, "0.1.0")
+    assert m["release_state"] == "DRAFT"
+    assert m["bundle_id"] == B.bundle_id(files, "0.1.0", "DRAFT")
     assert sha256_hex(zf.read("flow.json")) == m["files"][0]["sha256"]
     # 交付说明里要有「推断」的提醒 —— 交付前让人知道哪些没依据
-    assert "推断" in zf.read("交付说明.md").decode("utf-8")
+    readme = zf.read("交付说明.md").decode("utf-8")
+    assert "推断" in readme
+    assert "发布状态：DRAFT" in readme and "不得视为正式发布版本" in readme
+
+
+def test_released_bundle_is_explicit_in_manifest_and_readme():
+    manifest = B.build_manifest(
+        session={"id": "s1", "status": "done", "release_state": "RELEASED"},
+        product_version="0.1.0", files=[], materials=[], flow=None, oir=None,
+        open_questions=[], generated_at=1.0,
+    )
+    assert manifest["release_state"] == "RELEASED"
+    readme = B.readme_text(manifest)
+    assert "发布状态：RELEASED" in readme
+    assert "不得视为正式发布版本" not in readme
+    draft = B.build_manifest(
+        session={"id": "s1", "status": "done", "release_state": "DRAFT"},
+        product_version="0.1.0", files=[], materials=[], flow=None, oir=None,
+        open_questions=[], generated_at=1.0,
+    )
+    assert draft["bundle_id"] != manifest["bundle_id"]
 
 
 def test_empty_inputs_do_not_crash_provenance():

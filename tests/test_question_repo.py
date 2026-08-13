@@ -68,6 +68,24 @@ async def test_decision_repo_is_idempotent_and_supersedes(repo):
     assert [x.id for x in await repo.list_decisions_v1("s1")] == ["dec.1", "dec.2"]
 
 
+async def test_decision_repo_claim_finalize_and_semantic_dedup(repo):
+    claimed = DecisionRecordRow.from_domain(_decision())
+    claimed.metadata["status"] = "claimed"
+    got, created = await repo.record_decision_v1("s1", claimed)
+    assert created and got.metadata["status"] == "claimed"
+    applied = await repo.finalize_decision_v1("s1", got.id, status="applied")
+    assert applied.metadata["status"] == "applied"
+
+    # 新网络请求换了 idempotency key，但业务语义相同：仍然返回
+    # 原 Decision，不增加第二行，也不会让上层再执行副作用。
+    retry = _decision(key="another-request-key")
+    retry.id = "dec.another"
+    same, created_again = await repo.record_decision_v1(
+        "s1", DecisionRecordRow.from_domain(retry))
+    assert not created_again and same.id == got.id
+    assert len(await repo.list_decisions_v1("s1")) == 1
+
+
 async def test_decision_repo_rejects_idempotency_collision(repo):
     await repo.record_decision_v1("s1", DecisionRecordRow.from_domain(_decision()))
     bad = _decision(answer=1, key="answer-1")
@@ -87,6 +105,31 @@ async def test_revision_repo_round_trip_and_idempotency(repo):
     same, created_again = await repo.record_revision("s1", row)
     assert created and not created_again and same.id == got.id
     assert [x.id for x in await repo.list_revisions("s1")] == ["rev.1"]
+
+
+async def test_proposed_revision_finalizes_once(repo):
+    rev = Revision(
+        "rev.claim", 1, None, "returned_template", RevisionStatus.PROPOSED,
+    )
+    stored, created = await repo.record_revision(
+        "s1", RevisionRow.from_domain(rev, idempotency_key="returned:abc"))
+    assert created and stored.status == "proposed"
+    applied = await repo.finalize_revision("s1", stored.id, status="applied")
+    replay = await repo.finalize_revision("s1", stored.id, status="applied")
+    assert applied.status == replay.status == "applied"
+    assert applied.doc["status"] == "applied"
+
+
+async def test_proposed_revision_rejects_a_conflicting_terminal_transition(repo):
+    rev = Revision(
+        "rev.claim", 1, None, "returned_template", RevisionStatus.PROPOSED,
+    )
+    stored, _ = await repo.record_revision(
+        "s1", RevisionRow.from_domain(rev, idempotency_key="returned:terminal"))
+    await repo.finalize_revision("s1", stored.id, status="applied")
+    with pytest.raises(ValueError, match="不能改为 rejected"):
+        await repo.finalize_revision("s1", stored.id, status="rejected")
+    assert (await repo.list_revisions("s1"))[0].status == "applied"
 
 
 async def test_delete_session_cascades_domain_records(repo):

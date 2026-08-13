@@ -49,6 +49,10 @@ class Recorder:
         self._seq = 0
         self._lock = asyncio.Lock()
         self._counters: dict[str, int] = {}  # node_id → 下一个 effect 序号
+        # 同进程 single-flight：同一显式 key 并发调用时，第二个等第一个
+        # 的结果，绝不再执行一遍副作用。持久多 worker 还需 DB claim/
+        # provider idempotency key；这层先封住单 worker 最常见的竞态。
+        self._inflight: dict[str, tuple[str, asyncio.Future[Any]]] = {}
 
         # 重放索引
         self._effects: dict[str, dict[str, Any]] = {}  # effect key → {fp, ref, inline}
@@ -163,6 +167,7 @@ class Recorder:
             fn: 真正干活的可调用对象，同步异步均可。
             key: 节点内并发 effect 必须显式传，否则计数器顺序不稳定。
         """
+        leader = False
         async with self._lock:
             if key is None:
                 idx = self._counters.get(node_id, 0)
@@ -172,12 +177,24 @@ class Recorder:
                 ekey = f"{node_id}#{key}"
             recorded = self._effects.get(ekey)
 
-        fp = fingerprint({"kind": kind, "request": request})
+            fp = fingerprint({"kind": kind, "request": request})
+            pending = self._inflight.get(ekey)
+            if recorded is None and pending is None:
+                fut: asyncio.Future[Any] = asyncio.get_running_loop().create_future()
+                self._inflight[ekey] = (fp, fut)
+                leader = True
+            elif pending is not None:
+                pending_fp, fut = pending
+                if pending_fp != fp:
+                    raise DeterminismViolation(ekey, pending_fp, fp)
 
         if recorded is not None:
             if recorded["fp"] != fp:
                 raise DeterminismViolation(ekey, recorded["fp"], fp)
             return self._load(recorded)
+        if not leader:
+            # shield：等待者取消不应连带取消正在执行的副作用。
+            return await asyncio.shield(fut)
 
         self.emit(
             EventKind.EFFECT_REQUESTED,
@@ -188,12 +205,21 @@ class Recorder:
             result = fn()
             if inspect.isawaitable(result):
                 result = await result
-        except Exception as exc:
+        except BaseException as exc:
+            # CancelledError 是 BaseException。领导者被取消时若不清掉
+            # single-flight，同 key 的等待者会永久挂住。清理后原样重抛。
             self.emit(
                 EventKind.EFFECT_FAILED,
                 node_id=node_id,
                 payload={"key": ekey, "kind": kind, "error": f"{type(exc).__name__}: {exc}"},
             )
+            async with self._lock:
+                _fp, pending_fut = self._inflight.pop(ekey)
+                if not pending_fut.done():
+                    pending_fut.set_exception(exc)
+                    # 没有等待者时主协程会自己抛出；显式取 exception
+                    # 避免 asyncio 报“Future exception was never retrieved”。
+                    pending_fut.exception()
             raise
 
         payload, ref = self._store(result)
@@ -201,6 +227,9 @@ class Recorder:
         self.emit(EventKind.EFFECT_COMPLETED, node_id=node_id, payload=payload, ref=ref)
         async with self._lock:
             self._effects[ekey] = {"fp": fp, "ref": ref, "inline": payload.get("result")}
+            _fp, pending_fut = self._inflight.pop(ekey)
+            if not pending_fut.done():
+                pending_fut.set_result(result)
         return result
 
     # ── 确定性的时间与随机 ────────────────────────────────────────

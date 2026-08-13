@@ -14,15 +14,21 @@
 
 **只出他答得上、且答了有用的。** 一个提示如果点下去得到的是"我查不到"，
 它的净价值是负的 —— 用户会开始怀疑其余的提示。
+
+**而且一条都不能少。** 这两个函数是整个产品"接下来能干什么"的兜底，
+它们返回空列表，用户看到的就是一个没有任何出口的空白 —— 恰恰在最需要指路的
+时候（回答没跑通、梳理失败、材料传完还没开跑）。所以下面每条路径末尾都有
+:func:`_always`：状态再刁钻，也要给得出三条他现在真能问的。
 """
 
 from __future__ import annotations
 
-from collections.abc import Callable
-from dataclasses import dataclass, field
+import re
+from collections.abc import Callable, Iterable
+from dataclasses import dataclass
 from typing import Any
 
-__all__ = ["Prompt", "opening_prompts", "followup_prompts"]
+__all__ = ["Prompt", "followup_prompts", "opening_prompts"]
 
 
 @dataclass(slots=True)
@@ -69,6 +75,36 @@ def _facts(state: dict[str, Any], files: list[str], status: str) -> dict[str, An
     }
 
 
+def _key(text: str) -> str:
+    """比对"是不是同一句"用的归一化：去空白与常见标点。
+
+    他打的是"这类项目一般怎么推进"，提示写的是"这类项目一般怎么推进？"——
+    逐字比会认为是两句，然后把他刚问过的原样推回去。
+    """
+    return re.sub(r"[\s，。？?！!、,.：:；;（）()「」\"']", "", str(text or ""))
+
+
+def _always(f: dict[str, Any]) -> list[Prompt]:
+    """任何状态下都给得出的三条。**这是最后一道兜底，不许返回空。**
+
+    按"他此刻手上有什么"分档，而不是按产物统计 —— 产物统计恰恰是那些刁钻状态
+    （梳理失败、抽出来是空的）里最靠不住的东西。
+    """
+    if f["n_files"] == 0:
+        return [Prompt("我手上有一堆业务流程文档，你能帮我做什么？", "先了解"),
+                Prompt("这类本体建模项目一般怎么推进？", "先了解"),
+                Prompt("我把材料传上来，你先看看？", "开始")]
+    if f["status"] != "done":
+        return [Prompt(f"这 {f['n_files']} 份材料里都有什么？", "看材料",
+                       send="先概括一下这些材料的结构：几张表、各是什么形状、"
+                            "哪些是流程说明"),
+                Prompt("这些材料够不够做一轮梳理？还缺什么？", "看材料"),
+                Prompt("先挑一份最关键的讲讲它在说什么", "看材料")]
+    return [Prompt("这一轮梳理都抽出了什么？", "看产物"),
+            Prompt("哪些结论是推断出来的、没有材料依据？", "核实"),
+            Prompt("接下来我该跟客户确认哪些事？", "分工")]
+
+
 # ══════════════════════════════════════════════════════════════════
 #  开场
 # ══════════════════════════════════════════════════════════════════
@@ -103,8 +139,9 @@ def opening_prompts(*, state: dict[str, Any], files: list[str],
     for r in _OPENING:
         if r.when(f):
             return [p.to_dict() for p in r.make(f)]
-    # 已经跑完了：开场就该是产物相关的
-    return [p.to_dict() for p in _done_prompts(f)[:3]]
+    # 已经跑完了：开场就该是产物相关的。产物统计全是 0（只抽到对象、没流程没规则、
+    # 问题也答完了 —— 一个正常终态）时 _done_prompts 会空，兜底顶上。
+    return [p.to_dict() for p in (_done_prompts(f) or _always(f))[:3]]
 
 
 def _done_prompts(f: dict[str, Any]) -> list[Prompt]:
@@ -145,34 +182,46 @@ _ECHO: tuple[tuple[str, str, str], ...] = (
 
 
 def followup_prompts(*, answer: str, state: dict[str, Any], files: list[str],
-                     status: str = "idle", limit: int = 3) -> list[dict[str, Any]]:
+                     status: str = "idle", limit: int = 3,
+                     asked: Iterable[str] = ()) -> list[dict[str, Any]]:
     """一次回答之后，给几条他多半想接着问的。
 
-    优先从**回答内容**长出来（他刚读完，正想问的就是它），不够再用状态补。
-    去重后截断 —— 提示多于三条就变成噪声，人会一条都不看。
+    ``asked`` 是他这轮之前说过的话。**已经问过的不再推荐** —— 聊了十轮之后
+    还把开场白推给他（"我手上有一堆业务流程文档，你能帮我做什么？"）是这套
+    提示最伤人的失败模式：它证明系统没在听。
+
+    优先从**回答内容**长出来（他刚读完，正想问的就是它），不够再用状态补，
+    还不够就用 :func:`_always` 兜底。去重后截断 —— 提示多于三条就变成噪声，
+    人会一条都不看。
+
+    **不会返回空。** 以前只有"一份材料都没有"时才兜底，于是最常见的中间态
+    （材料传了、还没梳理）和最需要指路的时刻（回答是"这轮没跑通：…"）
+    反而一条提示都没有。
     """
     a = str(answer or "")
     out: list[Prompt] = []
-    seen: set[str] = set()
+    seen = {_key(x) for x in asked}
+
+    def take(p: Prompt) -> None:
+        if _key(p.text) not in seen:
+            out.append(p)
+            seen.add(_key(p.text))
 
     for needle, text, group in _ECHO:
-        if needle in a and text not in seen:
-            out.append(Prompt(text, group))
-            seen.add(text)
+        if needle in a:
+            take(Prompt(text, group))
         if len(out) >= limit:
             return [p.to_dict() for p in out]
 
     f = _facts(state, files, status)
     for p in _done_prompts(f):
-        if p.text in seen:
-            continue
-        out.append(p)
-        seen.add(p.text)
+        take(p)
         if len(out) >= limit:
             break
 
-    if not out and f["n_files"] == 0:
-        # 空会话里聊天，接着聊建模本身是最自然的
-        out = [Prompt("这类项目一般怎么推进？", "先了解"),
-               Prompt("我把材料传上来，你先看看？", "开始")]
-    return [p.to_dict() for p in out[:limit]]
+    for p in _always(f):
+        if len(out) >= limit:
+            break
+        take(p)
+    # 全被"他已经问过"筛掉了 —— 一条提示都不给比重复一条更糟，原样顶上。
+    return [p.to_dict() for p in (out or _always(f))[:limit]]

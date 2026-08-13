@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """端到端用例。判据全部是**用户能观察到的事实**。
 
 每条用例对应一次真实发生过的失败。写法上刻意不 import 项目内部模块 ——
@@ -10,12 +9,16 @@ from __future__ import annotations
 
 import argparse
 import json
+import logging
 import sys
 import time
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 import httpx
+
+log = logging.getLogger(__name__)
 
 BASE = "http://127.0.0.1:8000"
 MAT = Path(__file__).resolve().parents[1] / "usecases" / "materials"
@@ -80,8 +83,8 @@ class Client:
         for sid in self.made:
             try:
                 self.c.delete(f"/api/sessions/{sid}?purge=true")
-            except Exception:  # noqa: BLE001 — 清理失败不该盖过用例本身的结果
-                pass
+            except Exception as exc:  # noqa: BLE001 — 清理失败不该盖过用例本身的结果
+                log.warning("清理会话 %s 失败: %s", sid, exc)
         self.c.close()
 
 
@@ -368,7 +371,7 @@ def uc15(cl: Client) -> str:
     import re
 
     html = httpx.get(BASE, timeout=10).text
-    js = re.search(r"<script>(.*)</script>", html, re.S)
+    js = re.search(r"<script>(.*)</script>", html, re.DOTALL)
     check(js is not None, "首页里没有 script 块")
     js = js.group(1)
 
@@ -501,7 +504,7 @@ def uc21(cl: Client) -> str:
     import re
 
     html = httpx.get(BASE, timeout=10).text
-    fn = re.search(r"function paintActions\(\)\{(.*?)\n\}", html, re.S)
+    fn = re.search(r"function paintActions\(\)\{(.*?)\n\}", html, re.DOTALL)
     check(fn is not None, "没有 paintActions —— 动作栏不存在")
     body = fn.group(1)
     check("开始梳理" in body, "有材料未梳理时没有开始入口")
@@ -546,7 +549,7 @@ def uc23(cl: Client) -> str:
     import re
 
     html = httpx.get(BASE, timeout=10).text
-    blk = re.search(r"if \(intro && !hasChat\) \{(.*?)\n  \}", html, re.S)
+    blk = re.search(r"if \(intro && !hasChat\) \{(.*?)\n  \}", html, re.DOTALL)
     check(blk is not None, "找不到空状态分支")
     check("PROMPTS" in blk.group(1), "空状态没有渲染开场提示")
 
@@ -611,11 +614,11 @@ def uc26(cl: Client) -> str:
     import re
 
     html = httpx.get(BASE, timeout=10).text
-    js = re.search(r"<script>(.*)</script>", html, re.S)
+    js = re.search(r"<script>(.*)</script>", html, re.DOTALL)
     check(js is not None, "首页里没有 script 块")
     js = js.group(1)
     for fn in ("newSession", "openSession"):
-        m = re.search(rf"function {fn}\s*\([^)]*\)\s*\{{(.*?)\n\}}", js, re.S)
+        m = re.search(rf"function {fn}\s*\([^)]*\)\s*\{{(.*?)\n\}}", js, re.DOTALL)
         check(m is not None, f"找不到 {fn} 函数")
         body = m.group(1)
         check("TRACE = []" in body, f"{fn} 没重置 TRACE —— 推理 tab 会残留上一个会话")

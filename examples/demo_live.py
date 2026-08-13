@@ -36,7 +36,6 @@ from ontocopilot.onto.oir import (
     ObjectType,
     PropertyType,
     Provenance,
-    Status,
     extracted,
     inferred,
     make_rid,

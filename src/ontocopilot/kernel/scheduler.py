@@ -12,13 +12,15 @@
 from __future__ import annotations
 
 import asyncio
+import re
 from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import Any
 
 from .budget import Budget, DegradeLevel
 from .bus.bus import AgentBus
-from .dag import Dag
+from .critic import Decision, Gate, GateResult, metrics_from
+from .dag import Dag, GateSpec
 from .errors import BudgetExhausted, HumanInputRequired, NodeFailure
 from .events import EventKind
 from .loop import AgentLoop, NodeResult
@@ -77,8 +79,13 @@ class Scheduler:
         self.budget = budget
         self.sem = asyncio.Semaphore(concurrency)
         self._level = DegradeLevel.NONE
+        self._run_deadline: float | None = None
+        self._wallclock_mark: float | None = None
 
     async def run(self, run_id: str, *, seed: dict[str, Any] | None = None) -> RunOutcome:
+        clock = asyncio.get_running_loop().time
+        self._wallclock_mark = clock()
+        self._run_deadline = self._wallclock_mark + self.budget.remaining("wallclock_s")
         self.rec.emit(EventKind.RUN_STARTED, payload={"dag": self.dag.name})
         working = WorkingSet()
         for k, v in (seed or {}).items():
@@ -101,6 +108,13 @@ class Scheduler:
             self.rec.emit(EventKind.RUN_RESUMED, payload={"restored": skipped})
 
         while pending or running:
+            self._account_wallclock()
+            try:
+                self.budget.check("wallclock_s")
+            except BudgetExhausted as exc:
+                for task in running:
+                    task.cancel()
+                return self._fail(results, skipped, str(exc))
             self._maybe_degrade()
 
             ready = sorted(
@@ -115,6 +129,7 @@ class Scheduler:
                 return self._fail(results, skipped, f"依赖无法满足，卡住的节点: {stuck}")
 
             finished, _ = await asyncio.wait(running, return_when=asyncio.FIRST_COMPLETED)
+            self._account_wallclock()
             for task in finished:
                 nid = running.pop(task)
                 try:
@@ -158,11 +173,33 @@ class Scheduler:
         spec = self.dag[nid]
         deps = self.dag.resolve_deps(nid)
         last: Exception | None = None
+        clock = asyncio.get_running_loop().time
+        node_deadline = clock() + spec.budget.wallclock_s
 
         async with self.sem:
             for attempt in range(spec.retries + 1):
                 try:
-                    return await self.loop.run(spec, working=working, deps=deps, run_id=run_id)
+                    remaining = node_deadline - clock()
+                    if self._run_deadline is not None:
+                        remaining = min(remaining, self._run_deadline - clock())
+                    if remaining <= 0:
+                        raise TimeoutError
+                    async with asyncio.timeout(remaining):
+                        result = await self.loop.run(
+                            spec,
+                            working=working,
+                            deps=deps,
+                            run_id=run_id,
+                        )
+                        await self._apply_gate(nid, result)
+                    return result
+                except TimeoutError:
+                    last = NodeFailure(
+                        nid,
+                        f"超过节点墙钟上限 {spec.budget.wallclock_s}s",
+                        retryable=False,
+                    )
+                    break
                 except HumanInputRequired:
                     raise  # 不是失败，是等人 —— 直接上抛让 Run 挂起
                 except NodeFailure as exc:
@@ -180,6 +217,139 @@ class Scheduler:
                 )
 
         raise NodeFailure(nid, f"{type(last).__name__}: {last}", retryable=False)
+
+    def _account_wallclock(self) -> None:
+        """Charge real elapsed run time once, regardless of node concurrency."""
+        if self._wallclock_mark is None:
+            return
+        now = asyncio.get_running_loop().time()
+        elapsed = max(0.0, now - self._wallclock_mark)
+        if elapsed:
+            self.budget.spend(wallclock_s=elapsed)
+        self._wallclock_mark = now
+
+    # ── 质量门 ──────────────────────────────────────────────────
+    async def _apply_gate(self, nid: str, result: NodeResult) -> None:
+        """Evaluate a node gate immediately before committing its output.
+
+        ``NodeSpec.gate`` is the serializable :class:`GateSpec`; older callers also
+        passed the executable :class:`Gate` directly.  Supporting both here closes the
+        historical type split without breaking those callers.  A non-PASS result never
+        reaches ``complete_node`` or any downstream node.
+        """
+        gate = self.dag[nid].gate
+        if gate is None:
+            return
+
+        metrics = metrics_from(result.verdicts)
+        if isinstance(result.output, dict):
+            # Domain handlers may expose deterministic quality measurements in their
+            # structured output (for example ``completeness.required_fill_rate``).
+            # Make those paths available while reserving the kernel's review keys.
+            domain_metrics = {
+                key: value for key, value in result.output.items() if key not in metrics
+            }
+            metrics = {**domain_metrics, **metrics, "output": result.output}
+        if isinstance(gate, Gate):
+            decision = gate.evaluate(metrics, self.rec, nid)
+            await self._enforce_gate_decision(nid, gate.name, decision, result)
+            return
+
+        if not isinstance(gate, GateSpec):
+            raise NodeFailure(nid, f"不支持的 gate 配置: {type(gate).__name__}", retryable=False)
+
+        kind = gate.kind.strip().lower()
+        if kind not in {"auto", "hitl"}:
+            raise NodeFailure(nid, f"未知 gate kind: {gate.kind!r}", retryable=False)
+
+        failed = [
+            expr
+            for expr in gate.require
+            if not _requirement_passes(expr, metrics, node_id=nid)
+        ]
+        if kind == "auto":
+            decision = GateResult(
+                Decision.PASS if not failed else Decision.ABORT,
+                "全部硬门通过" if not failed else f"未通过: {failed}",
+                {"failed": failed},
+            )
+            _emit_gate(self.rec, nid, "auto", decision, failed)
+            await self._enforce_gate_decision(nid, "auto", decision, result)
+            return
+
+        request_id = f"{nid}:gate"
+        answer = await self.rec.ask_human(
+            nid,
+            request_id,
+            {
+                "kind": "gate",
+                "gate": "hitl",
+                "failed": failed,
+                "metrics": metrics,
+                "output": result.output,
+                "actions": ["pass", "revise", "abort"],
+            },
+        )
+        choice = str((answer or {}).get("decision", "")).strip().lower()
+        mapped = {
+            "pass": Decision.PASS,
+            "approve": Decision.PASS,
+            "revise": Decision.REVISE,
+            "abort": Decision.ABORT,
+            "round_trip": Decision.ROUND_TRIP,
+        }.get(choice)
+        if mapped is None:
+            raise NodeFailure(nid, f"HITL gate 收到无效决策: {choice!r}", retryable=False)
+        decision = GateResult(mapped, f"人工决策: {choice}", {"failed": failed})
+        _emit_gate(self.rec, nid, "hitl", decision, failed)
+        await self._enforce_gate_decision(nid, "hitl", decision, result)
+
+    async def _enforce_gate_decision(
+        self,
+        nid: str,
+        name: str,
+        result: GateResult,
+        node_result: NodeResult,
+    ) -> None:
+        if result.decision is Decision.PASS:
+            return
+        if result.decision is Decision.ASK_USER:
+            request_id = f"{nid}:gate"
+            answer = await self.rec.ask_human(
+                nid,
+                request_id,
+                {
+                    "kind": "gate",
+                    "gate": name,
+                    "reason": result.reason,
+                    "detail": result.detail,
+                    "output": node_result.output,
+                    "actions": ["pass", "revise", "abort"],
+                },
+            )
+            choice = str((answer or {}).get("decision", "")).strip().lower()
+            if choice in {"pass", "approve"}:
+                _emit_gate(
+                    self.rec,
+                    nid,
+                    name,
+                    GateResult(Decision.PASS, "人工决策: pass", result.detail),
+                    list(result.detail.get("failed", ())),
+                )
+                return
+            retryable = choice == "revise"
+            final = Decision.REVISE if retryable else Decision.ABORT
+            _emit_gate(
+                self.rec,
+                nid,
+                name,
+                GateResult(final, f"人工决策: {choice or '无效'}", result.detail),
+                list(result.detail.get("failed", ())),
+            )
+            raise NodeFailure(nid, f"质量门「{name}」人工决策: {choice or '无效'}", retryable=retryable)
+        if result.decision in {Decision.REVISE, Decision.AUTO_REPAIR}:
+            raise NodeFailure(nid, f"质量门「{name}」要求重做：{result.reason}", retryable=True)
+        raise NodeFailure(nid, f"质量门「{name}」未通过：{result.reason}", retryable=False)
 
     # ── 降级 ────────────────────────────────────────────────────
     def _maybe_degrade(self) -> None:
@@ -203,3 +373,95 @@ class Scheduler:
             status=RunStatus.FAILED, results=results, skipped=skipped,
             error=msg, budget=self.budget.snapshot(),
         )
+
+
+_REQ_RE = re.compile(
+    r"^(?P<path>[A-Za-z_][A-Za-z0-9_.-]*)\s*"
+    r"(?P<op>==|!=|>=|<=|>|<)\s*"
+    r"(?P<value>true|false|null|-?\d+(?:\.\d+)?|'[^']*'|\"[^\"]*\")$",
+    re.IGNORECASE,
+)
+
+
+def _requirement_passes(
+    expression: str,
+    metrics: dict[str, Any],
+    *,
+    node_id: str = "gate",
+) -> bool:
+    """Evaluate the deliberately small, non-executable GateSpec assertion language."""
+    match = _REQ_RE.fullmatch(expression.strip())
+    if match is None:
+        raise NodeFailure(
+            node_id,
+            f"不支持的 gate require 表达式: {expression!r}",
+            retryable=False,
+        )
+
+    path = match.group("path")
+    parts = path.split(".")
+    left: Any = metrics
+    if parts[0] not in metrics and parts[0] in metrics.get("by_lens", {}):
+        lens = parts.pop(0)
+        left = {
+            "passed": metrics["by_lens"][lens],
+            "high_findings": metrics["high_by_lens"][lens],
+            "total_findings": metrics["findings_by_lens"][lens],
+        }
+    for part in parts:
+        if not isinstance(left, dict) or part not in left:
+            raise NodeFailure(
+                node_id,
+                f"gate require 引用未知指标: {path!r}",
+                retryable=False,
+            )
+        left = left[part]
+
+    raw = match.group("value")
+    folded = raw.lower()
+    if folded == "true":
+        right: Any = True
+    elif folded == "false":
+        right = False
+    elif folded == "null":
+        right = None
+    elif raw[:1] in {'"', "'"}:
+        right = raw[1:-1]
+    else:
+        right = float(raw) if "." in raw else int(raw)
+
+    op = match.group("op")
+    try:
+        return {
+            "==": lambda: left == right,
+            "!=": lambda: left != right,
+            ">=": lambda: left >= right,
+            "<=": lambda: left <= right,
+            ">": lambda: left > right,
+            "<": lambda: left < right,
+        }[op]()
+    except TypeError as exc:
+        raise NodeFailure(
+            node_id,
+            f"gate require 类型不可比较: {expression!r}",
+            retryable=False,
+        ) from exc
+
+
+def _emit_gate(
+    rec: Recorder,
+    node_id: str,
+    name: str,
+    result: GateResult,
+    failed: list[str],
+) -> None:
+    rec.emit(
+        EventKind.GATE_EVALUATED,
+        node_id=node_id,
+        payload={
+            "gate": name,
+            "decision": str(result.decision),
+            "reason": result.reason,
+            "failed": failed,
+        },
+    )

@@ -20,6 +20,7 @@ from typing import Any
 
 from .oir import (
     OIR,
+    ActionType,
     BaseType,
     BusinessRule,
     Cardinality,
@@ -112,16 +113,31 @@ def _find_rule(oir: OIR, ref: str) -> BusinessRule:
     raise OIREditError(f"「{ref}」对应多条规则，说具体些。")
 
 
+def _find_action(oir: OIR, ref: str) -> ActionType:
+    if ref in oir.actions:
+        return oir.actions[ref]
+    hit = [a for a in oir.actions.values() if a.api_name.value == ref]
+    if len(hit) == 1:
+        return hit[0]
+    if not hit:
+        hit = [a for a in oir.actions.values() if ref in (a.api_name.value or "")]
+    if len(hit) == 1:
+        return hit[0]
+    if not hit:
+        raise OIREditError(f"找不到动作「{ref}」。")
+    raise OIREditError(f"「{ref}」对应多个动作，说具体些。")
+
+
 def _resolve_any(oir: OIR, ref: str) -> Any:
-    """跨容器解析一个实体（对象/属性/关系/规则），edit_assertion / set_status 用。"""
-    for finder in (_find_object, _find_property, _find_rule):
+    """跨容器解析实体，供 edit_assertion / set_status 使用。"""
+    for finder in (_find_object, _find_property, _find_rule, _find_action):
         try:
             return finder(oir, ref)
         except OIREditError:
             continue
     if ref in oir.links:
         return oir.links[ref]
-    raise OIREditError(f"找不到「{ref}」对应的对象/属性/关系/规则。")
+    raise OIREditError(f"找不到「{ref}」对应的对象/属性/关系/动作/规则。")
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -210,6 +226,38 @@ def _op_add_rule(oir: OIR, *, statement: str, kind: str = "PROCESS",
     return f"新增业务规则「{statement[:24]}」（{rk.value}）。"
 
 
+def _op_add_action_type(
+    oir: OIR,
+    *,
+    api_name: str,
+    applies_to: list[str] | None = None,
+    parameters: list[dict[str, Any]] | None = None,
+    effects: list[str] | None = None,
+    source_endpoint: dict[str, str] | None = None,
+) -> str:
+    """新增可执行语义动作；所有口述字段保持 USER provenance。"""
+    api_name = (api_name or "").strip()
+    if not api_name:
+        raise OIREditError("新增动作要给 api_name。")
+    if any(a.api_name.value == api_name for a in oir.actions.values()):
+        raise OIREditError(f"已有动作「{api_name}」，要改用 oir.edit。")
+    targets = [_find_object(oir, ref).rid for ref in (applies_to or [])]
+    action = ActionType(
+        rid=make_rid("at", api_name),
+        api_name=_human(api_name, f"人工口述新增动作：{api_name}"),
+        applies_to=targets,
+        parameters=_human(list(parameters or []), "人工口述动作参数"),
+        effects=_human(list(effects or []), "人工口述动作效果"),
+        source_endpoint=(
+            _human(dict(source_endpoint), "人工口述动作接口")
+            if source_endpoint
+            else inferred(None)
+        ),
+    )
+    oir.add_action(action)
+    return f"新增动作「{api_name}」（人工口述，标 USER 来源）。"
+
+
 def _op_add_enum_value(oir: OIR, *, property: str, value: str) -> str:
     pt = _find_property(oir, property)
     dom = list(pt.value_domain.value or [])
@@ -230,9 +278,13 @@ _COERCE = {
     "base_type": lambda v: BaseType(v),
     "cardinality": lambda v: Cardinality(v),
     "required": lambda v: bool(v) if isinstance(v, bool) else str(v).lower() in ("1", "true", "是", "yes"),
+    "parameters": lambda v: list(v),
+    "effects": lambda v: list(v),
+    "source_endpoint": lambda v: dict(v) if v is not None else None,
 }
 _EDITABLE = {"display_name", "description", "definition", "base_type",
-             "cardinality", "api_name", "required", "actor", "statement"}
+             "cardinality", "api_name", "required", "actor", "statement",
+             "parameters", "effects", "source_endpoint"}
 
 
 def _op_edit_assertion(oir: OIR, *, target: str, field: str, value: Any,
@@ -266,6 +318,13 @@ def _op_bind_rule(oir: OIR, *, rule: str, object: str) -> str:
         br.applies_to.append(obj.rid)
     br.status = Status.PROPOSED
     return f"把规则「{br.statement.value[:16]}」挂到「{obj.display_name.value}」。"
+
+
+def _op_set_action_scope(oir: OIR, *, action: str, objects: list[str]) -> str:
+    at = _find_action(oir, action)
+    at.applies_to = [_find_object(oir, ref).rid for ref in objects]
+    at.status = Status.PROPOSED
+    return f"把动作「{at.api_name.value}」关联到 {len(at.applies_to)} 个数据对象。"
 
 
 def _require_user_origin(ent: Any, kind: str) -> None:
@@ -315,21 +374,31 @@ def _op_remove_rule(oir: OIR, *, target: str) -> str:
     return f"删掉了规则「{r.statement.value[:16]}」。"
 
 
+def _op_remove_action_type(oir: OIR, *, target: str) -> str:
+    action = _find_action(oir, target)
+    _require_user_origin(action, "动作")
+    oir.actions.pop(action.rid, None)
+    return f"删掉了动作「{action.api_name.value}」。"
+
+
 _OPS = {
     # add
     "add_object_type": _op_add_object_type,
     "add_property": _op_add_property,
     "add_link": _op_add_link,
     "add_rule": _op_add_rule,
+    "add_action_type": _op_add_action_type,
     "add_enum_value": _op_add_enum_value,
     # edit
     "edit_assertion": _op_edit_assertion,
     "set_status": _op_set_status,
     "bind_rule": _op_bind_rule,
+    "set_action_scope": _op_set_action_scope,
     "remove_object_type": _op_remove_object_type,
     "remove_property": _op_remove_property,
     "remove_link": _op_remove_link,
     "remove_rule": _op_remove_rule,
+    "remove_action_type": _op_remove_action_type,
 }
 
 
@@ -350,6 +419,10 @@ def _guard(oir: OIR) -> None:
         for a in r.applies_to:
             if a not in oir.objects:
                 raise OIREditError(f"规则 {r.rid} 挂到了不存在的对象 {a}。")
+    for action in oir.actions.values():
+        for target in action.applies_to:
+            if target not in oir.objects:
+                raise OIREditError(f"动作 {action.rid} 关联了不存在的对象 {target}。")
     seen: dict[str, str] = {}
     for o in oir.objects.values():
         k = o.api_name.value

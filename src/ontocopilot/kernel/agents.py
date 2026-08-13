@@ -48,9 +48,8 @@ class AgentSpec:
     def render_system(self, library: SkillLibrary | None = None) -> str:
         """组装系统提示词：角色 + 技能目录（brief，不含正文）。"""
         parts = [self.system.strip()]
-        if library is not None and self.skills:
-            if catalog := library.catalog(list(self.skills)):
-                parts += ["", catalog]
+        if library is not None and self.skills and (catalog := library.catalog(list(self.skills))):
+            parts += ["", catalog]
         return "\n".join(parts)
 
     def to_dict(self) -> dict[str, Any]:
@@ -161,6 +160,281 @@ _RULE_MINER_SCHEMA: dict[str, Any] = {
                 },
             },
         },
+    },
+}
+
+
+def _array(item: dict[str, Any]) -> dict[str, Any]:
+    """Keep the FDE output contracts readable without weakening their item schema."""
+    return {"type": "array", "items": item}
+
+
+_REFS = _array({"type": "string", "minLength": 1})
+
+_INTERVIEWER_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "required": ["engagement", "findings", "questions"],
+    "properties": {
+        "engagement": {
+            "type": "object",
+            "required": [
+                "objective", "in_scope", "out_of_scope", "stakeholders", "systems",
+                "acceptance_criteria",
+            ],
+            "properties": {
+                "objective": {"type": "string", "minLength": 1},
+                "in_scope": _array({"type": "string", "minLength": 1}),
+                "out_of_scope": _array({"type": "string", "minLength": 1}),
+                "stakeholders": _array({
+                    "type": "object",
+                    "required": ["role", "decision_right"],
+                    "properties": {
+                        "role": {"type": "string", "minLength": 1},
+                        "person": {"type": ["string", "null"]},
+                        "decision_right": {"type": "string", "minLength": 1},
+                    },
+                }),
+                "systems": _array({
+                    "type": "object",
+                    "required": ["id", "name", "authority"],
+                    "properties": {
+                        "id": {"type": "string", "minLength": 1},
+                        "name": {"type": "string", "minLength": 1},
+                        "authority": {"type": "string", "enum": [
+                            "SYSTEM_OF_RECORD", "REPLICA", "WORKFLOW", "UNKNOWN",
+                        ]},
+                    },
+                }),
+                "acceptance_criteria": _array({"type": "string", "minLength": 1}),
+            },
+        },
+        "findings": _array({
+            "type": "object",
+            "required": ["statement", "epistemic_status", "evidence_ids"],
+            "properties": {
+                "statement": {"type": "string", "minLength": 1},
+                "epistemic_status": {"type": "string", "enum": [
+                    "FACT", "ASSUMPTION", "UNKNOWN",
+                ]},
+                "evidence_ids": _REFS,
+            },
+        }),
+        "questions": _array({
+            "type": "object",
+            "required": [
+                "id", "text", "audience_role", "priority", "answer_schema",
+                "blocked_artifacts", "evidence_ids",
+            ],
+            "properties": {
+                "id": {"type": "string", "minLength": 1},
+                "text": {"type": "string", "minLength": 1},
+                "audience_role": {"type": "string", "minLength": 1},
+                "owner_user_id": {"type": ["string", "null"]},
+                "priority": {"type": "string", "enum": [
+                    "BLOCKING", "HIGH", "NORMAL", "LOW",
+                ]},
+                "answer_schema": {"type": "object"},
+                "blocked_artifacts": _REFS,
+                "evidence_ids": _REFS,
+            },
+        }),
+    },
+}
+
+_PROCESS_MODELER_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "required": ["process_id", "perspective", "steps", "edges", "gaps"],
+    "properties": {
+        "process_id": {"type": "string", "minLength": 1},
+        "perspective": {"type": "string", "enum": ["AS_IS", "TO_BE"]},
+        "steps": _array({
+            "type": "object",
+            "required": [
+                "id", "name", "actor_role", "input_data_ids", "output_data_ids",
+                "system_ids", "evidence_ids",
+            ],
+            "properties": {
+                "id": {"type": "string", "minLength": 1},
+                "name": {"type": "string", "minLength": 1},
+                "actor_role": {"type": "string", "minLength": 1},
+                "trigger": {"type": ["string", "null"]},
+                "precondition": {"type": ["string", "null"]},
+                "input_data_ids": _REFS,
+                "output_data_ids": _REFS,
+                "system_ids": _REFS,
+                "evidence_ids": _REFS,
+            },
+        }),
+        "edges": _array({
+            "type": "object",
+            "required": ["id", "from", "to", "kind", "event_or_condition"],
+            "properties": {
+                "id": {"type": "string", "minLength": 1},
+                "from": {"type": "string", "minLength": 1},
+                "to": {"type": "string", "minLength": 1},
+                "kind": {"type": "string", "enum": [
+                    "SEQUENCE", "CONDITIONAL", "EXCEPTION", "TIMEOUT", "CANCEL",
+                ]},
+                "event_or_condition": {"type": "string"},
+            },
+        }),
+        "gaps": _REFS,
+    },
+}
+
+_ERP_MAPPER_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "required": ["landscape", "mappings", "questions"],
+    "properties": {
+        "landscape": _array({
+            "type": "object",
+            "required": ["system_id", "product", "version", "module", "org_scope"],
+            "properties": {
+                "system_id": {"type": "string", "minLength": 1},
+                "product": {"type": "string", "minLength": 1},
+                "version": {"type": ["string", "null"]},
+                "module": {"type": ["string", "null"]},
+                "org_scope": {"type": ["string", "null"]},
+            },
+        }),
+        "mappings": _array({
+            "type": "object",
+            "required": [
+                "process_step_id", "system_id", "implementation_kind", "target_refs",
+                "confidence", "evidence_ids",
+            ],
+            "properties": {
+                "process_step_id": {"type": "string", "minLength": 1},
+                "system_id": {"type": "string", "minLength": 1},
+                "implementation_kind": {"type": "string", "enum": [
+                    "STANDARD", "CONFIGURATION", "ENHANCEMENT", "CUSTOM", "EXTERNAL",
+                    "UNKNOWN",
+                ]},
+                "target_refs": _REFS,
+                "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+                "evidence_ids": _REFS,
+            },
+        }),
+        "questions": _REFS,
+    },
+}
+
+_RULE_ENGINEER_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "required": ["rules", "conflicts", "questions"],
+    "properties": {
+        "rules": _array({
+            "type": "object",
+            "required": [
+                "id", "kind", "trigger_event_id", "applies_to_ids", "condition",
+                "effect", "exceptions", "evidence_ids", "test_cases",
+            ],
+            "properties": {
+                "id": {"type": "string", "minLength": 1},
+                "kind": {"type": "string", "enum": [
+                    "VALIDATION", "PROCESS", "AUTHORITY", "CALCULATION", "DERIVATION",
+                ]},
+                "trigger_event_id": {"type": ["string", "null"]},
+                "applies_to_ids": _REFS,
+                "condition": {"type": "string", "minLength": 1},
+                "effect": {"type": "string", "minLength": 1},
+                "exceptions": _array({"type": "string"}),
+                "evidence_ids": _REFS,
+                "test_cases": _array({
+                    "type": "object",
+                    "required": ["kind", "given", "expected"],
+                    "properties": {
+                        "kind": {"type": "string", "enum": [
+                            "POSITIVE", "BOUNDARY", "NEGATIVE", "EXCEPTION",
+                        ]},
+                        "given": {"type": "object"},
+                        "expected": {},
+                    },
+                }),
+            },
+        }),
+        "conflicts": _REFS,
+        "questions": _REFS,
+    },
+}
+
+_DATA_STEWARD_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "required": ["data_objects", "quality_rules", "questions"],
+    "properties": {
+        "data_objects": _array({
+            "type": "object",
+            "required": [
+                "id", "name", "classification", "business_keys", "system_of_record",
+                "owner_role", "lifecycle_states", "sensitivity", "evidence_ids",
+            ],
+            "properties": {
+                "id": {"type": "string", "minLength": 1},
+                "name": {"type": "string", "minLength": 1},
+                "classification": {"type": "string", "enum": [
+                    "BUSINESS_OBJECT", "DOCUMENT", "MASTER_DATA", "TRANSACTION",
+                    "DERIVED_DATA",
+                ]},
+                "business_keys": _REFS,
+                "system_of_record": {"type": ["string", "null"]},
+                "owner_role": {"type": ["string", "null"]},
+                "lifecycle_states": _REFS,
+                "sensitivity": {"type": "string", "enum": [
+                    "PUBLIC", "INTERNAL", "CONFIDENTIAL", "RESTRICTED", "UNKNOWN",
+                ]},
+                "evidence_ids": _REFS,
+            },
+        }),
+        "quality_rules": _array({
+            "type": "object",
+            "required": ["id", "data_object_id", "dimension", "expression", "threshold"],
+            "properties": {
+                "id": {"type": "string", "minLength": 1},
+                "data_object_id": {"type": "string", "minLength": 1},
+                "dimension": {"type": "string", "enum": [
+                    "COMPLETENESS", "UNIQUENESS", "VALIDITY", "CONSISTENCY", "TIMELINESS",
+                ]},
+                "expression": {"type": "string", "minLength": 1},
+                "threshold": {"type": "number"},
+            },
+        }),
+        "questions": _REFS,
+    },
+}
+
+_DELIVERY_REVIEWER_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "required": ["verdict", "blockers", "warnings", "traceability", "artifact_checks"],
+    "properties": {
+        "verdict": {"type": "string", "enum": ["PASS", "BLOCKED"]},
+        "blockers": _array({
+            "type": "object",
+            "required": ["code", "message", "owner_role", "artifact_ids"],
+            "properties": {
+                "code": {"type": "string", "minLength": 1},
+                "message": {"type": "string", "minLength": 1},
+                "owner_role": {"type": "string", "minLength": 1},
+                "artifact_ids": _REFS,
+            },
+        }),
+        "warnings": _array({"type": "string", "minLength": 1}),
+        "traceability": {
+            "type": "object",
+            "required": ["checked", "unresolved"],
+            "properties": {
+                "checked": {"type": "integer", "minimum": 0},
+                "unresolved": _REFS,
+            },
+        },
+        "artifact_checks": _array({
+            "type": "object",
+            "required": ["artifact_id", "schema_valid", "downloadable"],
+            "properties": {
+                "artifact_id": {"type": "string", "minLength": 1},
+                "schema_valid": {"type": "boolean"},
+                "downloadable": {"type": "boolean"},
+            },
+        }),
     },
 }
 
@@ -298,6 +572,100 @@ FDE 的注意力是稀缺资源。问 10 个平庸问题比问 3 个关键问题
         budget=NodeBudget(tokens=150_000, iterations=8),
         critic_rounds=3,
     ),
+    AgentSpec(
+        name="fde_interviewer",
+        role="Interviewer：建立前线访谈范围基线，并把未知项路由成可回答的问题",
+        mode=NodeMode.PLAN_EXECUTE,
+        system=_BASE + """
+
+你是 FDE 的访谈副驾，不是假装熟悉客户业务的顾问。先区分事实、假设和未知，再提问。
+每个问题只解决一个决策，要写明应答角色、回答结构、证据、被阻塞产物与优先级。
+业务方没有明确授权时，不替他确认 AS-IS，不把产品建议写成业务事实。""",
+        tool_scope="interview",
+        skills=("访谈盘点", "缺口追问路由"),
+        critics=("provenance",),
+        difficulty=Difficulty.HIGH,
+        budget=NodeBudget(tokens=70_000, iterations=5),
+        output_schema=_INTERVIEWER_SCHEMA,
+    ),
+    AgentSpec(
+        name="process_modeler",
+        role="Process Modeler：把访谈与材料建成可追溯的 AS-IS/TO-BE 流程",
+        mode=NodeMode.PLAN_EXECUTE,
+        system=_BASE + """
+
+你负责流程语义，不负责替业务做优化决策。步骤、参与者、输入输出、系统、事件、网关、
+异常与证据必须显式；流程图与结构化输出必须共用稳定 ID。发现缺口就列出，不脑补。""",
+        tool_scope="process_model",
+        skills=("流程建模", "缺口追问路由"),
+        critics=("schema", "provenance"),
+        difficulty=Difficulty.HIGH,
+        budget=NodeBudget(tokens=90_000, iterations=6),
+        output_schema=_PROCESS_MODELER_SCHEMA,
+    ),
+    AgentSpec(
+        name="erp_mapper",
+        role="ERP Mapper：把业务步骤与对象映射到 ERP 模块、交易、接口和字段",
+        mode=NodeMode.REACT,
+        system=_BASE + """
+
+ERP 产品、版本与组织范围不明确时必须留空并向 ERP 顾问提问。只有材料能证明时才填写
+交易码、表字段或客制实现；标准、配置、增强、客制、外部系统必须分开。""",
+        tool_scope="erp_map",
+        skills=("ERP映射", "缺口追问路由"),
+        critics=("schema", "provenance"),
+        difficulty=Difficulty.CRITICAL,
+        budget=NodeBudget(tokens=100_000, iterations=7),
+        critic_rounds=3,
+        output_schema=_ERP_MAPPER_SCHEMA,
+    ),
+    AgentSpec(
+        name="rule_engineer",
+        role="Rule Engineer：把业务口径写成可判定、可追溯、可测试的 Rules",
+        mode=NodeMode.PLAN_EXECUTE,
+        system=_BASE + """
+
+不可判定的目标不是规则。复合句必须拆成原子规则；每条规则要绑定触发 Event、受约束
+对象、条件、效果、例外、证据和测试。规则优先级冲突要保留并转成问题。""",
+        tool_scope="rule_engineering",
+        skills=("规则结构化", "口径对齐", "缺口追问路由"),
+        critics=("schema", "provenance"),
+        difficulty=Difficulty.CRITICAL,
+        budget=NodeBudget(tokens=90_000, iterations=6),
+        critic_rounds=3,
+        output_schema=_RULE_ENGINEER_SCHEMA,
+    ),
+    AgentSpec(
+        name="data_steward",
+        role="Data Steward：治理 DataObject 的身份、生命周期、质量、敏感性与权威源",
+        mode=NodeMode.PLAN_EXECUTE,
+        system=_BASE + """
+
+业务对象不等于数据库表。你要定义业务键、状态机、System of Record、责任人、质量规则
+与访问分类。敏感性或权威源没有证据时形成问题，不用常识自动分级。""",
+        tool_scope="data_governance",
+        skills=("数据对象治理", "实体对齐", "缺口追问路由"),
+        critics=("schema", "provenance"),
+        difficulty=Difficulty.HIGH,
+        budget=NodeBudget(tokens=90_000, iterations=6),
+        output_schema=_DATA_STEWARD_SCHEMA,
+    ),
+    AgentSpec(
+        name="delivery_reviewer",
+        role="Reviewer：独立审查流程、本体、决策、证据和可下载交付件是否一致",
+        mode=NodeMode.PLAN_EXECUTE,
+        system=_BASE + """
+
+你是交付质量门，不参与补写业务事实。先读确定性校验结果，再做跨产物追溯审查。
+任一 blocking finding 必须有代码、影响产物和责任角色；阻断未清零就不得判 PASS。""",
+        tool_scope="delivery_review",
+        skills=("交付审查",),
+        critics=("schema", "provenance"),
+        difficulty=Difficulty.CRITICAL,
+        budget=NodeBudget(tokens=80_000, iterations=5),
+        critic_rounds=3,
+        output_schema=_DELIVERY_REVIEWER_SCHEMA,
+    ),
 ]
 
 #: 工具作用域 → 该作用域能用哪些工具。抽取 agent 拿不到写工具，
@@ -309,6 +677,16 @@ TOOL_SCOPES: dict[str, tuple[str, ...]] = {
     "analyze": ("evidence.search", "evidence.rows", "oir.query", "profile.column",
                 "code.exec"),
     "compile": ("oir.query", "code.exec"),
+    # FDE engagement 角色只读证据/中间表示。修改与导出由 DAG 中的
+    # 确定性 handler 执行，不给读取客户材料的 agent 任意 code.exec 权限。
+    "interview": ("evidence.search", "evidence.rows", "oir.query"),
+    "process_model": ("evidence.search", "evidence.rows", "oir.query"),
+    "erp_map": ("evidence.search", "evidence.rows", "oir.query", "profile.column"),
+    "rule_engineering": ("evidence.search", "evidence.rows", "oir.query"),
+    "data_governance": (
+        "evidence.search", "evidence.rows", "oir.query", "profile.column",
+    ),
+    "delivery_review": ("evidence.search", "evidence.rows", "oir.query"),
 }
 
 

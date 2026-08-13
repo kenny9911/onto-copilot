@@ -30,9 +30,18 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
-__all__ = ["ColumnRole", "ColumnView", "SegmentShape", "Yield",
-           "classify_columns", "infer_shape", "structural_extract",
-           "detect_questionnaire", "looks_like_question", "split_options"]
+__all__ = [
+    "ColumnRole",
+    "ColumnView",
+    "SegmentShape",
+    "Yield",
+    "classify_columns",
+    "detect_questionnaire",
+    "infer_shape",
+    "looks_like_question",
+    "split_options",
+    "structural_extract",
+]
 
 
 # ══════════════════════════════════════════════════════════════════

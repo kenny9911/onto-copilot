@@ -76,5 +76,10 @@ def token_hash(token: str) -> str:
     return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
 
-__all__ = ["normalize_username", "hash_password", "verify_password",
-           "mint_token", "token_hash"]
+__all__ = [
+    "hash_password",
+    "mint_token",
+    "normalize_username",
+    "token_hash",
+    "verify_password",
+]

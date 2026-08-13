@@ -17,9 +17,9 @@ from typing import Any
 from .base import Finding, ParsedDoc, Parser, make_chunk
 
 _LINE_COMMENT = re.compile(r"--\s*(.+?)\s*$")
-_IDENT = re.compile(r"^\s*[`\"\[]?(\w+)[`\"\]]?\s+", re.I)
+_IDENT = re.compile(r"^\s*[`\"\[]?(\w+)[`\"\]]?\s+", re.IGNORECASE)
 _NON_COL = re.compile(
-    r"^\s*(constraint|primary\s+key|foreign\s+key|unique|key|index|check)\b", re.I)
+    r"^\s*(constraint|primary\s+key|foreign\s+key|unique|key|index|check)\b", re.IGNORECASE)
 
 
 class DdlParser(Parser):
@@ -175,7 +175,7 @@ def _column_comments(sql: str) -> dict[str, dict[str, str]]:
     table = ""
     for line in sql.splitlines():
         if m := re.search(r"create\s+table\s+(?:if\s+not\s+exists\s+)?"
-                          r"[`\"\[]?([\w.]+)[`\"\]]?", line, re.I):
+                          r"[`\"\[]?([\w.]+)[`\"\]]?", line, re.IGNORECASE):
             table = m.group(1).split(".")[-1]
             out.setdefault(table, {})
             continue

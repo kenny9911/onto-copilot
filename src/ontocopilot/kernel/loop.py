@@ -16,9 +16,9 @@ from typing import Any
 
 from .budget import Budget
 from .bus.bus import AgentBus
-from .critic import CriticContext, CriticPanel, Decision, Verdict, metrics_from
+from .critic import CriticContext, CriticPanel, Verdict, metrics_from
 from .dag import Difficulty, NodeMode, NodeSpec
-from .errors import NodeFailure
+from .errors import BudgetExhausted, NodeFailure
 from .events import EventKind
 from .llm import ModelGateway
 from .memory.context import ContextManager
@@ -95,7 +95,7 @@ class NodeHandler(ABC):
         """HITL 模式下要问人什么。"""
         return {"draft": draft}
 
-    def for_node(self, node_id: str) -> "NodeHandler":
+    def for_node(self, node_id: str) -> NodeHandler:
         """按节点 id 解析出实际的 handler。
 
         fan-out 出来的实例（``EXTRACT.s0`` / ``EXTRACT.s1`` …）共用一个注册名，
@@ -116,6 +116,22 @@ class RunContext:
     budget: Budget
     ctx: ContextManager
     node_id: str = ""
+    node_tool_limit: int | None = None
+    node_tool_calls: int = 0
+
+    def spend_tool_call(self) -> None:
+        """Consume one call from the current node's frozen action budget.
+
+        The global :class:`Budget` protects the whole run; ``NodeBudget.tool_calls``
+        protects one node from monopolising that allowance.  Keeping both counters is
+        intentional: a twenty-call node must not become a five-hundred-call node merely
+        because the run-level budget is large.
+        """
+        if self.node_tool_limit is not None and self.node_tool_calls >= self.node_tool_limit:
+            raise BudgetExhausted(
+                "node_tool_calls", float(self.node_tool_limit), float(self.node_tool_calls)
+            )
+        self.node_tool_calls += 1
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -218,9 +234,14 @@ class AgentLoop:
 
         difficulty = node.difficulty or self._route(node, working, deps)
         inputs = working.select(deps)
+        # Configuration is part of the frozen control plane.  Validate it before the
+        # handler or model performs work, not only when/if the critic round is reached
+        # (budget degradation can otherwise hide a misspelling).
+        self.panel.validate(node.critics, node.id)
         rctx = RunContext(
             run_id=run_id, rec=self.rec, bus=self.bus, gateway=self.gw,
             budget=self.budget, ctx=self.cm, node_id=node.id,
+            node_tool_limit=node.budget.tool_calls,
         )
 
         pad = Scratchpad(budget_tokens=node.budget.tokens // 2)
@@ -243,19 +264,10 @@ class AgentLoop:
                 node, handler, inputs, draft, rctx, difficulty, rounds, pad
             )
 
-        # ── 硬门：**fail-closed** ─────────────────────────────────
-        # Gate 一直是实现好的，但没有任何地方读 NodeSpec.gate —— critic 判了不通过，
-        # 节点照样把产出交出去，"质量门"只是一句声明。这里让它真的挡住：判不过就
-        # 抛 NodeFailure，由调度器按 retryable 决定重试还是让整次 Run 失败。
-        if node.gate is not None:
-            gr = node.gate.evaluate(metrics_from(verdicts), self.rec, node.id)
-            if gr.decision in (Decision.ABORT, Decision.ROUND_TRIP):
-                raise NodeFailure(node.id, f"质量门「{node.gate.name}」未通过：{gr.reason}",
-                                  retryable=False)
-            if gr.decision is Decision.REVISE:
-                # 还能修就让调度器重试这个节点，而不是把半成品放行
-                raise NodeFailure(node.id, f"质量门「{node.gate.name}」要求重做：{gr.reason}",
-                                  retryable=True)
+        # Gate enforcement deliberately lives in Scheduler's pre-commit boundary:
+        # ``node.gate`` must be evaluated after this result exists, but before the output
+        # enters WorkingSet or receives NODE_COMPLETED.  Keeping the loop side-effect free
+        # also lets Scheduler support both serializable GateSpec and legacy runtime Gate.
 
         rendered = self.cm.assemble(
             task=handler.task(inputs), query=handler.query(inputs),
@@ -412,6 +424,14 @@ class AgentLoop:
                 draft = handler.finalize(comp.data, inputs)
             pad.append(action=f"refine#{r}", observation=f"按 {len(verdicts)} 条评审意见修订")
 
+            # A refinement creates a new artifact.  Previously the last refinement was
+            # returned with the verdict for its predecessor, so a regression introduced
+            # on that last write could be committed without ever being reviewed.
+            if r == rounds - 1:
+                verdicts = await self.panel.judge(
+                    draft, node.critics, cctx, allow_llm=self.budget.allow_llm_critic()
+                )
+
         return draft, verdicts, done
 
     # ── 辅助 ────────────────────────────────────────────────────
@@ -450,8 +470,9 @@ class AgentLoop:
 
         刻意保持廉价 —— 路由本身花钱就本末倒置了。
         """
-        from .memory.types import est_tokens
         import json
+
+        from .memory.types import est_tokens
 
         size = est_tokens(json.dumps(working.select(deps), ensure_ascii=False, default=str))
         if node.critics and len(node.critics) >= 3:

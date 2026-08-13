@@ -397,7 +397,9 @@ async def test_evidence_search_accepts_file_names_not_just_ids():
 
     class Ctx:
         approved = True
-        pending: list = []
+
+        def __init__(self):
+            self.pending: list = []
 
     hit = await reg.call("evidence.search",
                          {"query": "计划金额", "files": ["采购计划.xlsx"]}, Ctx())

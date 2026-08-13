@@ -18,7 +18,7 @@
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass, field, replace
+from dataclasses import dataclass, replace
 from enum import StrEnum
 from typing import Any
 
@@ -102,16 +102,16 @@ CARDS: list[ModelCard] = [
 
 #: 网关回这些话时，说明该模型确实缺某项能力，可以直接从目录里抹掉。
 _CAPABILITY_DENIALS: tuple[tuple[re.Pattern[str], Capability], ...] = (
-    (re.compile(r"support\s+image|image\s+input|vision|multimodal", re.I), C.VISION),
-    (re.compile(r"response_format|json_schema|structured", re.I), C.STRUCTURED),
-    (re.compile(r"reasoning|\beffort\b", re.I), C.EFFORT),
+    (re.compile(r"support\s+image|image\s+input|vision|multimodal", re.IGNORECASE), C.VISION),
+    (re.compile(r"response_format|json_schema|structured", re.IGNORECASE), C.STRUCTURED),
+    (re.compile(r"reasoning|\beffort\b", re.IGNORECASE), C.EFFORT),
 )
 
 
 def denial_capability(error_text: str) -> Capability | None:
     """从错误文本判断"缺的是哪项能力"。判不出来返回 None（那就是别的故障）。"""
     if not error_text or not re.search(r"not\s+support|unsupported|no\s+endpoints|"
-                                       r"不支持|invalid", error_text, re.I):
+                                       r"不支持|invalid", error_text, re.IGNORECASE):
         return None
     for pattern, cap in _CAPABILITY_DENIALS:
         if pattern.search(error_text):
@@ -128,19 +128,19 @@ def denial_capability(error_text: str) -> Capability | None:
 _NOT_CHAT_RE = re.compile(
     r"embedding|whisper|tts|dall-?e|stable-?diffusion|\bflux\b|midjourney|"
     r"rerank|moderation|image-|-audio|speech|-voice|sora|kling|suno|omni-moderation",
-    re.I)
+    re.IGNORECASE)
 _VISION_RE = re.compile(
     r"gpt-4o|gpt-4\.1|gpt-4-turbo|gpt-4-vision|gpt-4v|gpt-5|chatgpt-4o|"
     r"\bo1\b|\bo3\b|\bo4\b|gemini|claude-3|claude-4|claude-opus|claude-sonnet|"
     r"claude-haiku|qwen.*(?:vl|omni)|pixtral|llava|internvl|minicpm-v|glm-4v|"
-    r"glm-4\.\dv|step-1v|grok-2-vision|grok-4|llama-3\.2-(?:11b|90b)|llama-4", re.I)
+    r"glm-4\.\dv|step-1v|grok-2-vision|grok-4|llama-3\.2-(?:11b|90b)|llama-4", re.IGNORECASE)
 _TEXT_ONLY_RE = re.compile(
     r"gpt-3\.5|deepseek|text-davinci|babbage|moonshot|kimi(?!.*vl)|"
-    r"qwen(?!.*(?:vl|omni))|o1-mini|o3-mini|gemini-embedding", re.I)
-_CHEAP_RE = re.compile(r"mini|flash|haiku|nano|lite|small|8b|turbo|air", re.I)
+    r"qwen(?!.*(?:vl|omni))|o1-mini|o3-mini|gemini-embedding", re.IGNORECASE)
+_CHEAP_RE = re.compile(r"mini|flash|haiku|nano|lite|small|8b|turbo|air", re.IGNORECASE)
 _FRONTIER_RE = re.compile(
     r"opus|gpt-5|-pro\b|ultra|405b|max|claude-3-7|claude-sonnet-4|"
-    r"o1(?!-mini)|o3(?!-mini)|gemini-2\.5-pro|gemini-1\.5-pro", re.I)
+    r"o1(?!-mini)|o3(?!-mini)|gemini-2\.5-pro|gemini-1\.5-pro", re.IGNORECASE)
 
 
 def is_chat_model(name: str) -> bool:
@@ -327,7 +327,7 @@ class SmartGateway:
                 self.trace.append({"node": node_id, "model": card.name,
                                    "attempt": i + 1, "ok": True})
                 return comp
-            except Exception as exc:  # noqa: BLE001 — 要按错误内容判断该不该换模型
+            except Exception as exc:
                 text = str(exc)
                 errors.append(f"{card.name}: {text[:150]}")
                 lost = self.catalog.record_denial(card.name, text)

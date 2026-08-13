@@ -18,6 +18,8 @@ import json
 import random
 from typing import Any
 
+import httpx
+
 from .llm import LLMBackend, ModelError, ModelRefusal, ModelSpec, ModelTruncated, Usage
 
 #: 超过这个 max_tokens 必须走流式，否则会撞 HTTP 超时。
@@ -157,8 +159,6 @@ class OpenAICompatBackend(LLMBackend):
         max_retries: int = 3,
         extra_headers: dict[str, str] | None = None,
     ) -> None:
-        import httpx
-
         self.base_url = base_url.rstrip("/")
         self._key = api_key
         self.max_retries = max_retries
@@ -222,7 +222,7 @@ class OpenAICompatBackend(LLMBackend):
                                images=images)
             try:
                 resp = await self._client.post(f"{self.base_url}/chat/completions", json=body)
-            except Exception as exc:  # 网络层故障 —— 可重试
+            except httpx.RequestError as exc:  # 网络层故障 —— 可重试
                 last = exc
                 await self._backoff(attempt)
                 continue

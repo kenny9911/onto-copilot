@@ -34,8 +34,13 @@ from .oir import (
     make_rid,
 )
 
-__all__ = ["Suggestion", "SuggestionKind", "SuggestionEngine", "suggest",
-           "apply_suggestion"]
+__all__ = [
+    "Suggestion",
+    "SuggestionEngine",
+    "SuggestionKind",
+    "apply_suggestion",
+    "suggest",
+]
 
 
 class SuggestionKind(StrEnum):
@@ -88,7 +93,7 @@ _REL = ("rel", "relation", "ref", "map", "mapping", "link")
 #: 本体，客户在模板里看到一堆看不懂的名字，回填率立刻塌掉。
 _TECHNICAL = re.compile(
     r"(tmp|temp|log|logs|his|hist|history|bak|backup|snapshot|stg|staging|"
-    r"middle|mid|sync|job|task|batch)$", re.I)
+    r"middle|mid|sync|job|task|batch)$", re.IGNORECASE)
 
 
 def _split_suffix(api: str) -> tuple[str, str] | None:
@@ -206,8 +211,8 @@ class SuggestionEngine:
             kind=SuggestionKind.ASK_MATERIAL,
             title=f"{len(bare)} 个对象没有任何字段，需要再要一份字段梳理表",
             rationale=(
-                f"当前材料是一份**实体清单**，一行一个对象，没有字段列 —— "
-                f"所以零字段是材料的实情，不是抽取漏了。"
+                "当前材料是一份**实体清单**，一行一个对象，没有字段列 —— "
+                "所以零字段是材料的实情，不是抽取漏了。"
                 + (f"其中 {len(hot)} 个对象已经定义了接口却没有字段，"
                    "说明字段定义在另一份文件里。" if hot else "")
                 + "没有字段就没有口径，模板发下去客户也没东西可确认。"),

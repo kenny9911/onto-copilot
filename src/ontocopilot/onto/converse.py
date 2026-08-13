@@ -35,9 +35,33 @@ from ..kernel.critic import Finding, Severity
 from ..kernel.dag import Difficulty
 from ..kernel.intent import Intent, IntentMatch
 
-__all__ = ["ConverseTurn", "ConversationAgent", "ANSWER_SCHEMA",
-           "needs_reasoning", "check_grounding"]
+__all__ = [
+    "ANSWER_SCHEMA",
+    "ConversationAgent",
+    "ConverseTurn",
+    "check_grounding",
+    "needs_reasoning",
+]
 
+
+#: 推荐问题**跟着回答一起出**，不另起一次调用。以前是回答落地后再调一次模型
+#: 去猜"他接下来会问什么"：那次调用要重新读一遍上下文、还得自己思考，实测比
+#: 回答本身晚 7~8 秒才回来 —— 用户已经读完答案了，chips 才在眼皮底下换一批。
+#: 而写这三条最该问的所需的一切，此刻正在模型手上（刚查过什么、答案里哪块是
+#: 虚的），顺手写完既更贴、又不多花一次往返。
+#:
+#: 两个 schema 共用同一份定义：模型**可以在任何一步直接作答**（_STEP_SCHEMA 的
+#: kind=answer），只给最终 schema 加字段的话，最常见的"一步就答上来"反而拿不到
+#: 推荐问题，白白退回启发式。
+_NEXT_QUESTIONS: dict[str, Any] = {
+    "type": "array", "maxItems": 3, "items": {"type": "string"},
+    "description": "FDE 读完这个回答后最该接着问的，最多 3 条，一条一句。"
+                   "扣住这轮回答和当前产物：答案里哪块没依据、哪个口径要拍板、"
+                   "接下来该跑什么。别问空泛的（「能详细说说吗」）、别重复他刚"
+                   "问过的、别问你自己也答不上的。点下去就是原样发出去的一句话，"
+                   "所以要写成他会说的话。想不出真正有用的就给空数组 —— "
+                   "凑数的提示比没有更糟",
+}
 
 #: 推理循环的产出契约。
 #:
@@ -65,6 +89,7 @@ ANSWER_SCHEMA: dict[str, Any] = {
         "followup": {"type": "string",
                      "description": "如果回答依赖某个你无法确定的前提，把它写成一个问题；"
                                     "没有就留空"},
+        "next_questions": _NEXT_QUESTIONS,
     },
 }
 
@@ -152,6 +177,8 @@ class ConverseTurn:
     citations: list[str] = field(default_factory=list)
     confidence: float = 0.0
     followup: str = ""
+    #: 他接下来最该问的几条。回答自带，不另起一次调用（见 ANSWER_SCHEMA）。
+    next_questions: list[str] = field(default_factory=list)
     #: 想了几步、调了哪些工具。用于流式展示与事后审计。
     steps: list[dict[str, Any]] = field(default_factory=list)
     findings: list[Finding] = field(default_factory=list)
@@ -168,6 +195,7 @@ class ConverseTurn:
     def to_dict(self) -> dict[str, Any]:
         return {"text": self.text, "answer": self.answer, "citations": self.citations,
                 "confidence": round(self.confidence, 2), "followup": self.followup,
+                "next_questions": self.next_questions,
                 "steps": self.steps, "grounded": self.grounded,
                 "strategy": self.strategy, "plan": self.plan,
                 "findings": [f.to_dict() for f in self.findings],
@@ -515,6 +543,16 @@ class ConversationAgent:
         turn.citations = [str(c) for c in (data.get("citations") or [])]
         turn.confidence = float(data.get("confidence") or 0.0)
         turn.followup = str(data.get("followup") or "").strip()
+        # 去空、去重、截到 3：模型偶尔会把同一个问题换个说法写两遍，
+        # 而三条一样的提示等于一条，白占那三个位置。
+        seen: set[str] = set()
+        for q in (data.get("next_questions") or []):
+            q = str(q).strip()
+            if q and q not in seen:
+                seen.add(q)
+                turn.next_questions.append(q)
+            if len(turn.next_questions) >= 3:
+                break
         turn.findings = check_grounding(data, observed)
         if not turn.grounded:
             # 编出处是最难被发现的错误。发现了就**当场删掉**那几条，而不是
@@ -546,9 +584,9 @@ class ConversationAgent:
             f"## 当前会话状态\n{context}\n" if context else "",
             f"## FDE 要做的\n{text}\n",
             f"## 可用工具\n{tools}\n",
-            "他这一句里包含好几件事。**先把要做的按顺序列出来**（最多 6 步），"
-            "每步一句话说清要达成什么、打算用哪个工具。只列这一轮真要做的；"
-            "他没要求的别自作主张加。列完就会按这个顺序执行。",
+            ("他这一句里包含好几件事。**先把要做的按顺序列出来**（最多 6 步），"
+             "每步一句话说清要达成什么、打算用哪个工具。只列这一轮真要做的；"
+             "他没要求的别自作主张加。列完就会按这个顺序执行。"),
         ] if x)
 
 
@@ -573,6 +611,10 @@ _STEP_SCHEMA: dict[str, Any] = {
         "answer": {"type": "string", "description": "kind=answer 时填这里"},
         "citations": {"type": "array", "items": {"type": "string"}},
         "confidence": {"type": "number"},
+        # 还在查的那几步给空数组就行 —— 这一步没有回答，也就没有"接着问什么"。
+        "next_questions": {**_NEXT_QUESTIONS,
+                           "description": "kind=answer 时填；kind=tool 时给空数组。"
+                                          + _NEXT_QUESTIONS["description"]},
     },
 }
 

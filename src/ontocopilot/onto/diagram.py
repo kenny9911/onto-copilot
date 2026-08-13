@@ -19,11 +19,10 @@ from __future__ import annotations
 
 import html
 from dataclasses import dataclass
-from typing import Any
 
 from .flow import EdgeKind, FlowGraph, FlowNode, NodeKind
 
-__all__ = ["to_mermaid", "to_svg", "Palette"]
+__all__ = ["Palette", "to_mermaid", "to_svg"]
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -237,15 +236,15 @@ def to_svg(g: FlowGraph, *, title: str = "业务流程总览",
 
     W, H = max(max_w + MARGIN, 640), y + MARGIN
     out: list[str] = [
-        f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W:.0f} {H:.0f}" '
-        f'width="{W:.0f}" height="{H:.0f}" font-family="-apple-system,PingFang SC,'
-        f'Microsoft YaHei,sans-serif">',
+        (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W:.0f} {H:.0f}" '
+         f'width="{W:.0f}" height="{H:.0f}" font-family="-apple-system,PingFang SC,'
+         f'Microsoft YaHei,sans-serif">'),
         f'<rect width="{W:.0f}" height="{H:.0f}" fill="#ffffff"/>',
-        '<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" '
-        'markerWidth="6" markerHeight="6" orient="auto-start-reverse">'
-        f'<path d="M0,0 L10,5 L0,10 z" fill="{p.edge}"/></marker></defs>',
-        f'<text x="{MARGIN}" y="{MARGIN + 14}" font-size="17" font-weight="600" '
-        f'fill="{p.ink}">{html.escape(title)}</text>',
+        ('<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" '
+         'markerWidth="6" markerHeight="6" orient="auto-start-reverse">'
+         f'<path d="M0,0 L10,5 L0,10 z" fill="{p.edge}"/></marker></defs>'),
+        (f'<text x="{MARGIN}" y="{MARGIN + 14}" font-size="17" font-weight="600" '
+         f'fill="{p.ink}">{html.escape(title)}</text>'),
     ]
     st = g.stats()
     # 「多少个环节有接口撑着」是拿这张图开会时第一个被问到的数。没接上任何接口时

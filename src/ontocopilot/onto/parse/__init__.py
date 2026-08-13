@@ -19,6 +19,8 @@ from typing import Any
 from ...kernel.memory.evidence import EvidenceIndex
 from .api import OpenApiParser
 from .base import Finding, ParsedDoc, Parser, ParserRegistry, make_chunk
+from .bpmn import BpmnParser
+from .presentation import PptxParser
 from .sql import DdlParser
 from .tabular import CsvParser, XlsxParser, infer_type, profile_column
 from .text import DocxParser, TextParser
@@ -42,6 +44,8 @@ def default_registry(
         .register(CsvParser())
         .register(DdlParser(dialect=sql_dialect))
         .register(OpenApiParser())
+        .register(BpmnParser())
+        .register(PptxParser())
         .register(DocxParser())
         .register(VisionParser(vision_gateway, prefer=vision_prefer,
                                on_progress=vision_progress))
@@ -97,9 +101,25 @@ def collect_profiles(docs: list[ParsedDoc]) -> dict[str, dict[str, Any]]:
 
 
 __all__ = [
-    "ParsedDoc", "Parser", "ParserRegistry", "Finding", "make_chunk",
-    "XlsxParser", "CsvParser", "DdlParser", "OpenApiParser", "DocxParser",
-    "TextParser", "VisionParser",
-    "default_registry", "build_index", "corpus_summary",
-    "collect_endpoints", "collect_profiles", "infer_type", "profile_column",
+    "BpmnParser",
+    "CsvParser",
+    "DdlParser",
+    "DocxParser",
+    "Finding",
+    "OpenApiParser",
+    "ParsedDoc",
+    "Parser",
+    "ParserRegistry",
+    "PptxParser",
+    "TextParser",
+    "VisionParser",
+    "XlsxParser",
+    "build_index",
+    "collect_endpoints",
+    "collect_profiles",
+    "corpus_summary",
+    "default_registry",
+    "infer_type",
+    "make_chunk",
+    "profile_column",
 ]

@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import pytest
 
-from ontocopilot.onto.oir import OIR, ObjectType, PropertyType, inferred, make_rid
+from ontocopilot.onto.oir import OIR, ObjectType, inferred
 from ontocopilot.onto.template import ANCHOR_RID, Role, compile_template
 from ontocopilot.onto.template_edit import WRITEBACK_FIELDS, EditError, apply_edit
 
@@ -60,9 +60,9 @@ def test_reconcile_reports_stale_without_crashing():
     """重放不上的手改要报出来，不能静默丢，也不能让整次重出崩掉。"""
     from ontocopilot.onto.template_edit import reconcile_template
 
-    spec, oir = _spec()
+    _spec_value, oir = _spec()
     patch_log = [{"op": "add_column", "args": {"sheet": "根本不存在的表", "name": "x"}}]
-    fresh, stale = reconcile_template(oir, [], patch_log)
+    _fresh, stale = reconcile_template(oir, [], patch_log)
     assert len(stale) == 1 and stale[0]["op"] == "add_column"
 
 
@@ -192,7 +192,6 @@ def test_anchors_survive_every_edit():
     for s in spec.sheets:
         if not s.rows:
             continue
-        keys = set(s.rows[0].keys())
         # 锚点由 write_xlsx 单独写，不进 columns —— 这里验 columns 没被污染
         assert ANCHOR_RID not in s.columns
 

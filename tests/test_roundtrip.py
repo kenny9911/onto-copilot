@@ -27,7 +27,6 @@ pytest_plugins = []
 
 @pytest.fixture
 def oir():
-    from test_onto import _ddl, _xlsx  # 复用「计划金额」双口径场景
 
     import test_onto
 
@@ -361,9 +360,9 @@ def test_merge_writes_back_only_what_humans_actually_filled(built, tmp_path):
 # 业务方最常做的三个动作 —— 顶上插一行标题、最左边插一列做批注、删掉看不懂的
 # 隐藏列 —— 以前各自会让整张表静默消失：不抛异常、不告警，只有 FDE 自己去数
 # unmatched_rows 才能发现。**一整张表的人白填了，而他们收不到任何提示。**
-import shutil as _shutil  # noqa: E402
+import shutil as _shutil
 
-from openpyxl import load_workbook as _load  # noqa: E402
+from openpyxl import load_workbook as _load
 
 
 @pytest.fixture
@@ -505,7 +504,7 @@ def test_answers_to_open_questions_are_written_back():
 
 def test_rule_confirmation_is_written_back():
     from ontocopilot.onto.audit import CellDiff, merge_into_oir
-    from ontocopilot.onto.oir import BusinessRule, OIR, Status, inferred
+    from ontocopilot.onto.oir import OIR, BusinessRule, Status, inferred
     from ontocopilot.onto.template import Role
 
     oir = OIR()
@@ -523,7 +522,7 @@ def test_rule_confirmation_is_written_back():
 def test_rule_host_is_resolved_by_display_name():
     """业务方填的是中文单据名，OIR 里是 rid —— 对不上就必须报，不能默默丢。"""
     from ontocopilot.onto.audit import CellDiff, merge_into_oir
-    from ontocopilot.onto.oir import BusinessRule, OIR, ObjectType, inferred
+    from ontocopilot.onto.oir import OIR, BusinessRule, ObjectType, inferred
     from ontocopilot.onto.template import Role
 
     oir = OIR()
@@ -567,7 +566,7 @@ def test_dropped_writes_are_reported_not_swallowed():
 def test_previously_dropped_columns_now_land():
     """primaryKey / owner / effects —— 实测被丢掉的那 455 格。"""
     from ontocopilot.onto.audit import CellDiff, merge_into_oir
-    from ontocopilot.onto.oir import ActionType, OIR, ObjectType, inferred
+    from ontocopilot.onto.oir import OIR, ActionType, ObjectType, inferred
     from ontocopilot.onto.template import Role
 
     oir = OIR()

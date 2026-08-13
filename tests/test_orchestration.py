@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
+from typing import ClassVar
 
 import pytest
 
@@ -25,10 +27,10 @@ from ontocopilot.kernel.critic import (
 from ontocopilot.kernel.dag import (
     Dag,
     Difficulty,
+    GateSpec,
     NodeBudget,
     NodeMode,
     NodeSpec,
-    ScopeSpec,
 )
 from ontocopilot.kernel.errors import DagError, FrozenPlanViolation, NodeFailure
 from ontocopilot.kernel.events import EventKind
@@ -206,8 +208,14 @@ def test_gate_blocks_on_high_findings_and_routes_by_failure():
     assert gate.evaluate(m2, rec, "GATE").decision is Decision.PASS
 
 
+def test_empty_verdict_set_is_unreviewed_not_vacuous_pass():
+    metrics = metrics_from([])
+    assert metrics["review_count"] == 0
+    assert metrics["all_passed"] is False
+
+
 def test_heterogeneous_judge_is_enforced():
-    from ontocopilot.kernel.llm import ModelError, RoutingTable, ModelSpec
+    from ontocopilot.kernel.llm import ModelError, ModelSpec, RoutingTable
 
     gen = ModelSpec("same-model", "frontier", 5, 25)
     rt = RoutingTable(models={Difficulty.HIGH: gen}, judges=[gen])
@@ -250,7 +258,7 @@ class CountHandler(NodeHandler):
 class ExtractHandler(NodeHandler):
     """SINGLE_SHOT 节点：走模型 + schema。"""
 
-    schema = {
+    schema: ClassVar[dict] = {
         "type": "object",
         "required": ["objects"],
         "properties": {"objects": {"type": "array", "items": {"type": "string"}}},
@@ -315,7 +323,7 @@ async def test_independent_branches_run_concurrently():
 async def test_node_retries_then_succeeds():
     dag = Dag("t").add(_n("A", retries=2))
     h = CountHandler(fail_times=2)
-    sched, rec, journal, _ = _harness(dag, {"echo": h})
+    sched, _, journal, _ = _harness(dag, {"echo": h})
 
     out = await sched.run("r1")
     assert out.ok and h.calls == 3
@@ -330,13 +338,32 @@ async def test_exhausted_retries_fail_the_run():
     assert out.status is RunStatus.FAILED and "临时故障" in out.error
 
 
+async def test_node_wallclock_budget_is_a_hard_runtime_boundary():
+    class Slow(NodeHandler):
+        async def execute(self, inputs, ctx):
+            await asyncio.sleep(0.05)
+            return {"too_late": True}
+
+    dag = Dag("t").add(NodeSpec(
+        "SLOW", NodeMode.DETERMINISTIC, "slow",
+        budget=NodeBudget(wallclock_s=0.01), retries=2,
+    ))
+    sched, *_ = _harness(dag, {"slow": Slow()})
+
+    out = await sched.run("r1")
+
+    assert out.status is RunStatus.FAILED
+    assert "墙钟上限" in out.error
+    assert "SLOW" not in out.outputs
+
+
 async def test_completed_nodes_are_restored_not_rerun():
     """核心承诺：崩溃恢复时已完成的节点整个跳过，不重跑也不重新付费。"""
     journal, blobs = InMemoryJournal(), InMemoryBlobStore()
 
     dag1 = Dag("t").add(_n("A")).add(_n("B", ["A"]))
     h1 = CountHandler()
-    sched1, rec1, *_ = _harness(dag1, {"echo": h1}, journal=journal, blobs=blobs)
+    sched1, *_ = _harness(dag1, {"echo": h1}, journal=journal, blobs=blobs)
     await sched1.run("r1")
     assert h1.calls == 2
 
@@ -355,7 +382,7 @@ async def test_single_shot_node_uses_schema_and_records_llm_call():
     backend = ScriptedBackend([(r"抽取 ObjectType", '{"objects": ["purchasePlan", "clmContract"]}')])
     dag = Dag("t").add(NodeSpec("EX", NodeMode.SINGLE_SHOT, "extract",
                                 budget=NodeBudget(tokens=8000)))
-    sched, rec, journal, _ = _harness(dag, {"extract": ExtractHandler()}, backend=backend)
+    sched, _, journal, _ = _harness(dag, {"extract": ExtractHandler()}, backend=backend)
 
     out = await sched.run("r1")
     assert out.outputs["EX"] == {"objects": ["purchasePlan", "clmContract"]}
@@ -400,7 +427,7 @@ async def test_hitl_node_suspends_run_then_resumes_with_answer():
 
     journal, blobs = InMemoryJournal(), InMemoryBlobStore()
     dag = Dag("t").add(NodeSpec("CLARIFY", NodeMode.HITL, "clarify"))
-    sched, rec, *_ = _harness(dag, {"clarify": Clarify()}, journal=journal, blobs=blobs)
+    sched, *_ = _harness(dag, {"clarify": Clarify()}, journal=journal, blobs=blobs)
 
     out = await sched.run("r1")
     assert out.status is RunStatus.SUSPENDED
@@ -421,7 +448,7 @@ async def test_budget_degradation_is_broadcast_and_logged():
     dag = Dag("t").add(_n("A")).add(_n("B", ["A"])).add(_n("C", ["B"]))
     budget = Budget(tokens=1000)
     budget.spend(tokens=900)  # 直接压到 RULES_ONLY
-    sched, rec, journal, _ = _harness(dag, {"echo": CountHandler()}, budget=budget)
+    sched, _, journal, _ = _harness(dag, {"echo": CountHandler()}, budget=budget)
 
     got: list[str] = []
     sched.bus.subscribe("budget/*", lambda m: got.append(m.payload["label"]))
@@ -450,9 +477,13 @@ async def test_rule_extracted_content_survives_the_critic_refine_round():
     """
 
     class RuleBacked(NodeHandler):
-        schema = {"type": "object",
-                  "properties": {"objects": {"type": "array"},
-                                 "actions": {"type": "array"}}}
+        schema: ClassVar[dict] = {
+            "type": "object",
+            "properties": {
+                "objects": {"type": "array"},
+                "actions": {"type": "array"},
+            },
+        }
 
         def finalize(self, draft, inputs):
             out = dict(draft or {})
@@ -475,7 +506,7 @@ async def test_rule_extracted_content_survives_the_critic_refine_round():
                               default='{"objects":[]}')
     dag = Dag("t").add(NodeSpec("EXTRACT", NodeMode.SINGLE_SHOT, "x",
                                 critics=("coverage",), critic_rounds=2))
-    sched, rec, journal, blobs = _harness(dag, {"x": RuleBacked()}, backend=backend)
+    sched, rec, _, _ = _harness(dag, {"x": RuleBacked()}, backend=backend)
     sched.loop.panel = CriticPanel({"coverage": WantsObjects()}, rec)
 
     out = await sched.run("r1")
@@ -484,3 +515,161 @@ async def test_rule_extracted_content_survives_the_critic_refine_round():
     assert [o["api_name"] for o in got["objects"]] == ["pbpHeader"], "修订产物要保留"
     assert [a["api_name"] for a in got["actions"]] == ["createPbp"], \
         "规则抽好的行动被 critic 修订环吃掉了"
+
+
+async def test_last_refinement_is_reviewed_before_it_can_be_committed():
+    """The verdict stored on a result must describe the final, not prior, artifact."""
+
+    class Draft(NodeHandler):
+        schema: ClassVar[dict] = {
+            "type": "object",
+            "required": ["quality"],
+            "properties": {"quality": {"type": "string"}},
+        }
+
+    class Quality(Critic):
+        name = "quality"
+        needs_llm = False
+
+        async def judge(self, draft, ctx):
+            passed = draft.get("quality") == "good"
+            return Verdict(
+                self.name,
+                passed,
+                [] if passed else [Finding(Severity.HIGH, "BAD", "-", "quality is bad")],
+            )
+
+    # Initial generation is bad; the sole/last refinement is also bad.  The terminal
+    # review must see that refined value rather than return the first review's verdict.
+    backend = ScriptedBackend(
+        [(r"评审提出了下面这些问题", '{"quality":"still-bad"}')],
+        default='{"quality":"bad"}',
+    )
+    dag = Dag("t").add(
+        NodeSpec(
+            "N",
+            NodeMode.SINGLE_SHOT,
+            "draft",
+            critics=("quality",),
+            critic_rounds=1,
+            gate=GateSpec("auto", ("all_passed == true",)),
+            retries=0,
+        )
+    )
+    sched, rec, journal, _ = _harness(dag, {"draft": Draft()}, backend=backend)
+    sched.loop.panel = CriticPanel({"quality": Quality()}, rec)
+
+    out = await sched.run("r1")
+
+    assert out.status is RunStatus.FAILED
+    assert "质量门" in out.error
+    verdicts = [e for e in journal.read("r1") if e.kind is EventKind.CRITIC_VERDICT]
+    assert len(verdicts) == 2, "initial draft and last refinement must both be reviewed"
+    assert not any(e.kind is EventKind.NODE_COMPLETED for e in journal.read("r1"))
+
+
+async def test_unknown_critic_fails_before_handler_execution():
+    handler = CountHandler()
+    dag = Dag("t").add(_n("N", critics=("provennce",), retries=0))
+    sched, *_ = _harness(dag, {"echo": handler})
+
+    out = await sched.run("r1")
+
+    assert out.status is RunStatus.FAILED
+    assert "未注册的 critic" in out.error and "provennce" in out.error
+    assert handler.calls == 0
+
+
+async def test_scheduler_applies_serializable_gate_and_blocks_downstream():
+    dag = Dag("t")
+    dag.add(
+        _n(
+            "A",
+            critics=("schema",),
+            gate=GateSpec("auto", ("schema.passed == false",)),
+            retries=0,
+        )
+    ).add(_n("B", ["A"]))
+    handler = CountHandler()
+    sched, _, journal, _ = _harness(dag, {"echo": handler})
+
+    out = await sched.run("r1")
+
+    assert out.status is RunStatus.FAILED
+    assert handler.calls == 1, "downstream B must never start after A's gate blocks"
+    events = journal.read("r1")
+    assert any(e.kind is EventKind.GATE_EVALUATED for e in events)
+    assert not any(e.kind is EventKind.NODE_COMPLETED for e in events)
+
+
+async def test_legacy_runtime_gate_remains_supported_at_scheduler_boundary():
+    gate = Gate(
+        "legacy",
+        [("必须有评审", lambda m: m["review_count"] > 0)],
+        lambda m: GateResult(Decision.ABORT, f"未过: {m['failed']}"),
+    )
+    dag = Dag("t").add(_n("A", gate=gate, retries=0))
+    sched, *_ = _harness(dag, {"echo": CountHandler()})
+
+    out = await sched.run("r1")
+
+    assert out.status is RunStatus.FAILED
+    assert "legacy" in out.error
+
+
+async def test_gate_requirement_can_read_structured_output_metrics():
+    class Coverage(NodeHandler):
+        async def execute(self, inputs, ctx):
+            return {"completeness": {"required_fill_rate": 0.68}}
+
+    dag = Dag("t").add(
+        NodeSpec(
+            "A",
+            NodeMode.DETERMINISTIC,
+            "coverage",
+            gate=GateSpec("auto", ("completeness.required_fill_rate >= 0.95",)),
+            retries=0,
+        )
+    )
+    sched, *_ = _harness(dag, {"coverage": Coverage()})
+
+    out = await sched.run("r1")
+
+    assert out.status is RunStatus.FAILED
+    assert "required_fill_rate" in out.error
+
+
+async def test_hitl_gate_suspends_then_commits_only_after_approval():
+    journal, blobs = InMemoryJournal(), InMemoryBlobStore()
+    dag = Dag("t").add(_n("A", gate=GateSpec("hitl"), retries=0))
+    first, *_ = _harness(
+        dag,
+        {"echo": CountHandler()},
+        journal=journal,
+        blobs=blobs,
+    )
+
+    suspended = await first.run("r1")
+
+    assert suspended.status is RunStatus.SUSPENDED
+    assert suspended.pending_human["request_id"] == "A:gate"
+    assert not any(e.kind is EventKind.NODE_COMPLETED for e in journal.read("r1"))
+
+    Recorder("r1", journal, blobs, resume=True).record_human_answer(
+        "A",
+        "A:gate",
+        {"decision": "pass"},
+    )
+    resumed_dag = Dag("t").add(_n("A", gate=GateSpec("hitl"), retries=0))
+    resumed, *_ = _harness(
+        resumed_dag,
+        {"echo": CountHandler()},
+        journal=journal,
+        blobs=blobs,
+        resume=True,
+    )
+
+    completed = await resumed.run("r1")
+
+    assert completed.ok and completed.outputs["A"] == {"n": 1}
+    assert any(e.kind is EventKind.NODE_COMPLETED for e in journal.read("r1"))

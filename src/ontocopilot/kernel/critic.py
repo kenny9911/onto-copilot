@@ -20,8 +20,9 @@ from abc import ABC, abstractmethod
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 from enum import StrEnum
-from typing import Any
+from typing import Any, ClassVar
 
+from .errors import NodeFailure
 from .events import EventKind
 from .llm import ModelGateway, ModelSpec
 from .recorder import Recorder
@@ -136,7 +137,7 @@ class LLMCritic(Critic):
         self.rubric = list(rubric)
         self.instruction = instruction
 
-    _SCHEMA = {
+    _SCHEMA: ClassVar[dict[str, Any]] = {
         "type": "object",
         "required": ["checks", "findings"],
         "properties": {
@@ -250,15 +251,32 @@ class CriticPanel:
         self.critics = critics
         self.rec = recorder
 
+    def validate(self, lenses: Sequence[str], node_id: str) -> None:
+        """Reject misspelled/unregistered lenses before any critic spends work."""
+        unknown = list(dict.fromkeys(name for name in lenses if name not in self.critics))
+        if unknown:
+            raise NodeFailure(
+                node_id,
+                f"未注册的 critic: {', '.join(unknown)}",
+                retryable=False,
+            )
+
     async def judge(
         self, draft: Any, lenses: Sequence[str], ctx: CriticContext, *, allow_llm: bool = True
     ) -> list[Verdict]:
+        # A misspelled critic used to disappear silently here.  That is a control-plane
+        # configuration error, not a successful review: the resulting empty verdict set
+        # also made ``all([])`` pass every downstream gate.  Reject the whole panel before
+        # running any (potentially paid) critic so the failure is deterministic and cheap.
+        self.validate(lenses, ctx.node_id)
+
         picked = []
         skipped = []
         for name in lenses:
             c = self.critics.get(name)
-            if c is None:
-                continue
+            # ``unknown`` was rejected above; keeping the assertion local makes a future
+            # refactor fail closed instead of accidentally restoring the silent skip.
+            assert c is not None
             if c.needs_llm and not allow_llm:
                 skipped.append(name)  # 预算降级：跳过并记账，绝不静默
                 continue
@@ -330,9 +348,15 @@ class Gate:
 def metrics_from(verdicts: Sequence[Verdict]) -> dict[str, Any]:
     """把评审结果压成 Gate 能判的指标。"""
     return {
-        "all_passed": all(v.passed for v in verdicts),
+        # An empty panel is "unreviewed", not a vacuous success.  Deterministic nodes
+        # that intentionally have no critics can still use an empty-requirement gate;
+        # a gate asserting ``all_passed`` now correctly demands at least one verdict.
+        "review_count": len(verdicts),
+        "all_passed": bool(verdicts) and all(v.passed for v in verdicts),
         "high_findings": sum(v.high for v in verdicts),
         "total_findings": sum(len(v.findings) for v in verdicts),
         "by_lens": {v.lens: v.passed for v in verdicts},
+        "high_by_lens": {v.lens: v.high for v in verdicts},
+        "findings_by_lens": {v.lens: len(v.findings) for v in verdicts},
         "codes": sorted({f.code for v in verdicts for f in v.findings}),
     }

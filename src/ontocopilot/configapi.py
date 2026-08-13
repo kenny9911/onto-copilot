@@ -10,7 +10,7 @@ effort、迭代轮数保持代码默认，UI 不碰 —— effort 由服务端�
 from __future__ import annotations
 
 import os
-from typing import Any
+from typing import Annotated, Any
 from urllib.parse import urlsplit, urlunsplit
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -110,7 +110,7 @@ async def get_config():
 
 
 @router.put("")
-async def put_config(body: dict, repo: Repo = Depends(get_repo)):
+async def put_config(body: dict, repo: Annotated[Repo, Depends(get_repo)]):
     updates: dict[str, Any] = {}
     cat_names = set(ModelCatalog().names())
 

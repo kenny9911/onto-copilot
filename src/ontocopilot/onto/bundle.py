@@ -19,8 +19,14 @@ from typing import Any
 from ..kernel.ids import sha256_hex
 
 __all__ = [
-    "BUNDLE_SCHEMA", "classify", "flow_provenance", "oir_provenance",
-    "bundle_id", "build_manifest", "readme_text", "build_zip",
+    "BUNDLE_SCHEMA",
+    "build_manifest",
+    "build_zip",
+    "bundle_id",
+    "classify",
+    "flow_provenance",
+    "oir_provenance",
+    "readme_text",
 ]
 
 BUNDLE_SCHEMA = "ontocopilot.bundle/1"
@@ -136,15 +142,19 @@ def oir_provenance(oir: dict[str, Any] | None) -> dict[str, Any]:
 # ══════════════════════════════════════════════════════════════════
 #  版本戳 + 清单
 # ══════════════════════════════════════════════════════════════════
-def bundle_id(files: list[dict[str, Any]], product_version: str) -> str:
-    """内容寻址的版本戳：对（路径, 文件 sha256）排序后连同产品版本号取 sha256[:12]。
+def bundle_id(files: list[dict[str, Any]], product_version: str,
+              release_state: str = "") -> str:
+    """内容寻址的版本戳：文件摘要、产品版本和发布状态共同取 sha256[:12]。
 
     只有产物字节变了它才变 —— 同样的产物打两次包，bundle_id 相同（可复现）；
-    时间戳（generated_at）单独存，不进这个哈希。
+    DRAFT→RELEASED 也会变；时间戳（generated_at）单独存，不进这个哈希。
     """
     payload = "\n".join(f"{f['path']}:{f.get('sha256', '')}"
                         for f in sorted(files, key=lambda x: x["path"]))
-    return sha256_hex(f"{product_version}\n{payload}")[:12]
+    # 同一批字节从 DRAFT 通过门禁成为 RELEASED，是一次真实的发布语义变化；
+    # 两个离线包不能共享同一个版本戳。空值保留旧纯函数调用的兼容行为。
+    state_line = f"\nrelease_state:{release_state}" if release_state else ""
+    return sha256_hex(f"{product_version}\n{payload}{state_line}")[:12]
 
 
 def build_manifest(*, session: dict[str, Any], product_version: str,
@@ -154,10 +164,16 @@ def build_manifest(*, session: dict[str, Any], product_version: str,
                    generated_at: float, generated_at_iso: str = "") -> dict[str, Any]:
     """组装 manifest.json。有据 vs 推断在三个层级都露出来：每文件 provenance、
     provenance_summary 汇总、以及 notes 里的提醒。"""
+    release_state = str(session.get("release_state") or "DRAFT").upper()
+    if release_state not in {"DRAFT", "RELEASED"}:
+        release_state = "DRAFT"
     return {
         "schema": BUNDLE_SCHEMA,
         "product_version": product_version,
-        "bundle_id": bundle_id(files, product_version),
+        "bundle_id": bundle_id(files, product_version, release_state),
+        # 离开 OntoCopilot UI 后仍必须能判断这是不是正式发布版本。BLOCKED 不会
+        # 生成 Bundle；存在非阻塞待答项时允许生成、但必须显式标成 DRAFT。
+        "release_state": release_state,
         "generated_at": round(generated_at, 3),
         "generated_at_iso": generated_at_iso,
         "session": session,
@@ -179,16 +195,23 @@ def readme_text(manifest: dict[str, Any]) -> str:
     sess = m.get("session") or {}
     fp = m["provenance_summary"]["flow"]
     op = m["provenance_summary"]["oir"]
+    release_state = str(m.get("release_state") or "DRAFT").upper()
     lines = [
         f"# 交付包 · {sess.get('project') or sess.get('title') or sess.get('id', '')}",
         "",
         f"- 产品版本：{m['product_version']}",
         f"- 包版本戳（bundle_id）：{m['bundle_id']}",
+        f"- 发布状态：{release_state}",
         f"- 生成时间：{m.get('generated_at_iso') or m.get('generated_at')}",
         f"- 会话：{sess.get('id', '')}（{sess.get('status', '')}）",
         "",
-        "## 产物清单",
     ]
+    if release_state != "RELEASED":
+        lines += [
+            "> **草稿提示：此包仍有非阻塞问题待澄清，不得视为正式发布版本。**",
+            "",
+        ]
+    lines.append("## 产物清单")
     for f in m.get("files") or []:
         tag = {"grounded": "有据", "inferred": "推断",
                "mixed": "有据+推断", "n/a": "—"}.get(f.get("provenance", "n/a"), "—")
@@ -200,12 +223,12 @@ def readme_text(manifest: dict[str, Any]) -> str:
     lines += [
         "",
         "## 溯源概览",
-        f"- 流程图：{fp['nodes']} 节点（{fp['grounded_nodes']} 有据 / "
-        f"{fp['inferred_nodes']} 推断），{fp['edges']} 条边（{fp['inferred_edges']} 推断），"
-        f"人工修改 {fp['human_edited']} 处，死路 {fp['dead_ends']}。",
-        f"- 本体：{op['objects']} 对象（{op['grounded_objects']} 有据 / "
-        f"{op['inferred_objects']} 推断）、{op['properties']} 属性、{op['links']} 关系、"
-        f"{op['rules']} 规则，待澄清 {op['open_questions']} 条。",
+        (f"- 流程图：{fp['nodes']} 节点（{fp['grounded_nodes']} 有据 / "
+         f"{fp['inferred_nodes']} 推断），{fp['edges']} 条边（{fp['inferred_edges']} 推断），"
+         f"人工修改 {fp['human_edited']} 处，死路 {fp['dead_ends']}。"),
+        (f"- 本体：{op['objects']} 对象（{op['grounded_objects']} 有据 / "
+         f"{op['inferred_objects']} 推断）、{op['properties']} 属性、{op['links']} 关系、"
+         f"{op['rules']} 规则，待澄清 {op['open_questions']} 条。"),
     ]
     if m.get("open_questions"):
         lines += ["", "## 待澄清（交付前建议先问业务方）"]

@@ -102,6 +102,8 @@ class Chunk:
                 tail = f"#p{loc.get('page')}"
             case "meta":
                 tail = f"#{loc.get('field', '')}"
+            case "xml":
+                tail = f"#{loc.get('pointer', '')}"
             case _:
                 tail = ""
         return f"{self.file_name}{tail}"

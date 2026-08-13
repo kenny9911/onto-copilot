@@ -15,11 +15,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import StrEnum
-from typing import Any, Generic, TypeVar
+from typing import Any
 
 from ..kernel.ids import rid as make_rid
-
-T = TypeVar("T")
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -32,6 +30,7 @@ class LocatorKind(StrEnum):
     DDL = "ddl"  # 表/列 + 源码 span
     PAGE = "page"  # 扫描件页 + bbox
     META = "meta"  # 文档元数据（作者、保存路径）
+    XML = "xml"  # BPMN/XML 元素 XPath-like pointer
     #: 模型给的自由文本定位串。**保留原样而不是硬塞进结构化字段** ——
     #: 塞错字段会渲染成乱码，而出处渲染错等于「点回原文」这个承诺失效。
     RAW = "raw"
@@ -65,6 +64,8 @@ class Provenance:
                 tail = f"#p{loc.get('page')}"
             case LocatorKind.META:
                 tail = f"#{loc.get('field', '')}"
+            case LocatorKind.XML:
+                tail = f"#{loc.get('pointer', '')}"
             case LocatorKind.RAW:
                 tail = f"#{loc.get('ref', '')}"
             case _:
@@ -87,7 +88,7 @@ class Origin(StrEnum):
 
 
 @dataclass(slots=True)
-class Assertion(Generic[T]):
+class Assertion[T]:
     """一个带出处的值。
 
     ``evidence`` 为空且 ``origin`` 不是 INFERRED/USER 是非法状态 —— 由
@@ -119,15 +120,15 @@ class Assertion(Generic[T]):
         }
 
 
-def extracted(value: T, *ev: Provenance, confidence: float = 0.8) -> Assertion[T]:
+def extracted[T](value: T, *ev: Provenance, confidence: float = 0.8) -> Assertion[T]:
     return Assertion(value, Origin.EXTRACTED, list(ev), confidence)
 
 
-def inferred(value: T, *, confidence: float = 0.4) -> Assertion[T]:
+def inferred[T](value: T, *, confidence: float = 0.4) -> Assertion[T]:
     return Assertion(value, Origin.INFERRED, [], confidence)
 
 
-def by_user(value: T, *, note: str = "") -> Assertion[T]:
+def by_user[T](value: T, *, note: str = "") -> Assertion[T]:
     a = Assertion(value, Origin.USER, [], 0.98)
     if note:
         a.evidence = [Provenance("human", "人工决策", {"kind": "meta", "field": note},
@@ -460,10 +461,26 @@ class OIR:
 
 
 __all__ = [
-    "OIR", "ObjectType", "PropertyType", "LinkType", "ActionType",
-    "Assertion", "Provenance", "Origin", "Status", "BaseType", "Cardinality",
-    "LocatorKind", "extracted", "inferred", "by_user", "make_rid",
-    "BusinessRule", "RuleKind", "OpenQuestion", "oir_from_dict",
+    "OIR",
+    "ActionType",
+    "Assertion",
+    "BaseType",
+    "BusinessRule",
+    "Cardinality",
+    "LinkType",
+    "LocatorKind",
+    "ObjectType",
+    "OpenQuestion",
+    "Origin",
+    "PropertyType",
+    "Provenance",
+    "RuleKind",
+    "Status",
+    "by_user",
+    "extracted",
+    "inferred",
+    "make_rid",
+    "oir_from_dict",
 ]
 
 

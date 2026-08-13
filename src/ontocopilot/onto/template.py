@@ -93,7 +93,7 @@ class Cell:
                 "conflict": self.conflict, "expects_prose": self.expects_prose}
 
     @classmethod
-    def from_dict(cls, d: dict[str, Any]) -> "Cell":
+    def from_dict(cls, d: dict[str, Any]) -> Cell:
         return cls(rid=d["rid"], sheet=d["sheet"], field=d["field"], value=d["value"],
                    role=Role(d["role"]), owner=d.get("owner"), comment=d.get("comment", ""),
                    options=d.get("options"), conflict=d.get("conflict", False),
@@ -135,7 +135,7 @@ class TemplateSpec:
         }
 
     @classmethod
-    def from_dict(cls, d: dict[str, Any]) -> "TemplateSpec":
+    def from_dict(cls, d: dict[str, Any]) -> TemplateSpec:
         spec = cls(round=d.get("round", 1))
         for sh in d.get("sheets", ()):
             sheet = Sheet(name=sh["name"], guide=sh.get("guide", ""),
@@ -145,7 +145,7 @@ class TemplateSpec:
             spec.sheets.append(sheet)
         return spec
 
-    def save(self, path: "Path | str") -> "Path":
+    def save(self, path: Path | str) -> Path:
         p = Path(path)
         p.parent.mkdir(parents=True, exist_ok=True)
         p.write_text(json.dumps(self.to_dict(), ensure_ascii=False, indent=1),
@@ -153,7 +153,7 @@ class TemplateSpec:
         return p
 
     @classmethod
-    def load(cls, path: "Path | str") -> "TemplateSpec":
+    def load(cls, path: Path | str) -> TemplateSpec:
         return cls.from_dict(json.loads(Path(path).read_text(encoding="utf-8")))
 
     def stats(self) -> dict[str, Any]:

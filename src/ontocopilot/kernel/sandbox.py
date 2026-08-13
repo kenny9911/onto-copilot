@@ -55,7 +55,7 @@ SUSPICIOUS = (
     ("dynamic_exec", ("eval(", "exec(", "__import__", "compile(")),
 )
 
-_IMPORT = re.compile(r"^\s*(?:import|from)\s+([\w.]+)", re.M)
+_IMPORT = re.compile(r"^\s*(?:import|from)\s+([\w.]+)", re.MULTILINE)
 
 
 @dataclass(frozen=True, slots=True)
@@ -228,7 +228,7 @@ class LocalSubprocessSandbox(SandboxExecutor):
         try:
             out, err = await asyncio.wait_for(
                 proc.communicate(), timeout=self.limits.wallclock_seconds)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             proc.kill()
             await proc.wait()
             return ExecResult(
@@ -331,7 +331,7 @@ class ContainerSandbox(SandboxExecutor):
         try:
             out, err = await asyncio.wait_for(
                 proc.communicate(), timeout=self.limits.wallclock_seconds + 20)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             proc.kill()
             await proc.wait()
             return ExecResult(ok=False, stderr="[sandbox] 容器超时，已终止",

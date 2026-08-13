@@ -61,9 +61,54 @@ session = sa.Table(
     #  删会话（归属改判交给上层），也避免与 app_user 的生命周期耦合。
     sa.Column("owner", sa.Text),
     sa.CheckConstraint(
-        "status IN ('idle','parsing','extracting','awaiting_answer','done','failed')",
+        "status IN ('idle','queued','parsing','extracting','awaiting_answer','done','failed','stopped')",
         name="session_status_ck"),
 )
+
+# A build task itself lives in one ASGI worker, but its ownership must not.  A
+# lease prevents another worker (or a newly started replica) from treating a
+# still-live ``queued/parsing/extracting`` session as abandoned.
+build_lease = sa.Table(
+    "build_lease", metadata,
+    sa.Column("session_id", sa.Text,
+              sa.ForeignKey("session.id", ondelete="CASCADE"), primary_key=True),
+    sa.Column("owner", sa.Text, nullable=False),
+    sa.Column("acquired_at", sa.Float, nullable=False),
+    sa.Column("heartbeat_at", sa.Float, nullable=False),
+    sa.Column("expires_at", sa.Float, nullable=False),
+    sa.Column("cancel_requested_at", sa.Float),
+)
+sa.Index("build_lease_expiry_idx", build_lease.c.expires_at)
+
+# Chat mutates DialogueMemory and several session_state documents via a read/modify/write
+# cycle.  An invocation-scoped lease prevents two ASGI workers from both reading the
+# same snapshot and committing last-writer-wins updates.
+chat_lease = sa.Table(
+    "chat_lease", metadata,
+    sa.Column("session_id", sa.Text,
+              sa.ForeignKey("session.id", ondelete="CASCADE"), primary_key=True),
+    sa.Column("owner", sa.Text, nullable=False),
+    sa.Column("acquired_at", sa.Float, nullable=False),
+    sa.Column("heartbeat_at", sa.Float, nullable=False),
+    sa.Column("expires_at", sa.Float, nullable=False),
+    sa.Column("cancel_requested_at", sa.Float),
+)
+sa.Index("chat_lease_expiry_idx", chat_lease.c.expires_at)
+
+# Domain mutations span Question/Decision/Revision rows, session_state and generated
+# files.  One durable lease serializes that read/modify/write unit across workers and
+# is mutually exclusive with a build lease.
+mutation_lease = sa.Table(
+    "mutation_lease", metadata,
+    sa.Column("session_id", sa.Text,
+              sa.ForeignKey("session.id", ondelete="CASCADE"), primary_key=True),
+    sa.Column("owner", sa.Text, nullable=False),
+    sa.Column("kind", sa.Text, nullable=False),
+    sa.Column("acquired_at", sa.Float, nullable=False),
+    sa.Column("heartbeat_at", sa.Float, nullable=False),
+    sa.Column("expires_at", sa.Float, nullable=False),
+)
+sa.Index("mutation_lease_expiry_idx", mutation_lease.c.expires_at)
 
 session_file = sa.Table(
     "session_file", metadata,
@@ -280,7 +325,13 @@ session_event = sa.Table(
     _json("payload", nullable=False, server_default="{}"),
     sa.Column("ref", sa.Text),
     sa.Column("ts", sa.Float, nullable=False),
+    # 进程在 commit 成功、回执返回前退出时，同一队列项恢复重试不能再写一条。
+    # UUID 是跨 worker 的幂等身份；seq 仍是每会话的展示/游标顺序。
+    sa.Column("event_id", sa.Text),
 )
+sa.Index("session_event_event_id_uq", session_event.c.event_id, unique=True,
+         postgresql_where=sa.text("event_id IS NOT NULL"),
+         sqlite_where=sa.text("event_id IS NOT NULL"))
 
 kernel_event = sa.Table(
     "kernel_event", metadata,
@@ -315,6 +366,10 @@ app_user = sa.Table(
     "app_user", metadata,
     sa.Column("id", sa.Text, primary_key=True),                     # uuid4().hex
     sa.Column("username", sa.Text, nullable=False, unique=True),    # 调用方已 strip().lower()
+    #: 称呼用的名字，**原样保留大小写与空格**。username 被 lower() 过，拿来问候人
+    #  不合适。空串 = 没填（管理员建号、CLI 建号、迁移前的老账号），展示时回落到
+    #  username。不唯一、不索引 —— 重名合法，也从不按它查。
+    sa.Column("display_name", sa.Text, nullable=False, server_default=""),
     sa.Column("password_hash", sa.Text, nullable=False),            # scrypt 自描述串
     sa.Column("role", sa.Text, nullable=False, server_default="user"),
     sa.Column("active", sa.Boolean, nullable=False, server_default=sa.true()),
@@ -346,6 +401,68 @@ sa.Index("auth_session_user_idx", auth_session.c.user_id)
 
 # 全局应用设置（管理员可改的网关/预算配置）。键值对，value 是 JSON —— 与
 # session_state 同一套形态。**顶层**，与建模会话无关，故不随会话级联。
+#: 模型用量流水。**一次模型调用一行，跨会话、独立于会话生命周期。**
+#:
+#: 为什么是独立的顶层表，而不是挂在 session 或复用 run.budget：
+#:   * 它要回答的是"这个月一共烧了多少 token""哪个模型最贵"——那是跨会话的问题，
+#:     而 `run.budget` 是每次调用新建一个 Budget 的**每轮快照**，
+#:     `session_state["budget"]` 更只是最后一次梳理的快照，两个都加不起来。
+#:   * 会话删掉/purge 之后，账还得在。所以 session_id **不设外键**、不跟着 CASCADE。
+#:   * 盘上那份 journal jsonl 不能当账本：它按 run 散在各会话目录里、没有归属、
+#:     purge 会连目录一起 rmtree，而且**重放会重复记账**（Recorder 回放不真的调
+#:     模型，但旧代码照样 spend 一次）。
+#:
+#: `day` 是**存出来的**而不是查询时算的：date_trunc 只有 PG 有、strftime 只有
+#: SQLite 有，任何一个都会把"两种实现走同一条代码路径"这条规矩打破。
+llm_usage = sa.Table(
+    "llm_usage", metadata,
+    sa.Column("id", sa.Text, primary_key=True),
+    sa.Column("ts", sa.Float, nullable=False),
+    #: 'YYYY-MM-DD'（UTC），写入时算好，按天聚合直接 GROUP BY 它
+    sa.Column("day", sa.Text, nullable=False),
+    #: app_user.id；'' = 无归属。和 session.owner 一样**不设外键**（见 0004）
+    sa.Column("owner", sa.Text, nullable=False, server_default=""),
+    sa.Column("session_id", sa.Text, nullable=False, server_default=""),
+    sa.Column("run_id", sa.Text, nullable=False, server_default=""),
+    sa.Column("node_id", sa.Text, nullable=False, server_default=""),
+    #: build | chat | aux —— 这次调用是干什么的
+    sa.Column("kind", sa.Text, nullable=False, server_default="build"),
+    sa.Column("model", sa.Text, nullable=False),
+    sa.Column("effort", sa.Text, nullable=False, server_default=""),
+    sa.Column("tok_in", sa.BigInteger, nullable=False, server_default="0"),
+    sa.Column("tok_out", sa.BigInteger, nullable=False, server_default="0"),
+    sa.Column("cache_read", sa.BigInteger, nullable=False, server_default="0"),
+    sa.Column("cache_write", sa.BigInteger, nullable=False, server_default="0"),
+    sa.Column("usd", sa.Float, nullable=False, server_default="0"),
+    #: gateway = 网关回的真实账单；estimated = 本地价目表估的（**很多模型的价目
+    #: 是编的**，见 catalog.card_from_name 的 2.0/8.0），界面据此决定敢不敢显示金额
+    sa.Column("usd_source", sa.Text, nullable=False, server_default="estimated"),
+    #: 实际打给模型几次（schema 重试、截断加预算重试都算），tok 是这几次的总和
+    sa.Column("attempts", sa.Integer, nullable=False, server_default="1"),
+    sa.Column("status", sa.Text, nullable=False, server_default="ok"),
+    sa.Column("created_at", sa.DateTime(timezone=True), nullable=False,
+              server_default=sa.func.now()),
+    sa.CheckConstraint("kind IN ('build','chat','aux')", name="llm_usage_kind_ck"),
+    sa.CheckConstraint(
+        "tok_in >= 0 AND tok_out >= 0 AND cache_read >= 0 AND cache_write >= 0",
+        name="llm_usage_tokens_ck",
+    ),
+    sa.CheckConstraint("usd >= 0", name="llm_usage_usd_ck"),
+    sa.CheckConstraint("attempts >= 1", name="llm_usage_attempts_ck"),
+    sa.CheckConstraint("kind IN ('build','chat','aux')", name="llm_usage_kind_ck"),
+    sa.CheckConstraint(
+        "tok_in >= 0 AND tok_out >= 0 AND cache_read >= 0 AND cache_write >= 0",
+        name="llm_usage_tokens_ck"),
+    sa.CheckConstraint("usd >= 0", name="llm_usage_usd_ck"),
+    sa.CheckConstraint("attempts >= 1", name="llm_usage_attempts_ck"),
+    sa.CheckConstraint("usd_source IN ('gateway','estimated')",
+                       name="llm_usage_usd_source_ck"),
+    sa.CheckConstraint("status IN ('ok','failed')", name="llm_usage_status_ck"),
+)
+sa.Index("llm_usage_owner_day_idx", llm_usage.c.owner, llm_usage.c.day)
+sa.Index("llm_usage_ts_idx", llm_usage.c.ts)
+sa.Index("llm_usage_model_day_idx", llm_usage.c.model, llm_usage.c.day)
+
 app_setting = sa.Table(
     "app_setting", metadata,
     sa.Column("key", sa.Text, primary_key=True),
@@ -356,9 +473,27 @@ app_setting = sa.Table(
 
 
 __all__ = [
-    "metadata", "schema_migration", "session", "session_file", "run",
-    "session_state", "conflict", "decision", "question_item", "decision_record",
-    "revision_record", "chat_turn", "session_event", "kernel_event", "blob",
-    "app_user", "auth_session", "app_setting",
-    "DERIVED_KEYS", "EVENT_INLINE_LIMIT",
+    "DERIVED_KEYS",
+    "EVENT_INLINE_LIMIT",
+    "app_setting",
+    "app_user",
+    "auth_session",
+    "blob",
+    "build_lease",
+    "chat_lease",
+    "chat_turn",
+    "conflict",
+    "decision",
+    "decision_record",
+    "kernel_event",
+    "llm_usage",
+    "metadata",
+    "question_item",
+    "revision_record",
+    "run",
+    "schema_migration",
+    "session",
+    "session_event",
+    "session_file",
+    "session_state",
 ]

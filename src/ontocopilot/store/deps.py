@@ -94,18 +94,25 @@ async def lifespan(app: Any) -> AsyncIterator[None]:
                 _store, _repo = None, None
             return
         url = f"sqlite+aiosqlite:///{(root / 'ontocopilot.db').resolve()}"
+        # SQLite 走 create_all：它没有滚动发布，也没有多副本同时改 schema
+        # 的问题，单独维护一套迁移不值得。基础依赖已包含驱动；若这里仍失败，
+        # 必须 fail closed。静默换成易失内存会把启动故障伪装成数小时后的数据丢失。
         try:
-            # SQLite 走 create_all：它没有滚动发布，也没有多副本同时改 schema
-            # 的问题，单独维护一套迁移不值得。
             _store = await Store.open(url, create_all=True)
-            print(f"[store] 本地 SQLite → {root / 'ontocopilot.db'}")
-        except Exception as exc:  # noqa: BLE001 — 缺 sqlalchemy 就退内存，但要说
-            _store = await Store.open("")
-            print(f"[store] SQLite 起不来（{type(exc).__name__}: {exc}）→ "
-                  "纯内存，重启即丢")
+        except Exception as exc:  # 转成包含落盘路径的可诊断错误
+            raise RuntimeError(
+                f"本地 SQLite 无法启动（{root / 'ontocopilot.db'}）："
+                f"{type(exc).__name__}: {exc}。若确需临时内存模式，请显式设置 "
+                "ONTOCOPILOT_NO_DB=1。"
+            ) from exc
+        print(f"[store] 本地 SQLite → {root / 'ontocopilot.db'}")
         _repo = build_repo(_store)
     else:
-        _store = await Store.open(url)
+        # 显式 DATABASE_URL 也允许指向 SQLite（本地开发、桌面部署和测试常用）。
+        # 一个全新的 SQLite 文件与零配置路径应有相同的建表语义；否则连接本身
+        # healthcheck 会成功，随后应用第一次读取 app_setting 才以“no such table”
+        # 崩溃。PostgreSQL 仍只走独立迁移，绝不由应用副本 create_all。
+        _store = await Store.open(url, create_all=url.startswith("sqlite"))
         _repo = build_repo(_store)
 
     if _store.enabled:
@@ -143,4 +150,4 @@ def set_repo_for_tests(repo: Repo | None) -> None:
     _repo = repo
 
 
-__all__ = ["lifespan", "get_repo", "get_store", "workspace_root", "set_repo_for_tests"]
+__all__ = ["get_repo", "get_store", "lifespan", "set_repo_for_tests", "workspace_root"]

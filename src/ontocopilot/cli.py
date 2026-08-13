@@ -30,7 +30,6 @@ from .kernel.llm import GATEWAY_MODELS, ModelGateway, gateway_routing
 from .kernel.recorder import Recorder
 from .kernel.sandbox import default_sandbox
 from .kernel.skills import default_library
-from .kernel.tools import builtin_registry
 from .onto.align import align_and_apply
 from .onto.audit import ReturnAuditor, merge_into_oir, read_returned
 from .onto.clarify import ClarificationEngine
@@ -90,7 +89,7 @@ async def cmd_doctor(args: argparse.Namespace) -> int:
         try:
             # max_tokens 给足：Gemini Flash 这类模型即便关了 thinking 也会先吐一段
             # reasoning，探针太小会 finish_reason=length、没轮到正文，把好模型误报成红叉。
-            text, u = await backend.generate(
+            _text, u = await backend.generate(
                 model=spec, prompt="回答两个字：就绪", max_tokens=1024)
             _p(f"{OK} {label:5} {spec.name:30} effort={spec.effort or '-':6} "
                f"{u.tok_in}→{u.tok_out} tok  ${u.usd or 0:.5f}")
@@ -346,7 +345,7 @@ def _render_corpus(index: Any, top_k: int) -> str:
     from collections import defaultdict
 
     by_file: dict[str, list] = defaultdict(list)
-    for cid in sorted(index._chunks):  # noqa: SLF001 — 抽取阶段要全量，不是检索
+    for cid in sorted(index._chunks):
         c = index._chunks[cid]
         by_file[c.file_name].append(c)
 
@@ -520,15 +519,124 @@ async def cmd_useradd(args: argparse.Namespace) -> int:
         store = await Store.open(url, create_all=True)
     repo = build_repo(store)
     role = "admin" if args.admin else "user"
+    first = await repo.count_users() == 0
     try:
-        await repo.create_user(UserRow(
-            id=uuid.uuid4().hex, username=username,
-            password_hash=hash_password(pw), role=role))
+        user = UserRow(id=uuid.uuid4().hex, username=username,
+                       password_hash=hash_password(pw), role=role)
+        await repo.create_user(user)
         _p(f"{OK} 已创建{role}账号：{username}")
+        # 建第一个账号会把实例翻进强制鉴权，而之前所有会话归属都是 __local__ ——
+        # 不认领的话，下一次登录进来会话列表是空的，而磁盘上东西都还在。
+        if first and role == "admin":
+            from .authgate import adopt_local_sessions
+            n = await adopt_local_sessions(repo, user)
+            if n:
+                _p(f"{OK} 已把 {n} 个原有会话归到 {username} 名下")
         return 0
     except DuplicateUsername:
         _p(f"{BAD} 用户名已存在：{username}")
         return 1
+    finally:
+        await store.close()
+
+
+async def _open_repo() -> tuple[Any, Any]:
+    """打开库并返回 (store, repo)。三个账号命令共用同一段引导逻辑。"""
+    import os
+    from pathlib import Path
+
+    from .store.engine import Store, database_url
+    from .store.repo import build_repo
+
+    url = database_url()
+    if url:
+        store = await Store.open(url)
+    else:
+        root = Path(os.getenv("ONTOCOPILOT_WORKSPACE", "workspace"))
+        root.mkdir(parents=True, exist_ok=True)
+        url = f"sqlite+aiosqlite:///{(root / 'ontocopilot.db').resolve()}"
+        store = await Store.open(url, create_all=True)
+    return store, build_repo(store)
+
+
+async def cmd_passwd(args: argparse.Namespace) -> int:
+    """重设某个账号的密码。**在宿主机上跑，密码由人自己敲。**
+
+    这条命令原本不存在，于是"忘了首个管理员的密码"是一个**没有出口的死结**：
+    改密码的接口要先登录，管理员重置别人密码的接口也要先登录，而登录正是进不去
+    的那一步。补上它 —— 助手绝不代设密码，和 ``useradd`` 同一条规矩。
+    """
+    import getpass
+
+    from .auth import hash_password, normalize_username
+
+    username = normalize_username(args.username)
+    store, repo = await _open_repo()
+    try:
+        user = await repo.get_user_by_username(username)
+        if user is None:
+            _p(f"{BAD} 没有这个账号：{username}")
+            return 1
+        if args.password_stdin:
+            pw = sys.stdin.readline().rstrip("\n")
+        else:
+            pw = getpass.getpass(f"给 {username} 设置新密码: ")
+            if pw != getpass.getpass("再输一次: "):
+                _p(f"{BAD} 两次输入不一致")
+                return 1
+        if len(pw) < 6:
+            _p(f"{BAD} 密码至少 6 位")
+            return 1
+        await repo.update_user(user.id, password_hash=hash_password(pw))
+        # 改完踢掉这个账号所有已登录的会话 —— 和 /api/me/password 一致：
+        # 密码换了而旧 cookie 还能用，等于没换。
+        n = await repo.delete_user_auth_sessions(user.id)
+        _p(f"{OK} 已重设 {username} 的密码" + (f"（顺带登出了 {n} 个已登录会话）" if n else ""))
+        return 0
+    finally:
+        await store.close()
+
+
+async def cmd_role(args: argparse.Namespace) -> int:
+    """改某个账号的角色。管理员才看得到网关设置与账户管理。"""
+    from .auth import normalize_username
+
+    role = "admin" if args.admin else "user"
+    username = normalize_username(args.username)
+    store, repo = await _open_repo()
+    try:
+        user = await repo.get_user_by_username(username)
+        if user is None:
+            _p(f"{BAD} 没有这个账号：{username}")
+            return 1
+        if user.role == role:
+            _p(f"{OK} {username} 已经是{role}，无需改动")
+            return 0
+        if role == "user":
+            # 把最后一个管理员降级 = 把自己锁在门外，且没有任何界面能救回来
+            admins = [u for u in await repo.list_users() if u.role == "admin" and u.active]
+            if len(admins) <= 1 and user.role == "admin":
+                _p(f"{BAD} {username} 是唯一的管理员，降级后没人能管理这个实例了")
+                return 1
+        await repo.update_user(user.id, role=role)
+        _p(f"{OK} {username} 现在是{'管理员' if role == 'admin' else '普通用户'}")
+        return 0
+    finally:
+        await store.close()
+
+
+async def cmd_userlist(args: argparse.Namespace) -> int:
+    """列出账号。忘了自己建过谁、谁是管理员时用它。"""
+    store, repo = await _open_repo()
+    try:
+        users = await repo.list_users()
+        if not users:
+            _p("还没有账号（实例处于开放模式）")
+            return 0
+        for u in users:
+            tag = "管理员" if u.role == "admin" else "普通用户"
+            _p(f"  {u.username:16} {tag}{'' if u.active else '（已停用）'}")
+        return 0
     finally:
         await store.close()
 
@@ -578,6 +686,22 @@ def build_parser() -> argparse.ArgumentParser:
     u.add_argument("--password-stdin", action="store_true",
                    help="从标准输入读一行作为密码（脚本/CI 用），否则交互式输入")
     u.set_defaults(fn=cmd_useradd, is_async=True)
+
+    pw = sub.add_parser("passwd", help="重设某个账号的密码（忘了管理员密码时用它）")
+    pw.add_argument("username")
+    pw.add_argument("--password-stdin", action="store_true",
+                    help="从标准输入读一行作为密码（脚本/CI 用），否则交互式输入")
+    pw.set_defaults(fn=cmd_passwd, is_async=True)
+
+    rl = sub.add_parser("role", help="改账号角色（管理员才有网关设置与账户管理）")
+    rl.add_argument("username")
+    g = rl.add_mutually_exclusive_group(required=True)
+    g.add_argument("--admin", action="store_true", help="提为管理员")
+    g.add_argument("--user", action="store_true", help="降为普通用户")
+    rl.set_defaults(fn=cmd_role, is_async=True)
+
+    ul = sub.add_parser("users", help="列出账号和角色")
+    ul.set_defaults(fn=cmd_userlist, is_async=True)
     return ap
 
 
@@ -588,7 +712,7 @@ def main(argv: list[str] | None = None) -> int:
     except KeyboardInterrupt:
         _p("\n已中断")
         return 130
-    except Exception as exc:  # noqa: BLE001 — CLI 边界，给人看得懂的错误
+    except Exception as exc:
         _p(f"\n{BAD} {type(exc).__name__}: {exc}")
         if "--debug" in sys.argv:
             raise

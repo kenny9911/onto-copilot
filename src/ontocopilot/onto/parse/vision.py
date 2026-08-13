@@ -156,7 +156,9 @@ class VisionParser(Parser):
             try:
                 self.on_progress(msg)
             except Exception:  # noqa: BLE001 — 报进度失败不该影响识别
-                pass
+                # Progress callbacks are explicitly best-effort.  Returning here is
+                # intentional and clearer to static analysis than a silent ``pass``.
+                return
 
     def parse(self, path: Path, *, file_id: str) -> ParsedDoc:
         raise RuntimeError(

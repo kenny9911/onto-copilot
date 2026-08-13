@@ -11,6 +11,8 @@ Postgres 侧用 SQLite 代跑：这里验的是仓储 SQL 的行为语义，不�
 
 from __future__ import annotations
 
+import asyncio
+
 import pytest
 
 from ontocopilot.store.engine import Store, database_url
@@ -21,7 +23,6 @@ from ontocopilot.store.repo import (
     FileRow,
     MemoryRepo,
     SessionRow,
-    SettingRow,
     UserRow,
     build_repo,
 )
@@ -97,6 +98,66 @@ async def test_sessions_list_newest_first(repo):
 # ══════════════════════════════════════════════════════════════════
 #  状态
 # ══════════════════════════════════════════════════════════════════
+async def test_session_status_claim_is_atomic_under_concurrency(repo):
+    """Memory/SQLite 都只能让一个并发 worker 把 idle 抢成 queued。"""
+    await repo.create_session(_sess())
+    claimed = await asyncio.gather(*(
+        repo.claim_session_status(
+            "s1", from_statuses=("idle", "done", "failed", "stopped"),
+            to_status="queued",
+        )
+        for _ in range(20)
+    ))
+    assert claimed.count(True) == 1
+    assert claimed.count(False) == 19
+    assert (await repo.get_session("s1")).status == "queued"
+
+
+async def test_sqlite_status_claim_is_atomic_across_independent_repos(tmp_path):
+    """两个独立连接模拟两个 worker，不能依赖同一个 PgRepo/engine 的串行化。"""
+    url = f"sqlite+aiosqlite:///{tmp_path / 'claim.db'}"
+    store_a = await Store.open(url, create_all=True)
+    store_b = await Store.open(url)
+    repo_a, repo_b = build_repo(store_a), build_repo(store_b)
+    try:
+        await repo_a.create_session(_sess())
+        results = await asyncio.gather(*(
+            repo.claim_session_status(
+                "s1", from_statuses=("idle", "done", "failed", "stopped"),
+                to_status="queued",
+            )
+            for repo in (repo_a, repo_b)
+        ))
+        assert sorted(results) == [False, True]
+        assert (await repo_a.get_session("s1")).status == "queued"
+        assert (await repo_b.get_session("s1")).status == "queued"
+    finally:
+        await store_b.close()
+        await store_a.close()
+
+
+async def test_session_status_claim_never_overwrites_awaiting_answer(repo):
+    """待业务拍板是悬挂点，任何新 build claim 都不能覆盖它。"""
+    await repo.create_session(_sess(status="awaiting_answer", error="等采购经理"))
+    claimed = await repo.claim_session_status(
+        "s1", from_statuses=("idle", "done", "failed", "stopped"),
+        to_status="queued",
+    )
+    row = await repo.get_session("s1")
+    assert claimed is False
+    assert (row.status, row.error) == ("awaiting_answer", "等采购经理")
+
+
+async def test_session_status_claim_allows_explicit_rerun_after_terminal_state(repo):
+    await repo.create_session(_sess(status="done", error="旧错误"))
+    assert await repo.claim_session_status(
+        "s1", from_statuses=("idle", "done", "failed", "stopped"),
+        to_status="queued", error="",
+    )
+    row = await repo.get_session("s1")
+    assert (row.status, row.error) == ("queued", "")
+
+
 async def test_state_survives_and_versions_bump(repo):
     await repo.create_session(_sess())
     v1 = await repo.save_state("s1", {"oir": {"stats": {"objects": 3}}})
@@ -174,6 +235,28 @@ async def test_event_seq_starts_at_zero_and_is_dense(repo):
     await repo.create_session(_sess())
     rows = [await repo.append_event("s1", "x", {}) for _ in range(3)]
     assert [r.seq for r in rows] == [0, 1, 2]
+
+
+# ══════════════════════════════════════════════════════════════════
+#  Run 生命周期
+# ══════════════════════════════════════════════════════════════════
+async def test_run_ids_are_unique_monotonic_and_can_finish(repo):
+    await repo.create_session(_sess())
+    ids = await asyncio.gather(*(repo.next_run("s1", "build:full") for _ in range(20)))
+    assert len(set(ids)) == 20
+    assert set(ids) == {f"s1.{i}" for i in range(20)}
+    await asyncio.gather(*(
+        repo.finish_run(rid, status="done", budget={"ordinal": i})
+        for i, rid in enumerate(ids)
+    ))
+
+
+async def test_run_can_finish_suspended_or_failed(repo):
+    await repo.create_session(_sess())
+    suspended = await repo.next_run("s1", "build:full")
+    failed = await repo.next_run("s1", "build:preview")
+    await repo.finish_run(suspended, status="suspended", budget={"usd": 0.5})
+    await repo.finish_run(failed, status="failed", error="cancelled")
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -383,3 +466,36 @@ async def test_ocr_chunks_survive_restart(repo):
     assert got["_chunks"] == chunks
     # 不是 derived —— 按需加载也要留着
     assert "_chunks" in await repo.load_state("s1", include_derived=False)
+
+
+async def test_user_display_name_round_trips(repo):
+    """一列要在四处加：迁移、schema.py、SQLite 升级器、以及这里的读写映射。
+
+    漏了 `_user_row()` 或 PgRepo.create_user 的显式列清单，症状是"写得进去、
+    永远读回空" —— 最难查的那一种。两个实现同一份断言。
+    """
+    await repo.create_user(_user(display_name="程 宇涵"))
+    got = await repo.get_user("u1")
+    assert got is not None and got.display_name == "程 宇涵"
+    assert (await repo.get_user_by_username("alice")).display_name == "程 宇涵"
+    assert (await repo.list_users())[0].display_name == "程 宇涵"
+    assert got.public()["display_name"] == "程 宇涵"
+
+
+async def test_user_without_a_display_name_reads_back_as_empty(repo):
+    """管理员/CLI 建的号和迁移前的老账号都没有名字。空串，不是 None ——
+    前端只判一种空值。"""
+    await repo.create_user(_user())
+    got = await repo.get_user("u1")
+    assert got is not None and got.display_name == ""
+
+
+async def test_update_user_can_change_only_the_display_name(repo):
+    """三处实现（Protocol / Memory / Pg）同一次改完，否则同一份输入两种结果。"""
+    await repo.create_user(_user(display_name="旧名字"))
+    got = await repo.update_user("u1", display_name="新名字")
+    assert got is not None and got.display_name == "新名字"
+    # 只传 display_name 时，其余字段一个都不能被顺手改掉
+    assert (got.username, got.role, got.active) == ("alice", "user", True)
+    assert got.password_hash == "scrypt$x"
+    assert (await repo.get_user("u1")).display_name == "新名字"

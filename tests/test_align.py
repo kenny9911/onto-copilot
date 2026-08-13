@@ -57,7 +57,7 @@ def test_same_concept_across_files_is_merged():
         _prop(oir, rid, parent, {"p1": "planId", "p2": "planAmount",
                                  "p3": "planId", "p4": "planAmount"}[rid])
 
-    result, log = align_and_apply(oir)
+    _result, log = align_and_apply(oir)
     assert len(oir.objects) == 1, "应合并成一个"
     assert log and log[0]["into"] == "ot_a"
     kept = next(iter(oir.objects.values()))
@@ -89,7 +89,7 @@ def test_name_similar_but_structurally_unrelated_is_not_merged():
     _prop(oir, "p3", b.rid, "templateId")
     _prop(oir, "p4", b.rid, "layoutJson")
 
-    result, log = align_and_apply(oir)
+    _result, log = align_and_apply(oir)
     assert len(oir.objects) == 2, "字段毫无重叠，不该合并"
     assert log == []
 

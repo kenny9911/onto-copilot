@@ -22,23 +22,25 @@ FDE 拿到生成的模板，常常要改：加一列备注、删掉填不了的 
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 from typing import Any
 
 from .template import (
     ANCHOR_HASH,
     ANCHOR_RID,
     PROSE_FIELDS,
-    WEIGHTS,
-    Cell,
     Role,
     Sheet,
     TemplateSpec,
     _cell,
 )
 
-__all__ = ["EditError", "apply_edit", "reconcile_template",
-           "WRITEBACK_FIELDS", "REQUIRED_BLOCKLIST"]
+__all__ = [
+    "REQUIRED_BLOCKLIST",
+    "WRITEBACK_FIELDS",
+    "EditError",
+    "apply_edit",
+    "reconcile_template",
+]
 
 
 #: merge_into_oir 里有 case 的字段。REQUIRED 列的 field 必须在这里，否则业务方

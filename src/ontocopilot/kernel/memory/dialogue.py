@@ -21,6 +21,7 @@
 
 from __future__ import annotations
 
+import re
 import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
@@ -30,8 +31,14 @@ from typing import Any
 from ..ids import sha256_hex
 from .types import MemoryItem, MemoryKind, Scope, est_tokens
 
-__all__ = ["Utterance", "Speaker", "Decision", "DecisionKind", "DialogueMemory",
-           "heuristic_digest"]
+__all__ = [
+    "Decision",
+    "DecisionKind",
+    "DialogueMemory",
+    "Speaker",
+    "Utterance",
+    "heuristic_digest",
+]
 
 
 class Speaker(StrEnum):
@@ -150,20 +157,66 @@ class Decision:
 Digester = Callable[[list[Utterance]], str]
 
 
+#: markdown 小标题 / 加粗行 —— 助手用它们给自己产出的东西起名，而用户后来正是
+#: 用这个名字来指它（"把那张 AI 招聘业务流程梳理表导出来"）。
+_TITLE_LINE = re.compile(r"^\s*(?:#{1,6}\s*|\*\*)(.{2,60}?)(?:\*\*)?\s*$", re.M)
+_TABLE_LINE = re.compile(r"^\s*\|.*\|\s*$", re.M)
+
+
+def _produced_in(text: str) -> list[str]:
+    """这条回答里**产出了什么**，用它的名字表示。
+
+    只在正文里出现过竖线表时才认标题 —— 否则每条回答的小标题都会被当成产出，
+    摘要立刻变成一堆噪声。
+    """
+    if not _TABLE_LINE.search(text or ""):
+        return []
+    names = [m.group(1).strip(" *：:「」【】")
+             for m in _TITLE_LINE.finditer(text or "")]
+    return [n for n in names if 2 <= len(n) <= 60][:3]
+
+
 def heuristic_digest(turns: list[Utterance]) -> str:
     """不调模型的兜底压缩。
 
-    只保留用户说过什么 —— 助手的回复是可以重新生成的，用户的输入不可以。
-    压缩时优先牺牲助手侧，这个偏向是刻意的。
+    **原来只保留用户说过的话**，理由是"助手的回复可以重新生成"。这条在别处成立，
+    在这个产品里不成立：助手产出的表格/清单是**一次性的**（同一个提问再问一遍，
+    模型给的表不会一样），而用户过两轮回头说"把刚才那张 AI 招聘表导出来"时，
+    那条回答已经被压成一句摘要 —— 系统就只能翻出另一张表给他。
+
+    所以这里保三样，按重要性排：
+      1. 用户说过什么（不可再生）；
+      2. 助手**产出过什么**（按名字记，让它后面还能被指认）；
+      3. 涉及的 rid（指代消解唯一的依据）。
+
+    另外绝不产出一条空摘要：原来 ``said`` 为空时，整条摘要就是
+    "（已压缩 2 轮）用户说过：" —— 冒号后面什么都没有，等于凭空吞掉两轮。
     """
-    said = [t.text.replace("\n", " ")[:60] for t in turns if t.speaker is Speaker.USER]
+    said = [t.text.replace("\n", " ").strip()[:60]
+            for t in turns if t.speaker is Speaker.USER and t.text.strip()]
+    made: list[str] = []
+    for t in turns:
+        if t.speaker is Speaker.ASSISTANT:
+            for n in _produced_in(t.text):
+                if n not in made:
+                    made.append(n)
     refs: list[str] = []
     for t in turns:
         for r in t.refs:
             if r not in refs:
                 refs.append(r)
-    body = f"（已压缩 {len(turns)} 轮）用户说过：{'；'.join(said[:8])}"
-    return body + (f"｜涉及：{'、'.join(refs[:12])}" if refs else "")
+
+    parts = [f"（已压缩 {len(turns)} 轮）"]
+    if said:
+        parts.append("用户说过：" + "；".join(said[:8]))
+    if made:
+        parts.append("助手产出过：" + "、".join(f"《{n}》" for n in made[:6]))
+    if refs:
+        parts.append("涉及：" + "、".join(refs[:12]))
+    if len(parts) == 1:
+        # 三样都没有也要留个痕，别让摘要看起来像"这两轮什么都没发生"
+        parts.append(f"（{len(turns)} 轮内容已压缩，原文见会话事件记录）")
+    return parts[0] + "｜".join(parts[1:])
 
 
 class DialogueMemory:
@@ -303,7 +356,7 @@ class DialogueMemory:
                 "compactions": self.compactions}
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any], **kw: Any) -> "DialogueMemory":
+    def from_dict(cls, data: dict[str, Any], **kw: Any) -> DialogueMemory:
         dm = cls(**kw)
         for t in data.get("turns", ()):
             u = Utterance(speaker=Speaker(t["speaker"]), text=t["text"],

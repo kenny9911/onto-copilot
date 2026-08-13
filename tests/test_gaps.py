@@ -81,9 +81,9 @@ def test_an_ordinary_abbreviation_is_not_a_placeholder():
 class _Doc:
     file_id = "f1"
     file_name = "x.xlsx"
-    chunks: list = []
 
     def __init__(self, findings):
+        self.chunks: list = []
         self.findings = findings
 
 

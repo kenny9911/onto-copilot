@@ -6,6 +6,8 @@
 
 from __future__ import annotations
 
+from typing import ClassVar
+
 import pytest
 
 from ontocopilot.onto.oir import (
@@ -43,7 +45,7 @@ def _oir() -> tuple[OIR, ObjectType, PropertyType]:
 
 def test_add_enum_value_is_user_origin_and_flips_to_enum():
     """「采购包创建后状态变成已发布」→ 给采购包.状态加取值「已发布」。"""
-    oir, ot, pt = _oir()
+    oir, _ot, pt = _oir()
     apply_oir_edit(oir, "add_enum_value", {"property": "采购包.状态", "value": "已发布"})
     p = oir.properties[pt.rid]
     assert "已发布" in p.value_domain.value
@@ -53,7 +55,7 @@ def test_add_enum_value_is_user_origin_and_flips_to_enum():
 
 
 def test_add_object_and_property_are_user_origin():
-    oir, ot, pt = _oir()
+    oir, _ot, _pt = _oir()
     apply_oir_edit(oir, "add_object_type", {"api_name": "供应商", "display_name": "供应商"})
     sup = next(o for o in oir.objects.values() if o.api_name.value == "供应商")
     assert sup.display_name.origin is Origin.USER
@@ -64,7 +66,7 @@ def test_add_object_and_property_are_user_origin():
 
 
 def test_add_rule_process_binds_to_object():
-    oir, ot, pt = _oir()
+    oir, ot, _pt = _oir()
     apply_oir_edit(oir, "add_rule", {"statement": "采购包创建后状态变成已发布",
                                      "kind": "PROCESS", "applies_to": ["采购包"]})
     r = next(iter(oir.rules.values()))
@@ -72,8 +74,39 @@ def test_add_rule_process_binds_to_object():
     assert ot.rid in r.applies_to
 
 
+def test_add_edit_and_remove_action_type_with_user_provenance():
+    oir, ot, _ = _oir()
+    apply_oir_edit(
+        oir,
+        "add_action_type",
+        {
+            "api_name": "publishPackage",
+            "applies_to": ["采购包"],
+            "parameters": [{"name": "packageId", "type": "STRING"}],
+            "effects": ["采购包.状态=已发布"],
+        },
+    )
+    action = next(iter(oir.actions.values()))
+    assert action.api_name.origin is Origin.USER
+    assert action.parameters.origin is Origin.USER
+    assert action.effects.origin is Origin.USER
+    assert action.applies_to == [ot.rid]
+
+    apply_oir_edit(
+        oir,
+        "edit_assertion",
+        {"target": "publishPackage", "field": "effects", "value": ["发送发布事件"]},
+    )
+    assert action.rid in oir.actions
+    assert oir.actions[action.rid].effects.value == ["发送发布事件"]
+    assert oir.actions[action.rid].effects.origin is Origin.USER
+
+    apply_oir_edit(oir, "remove_action_type", {"target": "publishPackage"})
+    assert not oir.actions
+
+
 def test_edit_assertion_touches_only_that_field():
-    oir, ot, pt = _oir()
+    oir, _ot, pt = _oir()
     apply_oir_edit(oir, "edit_assertion",
                    {"target": "状态", "field": "required", "value": True})
     p = oir.properties[pt.rid]
@@ -85,7 +118,7 @@ def test_edit_assertion_touches_only_that_field():
 
 def test_no_op_can_produce_extracted_origin():
     """G-origin：任何新增/修改都不能冒充材料抽取。"""
-    oir, ot, pt = _oir()
+    oir, _ot, _pt = _oir()
     apply_oir_edit(oir, "add_object_type", {"api_name": "供应商"})
     apply_oir_edit(oir, "add_rule", {"statement": "X 必须审批", "kind": "AUTHORITY"})
     sup = next(o for o in oir.objects.values() if o.api_name.value == "供应商")
@@ -95,20 +128,20 @@ def test_no_op_can_produce_extracted_origin():
 
 
 def test_duplicate_api_name_rejected():
-    oir, ot, pt = _oir()
+    oir, _ot, _pt = _oir()
     with pytest.raises(OIREditError):
         apply_oir_edit(oir, "add_object_type", {"api_name": "采购包"})
 
 
 def test_link_to_nonexistent_object_rejected():
-    oir, ot, pt = _oir()
+    oir, _ot, _pt = _oir()
     with pytest.raises(OIREditError):
         apply_oir_edit(oir, "add_link",
                        {"source": "采购包", "target": "不存在", "api_name": "x"})
 
 
 def test_remove_extracted_refused_but_reject_status_allowed():
-    oir, ot, pt = _oir()
+    oir, ot, _pt = _oir()
     with pytest.raises(OIREditError):        # 材料抽出来的删了会丢证据
         apply_oir_edit(oir, "remove_object_type", {"target": "采购包"})
     apply_oir_edit(oir, "set_status", {"target": "采购包", "status": "rejected"})
@@ -116,7 +149,7 @@ def test_remove_extracted_refused_but_reject_status_allowed():
 
 
 def test_remove_user_added_object_cascades():
-    oir, ot, pt = _oir()
+    oir, _ot, _pt = _oir()
     apply_oir_edit(oir, "add_object_type", {"api_name": "供应商", "display_name": "供应商"})
     apply_oir_edit(oir, "add_property", {"object": "供应商", "api_name": "评级"})
     apply_oir_edit(oir, "remove_object_type", {"target": "供应商"})
@@ -126,7 +159,7 @@ def test_remove_user_added_object_cascades():
 
 def test_rejected_op_leaves_oir_byte_identical():
     """原子性：守卫拒绝的编辑不能留下半应用状态。"""
-    oir, ot, pt = _oir()
+    oir, _ot, _pt = _oir()
     before = oir.to_dict()
     with pytest.raises(OIREditError):
         apply_oir_edit(oir, "add_property", {"object": "不存在的对象", "api_name": "x"})
@@ -135,7 +168,7 @@ def test_rejected_op_leaves_oir_byte_identical():
 
 def test_roundtrip_preserves_user_origin():
     """重启后加载回来，USER 来源不能被降级成 INFERRED。"""
-    oir, ot, pt = _oir()
+    oir, _ot, _pt = _oir()
     apply_oir_edit(oir, "add_enum_value", {"property": "采购包.状态", "value": "已发布"})
     restored = oir_from_dict(oir.to_dict())
     p = next(x for x in restored.properties.values() if x.api_name.value == "状态")
@@ -144,20 +177,20 @@ def test_roundtrip_preserves_user_origin():
 
 async def test_oir_add_tool_is_gated_and_persists(tmp_path, monkeypatch):
     """oir.add 是 EXTERNAL：没确认时被门挡下，确认后落进 OIR 并写 oir.json。"""
-    import ontocopilot.server as server
+    from ontocopilot import server
     from ontocopilot.kernel.errors import ToolDenied
 
     monkeypatch.setattr(server, "ROOT", tmp_path)
     s = server.Session(id="oiredit1")
     s.dir.mkdir(parents=True, exist_ok=True)
-    oir, ot, pt = _oir()
+    oir, _ot, pt = _oir()
     s.state["_oir"] = oir
     reg = server._converse_tools(s)
     args = {"op": "add_enum_value", "property": "采购包.状态", "value": "已发布"}
 
     class Deny:
         approved = False
-        pending: list = []
+        pending: ClassVar[list] = []
 
     with pytest.raises(ToolDenied):        # 确认门挡下改产物的动作
         await reg.call("oir.add", args, Deny(), scope="converse")
@@ -165,7 +198,7 @@ async def test_oir_add_tool_is_gated_and_persists(tmp_path, monkeypatch):
 
     class OK:
         approved = True
-        pending: list = []
+        pending: ClassVar[list] = []
 
     out = await reg.call("oir.add", args, OK(), scope="converse")
     assert "已改" in out

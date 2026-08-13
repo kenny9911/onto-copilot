@@ -13,15 +13,16 @@ import asyncio
 import httpx
 import pytest
 
-from ontocopilot import appconfig, authgate
+from ontocopilot import appconfig, authgate, server
 from ontocopilot.server import SESSIONS, Session, app
 from ontocopilot.store.deps import set_repo_for_tests
-from ontocopilot.store.repo import MemoryRepo
+from ontocopilot.store.repo import MemoryRepo, SessionRow
 
 
 @pytest.fixture(autouse=True)
-def _reset(monkeypatch):
+def _reset(monkeypatch, tmp_path):
     monkeypatch.delenv("ONTOCOPILOT_AUTH", raising=False)
+    monkeypatch.setattr(server, "ROOT", tmp_path)
     authgate._ATTEMPTS.clear()
     appconfig._CACHE = {}
     yield
@@ -84,6 +85,27 @@ async def test_stop_all_cancels_both():
     assert set(r.json()["stopped"]) == {"chat", "run"}
     await asyncio.sleep(0.02)
     assert s.run_task.cancelled() and s.chat_task.cancelled()
+
+
+async def test_remote_worker_stop_persists_intent_and_never_claims_completion():
+    """A worker without the task requests cancellation durably and reports requested."""
+    repo = MemoryRepo()
+    await repo.create_session(SessionRow(id="remote-stop"))
+    (server.ROOT / "remote-stop").mkdir(parents=True)
+    assert await repo.claim_build_lease(
+        "remote-stop", owner="worker-a:run", now=1.0, ttl=10_000_000_000.0,
+        from_statuses=("idle",),
+    )
+    # The request lands on worker B: hydration has no local run_task.
+    async with _client(repo) as c:
+        r = await c.post("/api/sessions/remote-stop/stop", json={"target": "run"})
+
+    assert r.status_code == 200
+    assert r.json() == {"stopped": [], "requested": ["run"]}
+    assert (await repo.get_session("remote-stop")).status == "stopped"
+    assert not await repo.renew_build_lease(
+        "remote-stop", owner="worker-a:run", now=2.0, ttl=30.0,
+    )
 
 
 def test_on_run_cancelled_marks_stopped_and_emits():

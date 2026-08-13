@@ -29,6 +29,13 @@ from ontocopilot.onto.oir import (
     extracted,
     inferred,
 )
+from ontocopilot.onto.questions import (
+    Decision,
+    Question,
+    QuestionBacklog,
+    QuestionPriority,
+    QuestionStatus,
+)
 
 
 def _legacy_models() -> tuple[OIR, FlowGraph]:
@@ -168,6 +175,97 @@ def test_explicit_decisions_are_mapped_and_supersession_is_preserved() -> None:
     assert old["id"] == "dec.old"
     assert new["supersedes"] == old["id"]
     assert new["affectedIds"] == [data["rules"][0]["id"]]
+    assert data["validation"]["status"] == "passed"
+
+
+def test_unified_backlog_adds_conflict_question_and_preserves_lifecycle() -> None:
+    """Conflict questions do not live in OIR, but must be valid package targets."""
+    oir, flow = _legacy_models()
+    backlog = QuestionBacklog()
+    backlog.add(Question(
+        id="q_conflict_amount_caliber",
+        text="预算金额应使用含税还是不含税口径？",
+        status=QuestionStatus.ANSWERED,
+        owner_user_id="fde-wang",
+        audience_role="ERP顾问",
+        answer_schema={"type": "string", "enum": ["tax-inclusive", "tax-exclusive"]},
+        priority=QuestionPriority.BLOCKING,
+        dependencies=["oq_equal_threshold"],
+        blocked_artifacts=["br_director_threshold"],
+        source_kind="conflict",
+        source_ref="cf_amount_caliber",
+        why="两个材料的金额口径冲突",
+        evidence_ids=["采购制度.docx#p3"],
+        information_gain=0.92,
+        blast_radius=7,
+        version=4,
+    ), preserve_lifecycle=False)
+    # The existing OIR question remains present because a partial unified backlog must
+    # not make legacy questions disappear during migration.
+    decision = Decision(
+        id="dec_conflict_amount", question_id="q_conflict_amount_caliber",
+        answer="tax-inclusive", actor="fde-wang", actor_role="FDE",
+        affected_ids=["br_director_threshold"], revision=4,
+        idempotency_key="idem-conflict-1",
+    )
+
+    data = build_package(
+        oir, flow, backlog=backlog, decisions=[decision],
+        generated_at="2026-08-12T10:00:00+08:00",
+    ).to_dict()
+
+    questions = {q["legacyId"]: q for q in data["questions"]}
+    q = questions["q_conflict_amount_caliber"]
+    assert q["status"] == "answered"
+    assert q["ownerUserId"] == "fde-wang"
+    assert q["audienceRole"].startswith("role.")
+    assert q["priority"] == "blocking"
+    assert q["answerSchema"]["enum"] == ["tax-inclusive", "tax-exclusive"]
+    assert q["dependencies"] == [questions["oq_equal_threshold"]["id"]]
+    assert q["blockedArtifacts"] == [data["rules"][0]["id"]]
+    assert q["evidenceIds"] and q["version"] == 4
+    assert q["informationGain"] == 0.92 and q["blastRadius"] == 7
+
+    assert data["decisions"][0]["questionId"] == q["id"]
+    assert data["decisions"][0]["affectedIds"] == [data["rules"][0]["id"]]
+    assert data["validation"]["status"] == "passed"
+    assert not [f for f in validate_package(data).findings if f.code == "DANGLING_REF"]
+
+
+def test_backlog_overrides_matching_oir_question_lifecycle_without_duplicates() -> None:
+    oir, flow = _legacy_models()
+    q = Question(
+        id="q_equal_threshold", source_ref="oq_equal_threshold",
+        source_kind="open_question", text="正好50万元是否需要总监审批？",
+        status=QuestionStatus.DEFERRED, owner_user_id="owner-7",
+        audience_role="业务负责人", priority=QuestionPriority.HIGH,
+        answer_schema={"type": "string", "enum": ["是", "否"]}, version=9,
+    )
+    data = build_package(oir, flow, questions=[q]).to_dict()
+
+    assert len(data["questions"]) == 1
+    item = data["questions"][0]
+    assert item["legacyId"] == "q_equal_threshold"
+    assert item["sourceRef"] == "oq_equal_threshold"
+    assert item["status"] == "deferred"
+    assert item["priority"] == "high"
+    assert item["version"] == 9
+    assert data["validation"]["status"] == "passed"
+
+
+def test_canonical_backlog_and_decision_ids_remain_idempotent() -> None:
+    oir = OIR()
+    question = Question(id="q.amount.caliber", text="金额口径是什么？")
+    decision = Decision(
+        id="dec.amount.caliber", question_id=question.id, answer="含税",
+        actor="fde", idempotency_key="canonical-id-roundtrip",
+    )
+
+    data = build_package(oir, questions=[question], decisions=[decision]).to_dict()
+
+    assert data["questions"][0]["id"] == question.id
+    assert data["decisions"][0]["id"] == decision.id
+    assert data["decisions"][0]["questionId"] == question.id
     assert data["validation"]["status"] == "passed"
 
 

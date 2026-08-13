@@ -13,8 +13,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pytest
-
 from ontocopilot.onto.parse import (
     build_index,
     collect_endpoints,
@@ -87,7 +85,7 @@ async def test_material_tools_expose_the_inventory_and_the_unread_ones(tmp_path,
                                                                        monkeypatch):
     """只给文件名的话，模型分不清一份材料是**内容都在**还是**只登记了文件名**
     （图片没识别时就是后者），于是会对着空气回答。"""
-    import ontocopilot.server as server
+    from ontocopilot import server
 
     monkeypatch.setattr(server, "ROOT", tmp_path)
     s = server.Session(id="mat1")
@@ -101,7 +99,9 @@ async def test_material_tools_expose_the_inventory_and_the_unread_ones(tmp_path,
 
     class _Ctx:
         approved = True
-        pending: list = []
+
+        def __init__(self):
+            self.pending: list = []
 
     got = await reg.call("material.list", {}, _Ctx(), scope="converse")
     assert got["材料数"] == 2
@@ -126,7 +126,7 @@ async def test_upload_registers_without_parsing_and_the_ai_decides(tmp_path, mon
     并且解析完必须能**在同一轮里**检索 —— 工具集是回合开始时装配的，证据索引
     若早绑，AI 刚读完材料却发现这一轮没有检索工具，只能白等一轮。
     """
-    import ontocopilot.server as server
+    from ontocopilot import server
 
     monkeypatch.setattr(server, "ROOT", tmp_path)
     s = server.Session(id="p1")
@@ -139,7 +139,9 @@ async def test_upload_registers_without_parsing_and_the_ai_decides(tmp_path, mon
 
     class _Ctx:
         approved = True
-        pending: list = []
+
+        def __init__(self):
+            self.pending: list = []
 
     assert not s.state.get("_chunks"), "上传不该已经解析"
 
@@ -156,7 +158,7 @@ async def test_upload_registers_without_parsing_and_the_ai_decides(tmp_path, mon
 def test_scans_and_text_are_not_described_the_same_way(tmp_path, monkeypatch):
     """两种"没读"要分清：文本现在就能读，图片要等视觉模型。混成一句话会让 AI
     对着文本材料干等「开始梳理」，或者以为图片现在就能读。"""
-    import ontocopilot.server as server
+    from ontocopilot import server
 
     monkeypatch.setattr(server, "ROOT", tmp_path)
     s = server.Session(id="p2")
@@ -167,7 +169,9 @@ def test_scans_and_text_are_not_described_the_same_way(tmp_path, monkeypatch):
 
     class _Ctx:
         approved = True
-        pending: list = []
+
+        def __init__(self):
+            self.pending: list = []
 
     import asyncio
     rows = asyncio.get_event_loop_policy().new_event_loop().run_until_complete(
@@ -182,7 +186,7 @@ async def test_parse_never_implies_work_already_started(tmp_path, monkeypatch):
     """工具回执是模型唯一的事实来源。含糊即等于撒谎：回过"没有新读入的（可能都
     读过了）"之后，模型就对用户说"系统正在解析中" —— 而其实什么都没启动，用户
     在等一个永远不会来的结果。"""
-    import ontocopilot.server as server
+    from ontocopilot import server
 
     monkeypatch.setattr(server, "ROOT", tmp_path)
     s = server.Session(id="img9")
@@ -195,7 +199,9 @@ async def test_parse_never_implies_work_already_started(tmp_path, monkeypatch):
 
     class _Ctx:
         approved = True
-        pending: list = []
+
+        def __init__(self):
+            self.pending: list = []
 
     r = await reg.call("material.parse", {}, _Ctx(), scope="chat")
     blob = str(r)
@@ -251,8 +257,12 @@ async def test_vision_reports_progress_per_page():
         class _Gw:
             async def call(self, *a, **k):
                 class _C:
-                    data = {"blocks": [{"text": "x", "bbox": [0, 0, 1, 1], "kind": "note"}],
-                            "tables": [], "relations": [{"from": "a", "to": "b"}]}
+                    def __init__(self):
+                        self.data = {
+                            "blocks": [{"text": "x", "bbox": [0, 0, 1, 1],
+                                        "kind": "note"}],
+                            "tables": [], "relations": [{"from": "a", "to": "b"}],
+                        }
                 return _C()
 
         seen: list[str] = []
@@ -269,7 +279,7 @@ async def test_vision_reports_progress_per_page():
 async def test_listing_202_objects_is_not_retyped_by_the_model(tmp_path, monkeypatch):
     """用户要"列出全部实体"，模型自己逐条打的结果是：截断，然后回一句"其余 199 个
     未能呈现" —— 而那 199 个正是他要的。表由服务端直接从产物出，模型只说一句。"""
-    import ontocopilot.server as server
+    from ontocopilot import server
 
     monkeypatch.setattr(server, "ROOT", tmp_path)
     s = server.Session(id="tbl1")
@@ -284,7 +294,9 @@ async def test_listing_202_objects_is_not_retyped_by_the_model(tmp_path, monkeyp
 
     class _Ctx:
         approved = True
-        pending: list = []
+
+        def __init__(self):
+            self.pending: list = []
 
     out = await reg.call("ui.table", {"kind": "objects"}, _Ctx(), scope="converse")
     assert out["已列出"] == 202
@@ -308,7 +320,7 @@ async def test_analyse_an_image_does_not_launch_a_full_build(tmp_path, monkeypat
     """「分析一下这张图」和「开始梳理」是两件事，代价差一个数量级：前者几毛钱看懂
     一张图，后者是几分钟 + 几美元跑完整条抽取管线。看错方向的代价不对称，所以
     material.parse(ocr=true) 必须是独立可用的一条路 —— 只识别，不产出任何产物。"""
-    import ontocopilot.server as server
+    from ontocopilot import server
 
     monkeypatch.setattr(server, "ROOT", tmp_path)
     s = server.Session(id="an1")
@@ -328,9 +340,12 @@ async def test_analyse_an_image_does_not_launch_a_full_build(tmp_path, monkeypat
     class _Smart:
         async def call(self, *a, **k):
             class _C:
-                data = {"blocks": [{"text": "采购包 已创建", "bbox": [0, 0, 1, 1],
+                def __init__(self):
+                    self.data = {
+                        "blocks": [{"text": "采购包 已创建", "bbox": [0, 0, 1, 1],
                                     "kind": "entity_box"}],
-                        "tables": [], "relations": []}
+                        "tables": [], "relations": [],
+                    }
             return _C()
 
     monkeypatch.setattr(server, "_gateways",
@@ -344,9 +359,11 @@ async def test_analyse_an_image_does_not_launch_a_full_build(tmp_path, monkeypat
 
     class _Ctx:
         approved = True
-        pending: list = []
 
-    out = await reg.call("material.parse", {"ocr": True}, _Ctx(), scope="chat")
+        def __init__(self):
+            self.pending: list = []
+
+    await reg.call("material.parse", {"ocr": True}, _Ctx(), scope="chat")
     assert not started, "只是分析一张图，不该启动整条梳理管线"
     assert s.state.get("_chunks", {}).get("flow.png"), "识别结果要进证据索引"
     # 而且没有产出任何产物
@@ -405,7 +422,7 @@ async def test_user_asks_for_the_150_questions_in_his_own_spreadsheet(
     还跟用户说"系统读取异常，无法列出全部 150 条" —— 把选错工具说成了系统坏了，
     而那 150 条一直就在文件里躺着。
     """
-    import ontocopilot.server as server
+    from ontocopilot import server
 
     monkeypatch.setattr(server, "ROOT", tmp_path)
     s = server.Session(id="rows1")
@@ -417,7 +434,9 @@ async def test_user_asks_for_the_150_questions_in_his_own_spreadsheet(
 
     class _Ctx:
         approved = True
-        pending: list = []
+
+        def __init__(self):
+            self.pending: list = []
 
     # 没跑梳理时 ui.table 只能拒绝 —— 但要把人指到对的工具上，不能只说"先梳理"
     miss = await reg.call("ui.table", {"kind": "questions"}, _Ctx(), scope="converse")
@@ -451,7 +470,7 @@ async def test_user_asks_for_the_150_questions_in_his_own_spreadsheet(
 async def test_material_rows_is_honest_about_what_it_could_not_list(
         tmp_path, monkeypatch):
     """截断和"选不出表"都必须说出口。悄悄给个前 500 行，用户会当成全部。"""
-    import ontocopilot.server as server
+    from ontocopilot import server
 
     monkeypatch.setattr(server, "ROOT", tmp_path)
     s = server.Session(id="rows2")
@@ -467,7 +486,9 @@ async def test_material_rows_is_honest_about_what_it_could_not_list(
 
     class _Ctx:
         approved = True
-        pending: list = []
+
+        def __init__(self):
+            self.pending: list = []
 
     multi = await reg.call("material.rows", {"file": "big.xlsx"}, _Ctx(), scope="converse")
     assert multi["多张工作表"] == {"流程节点问题": 520, "字段表": 520}   # 不替用户瞎猜
@@ -483,3 +504,100 @@ async def test_material_rows_is_honest_about_what_it_could_not_list(
 
     gone = await reg.call("material.rows", {"file": "不存在.xlsx"}, _Ctx(), scope="converse")
     assert "error" in gone
+
+
+# ══════════════════════════════════════════════════════════════════
+#  回执不能自相矛盾 —— 矛盾会把模型逼去编产物
+# ══════════════════════════════════════════════════════════════════
+async def test_build_start_never_says_running_when_nothing_is(tmp_path, monkeypatch):
+    """他的 trace 里：session.status 说 idle、还没跑过梳理，build.start 却回
+    「已经在跑了」，oir.query 又说没产物。三个回执互相打架，模型走投无路，
+    **手工编了一套 Action/Event JSON 交差** —— 凭空捏造，没有任何材料依据。
+
+    抢不到租约时退回的是**会话真实状态**，它完全可能就是 idle（一次事务争用）。
+    那不是"在跑"，是"这次没抢到"。
+    """
+    import ontocopilot.server as server
+
+    monkeypatch.setattr(server, "ROOT", tmp_path)
+    s = server.Session(id="bs1")
+    (s.dir / "materials").mkdir(parents=True, exist_ok=True)
+    p = s.dir / "materials" / "m.xlsx"
+    p.write_bytes(b"x")
+    s.files = [{"name": p.name, "size": 1, "path": str(p)}]
+
+    calls: list[int] = []
+
+    async def never_claims(_s, **_kw):
+        calls.append(1)
+        return "idle"                     # 抢不到，但会话确实是空闲的
+
+    monkeypatch.setattr(server, "_claim_and_start_build", never_claims)
+    reg = server._converse_tools(s)
+
+    class _Ctx:
+        approved = True
+        pending: list = []
+
+    out = await reg.call("build.start", {}, _Ctx(), scope="converse")
+    assert len(calls) == 2, "状态本来就可启动时应该重试一次，而不是直接下结论"
+    assert "已经在跑" not in out["error"], f"又在撒谎：{out['error']}"
+    assert "idle" in out["error"]
+    # 而且必须明确挡住"编一个给他"
+    assert any("不要自己编产物" in k or "编" in str(v) for k, v in out.items())
+
+
+async def test_build_start_still_says_running_when_it_actually_is(tmp_path, monkeypatch):
+    """真在跑的时候要照说不误 —— 不能为了不撒谎就把这条也删了。"""
+    import ontocopilot.server as server
+
+    monkeypatch.setattr(server, "ROOT", tmp_path)
+    s = server.Session(id="bs2")
+    s.dir.mkdir(parents=True, exist_ok=True)
+
+    async def busy(_s, **_kw):
+        return "extracting"
+
+    monkeypatch.setattr(server, "_claim_and_start_build", busy)
+    reg = server._converse_tools(s)
+
+    class _Ctx:
+        approved = True
+        pending: list = []
+
+    out = await reg.call("build.start", {}, _Ctx(), scope="converse")
+    assert out["error"].startswith("已经在跑了")
+    assert "extracting" in out["error"]
+
+
+async def test_a_percent_encoded_filename_means_the_same_file_everywhere(
+        tmp_path, monkeypatch):
+    """模型很爱把中文文件名百分号编码了再传。material.parse 靠子串蒙混过去了，
+    evidence.search 直接回"没有这些材料" —— 而它上一秒刚把这份材料读进来。
+    模型于是以为文件没读进来，转头去猜答案。"""
+    from urllib.parse import quote
+
+    import ontocopilot.server as server
+
+    monkeypatch.setattr(server, "ROOT", tmp_path)
+    s = server.Session(id="enc1")
+    (s.dir / "materials").mkdir(parents=True, exist_ok=True)
+    real = "采购计划流程问题_节点1-10_业务访谈及规则问题完整版.xlsx"
+    _questions_xlsx(s.dir / "materials" / real, 8)
+    s.files = [{"name": real, "size": 1, "path": str(s.dir / "materials" / real)}]
+
+    encoded = quote(real)
+    assert encoded != real
+    assert server._match_file(s, encoded)["name"] == real     # 编码过的认得出
+    assert server._match_file(s, real)["name"] == real         # 原样也认
+    assert server._match_file(s, "根本不存在.xlsx") is None
+
+    reg = server._converse_tools(s)
+
+    class _Ctx:
+        approved = True
+        pending: list = []
+
+    out = await reg.call("material.rows", {"file": encoded}, _Ctx(), scope="converse")
+    assert "error" not in out, out
+    assert out["总行数"] == 8

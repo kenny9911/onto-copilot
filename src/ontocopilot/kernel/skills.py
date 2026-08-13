@@ -17,9 +17,8 @@ ActionType 怎么从 OpenAPI 反推。它不是提示词模板，而是**带检�
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
 
 from .memory.types import est_tokens
 
@@ -141,12 +140,20 @@ def _tok(text: str) -> list[str]:
     return [t.lower() for t in re.findall(r"[a-zA-Z]+|[㐀-鿿]", text or "")]
 
 
-_SECTION = re.compile(r"^##\s+(.+?)\s*$", re.M)
+_SECTION = re.compile(r"^##\s+(.+?)\s*$", re.MULTILINE)
 
 
 def parse_skill_md(text: str, *, fallback: str = "skill") -> Skill:
-    name = m.group(1).strip() if (m := re.search(r"^#\s+(.+)$", text, re.M)) else fallback
-    desc = m.group(1).strip() if (m := re.search(r"^>\s*(.+)$", text, re.M)) else ""
+    name = (
+        m.group(1).strip()
+        if (m := re.search(r"^#\s+(.+)$", text, re.MULTILINE))
+        else fallback
+    )
+    desc = (
+        m.group(1).strip()
+        if (m := re.search(r"^>\s*(.+)$", text, re.MULTILINE))
+        else ""
+    )
 
     sections: dict[str, str] = {}
     marks = list(_SECTION.finditer(text))
@@ -263,6 +270,125 @@ BUILTIN_SKILLS = [
                    "能规则化的没交给模型", "完成度只算业务必填格",
                    "打回单落到了具体的人"),
         tags=("回传", "审核", "打回", "完成度"),
+    ),
+    Skill(
+        name="访谈盘点",
+        description="在进场前盘清业务边界、参与角色、系统和可验证的成功标准",
+        when_to_use="FDE 刚进场、换了流程负责人，或新一轮访谈尚未建立范围基线时",
+        procedure="""1. 用一句话写清本轮要解决的业务结果，同时列明确的范围外事项。
+2. 建立干系人表：流程负责人、步骤执行人、数据负责人、ERP 顾问、
+   审批人与最终验收人；不要把“业务部门”当作一个人。
+3. 盘点每个环节使用的系统、模块、表单/接口、权威数据源及已有材料。
+4. 把业务方的陈述分成已知事实、待验证假设、未知项；每条事实挂证据。
+5. 约定验收产物、决策权归属、问题回复时限与下一次访谈节点。""",
+        checklist=("范围内、范围外和成功标准都可被验收",
+                   "每个关键角色都落到具体负责人或明确待定",
+                   "已知事实有证据，假设与事实没有混写",
+                   "已记录决策权、回复时限和验收人"),
+        tools=("evidence.search", "evidence.rows", "oir.query"),
+        tags=("FDE", "访谈", "范围", "干系人", "intake"),
+    ),
+    Skill(
+        name="缺口追问路由",
+        description="把流程、数据、规则与系统缺口变成可回答、可排序、可指派的问题清单",
+        when_to_use="已有初版流程或本体草稿，需要决定下一轮问谁、问什么、先问哪些时",
+        procedure="""1. 用结构完整性检查缺口：触发、前置条件、执行人、输入、输出、分支条件、
+   异常、时限、权限、系统落点和证据。
+2. 一个问题只解一个决策。把“请补充流程”改写成带上下文、字段约束与
+   2~4 个有证据选项的可回答问题。
+3. 按下游阻塞度、影响范围、不可逆性和证据缺口排序；不按“模型最好奇”排序。
+4. 路由到有决策权的角色，指定负责人、截止时间、预期回答结构和被阻塞产物。
+5. 小批次提问：每次先提交能解锁最多下游的问题；已回答、已延后和已取消的
+   问题保留决策记录，不重复问。""",
+        checklist=("每个问题只对应一个可记录的决策",
+                   "问题带来源证据、影响范围和被阻塞产物",
+                   "负责角色、负责人、优先级和回答 schema 都已声明",
+                   "当前批次的每个问题都能解锁一项下游工作"),
+        tools=("evidence.search", "oir.query"),
+        tags=("缺口", "追问", "问题清单", "路由", "HITL"),
+    ),
+    Skill(
+        name="流程建模",
+        description="把访谈和材料拆成有参与者、网关、异常与证据的可验证流程图",
+        when_to_use="需要从业务陈述中建立现状/目标流程，或现有流程只有顺序步骤没有语义时",
+        procedure="""1. 分开 AS-IS 与 TO-BE；未被确认的改进建议不得写成现状事实。
+2. 对每个步骤记录稳定 ID、动作、执行角色、触发、前置条件、输入/输出 DataObject、
+   使用系统、时限与证据。
+3. 显式建模排他/并行分支、回退、取消、超时和人工介入；不把异常塞进备注。
+4. 为每条连线标明事件或条件，并检查开始、正常终止与异常终止可达。
+5. 输出结构化流程和可视化图；图与 JSON 共用同一组 ID，不维护两份真相。""",
+        checklist=("AS-IS 和 TO-BE 没有混写",
+                   "每个步骤都有角色、输入输出、系统和证据",
+                   "分支、回退、超时和异常路径被显式建模",
+                   "图与结构化输出使用相同的稳定 ID"),
+        tools=("evidence.search", "evidence.rows", "oir.query"),
+        tags=("流程", "BPMN", "步骤", "游道", "分支", "异常"),
+    ),
+    Skill(
+        name="ERP映射",
+        description="将业务步骤和对象对齐到 ERP 模块、业务对象、交易和字段",
+        when_to_use="流程涉及 SAP、Oracle、用友、金蝶或其他 ERP，需要识别标准能力与客制落点时",
+        procedure="""1. 先确认产品、版本、模块、组织范围与系统别名；不用“ERP 一般如此”代替证据。
+2. 对每个流程步骤建立映射：业务能力 → 模块/交易/接口 → ERP 对象/表/字段。
+3. 标准、配置、增强、客制与外部系统映射分类；不确定的映射标注置信度。
+4. 记录组织层级、主数据键、编码转换、单位/币种/时区转换和同步方向。
+5. 将缺版本、缺字段定义、不能证实的客制逻辑路由给 ERP 顾问，不自行补全。""",
+        checklist=("每条映射都声明产品版本和组织范围",
+                   "步骤、ERP 能力、对象与字段可相互追溯",
+                   "标准、配置、增强、客制与外部落点已区分",
+                   "低置信映射已转成指派给 ERP 顾问的问题"),
+        tools=("evidence.search", "evidence.rows", "oir.query", "profile.column"),
+        tags=("ERP", "SAP", "Oracle", "用友", "金蝶", "字段映射"),
+    ),
+    Skill(
+        name="规则结构化",
+        description="把散文政策和专家口径转成可判定、可溯源、可测试的 Rules",
+        when_to_use="材料或访谈出现应当、不得、只有、必须、超过、按公式计算等约束时",
+        procedure="""1. 把复合句拆成原子规则，每条只有一个可判定结果。
+2. 声明规则类型、触发事件、适用对象、前置条件、逻辑表达式、执行结果、
+   优先级、例外和生效期。
+3. 用决策表检查重叠、缺口与冲突；法规、集团政策和本地口径分开记录优先级。
+4. 每条规则绑定 Action/Event/DataObject 稳定 ID 与原文证据；未绑定的产生缺口问题。
+5. 为正例、边界、反例与例外分别给出验收用例，不将不可判定的目标写成规则。""",
+        checklist=("每条规则是原子的且有可判定结果",
+                   "触发、条件、结果、例外和生效期已声明",
+                   "规则可追溯到本体 ID 与原文证据",
+                   "正例、边界、反例和例外均有验收用例"),
+        tools=("evidence.search", "evidence.rows", "oir.query"),
+        tags=("规则", "决策表", "DMN", "条件", "例外", "rule"),
+    ),
+    Skill(
+        name="数据对象治理",
+        description="定义 DataObject 的身份、生命周期、数据质量、敏感性和系统权威",
+        when_to_use="流程已识别输入输出，但对象定义、主键、状态、责任人或权威源不完整时",
+        procedure="""1. 区分业务对象、单据、主数据、事务数据和派生数据；不按表名一对一造对象。
+2. 为对象记录业务键、属性、类型/单位、基数、状态机、创建/更新事件与保留周期。
+3. 标明 System of Record、复制系统、同步方向、新鲜度 SLA、数据负责人和消费者。
+4. 对完整性、唯一性、有效性、一致性与及时性声明可执行规则，不只写“数据质量高”。
+5. 标记个人/敏感数据、最小访问角色、脱敏与保留政策；无证据的分类转问题。""",
+        checklist=("对象不是从数据库表名机械复制而来",
+                   "业务键、状态机、权威源、负责人和生命周期已声明",
+                   "数据质量规则是可计算、可告警的",
+                   "敏感性、最小访问范围和保留政策有证据"),
+        tools=("evidence.search", "evidence.rows", "oir.query", "profile.column"),
+        tags=("DataObject", "数据治理", "主数据", "数据质量", "敏感"),
+    ),
+    Skill(
+        name="交付审查",
+        description="在交付前审查流程、本体、问题决策、证据和可下载产物的一致性",
+        when_to_use="准备向 FDE、业务负责人或 ERP 顾问提交阶段产物之前",
+        procedure="""1. 先运行确定性检查：JSON Schema、引用完整性、稳定 ID、重名、悬空边、状态可达性。
+2. 从流程步骤双向追踪 Action、Event、DataObject、Rule 和 ERP 映射；检查可视化图与 JSON 数量、ID 一致。
+3. 抽样核验证据引用，区分已确认事实、推断、未回答缺口与已延后项。
+4. 检查决策记录是否有决策人、时间、原问题、回答、影响范围和被取代版本。
+5. 按 blocking / warning / accepted-risk 生成交付门报告；只有 blocking 为零且必需产物
+   可打开、可下载时才建议通过。""",
+        checklist=("Schema、引用、稳定 ID 和流程可达性检查已通过",
+                   "流程图与 Action/Event/DataObject/Rule JSON 可双向追踪",
+                   "推断、未回答问题和已接受风险均未伪装成事实",
+                   "每个阻断项有责任人，所有交付件均可打开和下载"),
+        tools=("evidence.search", "evidence.rows", "oir.query"),
+        tags=("交付", "审查", "验收", "追溯", "质量门"),
     ),
 ]
 

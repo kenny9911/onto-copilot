@@ -15,9 +15,10 @@ from __future__ import annotations
 import hashlib
 import json
 import time
+from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass, field, replace
 from enum import StrEnum
-from typing import Any, Iterable, Mapping, Sequence
+from typing import Any
 
 __all__ = [
     "AnswerValidationError", "Decision", "DecisionLedger", "IdempotencyConflict",
@@ -227,7 +228,7 @@ class Question:
         }
 
     @classmethod
-    def from_dict(cls, raw: Mapping[str, Any]) -> "Question":
+    def from_dict(cls, raw: Mapping[str, Any]) -> Question:
         """兼容统一契约、OIR OpenQuestion 与 clarify.Question 的字典。"""
         text_raw = raw.get("text", raw.get("title", raw.get("summary", "")))
         text = str(_value(text_raw) or "")
@@ -285,7 +286,7 @@ class Question:
         )
 
     @classmethod
-    def from_legacy(cls, raw: Any) -> "Question":
+    def from_legacy(cls, raw: Any) -> Question:
         if isinstance(raw, cls):
             return replace(raw)
         if hasattr(raw, "to_dict"):
@@ -339,7 +340,7 @@ class Decision:
         }
 
     @classmethod
-    def from_dict(cls, raw: Mapping[str, Any]) -> "Decision":
+    def from_dict(cls, raw: Mapping[str, Any]) -> Decision:
         qid = str(raw.get("questionId") or raw.get("question_id")
                   or raw.get("target_rid") or "")
         answer = raw.get("answer", raw.get("option_id", raw.get("statement")))
@@ -408,7 +409,7 @@ class DecisionLedger:
                 "decisions": [d.to_dict() for d in self.decisions]}
 
     @classmethod
-    def from_dict(cls, raw: Mapping[str, Any] | Sequence[Mapping[str, Any]]) -> "DecisionLedger":
+    def from_dict(cls, raw: Mapping[str, Any] | Sequence[Mapping[str, Any]]) -> DecisionLedger:
         rows = raw if isinstance(raw, Sequence) else raw.get("decisions") or []
         return cls([Decision.from_dict(x) for x in rows])
 
@@ -471,7 +472,7 @@ class QuestionBacklog:
         return out
 
     @classmethod
-    def from_dict(cls, raw: Mapping[str, Any] | Sequence[Any]) -> "QuestionBacklog":
+    def from_dict(cls, raw: Mapping[str, Any] | Sequence[Any]) -> QuestionBacklog:
         rows = raw if isinstance(raw, Sequence) else raw.get("questions") or []
         bag = cls()
         for item in rows:
@@ -561,7 +562,7 @@ class PatchOp:
         return out
 
     @classmethod
-    def from_dict(cls, raw: Mapping[str, Any]) -> "PatchOp":
+    def from_dict(cls, raw: Mapping[str, Any]) -> PatchOp:
         return cls(str(raw["op"]), str(raw["path"]), raw.get("value"),
                    str(raw.get("from") or raw.get("from_path") or ""),
                    tuple(raw.get("targetIds") or raw.get("target_ids") or ()))
@@ -605,7 +606,7 @@ class PatchSet:
         }
 
     @classmethod
-    def from_dict(cls, raw: Mapping[str, Any]) -> "PatchSet":
+    def from_dict(cls, raw: Mapping[str, Any]) -> PatchSet:
         return cls(
             id=str(raw.get("id") or _digest("patch", raw.get("ops") or [])),
             base_revision=int(raw.get("baseRevision") or raw.get("base_revision") or 0),
@@ -648,7 +649,7 @@ class Revision:
         }
 
     @classmethod
-    def from_dict(cls, raw: Mapping[str, Any]) -> "Revision":
+    def from_dict(cls, raw: Mapping[str, Any]) -> Revision:
         patch = raw.get("patchSet") or raw.get("patch_set")
         return cls(
             id=str(raw["id"]), ordinal=int(raw.get("ordinal") or 0),

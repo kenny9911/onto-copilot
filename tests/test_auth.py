@@ -6,12 +6,14 @@ HTTP 登录流程、中间件门禁、账号 CRUD 的端到端测试在 P2 一�
 
 from __future__ import annotations
 
+import argparse
+import io
 import uuid
 
 import httpx
 import pytest
 
-from ontocopilot import appconfig, authgate
+from ontocopilot import appconfig, authgate, server
 from ontocopilot.auth import (
     hash_password,
     mint_token,
@@ -19,7 +21,6 @@ from ontocopilot.auth import (
     token_hash,
     verify_password,
 )
-from ontocopilot import server
 from ontocopilot.server import app
 from ontocopilot.store.deps import set_repo_for_tests
 from ontocopilot.store.repo import MemoryRepo, SessionRow, UserRow
@@ -262,28 +263,28 @@ async def test_register_first_is_admin_rest_user(monkeypatch):
     monkeypatch.setenv("ONTOCOPILOT_AUTH", "1")
     async with _client(MemoryRepo()) as c:
         r1 = await c.post("/api/register",
-                          json={"username": "alice", "password": "pw-alice-1"})
+                          json={"username": "alice", "display_name": "Alice", "password": "pw-alice-1"})
         assert r1.status_code == 200 and r1.json()["user"]["role"] == "admin"   # 首个=管理员
         me = await c.get("/api/me")                                             # 注册即登录
         assert me.status_code == 200 and me.json()["username"] == "alice"
         c.cookies.clear()
         r2 = await c.post("/api/register",
-                          json={"username": "bob", "password": "pw-bob-1"})
+                          json={"username": "bob", "display_name": "Bob", "password": "pw-bob-1"})
         assert r2.status_code == 200 and r2.json()["user"]["role"] == "user"    # 其余=普通
 
 
 async def test_register_duplicate_and_validation(monkeypatch):
     monkeypatch.setenv("ONTOCOPILOT_AUTH", "1")
     async with _client(MemoryRepo()) as c:
-        await c.post("/api/register", json={"username": "alice", "password": "pw-alice-1"})
+        await c.post("/api/register", json={"username": "alice", "display_name": "Alice", "password": "pw-alice-1"})
         c.cookies.clear()
         # 规范化后重名 → 409
         assert (await c.post("/api/register",
-                json={"username": "Alice", "password": "another"})).status_code == 409
+                json={"username": "Alice", "display_name": "Alice", "password": "another"})).status_code == 409
         assert (await c.post("/api/register",
                 json={"username": "", "password": "pw-xxxx"})).status_code == 400
         assert (await c.post("/api/register",
-                json={"username": "z", "password": "123"})).status_code == 400   # 密码太短
+                json={"username": "z", "display_name": "Z", "password": "123"})).status_code == 400   # 密码太短
 
 
 async def test_session_isolation_between_accounts(monkeypatch):
@@ -291,14 +292,14 @@ async def test_session_isolation_between_accounts(monkeypatch):
     repo = MemoryRepo()
     async with _client(repo) as c:
         alice = (await c.post("/api/register",
-                 json={"username": "alice", "password": "pw-alice-1"})).json()["user"]
+                 json={"username": "alice", "display_name": "Alice", "password": "pw-alice-1"})).json()["user"]
         # 直接在库里塞一个 alice 的会话（避开建会话路由对磁盘的依赖）
         await repo.create_session(
             SessionRow(id="sess_a", title="A", owner=alice["id"], created=1000.0))
         assert any(x["id"] == "sess_a" for x in (await c.get("/api/sessions")).json())
         # 换 bob
         c.cookies.clear()
-        await c.post("/api/register", json={"username": "bob", "password": "pw-bob-1"})
+        await c.post("/api/register", json={"username": "bob", "display_name": "Bob", "password": "pw-bob-1"})
         assert (await c.get("/api/sessions")).json() == []                 # 看不到 alice 的
         assert (await c.get("/api/sessions/sess_a/state")).status_code == 404  # 也访问不了
 
@@ -332,7 +333,7 @@ async def test_first_registration_adopts_the_sessions_made_in_open_mode(monkeypa
         assert len((await c.get("/api/sessions")).json()) == 3
 
         r = await c.post("/api/register",
-                         json={"username": "yuhan", "password": "pw-yuhan-1"})
+                         json={"username": "yuhan", "display_name": "Yuhan", "password": "pw-yuhan-1"})
         assert r.status_code == 200
         assert r.json()["adopted_sessions"] == 3      # 认领这件事要说出来，不是悄悄做
 
@@ -353,10 +354,289 @@ async def test_second_account_does_not_inherit_anyone_elses_sessions(monkeypatch
     repo = MemoryRepo()
     async with _client(repo) as c:
         sid = (await c.post("/api/sessions", json={"title": "alice 的活"})).json()["id"]
-        await c.post("/api/register", json={"username": "alice", "password": "pw-alice-1"})
+        await c.post("/api/register", json={"username": "alice", "display_name": "Alice", "password": "pw-alice-1"})
         c.cookies.clear()
 
-        r = await c.post("/api/register", json={"username": "bob", "password": "pw-bob-11"})
+        r = await c.post("/api/register", json={"username": "bob", "display_name": "Bob", "password": "pw-bob-11"})
         assert r.status_code == 200 and r.json()["adopted_sessions"] == 0
         assert (await c.get("/api/sessions")).json() == []
         assert (await c.get(f"/api/sessions/{sid}/state")).status_code == 404
+
+
+async def test_change_password_accepts_exactly_what_the_ui_sends(monkeypatch):
+    """前端发 {old_password,new_password} 而端点读 {old,new} 时，new 恒为空，
+    服务端在校验旧密码之前就 400「新密码不能为空」，界面把它翻成"改不了，稍后
+    再试" —— 每个人、每一次。契约两头都钉住，光测端点是测不出来的。"""
+    import pathlib
+    import re
+
+    monkeypatch.setenv("ONTOCOPILOT_AUTH", "1")
+    repo = MemoryRepo()
+    async with _client(repo) as c:
+        await c.post("/api/register", json={"username": "yuhan", "display_name": "Yuhan", "password": "pw-old-11"})
+
+        # 前端源码里那次 POST 用的字段名
+        ui = (pathlib.Path(__file__).resolve().parents[1] / "ui" / "index.html").read_text()
+        body = re.search(r'/api/me/password[\s\S]{0,400}?JSON\.stringify\((\{[^}]*\})',
+                         ui).group(1)
+        keys = set(re.findall(r'(\w+)\s*:', body))
+        assert keys == {"old", "new"}, f"前端发的是 {keys}，端点读的是 old/new"
+
+        r = await c.post("/api/me/password", json={"old": "pw-old-11", "new": "pw-new-11"})
+        assert r.status_code == 200
+
+        # 改完旧密码立刻失效、新密码可用（且旧 cookie 被踢掉）
+        c.cookies.clear()
+        assert (await c.post("/api/login",
+                json={"username": "yuhan", "password": "pw-old-11"})).status_code == 401
+        assert (await c.post("/api/login",
+                json={"username": "yuhan", "password": "pw-new-11"})).status_code == 200
+
+
+async def test_cli_created_first_admin_also_adopts_open_mode_sessions(monkeypatch, tmp_path):
+    """文档和 CLI 帮助都还写着首个管理员用 `ontocopilot useradd --admin` 建。
+    认领只做在 /api/register 里的话，照文档操作的人就会数据全丢。"""
+    from ontocopilot.authgate import adopt_local_sessions
+
+    monkeypatch.delenv("ONTOCOPILOT_AUTH", raising=False)
+    monkeypatch.setattr(server, "ROOT", tmp_path)
+    monkeypatch.setattr(server, "SESSIONS", {})
+    repo = MemoryRepo()
+    async with _client(repo) as c:
+        made = [(await c.post("/api/sessions", json={"title": f"t{i}"})).json()["id"]
+                for i in range(2)]
+        admin = await _mk_user(repo, "bob", "pw-bob-111", role="admin")
+        assert await adopt_local_sessions(repo, admin) == 2
+
+        rows = await repo.list_sessions(owner=admin.id)
+        assert sorted(r.id for r in rows) == sorted(made)
+
+
+async def test_cli_can_recover_a_locked_out_instance(tmp_path, monkeypatch, capsys):
+    """忘了首个管理员的密码，以前是**没有出口的死结**：改密码要先登录、管理员
+    重置别人密码也要先登录，而登录正是进不去的那一步。宿主机上必须有条路。"""
+    from ontocopilot import cli
+    from ontocopilot.auth import verify_password
+    from ontocopilot.store.engine import Store
+    from ontocopilot.store.repo import build_repo
+
+    monkeypatch.setenv("ONTOCOPILOT_WORKSPACE", str(tmp_path))
+    monkeypatch.delenv("ONTOCOPILOT_DATABASE_URL", raising=False)
+    monkeypatch.setattr(cli.sys, "stdin", io.StringIO("first-pw-1\n"))
+    assert await cli.cmd_useradd(argparse.Namespace(
+        username="root", admin=True, password_stdin=True)) == 0
+
+    monkeypatch.setattr(cli.sys, "stdin", io.StringIO("recovered-pw\n"))
+    assert await cli.cmd_passwd(argparse.Namespace(
+        username="root", password_stdin=True)) == 0
+
+    store = await Store.open(f"sqlite+aiosqlite:///{tmp_path / 'ontocopilot.db'}")
+    try:
+        u = await build_repo(store).get_user_by_username("root")
+        assert verify_password("recovered-pw", u.password_hash)
+        assert not verify_password("first-pw-1", u.password_hash)
+    finally:
+        await store.close()
+
+    # 太短的密码要拒绝，别人的账号不存在也要说清
+    monkeypatch.setattr(cli.sys, "stdin", io.StringIO("abc\n"))
+    assert await cli.cmd_passwd(argparse.Namespace(
+        username="root", password_stdin=True)) == 1
+    monkeypatch.setattr(cli.sys, "stdin", io.StringIO("whatever-1\n"))
+    assert await cli.cmd_passwd(argparse.Namespace(
+        username="ghost", password_stdin=True)) == 1
+
+
+async def test_cli_role_change_refuses_to_lock_everyone_out(tmp_path, monkeypatch):
+    """网关设置和账户管理都是管理员专属。把最后一个管理员降级 = 把所有人锁在
+    门外，而且没有任何界面能救回来。"""
+    from ontocopilot import cli
+    from ontocopilot.store.engine import Store
+    from ontocopilot.store.repo import build_repo
+
+    monkeypatch.setenv("ONTOCOPILOT_WORKSPACE", str(tmp_path))
+    monkeypatch.delenv("ONTOCOPILOT_DATABASE_URL", raising=False)
+    for name, admin in (("root", True), ("admin", False)):
+        monkeypatch.setattr(cli.sys, "stdin", io.StringIO(f"pw-{name}-11\n"))
+        await cli.cmd_useradd(argparse.Namespace(
+            username=name, admin=admin, password_stdin=True))
+
+    # 普通用户提成管理员 —— 这正是"我登的号看不到网关"的解法
+    assert await cli.cmd_role(argparse.Namespace(
+        username="admin", admin=True, user=False)) == 0
+    assert await cli.cmd_role(argparse.Namespace(
+        username="root", admin=False, user=True)) == 0     # 还剩一个管理员，放行
+    assert await cli.cmd_role(argparse.Namespace(
+        username="admin", admin=False, user=True)) == 1    # 最后一个，拦住
+
+    store = await Store.open(f"sqlite+aiosqlite:///{tmp_path / 'ontocopilot.db'}")
+    try:
+        repo = build_repo(store)
+        assert (await repo.get_user_by_username("admin")).role == "admin"
+    finally:
+        await store.close()
+
+
+# ══════════════════════════════════════════════════════════════════
+#  名字：注册时收，界面上用来称呼人
+# ══════════════════════════════════════════════════════════════════
+async def test_display_name_reaches_the_one_endpoint_the_ui_reads(monkeypatch):
+    """身份投影有四份（public / me / auth.status / 前端兜底），各写各的。
+
+    空状态那句问候语的名字**只能从 /api/auth/status 拿到** —— 它是页面加载时
+    唯一无条件调用的身份端点。只改 UserRow.public() 的话测试能绿，界面上永远空白。
+    """
+    monkeypatch.setenv("ONTOCOPILOT_AUTH", "1")
+    repo = MemoryRepo()
+    async with _client(repo) as c:
+        r = await c.post("/api/register", json={
+            "username": "yuhan", "display_name": "程宇涵", "password": "pw-yuhan-1"})
+        assert r.status_code == 200
+        assert r.json()["user"]["display_name"] == "程宇涵"          # public()
+        assert (await c.get("/api/me")).json()["display_name"] == "程宇涵"
+        st = (await c.get("/api/auth/status")).json()
+        assert st["user"]["display_name"] == "程宇涵"                # 界面真正读的那份
+
+
+async def test_display_name_is_kept_verbatim_not_lowercased(monkeypatch):
+    """username 走 strip().lower()，名字**不能**跟着走 ——
+    这一列存在的全部意义就是原样称呼人。顺便折叠掉换行/制表/连续空格。"""
+    monkeypatch.setenv("ONTOCOPILOT_AUTH", "1")
+    repo = MemoryRepo()
+    async with _client(repo) as c:
+        r = await c.post("/api/register", json={
+            "username": "  Yuhan ", "display_name": "  Yuhan   Cheng \n",
+            "password": "pw-yuhan-1"})
+        assert r.status_code == 200
+        u = r.json()["user"]
+        assert u["username"] == "yuhan"                  # 登录标识照旧归一
+        assert u["display_name"] == "Yuhan Cheng"        # 称呼原样保留大小写
+
+
+async def test_registration_requires_a_name(monkeypatch):
+    """用户要的就是"注册时让人写上自己的名字"。空的、纯空白的都不算填了。"""
+    monkeypatch.setenv("ONTOCOPILOT_AUTH", "1")
+    repo = MemoryRepo()
+    async with _client(repo) as c:
+        for name in ("", "   ", "\n\t"):
+            r = await c.post("/api/register", json={
+                "username": "yuhan", "display_name": name, "password": "pw-yuhan-1"})
+            assert r.status_code == 400, name
+            assert "名字" in r.json()["detail"]
+
+
+async def test_display_name_length_is_capped(monkeypatch):
+    """自由文本要有上限：它会出现在问候语和账号列表里，撑破的是布局。"""
+    monkeypatch.setenv("ONTOCOPILOT_AUTH", "1")
+    repo = MemoryRepo()
+    async with _client(repo) as c:
+        assert (await c.post("/api/register", json={
+            "username": "a", "display_name": "名" * 40, "password": "pw-aaaa-1"},
+        )).status_code == 200
+        assert (await c.post("/api/register", json={
+            "username": "b", "display_name": "名" * 41, "password": "pw-bbbb-1"},
+        )).status_code == 400
+
+
+async def test_admin_created_accounts_may_omit_the_name(monkeypatch):
+    """管理员替别人建号时多半只知道登录名。不强制，展示时回落到 username。"""
+    monkeypatch.setenv("ONTOCOPILOT_AUTH", "1")
+    repo = MemoryRepo()
+    async with _client(repo) as c:
+        await c.post("/api/register", json={
+            "username": "admin", "display_name": "Admin", "password": "admin-pw-1"})
+        r = await c.post("/api/users", json={"username": "carol", "password": "carol-pw"})
+        assert r.status_code == 200
+        assert r.json()["display_name"] == ""
+        # 管理员愿意填也收得下
+        r2 = await c.post("/api/users", json={
+            "username": "dave", "display_name": "Dave Li", "password": "dave-pw"})
+        assert r2.json()["display_name"] == "Dave Li"
+
+
+async def test_register_sends_exactly_what_the_endpoint_reads(monkeypatch):
+    """前端发 name 而后端读 display_name 时，裸 dict **静默丢弃**未知键 ——
+    200、cookie 也发了，名字没了，每个人每一次注册都如此。契约两头都要钉。"""
+    import pathlib
+    import re
+
+    ui = (pathlib.Path(__file__).resolve().parents[1] / "ui" / "index.html").read_text()
+    body = re.search(r'/api/register[\s\S]{0,400}?JSON\.stringify\((\{[^}]*\})',
+                     ui).group(1)
+    keys = set(re.findall(r'(\w+)\s*:', body))
+    assert keys == {"username", "password", "display_name"}, f"前端发的是 {keys}"
+
+
+async def test_public_projection_carries_the_name_but_never_the_hash(monkeypatch):
+    monkeypatch.setenv("ONTOCOPILOT_AUTH", "1")
+    repo = MemoryRepo()
+    async with _client(repo) as c:
+        await c.post("/api/register", json={
+            "username": "admin", "display_name": "Admin", "password": "admin-pw-1"})
+        rows = (await c.get("/api/users")).json()
+        assert rows and all("display_name" in u for u in rows)
+        assert all("password_hash" not in u for u in rows)
+
+
+async def test_profile_edit_changes_the_name_not_the_account(monkeypatch):
+    """账号是账号，资料是资料。
+
+    username 是登录标识，改了会影响登录，个人资料这条路**不碰它**；
+    名字只是个称呼，随时能改。注册时填错一个字不该是一锤子买卖。
+    """
+    monkeypatch.setenv("ONTOCOPILOT_AUTH", "1")
+    repo = MemoryRepo()
+    async with _client(repo) as c:
+        await c.post("/api/register", json={
+            "username": "yuhan", "display_name": "程宇函", "password": "pw-yuhan-1"})
+
+        r = await c.post("/api/me/profile", json={"display_name": "程宇涵"})
+        assert r.status_code == 200
+        assert r.json()["user"]["display_name"] == "程宇涵"
+        assert r.json()["user"]["username"] == "yuhan"      # 账号没动
+
+        # 界面读的是 auth/status，改完必须立刻反映在那儿
+        st = (await c.get("/api/auth/status")).json()
+        assert st["user"]["display_name"] == "程宇涵"
+        assert st["user"]["username"] == "yuhan"
+
+        # 改称呼不是安全事件 —— 不该把人踢下线（对比改密码）
+        assert (await c.get("/api/me")).status_code == 200
+
+
+async def test_profile_edit_applies_the_same_rules_as_registration(monkeypatch):
+    """同一个 clean_display_name：空白折叠、不 lower、40 字上限。"""
+    monkeypatch.setenv("ONTOCOPILOT_AUTH", "1")
+    repo = MemoryRepo()
+    async with _client(repo) as c:
+        await c.post("/api/register", json={
+            "username": "yuhan", "display_name": "Yuhan", "password": "pw-yuhan-1"})
+
+        assert (await c.post("/api/me/profile", json={"display_name": "  "})
+                ).status_code == 400
+        assert (await c.post("/api/me/profile", json={"display_name": "名" * 41})
+                ).status_code == 400
+        r = await c.post("/api/me/profile", json={"display_name": "  Yuhan   Cheng \n"})
+        assert r.json()["user"]["display_name"] == "Yuhan Cheng"
+
+
+async def test_open_mode_has_no_profile_to_edit(monkeypatch):
+    """本地模式的合成管理员不落库，改它没有意义（和改密码同一个判断）。"""
+    monkeypatch.delenv("ONTOCOPILOT_AUTH", raising=False)
+    repo = MemoryRepo()
+    async with _client(repo) as c:
+        r = await c.post("/api/me/profile", json={"display_name": "谁"})
+        assert r.status_code == 400
+        assert "开放模式" in r.json()["detail"]
+
+
+async def test_profile_sends_exactly_what_the_endpoint_reads(monkeypatch):
+    """裸 dict 会静默丢掉不认识的键 —— 前端发 name 而端点读 display_name 的话，
+    保存成功、名字没变，用户只会以为这个功能坏了。"""
+    import pathlib
+    import re
+
+    ui = (pathlib.Path(__file__).resolve().parents[1] / "ui" / "index.html").read_text()
+    body = re.search(r'/api/me/profile[\s\S]{0,400}?JSON\.stringify\((\{[^}]*\})',
+                     ui).group(1)
+    assert set(re.findall(r'(\w+)\s*:', body)) == {"display_name"}

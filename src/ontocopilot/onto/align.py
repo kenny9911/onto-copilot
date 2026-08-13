@@ -18,7 +18,7 @@ from dataclasses import dataclass, field
 from difflib import SequenceMatcher
 from typing import Any
 
-from .oir import OIR, ObjectType, Origin, Status
+from .oir import OIR, ObjectType
 
 _CAMEL = re.compile(r"(?<=[a-z0-9])(?=[A-Z])")
 _SPLIT = re.compile(r"[_\-\s/]+")

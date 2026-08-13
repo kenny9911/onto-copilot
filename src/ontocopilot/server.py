@@ -12,12 +12,17 @@
 from __future__ import annotations
 
 import asyncio
+import copy
+import hashlib
 import json
 import os
+import re
 import time
 import uuid
+from collections import deque
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
+from datetime import UTC
 from pathlib import Path
 from typing import Any
 
@@ -25,33 +30,20 @@ from fastapi import FastAPI, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, Response, StreamingResponse
 
-from . import __version__
-from . import appconfig
-from . import authgate
-from . import configapi
+from . import __version__, appconfig, authgate, configapi
+from .kernel.agents import default_agents
 from .kernel.backends import OpenAICompatBackend
-from .store.deps import get_repo, get_store, lifespan as store_lifespan
-from .store.repo import FileRow, SessionRow
 from .kernel.budget import Budget
-from .kernel.catalog import Capability, ModelCatalog, SmartGateway
+from .kernel.bus.bus import AgentBus
+from .kernel.catalog import ModelCatalog, SmartGateway
+from .kernel.critic import CriticPanel
 from .kernel.dag import Difficulty
 from .kernel.events import EventKind
+from .kernel.ids import fingerprint, sha256_hex
+from .kernel.intent import Intent, RuleIntentParser
 from .kernel.journal import FileBlobStore, FileJournal
 from .kernel.llm import ModelGateway, gateway_routing
-from .kernel.recorder import Recorder
-from .kernel.skills import default_library
-from .onto.align import align_and_apply
-from .onto.oir import oir_from_dict
-from .onto.converse import ConversationAgent, needs_reasoning
-from .onto.prompts import followup_prompts, opening_prompts
-from .onto.suggest import apply_suggestion, suggest
-from .onto.audit import ReturnAuditor, read_returned
-from .onto.clarify import ClarificationEngine, apply_decision
-from .onto.conflict import auto_repair, detect_all
-from .kernel.bus.bus import AgentBus
-from .kernel.critic import CriticPanel
 from .kernel.loop import AgentLoop
-from .kernel.intent import Intent, RuleIntentParser
 from .kernel.memory.context import ContextManager
 from .kernel.memory.dialogue import (
     Decision,
@@ -59,10 +51,22 @@ from .kernel.memory.dialogue import (
     DialogueMemory,
     Speaker,
 )
+from .kernel.recorder import Recorder
 from .kernel.sandbox import default_sandbox
-from .kernel.scheduler import Scheduler
+from .kernel.scheduler import RunStatus, Scheduler
+from .kernel.skills import default_library
 from .kernel.tools import Danger, builtin_registry
-from .kernel.agents import default_agents
+from .onto.audit import ReturnAuditor, read_returned
+from .onto.clarify import apply_decision
+from .onto.converse import ConversationAgent
+from .onto.oir import oir_from_dict
+from .onto.parse import (
+    build_index,
+    collect_endpoints,
+    collect_profiles,
+    corpus_summary,
+    default_registry,
+)
 from .onto.pipeline import (
     CoverageCritic,
     build_dag,
@@ -72,17 +76,76 @@ from .onto.pipeline import (
     provenance_critic,
     segment_corpus,
 )
-from .onto.parse import (
-    build_index,
-    collect_endpoints,
-    collect_profiles,
-    corpus_summary,
-    default_registry,
+from .onto.prompts import followup_prompts, opening_prompts
+from .onto.questions import (
+    Decision as QuestionDecision,
 )
+from .onto.questions import (
+    IdempotencyConflict,
+    PatchSet,
+    Question,
+    QuestionBacklog,
+    QuestionPriority,
+    QuestionStatus,
+    QuestionTransitionError,
+    Revision,
+    RevisionConflict,
+    RevisionStatus,
+    build_question_backlog,
+)
+from .onto.suggest import apply_suggestion
 from .onto.template import TemplateSpec, compile_template, write_xlsx
+from .session_events import SESSION_EVENTS
+from .store.deps import get_repo, get_store, workspace_root
+from .store.deps import lifespan as store_lifespan
+from .store.repo import (
+    DecisionRecordRow,
+    FileRow,
+    QuestionRow,
+    RevisionRow,
+    SessionRow,
+    UsageRow,
+)
 
-ROOT = Path("workspace")
-UI = Path(__file__).resolve().parents[2] / "ui"
+# 与 store 使用同一份配置源。模块级初值覆盖普通 env 启动；lifespan 在加载
+# ``.env`` 后还会刷新一次，避免数据库落在配置目录、材料却落在 cwd/workspace。
+ROOT = workspace_root()
+_WORKER_ID = f"worker-{uuid.uuid4().hex}"
+
+
+def _configured_build_lease_ttl() -> float:
+    """Return a bounded lease TTL without making a bad env value break import."""
+    try:
+        return max(5.0, float(os.getenv("ONTOCOPILOT_BUILD_LEASE_TTL", "30")))
+    except ValueError:
+        return 30.0
+
+
+def _configured_chat_lease_ttl() -> float:
+    """Keep chat takeover configurable and bounded like build execution leases."""
+    try:
+        return max(5.0, float(os.getenv("ONTOCOPILOT_CHAT_LEASE_TTL", "30")))
+    except ValueError:
+        return 30.0
+
+
+def _configured_mutation_lease_ttl() -> float:
+    try:
+        return max(5.0, float(os.getenv("ONTOCOPILOT_MUTATION_LEASE_TTL", "30")))
+    except ValueError:
+        return 30.0
+
+
+_BUILD_LEASE_TTL = _configured_build_lease_ttl()
+_BUILD_HEARTBEAT_INTERVAL = min(_BUILD_LEASE_TTL / 3, 10.0)
+_CHAT_LEASE_TTL = _configured_chat_lease_ttl()
+_CHAT_HEARTBEAT_INTERVAL = min(_CHAT_LEASE_TTL / 3, 5.0)
+_MUTATION_LEASE_TTL = _configured_mutation_lease_ttl()
+_MUTATION_HEARTBEAT_INTERVAL = min(_MUTATION_LEASE_TTL / 3, 5.0)
+_SOURCE_UI = Path(__file__).resolve().parents[2] / "ui"
+_PACKAGED_UI = Path(__file__).resolve().parent / "ui"
+# 源码开发与 wheel 安装使用不同位置；选择真实存在的完整工作台。
+UI = _SOURCE_UI if (_SOURCE_UI / "index.html").exists() else _PACKAGED_UI
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -107,12 +170,32 @@ class Session:
     events: list[dict[str, Any]] = field(default_factory=list)
     state: dict[str, Any] = field(default_factory=dict)
     error: str = ""
+    #: 最近一次装入/写入的 durable projection 版本。多 worker 的 Session 缓存
+    # 不是事实源；chat 抢到仓储租约后用它判断是否必须先刷新再执行下一轮。
+    state_version: int = 0
     #: 当前请求选的界面语言（zh/en）。请求时捕获，供**后台管线**读取 —— 管线跑在
     #  非请求作用域、读不到 cookie/请求，只能靠 Session 传递（与鉴权/配置同一套手法）。
     lang: str = "zh"
+    #: 归属账号 id（app_user.id），与库里的 session.owner 一致。用量流水要按账号
+    #  记，而记账发生在**非请求作用域**的后台管线里 —— 和 lang 同一个理由。
+    owner: str = ""
     #: 正在跑的对话轮 / 梳理任务的句柄 —— 停止按钮据此 cancel。运行时对象，**不落库**。
     chat_task: asyncio.Task | None = field(default=None, repr=False, compare=False)
     run_task: asyncio.Task | None = field(default=None, repr=False, compare=False)
+    #: 每次 build 独有的 lease token。不能只用进程 id：同一 worker 停掉旧任务后
+    # 立刻重跑时，旧任务的 finally 否则会误删新任务的 lease（ABA）。
+    build_lease_owner: str = field(default="", repr=False, compare=False)
+    #: Question/Audit/chat structural edits share one durable cross-worker lease.
+    #: The token is invocation-scoped and is never persisted in session_state.
+    mutation_lease_owner: str = field(default="", repr=False, compare=False)
+    #: Question/Decision 并发锁。Decision claim 在 repo 内是原子的；这把锁
+    # 还将 OIR 回写、Question 转态、Revision 发号收口为一个进程内临界区。
+    question_lock: asyncio.Lock = field(default_factory=asyncio.Lock,
+                                        repr=False, compare=False)
+    #: build 的“检查状态 → 占位 → 创建任务”必须原子。否则同一 event loop
+    #: 两个并发 POST 都可能在后台任务真正把状态改成 parsing 前越过检查。
+    build_lock: asyncio.Lock = field(default_factory=asyncio.Lock,
+                                     repr=False, compare=False)
 
     @property
     def dir(self) -> Path:
@@ -125,19 +208,33 @@ class Session:
         写法（冲突类型、产物类型都叫 kind），不限定就会和这个形参撞名报错。
         payload 里的同名字段会覆盖事件类型，所以下面把它放在展开之前。
         """
-        ev = {"seq": len(self.events), "ts": time.time(), **payload, "kind": kind}
-        self.events.append(ev)
-        # 事件流本身是**进程内**的，重启即清空。绝大多数事件无所谓（进度、步骤），
-        # 但少数几种是**内容**：AI 列出来的那张 192 行的表、导出的那个文件。会话
-        # 一重开就没了，用户看到的是"表又不见了"。这几种单独留一份跟着状态落库。
+        # 保持同步接口，但不再发一个 ``len(events)`` 临时序号给 SSE。运行在服务
+        # event loop 时，DurableEventHub 串行 append；仓储返回的 seq 才会广播，并
+        # 原地回填这个 projection。没有运行时/仓储的纯领域调用保持 local-only。
+        try:
+            repo = get_repo()
+            ev = SESSION_EVENTS.enqueue(self, repo, kind, payload)
+        except (RuntimeError, LookupError):
+            ev = SESSION_EVENTS.emit_ephemeral(self, kind, payload)
+        # 少数内容事件继续保留状态投影，兼容迁移前的会话；新会话的权威历史始终是
+        # session_event，hydrate 不会重复灌这份 cards。
         if kind in _CARD_EVENT_KINDS:
             cards = self.state.setdefault("_cards", [])
             cards.append(ev)
             if len(cards) > _CARD_EVENT_CAP:
                 del cards[:-_CARD_EVENT_CAP]
-        for q in list(self.subscribers):
-            q.put_nowait(ev)
         return ev
+
+    async def emit_durable(self, kind: str, /, **payload: Any) -> dict[str, Any]:
+        """Emit and wait until the returned projection has its authoritative seq.
+
+        Most telemetry can use synchronous :meth:`emit`; callers that immediately
+        expose the sequence as an API contract (table download links and chat turn
+        correlation) use this helper.
+        """
+        event = self.emit(kind, **payload)
+        await SESSION_EVENTS.wait_seq(event)
+        return event
 
     def brief(self) -> dict[str, Any]:
         return {"id": self.id, "title": self.title, "project": self.project,
@@ -147,6 +244,13 @@ class Session:
 
 
 SESSIONS: dict[str, Session] = {}
+#: 首次恢复要跨多个 ``await`` 读取 repo / 材料 / OIR；同一进程里若两个请求同时
+#: 打开冷会话，不能各造一份 Session 后互相覆盖。锁按 sid 分片，避免恢复 A 会话时
+#: 阻塞完全无关的 B 会话。
+_HYDRATE_LOCKS: dict[str, asyncio.Lock] = {}
+#: 进入 single-flight（含正在等锁）的协程数。不能只看 ``lock.locked()`` 后 pop：
+#: release 与 waiter 真正恢复之间有一个调度缝隙，第三个请求会在缝隙里另建一把锁。
+_HYDRATE_USERS: dict[str, int] = {}
 
 #: 按网关实际可用模型过滤后的目录。视觉选型（OCR）靠它 —— 见 _ensure_catalog。
 #: 懒发现：第一次 build 时（网关此刻一定配好了）拉一次 /v1/models 并缓存。
@@ -158,16 +262,39 @@ _CATALOG_OK: bool = False
 @asynccontextmanager
 async def _lifespan(app: FastAPI) -> Any:
     """先起库，再对账。顺序不能反 —— 对账要用 repo。"""
+    global ROOT, _BUILD_LEASE_TTL, _BUILD_HEARTBEAT_INTERVAL
+    global _CHAT_LEASE_TTL, _CHAT_HEARTBEAT_INTERVAL
+    global _USAGE_DROPPED
     # 把 .env 载进进程环境。CLI 走 llm_config() 时会加载，但服务端的网关配置改走
     # appconfig（DB→env→抛错），它只读 os.getenv 不自己加载 —— 于是裸 uvicorn 启动
     # 时 .env 里的网关明明配了却读不到，/chat 与 /build 全 500。在这里一次性载入。
     from .kernel.config import load_dotenv
     load_dotenv()
+    ROOT = workspace_root()
+    _BUILD_LEASE_TTL = _configured_build_lease_ttl()
+    _BUILD_HEARTBEAT_INTERVAL = min(_BUILD_LEASE_TTL / 3, 10.0)
+    _CHAT_LEASE_TTL = _configured_chat_lease_ttl()
+    _CHAT_HEARTBEAT_INTERVAL = min(_CHAT_LEASE_TTL / 3, 5.0)
     async with store_lifespan(app):
         ROOT.mkdir(parents=True, exist_ok=True)
         await appconfig.refresh(get_repo())      # 预热设置缓存（网关/模型/预算覆盖）
         await _reconcile_on_boot()
-        yield
+        usage_task = asyncio.create_task(_drain_usage())   # 用量流水落库
+        try:
+            yield
+        finally:
+            usage_task.cancel()
+            await asyncio.gather(usage_task, return_exceptions=True)
+            # 关停前把剩下的流水写完 —— 一次梳理刚跑完就重启，账不该丢。
+            try:
+                await asyncio.wait_for(_flush_usage(get_repo(), limit=20_000),
+                                       timeout=5)
+            except Exception:                              # noqa: BLE001
+                # 用量写入是旁路；正常关停不能因账本不可用而卡死。
+                _USAGE_DROPPED += len(_USAGE_BUF)
+            # 仓储连接在外层 context 退出时才关闭；先 drain，确保已经接受的同步
+            # emit 在正常关停时全部 commit，避免 shutdown 尾部丢审计。
+            await SESSION_EVENTS.shutdown()
 
 
 app = FastAPI(title="OntoCopilot", version=__version__, lifespan=_lifespan)
@@ -187,6 +314,95 @@ app.include_router(authgate.users_router)
 app.include_router(configapi.router)
 
 
+@app.get("/api/usage")
+async def usage(request: Request, days: int = 30, bucket: str = "day",
+                limit: int = 5000) -> dict[str, Any]:
+    """模型用量：总量 + 按时间的曲线 + 按模型/用途的拆分 + 明细。
+
+    **只统计 token，不把估算的金额当钱报。** 经网关发现的模型在本地价目表里是
+    统一编的 2.0/8.0 美元每百万 token —— 拿它算出来的金额看着精确，其实是错的，
+    比不显示更糟。只有网关自己回了账单（usd_source=gateway）的那部分才算钱，
+    并且明确告诉界面它覆盖了多少条。
+    """
+    from datetime import UTC, datetime, timedelta
+
+    days = max(1, min(int(days or 30), 365))
+    bucket = "hour" if bucket == "hour" else "day"
+    # 明细查询不能让一个请求把整本账拉进进程；负数也不能借 Python slice
+    # 语义悄悄变成空结果。前端默认 5k，显式导出最多 50k。
+    limit = max(1, min(int(limit or 5000), 50_000))
+    now = time.time()
+    since = now - days * 86400
+    # 强制鉴权下只看自己的账；开放模式（合成管理员）看全部，与会话列表同一套规则
+    owner = _owner_id(request) if _isolate(request) else None
+    rows = await get_repo().usage_since(since, owner=owner, limit=limit)
+
+    def key(ts: float) -> str:
+        d = datetime.fromtimestamp(ts, tz=UTC)
+        return d.strftime("%Y-%m-%d %H:00") if bucket == "hour" else d.strftime("%Y-%m-%d")
+
+    total = {"calls": 0, "tok_in": 0, "tok_out": 0, "cache_read": 0,
+             "cache_write": 0, "tokens": 0, "usd_billed": 0.0,
+             "billed_calls": 0, "failed": 0}
+    by_model: dict[str, dict[str, Any]] = {}
+    by_kind: dict[str, dict[str, Any]] = {}
+    series: dict[str, dict[str, Any]] = {}
+
+    for r in rows:
+        total["calls"] += 1
+        for f in ("tok_in", "tok_out", "cache_read", "cache_write"):
+            total[f] += getattr(r, f)
+        total["tokens"] += r.total
+        if r.status == "failed":
+            total["failed"] += 1
+        if r.usd_source == "gateway":
+            total["usd_billed"] += r.usd
+            total["billed_calls"] += 1
+        for grp, name in ((by_model, r.model), (by_kind, r.kind)):
+            g = grp.setdefault(name, {"name": name, "calls": 0, "tokens": 0,
+                                      "tok_in": 0, "tok_out": 0})
+            g["calls"] += 1
+            g["tokens"] += r.total
+            g["tok_in"] += r.tok_in
+            g["tok_out"] += r.tok_out
+        b = series.setdefault(key(r.ts), {"t": key(r.ts), "calls": 0, "tokens": 0,
+                                          "tok_in": 0, "tok_out": 0})
+        b["calls"] += 1
+        b["tokens"] += r.total
+        b["tok_in"] += r.tok_in
+        b["tok_out"] += r.tok_out
+
+    # 空桶要补出来，否则"哪天没跑"在曲线上看不出来，只会被挤成连续的一片
+    step = timedelta(hours=1) if bucket == "hour" else timedelta(days=1)
+    cur = datetime.fromtimestamp(since, tz=UTC).replace(minute=0, second=0, microsecond=0)
+    if bucket == "day":
+        cur = cur.replace(hour=0)
+    end = datetime.fromtimestamp(now, tz=UTC)
+    filled = []
+    while cur <= end and len(filled) < 400:
+        k = cur.strftime("%Y-%m-%d %H:00") if bucket == "hour" else cur.strftime("%Y-%m-%d")
+        filled.append(series.get(k) or {"t": k, "calls": 0, "tokens": 0,
+                                        "tok_in": 0, "tok_out": 0})
+        cur += step
+
+    top = sorted(by_model.values(), key=lambda x: -x["tokens"])
+    return {
+        "days": days, "bucket": bucket, "total": total,
+        "series": filled,
+        "by_model": top,
+        "by_kind": sorted(by_kind.values(), key=lambda x: -x["tokens"]),
+        # 明细给最近这些条；界面上是流水表，也是导出的来源
+        "rows": [{"ts": r.ts, "model": r.model, "kind": r.kind, "node": r.node_id,
+                  "tok_in": r.tok_in, "tok_out": r.tok_out, "tokens": r.total,
+                  "attempts": r.attempts, "status": r.status,
+                  "session_id": r.session_id} for r in rows[:300]],
+        "truncated": len(rows) >= limit,
+        # 金额可信度：界面据此决定显示还是打问号
+        "cost_note": ("billed" if total["billed_calls"] == total["calls"] and rows
+                      else "partial" if total["billed_calls"] else "none"),
+    }
+
+
 def _sess(sid: str) -> Session:
     """取活着的会话。**不做恢复** —— 恢复要 await，这个函数是同步的。
 
@@ -198,8 +414,26 @@ def _sess(sid: str) -> Session:
 
 
 async def _sess_async(sid: str) -> Session:
-    """取会话，不在内存里就从库/盘恢复。"""
+    """取会话；首次恢复按 sid single-flight，所有等待者拿到同一个对象。"""
     return SESSIONS.get(sid) or await _hydrate(sid)
+
+
+async def _refresh_files_projection(s: Session) -> None:
+    """Replace a worker's material inventory with the repository authority.
+
+    ``Session.files`` is intentionally an in-process projection.  A mutation/build
+    lease serializes writers, but it does not magically refresh another worker that
+    cached the session before an upload.  Every claimed structural operation therefore
+    reloads this small table before it decides whether files exist or which ones to
+    parse/copy/delete.
+    """
+    rows = await get_repo().list_files(s.id)
+    s.files = [{
+        "name": row.name,
+        "size": row.size,
+        "path": str(ROOT / row.rel_path),
+        "sha256": row.sha256,
+    } for row in rows]
 
 
 async def _ensure_catalog() -> ModelCatalog:
@@ -244,8 +478,6 @@ def _run_id_for(s: Session) -> str:
     新日志，不会拿旧提示的结果去冒充新语料的答案（那正是 DeterminismViolation
     要防的）。
     """
-    from .kernel.ids import fingerprint, sha256_hex
-
     # 文件名 + 大小不是内容指纹：两个同名、同字节数但内容不同的 CSV 会误命中
     # 上一轮模型 effect。上传时会写 sha256；旧会话没有时在这里补算一次，保证迁移
     # 前创建的项目也不会复用错误结果。
@@ -263,7 +495,221 @@ def _run_id_for(s: Session) -> str:
     return f"run_{s.id}_{fingerprint(sig)[:8]}"
 
 
-def _gateways(out: Path, run_id: str, *, resume: bool = False
+def _chat_recorder_run_id(s: Session, *, kind: str, semantic_input: Any) -> str:
+    """Return the durable-effect namespace for a chat-side operation.
+
+    A repository Run answers *which invocation is currently running* and must be
+    unique even for two identical requests.  Recorder answers *which effects may
+    be replayed safely* and therefore needs the opposite property: equal semantic
+    input in the same session maps to the same journal.  Keeping these two IDs
+    separate avoids both orphaned ``chat_<uuid>`` journals and lost resume hits.
+    """
+    return f"chat_{s.id}_{kind}_{fingerprint(semantic_input)[:16]}"
+
+
+@dataclass(slots=True)
+class _ChatRun:
+    """One chat-side invocation plus its replayable Recorder journal."""
+
+    repo_run_id: str
+    recorder_run_id: str
+    backend: Any
+    gw: Any
+    smart: Any
+    budget: Budget
+    status: str = "done"
+    error: str = ""
+
+    def fail(self, error: str) -> None:
+        self.status = "failed"
+        self.error = error
+
+
+async def _finish_chat_repo_run(
+    repo: Any,
+    repo_run_id: str,
+    *,
+    status: str,
+    error: str,
+    budget: dict[str, Any],
+) -> None:
+    """Shield lifecycle finalisation from caller cancellation.
+
+    ``CancelledError`` leaves the task's cancellation request set.  A database
+    driver is therefore allowed to cancel the very ``finish_run`` that should
+    record the cancellation.  Run the small final write in its own task and
+    shield it; if the outer task is already cancelling, await that inner task
+    once more before propagating the original cancellation.
+    """
+    task = asyncio.create_task(repo.finish_run(
+        repo_run_id, status=status, error=error, budget=budget,
+    ))
+    try:
+        await asyncio.shield(task)
+    except asyncio.CancelledError:
+        await task
+
+
+@asynccontextmanager
+async def _chat_run(
+    s: Session,
+    *,
+    kind: str,
+    semantic_input: Any,
+    resume: bool = True,
+) -> Any:
+    """Create/finalise a Repo Run around every chat-side Recorder producer.
+
+    ``finish_run`` lives here so normal completion, exception and cancellation
+    cannot drift between ``_reason``, confirmations, wording and recommendations.
+    The backend is also always closed, including on ``CancelledError``.
+    """
+    # Pure domain/unit callers may construct a Session without registering it.
+    # The HTTP product path never does: create/hydrate establishes the row first.
+    # Keep that narrow test seam while making every real invocation durable.
+    try:
+        repo = get_repo()
+        registered = await repo.get_session(s.id)
+    except RuntimeError:
+        repo = None
+        registered = None
+    repo_run_id = (await repo.next_run(s.id, f"chat:{kind}")) \
+        if repo is not None and registered is not None else ""
+    recorder_run_id = _chat_recorder_run_id(
+        s, kind=kind, semantic_input=semantic_input,
+    )
+
+    def budget_doc() -> dict[str, Any]:
+        # Correlate the unique invocation row with the semantic Recorder journal.
+        # Without this pointer both stores are individually correct but an audit
+        # cannot follow ``session.12`` to the effects it produced.
+        snapshot = budget.snapshot() if budget is not None else {}
+        return {**snapshot, "recorder_run_id": recorder_run_id}
+
+    backend = None
+    budget = None
+    try:
+        journal = s.dir / "journal" / f"{recorder_run_id}.jsonl"
+        backend, gw, smart, budget = _gateways(
+            s.dir, recorder_run_id, resume=resume and journal.exists(),
+            session_id=s.id, kind="chat", owner=s.owner,
+        )
+        run = _ChatRun(
+            repo_run_id=repo_run_id,
+            recorder_run_id=recorder_run_id,
+            backend=backend,
+            gw=gw,
+            smart=smart,
+            budget=budget,
+        )
+        yield run
+    except asyncio.CancelledError:
+        if repo_run_id:
+            await _finish_chat_repo_run(
+                repo, repo_run_id,
+                status="failed",
+                error="cancelled",
+                budget=budget_doc(),
+            )
+        raise
+    except BaseException as exc:
+        if repo_run_id:
+            await _finish_chat_repo_run(
+                repo, repo_run_id,
+                status="failed",
+                error=f"{type(exc).__name__}: {exc}",
+                budget=budget_doc(),
+            )
+        raise
+    else:
+        if repo_run_id:
+            await _finish_chat_repo_run(
+                repo, repo_run_id,
+                status=run.status,
+                error=run.error,
+                budget=budget_doc(),
+            )
+    finally:
+        if backend is not None:
+            await backend.aclose()
+
+
+#: 用量流水的落库缓冲。**记账不能挡在模型调用的路上**：网关那边是同步回调，
+#: 而写库是 async，中间必须有个缓冲。
+#:
+#: 用 deque 而不是 asyncio.Queue：Queue 会绑定到创建它的事件循环，而测试里每个
+#: 用例一个新循环、模块级对象却只建一次 —— 跨循环用就会挂住。deque 不认循环。
+_USAGE_BUF: deque = deque(maxlen=20_000)
+#: 缓冲满时丢掉了多少条。**要有个数**：静默丢账等于账本在说谎。
+_USAGE_DROPPED = 0
+
+
+def _usage_sink(*, session_id: str = "", kind: str = "build",
+                owner: str = "") -> Any:
+    """造一个记账回调，把这次运行的身份（会话/用途/归属）绑上去。
+
+    网关只知道 node_id、模型和 token —— 会话是谁、这轮是梳理还是聊天、算在哪个
+    账号头上，只有服务端知道，所以在这里闭包进去。
+    """
+    def sink(rec: dict[str, Any]) -> None:
+        import uuid as _uuid
+        from datetime import UTC, datetime
+
+        ts = time.time()
+        row = UsageRow(
+            id=_uuid.uuid4().hex, ts=ts,
+            day=datetime.fromtimestamp(ts, tz=UTC).strftime("%Y-%m-%d"),
+            model=rec.get("model") or "?", owner=owner, session_id=session_id,
+            kind=kind, run_id=rec.get("run_id") or "",
+            node_id=rec.get("node_id") or "", effort=rec.get("effort") or "",
+            tok_in=int(rec.get("tok_in") or 0), tok_out=int(rec.get("tok_out") or 0),
+            cache_read=int(rec.get("cache_read") or 0),
+            cache_write=int(rec.get("cache_write") or 0),
+            usd=float(rec.get("usd") or 0.0),
+            usd_source=rec.get("usd_source") or "estimated",
+            attempts=int(rec.get("attempts") or 1),
+            status=rec.get("status") or "ok")
+        global _USAGE_DROPPED
+        if len(_USAGE_BUF) >= (_USAGE_BUF.maxlen or 0):
+            _USAGE_DROPPED += 1        # maxlen 会挤掉最老的一条，记个数别静默
+        _USAGE_BUF.append(row)
+    return sink
+
+
+async def _flush_usage(repo: Any, *, limit: int = 500) -> int:
+    """把缓冲里的流水写进库，返回写了几条。
+
+    只有仓储确认提交后才从队首移除。异常向上传给常驻 drain（它会退避重试）或
+    shutdown（它会把真正来不及写的尾部计入 dropped），避免一次瞬时 DB 故障把
+    一条已经接受的用量记录永久吞掉。
+    """
+    n = 0
+    while _USAGE_BUF and n < limit:
+        row = _USAGE_BUF[0]
+        await repo.add_usage(row)
+        # await 期间别的模型调用可能把已满 deque 的队首挤掉；只有它仍是同一个
+        # 对象时才 pop，避免误删下一条尚未落库的记录。
+        if _USAGE_BUF and _USAGE_BUF[0] is row:
+            _USAGE_BUF.popleft()
+        n += 1
+    return n
+
+
+async def _drain_usage() -> None:
+    """常驻的落库循环。lifespan 里起一个。"""
+    while True:
+        try:
+            if _USAGE_BUF:
+                await _flush_usage(get_repo())
+            await asyncio.sleep(0.5)
+        except asyncio.CancelledError:
+            raise
+        except Exception:              # noqa: BLE001
+            await asyncio.sleep(2)
+
+
+def _gateways(out: Path, run_id: str, *, resume: bool = False,
+              session_id: str = "", kind: str = "build", owner: str = "",
               ) -> tuple[Any, ModelGateway, SmartGateway, Budget]:
     cfg = appconfig.resolved_llm_config()          # 设置 → env → 抛错
     rec = Recorder(run_id, FileJournal(out / "journal"), FileBlobStore(out / "blobs"),
@@ -277,7 +723,9 @@ def _gateways(out: Path, run_id: str, *, resume: bool = False
     # 路由按当前设置构建（含各档模型覆盖）并随本次 Run 固定：配置改动只作用到之后
     # 新建的 Run，不影响在跑的这次。
     routing = gateway_routing(appconfig.model_overrides(), catalog)
-    gw = ModelGateway(backend, rec, routing=routing, budget=budget)
+    gw = ModelGateway(backend, rec, routing=routing, budget=budget,
+                      usage_sink=_usage_sink(session_id=session_id, kind=kind,
+                                             owner=owner))
     return backend, gw, SmartGateway(gw, catalog), budget
 
 
@@ -313,11 +761,12 @@ async def api_models() -> dict[str, Any]:
 async def set_model(sid: str, body: dict[str, Any]) -> dict[str, Any]:
     """设定该会话对话用的模型。空/未知则清除，回落到按难度路由。"""
     s = await _sess_async(sid)
-    name = str((body or {}).get("model") or "")
-    cat = await _ensure_catalog()
-    s.state["model"] = name if (name and cat.get(name)) else ""
-    await _persist(s, status=False)
-    return {"model": s.state["model"]}
+    async with _session_mutation(s, "session.model"):
+        name = str((body or {}).get("model") or "")
+        cat = await _ensure_catalog()
+        s.state["model"] = name if (name and cat.get(name)) else ""
+        await _persist(s, status=False)
+        return {"model": s.state["model"]}
 
 
 # ── 会话归属（按账号隔离）─────────────────────────────────────────
@@ -390,12 +839,26 @@ async def create_session(request: Request,
     # 聊天 / 工作 双模式：chat = 纯对话（只读工具、无梳理管线），work = 完整工作台。
     s.state["mode"] = body.get("mode") if body.get("mode") in ("work", "chat") else "work"
     s.dir.mkdir(parents=True, exist_ok=True)
+    s.owner = _owner_id(request)       # 用量流水按账号记
     SESSIONS[s.id] = s
-    await get_repo().create_session(SessionRow(
-        id=s.id, title=s.title, project=s.project, status=s.status,
-        error="", created=s.created, state_version=0, owner=_owner_id(request)))
-    await _persist(s, status=False)   # 把 mode 落下来，重载前就存在
-    return s.brief()
+    created_row = False
+    try:
+        await get_repo().create_session(SessionRow(
+            id=s.id, title=s.title, project=s.project, status=s.status,
+            error="", created=s.created, state_version=0, owner=s.owner))
+        created_row = True
+        await _persist(s, status=False)   # 把 mode 落下来，重载前就存在
+        return s.brief()
+    except BaseException:
+        SESSIONS.pop(s.id, None)
+        if created_row:
+            await get_repo().delete_session(s.id)
+        # A failed create is not a user asset yet.  Leaving the directory behind
+        # makes the orphan scanner resurrect a session that never committed.
+        import shutil
+        if s.dir.exists():
+            shutil.rmtree(s.dir)
+        raise
 
 
 @app.delete("/api/sessions/{sid}")
@@ -407,6 +870,21 @@ async def delete_session(sid: str, purge: bool = False) -> dict[str, Any]:
             原始材料都在那儿，"从列表里去掉"和"把东西删了"是两件事，
             后者要用户明确说。
     """
+    # A normal persisted session is deleted under the same cross-worker mutation
+    # lease as every other structural write.  Otherwise a remote build can claim the
+    # session between this route's read and ``delete_session`` and keep writing files
+    # after the user has removed the project.  Legacy orphan directories have no row
+    # (and therefore no lease target), so preserve the old direct cleanup path.
+    row = await get_repo().get_session(sid)
+    if row is not None:
+        s = await _sess_async(sid)
+        async with _session_mutation(s, "session.delete"):
+            return await _delete_session_once(sid, purge=purge)
+    return await _delete_session_once(sid, purge=purge)
+
+
+async def _delete_session_once(sid: str, *, purge: bool) -> dict[str, Any]:
+    """Delete a session after the caller has fenced concurrent mutations."""
     existed = await get_repo().delete_session(sid)
     live = SESSIONS.pop(sid, None)
     if live is not None:
@@ -431,31 +909,116 @@ async def delete_session(sid: str, purge: bool = False) -> dict[str, Any]:
 
 @app.post("/api/sessions/{sid}/files")
 async def upload(sid: str, files: list[UploadFile]) -> dict[str, Any]:
-    from .kernel.ids import sha256_hex
-
     s = await _sess_async(sid)
+    async with _session_mutation(s, "materials.upload"):
+        result = await _upload_once(s, files)
+    # Start the optional recommendation only after releasing the mutation lease; its
+    # own chat lease is then guaranteed not to race this upload's projection commit.
+    asyncio.create_task(_emit_ai_prompts(s, slot="opening"))
+    return result
+
+
+async def _upload_once(s: Session, files: list[UploadFile]) -> dict[str, Any]:
+    """Stage and atomically install one multipart batch under a mutation lease."""
+    sid = s.id
     if _busy(s):
         raise HTTPException(409, "正在梳理，不能同时替换材料。")
     mats = s.dir / "materials"
     mats.mkdir(parents=True, exist_ok=True)
-    added: list[dict[str, Any]] = []
-    for f in files:
-        dest = mats / Path(f.filename or "unnamed").name
-        content = await f.read()
-        limit = int(os.getenv("ONTOCOPILOT_MAX_UPLOAD_MB", "100")) * 1024 * 1024
-        if len(content) > limit:
-            raise HTTPException(413, f"{dest.name} 超过单文件 {limit // 1024 // 1024}MB 限制")
-        dest.write_bytes(content)
-        item = {"name": dest.name, "size": len(content), "path": str(dest),
-                "sha256": sha256_hex(content)}
-        # 同名上传是替换，不是把同一材料在语料清单里追加两遍。
-        s.files = [old for old in s.files if old["name"] != dest.name]
+    max_files = max(1, int(os.getenv("ONTOCOPILOT_MAX_FILES", "100")))
+    file_limit = int(os.getenv("ONTOCOPILOT_MAX_UPLOAD_MB", "100")) * 1024 * 1024
+    session_limit = int(os.getenv("ONTOCOPILOT_MAX_SESSION_MB", "500")) * 1024 * 1024
+    existing = {item["name"]: int(item.get("size") or 0) for item in s.files}
+    incoming_names = {Path(f.filename or "unnamed").name for f in files}
+    projected_names = set(existing) | incoming_names
+    if len(projected_names) > max_files:
+        raise HTTPException(413, f"会话材料数不能超过 {max_files} 份")
+    base_total = sum(size for name, size in existing.items() if name not in incoming_names)
+    staged: dict[str, tuple[Path, int, str]] = {}
+    temps: set[Path] = set()
+    staged_total = 0
+    try:
+        for f in files:
+            name = Path(f.filename or "unnamed").name
+            temp = mats / f".{uuid.uuid4().hex}.upload"
+            temps.add(temp)
+            digest = hashlib.sha256()
+            size = 0
+            # 同一 multipart 里若名字重复，以最后一份为准；前一份不计配额也不落盘。
+            prior = staged.pop(name, None)
+            if prior is not None:
+                prior[0].unlink(missing_ok=True)
+                staged_total -= prior[1]
+            try:
+                with temp.open("wb") as handle:
+                    while chunk := await f.read(1024 * 1024):
+                        size += len(chunk)
+                        if size > file_limit:
+                            raise HTTPException(
+                                413,
+                                f"{name} 超过单文件 {file_limit // 1024 // 1024}MB 限制",
+                            )
+                        if base_total + staged_total + size > session_limit:
+                            raise HTTPException(
+                                413,
+                                f"会话材料总量超过 {session_limit // 1024 // 1024}MB 限制",
+                            )
+                        handle.write(chunk)
+                        digest.update(chunk)
+                staged[name] = (temp, size, digest.hexdigest())
+                staged_total += size
+            finally:
+                await f.close()
+    except BaseException:
+        # 校验阶段的失败还没有触碰正式文件；清掉整批 staging，包括已经完整读完的
+        # 前序文件。只有整个 multipart 读完才会进入下面的提交阶段。
+        for temp in temps:
+            temp.unlink(missing_ok=True)
+        raise
+
+    # 文件系统没有多文件事务。每个旧版本先原子移到同目录 backup；只有所有 replace
+    # 和 repo 的单事务 upsert 都成功后才删除 backup。任何一步（包括第二个 replace、
+    # DB 写入或请求取消）失败，都按逆序恢复旧版本并移除本批新文件。
+    backups: dict[str, Path | None] = {}
+    installed: list[str] = []
+    added = [
+        {"name": name, "size": size, "path": str(mats / name), "sha256": digest}
+        for name, (_temp, size, digest) in staged.items()
+    ]
+    try:
+        for name, (temp, _size, _digest) in staged.items():
+            dest = mats / name
+            backup: Path | None = None
+            if dest.exists():
+                backup = mats / f".{uuid.uuid4().hex}.backup"
+                dest.replace(backup)
+            backups[name] = backup
+            temp.replace(dest)
+            installed.append(name)
+        await get_repo().add_files(sid, [
+            FileRow(name=f["name"], rel_path=str(Path(f["path"]).relative_to(ROOT)),
+                    size=f["size"], sha256=f["sha256"])
+            for f in added])
+    except BaseException:
+        for name in reversed(installed):
+            (mats / name).unlink(missing_ok=True)
+        for name, backup in backups.items():
+            if backup is not None and backup.exists():
+                backup.replace(mats / name)
+        raise
+    else:
+        for backup in backups.values():
+            if backup is not None:
+                backup.unlink(missing_ok=True)
+    finally:
+        for temp in temps:
+            temp.unlink(missing_ok=True)
+
+    for item in added:
+        # 同名上传是替换，不是把同一材料在语料清单里追加两遍。内存投影只在磁盘与
+        # repo 均成功后更新，异常路径与两个权威存储保持旧状态。
+        s.files = [old for old in s.files if old["name"] != item["name"]]
         s.files.append(item)
-        added.append(item)
-    await get_repo().add_files(sid, [
-        FileRow(name=f["name"], rel_path=str(Path(f["path"]).relative_to(ROOT)),
-                size=f["size"], sha256=f["sha256"])
-        for f in added])
     s.emit("files.attached", files=[f["name"] for f in s.files])
     # **上传只登记，不解析。** 解析是不是现在做、做哪几份，交给 AI 判断（它有
     # material.list 看清单、material.parse 去读）。上传即解析看着"贴心"，实际是
@@ -465,9 +1028,7 @@ async def upload(sid: str, files: list[UploadFile]) -> dict[str, Any]:
            files=[f["name"] for f in added],
            note="已登记，还没读内容。要读时由助手调用解析。")
     public = {k: v for k, v in s.state.items() if not k.startswith("_")}
-    # 材料进来、结构解析好了 —— 让 AI 结合刚读到的语料出一版更贴的开场问题，
-    # 后台算好走 prompts.ready 换上去。启发式那版先随响应返回，chips 立刻在。
-    asyncio.create_task(_emit_ai_prompts(s, slot="opening"))
+    public["engagement"] = _engagement_view(s)
     return {"files": s.files, "corpus": s.state.get("corpus"),
             "prompts": opening_prompts(state=public,
                                        files=[f["name"] for f in s.files],
@@ -483,26 +1044,64 @@ async def remove_material(sid: str, name: str) -> dict[str, Any]:
     已经不在列表里的材料。
     """
     s = await _sess_async(sid)
+    async with _session_mutation(s, "materials.remove"):
+        return await _remove_material_once(s, name)
+
+
+async def _remove_material_once(s: Session, name: str) -> dict[str, Any]:
+    """Remove and re-index one material under a cross-worker mutation lease."""
+    sid = s.id
     if _busy(s):
         raise HTTPException(409, "正在梳理，这时候增删材料会和正在跑的解析打架。")
     fname = Path(name).name          # basename：防路径穿越
-    before = len(s.files)
-    s.files = [f for f in s.files if f["name"] != fname]
-    if len(s.files) == before:
+    old_index = next((i for i, f in enumerate(s.files) if f["name"] == fname), None)
+    if old_index is None:
         raise HTTPException(404, name)
+    old_item = s.files[old_index]
     p = s.dir / "materials" / fname
-    if p.exists():
-        p.unlink()
-    await get_repo().remove_file(sid, fname)
-    s.emit("files.attached", files=[f["name"] for f in s.files])
-    # 索引/语料要跟着这次删除重算；没材料了就把上一轮的残留清干净。
-    if s.files:
-        await _preparse(s)
-    else:
-        for k in ("_docs", "_index", "_chunks", "_profiles", "_endpoints", "corpus"):
-            s.state.pop(k, None)
-    await _persist(s, status=False)
-    return {"files": s.files, "corpus": s.state.get("corpus")}
+    backup = p.with_name(f".{uuid.uuid4().hex}.remove") if p.exists() else None
+    if backup is not None:
+        p.replace(backup)
+    s.files = [f for f in s.files if f["name"] != fname]
+    try:
+        await get_repo().remove_file(sid, fname)
+        s.emit("files.attached", files=[f["name"] for f in s.files])
+        # 索引/语料要跟着这次删除重算；没材料了就把上一轮的残留清干净。
+        if s.files:
+            await _preparse(s)
+        else:
+            for k in ("_docs", "_index", "_chunks", "_profiles", "_endpoints", "corpus"):
+                s.state.pop(k, None)
+        # 撤掉一份材料，"现在能问什么"就变了 —— 上传那条路早就带着新提示回去了，
+        # 删除这条以前不带，于是 chips 还在问一份已经不存在的材料里有什么。
+        #
+        # 写空数组，**不能 pop**：`_persist` 只做 upsert（`docs = {k: state[k]
+        # for k in _PERSISTED if k in state}`），删掉内存里的 key 只是让它不进
+        # docs，库里那份原样留着 —— 换个 worker hydrate 一次，chips 又回来问
+        # 一份已经删掉的材料。正是这几行想防的事。
+        s.state["followups"] = []
+        await _persist(s, status=False)
+    except BaseException:
+        # File + file inventory + derived projection are one user operation.  Put
+        # both authoritative stores back before the mutation context restores the
+        # in-memory state snapshot.
+        if backup is not None and backup.exists():
+            backup.replace(p)
+        s.files.insert(min(old_index, len(s.files)), old_item)
+        await get_repo().add_files(sid, [FileRow(
+            name=fname,
+            rel_path=str(Path(old_item["path"]).relative_to(ROOT)),
+            size=int(old_item.get("size") or 0),
+            sha256=str(old_item.get("sha256") or ""),
+        )])
+        raise
+    if backup is not None:
+        backup.unlink(missing_ok=True)
+    public = {k: v for k, v in s.state.items() if not k.startswith("_")}
+    return {"files": s.files, "corpus": s.state.get("corpus"),
+            "prompts": opening_prompts(state=public,
+                                       files=[f["name"] for f in s.files],
+                                       status=s.status)}
 
 
 @app.post("/api/sessions/{sid}/to_work")
@@ -512,34 +1111,54 @@ async def to_work(sid: str, request: Request) -> dict[str, Any]:
     聊天只对话、不梳理；真要抽本体/出流程图，转成工作会话即可 —— 文件跟着走，
     不用重新上传。
     """
+    src = await _sess_async(sid)
+    async with _session_mutation(src, "session.to_work"):
+        return await _to_work_once(src, request)
+
+
+async def _to_work_once(src: Session, request: Request) -> dict[str, Any]:
+    """Copy one stable source snapshot into a new work session."""
     import shutil
 
-    src = await _sess_async(sid)
     ws = Session(id=uuid.uuid4().hex[:12],
                  title=(src.title.replace("对话", "").strip() or "梳理") + "（自聊天）")
     ws.state["mode"] = "work"
-    ws.dir.mkdir(parents=True, exist_ok=True)
-    src_mats = src.dir / "materials"
-    if src_mats.exists():
-        (ws.dir / "materials").mkdir(exist_ok=True)
-        for p in sorted(src_mats.iterdir()):
-            if p.is_file():
-                dst = ws.dir / "materials" / p.name
-                shutil.copy2(p, dst)
-                ws.files.append({"name": p.name, "size": dst.stat().st_size,
-                                 "path": str(dst)})
-    SESSIONS[ws.id] = ws
-    await get_repo().create_session(SessionRow(
-        id=ws.id, title=ws.title, project="", status=ws.status,
-        error="", created=ws.created, state_version=0, owner=_owner_id(request)))
-    if ws.files:
-        await get_repo().add_files(ws.id, [
-            FileRow(name=f["name"], rel_path=str(Path(f["path"]).relative_to(ROOT)),
-                    size=f["size"], sha256="")
-            for f in ws.files])
-        await _preparse(ws)
-    await _persist(ws, status=False)
-    return {"id": ws.id, "files": len(ws.files)}
+    ws.owner = _owner_id(request)
+    created_row = False
+    try:
+        ws.dir.mkdir(parents=True, exist_ok=False)
+        src_mats = src.dir / "materials"
+        if src_mats.exists():
+            (ws.dir / "materials").mkdir(exist_ok=True)
+            for p in sorted(src_mats.iterdir()):
+                if p.is_file():
+                    dst = ws.dir / "materials" / p.name
+                    shutil.copy2(p, dst)
+                    ws.files.append({
+                        "name": p.name, "size": dst.stat().st_size,
+                        "path": str(dst), "sha256": sha256_hex(dst.read_bytes()),
+                    })
+        SESSIONS[ws.id] = ws
+        await get_repo().create_session(SessionRow(
+            id=ws.id, title=ws.title, project="", status=ws.status,
+            error="", created=ws.created, state_version=0, owner=ws.owner))
+        created_row = True
+        if ws.files:
+            await get_repo().add_files(ws.id, [
+                FileRow(name=f["name"],
+                        rel_path=str(Path(f["path"]).relative_to(ROOT)),
+                        size=f["size"], sha256=f["sha256"])
+                for f in ws.files])
+            await _preparse(ws)
+        await _persist(ws, status=False)
+        return {"id": ws.id, "files": len(ws.files)}
+    except BaseException:
+        SESSIONS.pop(ws.id, None)
+        if created_row:
+            await get_repo().delete_session(ws.id)
+        if ws.dir.exists():
+            shutil.rmtree(ws.dir)
+        raise
 
 
 #: 切片缓存里每段留多少字符。整段全存会让一份 477 段的语料把 session_state 撑成
@@ -641,10 +1260,32 @@ async def _restore_dialogue(s: Session) -> None:
                      scope_refs=list(r.scope_refs or []), turn_index=r.turn_index,
                      ts=r.ts)
         d.superseded_by = r.superseded_by
-        dm._decisions.append(d)  # noqa: SLF001 — 恢复要保住 ordinal 与推翻链
+        dm._decisions.append(d)
 
 
 async def _hydrate(sid: str) -> Session:
+    """Single-flight 地把库里/盘上的会话变回一个活的 :class:`Session`。"""
+    if cached := SESSIONS.get(sid):
+        return cached
+    lock = _HYDRATE_LOCKS.setdefault(sid, asyncio.Lock())
+    _HYDRATE_USERS[sid] = _HYDRATE_USERS.get(sid, 0) + 1
+    try:
+        async with lock:
+            # 等锁期间首个调用者已完成恢复；所有并发等待者必须拿同一实例。
+            if cached := SESSIONS.get(sid):
+                return cached
+            return await _hydrate_once(sid)
+    finally:
+        users = _HYDRATE_USERS.get(sid, 1) - 1
+        if users:
+            _HYDRATE_USERS[sid] = users
+        else:
+            _HYDRATE_USERS.pop(sid, None)
+            if _HYDRATE_LOCKS.get(sid) is lock:
+                _HYDRATE_LOCKS.pop(sid, None)
+
+
+async def _hydrate_once(sid: str) -> Session:
     """把库里/盘上的会话变回一个活的 Session。
 
     **重启后打开一个旧会话，必须真的能用** —— 只把标题和文件名读回来、
@@ -655,8 +1296,6 @@ async def _hydrate(sid: str) -> Session:
     材料（xlsx 解析是零模型调用的）。扫描件例外 —— 它要过视觉模型，重建要花钱，
     所以留到用户真的点了「重新梳理」。
     """
-    if sid in SESSIONS:
-        return SESSIONS[sid]
     row = await get_repo().get_session(sid)
     d = ROOT / sid
     if row is None and (not d.exists() or (d / ".deleted").exists()):
@@ -668,24 +1307,59 @@ async def _hydrate(sid: str) -> Session:
                 created=row.created if row else d.stat().st_mtime,
                 # 有 oir.json 就是跑完过的 —— 目录里的事实比一个丢掉的状态字段可信
                 status=(row.status if row else
-                        ("done" if (d / "oir.json").exists() else "idle")))
+                        ("done" if (d / "oir.json").exists() else "idle")),
+                state_version=row.state_version if row else 0,
+                owner=row.owner if row else "")
+    try:
+        await _hydrate_into(s, row=row, directory=d)
+    except BaseException:
+        # 包括 CancelledError：恢复失败/取消后不能留下一份可被后续请求命中的半成品。
+        if SESSIONS.get(sid) is s:
+            SESSIONS.pop(sid, None)
+        raise
+    # 只有全部 repo/文件/领域状态恢复成功后才发布缓存。若提前发布，晚到请求会在
+    # `_sess_async` 的 fast path 命中半成品，完全绕过上面的 single-flight 锁。
     SESSIONS[sid] = s
+    return s
+
+
+async def _hydrate_into(s: Session, *, row: Any, directory: Path) -> None:
+    """填充已占位的 Session；只由 :func:`_hydrate_once` 在恢复锁内调用。"""
+    sid = s.id
+    d = directory
+    # A persisted session may legitimately have no artifacts or materials yet (for
+    # example, a chat-only session reopened after its first turn).  Hydration must
+    # not assume the workspace directory was already created by an upload/build.
+    d.mkdir(parents=True, exist_ok=True)
 
     mats = d / "materials"
     if mats.exists():
-        from .kernel.ids import sha256_hex
         s.files = [{"name": f.name, "size": f.stat().st_size, "path": str(f),
                     "sha256": sha256_hex(f.read_bytes())}
                    for f in sorted(mats.iterdir()) if f.is_file()]
     if row is not None:
+        s.owner = row.owner or ""      # 用量流水按账号记，后台管线读不到请求
         s.state.update(await get_repo().load_state(sid))
         await _restore_dialogue(s)
-        # 进程死在半路时状态停在 parsing/extracting，永远不会自己变。
-        # 挂着一个"进行中"的会话比说清"上次没跑完"更糟 —— 用户会一直等。
-        if s.status in ("parsing", "extracting"):
-            s.status = "failed"
-            s.error = "上次运行被中断（进程退出）。材料和已拍板的决定都在，可以重新开始。"
-            await get_repo().set_status(sid, s.status, error=s.error)
+        # 进程内 SSE 不是历史。session_event 才是断线/重启后的 cursor；恢复后
+        # “上一轮生成的下载卡/审核结果/问题表”仍在原来的时间线上，而不是只剩
+        # 一个笼统的 session.restored。
+        durable_events = await get_repo().read_events(sid, since=0)
+        if durable_events:
+            s.events = [event.as_sse() for event in durable_events]
+        qrows = await get_repo().list_questions(sid)
+        if qrows:
+            s.state["question_backlog"] = QuestionBacklog.from_dict(
+                [r.doc for r in qrows]).to_dict()
+        # 多 worker 下不能因本 worker 没有 Task 就宣布运行死亡。只有 lease 已过期
+        # （或迁移前根本没有 lease）的运行才可回收；健康 worker 的 heartbeat 必须保留。
+        if s.status in ("queued", "parsing", "extracting"):
+            error = "上次运行被中断（租约已过期）。材料和已拍板的决定都在，可以重新开始。"
+            reaped = await get_repo().reap_expired_build_lease(
+                sid, now=time.time(), error=error,
+            )
+            if reaped:
+                s.status, s.error = "failed", error
 
     oir_json = d / "oir.json"
     if oir_json.exists():
@@ -710,17 +1384,51 @@ async def _hydrate(sid: str) -> Session:
 
     if s.files:
         await _preparse(s)          # 证据索引重建，零模型调用
+    if s.state.get("_oir") is not None and not s.state.get("question_backlog"):
+        await _sync_question_backlog(s)
     s.state["artifacts"] = [x.name for x in d.iterdir() if x.is_file()]
-    # 承载内容的卡片先灌回事件流，再发 session.restored —— 它们的 ts 是当初那一刻，
-    # 前端按 ts 归并，于是重开会话时那张表还在它原来的位置上，而不是跳到最后。
-    # 注意：这里直接 append，不走 emit（emit 会把它们再存一遍进 _cards）。seq 重新
-    # 按位置编号 —— 它是本进程事件流里的序号，把上一进程的号码带回来会和新事件撞，
-    # 而前端拿 seq 当表格的展开状态键。
-    for c in (s.state.get("_cards") or []):
-        s.events.append({**c, "seq": len(s.events)})
-    s.emit("session.restored", files=len(s.files),
-           stats=(s.state.get("oir") or {}).get("stats"))
-    return s
+    # 迁移前的会话可能只有 state._cards、没有 session_event；仅对此兼容。新会话
+    # hydrate 已直接载入 durable seq，绝不重编号或重复灌卡片。
+    durable_loaded = bool(row is not None and s.events)
+    if not durable_loaded:
+        for c in (s.state.get("_cards") or []):
+            s.events.append({**c, "seq": len(s.events)})
+    # single-flight 保证并发冷启动只走一次这里。恢复完成本身是 API 返回语义的一部分，
+    # 不能仅把事件排进后台队列就发布 Session：否则进程恰在返回后退出时，用户已经看见
+    # “恢复成功”，审计里却没有对应记录。等待这条 FIFO 尾事件的 durable seq 也会顺带
+    # 保证恢复期间较早发出的 partial/corpus 事件全部落库。
+    await s.emit_durable(
+        "session.restored",
+        files=len(s.files),
+        stats=(s.state.get("oir") or {}).get("stats"),
+    )
+
+
+def _engagement_view(s: Session) -> dict[str, Any]:
+    """把冻结的 FDE Engagement DAG 投影为前端可跟踪的阶段状态。"""
+    from .onto.engagement import build_fde_engagement_dag
+
+    dag = build_fde_engagement_dag()
+    current = (
+        "INTERVIEW" if s.status == "awaiting_answer"
+        else "EXPORT" if s.status == "done"
+        else "INTAKE" if s.status in {"idle", "stopped", "failed"}
+        else "PROCESS"
+    )
+    order = dag.topo_order()
+    current_index = order.index(current)
+    plan = []
+    for index, node in enumerate(dag.describe()):
+        state = "active" if node["id"] == current else (
+            "completed" if index < current_index else "pending"
+        )
+        plan.append({**node, "state": state})
+    return {
+        "version": "fde_engagement_v1",
+        "frozen": dag.frozen,
+        "current": current,
+        "plan": plan,
+    }
 
 
 @app.get("/api/sessions/{sid}/state")
@@ -731,11 +1439,13 @@ async def state(sid: str) -> dict[str, Any]:
     渲染材料列表，"点回原文"这条路直接断掉。
     """
     s = await _sess_async(sid)
+    await _refresh_files_projection(s)
     public = {k: v for k, v in s.state.items() if not k.startswith("_")}
     dm = s.state.get("_dialogue")
     if dm is not None:
         public["dialogue"] = dm.to_dict()
         public["decisions"] = [d.to_dict() for d in dm.active_decisions()]
+    public["engagement"] = _engagement_view(s)
     names = [f["name"] for f in s.files]
     # 每份材料的**解析状态**要跟着回去。只给名字和大小的话，界面上没有任何地方
     # 能回答"这份读进来了没有" —— 用户只能去问助手，而助手（在工具回执含糊时）
@@ -753,7 +1463,10 @@ async def state(sid: str) -> dict[str, Any]:
             "state": public, "events": len(s.events),
             # 一个空白输入框对新用户是最不友好的界面 —— 他知道这工具能分析
             # 业务文档，但不知道该说什么才有用。
-            "prompts": opening_prompts(state=public, files=names, status=s.status)}
+            "prompts": opening_prompts(state=public, files=names, status=s.status),
+            # 上一轮那批追问也要还回去。它以前只活在前端内存里，于是**每次重开
+            # 会话、每次刷新，chips 就永久消失** —— 恰恰是"接着上次干"的时候。
+            "followups": s.state.get("followups") or []}
 
 
 
@@ -767,21 +1480,45 @@ def s_state_dialogue(s: Session) -> Any:
 # ══════════════════════════════════════════════════════════════════
 @app.get("/api/sessions/{sid}/stream")
 async def stream(sid: str, since: int = 0) -> StreamingResponse:
-    """SSE。``since`` 用于断线重连补发 —— SSE 本身没有重放，不补就会丢事件。"""
+    """SSE。repo cursor 是唯一事实源，队列只负责同进程低延迟唤醒。
+
+    每次唤醒（以及定时轮询）都读取 ``seq >= cursor``，因此另一个 worker
+    append 的事件一样可见；本地队列和轮询同时命中也只会发送一次。
+    """
     s = await _sess_async(sid)
     q: asyncio.Queue = asyncio.Queue()
     s.subscribers.append(q)
 
     async def gen():
+        cursor = max(0, since)
+        last_keepalive = time.monotonic()
         try:
-            for ev in s.events[since:]:  # 先补历史，再接实时
-                yield f"data: {json.dumps(ev, ensure_ascii=False, default=str)}\n\n"
+            if since == 0:
+                # 前端当前固定以 since=0 重连，所以显式清空后按 durable seq 重放。
+                yield ('data: {"kind": "stream.reset", "seq": -1, "ts": 0}\n\n')
             while True:
-                try:
-                    ev = await asyncio.wait_for(q.get(), timeout=20)
+                rows = await get_repo().read_events(sid, since=cursor)
+                for row in rows:
+                    if row.seq < cursor:
+                        continue
+                    ev = row.as_sse()
+                    cursor = row.seq + 1
+                    # hydrate/state/debug consumers仍能看到同一份权威投影；按 seq 去重。
+                    if not any(x.get("seq") == row.seq for x in s.events):
+                        s.events.append(ev)
+                        s.events.sort(key=lambda x: int(x.get("seq", -1)))
                     yield f"data: {json.dumps(ev, ensure_ascii=False, default=str)}\n\n"
-                except asyncio.TimeoutError:
-                    yield ": keepalive\n\n"  # 防中间代理掐断长连接
+                try:
+                    # 本进程 commit 会立刻唤醒；外部 worker 没共享内存，最多等待
+                    # 250ms 的 repo poll。Postgres 的 NOTIFY 可作为未来的纯优化，
+                    # 正确性不依赖数据库方言或连接级 LISTEN。
+                    await asyncio.wait_for(q.get(), timeout=0.25)
+                except TimeoutError:
+                    # 每 20 秒发 keepalive，其余 timeout 只是跨 worker cursor 轮询。
+                    now = time.monotonic()
+                    if now - last_keepalive >= 20:
+                        last_keepalive = now
+                        yield ": keepalive\n\n"
         finally:
             if q in s.subscribers:
                 s.subscribers.remove(q)
@@ -794,18 +1531,75 @@ async def stream(sid: str, since: int = 0) -> StreamingResponse:
 # ══════════════════════════════════════════════════════════════════
 #  流水线
 # ══════════════════════════════════════════════════════════════════
+_BUILD_STARTABLE = ("idle", "done", "failed", "stopped")
+
+
+async def _claim_and_start_build(s: Session, *, tier: str = "full") -> str:
+    """Claim one durable build lease and start its local task.
+
+    Every product entry point (HTTP, intent action and ConversationAgent tools)
+    uses this boundary.  The returned value is ``started`` or the authoritative
+    repository status; ``missing``/``no_files`` are explicit local failures.
+    """
+    tier = tier if tier in ("full", "flow_preview") else "full"
+    async with s.build_lock:
+        lease_owner = f"{_WORKER_ID}:{uuid.uuid4().hex}"
+        claimed = await get_repo().claim_build_lease(
+            s.id,
+            owner=lease_owner,
+            now=time.time(),
+            ttl=_BUILD_LEASE_TTL,
+            from_statuses=_BUILD_STARTABLE,
+            to_status="queued",
+        )
+        if not claimed:
+            row = await get_repo().get_session(s.id)
+            if row is None:
+                return "missing"
+            s.status, s.error = row.status, row.error
+            return row.status
+
+        # Claim 先于 task，保证另一个 worker 即使持有陈旧 Session 投影，也无法
+        # 启动第二条付费 DAG。pipeline 一进入就把 token 捕获到局部变量中。
+        await _refresh_files_projection(s)
+        if not s.files:
+            await get_repo().release_build_lease(s.id, owner=lease_owner)
+            await get_repo().claim_session_status(
+                s.id, from_statuses=("queued",), to_status="idle",
+            )
+            return "no_files"
+        s.status = "queued"
+        s.error = ""
+        s.build_lease_owner = lease_owner
+        try:
+            s.run_task = asyncio.create_task(_run_pipeline(s, tier=tier))
+        except BaseException:
+            await get_repo().release_build_lease(s.id, owner=lease_owner)
+            s.build_lease_owner = ""
+            await get_repo().claim_session_status(
+                s.id, from_statuses=("queued",), to_status="failed",
+                error="后台任务未能启动",
+            )
+            raise
+    return "started"
+
+
 @app.post("/api/sessions/{sid}/build")
 async def build(sid: str, tier: str = "full") -> dict[str, Any]:
     s = await _sess_async(sid)
-    if not s.files:
-        raise HTTPException(400, "还没有上传材料")
-    if s.status in ("parsing", "extracting"):
-        raise HTTPException(409, "已经在跑了")
-    if s.status == "awaiting_answer":
-        raise HTTPException(409, "当前正在等待业务回答；请先回答、暂缓或导出问题清单。")
-    # tier=flow_preview：只解析 + 出流程图，跳过付费抽取。默认 full 走完整管线。
     tier = tier if tier in ("full", "flow_preview") else "full"
-    s.run_task = asyncio.create_task(_run_pipeline(s, tier=tier))
+    outcome = await _claim_and_start_build(s, tier=tier)
+    # 抢不到租约但状态本来就可启动 = 一次争用，不是"在跑"。重试一次再下结论。
+    if outcome in _BUILD_STARTABLE:
+        outcome = await _claim_and_start_build(s, tier=tier)
+    if outcome == "no_files":
+        raise HTTPException(400, "还没有上传材料")
+    if outcome == "missing":
+        raise HTTPException(404, f"没有会话 {sid}")
+    if outcome == "awaiting_answer":
+        raise HTTPException(409, "当前正在等待业务回答；请先回答、暂缓或导出问题清单。")
+    if outcome != "started":
+        raise HTTPException(409, f"没能启动梳理（会话状态：{outcome}）")
     return {"started": True, "session": s.id, "tier": tier}
 
 
@@ -814,19 +1608,34 @@ async def stop(sid: str, body: dict[str, Any] | None = None) -> dict[str, Any]:
     """中断在跑的生成：``target`` 取 ``chat``（对话轮）/ ``run``（梳理任务）/
     ``all``（默认，两者都停）。
 
-    幂等 —— 没有在跑的就是一次 200 空操作。真正让服务端停下来的是这里的
-    ``.cancel()``；前端另外 abort 掉自己那条 ``/chat`` fetch 只是为了不再干等。
+    幂等 —— 没有在跑的就是一次 200 空操作。停止意图先落仓储，再取消本 worker
+    的 task；远端 worker 由 build heartbeat / chat token watcher 协作取消。
     """
     s = await _sess_async(sid)
     target = (body or {}).get("target") or "all"
+    if target not in ("chat", "run", "all"):
+        raise HTTPException(400, "target 只能是 chat、run 或 all")
     stopped: list[str] = []
-    if target in ("chat", "all") and s.chat_task and not s.chat_task.done():
-        s.chat_task.cancel()
-        stopped.append("chat")
-    if target in ("run", "all") and s.run_task and not s.run_task.done():
-        s.run_task.cancel()
-        stopped.append("run")
-    return {"stopped": stopped}
+    requested: list[str] = []
+    if target in ("chat", "all"):
+        durable_chat = await get_repo().request_chat_cancel(sid, now=time.time())
+        if s.chat_task and not s.chat_task.done():
+            s.chat_task.cancel()
+            stopped.append("chat")
+        elif durable_chat:
+            # The durable lease is fenced, but only its worker can acknowledge task
+            # termination.  Do not report a remote request as synchronously stopped.
+            requested.append("chat")
+    if target in ("run", "all"):
+        durable_run = await get_repo().request_build_cancel(sid, now=time.time())
+        if s.run_task and not s.run_task.done():
+            s.run_task.cancel()
+            stopped.append("run")
+        elif durable_run:
+            s.status = "stopped"
+            s.error = ""
+            requested.append("run")
+    return {"stopped": stopped, "requested": requested}
 
 
 def _on_run_cancelled(s: Session) -> None:
@@ -848,7 +1657,44 @@ async def _run_pipeline(s: Session, *, tier: str = "full") -> None:
     还会一路绿灯跑完。
     """
     backend = None
+    budget = None
+    repo_run_id: str | None = None
+    lease_owner = s.build_lease_owner
+    owner_task = asyncio.current_task()
+    heartbeat_task: asyncio.Task[None] | None = None
+
+    async def heartbeat() -> None:
+        while True:
+            await asyncio.sleep(_BUILD_HEARTBEAT_INTERVAL)
+            renewed = await get_repo().renew_build_lease(
+                s.id, owner=lease_owner, now=time.time(), ttl=_BUILD_LEASE_TTL,
+            )
+            if not renewed:
+                row = await get_repo().get_session(s.id)
+                # A successful owner-fenced terminal checkpoint intentionally makes
+                # renew ineligible.  That is normal completion, not cancellation.
+                if row is not None and row.status in {
+                    "awaiting_answer", "done", "failed",
+                }:
+                    return
+                # Durable stop intent, lease takeover/expiry, or session deletion fences
+                # this invocation.  Cancellation is cooperative but reaches every await.
+                if owner_task is not None and not owner_task.done():
+                    owner_task.cancel()
+                return
+
     try:
+        # The route already created this invocation-specific lease.  Capturing it in a
+        # local variable avoids ABA if a stopped run is immediately restarted in the
+        # same worker and mutates ``s.build_lease_owner``.
+        if not lease_owner or not await get_repo().renew_build_lease(
+            s.id, owner=lease_owner, now=time.time(), ttl=_BUILD_LEASE_TTL,
+        ):
+            raise asyncio.CancelledError
+        heartbeat_task = asyncio.create_task(
+            heartbeat(), name=f"build-heartbeat:{s.id}",
+        )
+        repo_run_id = await get_repo().next_run(s.id, f"build:{tier}")
         s.status = "parsing"
         s.emit("node.entered", node="PARSE", title="解析材料")
         await _ensure_catalog()          # 按网关可用模型过滤目录（视觉网关/OCR 靠它）
@@ -857,7 +1703,9 @@ async def _run_pipeline(s: Session, *, tier: str = "full") -> None:
         # 不会误用旧结果。
         run_id = _run_id_for(s)
         resumed = (s.dir / "journal" / f"{run_id}.jsonl").exists()
-        backend, gw, smart, budget = _gateways(s.dir, run_id, resume=resumed)
+        backend, gw, smart, budget = _gateways(
+            s.dir, run_id, resume=resumed,
+            session_id=s.id, kind="build", owner=s.owner)
         if resumed:
             s.emit("flow.step", cite="",
                    found="上次这批材料跑到一半中断了，已完成的部分直接接着用，不重跑。")
@@ -895,7 +1743,7 @@ async def _run_pipeline(s: Session, *, tier: str = "full") -> None:
         s.state["corpus"] = summary
         s.state["_chunks"] = _chunk_cache(docs)
         await _build_flow_diagram(s, docs)
-        await _persist(s)
+        await _persist(s, lease_owner=lease_owner)
         s.emit("node.completed", node="PARSE",
                stats={"files": len(paths), "chunks": len(index),
                       "endpoints": len(endpoints), "profiles": len(profiles)},
@@ -905,14 +1753,23 @@ async def _run_pipeline(s: Session, *, tier: str = "full") -> None:
         # 文本/表格/SQL 语料到这里零模型成本；扫描件/PDF 因视觉解析会有少量费用。
         if tier == "flow_preview":
             s.status = "done"
-            await _persist(s)
+            await _persist(s, lease_owner=lease_owner)
             fstats = (s.state.get("flow") or {}).get("stats") or {}
             s.emit("run.completed", stats={"tier": "flow_preview", **fstats})
+            await get_repo().finish_run(repo_run_id, status="done")
             asyncio.create_task(_emit_ai_prompts(s, slot="opening"))
             return
 
         # ── 切段并冻结计划 ─────────────────────────────────────
         segments = segment_corpus(index, docs)
+        # 产品主线使用完整 FDE Engagement DAG 作为稳定的控制面：材料内容只能
+        # 决定某个节点看哪些证据，不能增删角色、工具或跳过 HITL/Review/Export。
+        # 现有 EXTRACT fan-out 是 PROCESS/DATA/RULES 节点内部的数据并行实现，
+        # 不是另一条偷偷存在的产品流程。
+        from .onto.engagement import build_fde_engagement_dag
+        engagement = build_fde_engagement_dag()
+        s.emit("engagement.frozen", version=engagement.name,
+               nodes=engagement.describe(), current="PROCESS")
         s.emit("plan.frozen", segments=[{"key": g.key, "label": g.label,
                                          "file": g.file_name, "chunks": len(g.chunk_ids)}
                                         for g in segments],
@@ -937,7 +1794,13 @@ async def _run_pipeline(s: Session, *, tier: str = "full") -> None:
         system = agent.render_system(skills) + "\n\n" + skills.load(list(agent.skills))
 
         bus = AgentBus(gw.rec)
-        sandbox = default_sandbox()
+        # HTTP 服务绝不把宿主 LocalSubprocessSandbox 暴露给不可信材料。确需
+        # CodeAct 的部署必须显式开启，并且 production=True 会 fail-closed
+        # 地选择 gVisor；运行时缺失时执行失败，不会退回本机子进程。
+        codeact_enabled = os.getenv("ONTOCOPILOT_ENABLE_CODEACT", "").lower() in {
+            "1", "true", "yes",
+        }
+        sandbox = default_sandbox(production=True) if codeact_enabled else None
         tools = builtin_registry(evidence=index, profiles=profiles, sandbox=sandbox)
         bus.board.write("_tools", tools, by="bootstrap")
 
@@ -1005,6 +1868,8 @@ async def _run_pipeline(s: Session, *, tier: str = "full") -> None:
 
         # ── 下游：全部确定性 ───────────────────────────────────
         s.emit("node.entered", node="FINISH", title="对齐 → 冲突 → 澄清 → 模板")
+        s.emit("engagement.stage", node="GAP",
+               deps=["PROCESS", "ERP_MAP", "RULES", "DATA_OBJECTS"])
         res = finish(oir, endpoints=endpoints, profiles=profiles,
                      project=s.project or s.title)
         conflicts = res["conflicts"]
@@ -1026,6 +1891,9 @@ async def _run_pipeline(s: Session, *, tier: str = "full") -> None:
         s.state["_oir"] = oir
         s.state["_conflicts"] = conflicts
         s.state["suggestions"] = res.get("suggestions") or []
+        backlog = await _sync_question_backlog(
+            s, oir=oir, clarification=cs.questions, conflicts=conflicts,
+        )
         s.emit("clarify.request", questions=s.state["questions"], routing=cs.summary())
         # 梳理挂起等 FDE 拍板 —— 这正是他下一步要问的时候，出一版结合全量产物的开场。
         asyncio.create_task(_emit_ai_prompts(s, slot="opening"))
@@ -1034,26 +1902,137 @@ async def _run_pipeline(s: Session, *, tier: str = "full") -> None:
             # 误以为必须先答完才能继续。
             s.emit("suggest.ready", suggestions=s.state["suggestions"])
 
-        if cs.questions:
+        # ── 可执行的产品 Engagement DAG ───────────────────────────
+        # 成熟 EXTRACT fan-out 已完成唯一一轮付费材料理解。专业节点以它的 OIR/Flow
+        # 为 seed，通过规则型 skip_model 形成各自契约；但节点调度、checkpoint、HITL
+        # 与 release gate 都是真实 Scheduler 执行，而不是 UI 进度事件的模拟。
+        from datetime import datetime
+
+        from .onto.engagement_runtime import (
+            EngagementRuntimeInput,
+            engagement_critics,
+            engagement_handlers,
+        )
+
+        runtime = EngagementRuntimeInput(
+            session_id=s.id,
+            project=s.project or s.title,
+            oir=oir,
+            flow=s.state.get("_flow"),
+            backlog=backlog,
+            decisions=list(s.state.get("decision_ledger") or ()),
+            corpus=s.state.get("corpus") or {},
+            artifact_revision=int(s.state.get("artifact_revision") or 0),
+            # Recorder 重放要求输出确定。会话创建时刻对同一语料 run 始终稳定。
+            generated_at=datetime.fromtimestamp(s.created, UTC).isoformat(),
+            release_downloadable=os.access(s.dir, os.W_OK),
+        )
+        # The question/decision API must resume this exact content-addressed
+        # Recorder after INTERVIEW.  Persist the identity with the suspended
+        # session; deriving it again after files change would target another run.
+        s.state["engagement_run_id"] = run_id
+        engagement_loop = AgentLoop(
+            gateway=gw,
+            ctx_manager=cm,
+            panel=CriticPanel(engagement_critics(), gw.rec),
+            bus=bus,
+            recorder=gw.rec,
+            budget=budget,
+            handlers=engagement_handlers(runtime),
+        )
+        engagement_sched = Scheduler(
+            engagement,
+            engagement_loop,
+            gw.rec,
+            bus,
+            budget,
+            concurrency=4,
+        )
+        engagement_outcome = await _run_with_live_trace(
+            s, gw.rec, bus, engagement_sched.run(run_id),
+        )
+        s.state["engagement_execution"] = {
+            "status": str(engagement_outcome.status),
+            "completed": sorted(engagement_outcome.results),
+            "restored": sorted(engagement_outcome.skipped),
+            "pendingHuman": engagement_outcome.pending_human,
+        }
+        if engagement_outcome.status is RunStatus.SUSPENDED:
             s.status = "awaiting_answer"
+            pending_human = engagement_outcome.pending_human or {}
+            s.emit(
+                "engagement.stage",
+                node="INTERVIEW",
+                contract="QuestionBacklog",
+                pending=int(pending_human.get("pending") or len(_pending_questions(s))),
+            )
             s.emit("run.suspended", reason="等待 FDE 拍板")
             # OIR、冲突与问题在等待人回答前必须是同一个持久检查点。以前持久化发生
             # 在这些字段赋值之前，主 HITL 路径一重启就只剩旧版本。
-            await _persist(s)
+            await _persist(s, lease_owner=lease_owner)
+            await get_repo().finish_run(
+                repo_run_id, status="suspended",
+                budget=budget.snapshot() if budget is not None else {})
             return
-        await _compile(s)
+        if not engagement_outcome.ok:
+            raise RuntimeError(f"FDE Engagement 失败：{engagement_outcome.error}")
+        export_plan = engagement_outcome.outputs.get("EXPORT") or {}
+        if not (export_plan.get("review_passed")
+                and export_plan.get("schema_valid")
+                and export_plan.get("downloadable")):
+            raise RuntimeError("FDE Engagement EXPORT 硬门未通过，已阻止交付")
+        s.state["release_state"] = str(export_plan.get("releaseState") or "RELEASED")
+        s.emit(
+            "engagement.stage",
+            node="EXPORT",
+            contract="OntologyPackage.v1",
+            artifacts=export_plan.get("artifacts") or [],
+        )
+        # 只有 REVIEW/EXPORT gate 已提交，现有原子 release 边界才真正写盘。
+        await _compile(s, lease_owner=lease_owner)
+        await get_repo().finish_run(
+            repo_run_id, status="done",
+            budget=budget.snapshot() if budget is not None else {})
     except asyncio.CancelledError:
         # 用户点了停止 —— CancelledError 是 BaseException，不会被下面的
         # `except Exception` 吞掉。收尾后**照常重抛**，让任务干净地结束。
+        # A remote /stop already owns the durable ``stopped`` state.  Local cancellation
+        # projects it in memory.  Do not write status *or documents* here: the lease may
+        # have expired and a new invocation may already own the session.  Any unfenced
+        # cleanup write could stop or overwrite that newer run (classic stale writer).
         _on_run_cancelled(s)
-        await _persist(s)
+        row = await get_repo().get_session(s.id)
+        if row is not None:
+            s.status, s.error = row.status, row.error
+        if repo_run_id is not None:
+            await get_repo().finish_run(repo_run_id, status="failed", error="cancelled")
         raise
     except Exception as exc:  # noqa: BLE001 — 服务边界，错误要送到前端而不是吞掉
         s.status = "failed"
         s.error = f"{type(exc).__name__}: {exc}"
         s.emit("run.failed", error=s.error)
-        await _persist(s)
+        try:
+            await _persist(s, lease_owner=lease_owner)
+        except asyncio.CancelledError:
+            # A durable stop/stale-owner fence already chose the public status.
+            if repo_run_id is not None:
+                await get_repo().finish_run(
+                    repo_run_id, status="failed", error="cancelled",
+                    budget=budget.snapshot() if budget is not None else {},
+                )
+            raise
+        if repo_run_id is not None:
+            await get_repo().finish_run(
+                repo_run_id, status="failed", error=s.error,
+                budget=budget.snapshot() if budget is not None else {})
     finally:
+        if heartbeat_task is not None:
+            heartbeat_task.cancel()
+            await asyncio.gather(heartbeat_task, return_exceptions=True)
+        if lease_owner:
+            await get_repo().release_build_lease(s.id, owner=lease_owner)
+            if s.build_lease_owner == lease_owner:
+                s.build_lease_owner = ""
         if backend is not None:
             await backend.aclose()
 
@@ -1099,7 +2078,7 @@ async def _run_with_live_trace(s: Session, rec: Any, bus: Any, coro: Any,
         while not task.done():
             try:
                 await asyncio.wait_for(asyncio.shield(task), timeout=every)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 pass
             _pump_kernel_events(s, rec, bus)   # 每拍泵一次，异常不吞（泵失败要暴露）
         return await task
@@ -1129,9 +2108,13 @@ def _trace_detail(ev: Any) -> str:
 
 #: 会持久化的公开状态 key。私有（``_`` 开头）的一律不存 —— 它们要么是活对象
 #: （OIR、证据索引），要么是能重算的（列画像），存了反而制造第二份真相。
-_PERSISTED = ("oir", "template", "artifacts", "questions", "question_backlog",
-              "suggestions", "corpus", "budget", "routing", "answered", "audit",
-              "mode", "model", "artifact_revision", "ontology_package")
+_PERSISTED = ("oir", "flow", "template", "artifacts", "questions", "question_backlog",
+              "decision_ledger", "suggestions", "corpus", "budget", "routing", "answered", "audit",
+              "mode", "model", "artifact_revision", "ontology_package",
+              "engagement_run_id", "engagement_execution", "release_state",
+              # 上一轮的追问 chips。落库是因为它是**会话的一部分**：重开会话时
+              # "接下来能问什么"必须还在，而不是让人对着一段旧对话重新想。
+              "followups")
 
 #: 私有的版本/补丁栈也要落库 —— 它们是「撤销历史」和「重跑时要重放的人工补丁」，
 #: 恰恰是最不该随重启丢掉的一份状态（`_flow_versions`/`_tpl_versions` 以前只在内存，
@@ -1154,7 +2137,17 @@ _VERSION_STACK_CAP = 20
 #: "尚未解析"。这就是那条注释描述的后果本身。
 #: ``_cards`` 同理：事件流是进程内的，但其中**承载内容**的那几条（AI 列出来的表、
 #: 导出的文件）重开会话必须还在，否则用户以为东西丢了。见 ``Session.emit``。
-_PERSISTED_PRIVATE_DOCS = ("_chunks", "_cards", "_pending_actions", "_pending_action")
+_PERSISTED_PRIVATE_DOCS = ("_chunks", "_cards", "_tables", "_pending_actions", "_pending_action",
+                           "_last_reason", "_chat_usd")
+# Chat reasoning always owns these documents.  Keeping the set explicit lets an
+# optimistic-CAS retry merge a turn over a simultaneous build checkpoint without
+# resubmitting stale OIR/flow, and lets build retry without erasing that turn.
+_CHAT_OWNED_DOCS = frozenset({
+    "dialogue", "_pending_actions", "_pending_action", "_last_reason", "_chat_usd",
+    # 这一轮的 chips 跟着这一轮的回答走，和 dialogue 同属对话侧 —— 并发的梳理
+    # checkpoint 不该把它们盖掉，也不该被它们盖掉。
+    "followups",
+})
 
 #: 产物 → 给业务方看的表：每类挑**看得懂**的列，不是把内部结构原样倒出来。
 #:
@@ -1206,8 +2199,136 @@ def _oir_table(oir: dict[str, Any], kind: str,
             [[fn(x) for _, fn in cols] for x in items])
 
 
-def _last_table(s: Session) -> dict[str, Any] | None:
-    """上一次列给用户看的那张表。"""
+class _NoRows(Exception):
+    """材料里读不出行时抛出，消息就是给模型看的回执。"""
+
+
+def _sheet_rows(path: Path) -> dict[str, list[dict[str, Any]]]:
+    """表格文件 → {表名: [ {列名: 值} ]}。**全量，不截断。**
+
+    xlsx 走解析器的 row 切片（一行一片、``raw`` 就是列名→值）。csv/tsv **不能**走
+    这条路：``CsvParser`` 压根不产 ``row`` 切片 —— 它只出一片 schema 加最多 20 片
+    ``sample``，于是按 tag 过滤会把 csv 的每一行都丢掉，工具对任何 csv 都回
+    "没读出数据行"，而工具描述和后缀白名单都写着支持 csv。这里对 csv 自己读一遍。
+    """
+    if path.suffix.lower() in (".csv", ".tsv"):
+        import csv as _csv
+
+        from .onto.parse.tabular import _read_text, dedupe_headers, detect_header_row
+
+        text, _ = _read_text(path)
+        delim = "\t" if path.suffix.lower() == ".tsv" else None
+        if delim is None:
+            try:
+                delim = _csv.Sniffer().sniff(text[:4096], ",;\t|").delimiter
+            except Exception:                                     # noqa: BLE001
+                delim = ","
+        grid = [[(c or "").strip() for c in r]
+                for r in _csv.reader(text.splitlines(), delimiter=delim)]
+        grid = [r for r in grid if any(r)]
+        if not grid:
+            return {}
+        h = detect_header_row(grid)
+        width = max(len(r) for r in grid)
+        header = (dedupe_headers(grid[h]) if h >= 0
+                  else [f"col{i + 1}" for i in range(width)])
+        body = grid[h + 1:]
+        return {path.stem: [{header[i]: r[i] for i in range(min(len(header), len(r)))}
+                            for r in body if any(r)]}
+
+    doc = default_registry().parse(path)
+    out: dict[str, list[dict[str, Any]]] = {}
+    for c in doc.chunks:
+        if "row" not in (c.tags or ()):
+            continue
+        out.setdefault((c.locator or {}).get("sheet") or path.stem, []).append(c.raw or {})
+    return out
+
+
+def _material_table(s: Session, file: str, sheet: str = "", contains: str = "",
+                    columns: list[str] | None = None
+                    ) -> tuple[str, str, list[str], list[list[str]], dict[str, Any]]:
+    """材料里的一张表 → (文件名, 表名, 列, **全部**行, 附注)。
+
+    ``material.rows`` 和导出共用这一个 —— 各读各的，迟早会一个 500 行一个 900 行，
+    而用户会拿导出的那份去跟客户对话。附注里带 blank/missing 列信息给回执用。
+    """
+    f = _match_file(s, file)
+    if not f:
+        raise _NoRows(f"没有材料「{file}」。现有：{[x['name'] for x in s.files]}")
+    path = Path(f.get("path") or (s.dir / "materials" / f["name"]))
+    if path.suffix.lower() not in _TABULAR_EXT:
+        raise _NoRows(f"「{f['name']}」不是表格（{path.suffix or '无后缀'}），没有"
+                      f"「行」可列。正文内容用 evidence.search。")
+    try:
+        by_sheet = _sheet_rows(path)
+    except Exception as exc:                                      # noqa: BLE001
+        raise _NoRows(f"读不了「{f['name']}」：{type(exc).__name__}: {exc}") from None
+    if not by_sheet:
+        raise _NoRows(f"「{f['name']}」里没读出数据行。")
+
+    names = list(by_sheet)
+    pick = (sheet if sheet in by_sheet else
+            next((n for n in names if sheet and sheet in n), ""))
+    if not pick:
+        if sheet:
+            raise _NoRows(f"没有工作表「{sheet}」。现有：{names}")
+        if len(names) > 1:
+            raise _MultiSheet({n: len(v) for n, v in by_sheet.items()})
+        pick = names[0]
+
+    data = by_sheet[pick]
+    cols = list({k: None for r in data for k in r})
+    note: dict[str, Any] = {}
+    if columns:
+        want = [c for c in cols if c in columns]
+        if not want:
+            raise _NoRows(f"这些列都不存在：{columns}。现有列：{cols}")
+        if [c for c in columns if c not in cols]:
+            note["没有这几列"] = [c for c in columns if c not in cols]
+        cols = want
+    if contains:
+        k = contains.lower()
+        data = [r for r in data
+                if k in " ".join(str(v) for v in r.values()).lower()]
+    live = [c for c in cols if any(str(r.get(c, "")).strip() for r in data)]
+    if len(cols) - len(live):
+        note["隐藏的空列"] = f"{len(cols) - len(live)} 个整列都是空的，没列出来"
+    cols = live or cols
+    return (f["name"], pick, cols,
+            [[str(r.get(c, "") or "") for c in cols] for r in data], note)
+
+
+class _MultiSheet(Exception):
+    def __init__(self, sheets: dict[str, int]) -> None:
+        self.sheets = sheets
+
+
+def _full_rows_for(s: Session, ev: dict[str, Any]) -> list[list[str]] | None:
+    """按事件里记的**来源配方**重新算一遍全量行。
+
+    事件里的 ``rows`` 是**给屏幕看的**，封了顶（_ROWS_MAX）。文件没有这个限制 ——
+    导出继承屏幕的截断，就会出现一个叫「问题清单（900 行）.xlsx」、里面只有 500 行
+    的文件，而 FDE 会把它当完整清单发给客户。所以导出按配方重算，不读 rows。
+    """
+    src = ev.get("src") or {}
+    try:
+        if src.get("kind") == "oir":
+            _, _, rows = _oir_table(s.state.get("oir") or {},
+                                    src["oir_kind"], src.get("contains", ""))
+            return rows
+        if src.get("kind") == "material":
+            _, _, _, rows, _ = _material_table(
+                s, src["file"], src.get("sheet", ""), src.get("contains", ""),
+                src.get("columns") or None)
+            return rows
+    except Exception:                                             # noqa: BLE001
+        return None            # 重算不出来就退回事件里那份，并在 note 里说清
+    return None
+
+
+def _last_card_table(s: Session) -> dict[str, Any] | None:
+    """上一次用 ``ui.table`` 卡片列出来的表。"""
     for ev in reversed(s.events):
         if ev.get("kind") == "ui.table":
             return ev
@@ -1217,14 +2338,163 @@ def _last_table(s: Session) -> dict[str, Any] | None:
     return None
 
 
-def _export_doc(s: Session, source: str, contains: str,
-                title: str) -> tuple[Any, dict[str, Any]]:
+def _match_file(s: Session, raw: str) -> dict[str, Any] | None:
+    """按名字找一份材料。全等 → 解码后全等 → 子串。
+
+    模型很爱把中文文件名**百分号编码**了再传（把它当 URL 片段）。同一个名字在
+    material.parse 里靠子串蒙混过去、在 evidence.search 里却直接"没有这些材料"，
+    模型就会以为文件没读进来，转头去猜答案。名字在哪个工具里都得是同一个意思。
+    """
+    from urllib.parse import unquote
+
+    cand = [raw]
+    if "%" in raw:
+        dec = unquote(raw)
+        if dec != raw:
+            cand.append(dec)
+    for x in cand:
+        hit = next((f for f in s.files if f["name"] == x), None)
+        if hit:
+            return hit
+    for x in cand:
+        hit = next((f for f in s.files if x and x in f["name"]), None)
+        if hit:
+            return hit
+    return None
+
+
+def _tables_in_text(text: str, ts: float) -> list[dict[str, Any]]:
+    """一条回答正文里的所有表格（markdown 竖线表），各自带上它的标题。
+
+    模型经常不调 ``ui.table``，而是直接把表写进回答里 —— 访谈提纲这类一次性的
+    东西本来就不是"产物清单"。标题取表格前面最近的那个小标题或加粗行：模型写
+    「**AI 招聘业务流程梳理及访谈提问框架**」这种很常见，而用户回头正是**用这个
+    名字**来指它的。
+    """
+    from .onto import export as X
+
+    out: list[dict[str, Any]] = []
+    blocks = X.blocks_from_markdown(text or "")
+    for i, b in enumerate(blocks):
+        if b.kind != "table" or not b.rows:
+            continue
+        title = ""
+        for prev in reversed(blocks[:i]):
+            cand = (prev.text or "").strip()
+            if prev.kind in ("heading", "para") and 0 < len(cand) <= 60:
+                title = cand
+                break
+        out.append({"kind": "ui.table", "ts": float(ts or 0),
+                    "title": title or "清单", "columns": list(b.columns),
+                    "rows": [list(r) for r in b.rows], "total": len(b.rows)})
+    return out
+
+
+async def _conversation_tables(s: Session) -> list[dict[str, Any]]:
+    """这个会话里出现过的**全部**表格，按时间从早到晚。
+
+    两个来源都要，缺一不可：
+
+    * **耐久事件表**（``chat.turn``）—— 这是完整历史。DialogueMemory 会压缩：
+      超预算时最老的几轮被合并成一句摘要，原文就没了。用户过两轮回头说"把刚才
+      那张 AI 招聘表导出来"时，那条回答很可能已经被压掉 —— 只看 DialogueMemory
+      就会翻出**另一张**表给他，这正是他下载到的东西不对的原因。
+    * **当前 DialogueMemory** —— 兜住耐久事件还没落库、以及历史遗留会话。
+
+    按 (ts, 标题, 行数) 去重，两边重复的算一份。
+    """
+    seen: dict[tuple, dict[str, Any]] = {}
+
+    def take(rec: dict[str, Any]) -> None:
+        key = (round(float(rec.get("ts") or 0), 3), rec.get("title"),
+               len(rec.get("rows") or []))
+        seen.setdefault(key, rec)
+
+    try:
+        rows = await get_repo().read_events(s.id, since=0)
+    except Exception:                                       # noqa: BLE001
+        rows = []
+    for row in rows:
+        ev = row.as_sse()
+        if ev.get("kind") == "ui.table" and ev.get("rows"):
+            take({**ev, "ts": float(ev.get("ts") or 0)})
+        elif ev.get("kind") == "chat.turn":
+            turn = ev.get("turn") or {}
+            if str(turn.get("speaker")) == "assistant":
+                for rec in _tables_in_text(turn.get("text") or "",
+                                           float(turn.get("ts") or ev.get("ts") or 0)):
+                    take(rec)
+
+    for ev in list(s.events) + list(s.state.get("_cards") or []):
+        if ev.get("kind") == "ui.table" and ev.get("rows"):
+            take({**ev, "ts": float(ev.get("ts") or 0)})
+    for rec in s.state.get("_tables") or []:          # 压缩前存下来的那份
+        take(dict(rec))
+    for t in _dialogue(s).turns:
+        if str(t.speaker) == "assistant":
+            for rec in _tables_in_text(t.text or "", float(t.ts or 0)):
+                take(rec)
+
+    return sorted(seen.values(), key=lambda r: float(r.get("ts") or 0))
+
+
+def _pick_table(tables: list[dict[str, Any]], name: str) -> dict[str, Any] | None:
+    """按名字挑一张表；没给名字就是最后出现的那张。
+
+    用户点了名（"导出成 Excel：AI 招聘业务流程梳理及访谈提问框架"）却还是拿最后
+    一张，就会把**另一张**表发给他 —— 他会以为系统记错了，实际是代码没听。
+    """
+    if not tables:
+        return None
+    if not name:
+        return tables[-1]
+    key = name.strip().lower()
+    # 先全等、再包含、再反向包含（用户常把标题抄短或抄长一点）
+    for match in (lambda t: t == key,
+                  lambda t: key in t,
+                  lambda t: t in key and len(t) >= 4):
+        hit = [r for r in tables if match(str(r.get("title") or "").strip().lower())]
+        if hit:
+            return hit[-1]
+    return None
+
+
+async def _last_table(s: Session, name: str = "") -> dict[str, Any] | None:
+    """用户说「这个表」指的那张。
+
+    给了名字就**按名字挑**——他点名要「AI 招聘业务流程梳理及访谈提问框架」，
+    结果拿到最后一张（另一个话题的对比表），只会以为系统记错了。
+    没给名字才是"最后出现的那张"。
+    """
+    return _pick_table(await _conversation_tables(s), name)
+
+
+async def _export_doc(s: Session, source: str, contains: str,
+                      title: str, table_name: str = "") -> tuple[Any, dict[str, Any]]:
     """按 source 组装要导出的内容。返回 (ExportDoc | None, 组不出来时的回执)。
 
     组不出来时**要说清是哪一步没有东西**：一句"导出失败"会让模型转头跟用户说
     "系统限制"，而真实原因往往是他还没列过表、或者还没跑梳理 —— 那是能补的。
     """
     from .onto import export as X
+
+    if source == "questions" and s.state.get("question_backlog"):
+        backlog = _question_backlog(s)
+        items = list(backlog.questions.values())
+        if contains:
+            needle = contains.lower()
+            items = [q for q in items if needle in json.dumps(
+                q.to_dict(), ensure_ascii=False).lower()]
+        if not items:
+            return None, {"error": "统一问题台账里没有符合条件的问题。"}
+        head = ["问题ID", "问题", "状态", "优先级", "回答对象", "负责人", "为什么问"]
+        rows = [[q.id, q.text, str(q.status), str(q.priority), q.audience_role,
+                 q.owner_user_id, q.why] for q in items]
+        return X.ExportDoc(
+            title=title or "待澄清问题",
+            blocks=X.table_block(head, rows),
+            note=f"共 {len(rows)} 条，由统一 QuestionBacklog 导出",
+        ), {}
 
     if source in _OIR_COLS:
         oir = s.state.get("oir") or {}
@@ -1240,23 +2510,47 @@ def _export_doc(s: Session, source: str, contains: str,
                            note=f"共 {len(rows)} 条，由 OntoCopilot 从本次梳理产物导出"), {}
 
     if source == "last_table":
-        ev = _last_table(s)
+        tables = await _conversation_tables(s)
+        ev = _pick_table(tables, table_name)
+        if ev is None and table_name:
+            # 点了名却找不到 —— **把有哪些告诉模型**，别让它默默导另一张给用户
+            return None, {"error": f"这段对话里没有叫「{table_name}」的表。",
+                          "现有的表": [r.get("title") for r in tables][-8:] or "一张都没有",
+                          "下一步": "用上面列出的名字之一重试；或者不传 name，导最后一张。"}
         if ev is None:
             return None, {"error": "还没有列过表，没有「这个表」可导。",
                           "下一步": "先用 ui.table（产物）或 material.rows（上传的表）"
                                     "把内容列给他看，再导出。"}
         head = list(ev.get("columns") or [])
-        rows = [list(r) for r in (ev.get("rows") or [])]
+        # 事件里的 rows 是**给屏幕看的**，封了顶；文件没有这个限制。按事件里记的
+        # 来源配方重算全量，否则会导出一个叫「问题清单（900 行）.xlsx」、里面只有
+        # 500 行的文件 —— 而 FDE 会把它当完整清单发给客户。
+        full = _full_rows_for(s, ev)
+        rows = full if full is not None else [list(r) for r in (ev.get("rows") or [])]
+        partial = full is None and int(ev.get("total") or len(rows)) > len(rows)
         if contains:
             k = contains.lower()
             rows = [r for r in rows if k in " ".join(str(c) for c in r).lower()]
             if not rows:
                 return None, {"error": f"这张表里没有含「{contains}」的行。"}
         name = title or str(ev.get("title") or "清单")
-        return X.ExportDoc(title=name, blocks=X.table_block(head, rows),
-                           note=f"共 {len(rows)} 条，由 OntoCopilot 导出"), {}
+        note = f"共 {len(rows)} 条，由 OntoCopilot 导出"
+        if partial:
+            # 补不回全量时**必须说出来**，标题里那个数字也不能留着骗人。原标题
+            # 结尾常有个「（900 行）」—— 那是屏幕上那张表的总数，直接换掉，
+            # 别再追加一个括号变成「（900 行）（前 500 行）」。
+            name = re.sub(r"（[^（）]*\d+\s*[行条][^（）]*）\s*$", "", name).strip()
+            name = f"{name}（前 {len(rows)} 行，原表 {ev.get('total')} 行）"
+            note = (f"只含前 {len(rows)} 行，原表共 {ev.get('total')} 行 —— "
+                    f"重新读原始材料失败，这份**不是全量**。")
+        doc = X.ExportDoc(title=name, blocks=X.table_block(head, rows), note=note)
+        return doc, ({"注意": note} if partial else {})
 
-    turns = [t for t in _dialogue(s).turns if str(t.speaker) != "system"]
+    # **system 轮次不能一律丢掉。** DialogueMemory 每轮都 compact_to_fit()，超预算
+    # 的旧轮次会被换成一条 Speaker.SYSTEM 的摘要（"（已压缩 N 轮）…"）—— 那是那些
+    # 轮次仅存的记录。过滤掉它，导出的"整段对话"就从中间开始，而且还宣称自己是全部。
+    raw_turns = _dialogue(s).turns
+    turns = [t for t in raw_turns if str(t.speaker) != "system"]
     if source == "last_answer":
         answer = next((t for t in reversed(turns) if str(t.speaker) == "assistant"), None)
         if answer is None:
@@ -1266,15 +2560,24 @@ def _export_doc(s: Session, source: str, contains: str,
                            note="由 OntoCopilot 导出"), {}
 
     if source == "conversation":
-        if not turns:
+        if not raw_turns:
             return None, {"error": "这个会话还没有对话内容。"}
         blocks: list[Any] = []
-        for t in turns:
-            who = "FDE" if str(t.speaker) == "user" else "OntoCopilot"
-            blocks.append(X.Block("heading", who, level=2))
+        compacted = 0
+        for t in raw_turns:
+            sp = str(t.speaker)
+            if sp == "system":
+                compacted += 1
+                blocks.append(X.Block("heading", "（早前对话摘要）", level=2))
+            else:
+                blocks.append(X.Block("heading", "FDE" if sp == "user" else "OntoCopilot",
+                                      level=2))
             blocks.extend(X.blocks_from_markdown(t.text))
+        note = f"共 {len(turns)} 轮，由 OntoCopilot 导出"
+        if compacted:
+            note += f"；更早的轮次已被压缩成 {compacted} 条摘要，原文不再保留"
         return X.ExportDoc(title=title or (s.title or "对话记录"), blocks=blocks,
-                           note=f"共 {len(turns)} 轮，由 OntoCopilot 导出"), {}
+                           note=note), {}
 
     return None, {"error": f"不认识的 source「{source}」。"}
 
@@ -1297,20 +2600,21 @@ def _push_version(s: Session, key: str, snap: dict[str, Any]) -> list[Any]:
     return v
 
 
-async def _persist(s: Session, *, status: bool = True) -> None:
+async def _persist(s: Session, *, status: bool = True,
+                   lease_owner: str = "", chat_owner: str = "",
+                   docs_only: set[str] | None = None) -> None:
     """把会话当前状态写进库。**在每个节点边界调用。**
 
     只在最后写一次的后果是：跑到一半崩了，前面几分钟和几美元全白花，
     而磁盘上什么都没有。节点边界是天然的检查点 —— 那正是 Recorder 记
     ``NODE_COMPLETED`` 的地方。
 
-    失败不抛：数据库出问题不该把一次正在跑的梳理带下去。**但要报出来** ——
-    静默降级成内存模式，用户会以为存下来了。
+    持久化失败必须上抛。继续生成一份无法恢复、审计链已断裂的“成功”产物，比明确
+    失败更危险；调用边界会把异常转换成 failed Run 或 HTTP 失败，用户不会误以为
+    已经保存。发出的 ``persist.failed`` 事件只用于诊断，不会吞掉原异常。
     """
     repo = get_repo()
     try:
-        if status:
-            await repo.set_status(s.id, s.status, error=s.error)
         docs = {k: s.state[k] for k in _PERSISTED if k in s.state}
         # 私有的版本/补丁栈也落，顺手把内存态也封顶
         for k in _PERSISTED_PRIVATE:
@@ -1322,18 +2626,146 @@ async def _persist(s: Session, *, status: bool = True) -> None:
             doc = s.state.get(k)
             if doc:
                 docs[k] = doc
-        conflicts = [c.to_dict() for c in (s.state.get("_conflicts") or [])]
-        await repo.save_state(s.id, docs, conflicts=conflicts or None,
-                              asked_rids=[q["conflict_rid"]
-                                          for q in (s.state.get("questions") or [])])
         dm = s.state.get("_dialogue")
         if dm is not None:
-            # 逐行 chat_turn 尚未接入服务主链时，至少把压缩后的 DialogueMemory 作为
-            # 一个耐久文档保存；否则“刚才那个字段”在重启后没有任何可解析上下文。
-            await repo.save_state(s.id, {"dialogue": dm.to_dict()})
+            # Dialogue and every domain edit from the turn are one projection commit.
+            # Saving dialogue in a second transaction lets a new worker slip between
+            # them and observe a half turn (or have the old worker overwrite it).
+            docs["dialogue"] = dm.to_dict()
+        if docs_only is not None:
+            docs = {key: value for key, value in docs.items() if key in docs_only}
+        conflicts = [c.to_dict() for c in (s.state.get("_conflicts") or [])]
+        persist_conflicts = docs_only is None or bool({"questions", "question_backlog",
+                                                       "oir"} & docs_only)
+        asked_rids = [q["conflict_rid"] for q in (s.state.get("questions") or [])]
+        mutation_owner = s.mutation_lease_owner
+        if lease_owner and (chat_owner or mutation_owner):
+            raise ValueError("build lease 和 chat lease 不能同时提交同一 checkpoint")
+        if mutation_owner:
+            version = await repo.save_mutation_state(
+                s.id, docs, owner=mutation_owner, now=time.time(),
+                status=s.status, error=s.error,
+                conflicts=(conflicts or None) if persist_conflicts else None,
+                asked_rids=asked_rids, chat_owner=chat_owner,
+                expected_version=s.state_version,
+            )
+            if version is None:
+                raise HTTPException(
+                    409, "领域修改租约已失效或会话已更新；未覆盖最新状态。",
+                )
+        elif lease_owner:
+            version = await repo.save_build_state(
+                s.id, docs, owner=lease_owner, now=time.time(),
+                status=s.status, error=s.error,
+                conflicts=(conflicts or None) if persist_conflicts else None,
+                asked_rids=asked_rids,
+                expected_version=s.state_version,
+            )
+            if version is None:
+                # The build owner can stay alive while another worker adds a dialogue
+                # turn.  Retry once without the chat-owned documents: build never owns
+                # dialogue/chat spend, so dropping them is a lossless merge.
+                build_docs = {key: value for key, value in docs.items()
+                              if key not in _CHAT_OWNED_DOCS}
+                row = await repo.get_session(s.id)
+                if row is not None:
+                    version = await repo.save_build_state(
+                        s.id, build_docs, owner=lease_owner, now=time.time(),
+                        status=s.status, error=s.error,
+                        conflicts=(conflicts or None) if persist_conflicts else None,
+                        asked_rids=asked_rids,
+                        expected_version=row.state_version,
+                    )
+            if version is None:
+                raise asyncio.CancelledError
+        elif chat_owner:
+            version = await repo.save_chat_state(
+                s.id, docs, owner=chat_owner, now=time.time(),
+                conflicts=(conflicts or None) if persist_conflicts else None,
+                asked_rids=asked_rids,
+                expected_version=s.state_version,
+            )
+            if version is None:
+                # A build/question/audit mutation won after this chat refreshed.
+                # Chat-only state is disjoint, so merge just those keys on top of the
+                # new version instead of replaying paid reasoning or stale OIR/flow.
+                chat_docs = {key: value for key, value in docs.items()
+                             if key in _CHAT_OWNED_DOCS}
+                row = await repo.get_session(s.id)
+                if row is not None:
+                    version = await repo.save_chat_state(
+                        s.id, chat_docs, owner=chat_owner, now=time.time(),
+                        conflicts=None, asked_rids=(),
+                        expected_version=row.state_version,
+                    )
+            if version is None:
+                raise asyncio.CancelledError
+        else:
+            if status:
+                await repo.set_status(s.id, s.status, error=s.error)
+            version = await repo.save_state(
+                s.id, docs,
+                conflicts=(conflicts or None) if persist_conflicts else None,
+                asked_rids=asked_rids,
+                expected_version=s.state_version,
+            )
+            if version is None:
+                raise HTTPException(
+                    409, "会话已在另一工作进程更新；请刷新后重试，未覆盖对方改动。",
+                )
+        s.state_version = version
+        if dm is not None:
             await _persist_decisions(s, dm)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         s.emit("persist.failed", error=f"{type(exc).__name__}: {exc}")
+        raise
+
+
+def _question_backlog(s: Session) -> QuestionBacklog:
+    raw = s.state.get("question_backlog") or {"questions": []}
+    return QuestionBacklog.from_dict(raw)
+
+
+def _pending_questions(s: Session) -> list[Question]:
+    return [q for q in _question_backlog(s).questions.values()
+            if q.status in {QuestionStatus.OPEN, QuestionStatus.ASSIGNED,
+                            QuestionStatus.BLOCKED}]
+
+
+async def _sync_question_backlog(s: Session, *, oir: Any | None = None,
+                                 clarification: Any = (), conflicts: Any = (),
+                                 preserve_repo_lifecycle: bool = False,
+                                 ) -> QuestionBacklog:
+    """把 OIR 问题与 conflict cards 合到唯一 Backlog，并同时写 repo/state/文件。"""
+    existing = None if preserve_repo_lifecycle else s.state.get("question_backlog")
+    authoritative_existing: QuestionBacklog | None = None
+    if existing is None:
+        rows = await get_repo().list_questions(s.id)
+        if rows:
+            existing = {"questions": [r.doc for r in rows]}
+            authoritative_existing = QuestionBacklog.from_dict(existing)
+    oir = oir or s.state.get("_oir")
+    backlog = build_question_backlog(
+        open_questions=list((oir.questions if oir is not None else {}).values()),
+        clarification_questions=list(clarification or s.state.get("questions") or ()),
+        conflicts=list(conflicts or s.state.get("_conflicts") or ()),
+        existing=existing)
+    if authoritative_existing is not None:
+        # build_question_backlog refreshes descriptive/source fields.  Priority and
+        # blocked-artifact classification, however, are durable workflow controls;
+        # an OIR OpenQuestion projection must not downgrade a manually promoted
+        # release blocker back to normal during deterministic finish().
+        for qid, old in authoritative_existing.questions.items():
+            if current := backlog.questions.get(qid):
+                current.priority = old.priority
+                current.blocked_artifacts = list(old.blocked_artifacts)
+                current.dependencies = list(old.dependencies)
+                current.metadata = dict(old.metadata)
+    s.state["question_backlog"] = backlog.to_dict()
+    await get_repo().upsert_questions(
+        s.id, [QuestionRow.from_domain(q) for q in backlog.questions.values()])
+    _write_question_exports(s, backlog)
+    return backlog
 
 
 async def _persist_decisions(s: Session, dm: Any) -> None:
@@ -1381,7 +2813,12 @@ async def _drain_queue(s: Session) -> None:
         s.emit("queue.drained", count=len(queued))
 
 
-async def _recompile(s: Session) -> None:
+async def _recompile(
+    s: Session,
+    *,
+    lease_owner: str = "",
+    preserve_question_rows: bool = False,
+) -> None:
     """按当前 OIR 重算下游并重写产物。**零模型调用。**
 
     对齐、冲突检测、自动修复、澄清排序、模板编译全是确定性代码 —— 用户改了
@@ -1394,8 +2831,181 @@ async def _recompile(s: Session) -> None:
     s.state["oir"] = oir.to_dict()
     s.state["conflicts"] = [c.to_dict() for c in res["conflicts"]]
     s.state["suggestions"] = res.get("suggestions") or []
-    await _compile(s)
+    backlog = await _sync_question_backlog(
+        s,
+        oir=oir,
+        clarification=res["clarify"].questions,
+        conflicts=res["conflicts"],
+        preserve_repo_lifecycle=preserve_question_rows,
+    )
+    # The final Question answer must resume the *same* content-addressed Recorder.
+    # Otherwise `_compile` would let the HTTP answer path bypass
+    # CANONICALIZE→REVIEW→EXPORT even though the initial build correctly suspended.
+    released = await _resume_engagement_release(
+        s, backlog=backlog, lease_owner=lease_owner,
+    )
+    if not released:
+        s.status = "awaiting_answer"
+        await _persist(s, lease_owner=lease_owner)
     s.emit("suggest.ready", suggestions=s.state["suggestions"])
+
+
+async def _resume_engagement_release(
+    s: Session,
+    *,
+    backlog: QuestionBacklog | None = None,
+    lease_owner: str = "",
+) -> bool:
+    """Resume the frozen engagement after Question/Decision mutations.
+
+    Returns ``False`` only for an expected INTERVIEW suspension.  REVIEW/EXPORT
+    gate failures raise and therefore cannot be converted into a successful HTTP
+    answer.  The extract nodes are restored from the content-addressed journal;
+    the engagement projection itself is deterministic and performs no LLM calls.
+    """
+    if s.state.get("_oir") is None:
+        raise RuntimeError("没有可恢复的 OIR，不能继续 FDE Engagement")
+    backlog = backlog or _question_backlog(s)
+    base_run_id = _run_id_for(s)
+    recorded_run_id = str(s.state.get("engagement_run_id") or "")
+    base_journal = s.dir / "journal" / f"{base_run_id}.jsonl"
+    if recorded_run_id:
+        run_id = recorded_run_id
+    elif base_journal.exists():
+        # Sessions built after the executable engagement rollout share the mature
+        # extraction Recorder.  This fallback also upgrades an early deployment
+        # that suspended before ``engagement_run_id`` was persisted.
+        run_id = base_run_id
+    else:
+        # Legacy sessions/tests may have OIR artifacts but predate the engagement
+        # journal entirely.  Give migration its own namespace so a later full build
+        # cannot restore these projection checkpoints as extraction work.
+        run_id = f"{base_run_id}_engagement"
+    journal_store = FileJournal(s.dir / "journal")
+    journal = s.dir / "journal" / f"{run_id}.jsonl"
+    resume = journal.exists()
+    if resume and any(
+        event.kind is EventKind.NODE_COMPLETED and event.node_id == "EXPORT"
+        for event in journal_store.read(run_id)
+    ):
+        # A completed engagement is an immutable checkpoint.  Reusing it after a
+        # Question/Decision mutation would restore CANONICALIZE/REVIEW/EXPORT and
+        # silently serve the old package.  Mutations after release get their own
+        # deterministic revision namespace; a still-suspended INTERVIEW continues
+        # to use the original run above.
+        mutation = fingerprint({
+            "questions": backlog.to_dict(),
+            "decisions": list(s.state.get("decision_ledger") or ()),
+            "artifactRevision": int(s.state.get("artifact_revision") or 0),
+        })[:12]
+        run_id = f"{base_run_id}_engagement_{mutation}"
+        journal = s.dir / "journal" / f"{run_id}.jsonl"
+        resume = journal.exists()
+    s.state["engagement_run_id"] = run_id
+
+    backend = None
+    budget = None
+    try:
+        # Every engagement handler and critic is deterministic/skip_model.  Resume
+        # needs a Recorder, not an API key or a paid backend—even when its journal
+        # also contains the mature extraction checkpoints.
+        from .kernel.llm import ScriptedBackend, stub_routing
+
+        rec = Recorder(
+            run_id,
+            journal_store,
+            FileBlobStore(s.dir / "blobs"),
+            resume=resume,
+        )
+        budget = Budget(tokens=1_000_000, usd=1)
+        offline_backend = ScriptedBackend()
+        gw = ModelGateway(
+            offline_backend, rec, routing=stub_routing(), budget=budget,
+        )
+        if not resume:
+            s.emit("engagement.checkpoint_migrated", runId=run_id)
+        index = s.state.get("_index")
+        bus = AgentBus(gw.rec)
+        tools = builtin_registry(
+            evidence=index,
+            profiles=s.state.get("_profiles"),
+            sandbox=None,
+        )
+        bus.board.write("_tools", tools, by="bootstrap")
+        cm = ContextManager(
+            system="FDE Engagement deterministic resume",
+            evidence=index,
+            budget_tokens=90_000,
+        )
+        from datetime import datetime
+
+        from .onto.engagement import build_fde_engagement_dag
+        from .onto.engagement_runtime import (
+            EngagementRuntimeInput,
+            engagement_critics,
+            engagement_handlers,
+        )
+
+        runtime = EngagementRuntimeInput(
+            session_id=s.id,
+            project=s.project or s.title,
+            oir=s.state["_oir"],
+            flow=s.state.get("_flow"),
+            backlog=backlog,
+            decisions=list(s.state.get("decision_ledger") or ()),
+            corpus=s.state.get("corpus") or {},
+            artifact_revision=int(s.state.get("artifact_revision") or 0),
+            generated_at=datetime.fromtimestamp(s.created, UTC).isoformat(),
+            release_downloadable=os.access(s.dir, os.W_OK),
+        )
+        loop = AgentLoop(
+            gateway=gw,
+            ctx_manager=cm,
+            panel=CriticPanel(engagement_critics(), gw.rec),
+            bus=bus,
+            recorder=gw.rec,
+            budget=budget,
+            handlers=engagement_handlers(runtime),
+        )
+        outcome = await _run_with_live_trace(
+            s,
+            gw.rec,
+            bus,
+            Scheduler(
+                build_fde_engagement_dag(), loop, gw.rec, bus, budget,
+                concurrency=4,
+            ).run(run_id),
+        )
+        if offline_backend.calls:
+            raise RuntimeError("确定性 FDE Engagement 恢复意外触发了模型调用")
+        s.state["engagement_execution"] = {
+            "status": str(outcome.status),
+            "completed": sorted(outcome.results),
+            "restored": sorted(outcome.skipped),
+            "pendingHuman": outcome.pending_human,
+        }
+        if outcome.status is RunStatus.SUSPENDED:
+            s.emit("engagement.stage", node="INTERVIEW", contract="QuestionBacklog")
+            return False
+        if not outcome.ok:
+            raise RuntimeError(f"FDE Engagement 恢复失败：{outcome.error}")
+        export_plan = outcome.outputs.get("EXPORT") or {}
+        if not (export_plan.get("review_passed")
+                and export_plan.get("schema_valid")
+                and export_plan.get("downloadable")):
+            raise RuntimeError("FDE Engagement EXPORT 硬门未通过，已阻止交付")
+        s.state["release_state"] = str(export_plan.get("releaseState") or "RELEASED")
+        s.emit(
+            "engagement.stage",
+            node="EXPORT",
+            contract="OntologyPackage.v1",
+            artifacts=export_plan.get("artifacts") or [],
+        )
+        await _compile(s, lease_owner=lease_owner)
+        return True
+    finally:
+        if backend is not None:
+            await backend.aclose()
 
 
 def _replay_oir_patches(s: Session, oir: Any) -> list[dict[str, Any]]:
@@ -1466,6 +3076,34 @@ async def _build_flow_diagram(s: Session, docs: list[Any]) -> None:
     流程图。抽不出来就不出图 —— 出一张空图比不出更糟，它会让人以为材料里
     没有流程。
     """
+    # BPMN 已经是一张结构化图，必须直接保留节点 id、泳道、条件和 sequenceFlow
+    # provenance；再从 render 文本做一次规则抽取会丢信息，还可能改写原有顺序。
+    from .onto.flow_bpmn import flow_from_bpmn_docs
+
+    bpmn_graph = flow_from_bpmn_docs(docs)
+    if bpmn_graph is not None:
+        stale = _replay_flow_patches(s, bpmn_graph)
+        if stale:
+            s.emit("flow.stale_edits", count=len(stale),
+                   items=[{"op": x["op"], "why": x["why"]} for x in stale])
+        _rewrite_flow_artifacts(s, bpmn_graph)
+        from .onto.flow_extract import gaps_to_questions
+
+        source_names = [d.file_name for d in docs if getattr(d, "kind", "") == "bpmn"]
+        source = "、".join(source_names)
+        s.state["_flow_gaps"] = gaps_to_questions(bpmn_graph, file_name=source)
+        s.state["artifacts"] = sorted(x.name for x in s.dir.iterdir() if x.is_file())
+        s.emit("flow.bpmn", sources=source_names, stats=bpmn_graph.stats(),
+               why="BPMN 是结构化流程定义，已直接映射，未让模型重新解释")
+        s.emit("flow.ready", stats=bpmn_graph.stats(),
+               gap_questions=len(s.state["_flow_gaps"]),
+               issues={"死路": [n.label.value for n in bpmn_graph.dead_ends()][:6],
+                       "无标签分支": [n.label.value
+                                 for n in bpmn_graph.unlabeled_branches()][:6],
+                       "有动作无事件": [n.label.value
+                                  for n in bpmn_graph.actions_without_events()][:6]})
+        return
+
     from .onto.flow_extract import (
         apply_scene_titles,
         attach_gateways,
@@ -1613,34 +3251,55 @@ def _link_flow_to_api(s: Session, oir: Any) -> list[Any]:
     return gaps
 
 
-async def _compile(s: Session) -> None:
+async def _compile(s: Session, *, lease_owner: str = "") -> None:
     oir = s.state["_oir"]
     conflicts = s.state.get("_conflicts") or []
+    # Canonical artifacts and question exports must be projections of the same unified
+    # backlog.  Sync first: otherwise conflict questions/answers enter the Ledger only
+    # after ontology.package.json has already been written and Decisions dangle.
+    await _sync_question_backlog(s, oir=oir, conflicts=conflicts)
     s.emit("node.entered", node="COMPILE", title="编译模板")
     spec = compile_template(oir, conflicts)
+    # Release Gate 必须发生在任何可下载产物写盘之前。Canonical 包若存在悬空引用、
+    # 重复 ID 或 schema 破坏，模板/OIR 也不能先以“新版本”出现在下载接口里。
+    # 先构建并验证一次，后面把同一份数据提交，避免两次构建的 generatedAt 漂移。
+    canonical = _write_canonical_artifacts(s, write=False)
     xlsx = write_xlsx(spec, s.dir / "模板_v1.xlsx", project=s.project or s.title)
     spec.save(s.dir / "template.spec.json")
     (s.dir / "oir.json").write_text(
         json.dumps(oir.to_dict(), ensure_ascii=False, indent=1), encoding="utf-8")
-    _write_canonical_artifacts(s)
+    _write_canonical_artifacts(s, prepared=canonical)
     # oir.json 写了、state 里的快照没刷 —— 前端读的是快照，于是磁盘上是新的、
     # 界面上是旧的。这种不一致只有对着文件核对才会发现。
     s.state["oir"] = oir.to_dict()
     s.state["template"] = spec.stats()
     s.state["artifacts"] = [p.name for p in s.dir.iterdir() if p.is_file()]
-    s.status = "done"
-    await _persist(s)
+    s.status = "awaiting_answer" if _pending_questions(s) else "done"
+    await _persist(s, lease_owner=lease_owner)
     s.emit("artifact.ready", artifact="template", name=xlsx.name, stats=spec.stats())
     # 排队的动作要在"完成"**之前**执行完。放在之后的话，用户先看到「已完成」、
     # 界面停止刷新，然后产物才悄悄变了 —— 他不会知道。
     await _drain_queue(s)
-    s.emit("run.completed", stats=oir.stats())
+    if s.status == "done":
+        s.emit("run.completed", stats=oir.stats())
+    else:
+        s.emit("run.suspended", reason="仍有待业务回答的问题")
     asyncio.create_task(_emit_ai_prompts(s, slot="opening"))
 
 
-def _write_canonical_artifacts(s: Session) -> dict[str, Any]:
-    """生成 OntologyPackage 及下游常用的五个稳定 JSON 视图。"""
-    from .onto.canonical import ONTOLOGY_PACKAGE_JSON_SCHEMA, build_package
+def _write_canonical_artifacts(s: Session, *, write: bool = True,
+                               prepared: dict[str, Any] | None = None
+                               ) -> dict[str, Any]:
+    """生成并校验 OntologyPackage，再提交五个稳定 JSON 视图。
+
+    ``write=False`` 是发布前预检；``prepared`` 让真正提交复用同一份已校验数据，
+    从而保证 Release Gate 检查的正是最终写出的那个 revision。
+    """
+    from .onto.canonical import (
+        ONTOLOGY_PACKAGE_JSON_SCHEMA,
+        build_package,
+        validate_package,
+    )
 
     oir = s.state.get("_oir")
     if oir is None:
@@ -1651,10 +3310,29 @@ def _write_canonical_artifacts(s: Session) -> dict[str, Any]:
     dm = s.state.get("_dialogue")
     if dm is not None:
         decisions = [d.to_dict() for d in dm.decisions]
-    package = build_package(
-        oir, s.state.get("_flow"), package_id=f"pkg.{s.id}", revision=revision,
-        base_revision=current or None, decisions=decisions)
-    data = package.to_dict()
+    # Question Decision Ledger 是 FDE 回答的权威历史。仓储读取是 async，编译函数
+    # 保持同步，因此调用方在 state 中维护一份耐久投影；缺省仍兼容 legacy dialogue。
+    decisions += list(s.state.get("decision_ledger") or [])
+    if prepared is None:
+        package = build_package(
+            oir, s.state.get("_flow"), package_id=f"pkg.{s.id}", revision=revision,
+            base_revision=current or None, decisions=decisions,
+            backlog=s.state.get("question_backlog"))
+        data = package.to_dict()
+    else:
+        data = prepared
+        revision = int(data.get("revision") or revision)
+    report = validate_package(data)
+    data["validation"] = report.to_dict()
+    if not report.passed:
+        findings = [f.to_dict() for f in report.findings if f.severity == "error"]
+        s.emit("artifact.validation_failed", artifact="ontology_package",
+               revision=revision, findings=findings[:20])
+        summary = "; ".join(f"{f.code}@{f.path}: {f.message}"
+                            for f in report.findings if f.severity == "error")
+        raise RuntimeError(f"OntologyPackage v1 校验失败，已阻止交付：{summary}")
+    if not write:
+        return data
     (s.dir / "ontology.package.json").write_text(
         json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
     (s.dir / "ontology-package.schema.json").write_text(
@@ -1681,29 +3359,579 @@ def _write_canonical_artifacts(s: Session) -> dict[str, Any]:
     return data
 
 
+def _question_payload(q: Question, active: QuestionDecision | None = None) -> dict[str, Any]:
+    data = q.to_dict()
+    if active is not None:
+        data["activeDecision"] = active.to_dict()
+        data["answer"] = active.answer
+    else:
+        data["activeDecision"] = None
+        data["answer"] = None
+    return data
+
+
+async def _load_question_domain(s: Session) -> tuple[QuestionBacklog, dict[str, QuestionDecision]]:
+    rows_q = await get_repo().list_questions(s.id)
+    # repo 是并发写的权威状态；state 只是渲染缓存。每次 mutation 后虽然会同步，
+    # 但多 worker/另一个请求的 CAS 更新不会自动进本进程内存。
+    backlog = (QuestionBacklog.from_dict([r.doc for r in rows_q])
+               if rows_q else _question_backlog(s))
+    s.state["question_backlog"] = backlog.to_dict()
+    rows = await get_repo().list_decisions_v1(s.id)
+    decisions = [QuestionDecision.from_dict({
+        "id": r.id, "questionId": r.question_id, "answer": r.answer,
+        "actor": r.actor, "actorRole": r.actor_role, "authority": r.authority,
+        "sourceTurn": r.source_turn, "affectedIds": r.affected_ids,
+        "supersedes": r.supersedes, "revision": r.revision,
+        "idempotencyKey": r.idempotency_key, "rationale": r.rationale,
+        "createdAt": r.created, "metadata": r.metadata,
+    }) for r in rows if r.metadata.get("status") != "failed"]
+    superseded = {d.supersedes for d in decisions if d.supersedes}
+    active: dict[str, QuestionDecision] = {}
+    for d in decisions:
+        if d.id not in superseded:
+            active[d.question_id] = d
+    # Decision rows are the durable ledger.  Refreshing this projection before an
+    # engagement resume prevents one worker from publishing a package that omits a
+    # decision finalized by another worker milliseconds earlier.
+    s.state["decision_ledger"] = [d.to_dict() for d in decisions]
+    return backlog, active
+
+
+async def _refresh_authoritative_question_state(
+    s: Session,
+) -> tuple[QuestionBacklog, dict[str, QuestionDecision]]:
+    """Reload repo-owned interview state and project answers onto the live OIR."""
+    backlog, active = await _load_question_domain(s)
+    oir = s.state.get("_oir")
+    if oir is not None:
+        from .onto.oir import by_user
+
+        for qid, decision in active.items():
+            q = backlog.questions.get(qid)
+            if q is None or q.source_kind != "open_question":
+                continue
+            oq = oir.questions.get(q.source_ref or q.id)
+            if oq is not None:
+                oq.answer = by_user(
+                    str(decision.rationale or decision.answer),
+                    note=f"Question Decision {decision.id}",
+                )
+        s.state["oir"] = oir.to_dict()
+    _write_question_exports(s, backlog)
+    return backlog, active
+
+
+def _expected_version(body: dict[str, Any]) -> int | None:
+    raw = body.get("expected_revision", body.get("expectedRevision"))
+    if raw is None:
+        return None
+    try:
+        return int(raw)
+    except (TypeError, ValueError) as exc:
+        raise HTTPException(400, "expected_revision 必须是整数") from exc
+
+
+async def _save_question_domain(s: Session, q: Question, *, expected: int | None) -> None:
+    if expected is not None and q.version != expected:
+        raise HTTPException(409, f"问题已更新：预期 version {expected}，实际 {q.version}")
+    if expected is None:
+        # 无 CAS 的服务端内部写也只推进一个 revision；一个 PATCH 改三个字段不是
+        # 三次业务动作。调用方领域方法可能已经各自 +1，这里统一收口。
+        current = await get_repo().get_question(s.id, q.id)
+        base = current.version if current is not None else q.version
+        q.version = base + 1
+        q.updated_at = time.time()
+    row = QuestionRow.from_domain(q)
+    try:
+        saved = await get_repo().save_question(s.id, row, expected_version=expected)
+    except RevisionConflict as exc:
+        raise HTTPException(409, str(exc)) from exc
+    q.version = saved.version
+    q.updated_at = saved.updated
+    backlog = _question_backlog(s)
+    backlog.questions[q.id] = q
+    s.state["question_backlog"] = backlog.to_dict()
+    _write_question_exports(s, backlog)
+    await _persist(s)
+
+
+def _write_question_exports(s: Session, backlog: QuestionBacklog) -> None:
+    """问题清单三格式始终同源生成；下载路由也复用这三份字节。"""
+    rows = [_question_payload(q) for q in sorted(
+        backlog.questions.values(), key=lambda x: (x.priority != QuestionPriority.BLOCKING,
+                                                   x.created_at, x.id))]
+    (s.dir / "问题清单.json").write_text(
+        json.dumps({"schemaVersion": "1.0.0", "questions": rows,
+                    "summary": backlog.stats()}, ensure_ascii=False, indent=2),
+        encoding="utf-8")
+    lines = [f"# {s.project or s.title} · 待澄清问题", "",
+             f"共 {len(rows)} 条，未关闭 {sum(not q.terminal for q in backlog.questions.values())} 条。",
+             ""]
+    for i, q in enumerate(backlog.questions.values(), 1):
+        lines += [f"## {i}. {q.text}", "", f"- 状态：{q.status}",
+                  f"- 优先级：{q.priority}",
+                  f"- 回答对象：{q.audience_role or '待分派'}",
+                  f"- 负责人：{q.owner_user_id or '待分派'}"]
+        if q.why:
+            lines.append(f"- 为什么问：{q.why}")
+        if q.blocked_artifacts:
+            lines.append(f"- 阻塞产物：{'、'.join(q.blocked_artifacts)}")
+        lines.append("")
+    (s.dir / "问题清单.md").write_text("\n".join(lines), encoding="utf-8")
+    from openpyxl import Workbook
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "待澄清问题"
+    ws.append(["编号", "问题", "状态", "优先级", "回答对象", "负责人", "为什么问",
+               "依赖问题", "阻塞产物", "问题ID"])
+    for i, q in enumerate(backlog.questions.values(), 1):
+        ws.append([i, q.text, str(q.status), str(q.priority), q.audience_role,
+                   q.owner_user_id, q.why, "、".join(q.dependencies),
+                   "、".join(q.blocked_artifacts), q.id])
+    ws.freeze_panes = "A2"
+    ws.auto_filter.ref = ws.dimensions
+    widths = (8, 52, 13, 12, 18, 18, 36, 24, 32, 28)
+    for i, width in enumerate(widths, 1):
+        ws.column_dimensions[chr(64 + i)].width = width
+    wb.save(s.dir / "问题清单.xlsx")
+    s.state["artifacts"] = sorted(p.name for p in s.dir.iterdir() if p.is_file())
+
+
+@app.get("/api/sessions/{sid}/questions")
+async def questions_list(sid: str, limit: int = 0) -> dict[str, Any]:
+    s = await _sess_async(sid)
+    if not s.state.get("question_backlog") and s.state.get("_oir") is not None:
+        await _sync_question_backlog(s)
+    backlog, active = await _load_question_domain(s)
+    batch = backlog.next_batch(limit=max(1, min(limit or 5, 50)))
+    rows = [_question_payload(q, active.get(q.id)) for q in backlog.questions.values()]
+    return {"questions": rows, "summary": backlog.stats(),
+            "nextBatch": [q.id for q in batch],
+            "revision": max((q.version for q in backlog.questions.values()), default=0)}
+
+
+@app.patch("/api/sessions/{sid}/questions/{qid}")
+async def question_update(sid: str, qid: str, body: dict[str, Any]) -> dict[str, Any]:
+    s = await _sess_async(sid)
+    async with _session_mutation(s, "question.update"), s.question_lock:
+        return await _question_update_once(s, qid, body)
+
+
+async def _question_update_once(s: Session, qid: str,
+                                body: dict[str, Any]) -> dict[str, Any]:
+    backlog, active = await _load_question_domain(s)
+    q = backlog.questions.get(qid)
+    if q is None:
+        raise HTTPException(404, f"没有问题 {qid}")
+    expected = _expected_version(body)
+    original_version = q.version
+    if expected is not None and q.version != expected:
+        raise HTTPException(409, f"问题已更新：预期 version {expected}，实际 {q.version}")
+    owner = body.get("ownerUserId", body.get("owner_user_id"))
+    role = body.get("audienceRole", body.get("audience_role"))
+    priority = body.get("priority")
+    status = body.get("status")
+    if not any(key in body for key in (
+            "ownerUserId", "owner_user_id", "audienceRole", "audience_role",
+            "priority", "status")):
+        raise HTTPException(400, "没有可更新的 Question 字段")
+    if status is not None:
+        try:
+            target_status = QuestionStatus(str(status))
+        except ValueError as exc:
+            raise HTTPException(400, f"不支持的问题状态 {status}") from exc
+        if target_status is QuestionStatus.ANSWERED:
+            raise HTTPException(400, "answered 必须通过 /answer 记录 Decision")
+    if owner is not None:
+        owner = str(owner).strip()
+        if owner:
+            q.assign(owner, audience_role=str(role or q.audience_role))
+        else:
+            q.owner_user_id = ""
+            if q.status is QuestionStatus.ASSIGNED:
+                q.transition(QuestionStatus.OPEN)
+    elif role is not None:
+        q.audience_role = str(role).strip()
+        q.version += 1
+        q.updated_at = time.time()
+    if priority is not None:
+        try:
+            raw_priority = str(priority).lower()
+            # 早期前端曾用 medium；稳定领域契约是
+            # blocking/high/normal/low。在 API 边界上兼容旧值，库内只存 normal。
+            q.priority = QuestionPriority(
+                "normal" if raw_priority == "medium" else raw_priority)
+        except ValueError as exc:
+            raise HTTPException(400, f"不支持的优先级 {priority}") from exc
+        q.version += 1
+        q.updated_at = time.time()
+    if status is not None and target_status is not q.status:
+        try:
+            q.transition(target_status)
+        except (ValueError, QuestionTransitionError) as exc:
+            raise HTTPException(400, str(exc)) from exc
+    # repo CAS 负责只加一次版本；领域对象上多字段修改只算一个 revision。
+    q.version = expected if expected is not None else original_version
+    await _save_question_domain(s, q, expected=expected)
+    # Closing/reopening the last blocker is semantically the same release boundary
+    # as answering it.  Reload from repo first so a concurrent worker cannot leave
+    # the durable backlog fully closed while every local copy still saw one open.
+    authoritative, active = await _refresh_authoritative_question_state(s)
+    if (status is not None and target_status in {
+            QuestionStatus.DEFERRED, QuestionStatus.CANCELLED}
+            and s.state.get("_oir") is not None):
+        await _recompile(s, preserve_question_rows=True)
+        authoritative, active = await _refresh_authoritative_question_state(s)
+    pending = sum(q.status in {
+        QuestionStatus.OPEN, QuestionStatus.ASSIGNED, QuestionStatus.BLOCKED,
+    } for q in authoritative.questions.values())
+    s.status = "awaiting_answer" if pending else "done"
+    await _persist(s)
+    return {
+        "question": _question_payload(authoritative.questions[q.id], active.get(q.id)),
+        "summary": authoritative.stats(),
+        "status": s.status,
+    }
+
+
+@app.post("/api/sessions/{sid}/questions/{qid}/reopen")
+async def question_reopen(sid: str, qid: str,
+                          body: dict[str, Any] | None = None) -> dict[str, Any]:
+    s = await _sess_async(sid)
+    async with _session_mutation(s, "question.reopen"), s.question_lock:
+        return await _question_reopen_once(s, qid, body or {})
+
+
+async def _question_reopen_once(s: Session, qid: str,
+                                body: dict[str, Any]) -> dict[str, Any]:
+    backlog, _ = await _load_question_domain(s)
+    q = backlog.questions.get(qid)
+    if q is None:
+        raise HTTPException(404, f"没有问题 {qid}")
+    expected = _expected_version(body)
+    original_version = q.version
+    try:
+        q.transition(QuestionStatus.OPEN)
+    except QuestionTransitionError as exc:
+        raise HTTPException(400, str(exc)) from exc
+    q.version = expected if expected is not None else original_version
+    await _save_question_domain(s, q, expected=expected)
+    s.status = "awaiting_answer"
+    await _persist(s)
+    return {"question": _question_payload(q), "status": s.status}
+
+
+async def _answer_domain_question(s: Session, qid: str,
+                                  body: dict[str, Any], *,
+                                  mutation_claimed: bool = False) -> dict[str, Any]:
+    if mutation_claimed:
+        async with s.question_lock:
+            return await _answer_domain_question_once(s, qid, body)
+    async with _session_mutation(s, "question.answer"), s.question_lock:
+        return await _answer_domain_question_once(s, qid, body)
+
+
+def _decision_from_row(row: DecisionRecordRow) -> QuestionDecision:
+    return QuestionDecision.from_dict({
+        "id": row.id, "questionId": row.question_id, "answer": row.answer,
+        "actor": row.actor, "actorRole": row.actor_role, "authority": row.authority,
+        "sourceTurn": row.source_turn, "affectedIds": row.affected_ids,
+        "supersedes": row.supersedes, "revision": row.revision,
+        "idempotencyKey": row.idempotency_key, "rationale": row.rationale,
+        "createdAt": row.created, "metadata": row.metadata,
+    })
+
+
+def _predict_decision_effect(q: Question, target: Any | None,
+                             option_id: str) -> list[str]:
+    """在回写前计算 Decision fingerprint 需要的 affectedIds。
+
+    这只做纯读投影，不调 ``apply_decision``；因此 repo 可以先原子 claim
+    Decision，重试只有一个请求能得到 ``created=True`` 并执行副作用。
+    """
+    if target is None:
+        return list(q.blocked_artifacts)
+    option = next((o for o in target.options if o.id == option_id), None)
+    if option is None:
+        raise HTTPException(422, f"冲突 {target.rid} 没有选项 {option_id!r}")
+    effect = option.effect
+    if effect.get("split"):
+        return [rid for rid in effect["split"]]
+    if target_rid := effect.get("unify_to"):
+        return [rid for rid in target.subjects if rid != target_rid]
+    if effect.get("set_base_type"):
+        return list(target.subjects)
+    return []
+
+
+async def _recover_applied_answer_release(
+    s: Session,
+) -> tuple[QuestionBacklog, dict[str, QuestionDecision], int]:
+    """Finish the durable release boundary for an already-applied Decision.
+
+    The Decision claim/finalize, Question lifecycle update and engagement
+    checkpoint deliberately live in separate durable records.  A worker can die
+    after the first two commits and before INTERVIEW is resumed.  Retrying the
+    same idempotency key must therefore do more than echo the old Decision: it
+    reloads repo-owned interview state and, when no release blocker remains,
+    resumes (or migrates) the deterministic engagement journal.
+
+    A completed engagement with an on-disk package is left untouched, so normal
+    network retries do not mint artifact revisions.  Ordinary non-blocking open
+    questions still keep the session in ``awaiting_answer`` while the DRAFT
+    package remains downloadable.
+    """
+    authoritative, active = await _refresh_authoritative_question_state(s)
+    pending_rows = [
+        q for q in authoritative.questions.values()
+        if q.status in {
+            QuestionStatus.OPEN, QuestionStatus.ASSIGNED, QuestionStatus.BLOCKED,
+        }
+    ]
+    release_blockers = [q for q in pending_rows if q.blocking]
+    execution = s.state.get("engagement_execution") or {}
+    release_checkpoint_complete = (
+        str(execution.get("status") or "") == str(RunStatus.COMPLETED)
+        and bool(s.state.get("ontology_package"))
+        and (s.dir / "ontology.package.json").is_file()
+    )
+    if (s.state.get("_oir") is not None
+            and not release_blockers
+            and not release_checkpoint_complete):
+        await _recompile(s, preserve_question_rows=True)
+        authoritative, active = await _refresh_authoritative_question_state(s)
+        pending_rows = [
+            q for q in authoritative.questions.values()
+            if q.status in {
+                QuestionStatus.OPEN, QuestionStatus.ASSIGNED, QuestionStatus.BLOCKED,
+            }
+        ]
+    pending = len(pending_rows)
+    s.status = "awaiting_answer" if pending else "done"
+    await _persist(s)
+    return authoritative, active, pending
+
+
+async def _answer_domain_question_once(s: Session, qid: str,
+                                       body: dict[str, Any]) -> dict[str, Any]:
+    backlog, _active = await _load_question_domain(s)
+    q = backlog.questions.get(qid)
+    if q is None:
+        raise HTTPException(404, f"没有问题 {qid}")
+    expected = _expected_version(body)
+    original_version = q.version
+    if expected is not None and q.version != expected:
+        raise HTTPException(409, f"问题已更新：预期 version {expected}，实际 {q.version}")
+    answer_value = body.get("answer", body.get("option_id", body.get("answerText")))
+    if answer_value is None or answer_value == "":
+        raise HTTPException(400, "answer 不能为空")
+    # 非 conflict 的 enum UI 可能提交 option id；其 schema 已声明 enum，可直接校验。
+    try:
+        q.validate_answer(answer_value)
+    except Exception as exc:
+        raise HTTPException(422, str(exc)) from exc
+    idem = str(body.get("idempotencyKey") or body.get("idempotency_key") or "").strip()
+    if not idem:
+        raise HTTPException(400, "idempotencyKey 必填")
+    # 先查幂等记录。副作用（apply_decision / OpenQuestion 回写）只能发生在新请求上；
+    # 如果先 mutate 再去 repo 判重，网络重试会把同一决定应用两次。
+    previous = next((r for r in await get_repo().list_decisions_v1(s.id)
+                     if r.idempotency_key == idem), None)
+    if previous is not None:
+        probe = QuestionDecision(
+            id="", question_id=q.id, answer=answer_value,
+            actor=str(body.get("actor") or "fde"),
+            actor_role=str(body.get("actorRole") or q.audience_role),
+            authority=str(body.get("authority") or ""),
+            source_turn=str(body.get("sourceTurn") or ""),
+            affected_ids=list(previous.affected_ids),
+            idempotency_key=idem,
+            rationale=str(body.get("answerText") or body.get("note") or ""))
+        if previous.semantic_hash != probe.fingerprint:
+            raise HTTPException(409, f"幂等键 {idem!r} 已用于另一份回答")
+        prior = _decision_from_row(previous)
+        effect_status = str(previous.metadata.get("status") or "applied")
+        if effect_status == "failed":
+            raise HTTPException(
+                409, f"上次回答回写失败：{previous.metadata.get('error') or '未知错误'}")
+        if effect_status == "claimed":
+            raise HTTPException(409, "这个回答正在由另一个请求应用，请稍后刷新")
+        authoritative, active, pending = await _recover_applied_answer_release(s)
+        return {"decision": prior.to_dict(), "created": False,
+                "question": _question_payload(
+                    authoritative.questions.get(q.id, q), active.get(q.id) or prior),
+                "pending": pending, "status": s.status,
+                "applied": None}
+    # 已成功记录的幂等重放在任何状态下都可以恢复；但新回答只允许
+    # OPEN/ASSIGNED。这一校验必须早于 Decision claim、OIR 回写和 Revision，
+    # 否则 deferred/blocked 问题会出现“HTTP 失败但副作用已提交”。
+    if q.status not in {QuestionStatus.OPEN, QuestionStatus.ASSIGNED}:
+        raise HTTPException(
+            409,
+            f"问题当前状态为 {q.status}，不能直接回答；请先重新打开。",
+        )
+    target = None
+    option_id = str(body.get("option_id") or answer_value)
+    if q.source_kind == "conflict" or q.source_ref.startswith("cf_"):
+        target = next((c for c in s.state.get("_conflicts") or []
+                       if c.rid == q.source_ref), None)
+        if target is None:
+            raise HTTPException(409, f"冲突 {q.source_ref} 尚未恢复，不能应用回答")
+    affected_ids = _predict_decision_effect(q, target, option_id)
+    decision = QuestionDecision(
+        id="", question_id=q.id, answer=answer_value,
+        actor=str(body.get("actor") or "fde"),
+        actor_role=str(body.get("actorRole") or q.audience_role),
+        authority=str(body.get("authority") or ""),
+        source_turn=str(body.get("sourceTurn") or ""),
+        affected_ids=affected_ids,
+        revision=int(s.state.get("artifact_revision") or 0) + 1,
+        idempotency_key=idem, rationale=str(body.get("answerText") or body.get("note") or ""),
+    )
+    decision.id = f"dec_{decision.fingerprint[:20]}"
+    decision.metadata["status"] = "claimed"
+    try:
+        stored, created = await get_repo().record_decision_v1(
+            s.id, DecisionRecordRow.from_domain(decision))
+    except IdempotencyConflict as exc:
+        raise HTTPException(409, str(exc)) from exc
+    if not created:
+        prior = _decision_from_row(stored)
+        effect_status = str(stored.metadata.get("status") or "applied")
+        if effect_status == "failed":
+            raise HTTPException(
+                409, f"上次回答回写失败：{stored.metadata.get('error') or '未知错误'}")
+        if effect_status == "claimed":
+            raise HTTPException(409, "这个回答正在由另一个请求应用，请稍后刷新")
+        authoritative, active, pending = await _recover_applied_answer_release(s)
+        return {"decision": prior.to_dict(), "created": False,
+                "question": _question_payload(
+                    authoritative.questions.get(q.id, q), active.get(q.id) or prior),
+                "pending": pending, "status": s.status,
+                "applied": None}
+    # 只有取得 claim 的请求才能执行 OIR 副作用。回写失败不删
+    # Decision，而是终结为 failed，审计能看到“人回答过但没有生效”。
+    applied: dict[str, Any] | None = None
+    try:
+        if target is not None:
+            applied = apply_decision(
+                s.state["_oir"], target, option_id,
+                note=str(body.get("answerText") or body.get("note") or ""))
+            # 预计受影响对象与实际不符时 fail closed，避免指纹/审计说谎。
+            actual = list(applied.get("changed") or [])
+            if sorted(actual) != sorted(decision.affected_ids):
+                raise RuntimeError(
+                    f"Decision effect 预计 {decision.affected_ids} 与实际 {actual} 不一致")
+        if q.source_kind == "open_question" and s.state.get("_oir") is not None:
+            oq = s.state["_oir"].questions.get(q.source_ref or q.id)
+            if oq is not None:
+                from .onto.oir import by_user
+                oq.answer = by_user(str(body.get("answerText") or answer_value),
+                                    note=f"Question Decision {decision.id}")
+    except Exception as exc:  # 副作用失败必须耐久标记后才向上报错
+        await get_repo().finalize_decision_v1(
+            s.id, decision.id, status="failed",
+            error=f"{type(exc).__name__}: {exc}")
+        raise HTTPException(422, f"回答已记录，但回写 Ontology 失败：{exc}") from exc
+    stored = await get_repo().finalize_decision_v1(
+        s.id, decision.id, status="applied")
+    decision.metadata = dict(stored.metadata)
+    q.transition(QuestionStatus.ANSWERED)
+    q.version = expected if expected is not None else original_version
+    await _save_question_domain(s, q, expected=expected)
+    s.state["oir"] = s.state["_oir"].to_dict() if s.state.get("_oir") is not None else s.state.get("oir")
+    if q.source_ref.startswith("cf_"):
+        answered = set(s.state.setdefault("answered", []))
+        answered.add(q.source_ref)
+        s.state["answered"] = sorted(answered)
+    # 回答本身形成一个耐久 revision，供工作台查看与 artifact lineage 引用。
+    # id/ordinal 只是 placeholder，repo.append_revision 持有 session 锁发号。
+    rev = Revision(
+        id="rev.pending", ordinal=0, parent_id=None,
+        kind="question_answer", status=RevisionStatus.APPLIED,
+        patch_set=PatchSet(id=f"patch.{decision.id}", base_revision=0, ops=[],
+                           affected_ids=decision.affected_ids, idempotency_key=idem,
+                           actor=decision.actor, reason=decision.rationale),
+        changed_ids=decision.affected_ids, invalidated_artifacts=q.blocked_artifacts,
+        actor=decision.actor, source_turn=decision.source_turn)
+    await get_repo().append_revision(
+        s.id, RevisionRow.from_domain(rev, idempotency_key=f"answer:{idem}"))
+    # Question/Decision rows—not this worker's Session cache—are authoritative.
+    # This reload also projects another worker's just-finalized answer back into the
+    # latest OIR before deterministic finish/canonicalization runs.
+    authoritative, active = await _refresh_authoritative_question_state(s)
+    if s.state.get("_oir") is not None:
+        await _recompile(s, preserve_question_rows=True)
+        authoritative, active = await _refresh_authoritative_question_state(s)
+    pending = sum(row.status in {
+        QuestionStatus.OPEN, QuestionStatus.ASSIGNED, QuestionStatus.BLOCKED,
+    } for row in authoritative.questions.values())
+    s.status = "awaiting_answer" if pending else "done"
+    await _persist(s)
+    s.emit("question.answered", question=q.id, decision=decision.id,
+           pending=pending, affected=decision.affected_ids)
+    return {"decision": decision.to_dict(), "created": True,
+            "question": _question_payload(authoritative.questions[q.id],
+                                           active.get(q.id) or decision),
+            "pending": pending,
+            "status": s.status, "applied": applied}
+
+
+@app.post("/api/sessions/{sid}/questions/{qid}/answer")
+async def question_answer(sid: str, qid: str, body: dict[str, Any]) -> dict[str, Any]:
+    return await _answer_domain_question(await _sess_async(sid), qid, body)
+
+
+@app.get("/api/sessions/{sid}/questions/export")
+async def questions_export(sid: str, format: str = "xlsx") -> Response:
+    s = await _sess_async(sid)
+    backlog = _question_backlog(s)
+    _write_question_exports(s, backlog)
+    fmt = format.lower()
+    names = {"xlsx": "问题清单.xlsx", "md": "问题清单.md", "json": "问题清单.json"}
+    if fmt not in names:
+        raise HTTPException(400, "format 只支持 xlsx、md、json")
+    p = s.dir / names[fmt]
+    media = {"xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+             "md": "text/markdown; charset=utf-8", "json": "application/json"}[fmt]
+    return Response(p.read_bytes(), media_type=media,
+                    headers={"Content-Disposition": _content_disposition(p.name)})
+
+
+@app.get("/api/sessions/{sid}/revisions")
+async def revisions_list(sid: str) -> dict[str, Any]:
+    await _sess_async(sid)
+    rows = await get_repo().list_revisions(sid)
+    return {"revisions": [r.doc for r in rows], "count": len(rows),
+            "current": max((r.ordinal for r in rows), default=0)}
+
+
 @app.post("/api/sessions/{sid}/answer")
 async def answer(sid: str, body: dict[str, Any]) -> dict[str, Any]:
-    """回答一个澄清问题。人的决策标 ``Origin.USER``，后续自动逻辑不得覆盖。"""
-    s = _sess(sid)
-    oir, conflicts = s.state.get("_oir"), s.state.get("_conflicts")
-    if oir is None:
-        raise HTTPException(409, "这个会话还没有待答问题")
-
-    target = next((c for c in conflicts if c.rid == body.get("conflict_rid")), None)
-    if target is None:
-        raise HTTPException(404, f"没有冲突 {body.get('conflict_rid')}")
-    applied = apply_decision(oir, target, body["option_id"], note=body.get("note", ""))
-    s.emit("human.recorded", conflict=target.rid, option=body["option_id"],
-           label=applied["label"], changed=applied["changed"])
-
-    answered = set(s.state.setdefault("answered", []))
-    answered.add(target.rid)
-    s.state["answered"] = sorted(answered)
-    pending = [q for q in s.state.get("questions", ())
-               if q["conflict_rid"] not in answered]
-    if not pending:
-        await _compile(s)
-    return {"applied": applied, "pending": len(pending), "status": s.status}
+    """旧 conflict API 的兼容入口；内部复用统一 Decision Ledger 幂等路径。"""
+    s = await _sess_async(sid)
+    conflict_rid = str(body.get("conflict_rid") or "")
+    backlog = _question_backlog(s)
+    q = next((x for x in backlog.questions.values()
+              if x.source_ref == conflict_rid), None)
+    if q is None:
+        # 历史会话尚未建立统一 backlog 时即时迁移。
+        backlog = await _sync_question_backlog(
+            s, clarification=s.state.get("questions") or (),
+            conflicts=s.state.get("_conflicts") or ())
+        q = next((x for x in backlog.questions.values()
+                  if x.source_ref == conflict_rid), None)
+    if q is None:
+        raise HTTPException(404, f"没有冲突 {conflict_rid}")
+    compat = dict(body)
+    compat["answer"] = body.get("option_id")
+    compat["answerText"] = body.get("note", "")
+    compat.setdefault("actor", "fde")
+    # 旧调用方没有幂等头，以 session+conflict+option 生成稳定键；相同回答天然重放。
+    compat.setdefault("idempotencyKey",
+                      f"legacy:{s.id}:{conflict_rid}:{body.get('option_id', '')}")
+    return await _answer_domain_question(s, q.id, compat)
 
 
 
@@ -1740,17 +3968,40 @@ def _parser_for(s: Session) -> RuleIntentParser:
 
 
 def _publish_turn(s: Session, speaker: Speaker, text: str, *, intent: str = "",
-                  confidence: float = 1.0, refs: list[str] | None = None) -> int:
-    """写进对话记忆并投影成 SSE 事件，返回这条 ``chat.turn`` 的事件 seq。
+                  confidence: float = 1.0, refs: list[str] | None = None
+                  ) -> dict[str, Any]:
+    """写进对话记忆并投影成 SSE 事件，返回这条 ``chat.turn`` 的事件 projection。
 
-    两件事必须一起做：只写记忆前端看不见，只发事件刷新页面就没了。返回 seq 是为了
-    给这一轮的 AI 追问打标 —— 前端据此丢弃过期轮次的追问（见 ``prompts.ready``）。
+    两件事必须一起做：只写记忆前端看不见，只发事件刷新页面就没了。返回的是
+    projection 而不是临时序号 —— 需要权威 seq 的调用方可以 ``wait_seq`` 它。
     """
     dm = _dialogue(s)
     u = dm.say(speaker, text, intent=intent, refs=refs or [])
+    # **压缩之前先把这一轮产出的表记下来。** compact_to_fit 会把最老的几轮合并成
+    # 一句摘要，原文就没了 —— 而用户过两轮回头说"把刚才那张 AI 招聘表导出来"时，
+    # 需要的正是原文。事件表里也有一份，但那要靠库；这份索引跟着会话状态走，
+    # 库不可用、或者历史遗留会话，一样找得到。
+    if speaker is Speaker.ASSISTANT:
+        _remember_tables(s, text, float(u.ts or time.time()))
     dm.compact_to_fit()
     ev = s.emit("chat.turn", turn={**u.to_dict(), "confidence": round(confidence, 2)})
-    return ev["seq"]
+    return ev
+
+
+#: 记多少张表。一张表几十 KB，封顶防止长会话把状态文档撑爆；超了丢最老的。
+_TABLE_MEMORY_CAP = 24
+
+
+def _remember_tables(s: Session, text: str, ts: float) -> None:
+    """把一条回答里产出的表格存进会话记忆，按标题去重（同名的以新的为准）。"""
+    fresh = _tables_in_text(text, ts)
+    if not fresh:
+        return
+    kept: list[dict[str, Any]] = list(s.state.get("_tables") or [])
+    for rec in fresh:
+        kept = [x for x in kept if x.get("title") != rec.get("title")]
+        kept.append(rec)
+    s.state["_tables"] = kept[-_TABLE_MEMORY_CAP:]
 
 
 
@@ -1782,10 +4033,10 @@ class _ChatCtx:
 
 
 async def _reconcile_on_boot() -> None:
-    """启动时对账：把状态卡在「进行中」的会话标成中断。
+    """启动时只回收 lease 过期（或迁移前无 lease）的运行。
 
-    **没有任何 Run 能活过进程重启** —— 调度器、DAG、事件队列全在内存里。
-    所以启动那一刻，库里所有 parsing/extracting 都是谎话。
+    单个 Run 不能活过它所属 worker 重启，但其它 worker 仍可能健康运行。进程启动
+    不等于整个服务集群重启；以 durable expiry 为准，不能以本地 Task 缓存为准。
 
     以前这件事只在 ``_hydrate`` 里做，也就是**有人点开那个会话时**才纠正。
     列表里它会一直显示「进行中」，用户等一个永远不会来的结果 —— 而他不点开，
@@ -1798,12 +4049,13 @@ async def _reconcile_on_boot() -> None:
         return
     n = 0
     for r in rows:
-        if r.status in ("parsing", "extracting"):
-            await repo.set_status(
-                r.id, "failed",
-                error="上次运行被进程退出打断。材料、决定和**已经跑完的那部分**都还在 ——"
-                      "再点一次「开始梳理」会接着上次的进度跑，不重复花钱。")
-            n += 1
+        if r.status in ("queued", "parsing", "extracting"):
+            reaped = await repo.reap_expired_build_lease(
+                r.id, now=time.time(),
+                error="上次运行的租约已过期。材料、决定和**已经跑完的那部分**都还在 ——"
+                      "再点一次「开始梳理」会接着上次的进度跑，不重复花钱。",
+            )
+            n += int(reaped)
     if n:
         print(f"[store] 启动对账：{n} 个会话上次没跑完，已标记为中断")
 
@@ -1815,7 +4067,7 @@ def _busy(s: Session) -> bool:
     agent-first 的时候把它删了 —— 审查当场指出来：跑着的时候调重编译，
     界面会显示「已完成」而抽取还在继续。
     """
-    return s.status in ("parsing", "extracting")
+    return s.status in ("queued", "parsing", "extracting")
 
 
 def _converse_tools(s: Session) -> Any:
@@ -1943,8 +4195,23 @@ def _converse_tools(s: Session) -> Any:
                               "description": "只列名字/内容里含这个词的；不给则全部"},
                  "title": {"type": "string", "description": "给这张表起个标题"}}},
             danger=Danger.READ, scopes=RO)
-    def _ui_table(ctx: Any, kind: str, contains: str = "",
-                  title: str = "") -> dict[str, Any]:
+    async def _ui_table(ctx: Any, kind: str, contains: str = "",
+                        title: str = "") -> dict[str, Any]:
+        if kind == "questions" and s.state.get("question_backlog"):
+            backlog = _question_backlog(s)
+            qs = list(backlog.questions.values())
+            if contains:
+                needle = contains.lower()
+                qs = [q for q in qs if needle in json.dumps(
+                    q.to_dict(), ensure_ascii=False).lower()]
+            head = ["问题ID", "问题", "状态", "优先级", "回答对象", "负责人", "为什么问"]
+            rows = [[q.id, q.text, str(q.status), str(q.priority),
+                     q.audience_role, q.owner_user_id, q.why] for q in qs]
+            await s.emit_durable(
+                "ui.table", title=title or f"统一问题清单（{len(rows)} 条）",
+                columns=head, rows=rows)
+            return {"已列出": len(rows), "类型": "统一问题清单",
+                    "说明": "问题台账已经显示；不要在回答里逐条复述。"}
         oir = s.state.get("oir") or {}
         items = list(oir.get(kind) or [])
         if not items:
@@ -1958,19 +4225,90 @@ def _converse_tools(s: Session) -> Any:
                               "(file=…) 直接把那张表列出来，不用先梳理。"}
 
         label, head, rows = _oir_table(oir, kind, contains)
-        s.emit("ui.table", title=title or f"{label}（{len(rows)} 条）",
-               columns=head, rows=rows)
+        await s.emit_durable(
+            "ui.table", title=title or f"{label}（{len(rows)} 条）",
+            columns=head, rows=rows, total=len(rows),
+            src={"kind": "oir", "oir_kind": kind, "contains": contains})
         # 返回给模型的是**摘要**，不是全部行 —— 它不需要、也不该把这些再打一遍
         return {"已列出": len(rows), "类型": label,
                 "说明": f"表格已经显示给用户了。回答里说一句「已列出 {len(rows)} 条"
                         f"{label}，见下表」就够了，**不要再逐条复述**。"}
 
+    @reg.fn(
+        "question.next",
+        "读取统一 QuestionBacklog 的下一批高价值问题。用户问『接下来该问什么/问谁』"
+        "或要访谈议程时用；会直接在聊天中显示可导出的表格。",
+        {"type": "object", "properties": {
+            "limit": {"type": "integer", "minimum": 1, "maximum": 20},
+            "audience_role": {"type": "string", "description": "只看某个回答角色"},
+        }},
+        danger=Danger.READ,
+        scopes=RO,
+    )
+    async def _question_next(ctx: Any, limit: int = 5,
+                             audience_role: str = "") -> dict[str, Any]:
+        backlog = _question_backlog(s)
+        batch = backlog.next_batch(limit=max(1, min(limit, 20)))
+        if audience_role:
+            batch = [q for q in batch if audience_role in q.audience_role]
+        head = ["问题ID", "问题", "优先级", "回答对象", "负责人", "影响/为什么问"]
+        rows = [[q.id, q.text, str(q.priority), q.audience_role,
+                 q.owner_user_id, q.why] for q in batch]
+        await s.emit_durable(
+            "ui.table", title=f"下一批访谈问题（{len(rows)} 条）",
+            columns=head, rows=rows)
+        return {"count": len(rows), "questionIds": [q.id for q in batch],
+                "summary": backlog.stats(),
+                "说明": "问题已显示为表格；可继续分派、回答或导出。"}
+
+    @reg.fn(
+        "question.answer",
+        "把业务人员/ERP 顾问对某个问题的自由文本或选项回答写入 DecisionLedger，"
+        "更新 Ontology 与 Revision，并生成下一批问题。必须使用 question.next/ui.table"
+        "中展示的稳定 question_id；写入前向用户说明影响并等待本轮确认。",
+        {"type": "object", "required": ["question_id", "answer"],
+         "properties": {
+             "question_id": {"type": "string"},
+             "answer": {},
+             "option_id": {"type": "string"},
+             "answer_text": {"type": "string"},
+             "actor": {"type": "string"},
+             "actor_role": {"type": "string"},
+             "idempotency_key": {"type": "string"},
+         }},
+        danger=Danger.EXTERNAL,
+        scopes=RW,
+    )
+    async def _question_answer_tool(
+        ctx: Any,
+        question_id: str,
+        answer: Any,
+        option_id: str = "",
+        answer_text: str = "",
+        actor: str = "fde",
+        actor_role: str = "",
+        idempotency_key: str = "",
+    ) -> dict[str, Any]:
+        idem = idempotency_key or (
+            f"chat:{ctx.turn_id}:{question_id}:{fingerprint(answer)[:12]}"
+        )
+        result = await _answer_domain_question(s, question_id, {
+            "answer": answer, "option_id": option_id or None,
+            "answerText": answer_text, "actor": actor,
+            "actorRole": actor_role, "sourceTurn": ctx.turn_id,
+            "idempotencyKey": idem,
+        }, mutation_claimed=bool(s.mutation_lease_owner))
+        return {"已记录": result["decision"]["id"], "created": result["created"],
+                "question": question_id, "pending": result["pending"],
+                "status": result["status"], "下一步": "用 question.next 取下一批问题"}
+
     @reg.fn("export.file",
             "把**刚刚给用户看的那份内容**存成一个可下载的文件。他说「把这个表转成 "
             "excel 给我」「导出成 word / pdf」「能不能下载」时用它，调完他那边就会出现"
             "一个下载按钮。\n"
-            "source 选哪个：他说「这个表/刚才那个清单」→ last_table（默认，就是你上一次"
-            "列给他看的那张表，不管它是产物还是他上传的材料）；他指名要某一类产物 → "
+            "source 选哪个：他说「这个表/刚才那个清单」→ last_table（默认 —— **屏幕上"
+            "最后出现的那张表**，你用 ui.table 列的、从材料里读的、以及你直接写在回答"
+            "正文里的 markdown 表格，都算）；他指名要某一类产物 → "
             "objects/properties/links/actions/rules/questions；他说「把你刚才那段回答"
             "存下来」→ last_answer；「把我们这段对话导出来」→ conversation。\n"
             "格式挑不准就按内容挑：**表格类给 xlsx**（能筛能排能粘），**成文的东西给 "
@@ -1978,7 +4316,10 @@ def _converse_tools(s: Session) -> Any:
             {"type": "object", "required": ["format"],
              "properties": {
                  "format": {"type": "string",
-                            "enum": ["xlsx", "docx", "pdf", "md", "csv"]},
+                            # 口语别名（excel/word/表格）由 export.resolve_format
+                            # 规范化；这里若写死五个 enum，工具契约会在
+                            # 处理器有机会规范化之前就拒绝合法的“excel”。
+                            "description": "xlsx/excel、docx/word、pdf、md、csv"},
                  "source": {"type": "string",
                             "enum": ["last_table", "objects", "properties", "links",
                                      "actions", "rules", "questions",
@@ -1986,11 +4327,17 @@ def _converse_tools(s: Session) -> Any:
                             "description": "导什么；不给就是上一张表"},
                  "contains": {"type": "string",
                               "description": "只导含这个词的行（对表格类有效）"},
+                 "name": {"type": "string",
+                          "description": "他点名要哪张表时填上那个名字（比如「AI 招聘"
+                                         "业务流程梳理及访谈提问框架」）。**只要他说了"
+                                         "名字就一定要填** —— 不填就是导最后一张，很可能"
+                                         "是别的话题那张。source=last_table 时有效"},
                  "title": {"type": "string",
                            "description": "文件名/标题；不给就按内容起一个"}}},
             danger=Danger.WRITE_LOCAL, scopes=RO)
-    def _export_file(ctx: Any, format: str, source: str = "last_table",  # noqa: A002
-                     contains: str = "", title: str = "") -> dict[str, Any]:
+    async def _export_file(ctx: Any, format: str, source: str = "last_table",
+                           contains: str = "", title: str = "",
+                           name: str = "") -> dict[str, Any]:
         from .onto import export as X
 
         try:
@@ -2001,7 +4348,7 @@ def _converse_tools(s: Session) -> Any:
         except Exception as exc:                                  # noqa: BLE001
             return {"error": str(exc)}
 
-        doc, receipt = _export_doc(s, source, contains, title)
+        doc, receipt = await _export_doc(s, source, contains, title, name)
         if doc is None:
             return receipt                       # 组不出内容时 receipt 里是 error
 
@@ -2026,7 +4373,8 @@ def _converse_tools(s: Session) -> Any:
         return {"已生成": name, "格式": spec.label, "大小字节": len(data),
                 "表格行数": rows or "不适用",
                 "说明": f"下载按钮已经显示给用户了。回答里说一句「已导出「{name}」，"
-                        f"点下面就能下载」即可，**不要贴链接、不要说存在哪个目录**。"}
+                        f"点下面就能下载」即可，**不要贴链接、不要说存在哪个目录**。",
+                **receipt}      # 补不回全量之类的话要一起说，不能只写在文件里
 
     @reg.fn("material.parse",
             "把还没读过的材料**读进来**（不产出任何本体/流程图/模板）。"
@@ -2054,8 +4402,18 @@ def _converse_tools(s: Session) -> Any:
             # 而不是启动一整条抽本体/出流程图/编模板的管线。识别结果进证据索引，
             # 接下来用 evidence.search 就能就图作答。
             await _ensure_catalog()
-            _, _, smart, _ = _gateways(s.dir, f"ocr_{uuid.uuid4().hex[:8]}")
-            await _preparse(s, vision=smart)
+            targets = sorted(files or [f["name"] for f in s.files])
+            async with _chat_run(
+                s,
+                kind="ocr",
+                semantic_input={
+                    "files": [
+                        (f.get("name"), f.get("sha256"), f.get("size"))
+                        for f in s.files if f.get("name") in targets
+                    ],
+                },
+            ) as run:
+                await _preparse(s, vision=run.smart)
         else:
             await _preparse(s)                  # 零模型调用；扫描件在这条路上不识别
         after = s.state.get("_chunks") or {}
@@ -2089,8 +4447,10 @@ def _converse_tools(s: Session) -> Any:
             danger=Danger.READ, scopes=RO)
     def _mat_inspect(ctx: Any, file: str) -> dict[str, Any]:
         chunks = s.state.get("_chunks") or {}
-        name = file if file in chunks else next(
-            (k for k in chunks if file in k), "")
+        from urllib.parse import unquote
+        cand = [file] + ([unquote(file)] if "%" in file else [])
+        name = next((x for x in cand if x in chunks), "") or next(
+            (k for k in chunks if any(x and x in k for x in cand)), "")
         if not name:
             return {"error": f"没有材料「{file}」。现有：{sorted(chunks) or '（还没上传）'}"}
         cs = chunks[name]
@@ -2123,86 +4483,40 @@ def _converse_tools(s: Session) -> Any:
                              "description": "只要这几列；不给则全部"},
                  "title": {"type": "string", "description": "给这张表起个标题"}}},
             danger=Danger.READ, scopes=RO)
-    def _mat_rows(ctx: Any, file: str, sheet: str = "", contains: str = "",
-                  columns: list[str] | None = None,
-                  title: str = "") -> dict[str, Any]:
-        f = (next((x for x in s.files if x["name"] == file), None)
-             or next((x for x in s.files if file in x["name"]), None))
-        if not f:
-            return {"error": f"没有材料「{file}」。现有：{[x['name'] for x in s.files]}"}
-        path = Path(f.get("path") or (s.dir / "materials" / f["name"]))
-        if path.suffix.lower() not in _TABULAR_EXT:
-            return {"error": f"「{f['name']}」不是表格（{path.suffix or '无后缀'}），没有"
-                             f"「行」可列。正文内容用 evidence.search。"}
+    async def _mat_rows(ctx: Any, file: str, sheet: str = "", contains: str = "",
+                        columns: list[str] | None = None,
+                        title: str = "") -> dict[str, Any]:
         try:
-            doc = default_registry().parse(path)
-        except Exception as exc:                                  # noqa: BLE001
-            return {"error": f"读不了「{f['name']}」：{type(exc).__name__}: {exc}"}
-
-        # 一行一个切片、raw 就是「列名→值」，所以这里不必再解析一遍表格
-        rows_by_sheet: dict[str, list[dict[str, Any]]] = {}
-        for c in doc.chunks:
-            if "row" not in (c.tags or ()):
-                continue
-            sh = (c.locator or {}).get("sheet") or path.stem
-            rows_by_sheet.setdefault(sh, []).append(c.raw or {})
-        if not rows_by_sheet:
-            return {"error": f"「{f['name']}」里没读出数据行。"}
-
-        names = list(rows_by_sheet)
-        pick = (sheet if sheet in rows_by_sheet else
-                next((n for n in names if sheet and sheet in n), ""))
-        if not pick:
-            if sheet:
-                return {"error": f"没有工作表「{sheet}」。现有：{names}"}
-            if len(names) > 1:
-                return {"多张工作表": {n: len(v) for n, v in rows_by_sheet.items()},
-                        "下一步": "传 sheet=表名 再调一次；用户没指定就先问他要哪张。"}
-            pick = names[0]
-
-        data = rows_by_sheet[pick]
-        head = [c["columns"] for c in (doc.structured or {}).get("sheets", ())
-                if c.get("name") == pick]
-        cols = list(head[0]) if head else list(
-            {k: None for r in data for k in r})
-        if columns:
-            want = [c for c in cols if c in columns]
-            missing = [c for c in columns if c not in cols]
-            if not want:
-                return {"error": f"这些列都不存在：{columns}。现有列：{cols}"}
-            cols, note_cols = want, missing
-        else:
-            note_cols = []
-        if contains:
-            k = contains.lower()
-            data = [r for r in data
-                    if k in " ".join(str(v) for v in r.values()).lower()]
-        # 全空的列（尾部空列在真实表格里很常见）不占版面
-        live = [c for c in cols if any(str(r.get(c, "")).strip() for r in data)]
-        blank = len(cols) - len(live)
-        cols = live or cols
+            fname, pick, cols, data, note = _material_table(
+                s, file, sheet, contains, columns)
+        except _MultiSheet as multi:
+            return {"多张工作表": multi.sheets,
+                    "下一步": "传 sheet=表名 再调一次；用户没指定就先问他要哪张。"}
+        except _NoRows as exc:
+            return {"error": str(exc)}
 
         total = len(data)
         shown = data[:_ROWS_MAX]
-        s.emit("ui.table",
-               title=title or (f"{f['name']}·{pick}"
-                               + (f"（含「{contains}」{total} 行）" if contains
-                                  else f"（{total} 行）")),
-               columns=cols,
-               rows=[[str(r.get(c, "") or "") for c in cols] for r in shown])
+        await s.emit_durable(
+            "ui.table",
+            title=title or (f"{fname}·{pick}"
+                            + (f"（含「{contains}」{total} 行）" if contains
+                               else f"（{total} 行）")),
+            columns=cols, rows=shown, total=total,
+            # 来源配方：导出时据此重算**全量**行，不受屏幕封顶影响
+            src={"kind": "material", "file": fname, "sheet": pick,
+                 "contains": contains, "columns": columns or []})
         out: dict[str, Any] = {
             "已列出": len(shown), "总行数": total, "表": pick, "列": cols,
             "说明": f"表格已经显示给用户了。回答里说一句「已列出 {len(shown)} 条，"
                     f"见下表」就够了，**不要再逐条复述**。",
+            **note,
         }
         if total > len(shown):
-            out["只显示了前几行"] = (f"共 {total} 行，只列了前 {_ROWS_MAX} 行。"
+            out["只显示了前几行"] = (f"共 {total} 行，界面上只列了前 {_ROWS_MAX} 行。"
                                      f"**要告诉用户还有 {total - len(shown)} 行没列**，"
-                                     f"并建议用 contains=… 缩小范围。")
-        if blank:
-            out["隐藏的空列"] = f"{blank} 个整列都是空的，没列出来"
-        if note_cols:
-            out["没有这几列"] = note_cols
+                                     f"想看全部可以用 contains=… 缩小范围，"
+                                     f"或者直接导出成文件 —— **导出是全量的**。")
         return out
 
     @reg.fn("session.status", "查当前会话的状态：材料、产物统计、待拍板的问题、建议、花费。"
@@ -2389,7 +4703,7 @@ def _converse_tools(s: Session) -> Any:
         return {"已撤销": True, "当前": restored.stats(), "剩余版本": len(versions)}
 
     @reg.fn("oir.add",
-            "口述新增本体事实：加对象/属性/关系/业务规则/枚举状态值。FDE 说出材料没写"
+            "口述新增本体事实：加数据对象/属性/关系/Action/业务规则/枚举状态值。FDE 说出材料没写"
             "但他知道的事实（如「采购包创建后状态变成已发布」= 给采购包.状态加取值"
             "「已发布」，且/或加一条 PROCESS 规则）。**你只选 op 和参数，绝不重写整份 OIR** —— "
             "重写会抹掉其它断言的溯源。新增内容一律标「人工口述」(Origin=USER)，在 OIR 里"
@@ -2398,7 +4712,7 @@ def _converse_tools(s: Session) -> Any:
              "properties": {
                  "op": {"type": "string",
                         "enum": ["add_object_type", "add_property", "add_link",
-                                 "add_rule", "add_enum_value"]},
+                                 "add_action_type", "add_rule", "add_enum_value"]},
                  "object": {"type": "string", "description": "add_property 的所属对象名"},
                  "api_name": {"type": "string"},
                  "display_name": {"type": "string"},
@@ -2414,7 +4728,13 @@ def _converse_tools(s: Session) -> Any:
                           "enum": ["VALIDATION", "PROCESS", "AUTHORITY",
                                    "CALCULATION", "OTHER"]},
                  "applies_to": {"type": "array", "items": {"type": "string"},
-                                "description": "add_rule 约束哪些对象"},
+                                "description": "add_rule/add_action_type 关联哪些对象"},
+                 "parameters": {"type": "array", "items": {"type": "object"},
+                                "description": "Action 的结构化参数"},
+                 "effects": {"type": "array", "items": {"type": "string"},
+                             "description": "Action 执行后的业务效果"},
+                 "source_endpoint": {"type": "object",
+                                     "description": "可选的 ERP/API 端点映射"},
                  "actor": {"type": "string"}, "definition": {"type": "string"},
                  "required": {"type": "boolean"},
                  "property": {"type": "string",
@@ -2426,15 +4746,16 @@ def _converse_tools(s: Session) -> Any:
 
     @reg.fn("oir.edit",
             "改已有本体事实：改某个断言值（口径/命名/类型/基数/必填）、标记状态（确认/排除）、"
-            "把规则挂到对象、删除人工误加的元素。**只选 op 和参数**。改动标「人工口述」，"
+            "把规则/Action 挂到数据对象、删除人工误加的元素。**只选 op 和参数**。改动标「人工口述」，"
             "保留未触碰部分的溯源。材料抽出来的元素不能硬删（会丢证据），要排除用 "
             "set_status(status=rejected)。",
             {"type": "object", "required": ["op"],
              "properties": {
                  "op": {"type": "string",
                         "enum": ["edit_assertion", "set_status", "bind_rule",
+                                 "set_action_scope",
                                  "remove_object_type", "remove_property",
-                                 "remove_link", "remove_rule"]},
+                                 "remove_link", "remove_action_type", "remove_rule"]},
                  "target": {"type": "string",
                             "description": "要改的对象/属性/关系/规则（名字或 rid）"},
                  "field": {"type": "string",
@@ -2444,6 +4765,9 @@ def _converse_tools(s: Session) -> Any:
                  "status": {"type": "string",
                             "enum": ["candidate", "proposed", "confirmed", "rejected"]},
                  "rule": {"type": "string", "description": "bind_rule 的规则"},
+                 "action": {"type": "string", "description": "set_action_scope 的 Action"},
+                 "objects": {"type": "array", "items": {"type": "string"},
+                             "description": "set_action_scope 关联的数据对象"},
                  "object": {"type": "string", "description": "bind_rule 的对象"},
                  "note": {"type": "string"}}},
             danger=Danger.EXTERNAL, scopes=RW)
@@ -2458,12 +4782,30 @@ def _converse_tools(s: Session) -> Any:
             # 用户上传材料并说「开始」时再弹一次"这要花钱，确认吗"是多余的一轮，
             # 而且把主流程挡在确认门后面。花费仍然记账、仍受预算上限约束。
             {"type": "object", "properties": {}}, danger=Danger.WRITE_LOCAL, scopes=RW)
-    def _build(ctx: Any) -> dict[str, Any]:
-        if not s.files:
+    async def _build(ctx: Any) -> dict[str, Any]:
+        outcome = await _claim_and_start_build(s)
+        # 抢不到租约时会退回**会话的真实状态**。它可能恰恰是 idle —— 也就是
+        # "没人在跑，只是这次没抢到"（一次事务争用就够）。原来这里一律回
+        # "已经在跑了"：一句彻头彻尾的假话，而且把模型逼进死角 —— 它查 status
+        # 是 idle、查 oir 说没跑过、启动又说在跑，最后只能**手工编一套 Action/
+        # Event 出来交差**。宁可重试一次，也不能让它对着矛盾的回执瞎编。
+        if outcome in _BUILD_STARTABLE:
+            outcome = await _claim_and_start_build(s)
+        if outcome == "no_files":
             return {"error": "还没有材料"}
-        if _busy(s):
-            return {"error": "已经在跑了"}
-        s.run_task = asyncio.create_task(_run_pipeline(s))
+        if outcome == "missing":
+            return {"error": "这个会话已经不存在了"}
+        if outcome == "awaiting_answer":
+            return {"error": "当前正在等待业务回答；请先处理问题清单。"}
+        if outcome in ("queued", "parsing", "extracting"):
+            return {"error": f"已经在跑了（状态：{outcome}），不用重复启动。",
+                    "说明": "过程在推理轨迹里逐步显示；跑完会有产物。"}
+        if outcome != "started":
+            return {"error": f"没能启动，会话状态是「{outcome}」。",
+                    "**不要自己编产物**": "本体/流程图必须由梳理管线从材料里抽出来。"
+                                          "启动不了就如实告诉用户启动失败，"
+                                          "**绝不能手写一份 Action/Event 交给他** —— "
+                                          "那是凭空捏造的，没有任何材料依据。"}
         return {"已启动": True, "材料份数": len(s.files),
                 "说明": "过程会在推理轨迹里逐步显示"}
 
@@ -2543,12 +4885,16 @@ def _converse_tools(s: Session) -> Any:
             "再决定要不要跑完整梳理时用它。",
             {"type": "object", "properties": {}},
             danger=Danger.WRITE_LOCAL, scopes=RW)
-    def _flow_preview(ctx: Any) -> dict[str, Any]:
-        if not s.files:
+    async def _flow_preview(ctx: Any) -> dict[str, Any]:
+        outcome = await _claim_and_start_build(s, tier="flow_preview")
+        if outcome == "no_files":
             return {"error": "还没有材料，先上传。"}
-        if _busy(s):
+        if outcome == "missing":
+            return {"error": "这个会话已经不存在了。"}
+        if outcome == "awaiting_answer":
+            return {"error": "当前正在等待业务回答；请先处理问题清单。"}
+        if outcome != "started":
             return {"error": "已经在跑了。"}
-        s.run_task = asyncio.create_task(_run_pipeline(s, tier="flow_preview"))
         return {"已启动": "免费流程预览",
                 "说明": "只解析 + 出流程图，跳过付费抽取；过程在推理轨迹里显示。"}
 
@@ -2671,7 +5017,7 @@ def _converse_tools(s: Session) -> Any:
     return reg
 
 
-async def _replay_pending(s: Session, action: dict[str, Any]) -> str:
+async def _replay_pending(s: Session, action: dict[str, Any], *, batch: int = 0) -> str:
     """用户确认后，直接重放上一轮被拦的那个高危动作。
 
     不重新推理 —— 动作和参数已经定了，重新推理只会引入不确定性（模型可能这次
@@ -2680,16 +5026,28 @@ async def _replay_pending(s: Session, action: dict[str, Any]) -> str:
     """
     tool_name = str(action.get("tool") or "")
     args = action.get("args") or {}
-    run_id = f"confirm_{uuid.uuid4().hex[:10]}"
-    _, gw, _, _ = _gateways(s.dir, run_id)
-    tools = _converse_tools(s)
-    ctx = _ChatCtx(turn_id=run_id, rec=gw.rec, approved=True)
     try:
-        result = await tools.call(tool_name, args, ctx, scope="converse")
+        async with _chat_run(
+            s,
+            kind="confirm",
+            semantic_input={"batch": batch, "tool": tool_name, "args": args,
+                            "artifactRevision": s.state.get("artifact_revision")},
+        ) as run:
+            tools = _converse_tools(s)
+            ctx = _ChatCtx(turn_id=run.recorder_run_id, rec=run.gw.rec, approved=True)
+            result = await tools.call(tool_name, args, ctx, scope="converse")
+            if isinstance(result, dict) and result.get("error"):
+                error = str(result["error"])
+                run.fail(error)
+                failed_reply = f"没执行成功：{error}"
+            else:
+                failed_reply = ""
+    except asyncio.CancelledError:
+        raise
     except Exception as exc:  # noqa: BLE001 — 重放失败要如实说
         return f"执行「{tool_name}」时出错了：{type(exc).__name__}: {exc}"
-    if isinstance(result, dict) and result.get("error"):
-        return f"没执行成功：{result['error']}"
+    if failed_reply:
+        return failed_reply
     # 措辞成人话：用同一个 _say，把结果当事实交给它
     return await _say(s, _outcome("confirmed", json.dumps(result, ensure_ascii=False,
                                                           default=str)[:400],
@@ -2720,24 +5078,54 @@ def _chat_docs_brief(s: Session, *, cap: int = 6000) -> str:
 
 async def _reason(s: Session, text: str, *, hint: str = "",
                   approved: bool = False) -> Any:
+    # Cap rejection is a request-policy outcome, not a model Run.  Check it before
+    # allocating a repository row so a rejected HTTP call cannot leave a useless
+    # failed chat invocation behind.
+    spent = float(s.state.get("_chat_usd") or 0.0)
+    cap = appconfig.chat_usd_cap()
+    if spent >= cap:
+        raise HTTPException(429, f"这个会话的对话花费已达上限 ${cap}（已花 ${spent:.2f}）。"
+                                 f"调 ONTOCOPILOT_CHAT_USD_CAP 或新建会话。")
+    semantic_input = {
+        "text": text,
+        "hint": hint,
+        "approved": approved,
+        "lang": s.lang,
+        "mode": s.state.get("mode", "work"),
+        "model": s.state.get("model"),
+        "files": [(f.get("name"), f.get("sha256"), f.get("size")) for f in s.files],
+        "oir": s.state.get("oir"),
+        "flow": s.state.get("flow"),
+        "questions": s.state.get("question_backlog") or s.state.get("questions"),
+        "suggestions": s.state.get("suggestions"),
+        "chunks": s.state.get("_chunks"),
+        "dialogue": (_dialogue(s).to_dict() if s.state.get("_dialogue") is not None
+                     else None),
+        "model_overrides": appconfig.model_overrides(),
+    }
+    async with _chat_run(
+        s, kind="reason", semantic_input=semantic_input,
+    ) as run:
+        return await _reason_in_run(
+            s, text, hint=hint, approved=approved, run=run,
+        )
+
+
+async def _reason_in_run(s: Session, text: str, *, hint: str,
+                         approved: bool, run: _ChatRun) -> Any:
     """跑一轮对话推理，并把每一步投影成事件。
 
     工具只给 ``readonly`` 作用域：对话能查任何东西，但**不能静默改产物**。
     要改必须走显式执行器并回显改了什么 —— 一个能在闲聊里悄悄删掉 17 个对象的
     副驾是不能用的。
     """
-    out = s.dir
-    out.mkdir(parents=True, exist_ok=True)
-    run_id = f"chat_{uuid.uuid4().hex[:10]}"
-    _, gw, _, budget = _gateways(out, run_id)
+    s.dir.mkdir(parents=True, exist_ok=True)
+    run_id = run.recorder_run_id
+    gw = run.gw
     # 对话花的钱要**跨轮累计**。Budget 是每轮新建的，$15 那个上限是"每一轮"的
     # 上限 —— 也就是说对话侧根本没有封顶。一轮真问题跑满 5 步实测约 $0.08，
     # 一天两百轮就是十几美元，而它们大多是本可以不花的。
     spent = float(s.state.get("_chat_usd") or 0.0)
-    cap = appconfig.chat_usd_cap()
-    if spent >= cap:
-        raise HTTPException(429, f"这个会话的对话花费已达上限 ${cap}（已花 ${spent:.2f}）。"
-                                 f"调 ONTOCOPILOT_CHAT_USD_CAP 或新建会话。")
     tools = _converse_tools(s)
     # 聊天模式：通用助手 + **只读分析工具**（能检索上传的材料来分析），但**没有任何
     # 生成产物的工具** —— 不抽本体/不出流程图/不生成模板，那些是工作模式的事。
@@ -2775,6 +5163,8 @@ async def _reason(s: Session, text: str, *, hint: str = "",
         ctx_text += f"\n\n规则层对这句话的初步判断（仅供参考，你可以不同意）：{hint}"
     ctx = _ChatCtx(turn_id=run_id, rec=gw.rec, approved=approved)
     turn = await agent.run(text, ctx=ctx, context=ctx_text, on_step=on_step)
+    if any(f.code == "GATEWAY_ERROR" for f in turn.findings):
+        run.fail(turn.answer or "conversation gateway failed")
     s.state["_last_reason"] = turn.to_dict()
     s.state["_chat_usd"] = spent + float(turn.usd or 0.0)
     # 记下这一轮被闸门拦下的高危动作，供下一轮确认时直接重放。
@@ -2823,15 +5213,201 @@ def _context_brief(s: Session) -> str:
     return "\n".join(parts)
 
 
+async def _refresh_chat_projection(s: Session) -> Session:
+    """Refresh a cached worker projection after it wins the durable chat lease.
+
+    A lease serializes *future* mutations but does not make a worker's old Python
+    object current.  Compare the durable ``state_version`` only after claiming the
+    lease; when it advanced elsewhere, replace every persisted projection key and
+    rebuild the live OIR/flow/dialogue objects before interpreting this turn.
+
+    Runtime handles (SSE subscribers, local build task and locks) remain on the same
+    ``Session`` instance.  That matters when a chat arrives while a local build is
+    active; replacing the instance would orphan the pipeline and its subscribers.
+    """
+    repo = get_repo()
+    row = await repo.get_session(s.id)
+    if row is None:
+        raise HTTPException(404, f"没有会话 {s.id}")
+    if row.state_version == s.state_version:
+        await _refresh_files_projection(s)
+        return s
+
+    saved = await repo.load_state(s.id)
+    durable_keys = {*_PERSISTED, *_PERSISTED_PRIVATE, *_PERSISTED_PRIVATE_DOCS,
+                    "dialogue"}
+    for key in durable_keys:
+        s.state.pop(key, None)
+    s.state.update(saved)
+    s.state.pop("_dialogue", None)
+    await _restore_dialogue(s)
+
+    oir_doc = s.state.get("oir")
+    if isinstance(oir_doc, dict):
+        try:
+            s.state["_oir"] = oir_from_dict(oir_doc)
+        except (KeyError, TypeError, ValueError) as exc:
+            raise HTTPException(409, f"会话本体状态无法刷新：{exc}") from exc
+    else:
+        s.state.pop("_oir", None)
+
+    flow_doc = s.state.get("flow")
+    if isinstance(flow_doc, dict):
+        try:
+            from .onto.flow import flow_from_dict
+            s.state["_flow"] = flow_from_dict(flow_doc)
+        except (KeyError, TypeError, ValueError) as exc:
+            raise HTTPException(409, f"会话流程状态无法刷新：{exc}") from exc
+    else:
+        s.state.pop("_flow", None)
+
+    s.title, s.project = row.title, row.project
+    s.status, s.error = row.status, row.error
+    s.owner = row.owner
+    s.state_version = row.state_version
+    await _refresh_files_projection(s)
+    return s
+
+
+@asynccontextmanager
+async def _session_mutation(
+    s: Session, kind: str, *, chat_owner: str = "",
+):
+    """Serialize one cross-table/domain mutation across all workers.
+
+    Claim happens before refreshing the projection or touching files/tables.  Losing
+    the lease cancels the request; an exception reloads durable state so this worker's
+    cached Python objects cannot leak a partial edit into a later request.
+    """
+    owner = chat_owner or f"{_WORKER_ID}:mutation:{uuid.uuid4().hex}"
+    claimed = await get_repo().claim_mutation_lease(
+        s.id, owner=owner, kind=kind, now=time.time(), ttl=_MUTATION_LEASE_TTL,
+    )
+    if not claimed:
+        raise HTTPException(
+            409, "会话正在梳理或另一个领域修改尚未提交，请稍后重试。",
+        )
+    owner_task = asyncio.current_task()
+
+    async def heartbeat() -> None:
+        while True:
+            await asyncio.sleep(_MUTATION_HEARTBEAT_INTERVAL)
+            renewed = await get_repo().renew_mutation_lease(
+                s.id, owner=owner, now=time.time(), ttl=_MUTATION_LEASE_TTL,
+            )
+            if not renewed:
+                if owner_task is not None and not owner_task.done():
+                    owner_task.cancel()
+                return
+
+    heartbeat_task = asyncio.create_task(
+        heartbeat(), name=f"mutation-heartbeat:{s.id}:{kind}",
+    )
+    previous_owner = s.mutation_lease_owner
+    state_snapshot: dict[str, Any] | None = None
+    status_snapshot = s.status
+    error_snapshot = s.error
+    version_snapshot = s.state_version
+    try:
+        s.mutation_lease_owner = owner
+        await _refresh_chat_projection(s)
+        await _refresh_files_projection(s)
+        # Rejections are part of the normal API contract (invalid transition,
+        # damaged return template, failed validator).  Preserve the projection that
+        # existed *after* the lease refresh so a fail-closed 4xx cannot erase live
+        # objects from tests/legacy sessions whose initial state has not yet been
+        # checkpointed.  Deep-copy is intentional: OIR/Flow editors mutate objects in
+        # place, so a shallow dict copy would still leak their changes.
+        state_snapshot = copy.deepcopy(s.state)
+        status_snapshot, error_snapshot = s.status, s.error
+        version_snapshot = s.state_version
+        yield owner
+    except BaseException:
+        # If no projection checkpoint committed, restore the exact leased snapshot.
+        # If state_version advanced, a durable saga step won and the database is the
+        # authority; hydrate it instead of rolling back a committed Decision/Revision.
+        row = await get_repo().get_session(s.id)
+        if (state_snapshot is not None and row is not None
+                and row.state_version == version_snapshot):
+            s.state.clear()
+            s.state.update(state_snapshot)
+            s.status, s.error = status_snapshot, error_snapshot
+            s.state_version = version_snapshot
+        else:
+            s.state_version = -1
+            try:
+                await _refresh_chat_projection(s)
+            except Exception as refresh_exc:  # noqa: BLE001 -- preserve original exception
+                s.emit("mutation.refresh_failed", error=str(refresh_exc), kind=kind)
+        raise
+    finally:
+        s.mutation_lease_owner = previous_owner
+        heartbeat_task.cancel()
+        await asyncio.gather(heartbeat_task, return_exceptions=True)
+        await get_repo().release_mutation_lease(s.id, owner=owner)
+
+
 @app.post("/api/sessions/{sid}/chat")
 async def chat(sid: str, body: dict[str, Any]) -> dict[str, Any]:
+    """Single-flight wrapper for every chat mutation, including confirm replay."""
+    s = await _sess_async(sid)
+    lease_owner = f"{_WORKER_ID}:chat:{uuid.uuid4().hex}"
+    claimed = await get_repo().claim_chat_lease(
+        sid, owner=lease_owner, now=time.time(), ttl=_CHAT_LEASE_TTL,
+    )
+    if not claimed:
+        raise HTTPException(409, "这个会话已有一轮对话正在处理，请等它结束或先停止。")
+    owner_task = asyncio.current_task()
+
+    async def heartbeat() -> None:
+        while True:
+            await asyncio.sleep(_CHAT_HEARTBEAT_INTERVAL)
+            renewed = await get_repo().renew_chat_lease(
+                sid, owner=lease_owner, now=time.time(), ttl=_CHAT_LEASE_TTL,
+            )
+            if not renewed:
+                if owner_task is not None and not owner_task.done():
+                    owner_task.cancel()
+                return
+
+    heartbeat_task = asyncio.create_task(
+        heartbeat(), name=f"chat-heartbeat:{sid}",
+    )
+    try:
+        s = await _refresh_chat_projection(s)
+        if s.state.get("mode") != "chat" and not _busy(s):
+            # Work-mode tools include synchronous structure editors.  Holding the
+            # mutation lease for the whole turn is the only way to cover every tool
+            # call before its first file/OIR side effect.  Pure chat mode never gets
+            # those tools and therefore remains lease-free.
+            async with _session_mutation(s, "chat.structural", chat_owner=lease_owner):
+                return await _chat_claimed(s, body, chat_owner=lease_owner)
+        return await _chat_claimed(s, body, chat_owner=lease_owner)
+    except asyncio.CancelledError:
+        # Remote /stop reaches the route task through the durable lease heartbeat.
+        # The cancel intent already fenced this owner; do not append a stale stopped
+        # turn or perform an unfenced save from a worker that has lost ownership.
+        # 提示仍然要给 —— 但只用**纯函数**算，不写 state、不落库：这个 worker
+        # 已经不是会话的主人了。
+        public = {k: v for k, v in s.state.items() if not k.startswith("_")}
+        return {"reply": "（已停止）", "stopped": True, "needs_confirm": False,
+                "followups": followup_prompts(
+                    answer="（已停止）", state=public, asked=_asked(s),
+                    files=[f["name"] for f in s.files], status=s.status)}
+    finally:
+        heartbeat_task.cancel()
+        await asyncio.gather(heartbeat_task, return_exceptions=True)
+        await get_repo().release_chat_lease(sid, owner=lease_owner)
+
+
+async def _chat_claimed(s: Session, body: dict[str, Any], *,
+                        chat_owner: str) -> dict[str, Any]:
     """对话入口。
 
-    **不阻塞流水线**：梳理跑着的时候照样能说话。跑着的时候恰恰是用户最想插话的
-    时候（"这批临时表别要了"），这时候禁用输入是最糟的手感。会改产物的意图在
-    Run 进行中会排队到本轮结束再执行 —— 否则就是在动一份正在被读写的 OIR。
+    **不阻塞流水线**：梳理跑着的时候仍可查询、解释和补充上下文。会改产物的工具
+    在 Run 进行中明确拒绝并提示稍后重试；当前实现没有 durable mutation queue，
+    因而不能声称动作已排队，否则 FDE 会误以为改动将在后台自动生效。
     """
-    s = await _sess_async(sid)
     # 请求时捕获界面语言：助手回复语言、意图解析规则表都据此选（后台管线读不到请求）。
     s.lang = "en" if str(body.get("lang") or "").lower().startswith("en") else "zh"
     text = str(body.get("text") or "").strip()
@@ -2849,18 +5425,17 @@ async def chat(sid: str, body: dict[str, Any]) -> dict[str, Any]:
     if approved and pending_all:
         _publish_turn(s, Speaker.USER, text, intent="confirm", confidence=1.0)
         # 逐个重放，逐个回执 —— 做了几件就说几件，不能只报第一件
-        parts = [await _replay_pending(s, a) for a in pending_all]
+        parts = [await _replay_pending(s, a, batch=i)
+                 for i, a in enumerate(pending_all)]
         reply = "\n\n".join(x for x in parts if x)
-        turn_seq = _publish_turn(s, Speaker.ASSISTANT, reply)
+        _publish_turn(s, Speaker.ASSISTANT, reply)
         s.state["_pending_actions"] = []
         s.state["_pending_action"] = None
-        await _persist(s, status=False)
-        asyncio.create_task(_emit_ai_prompts(s, slot="followup", turn=turn_seq,
-                                             user_text=text, reply=reply))
-        public = {k: v for k, v in s.state.items() if not k.startswith("_")}
+        # 重放没走推理循环，也就没有自带的追问 —— 这条路上补算一次。
+        replay_followups = _settle_followups(s, reply=reply)
+        await _persist(s, status=False, chat_owner=chat_owner)
         return {"reply": reply, "needs_confirm": False, "replayed": True,
-                "followups": followup_prompts(answer=reply, state=public,
-                    files=[f["name"] for f in s.files], status=s.status)}
+                "followups": replay_followups}
 
     parse = _parser_for(s).parse(text)
     top = max(parse.matches, key=lambda m: m.confidence)
@@ -2877,7 +5452,6 @@ async def chat(sid: str, body: dict[str, Any]) -> dict[str, Any]:
         f"{m.intent.value}({m.confidence:.0%}"
         + (f", {json.dumps(m.slots, ensure_ascii=False)}" if m.slots else "") + ")"
         for m in parse.matches if m.intent is not Intent.UNKNOWN)
-    # 包成任务存到会话上，这样 /stop 能从另一条请求里把它 cancel 掉。
     s.chat_task = asyncio.create_task(_reason(s, text, hint=hint, approved=approved))
     try:
         turn = await s.chat_task
@@ -2885,9 +5459,11 @@ async def chat(sid: str, body: dict[str, Any]) -> dict[str, Any]:
         # 用户点了停止。已经流出的推理步骤留着，落一个"已停止"标记，安静收尾。
         # 这里 catch 的是**子任务**被 cancel —— 不会连带取消 chat() 这个协程本身。
         _publish_turn(s, Speaker.ASSISTANT, "（已停止）")
-        await _persist(s, status=False)
+        # 停下来之后更需要一个出口。
+        stopped_followups = _settle_followups(s, reply="（已停止）")
+        await _persist(s, status=False, chat_owner=chat_owner)
         return {"reply": "（已停止）", "stopped": True,
-                "needs_confirm": False, "followups": []}
+                "needs_confirm": False, "followups": stopped_followups}
     finally:
         s.chat_task = None
     replies = [turn.answer] if turn.answer else []
@@ -2897,29 +5473,22 @@ async def chat(sid: str, body: dict[str, Any]) -> dict[str, Any]:
         replies.append(f"（我不确定的一点：{turn.followup}）")
 
     reply = "\n\n".join(r for r in replies if r) or "收到。"
-    turn_seq = _publish_turn(s, Speaker.ASSISTANT, reply)
+    _publish_turn(s, Speaker.ASSISTANT, reply)
+    # 系统刚说完"有 3 个死路"，用户得自己想出"哪三个"这个问题 —— 这个断层
+    # 没理由留给他。**在 _persist 之前定下来**，chips 才跟着这一轮一起落库。
+    followups = _settle_followups(s, model_questions=turn.next_questions, reply=reply)
     # 人拍的板是最不该丢的一份状态，每轮都落。
-    await _persist(s, status=False)
+    await _persist(s, status=False, chat_owner=chat_owner)
     # 这一轮有没有动作被确认门挡住 —— 前端据此显示确认按钮。靠子串匹配确认门的
     # 拒绝语（tools.py 里 requires_approval 挡下时的固定措辞）：确认门是唯一产出
     # 这些字样的地方，约定稳定，比另开一条并行布尔信号更不容易走岔。
     pending = [x for x in turn.steps
                if "需要人工确认" in str(x.get("observation") or "")
                or "要用户确认" in str(x.get("observation") or "")]
-    public = {k: v for k, v in s.state.items() if not k.startswith("_")}
-    # 结合上下文的 FDE 追问：另起一次模型调用，**不阻塞回复**。这里先带着启发式
-    # followups 返回（chips 立刻在），AI 版在后台算好后走 prompts.ready 换上去；
-    # 算不出来（模型不可用/封顶）就什么都不换，启发式那批留着。
-    asyncio.create_task(_emit_ai_prompts(s, slot="followup", turn=turn_seq,
-                                         user_text=text, reply=reply))
     return {"intents": parse.to_dict(),
             "reply": reply, "needs_confirm": bool(pending),
             "usd": round(float(s.state.get("_chat_usd") or 0), 4),
-            # 系统刚说完"有 3 个死路"，用户得自己想出"哪三个"这个问题 ——
-            # 这个断层没理由留给他。
-            "followups": followup_prompts(
-                answer=reply, state=public,
-                files=[f["name"] for f in s.files], status=s.status)}
+            "followups": followups}
 
 
 def _ask_back(s: Session, m: Any) -> str:
@@ -2991,15 +5560,21 @@ async def _say(s: Session, outcome: dict[str, Any], user_text: str) -> str:
         return fallback  # 有些回复必须一字不差（比如引用原文）
     _trace_aux(s, "措辞", f"把「{outcome.get('kind', '结果')}」的事实说成人话")
     try:
-        _, gw, _, _ = _gateways(s.dir, f"say_{uuid.uuid4().hex[:8]}")
-        comp = await gw.call(
-            "CHAT.say",
+        prompt = (
             f"## 他说的\n{user_text}\n\n"
             f"## 系统做了什么（事实，照它说）\n"
             f"{json.dumps(outcome.get('facts') or {}, ensure_ascii=False, indent=1)}\n\n"
-            f"## 备用措辞（可参考，但你可以说得更好）\n{fallback}",
-            system=_SAY_SYSTEM, difficulty=Difficulty.LOW, schema=_SAY_SCHEMA,
-            max_tokens=600)
+            f"## 备用措辞（可参考，但你可以说得更好）\n{fallback}"
+        )
+        async with _chat_run(
+            s,
+            kind="say",
+            semantic_input={"prompt": prompt, "lang": s.lang},
+        ) as run:
+            comp = await run.gw.call(
+                "CHAT.say", prompt,
+                system=_SAY_SYSTEM, difficulty=Difficulty.LOW, schema=_SAY_SCHEMA,
+                max_tokens=600)
         said = str((comp.data or {}).get("reply") or "").strip()
         return said or fallback
     except Exception:  # noqa: BLE001 — 措辞失败不该让整轮对话失败
@@ -3045,6 +5620,62 @@ _FDE_SYSTEM = """你在为一位 FDE（前向部署工程师）预测：结合�
 不要寒暄，不要重复他已经问过的，不要把一个问题拆成两条。"""
 
 
+def _as_prompts(questions: list[str]) -> list[dict[str, Any]]:
+    """模型给的追问 → 可点的 chips。
+
+    显示的和点下去发出去的是**同一句话**：chip 上写着什么，他就问了什么。
+    """
+    return [{"text": q, "send": q, "group": ""} for q in questions]
+
+
+def _settle_followups(s: Session, *, model_questions: list[str] | None = None,
+                      reply: str = "") -> list[dict[str, Any]]:
+    """定下这一轮的 chips，记进会话状态，并返回它们。
+
+    **每一次交互结束，聊天窗口里都得有"接下来能问什么"** —— 这是这个函数存在的
+    全部理由。两级来源，后一级保证非空：
+
+    1. 模型跟着回答一起给的（最贴，零额外往返）；
+    2. 启发式（:func:`followup_prompts` 不会返回空）。
+
+    **这里不发起任何模型调用，所以它是同步的。** 曾经有过第三级"补算一次"，
+    删掉是因为它在一条对话请求里 await：答案早就通过 SSE 上屏、思考气泡也收了，
+    用户读完就去点 chips —— 而这条请求还攥着 chat lease 没还，那一下点击直接吃
+    409「已有一轮对话正在处理」，连他输入框里的字都被清掉了。网关挂掉时更糟：
+    答案本身重试完 6~9 秒，补算再对着同一个死网关重试一遍，翻倍。
+    模型自己都判断"没什么好问的"时，用一批免费的、按状态长出来的提示顶上，
+    比让他为此等一次往返划算得多。
+
+    写进 ``s.state`` 而不是只当返回值：chips 是会话的一部分，重开会话、刷新页面
+    之后"接下来干什么"不该消失。调用方随后的 ``_persist`` 会把它落库。
+    """
+    qs = _as_prompts(
+        [q for q in (str(x).strip() for x in (model_questions or [])) if q][:3])
+    if not qs:
+        public = {k: v for k, v in s.state.items() if not k.startswith("_")}
+        qs = followup_prompts(answer=reply, state=public,
+                              files=[f["name"] for f in s.files], status=s.status,
+                              asked=_asked(s))
+    s.state["followups"] = qs
+    return qs
+
+
+def _asked(s: Session) -> list[str]:
+    """他自己说过的话。启发式提示据此避开"推荐他刚问过的那句"。"""
+    dm = s.state.get("_dialogue")
+    turns = (dm.to_dict().get("turns") if dm is not None else []) or []
+    return [str(t.get("text") or "") for t in turns if t.get("speaker") == "user"]
+
+
+def _fast_spec(gw: Any) -> Any:
+    """辅助调用（推荐问题）用哪个模型规格：路由表给的最低推理档。
+
+    ``None`` 表示这套路由没有单独的快档（Anthropic 的 Haiku、离线 stub），
+    调用方照常按难度路由 —— 不要在这里瞎编一个 effort 下发给不认它的后端。
+    """
+    return getattr(getattr(gw, "routing", None), "fast", None)
+
+
 async def _ai_recommend(s: Session, *, slot: str, user_text: str | None = None,
                         reply: str | None = None) -> list[dict[str, Any]] | None:
     """结合上下文，让模型预测 FDE 接下来会问的问题。
@@ -3072,13 +5703,23 @@ async def _ai_recommend(s: Session, *, slot: str, user_text: str | None = None,
             + (f"\n## 最近几轮对话\n{recent}\n" if recent else "")
             + (f"\n## 他刚问的\n{user_text}\n" if user_text else "")
             + (f"\n## 刚给他的回复\n{reply}\n" if reply else ""))
-        _, gw, _, _ = _gateways(s.dir, f"rec_{uuid.uuid4().hex[:8]}")
-        # 400 太紧了：会思考的模型（gemini-2.5+/o 系列）推理 token 也算进这个额度，
-        # 实测三条推荐问题连撞三次「JSON 不完整」然后整个失败。这几百 token 的差价
-        # 远小于"每轮推荐问题都算不出来"的代价。
-        comp = await gw.call("CHAT.recommend", prompt, system=_FDE_SYSTEM,
-                             difficulty=Difficulty.LOW, schema=_FOLLOWUPS_SCHEMA,
-                             max_tokens=4000)
+        async with _chat_run(
+            s,
+            kind="recommend",
+            semantic_input={"slot": slot, "prompt": prompt, "lang": s.lang},
+        ) as run:
+            # 400 太紧了：会思考的模型（gemini-2.5+/o 系列）推理 token 也算进这个额度，
+            # 实测三条推荐问题连撞三次「JSON 不完整」然后整个失败。这几百 token 的差价
+            # 远小于"每轮推荐问题都算不出来"的代价。
+            #
+            # 走**最低推理档**（routing.fast）。这一档的模型思考不能关（网关明说
+            # "Reasoning is mandatory"），但能压到最低：实测同一句提示 7.8s/934 出
+            # token → 3.5s/202，四分之一的钱。猜三条追问不值得一次深度推理。
+            comp = await run.gw.call(
+                "CHAT.recommend", prompt, system=_FDE_SYSTEM,
+                difficulty=Difficulty.LOW, model=_fast_spec(run.gw),
+                schema=_FOLLOWUPS_SCHEMA, max_tokens=4000,
+            )
         s.state["_chat_usd"] = spent + float(getattr(comp, "usd", 0) or 0)
         out: list[dict[str, Any]] = []
         for q in (comp.data or {}).get("questions") or []:
@@ -3107,20 +5748,63 @@ def _trace_aux(s: Session, what: str, detail: str) -> None:
                               "thought": f"{what}：{detail}"})
 
 
-async def _emit_ai_prompts(s: Session, *, slot: str, turn: int | None = None,
-                           user_text: str | None = None,
-                           reply: str | None = None) -> None:
-    """后台算 AI 推荐问题，算出来了就发 ``prompts.ready`` 让前端把 chips 换成更好的。
+async def _emit_ai_prompts(s: Session, *, slot: str = "opening") -> None:
+    """后台算**开场**推荐问题，算出来了就发 ``prompts.ready`` 换掉启发式那批。
 
-    失败就什么都不发 —— ``/chat``、``/files`` 早已带着启发式提示返回，chips 已经在了。
-    ``turn`` 是这一轮 ``chat.turn`` 的事件 seq，前端据此丢弃过期轮次的追问。
+    只有开场（新会话、材料传完）走后台：那会儿人在读文件列表，晚几秒换一批提示
+    不打断任何事。**一轮对话的追问不走这里** —— 它跟着回答一起回来（见
+    ``converse.ANSWER_SCHEMA`` 的 next_questions），所以这里不需要对轮次，
+    也就不会有一个活过 chat lease 的后台 writer。
+
+    失败就什么都不发 —— ``/files``、``/sessions`` 早已带着启发式提示返回，
+    chips 已经在了。
     """
-    _trace_aux(s, "想推荐问题",
-               "结合当前产物和这轮回答，算他接下来最该问什么")
-    qs = await _ai_recommend(s, slot=slot, user_text=user_text, reply=reply)
-    if qs:
-        _trace_aux(s, "推荐问题", "、".join(q.get("text", "")[:18] for q in qs[:3]))
-        s.emit("prompts.ready", slot=slot, turn=turn, questions=qs)
+    # This optional model call still writes chat spend and durable events.  Give it a
+    # real chat lease rather than letting a fire-and-forget task outlive the request
+    # that spawned it and race the next worker's turn.  If a human turn already owns
+    # the session, simply keep the heuristic prompts that the HTTP response included.
+    owner = f"{_WORKER_ID}:recommend:{uuid.uuid4().hex}"
+    claimed = await get_repo().claim_chat_lease(
+        s.id, owner=owner, now=time.time(), ttl=_CHAT_LEASE_TTL,
+    )
+    if not claimed:
+        return
+    owner_task = asyncio.current_task()
+
+    async def heartbeat() -> None:
+        while True:
+            await asyncio.sleep(_CHAT_HEARTBEAT_INTERVAL)
+            renewed = await get_repo().renew_chat_lease(
+                s.id, owner=owner, now=time.time(), ttl=_CHAT_LEASE_TTL,
+            )
+            if not renewed:
+                if owner_task is not None and not owner_task.done():
+                    owner_task.cancel()
+                return
+
+    heartbeat_task = asyncio.create_task(
+        heartbeat(), name=f"recommend-heartbeat:{s.id}",
+    )
+    try:
+        # 推理面板记的是**它在想什么**，不是它想出来的东西。算完的推荐问题不再往这里
+        # 抄一份：那是给人点的产物，位置在聊天窗口的 chips 上；抄进推理面板只会得到
+        # 一行截断到 18 字、点不了的半截问题，还让人以为回答还没完。
+        before = float(s.state.get("_chat_usd") or 0.0)
+        _trace_aux(s, "想推荐问题", "结合当前材料和产物，算他最该从哪问起")
+        qs = await _ai_recommend(s, slot=slot)
+        if float(s.state.get("_chat_usd") or 0.0) != before:
+            await _persist(
+                s, status=False, chat_owner=owner, docs_only={"_chat_usd"},
+            )
+        if qs:
+            s.emit("prompts.ready", slot=slot, questions=qs)
+    except asyncio.CancelledError:
+        # Losing the durable owner fences both spend projection and prompt delivery.
+        return
+    finally:
+        heartbeat_task.cancel()
+        await asyncio.gather(heartbeat_task, return_exceptions=True)
+        await get_repo().release_chat_lease(s.id, owner=owner)
 
 
 async def _act(s: Session, m: Any) -> str:
@@ -3174,11 +5858,15 @@ async def _act(s: Session, m: Any) -> str:
     if m.intent is Intent.ANSWER_QUESTION:
         return _do_answer(s, slots)
     if m.intent is Intent.START_BUILD:
-        if not s.files:
+        outcome = await _claim_and_start_build(s)
+        if outcome == "no_files":
             return "还没有材料。把文件拖进来，或者点 + 添加。"
-        if s.status in ("parsing", "extracting"):
+        if outcome == "missing":
+            return "这个会话已经不存在了，请回到会话列表重新打开。"
+        if outcome == "awaiting_answer":
+            return "当前正在等业务回答。先回答、延期或导出问题清单，不能用新一轮覆盖待拍板状态。"
+        if outcome != "started":
             return "已经在跑了。"
-        s.run_task = asyncio.create_task(_run_pipeline(s))
         return f"开始梳理 {len(s.files)} 份材料。过程我会一步步说。"
 
     if m.intent is Intent.RERUN:
@@ -3318,7 +6006,7 @@ def _do_answer(s: Session, slots: dict[str, Any]) -> str:
 # ══════════════════════════════════════════════════════════════════
 @app.get("/api/sessions/{sid}/artifacts/{name}")
 async def artifact(sid: str, name: str) -> FileResponse:
-    s = _sess(sid)
+    s = await _sess_async(sid)
     p = s.dir / Path(name).name  # basename：防路径穿越
     if not p.exists():
         raise HTTPException(404, name)
@@ -3326,20 +6014,30 @@ async def artifact(sid: str, name: str) -> FileResponse:
 
 
 @app.get("/api/sessions/{sid}/export")
-async def export_table(sid: str, seq: int, format: str = "xlsx") -> Response:  # noqa: A002
-    """把界面上某一张表直接导成文件（表格卡片上那排格式按钮走这条）。
+async def export_table(sid: str, seq: int, format: str = "xlsx") -> Response:
+    """把界面上某一张表直接导成文件（按事件 seq 定位）。
 
-    在内存里生成、不落盘：这条路是"看到什么就下什么"，没有留档的意义，落盘只会
-    在会话目录里堆垃圾。AI 用 ``export.file`` 工具导的那份才落盘 —— 那是他明确
-    要来的东西，下次打开会话还得在。
+    界面上那排「存为 XLSX/CSV/…」按钮已经撤了 —— FDE 直接跟 OntoCopilot 说一句
+    就行，不必在每张表下面挂一排按钮。这条路本身留着：它按**耐久事件 seq** 取表，
+    冷 worker 也能服务，是 seq 定位导出的唯一入口。
+
+    在内存里生成、不落盘：这条路是"看到什么就下什么"，没有留档的意义。AI 用
+    ``export.file`` 工具导的那份才落盘 —— 那是他明确要来的东西。
     """
     from .onto import export as X
 
-    s = _sess(sid)
+    s = await _sess_async(sid)
     ev = next((e for e in reversed(s.events)
                if e.get("seq") == seq and e.get("kind") == "ui.table"), None)
     if ev is None:
-        raise HTTPException(404, "没有这张表（可能服务重启过）")
+        # SSE 发出的 seq 来自 session_event；下载请求可能落到另一个 worker，
+        # 不能依赖原 worker 的 Session.events 缓存。
+        durable = await get_repo().read_events(sid, since=seq)
+        row = next((x for x in durable
+                    if x.seq == seq and x.kind == "ui.table"), None)
+        ev = row.as_sse() if row is not None else None
+    if ev is None:
+        raise HTTPException(404, "没有这张表")
     fmt = X.resolve_format(format)
     if not fmt:
         raise HTTPException(400, f"不支持的格式 {format}")
@@ -3361,7 +6059,7 @@ async def export_download(sid: str, name: str) -> FileResponse:
     文件"算出来的，把导出塞在那儿会让它混进产物 tab、混进交付包 zip，一个叫
     「问题清单.xlsx」的导出还会被「下载填写模板」按钮抓走（它取第一个 .xlsx）。
     """
-    s = _sess(sid)
+    s = await _sess_async(sid)
     p = s.dir / "exports" / Path(name).name      # basename：防路径穿越
     if not p.exists():
         raise HTTPException(404, name)
@@ -3392,9 +6090,8 @@ async def bundle(sid: str, materials: bool = True) -> Response:
     旧会话来导出，这时 `_flow`/oir/flow/artifacts 都靠 hydrate 载回。
     """
     import time
-    from datetime import datetime, timezone
+    from datetime import datetime
 
-    from .kernel.ids import sha256_hex
     from .onto import bundle as B
 
     def _aval(x: Any) -> str:
@@ -3402,6 +6099,28 @@ async def bundle(sid: str, materials: bool = True) -> Response:
         return str(v or "").strip()
 
     s = await _sess_async(sid)
+    # Bundle 是给业务方/下游消费的**正式交付边界**，与仍可下载的单份工作产物
+    # 不同。Question Ledger 是权威门禁：旧 ``release_state=RELEASED`` 在重新打开
+    # blocking 问题后会滞后，不能据此继续发旧包。
+    rows = await get_repo().list_questions(sid)
+    backlog = (QuestionBacklog.from_dict([row.doc for row in rows])
+               if rows else _question_backlog(s))
+    pending = [q for q in backlog.questions.values() if q.status in {
+        QuestionStatus.OPEN, QuestionStatus.ASSIGNED, QuestionStatus.BLOCKED,
+    }]
+    blockers = [q for q in pending if q.blocking]
+    if blockers:
+        preview = "、".join(q.id for q in blockers[:5])
+        more = f" 等 {len(blockers)} 项" if len(blockers) > 5 else ""
+        raise HTTPException(
+            409,
+            f"正式 Bundle 已被阻塞问题拦截：{preview}{more}。"
+            "问题清单和单份工作产物仍可下载；处理或明确取消阻塞项后再导出。",
+        )
+    stored_release = str(s.state.get("release_state") or "").upper()
+    release_state = (
+        "DRAFT" if pending or stored_release != "RELEASED" else "RELEASED"
+    )
     entries: list[tuple[str, bytes]] = []
     files_meta: list[dict[str, Any]] = []
     if s.dir.exists():
@@ -3447,12 +6166,13 @@ async def bundle(sid: str, materials: bool = True) -> Response:
 
     manifest = B.build_manifest(
         session={"id": s.id, "title": s.title, "project": s.project,
-                 "status": s.status, "created": s.created,
+                 "status": s.status, "release_state": release_state,
+                 "created": s.created,
                  "state_version": state_version},
         product_version=__version__, files=files_meta, materials=mats_meta,
         flow=s.state.get("flow"), oir=oir or None, open_questions=open_qs,
         generated_at=now,
-        generated_at_iso=datetime.fromtimestamp(now, timezone.utc).isoformat())
+        generated_at_iso=datetime.fromtimestamp(now, UTC).isoformat())
     blob = B.build_zip(entries, manifest, B.readme_text(manifest))
     fname = f"交付包_{s.project or s.title or s.id}_{s.id}.zip"
     return Response(content=blob, media_type="application/zip",
@@ -3471,7 +6191,7 @@ async def source(sid: str, file: str, q: str = "") -> dict[str, Any]:
     2. 重跑 OCR 可能给出与抽取时**不同**的文本 —— 那样"点回原文"看到的
        就不是系统当初实际读到的东西，这个功能的意义正好被抵消。
     """
-    s = _sess(sid)
+    s = await _sess_async(sid)
     name = Path(file).name
     cache = s.state.get("_chunks", {})
 
@@ -3503,21 +6223,207 @@ async def source(sid: str, file: str, q: str = "") -> dict[str, Any]:
 
 
 @app.post("/api/sessions/{sid}/audit")
-async def audit(sid: str, files: list[UploadFile]) -> dict[str, Any]:
-    """审业务方回传的模板。"""
-    s = _sess(sid)
+async def audit(sid: str, files: list[UploadFile], apply: bool = False
+                ) -> dict[str, Any]:
+    """业务方回传的**两阶段**审核与回写。
+
+    ``apply=false`` 只在 OIR 副本上运行规则，返回 cell diff/结构损伤/
+    可回写预览，绝不修改当前 Ontology。``apply=true`` 才在 FDE 明确确认后
+    merge、生成 revision、重算问题与全部产物。
+    """
+    s = await _sess_async(sid)
+    if apply:
+        async with _session_mutation(s, "audit.apply"):
+            return await _audit_once(s, files, apply=True)
+    return await _audit_once(s, files, apply=False)
+
+
+async def _audit_once(s: Session, files: list[UploadFile], *,
+                      apply: bool) -> dict[str, Any]:
+    """Run preview/apply after the route acquired the required mutation lease."""
     spec_path = s.dir / "template.spec.json"
     if not spec_path.exists():
         raise HTTPException(409, "这个会话还没有编译出模板")
+    if not files:
+        raise HTTPException(400, "没有上传回传模板")
+    if _busy(s):
+        raise HTTPException(409, "当前梳理正在运行，请等当前版本提交后再回传。")
     up = files[0]
-    dest = s.dir / f"回传_{Path(up.filename or 'x').name}"
-    dest.write_bytes(await up.read())
+    raw = await up.read()
+    max_bytes = int(os.getenv("ONTOCOPILOT_MAX_UPLOAD_MB", "100")) * 1024 * 1024
+    if len(raw) > max_bytes:
+        raise HTTPException(413, f"回传件超过上限 {max_bytes // 1024 // 1024} MB")
+    # 预审不该在产物目录里制造一个看似已纳入交付的文件。单独
+    # 放 returns/；应用后保留原件，manifest 仍能审计这版来自哪个回传。
+    returned_dir = s.dir / "returns"
+    returned_dir.mkdir(parents=True, exist_ok=True)
+    safe = Path(up.filename or "returned.xlsx").name
+    digest = sha256_hex(raw)
+    dest = returned_dir / f"{digest[:12]}_{safe}"
+    dest.write_bytes(raw)
 
     spec = TemplateSpec.load(spec_path)
-    result = ReturnAuditor().audit(spec, read_returned(dest), oir=s.state.get("_oir"))
-    s.state["audit"] = result.summary()
-    s.emit("audit.completed", **result.summary())
-    return result.summary()
+    live = s.state.get("_oir")
+    if live is None:
+        raise HTTPException(409, "这个会话的 OIR 未恢复，不能审核回传件")
+    # ReturnAuditor 会对命名违规做 auto_repair。即使是“预审”也必须给它
+    # 副本，否则 apply=false 也会悄悄修改活 OIR。
+    preview_oir = oir_from_dict(live.to_dict())
+    result = ReturnAuditor().audit(spec, read_returned(dest), oir=preview_oir)
+    summary = result.summary()
+    diffs = [
+        {"rid": d.rid, "sheet": d.sheet, "field": d.field,
+         "before": d.before, "after": d.after, "owner": d.owner,
+         "role": str(d.role), "changed": d.changed, "filled": d.filled}
+        for d in result.diffs if d.changed
+    ]
+    from .onto.audit import merge_into_oir
+    merge_probe = oir_from_dict(live.to_dict())
+    mergeable, dropped = merge_into_oir(merge_probe, result.diffs)
+    payload: dict[str, Any] = {
+        **summary, "apply": apply, "applied": False, "diffs": diffs,
+        "mergeable": mergeable, "dropped": dropped, "file": safe,
+        "sha256": digest, "revision": int(s.state.get("artifact_revision") or 0),
+        "autoRepairs": result.auto_repaired,
+    }
+    if not apply:
+        # 预审摘要可以显示，但不持久一个“已完成 audit”的业务状态。
+        s.emit("audit.previewed", **payload)
+        return payload
+
+    # ``AuditResult.damage`` 的契约是 fail closed：锚点缺失、重复 RID、
+    # 表头/锚点被移动都意味着我们无法证明读回的是业务方实际填写的完整内容。
+    # 不能因为仍有一部分 cell “看起来能读”就把它们混入当前 Ontology；否则
+    # 一张损坏表会形成一个貌似成功、实则静默丢答复的 revision。
+    if result.damage:
+        raise HTTPException(
+            422,
+            detail={
+                "code": "RETURN_TEMPLATE_DAMAGED",
+                "message": "回传模板结构已改变，未应用任何数据。请按预审提示修复后重新上传。",
+                "damage": result.damage,
+                "sha256": digest,
+            },
+        )
+
+    # 幂等检查必须在修改活 OIR 之前。否则即使后面发现 revision
+    # 已存在，也已有一段时间让其它协程观察到未提交的 OIR。
+    existing = next((r for r in await get_repo().list_revisions(s.id)
+                     if r.idempotency_key == f"returned:{digest}"), None)
+    if existing is not None and existing.status == str(RevisionStatus.APPLIED):
+        committed = s.state.get("audit") or {}
+        if committed.get("sha256") == digest and committed.get("phase") == "committing":
+            # The Revision terminal row won but the final cosmetic projection did
+            # not.  Artifacts/OIR were already committed by the preceding fenced
+            # checkpoint; finish that marker without replaying merge or compile.
+            committed = {**committed, "phase": "applied", "applied": True,
+                         "created": False, "revision": existing.ordinal}
+            s.state["audit"] = committed
+            await _persist(s)
+        return {**payload, **(committed if committed.get("sha256") == digest else {}),
+                "applied": True, "created": False, "revision": existing.ordinal,
+                "note": "这份回传件已应用过，未重复生成版本。"}
+    if existing is not None and existing.status != str(RevisionStatus.PROPOSED):
+        raise HTTPException(
+            409,
+            f"这份回传件的 Revision 已是 {existing.status}，不能再应用。",
+        )
+
+    before = live.to_dict()
+    changed, dropped = merge_into_oir(live, result.diffs)
+    # 预审里的命名 auto-repair 是在副本上算的；确认应用时要把同一份可逆修复
+    # 明确提交到活 OIR，否则用户看到“将自动修复”，点确认后结果却没有修。
+    for repair in result.auto_repaired:
+        rid, new_name = str(repair.get("rid") or ""), repair.get("to")
+        if not rid or not new_name:
+            continue
+        for bucket in (live.objects, live.properties, live.links, live.actions):
+            entity = bucket.get(rid)
+            if entity is None or entity.api_name.value == new_name:
+                continue
+            from .onto.oir import Origin
+            entity.api_name.value = str(new_name)
+            entity.api_name.origin = Origin.AUTO_REPAIRED
+            changed.append(f"{rid}.apiName")
+            break
+    versions = _push_version(s, "_oir_versions", before)
+    if not changed:
+        versions.pop()
+    s.state["oir"] = live.to_dict()
+
+    # 回传合并是一次正式 artifact revision，不走聊天补丁旁路。
+    rows = await get_repo().list_revisions(s.id)
+    ordinal = max((r.ordinal for r in rows), default=0) + 1
+    parent = max(rows, key=lambda r: r.ordinal).id if rows else None
+    revision = Revision(
+        id=f"rev.{ordinal}", ordinal=ordinal, parent_id=parent,
+        # Claim first, publish only after compile + fenced projection commit.  A
+        # process can die between those operations; ``proposed`` makes the same
+        # idempotency key resumable instead of falsely reporting a half revision as
+        # already applied.
+        kind="returned_template", status=RevisionStatus.PROPOSED,
+        patch_set=PatchSet(
+            id=f"patch.return.{digest[:16]}", base_revision=max(0, ordinal - 1), ops=[],
+            affected_ids=sorted({x.split('.', 1)[0] for x in changed}),
+            blocked_artifacts=["ontology.package.json", "模板_v1.xlsx"],
+            idempotency_key=f"returned:{digest}", actor="fde",
+            reason=f"业务方回传 {safe}"),
+        changed_ids=changed,
+        invalidated_artifacts=["ontology.package.json", "模板_v1.xlsx", "问题清单.xlsx"],
+        actor="fde", snapshot_hash=digest)
+    if existing is None:
+        try:
+            stored, created = await get_repo().record_revision(
+                s.id, RevisionRow.from_domain(
+                    revision, idempotency_key=f"returned:{digest}"))
+        except IdempotencyConflict as exc:
+            raise HTTPException(409, str(exc)) from exc
+        if not created:
+            # The durable mutation lease should make this unreachable; retain a
+            # defensive read so a future caller cannot continue with an unknown row.
+            existing = stored
+    else:
+        stored, created = existing, False
+
+    # A prior invocation may have committed every projection/artifact and died in
+    # the tiny window before finalising its Revision row.  The marker is written by
+    # the same fenced session-state checkpoint as the OIR, so it is safe to finish
+    # without recompiling (which would mint another artifact revision).
+    durable_audit = s.state.get("audit") or {}
+    if (not created and durable_audit.get("sha256") == digest
+            and durable_audit.get("phase") == "committing"):
+        stored = await get_repo().finalize_revision(
+            s.id, stored.id, status=str(RevisionStatus.APPLIED),
+        )
+        durable_audit.update({"phase": "applied", "applied": True,
+                              "created": False, "revision": stored.ordinal})
+        s.state["audit"] = durable_audit
+        await _persist(s)
+        return {**payload, **durable_audit, "resumed": True,
+                "note": "已完成上次中断的回传应用，未重复生成版本。"}
+
+    s.state["audit"] = {
+        **payload, "applied": True, "created": created,
+        "changed": changed, "dropped": dropped,
+        "revision": stored.ordinal, "phase": "committing",
+    }
+
+    await _recompile(s)
+    await _persist(s)
+    stored = await get_repo().finalize_revision(
+        s.id, stored.id, status=str(RevisionStatus.APPLIED),
+    )
+    payload.update({
+        "applied": True, "created": created, "changed": changed, "dropped": dropped,
+        "revision": stored.ordinal, "artifact_revision": s.state.get("artifact_revision"),
+        "artifacts": s.state.get("artifacts") or [], "phase": "applied",
+    })
+    s.state["audit"] = payload
+    s.emit("audit.applied", revision=stored.ordinal,
+           artifact_revision=payload["artifact_revision"],
+           changed=len(changed), dropped=dropped, file=safe)
+    await _persist(s)
+    return payload
 
 
 # ══════════════════════════════════════════════════════════════════

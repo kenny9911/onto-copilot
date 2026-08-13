@@ -117,7 +117,7 @@ async def test_request_is_replayed_not_re_executed(bus):
     """对方内部可能是昂贵的 LLM 调用，重放绝不能二次触发。"""
     b, journal, blobs = bus
     calls = []
-    handler = lambda msg: calls.append(1) or {"ok": True}  # noqa: E731
+    handler = lambda msg: calls.append(1) or {"ok": True}
     b.register("ACTOR", handler)
 
     await b.request(frm="CRITIC", to="ACTOR", kind="justify", payload={"c": 1})

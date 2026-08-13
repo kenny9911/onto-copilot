@@ -39,7 +39,7 @@ class ParsedDoc:
 
     file_id: str
     file_name: str
-    kind: str  # xlsx | csv | ddl | openapi | docx | text
+    kind: str  # xlsx | csv | ddl | openapi | bpmn | pptx | docx | text
     chunks: list[Chunk] = field(default_factory=list)
     #: 结构化产物，按解析器类型不同：表格给 sheets，DDL 给 tables，OpenAPI 给 endpoints
     structured: dict[str, Any] = field(default_factory=dict)

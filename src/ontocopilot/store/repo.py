@@ -25,6 +25,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import json
 import time
@@ -73,10 +74,14 @@ class EventRow:
     kind: str
     payload: dict[str, Any]
     ts: float
+    event_id: str = ""
 
     def as_sse(self) -> dict[str, Any]:
         """还原成 Session.emit 产出的那个扁平 dict（server.py:109）。"""
-        return {"seq": self.seq, "ts": self.ts, **self.payload, "kind": self.kind}
+        out = {"seq": self.seq, "ts": self.ts, **self.payload, "kind": self.kind}
+        if self.event_id:
+            out["eventId"] = self.event_id
+        return out
 
 
 @dataclass(slots=True)
@@ -128,7 +133,7 @@ class QuestionRow:
     updated: float = 0.0
 
     @classmethod
-    def from_domain(cls, question: Any) -> "QuestionRow":
+    def from_domain(cls, question: Any) -> QuestionRow:
         d = question.to_dict()
         return cls(
             id=d["id"], text=d["text"], status=d["status"],
@@ -164,7 +169,7 @@ class DecisionRecordRow:
     created: float = 0.0
 
     @classmethod
-    def from_domain(cls, decision: Any) -> "DecisionRecordRow":
+    def from_domain(cls, decision: Any) -> DecisionRecordRow:
         d = decision.to_dict()
         return cls(
             id=d["id"], question_id=d["questionId"], answer=d.get("answer"),
@@ -196,7 +201,7 @@ class RevisionRow:
     created: float = 0.0
 
     @classmethod
-    def from_domain(cls, revision: Any, *, idempotency_key: str = "") -> "RevisionRow":
+    def from_domain(cls, revision: Any, *, idempotency_key: str = "") -> RevisionRow:
         d = revision.to_dict()
         return cls(
             id=d["id"], ordinal=int(d["ordinal"]), parent_id=d.get("parentId"),
@@ -206,6 +211,58 @@ class RevisionRow:
             actor=d.get("actor", "agent"), source_turn=d.get("sourceTurn", ""),
             snapshot_hash=d.get("snapshotHash", ""), idempotency_key=idempotency_key,
             created=float(d.get("createdAt") or 0))
+
+
+@dataclass(slots=True)
+class UsageRow:
+    """一次模型调用的用量流水。**跨会话、跨重启的唯一账本。**
+
+    ``tok_*`` 是**实际打给模型那几次的总和**（schema 重试、截断加预算重试都算），
+    ``attempts`` 说明打了几次 —— 一次调用重试三回就是三份 token 的钱，只记最后
+    一次等于把账做小。``usd_source`` 区分网关回的真实账单和本地价目表的估算：
+    很多经网关发现的模型价目是编的（catalog 里统一填 2.0/8.0），估出来的金额
+    看着精确、其实是错的，界面据此决定敢不敢把它当钱显示。
+    """
+
+    id: str
+    ts: float
+    day: str                       # 'YYYY-MM-DD'（UTC），写入时算好
+    model: str
+    owner: str = ""
+    session_id: str = ""
+    run_id: str = ""
+    node_id: str = ""
+    kind: str = "build"            # build | chat | aux
+    effort: str = ""
+    tok_in: int = 0
+    tok_out: int = 0
+    cache_read: int = 0
+    cache_write: int = 0
+    usd: float = 0.0
+    usd_source: str = "estimated"  # gateway | estimated
+    attempts: int = 1
+    status: str = "ok"             # ok | failed
+
+    @property
+    def total(self) -> int:
+        return self.tok_in + self.tok_out + self.cache_read + self.cache_write
+
+    def validate(self) -> None:
+        """Apply the same contract before either repository implementation writes."""
+        if not self.id or not self.model:
+            raise ValueError("usage id/model 不能为空")
+        if self.kind not in {"build", "chat", "aux"}:
+            raise ValueError(f"usage kind 不支持: {self.kind}")
+        if min(self.tok_in, self.tok_out, self.cache_read, self.cache_write) < 0:
+            raise ValueError("usage token 不能为负数")
+        if self.usd < 0:
+            raise ValueError("usage usd 不能为负数")
+        if self.usd_source not in {"gateway", "estimated"}:
+            raise ValueError(f"usage usd_source 不支持: {self.usd_source}")
+        if self.attempts < 1:
+            raise ValueError("usage attempts 必须至少为 1")
+        if self.status not in {"ok", "failed"}:
+            raise ValueError(f"usage status 不支持: {self.status}")
 
 
 @dataclass(slots=True)
@@ -219,11 +276,15 @@ class UserRow:
     active: bool = True
     prefs: dict[str, Any] = field(default_factory=dict)
     created: float = 0.0
+    #: 称呼用的名字，原样保留大小写与空格。空串 = 没填（管理员/CLI 建的号、
+    #  迁移前的老账号），展示时回落到 username。
+    display_name: str = ""
 
     def public(self) -> dict[str, Any]:
         """给列表/管理页看的安全投影。**永不含 password_hash / prefs 之外的内部字段。**"""
         return {"id": self.id, "username": self.username, "role": self.role,
-                "active": self.active, "created": self.created}
+                "active": self.active, "created": self.created,
+                "display_name": self.display_name}
 
 
 @dataclass(slots=True)
@@ -264,6 +325,40 @@ class Repo(Protocol):
     async def list_sessions(self, limit: int = 100, *,
                             owner: str | None = None) -> list[SessionRow]: ...
     async def set_status(self, sid: str, status: str, *, error: str = "") -> None: ...
+    async def claim_session_status(
+        self, sid: str, *, from_statuses: Sequence[str], to_status: str,
+        error: str = "",
+    ) -> bool: ...
+    async def claim_build_lease(
+        self, sid: str, *, owner: str, now: float, ttl: float,
+        from_statuses: Sequence[str], to_status: str = "queued", error: str = "",
+    ) -> bool: ...
+    async def renew_build_lease(
+        self, sid: str, *, owner: str, now: float, ttl: float,
+    ) -> bool: ...
+    async def set_build_status(
+        self, sid: str, *, owner: str, now: float, status: str, error: str = "",
+    ) -> bool: ...
+    async def release_build_lease(self, sid: str, *, owner: str) -> bool: ...
+    async def request_build_cancel(self, sid: str, *, now: float) -> bool: ...
+    async def reap_expired_build_lease(
+        self, sid: str, *, now: float, error: str,
+    ) -> bool: ...
+    async def claim_chat_lease(
+        self, sid: str, *, owner: str, now: float, ttl: float,
+    ) -> bool: ...
+    async def renew_chat_lease(
+        self, sid: str, *, owner: str, now: float, ttl: float,
+    ) -> bool: ...
+    async def release_chat_lease(self, sid: str, *, owner: str) -> bool: ...
+    async def request_chat_cancel(self, sid: str, *, now: float) -> bool: ...
+    async def claim_mutation_lease(
+        self, sid: str, *, owner: str, kind: str, now: float, ttl: float,
+    ) -> bool: ...
+    async def renew_mutation_lease(
+        self, sid: str, *, owner: str, now: float, ttl: float,
+    ) -> bool: ...
+    async def release_mutation_lease(self, sid: str, *, owner: str) -> bool: ...
     async def delete_session(self, sid: str) -> bool: ...
     async def reassign_sessions(self, frm: str, to: str) -> int: ...
 
@@ -273,7 +368,29 @@ class Repo(Protocol):
 
     async def save_state(self, sid: str, docs: dict[str, Any], *,
                          conflicts: Sequence[dict[str, Any]] | None = None,
-                         asked_rids: Sequence[str] = ()) -> int: ...
+                         asked_rids: Sequence[str] = (),
+                         expected_version: int | None = None) -> int | None: ...
+    async def save_build_state(
+        self, sid: str, docs: dict[str, Any], *, owner: str, now: float,
+        status: str, error: str = "",
+        conflicts: Sequence[dict[str, Any]] | None = None,
+        asked_rids: Sequence[str] = (),
+        expected_version: int | None = None,
+    ) -> int | None: ...
+    async def save_chat_state(
+        self, sid: str, docs: dict[str, Any], *, owner: str, now: float,
+        conflicts: Sequence[dict[str, Any]] | None = None,
+        asked_rids: Sequence[str] = (),
+        expected_version: int | None = None,
+    ) -> int | None: ...
+    async def save_mutation_state(
+        self, sid: str, docs: dict[str, Any], *, owner: str, now: float,
+        status: str, error: str = "",
+        conflicts: Sequence[dict[str, Any]] | None = None,
+        asked_rids: Sequence[str] = (),
+        chat_owner: str = "",
+        expected_version: int | None = None,
+    ) -> int | None: ...
     async def load_state(self, sid: str, *, keys: Iterable[str] | None = None,
                          include_derived: bool = True) -> dict[str, Any]: ...
     async def list_conflicts(self, sid: str) -> list[dict[str, Any]]: ...
@@ -286,18 +403,28 @@ class Repo(Protocol):
 
     async def upsert_questions(self, sid: str,
                                rows: Sequence[QuestionRow]) -> list[QuestionRow]: ...
+    async def save_question(self, sid: str, row: QuestionRow, *,
+                            expected_version: int | None = None) -> QuestionRow: ...
     async def list_questions(self, sid: str, *, statuses: Sequence[str] | None = None
                              ) -> list[QuestionRow]: ...
     async def get_question(self, sid: str, qid: str) -> QuestionRow | None: ...
     async def record_decision_v1(self, sid: str,
                                  row: DecisionRecordRow) -> tuple[DecisionRecordRow, bool]: ...
+    async def finalize_decision_v1(self, sid: str, decision_id: str, *,
+                                   status: str, error: str = ""
+                                   ) -> DecisionRecordRow: ...
     async def list_decisions_v1(self, sid: str) -> list[DecisionRecordRow]: ...
     async def record_revision(self, sid: str,
                               row: RevisionRow) -> tuple[RevisionRow, bool]: ...
+    async def append_revision(self, sid: str, row: RevisionRow,
+                              ) -> tuple[RevisionRow, bool]: ...
+    async def finalize_revision(self, sid: str, revision_id: str, *,
+                                status: str) -> RevisionRow: ...
     async def list_revisions(self, sid: str) -> list[RevisionRow]: ...
 
     async def append_event(self, sid: str, kind: str,
-                           payload: dict[str, Any]) -> EventRow: ...
+                           payload: dict[str, Any], *, event_id: str = ""
+                           ) -> EventRow: ...
     async def read_events(self, sid: str, since: int = 0) -> list[EventRow]: ...
     async def count_events(self, sid: str) -> int: ...
 
@@ -314,8 +441,13 @@ class Repo(Protocol):
     async def update_user(self, uid: str, *, role: str | None = None,
                           active: bool | None = None,
                           password_hash: str | None = None,
-                          prefs: dict[str, Any] | None = None) -> UserRow | None: ...
+                          prefs: dict[str, Any] | None = None,
+                          display_name: str | None = None) -> UserRow | None: ...
     async def delete_user(self, uid: str) -> bool: ...
+
+    async def add_usage(self, row: UsageRow) -> None: ...
+    async def usage_since(self, since: float, *, owner: str | None = None,
+                          limit: int = 5000) -> list[UsageRow]: ...
 
     async def create_auth_session(self, row: AuthSessionRow) -> AuthSessionRow: ...
     async def get_auth_session(self, token_hash: str) -> AuthSessionRow | None: ...
@@ -361,6 +493,12 @@ class MemoryRepo:
         self._users: dict[str, UserRow] = {}
         self._auth: dict[str, AuthSessionRow] = {}
         self._settings: dict[str, Any] = {}
+        #: 模型用量流水。同样是顶层的 —— 会话删了，账还得在。
+        self._usage: list[UsageRow] = []
+        self._session_locks: dict[str, asyncio.Lock] = {}
+        self._build_leases: dict[str, dict[str, Any]] = {}
+        self._chat_leases: dict[str, dict[str, Any]] = {}
+        self._mutation_leases: dict[str, dict[str, Any]] = {}
 
     # ── 会话 ─────────────────────────────────────────────────────
     async def create_session(self, row: SessionRow) -> SessionRow:
@@ -376,6 +514,7 @@ class MemoryRepo:
         self._decisions_v1.setdefault(row.id, [])
         self._revisions.setdefault(row.id, [])
         self._events.setdefault(row.id, [])
+        self._session_locks.setdefault(row.id, asyncio.Lock())
         return row
 
     async def get_session(self, sid: str) -> SessionRow | None:
@@ -400,6 +539,204 @@ class MemoryRepo:
         s = self._sessions[sid]
         s.status, s.error = status, error
 
+    async def claim_session_status(
+        self, sid: str, *, from_statuses: Sequence[str], to_status: str,
+        error: str = "",
+    ) -> bool:
+        """状态仍在允许集合时才更新；同一会话的并发调用只有一个能成功。"""
+        lock = self._session_locks.setdefault(sid, asyncio.Lock())
+        async with lock:
+            row = self._sessions.get(sid)
+            if row is None or row.status not in set(from_statuses):
+                return False
+            row.status, row.error = to_status, error
+            return True
+
+    async def claim_build_lease(
+        self, sid: str, *, owner: str, now: float, ttl: float,
+        from_statuses: Sequence[str], to_status: str = "queued", error: str = "",
+    ) -> bool:
+        """Atomically claim the session state and its process-independent build lease."""
+        if not owner or ttl <= 0:
+            raise ValueError("build lease owner 不能为空且 ttl 必须大于 0")
+        async with self._session_locks.setdefault(sid, asyncio.Lock()):
+            row = self._sessions.get(sid)
+            if row is None or row.status not in set(from_statuses):
+                return False
+            mutation = self._mutation_leases.get(sid)
+            if mutation is not None and float(mutation["expires_at"]) > now:
+                return False
+            row.status, row.error = to_status, error
+            self._build_leases[sid] = {
+                "owner": owner, "acquired_at": now,
+                "heartbeat_at": now, "expires_at": now + ttl,
+                "cancel_requested_at": None,
+            }
+            return True
+
+    async def renew_build_lease(
+        self, sid: str, *, owner: str, now: float, ttl: float,
+    ) -> bool:
+        if ttl <= 0:
+            raise ValueError("build lease ttl 必须大于 0")
+        async with self._session_locks.setdefault(sid, asyncio.Lock()):
+            row = self._sessions.get(sid)
+            lease = self._build_leases.get(sid)
+            if (row is None or row.status not in {"queued", "parsing", "extracting"}
+                    or lease is None or lease["owner"] != owner
+                    or lease.get("cancel_requested_at") is not None):
+                return False
+            lease["heartbeat_at"] = now
+            lease["expires_at"] = now + ttl
+            return True
+
+    async def set_build_status(
+        self, sid: str, *, owner: str, now: float, status: str, error: str = "",
+    ) -> bool:
+        """Fence a pipeline status write by invocation owner, expiry and cancel intent."""
+        async with self._session_locks.setdefault(sid, asyncio.Lock()):
+            row = self._sessions.get(sid)
+            lease = self._build_leases.get(sid)
+            if (row is None or row.status not in {"queued", "parsing", "extracting"}
+                    or lease is None or lease["owner"] != owner
+                    or lease.get("cancel_requested_at") is not None
+                    or float(lease["expires_at"]) <= now):
+                return False
+            row.status, row.error = status, error
+            return True
+
+    async def release_build_lease(self, sid: str, *, owner: str) -> bool:
+        async with self._session_locks.setdefault(sid, asyncio.Lock()):
+            lease = self._build_leases.get(sid)
+            if lease is None or lease["owner"] != owner:
+                return False
+            del self._build_leases[sid]
+            return True
+
+    async def request_build_cancel(self, sid: str, *, now: float) -> bool:
+        """Persist a cooperative cancellation intent and stop the public state."""
+        async with self._session_locks.setdefault(sid, asyncio.Lock()):
+            row = self._sessions.get(sid)
+            if row is None or row.status not in {"queued", "parsing", "extracting"}:
+                return False
+            row.status, row.error = "stopped", ""
+            lease = self._build_leases.get(sid)
+            if lease is not None:
+                lease["cancel_requested_at"] = now
+            return True
+
+    async def reap_expired_build_lease(
+        self, sid: str, *, now: float, error: str,
+    ) -> bool:
+        async with self._session_locks.setdefault(sid, asyncio.Lock()):
+            row = self._sessions.get(sid)
+            lease = self._build_leases.get(sid)
+            if (row is None or row.status not in {"queued", "parsing", "extracting"}
+                    or (lease is not None and float(lease["expires_at"]) > now)):
+                return False
+            row.status, row.error = "failed", error
+            self._build_leases.pop(sid, None)
+            return True
+
+    async def claim_chat_lease(
+        self, sid: str, *, owner: str, now: float, ttl: float,
+    ) -> bool:
+        if not owner or ttl <= 0:
+            raise ValueError("chat lease owner 不能为空且 ttl 必须大于 0")
+        async with self._session_locks.setdefault(sid, asyncio.Lock()):
+            if sid not in self._sessions:
+                return False
+            mutation = self._mutation_leases.get(sid)
+            if mutation is not None and float(mutation["expires_at"]) > now:
+                return False
+            lease = self._chat_leases.get(sid)
+            if lease is not None and float(lease["expires_at"]) > now:
+                return False
+            self._chat_leases[sid] = {
+                "owner": owner, "acquired_at": now, "heartbeat_at": now,
+                "expires_at": now + ttl, "cancel_requested_at": None,
+            }
+            return True
+
+    async def renew_chat_lease(
+        self, sid: str, *, owner: str, now: float, ttl: float,
+    ) -> bool:
+        if ttl <= 0:
+            raise ValueError("chat lease ttl 必须大于 0")
+        async with self._session_locks.setdefault(sid, asyncio.Lock()):
+            lease = self._chat_leases.get(sid)
+            if (lease is None or lease["owner"] != owner
+                    or lease.get("cancel_requested_at") is not None
+                    or float(lease["expires_at"]) <= now):
+                return False
+            lease["heartbeat_at"] = now
+            lease["expires_at"] = now + ttl
+            return True
+
+    async def release_chat_lease(self, sid: str, *, owner: str) -> bool:
+        async with self._session_locks.setdefault(sid, asyncio.Lock()):
+            lease = self._chat_leases.get(sid)
+            if lease is None or lease["owner"] != owner:
+                return False
+            del self._chat_leases[sid]
+            return True
+
+    async def request_chat_cancel(self, sid: str, *, now: float) -> bool:
+        async with self._session_locks.setdefault(sid, asyncio.Lock()):
+            lease = self._chat_leases.get(sid)
+            if (lease is None or float(lease["expires_at"]) <= now
+                    or lease.get("cancel_requested_at") is not None):
+                return False
+            lease["cancel_requested_at"] = now
+            return True
+
+    async def claim_mutation_lease(
+        self, sid: str, *, owner: str, kind: str, now: float, ttl: float,
+    ) -> bool:
+        if not owner or not kind or ttl <= 0:
+            raise ValueError("mutation lease owner/kind 不能为空且 ttl 必须大于 0")
+        async with self._session_locks.setdefault(sid, asyncio.Lock()):
+            row = self._sessions.get(sid)
+            if row is None or row.status in {"queued", "parsing", "extracting"}:
+                return False
+            build = self._build_leases.get(sid)
+            if build is not None and float(build["expires_at"]) > now:
+                return False
+            chat = self._chat_leases.get(sid)
+            if (chat is not None and chat["owner"] != owner
+                    and float(chat["expires_at"]) > now):
+                return False
+            current = self._mutation_leases.get(sid)
+            if current is not None and float(current["expires_at"]) > now:
+                return False
+            self._mutation_leases[sid] = {
+                "owner": owner, "kind": kind, "acquired_at": now,
+                "heartbeat_at": now, "expires_at": now + ttl,
+            }
+            return True
+
+    async def renew_mutation_lease(
+        self, sid: str, *, owner: str, now: float, ttl: float,
+    ) -> bool:
+        if ttl <= 0:
+            raise ValueError("mutation lease ttl 必须大于 0")
+        async with self._session_locks.setdefault(sid, asyncio.Lock()):
+            lease = self._mutation_leases.get(sid)
+            if (lease is None or lease["owner"] != owner
+                    or float(lease["expires_at"]) <= now):
+                return False
+            lease["heartbeat_at"] = now
+            lease["expires_at"] = now + ttl
+            return True
+
+    async def release_mutation_lease(self, sid: str, *, owner: str) -> bool:
+        async with self._session_locks.setdefault(sid, asyncio.Lock()):
+            lease = self._mutation_leases.get(sid)
+            if lease is None or lease["owner"] != owner:
+                return False
+            del self._mutation_leases[sid]
+            return True
+
     async def delete_session(self, sid: str) -> bool:
         """删掉一个会话的**全部**痕迹。返回它本来在不在。
 
@@ -412,6 +749,13 @@ class MemoryRepo:
                   self._decisions, self._questions_v1, self._decisions_v1,
                   self._revisions, self._events):
             d.pop(sid, None)
+        for run_id in [rid for rid, run in self._runs.items()
+                       if run["session_id"] == sid]:
+            del self._runs[run_id]
+        self._build_leases.pop(sid, None)
+        self._chat_leases.pop(sid, None)
+        self._mutation_leases.pop(sid, None)
+        self._session_locks.pop(sid, None)
         return True
 
     # ── 文件 ─────────────────────────────────────────────────────
@@ -431,18 +775,119 @@ class MemoryRepo:
     # ── 状态 ─────────────────────────────────────────────────────
     async def save_state(self, sid: str, docs: dict[str, Any], *,
                          conflicts: Sequence[dict[str, Any]] | None = None,
-                         asked_rids: Sequence[str] = ()) -> int:
-        s = self._sessions[sid]
-        s.state_version += 1
-        self._state.setdefault(sid, {}).update(docs)
-        if conflicts is not None:
-            ranks = {r: i for i, r in enumerate(asked_rids)}
-            self._conflicts[sid] = {
-                c["rid"]: {**c, "_asked": c["rid"] in ranks,
-                           "_ask_rank": ranks.get(c["rid"]), "_version": s.state_version}
-                for c in conflicts
-            }
-        return s.state_version
+                         asked_rids: Sequence[str] = (),
+                         expected_version: int | None = None) -> int | None:
+        async with self._session_locks.setdefault(sid, asyncio.Lock()):
+            s = self._sessions[sid]
+            if expected_version is not None and s.state_version != expected_version:
+                return None
+            s.state_version += 1
+            self._state.setdefault(sid, {}).update(docs)
+            if conflicts is not None:
+                ranks = {r: i for i, r in enumerate(asked_rids)}
+                self._conflicts[sid] = {
+                    c["rid"]: {**c, "_asked": c["rid"] in ranks,
+                               "_ask_rank": ranks.get(c["rid"]),
+                               "_version": s.state_version}
+                    for c in conflicts
+                }
+            return s.state_version
+
+    async def save_build_state(
+        self, sid: str, docs: dict[str, Any], *, owner: str, now: float,
+        status: str, error: str = "",
+        conflicts: Sequence[dict[str, Any]] | None = None,
+        asked_rids: Sequence[str] = (),
+        expected_version: int | None = None,
+    ) -> int | None:
+        """Checkpoint state and status only for the still-live build invocation."""
+        async with self._session_locks.setdefault(sid, asyncio.Lock()):
+            row = self._sessions.get(sid)
+            lease = self._build_leases.get(sid)
+            if (row is None or row.status not in {"queued", "parsing", "extracting"}
+                    or lease is None or lease["owner"] != owner
+                    or lease.get("cancel_requested_at") is not None
+                    or float(lease["expires_at"]) <= now
+                    or (expected_version is not None
+                        and row.state_version != expected_version)):
+                return None
+            row.status, row.error = status, error
+            row.state_version += 1
+            self._state.setdefault(sid, {}).update(docs)
+            if conflicts is not None:
+                ranks = {rid: i for i, rid in enumerate(asked_rids)}
+                self._conflicts[sid] = {
+                    c["rid"]: {
+                        **c, "_asked": c["rid"] in ranks,
+                        "_ask_rank": ranks.get(c["rid"]),
+                        "_version": row.state_version,
+                    }
+                    for c in conflicts
+                }
+            return row.state_version
+
+    async def save_chat_state(
+        self, sid: str, docs: dict[str, Any], *, owner: str, now: float,
+        conflicts: Sequence[dict[str, Any]] | None = None,
+        asked_rids: Sequence[str] = (),
+        expected_version: int | None = None,
+    ) -> int | None:
+        """Persist only while this exact chat invocation owns a live lease."""
+        async with self._session_locks.setdefault(sid, asyncio.Lock()):
+            row = self._sessions.get(sid)
+            lease = self._chat_leases.get(sid)
+            if (row is None or lease is None or lease["owner"] != owner
+                    or lease.get("cancel_requested_at") is not None
+                    or float(lease["expires_at"]) <= now
+                    or (expected_version is not None
+                        and row.state_version != expected_version)):
+                return None
+            row.state_version += 1
+            self._state.setdefault(sid, {}).update(docs)
+            if conflicts is not None:
+                ranks = {rid: i for i, rid in enumerate(asked_rids)}
+                self._conflicts[sid] = {
+                    c["rid"]: {
+                        **c, "_asked": c["rid"] in ranks,
+                        "_ask_rank": ranks.get(c["rid"]),
+                        "_version": row.state_version,
+                    }
+                    for c in conflicts
+                }
+            return row.state_version
+
+    async def save_mutation_state(
+        self, sid: str, docs: dict[str, Any], *, owner: str, now: float,
+        status: str, error: str = "",
+        conflicts: Sequence[dict[str, Any]] | None = None,
+        asked_rids: Sequence[str] = (),
+        chat_owner: str = "",
+        expected_version: int | None = None,
+    ) -> int | None:
+        async with self._session_locks.setdefault(sid, asyncio.Lock()):
+            row = self._sessions.get(sid)
+            lease = self._mutation_leases.get(sid)
+            chat = self._chat_leases.get(sid) if chat_owner else None
+            if (row is None or lease is None or lease["owner"] != owner
+                    or float(lease["expires_at"]) <= now
+                    or (chat_owner and (chat is None or chat["owner"] != chat_owner
+                                        or chat.get("cancel_requested_at") is not None
+                                        or float(chat["expires_at"]) <= now))
+                    or (expected_version is not None
+                        and row.state_version != expected_version)):
+                return None
+            row.status, row.error = status, error
+            row.state_version += 1
+            self._state.setdefault(sid, {}).update(docs)
+            if conflicts is not None:
+                ranks = {rid: i for i, rid in enumerate(asked_rids)}
+                self._conflicts[sid] = {
+                    c["rid"]: {**c, "_asked": c["rid"] in ranks,
+                               "_ask_rank": ranks.get(c["rid"]),
+                               "_version": row.state_version}
+                    for c in conflicts
+                }
+            return row.state_version
 
     async def load_state(self, sid: str, *, keys: Iterable[str] | None = None,
                          include_derived: bool = True) -> dict[str, Any]:
@@ -502,6 +947,29 @@ class MemoryRepo:
             bag[row.id] = row
         return list(bag.values())
 
+    async def save_question(self, sid: str, row: QuestionRow, *,
+                            expected_version: int | None = None) -> QuestionRow:
+        """保存一次人工问题变更；有 expected_version 时执行乐观锁 CAS。"""
+        from ..onto.questions import RevisionConflict
+
+        async with self._session_locks.setdefault(sid, asyncio.Lock()):
+            bag = self._questions_v1.setdefault(sid, {})
+            old = bag.get(row.id)
+            if expected_version is not None and (
+                    old is None or old.version != expected_version):
+                actual = old.version if old else None
+                raise RevisionConflict(
+                    f"问题 {row.id} 预期 version {expected_version}，实际是 {actual}")
+            if old:
+                row.created = row.created or old.created
+            row.updated = row.updated or time.time()
+            if expected_version is not None:
+                row.version = expected_version + 1
+                row.doc["version"] = row.version
+                row.doc["updatedAt"] = row.updated
+            bag[row.id] = row
+            return row
+
     async def list_questions(self, sid: str, *, statuses: Sequence[str] | None = None
                              ) -> list[QuestionRow]:
         rows = list(self._questions_v1.get(sid, {}).values())
@@ -515,52 +983,136 @@ class MemoryRepo:
 
     async def record_decision_v1(self, sid: str,
                                  row: DecisionRecordRow) -> tuple[DecisionRecordRow, bool]:
-        bag = self._decisions_v1.setdefault(sid, [])
-        old = next((x for x in bag if x.idempotency_key == row.idempotency_key), None)
-        if old:
-            if old.semantic_hash != row.semantic_hash:
-                from ..onto.questions import IdempotencyConflict
-                raise IdempotencyConflict(
-                    f"幂等键 {row.idempotency_key!r} 已用于另一份回答")
-            return old, False
-        row.created = row.created or time.time()
-        active = _active_decision_v1(bag, row.question_id)
-        if active:
-            row.supersedes = active.id
-        bag.append(row)
-        return row, True
+        from ..onto.questions import IdempotencyConflict
+
+        if not row.idempotency_key:
+            raise ValueError("Decision 必须提供 idempotency_key")
+        async with self._session_locks.setdefault(sid, asyncio.Lock()):
+            bag = self._decisions_v1.setdefault(sid, [])
+            old = next((x for x in bag if x.idempotency_key == row.idempotency_key), None)
+            if old:
+                if old.semantic_hash != row.semantic_hash:
+                    raise IdempotencyConflict(
+                        f"幂等键 {row.idempotency_key!r} 已用于另一份回答")
+                return old, False
+            row.created = row.created or time.time()
+            active = _active_decision_v1(bag, row.question_id)
+            if active and active.semantic_hash == row.semantic_hash:
+                return active, False
+            if active:
+                row.supersedes = active.id
+            bag.append(row)
+            return row, True
+
+    async def finalize_decision_v1(self, sid: str, decision_id: str, *,
+                                   status: str, error: str = ""
+                                   ) -> DecisionRecordRow:
+        """将预先 claim 的 Decision 终结为 applied/failed。
+
+        只允许单向 ``claimed -> applied|failed``；重放相同终态是幂等的，
+        但不允许把已成功的决定改成失败（或反过来）。
+        """
+        if status not in {"applied", "failed"}:
+            raise ValueError(f"不支持的 Decision 终态: {status}")
+        async with self._session_locks.setdefault(sid, asyncio.Lock()):
+            row = next((x for x in self._decisions_v1.get(sid, [])
+                        if x.id == decision_id), None)
+            if row is None:
+                raise KeyError(f"没有 Decision {decision_id}")
+            current = str(row.metadata.get("status") or "applied")
+            if current in {"applied", "failed"} and current != status:
+                raise ValueError(f"Decision {decision_id} 已是 {current}，不能改为 {status}")
+            row.metadata = {**row.metadata, "status": status}
+            if error:
+                row.metadata["error"] = error
+            else:
+                row.metadata.pop("error", None)
+            return row
 
     async def list_decisions_v1(self, sid: str) -> list[DecisionRecordRow]:
         return list(self._decisions_v1.get(sid, []))
 
     async def record_revision(self, sid: str,
                               row: RevisionRow) -> tuple[RevisionRow, bool]:
-        bag = self._revisions.setdefault(sid, [])
-        if row.idempotency_key:
-            old = next((x for x in bag if x.idempotency_key == row.idempotency_key), None)
-            if old:
-                if old.doc != row.doc:
-                    from ..onto.questions import IdempotencyConflict
-                    raise IdempotencyConflict(
-                        f"幂等键 {row.idempotency_key!r} 已用于另一个 revision")
-                return old, False
-        if any(x.id == row.id or x.ordinal == row.ordinal for x in bag):
-            raise ValueError(f"Revision id/ordinal 已存在: {row.id}/{row.ordinal}")
-        row.created = row.created or time.time()
-        bag.append(row)
-        bag.sort(key=lambda x: x.ordinal)
-        return row, True
+        async with self._session_locks.setdefault(sid, asyncio.Lock()):
+            bag = self._revisions.setdefault(sid, [])
+            if row.idempotency_key:
+                old = next((x for x in bag if x.idempotency_key == row.idempotency_key), None)
+                if old:
+                    if old.doc != row.doc:
+                        from ..onto.questions import IdempotencyConflict
+                        raise IdempotencyConflict(
+                            f"幂等键 {row.idempotency_key!r} 已用于另一个 revision")
+                    return old, False
+            if any(x.id == row.id or x.ordinal == row.ordinal for x in bag):
+                raise ValueError(f"Revision id/ordinal 已存在: {row.id}/{row.ordinal}")
+            row.created = row.created or time.time()
+            bag.append(row)
+            bag.sort(key=lambda x: x.ordinal)
+            return row, True
+
+    async def append_revision(self, sid: str,
+                              row: RevisionRow) -> tuple[RevisionRow, bool]:
+        """原子分配下一 ordinal 并写 Revision，幂等键优先于发号。"""
+        async with self._session_locks.setdefault(sid, asyncio.Lock()):
+            bag = self._revisions.setdefault(sid, [])
+            if row.idempotency_key:
+                old = next((x for x in bag if x.idempotency_key == row.idempotency_key), None)
+                if old:
+                    # 自动分配的 id/ordinal/parent 不属于请求语义，相同 key
+                    # 就返回原行；上层 Decision claim 已防止异义重用。
+                    return old, False
+            ordinal = max((x.ordinal for x in bag), default=0) + 1
+            parent = max(bag, key=lambda x: x.ordinal).id if bag else None
+            row.ordinal = ordinal
+            row.id = f"rev.{ordinal}"
+            row.parent_id = parent
+            row.doc["id"] = row.id
+            row.doc["ordinal"] = ordinal
+            row.doc["parentId"] = parent
+            row.created = row.created or time.time()
+            bag.append(row)
+            bag.sort(key=lambda x: x.ordinal)
+            return row, True
+
+    async def finalize_revision(self, sid: str, revision_id: str, *,
+                                status: str) -> RevisionRow:
+        """Finish a proposed artifact revision exactly once."""
+        allowed = {"applied", "rejected", "rolled_back"}
+        if status not in allowed:
+            raise ValueError(f"不支持的 Revision 终态: {status}")
+        async with self._session_locks.setdefault(sid, asyncio.Lock()):
+            row = next((item for item in self._revisions.get(sid, [])
+                        if item.id == revision_id), None)
+            if row is None:
+                raise KeyError(f"没有 Revision {revision_id}")
+            if row.status != "proposed" and row.status != status:
+                raise ValueError(
+                    f"Revision {revision_id} 已是 {row.status}，不能改为 {status}")
+            row.status = status
+            row.doc["status"] = status
+            return row
 
     async def list_revisions(self, sid: str) -> list[RevisionRow]:
         return list(self._revisions.get(sid, []))
 
     # ── 事件 ─────────────────────────────────────────────────────
     async def append_event(self, sid: str, kind: str,
-                           payload: dict[str, Any]) -> EventRow:
-        bag = self._events.setdefault(sid, [])
-        ev = EventRow(seq=len(bag), kind=kind, payload=payload, ts=time.time())
-        bag.append(ev)
-        return ev
+                           payload: dict[str, Any], *, event_id: str = ""
+                           ) -> EventRow:
+        # MemoryRepo is shared by concurrent request/background tasks in tests and
+        # local mode.  Match PgRepo's row-lock semantics: sequence allocation and
+        # append are one session-scoped critical section.
+        async with self._session_locks.setdefault(sid, asyncio.Lock()):
+            bag = self._events.setdefault(sid, [])
+            if event_id:
+                old = next((e for e in bag if e.event_id == event_id), None)
+                if old is not None:
+                    return old
+            ev = EventRow(seq=len(bag), kind=kind, payload=payload, ts=time.time(),
+                          event_id=event_id)
+            bag.append(ev)
+            return ev
 
     async def read_events(self, sid: str, since: int = 0) -> list[EventRow]:
         return self._events.get(sid, [])[since:]
@@ -606,7 +1158,8 @@ class MemoryRepo:
     async def update_user(self, uid: str, *, role: str | None = None,
                           active: bool | None = None,
                           password_hash: str | None = None,
-                          prefs: dict[str, Any] | None = None) -> UserRow | None:
+                          prefs: dict[str, Any] | None = None,
+                          display_name: str | None = None) -> UserRow | None:
         u = self._users.get(uid)
         if u is None:
             return None
@@ -618,6 +1171,8 @@ class MemoryRepo:
             u.password_hash = password_hash
         if prefs is not None:
             u.prefs = prefs
+        if display_name is not None:
+            u.display_name = display_name
         return u
 
     async def delete_user(self, uid: str) -> bool:
@@ -629,6 +1184,20 @@ class MemoryRepo:
             self._auth.pop(th, None)
         self._users.pop(uid, None)
         return True
+
+    # ── 模型用量流水 ─────────────────────────────────────────────
+    async def add_usage(self, row: UsageRow) -> None:
+        row.validate()
+        self._usage.append(row)
+
+    async def usage_since(self, since: float, *, owner: str | None = None,
+                          limit: int = 5000) -> list[UsageRow]:
+        if limit <= 0:
+            return []
+        rows = [r for r in self._usage if r.ts >= since
+                and (owner is None or (r.owner or "") == owner)]
+        # 新的在前：截断时先丢最老的那批，而不是把最近发生的事情丢掉
+        return sorted(rows, key=lambda r: -r.ts)[:limit]
 
     # ── 登录会话 ─────────────────────────────────────────────────
     async def create_auth_session(self, row: AuthSessionRow) -> AuthSessionRow:
@@ -672,7 +1241,7 @@ class MemoryRepo:
         return False
 
     @asynccontextmanager
-    async def atomic(self) -> AsyncIterator["MemoryRepo"]:
+    async def atomic(self) -> AsyncIterator[MemoryRepo]:
         """内存里没有事务。**不假装有** —— 半途异常会留下部分写入。
 
         这正是内存模式的代价，而不是需要被抹平的差异：假装有事务会让人在
@@ -722,6 +1291,8 @@ class PgRepo:
     async def create_session(self, row: SessionRow) -> SessionRow:
         from datetime import UTC, datetime
 
+        import sqlalchemy as sa
+
         from . import schema as t
         row.created = row.created or time.time()
         # created_at 必须写调用方给的时间，不能一律 now()。
@@ -738,8 +1309,9 @@ class PgRepo:
         return row
 
     async def get_session(self, sid: str) -> SessionRow | None:
-        from . import schema as t
         import sqlalchemy as sa
+
+        from . import schema as t
         async with self._engine.connect() as conn:
             r = (await conn.execute(sa.select(t.session).where(
                 t.session.c.id == sid))).mappings().first()
@@ -747,8 +1319,9 @@ class PgRepo:
 
     async def list_sessions(self, limit: int = 100, *,
                             owner: str | None = None) -> list[SessionRow]:
-        from . import schema as t
         import sqlalchemy as sa
+
+        from . import schema as t
         q = sa.select(t.session)
         if owner is not None:                      # 只看归属自己的；NULL(无归属)天然被排除
             q = q.where(t.session.c.owner == owner)
@@ -758,8 +1331,9 @@ class PgRepo:
         return [_session_row(r) for r in rs]
 
     async def reassign_sessions(self, frm: str, to: str) -> int:
-        from . import schema as t
         import sqlalchemy as sa
+
+        from . import schema as t
         # 无归属在库里是 NULL，在内存里是 ""，两边都要认 —— 只匹配其中一种，
         # 换个 repo 实现就会漏掉一半会话。
         cond = (t.session.c.owner.is_(None) if not frm
@@ -776,6 +1350,368 @@ class PgRepo:
             await conn.execute(t.session.update().where(t.session.c.id == sid)
                                .values(status=status, error=error))
 
+    async def claim_session_status(
+        self, sid: str, *, from_statuses: Sequence[str], to_status: str,
+        error: str = "",
+    ) -> bool:
+        """用单条条件 UPDATE 完成 CAS；进程锁不能替代这个事务边界。"""
+        from . import schema as t
+        allowed = tuple(dict.fromkeys(from_statuses))
+        if not allowed:
+            return False
+        stmt = (t.session.update()
+                .where(t.session.c.id == sid, t.session.c.status.in_(allowed))
+                .values(status=to_status, error=error))
+        async with self._engine.begin() as conn:
+            result = await conn.execute(stmt)
+        return int(result.rowcount or 0) == 1
+
+    async def claim_build_lease(
+        self, sid: str, *, owner: str, now: float, ttl: float,
+        from_statuses: Sequence[str], to_status: str = "queued", error: str = "",
+    ) -> bool:
+        """Claim build state and lease in one transaction across all workers."""
+        from . import schema as t
+        allowed = tuple(dict.fromkeys(from_statuses))
+        if not owner or ttl <= 0:
+            raise ValueError("build lease owner 不能为空且 ttl 必须大于 0")
+        if not allowed:
+            return False
+        import sqlalchemy as sa
+        async with self._engine.begin() as conn:
+            # A no-op UPDATE is the common arbitration primitive for both databases:
+            # PostgreSQL locks this session row, while SQLite takes its database write
+            # lock before reading the status.  ``SELECT .. FOR UPDATE`` is silently
+            # ignored by SQLite and allowed two independent workers to both observe
+            # ``idle`` and overwrite the lease owner.
+            current_status = (await conn.execute(t.session.update().where(
+                t.session.c.id == sid,
+            ).values(state_version=t.session.c.state_version).returning(
+                t.session.c.status,
+            ))).scalar_one_or_none()
+            if current_status not in allowed:
+                return False
+            # An expired mutation is abandoned and may be consumed.  A live domain
+            # writer keeps build from changing status in this same transaction.
+            await conn.execute(sa.delete(t.mutation_lease).where(
+                t.mutation_lease.c.session_id == sid,
+                t.mutation_lease.c.expires_at <= now,
+            ))
+            live_mutation = bool((await conn.execute(sa.select(sa.exists(
+                sa.select(t.mutation_lease.c.session_id).where(
+                    t.mutation_lease.c.session_id == sid,
+                    t.mutation_lease.c.expires_at > now,
+                )
+            )))).scalar())
+            if live_mutation:
+                return False
+            # A live lease with a startable public status is inconsistent but must
+            # still fail closed.  Only an expired owner may be replaced.
+            await conn.execute(sa.delete(t.build_lease).where(
+                t.build_lease.c.session_id == sid,
+                t.build_lease.c.expires_at <= now,
+            ))
+            live_build = bool((await conn.execute(sa.select(sa.exists(
+                sa.select(t.build_lease.c.session_id).where(
+                    t.build_lease.c.session_id == sid,
+                )
+            )))).scalar())
+            if live_build:
+                return False
+            values = {
+                "session_id": sid, "owner": owner, "acquired_at": now,
+                "heartbeat_at": now, "expires_at": now + ttl,
+                "cancel_requested_at": None,
+            }
+            await conn.execute(t.build_lease.insert().values(**values))
+            await conn.execute(t.session.update().where(
+                t.session.c.id == sid,
+            ).values(status=to_status, error=error))
+        return True
+
+    async def renew_build_lease(
+        self, sid: str, *, owner: str, now: float, ttl: float,
+    ) -> bool:
+        import sqlalchemy as sa
+
+        from . import schema as t
+        if ttl <= 0:
+            raise ValueError("build lease ttl 必须大于 0")
+        active = sa.exists(sa.select(t.session.c.id).where(
+            t.session.c.id == sid,
+            t.session.c.status.in_(("queued", "parsing", "extracting")),
+        ))
+        async with self._engine.begin() as conn:
+            result = await conn.execute(t.build_lease.update().where(
+                t.build_lease.c.session_id == sid,
+                t.build_lease.c.owner == owner,
+                t.build_lease.c.cancel_requested_at.is_(None),
+                active,
+            ).values(heartbeat_at=now, expires_at=now + ttl))
+        return int(result.rowcount or 0) == 1
+
+    async def set_build_status(
+        self, sid: str, *, owner: str, now: float, status: str, error: str = "",
+    ) -> bool:
+        """Update status only while this exact invocation still owns a live lease."""
+        import sqlalchemy as sa
+
+        from . import schema as t
+        owns_live_lease = sa.exists(sa.select(t.build_lease.c.session_id).where(
+            t.build_lease.c.session_id == sid,
+            t.build_lease.c.owner == owner,
+            t.build_lease.c.cancel_requested_at.is_(None),
+            t.build_lease.c.expires_at > now,
+        ))
+        async with self._engine.begin() as conn:
+            result = await conn.execute(t.session.update().where(
+                t.session.c.id == sid,
+                t.session.c.status.in_(("queued", "parsing", "extracting")),
+                owns_live_lease,
+            ).values(status=status, error=error))
+        return int(result.rowcount or 0) == 1
+
+    async def release_build_lease(self, sid: str, *, owner: str) -> bool:
+        import sqlalchemy as sa
+
+        from . import schema as t
+        async with self._engine.begin() as conn:
+            result = await conn.execute(sa.delete(t.build_lease).where(
+                t.build_lease.c.session_id == sid,
+                t.build_lease.c.owner == owner,
+            ))
+        return int(result.rowcount or 0) == 1
+
+    async def request_build_cancel(self, sid: str, *, now: float) -> bool:
+        """Set stopped and mark the current lease cancelled in one transaction."""
+        from . import schema as t
+        async with self._engine.begin() as conn:
+            stopped = (await conn.execute(t.session.update().where(
+                t.session.c.id == sid,
+                t.session.c.status.in_(("queued", "parsing", "extracting")),
+            ).values(status="stopped", error="").returning(
+                t.session.c.id,
+            ))).scalar_one_or_none()
+            if stopped is None:
+                return False
+            await conn.execute(t.build_lease.update().where(
+                t.build_lease.c.session_id == sid,
+            ).values(cancel_requested_at=now))
+        return True
+
+    async def reap_expired_build_lease(
+        self, sid: str, *, now: float, error: str,
+    ) -> bool:
+        """Atomically consume an expired lease before marking its build failed.
+
+        The guarded DELETE is the arbitration point with ``renew_build_lease``:
+        whichever write wins is observed by the other.  A reaper that merely read an
+        old expiry could otherwise overwrite a heartbeat that committed meanwhile.
+        """
+        import sqlalchemy as sa
+
+        from . import schema as t
+        async with self._engine.begin() as conn:
+            # All build lifecycle mutations take the parent session before the lease.
+            # Keeping that lock order avoids a Postgres deadlock with
+            # request_build_cancel (session -> lease), while the guarded DELETE below
+            # remains the renewal/reap arbitration point.
+            current_status = (await conn.execute(sa.select(t.session.c.status).where(
+                t.session.c.id == sid,
+            ).with_for_update())).scalar_one_or_none()
+            if current_status not in {"queued", "parsing", "extracting"}:
+                return False
+            consumed = (await conn.execute(sa.delete(t.build_lease).where(
+                t.build_lease.c.session_id == sid,
+                t.build_lease.c.expires_at <= now,
+            ).returning(t.build_lease.c.session_id))).scalar_one_or_none()
+            if consumed is None:
+                # No row means either a legacy running session (safe to reconcile) or
+                # a live lease.  Distinguish them inside this same transaction.
+                has_live_lease = bool((await conn.execute(sa.select(sa.exists(
+                    sa.select(t.build_lease.c.session_id).where(
+                        t.build_lease.c.session_id == sid,
+                    )
+                )))).scalar())
+                if has_live_lease:
+                    return False
+            updated = (await conn.execute(t.session.update().where(
+                t.session.c.id == sid,
+                t.session.c.status.in_(("queued", "parsing", "extracting")),
+            ).values(status="failed", error=error).returning(
+                t.session.c.id,
+            ))).scalar_one_or_none()
+            if updated is None:
+                return False
+        return True
+
+    async def claim_chat_lease(
+        self, sid: str, *, owner: str, now: float, ttl: float,
+    ) -> bool:
+        """Claim an absent/expired session chat lease with one atomic upsert."""
+        if not owner or ttl <= 0:
+            raise ValueError("chat lease owner 不能为空且 ttl 必须大于 0")
+        if self.mode == "postgresql":
+            from sqlalchemy.dialects.postgresql import insert
+        else:
+            from sqlalchemy.dialects.sqlite import insert
+        from . import schema as t
+        values = {
+            "session_id": sid, "owner": owner, "acquired_at": now,
+            "heartbeat_at": now, "expires_at": now + ttl,
+            "cancel_requested_at": None,
+        }
+        async with self._engine.begin() as conn:
+            import sqlalchemy as sa
+            status = (await conn.execute(sa.select(t.session.c.status).where(
+                t.session.c.id == sid,
+            ).with_for_update())).scalar_one_or_none()
+            if status is None:
+                return False
+            await conn.execute(sa.delete(t.mutation_lease).where(
+                t.mutation_lease.c.session_id == sid,
+                t.mutation_lease.c.expires_at <= now,
+            ))
+            live_mutation = bool((await conn.execute(sa.select(sa.exists(
+                sa.select(t.mutation_lease.c.session_id).where(
+                    t.mutation_lease.c.session_id == sid,
+                    t.mutation_lease.c.expires_at > now,
+                )
+            )))).scalar())
+            if live_mutation:
+                return False
+            stmt = insert(t.chat_lease).values(**values).on_conflict_do_update(
+                index_elements=["session_id"],
+                set_={key: value for key, value in values.items() if key != "session_id"},
+                where=t.chat_lease.c.expires_at <= now,
+            ).returning(t.chat_lease.c.owner)
+            try:
+                claimed = (await conn.execute(stmt)).scalar_one_or_none()
+            except Exception as exc:
+                # Missing session is a normal false claim.  Preserve genuine DB errors;
+                # checking parent first would introduce a TOCTOU with session deletion.
+                from sqlalchemy.exc import IntegrityError
+                if isinstance(exc, IntegrityError):
+                    return False
+                raise
+        return claimed == owner
+
+    async def renew_chat_lease(
+        self, sid: str, *, owner: str, now: float, ttl: float,
+    ) -> bool:
+        if ttl <= 0:
+            raise ValueError("chat lease ttl 必须大于 0")
+        from . import schema as t
+        async with self._engine.begin() as conn:
+            result = await conn.execute(t.chat_lease.update().where(
+                t.chat_lease.c.session_id == sid,
+                t.chat_lease.c.owner == owner,
+                t.chat_lease.c.cancel_requested_at.is_(None),
+                t.chat_lease.c.expires_at > now,
+            ).values(heartbeat_at=now, expires_at=now + ttl))
+        return int(result.rowcount or 0) == 1
+
+    async def release_chat_lease(self, sid: str, *, owner: str) -> bool:
+        import sqlalchemy as sa
+
+        from . import schema as t
+        async with self._engine.begin() as conn:
+            result = await conn.execute(sa.delete(t.chat_lease).where(
+                t.chat_lease.c.session_id == sid,
+                t.chat_lease.c.owner == owner,
+            ))
+        return int(result.rowcount or 0) == 1
+
+    async def request_chat_cancel(self, sid: str, *, now: float) -> bool:
+        from . import schema as t
+        async with self._engine.begin() as conn:
+            result = await conn.execute(t.chat_lease.update().where(
+                t.chat_lease.c.session_id == sid,
+                t.chat_lease.c.expires_at > now,
+                t.chat_lease.c.cancel_requested_at.is_(None),
+            ).values(cancel_requested_at=now))
+        return int(result.rowcount or 0) == 1
+
+    async def claim_mutation_lease(
+        self, sid: str, *, owner: str, kind: str, now: float, ttl: float,
+    ) -> bool:
+        """Claim a domain mutation after locking the parent session row."""
+        import sqlalchemy as sa
+
+        from . import schema as t
+        if not owner or not kind or ttl <= 0:
+            raise ValueError("mutation lease owner/kind 不能为空且 ttl 必须大于 0")
+        async with self._engine.begin() as conn:
+            # See ``claim_build_lease``: this must be a write, not FOR UPDATE, so two
+            # aiosqlite connections cannot both pass their precondition snapshot.
+            status = (await conn.execute(t.session.update().where(
+                t.session.c.id == sid,
+            ).values(state_version=t.session.c.state_version).returning(
+                t.session.c.status,
+            ))).scalar_one_or_none()
+            if status is None or status in {"queued", "parsing", "extracting"}:
+                return False
+            live_build = bool((await conn.execute(sa.select(sa.exists(
+                sa.select(t.build_lease.c.session_id).where(
+                    t.build_lease.c.session_id == sid,
+                    t.build_lease.c.expires_at > now,
+                    t.build_lease.c.cancel_requested_at.is_(None),
+                )
+            )))).scalar())
+            if live_build:
+                return False
+            live_other_chat = bool((await conn.execute(sa.select(sa.exists(
+                sa.select(t.chat_lease.c.session_id).where(
+                    t.chat_lease.c.session_id == sid,
+                    t.chat_lease.c.owner != owner,
+                    t.chat_lease.c.expires_at > now,
+                    t.chat_lease.c.cancel_requested_at.is_(None),
+                )
+            )))).scalar())
+            if live_other_chat:
+                return False
+            await conn.execute(sa.delete(t.mutation_lease).where(
+                t.mutation_lease.c.session_id == sid,
+                t.mutation_lease.c.expires_at <= now,
+            ))
+            exists = bool((await conn.execute(sa.select(sa.exists(
+                sa.select(t.mutation_lease.c.session_id).where(
+                    t.mutation_lease.c.session_id == sid,
+                )
+            )))).scalar())
+            if exists:
+                return False
+            await conn.execute(t.mutation_lease.insert().values(
+                session_id=sid, owner=owner, kind=kind,
+                acquired_at=now, heartbeat_at=now, expires_at=now + ttl,
+            ))
+        return True
+
+    async def renew_mutation_lease(
+        self, sid: str, *, owner: str, now: float, ttl: float,
+    ) -> bool:
+        from . import schema as t
+        if ttl <= 0:
+            raise ValueError("mutation lease ttl 必须大于 0")
+        async with self._engine.begin() as conn:
+            result = await conn.execute(t.mutation_lease.update().where(
+                t.mutation_lease.c.session_id == sid,
+                t.mutation_lease.c.owner == owner,
+                t.mutation_lease.c.expires_at > now,
+            ).values(heartbeat_at=now, expires_at=now + ttl))
+        return int(result.rowcount or 0) == 1
+
+    async def release_mutation_lease(self, sid: str, *, owner: str) -> bool:
+        import sqlalchemy as sa
+
+        from . import schema as t
+        async with self._engine.begin() as conn:
+            result = await conn.execute(sa.delete(t.mutation_lease).where(
+                t.mutation_lease.c.session_id == sid,
+                t.mutation_lease.c.owner == owner,
+            ))
+        return int(result.rowcount or 0) == 1
+
     async def delete_session(self, sid: str) -> bool:
         """删会话。子表靠 ON DELETE CASCADE 跟着走。
 
@@ -783,8 +1719,9 @@ class PgRepo:
         确认外键真的声明了它** —— 没声明的话这里删完，子表里全是指向不存在会话的
         孤儿行，而且要等到下一次 JOIN 才会暴露。
         """
-        from . import schema as t
         import sqlalchemy as sa
+
+        from . import schema as t
         async with self._engine.begin() as conn:
             # SQLite 测试默认不启用 foreign_keys；显式删除三张新领域表，避免行为
             # 和 Postgres 的 ON DELETE CASCADE 分叉。
@@ -807,8 +1744,9 @@ class PgRepo:
         return await self.list_files(sid)
 
     async def list_files(self, sid: str) -> list[FileRow]:
-        from . import schema as t
         import sqlalchemy as sa
+
+        from . import schema as t
         async with self._engine.connect() as conn:
             rs = (await conn.execute(
                 sa.select(t.session_file)
@@ -820,8 +1758,9 @@ class PgRepo:
 
     async def remove_file(self, sid: str, name: str) -> bool:
         """撤掉一份材料。返回是否真的删到了 —— 删不存在的不是错误，但要如实回答。"""
-        from . import schema as t
         import sqlalchemy as sa
+
+        from . import schema as t
         async with self._engine.begin() as conn:
             r = await conn.execute(sa.delete(t.session_file).where(
                 sa.and_(t.session_file.c.session_id == sid,
@@ -831,21 +1770,31 @@ class PgRepo:
     # ── 状态 ─────────────────────────────────────────────────────
     async def save_state(self, sid: str, docs: dict[str, Any], *,
                          conflicts: Sequence[dict[str, Any]] | None = None,
-                         asked_rids: Sequence[str] = ()) -> int:
+                         asked_rids: Sequence[str] = (),
+                         expected_version: int | None = None) -> int | None:
         """一次 mutation 一个事务：state 文档 + 整代冲突一起落，版本号一起推进。
 
         这是**唯一**的状态写入口。现在 s.state["oir"] 与 s.state["_oir"] 的漂移
         就来自"有的路径刷、有的路径不刷"，只留一个入口才能从结构上杜绝。
         """
-        from . import schema as t
         import sqlalchemy as sa
+
+        from . import schema as t
 
         async with self._engine.begin() as conn:
             # 行锁 + 自增：并发的两次 save_state 拿到不同版本号，后者可见前者。
+            where = [t.session.c.id == sid]
+            if expected_version is not None:
+                where.append(t.session.c.state_version == expected_version)
+            # ``expected_version`` turns this into compare-and-swap.  PostgreSQL
+            # serializes concurrent UPDATEs on the row and rechecks the predicate;
+            # SQLite serializes writers, so exactly one stale snapshot can commit.
             ver = (await conn.execute(
-                t.session.update().where(t.session.c.id == sid)
+                t.session.update().where(*where)
                 .values(state_version=t.session.c.state_version + 1)
-                .returning(t.session.c.state_version))).scalar_one()
+                .returning(t.session.c.state_version))).scalar_one_or_none()
+            if ver is None:
+                return None
 
             for key, doc in docs.items():
                 await conn.execute(self._upsert(
@@ -874,10 +1823,187 @@ class PgRepo:
                     await conn.execute(t.conflict.insert(), rows)
         return int(ver)
 
+    async def save_mutation_state(
+        self, sid: str, docs: dict[str, Any], *, owner: str, now: float,
+        status: str, error: str = "",
+        conflicts: Sequence[dict[str, Any]] | None = None,
+        asked_rids: Sequence[str] = (),
+        chat_owner: str = "",
+        expected_version: int | None = None,
+    ) -> int | None:
+        """Commit a domain projection only for the live invocation owner."""
+        import sqlalchemy as sa
+
+        from . import schema as t
+        async with self._engine.begin() as conn:
+            owns_live_lease = sa.exists(sa.select(t.mutation_lease.c.session_id).where(
+                t.mutation_lease.c.session_id == sid,
+                t.mutation_lease.c.owner == owner,
+                t.mutation_lease.c.expires_at > now,
+            ))
+            where = [t.session.c.id == sid, owns_live_lease]
+            if chat_owner:
+                owns_live_chat = sa.exists(sa.select(t.chat_lease.c.session_id).where(
+                    t.chat_lease.c.session_id == sid,
+                    t.chat_lease.c.owner == chat_owner,
+                    t.chat_lease.c.cancel_requested_at.is_(None),
+                    t.chat_lease.c.expires_at > now,
+                ))
+                where.append(owns_live_chat)
+            if expected_version is not None:
+                where.append(t.session.c.state_version == expected_version)
+            ver = (await conn.execute(t.session.update().where(*where).values(
+                status=status, error=error,
+                state_version=t.session.c.state_version + 1,
+            ).returning(t.session.c.state_version))).scalar_one_or_none()
+            if ver is None:
+                return None
+            for key, doc in docs.items():
+                await conn.execute(self._upsert(
+                    t.session_state,
+                    {"session_id": sid, "key": key, "doc": doc, "version": ver,
+                     "derived": key in DERIVED_KEYS},
+                    index_elements=["session_id", "key"],
+                    update=["doc", "version", "derived"],
+                ))
+            if conflicts is not None:
+                await conn.execute(sa.delete(t.conflict).where(
+                    t.conflict.c.session_id == sid,
+                ))
+                ranks = {rid: i for i, rid in enumerate(asked_rids)}
+                rows = [{
+                    "session_id": sid, "rid": c["rid"], "kind": c["kind"],
+                    "handling": c["handling"], "summary": c.get("summary", ""),
+                    "subjects": c.get("subjects") or [],
+                    "detector": c.get("detector", "rule"), "owner": c.get("owner"),
+                    "doc": c, "asked": c["rid"] in ranks,
+                    "ask_rank": ranks.get(c["rid"]), "version": ver,
+                } for c in conflicts]
+                if rows:
+                    await conn.execute(t.conflict.insert(), rows)
+        return int(ver)
+
+    async def save_build_state(
+        self, sid: str, docs: dict[str, Any], *, owner: str, now: float,
+        status: str, error: str = "",
+        conflicts: Sequence[dict[str, Any]] | None = None,
+        asked_rids: Sequence[str] = (),
+        expected_version: int | None = None,
+    ) -> int | None:
+        """Atomically fence and persist one build checkpoint.
+
+        Status, state documents and the conflict generation share the same transaction;
+        a stopped/stale invocation therefore cannot write documents and only then learn
+        that it lost ownership.
+        """
+        import sqlalchemy as sa
+
+        from . import schema as t
+        async with self._engine.begin() as conn:
+            owns_live_lease = sa.exists(sa.select(t.build_lease.c.session_id).where(
+                t.build_lease.c.session_id == sid,
+                t.build_lease.c.owner == owner,
+                t.build_lease.c.cancel_requested_at.is_(None),
+                t.build_lease.c.expires_at > now,
+            ))
+            where = [
+                t.session.c.id == sid,
+                t.session.c.status.in_(("queued", "parsing", "extracting")),
+                owns_live_lease,
+            ]
+            if expected_version is not None:
+                where.append(t.session.c.state_version == expected_version)
+            ver = (await conn.execute(t.session.update().where(*where).values(
+                status=status, error=error,
+                state_version=t.session.c.state_version + 1,
+            ).returning(t.session.c.state_version))).scalar_one_or_none()
+            if ver is None:
+                return None
+            for key, doc in docs.items():
+                await conn.execute(self._upsert(
+                    t.session_state,
+                    {"session_id": sid, "key": key, "doc": doc, "version": ver,
+                     "derived": key in DERIVED_KEYS},
+                    index_elements=["session_id", "key"],
+                    update=["doc", "version", "derived"],
+                ))
+            if conflicts is not None:
+                await conn.execute(sa.delete(t.conflict).where(
+                    t.conflict.c.session_id == sid,
+                ))
+                ranks = {rid: i for i, rid in enumerate(asked_rids)}
+                rows = [{
+                    "session_id": sid, "rid": c["rid"], "kind": c["kind"],
+                    "handling": c["handling"], "summary": c.get("summary", ""),
+                    "subjects": c.get("subjects") or [],
+                    "detector": c.get("detector", "rule"), "owner": c.get("owner"),
+                    "doc": c, "asked": c["rid"] in ranks,
+                    "ask_rank": ranks.get(c["rid"]), "version": ver,
+                } for c in conflicts]
+                if rows:
+                    await conn.execute(t.conflict.insert(), rows)
+        return int(ver)
+
+    async def save_chat_state(
+        self, sid: str, docs: dict[str, Any], *, owner: str, now: float,
+        conflicts: Sequence[dict[str, Any]] | None = None,
+        asked_rids: Sequence[str] = (),
+        expected_version: int | None = None,
+    ) -> int | None:
+        """Atomically fence and persist one chat mutation.
+
+        Checking the lease and advancing ``state_version`` happen in the same
+        transaction.  A chat coroutine that outlived its lease (expiry, takeover or
+        durable ``/stop``) therefore cannot overwrite the next worker's projection.
+        """
+        import sqlalchemy as sa
+
+        from . import schema as t
+        async with self._engine.begin() as conn:
+            owns_live_lease = sa.exists(sa.select(t.chat_lease.c.session_id).where(
+                t.chat_lease.c.session_id == sid,
+                t.chat_lease.c.owner == owner,
+                t.chat_lease.c.cancel_requested_at.is_(None),
+                t.chat_lease.c.expires_at > now,
+            ))
+            where = [t.session.c.id == sid, owns_live_lease]
+            if expected_version is not None:
+                where.append(t.session.c.state_version == expected_version)
+            ver = (await conn.execute(t.session.update().where(*where).values(
+                state_version=t.session.c.state_version + 1,
+            ).returning(t.session.c.state_version))).scalar_one_or_none()
+            if ver is None:
+                return None
+            for key, doc in docs.items():
+                await conn.execute(self._upsert(
+                    t.session_state,
+                    {"session_id": sid, "key": key, "doc": doc, "version": ver,
+                     "derived": key in DERIVED_KEYS},
+                    index_elements=["session_id", "key"],
+                    update=["doc", "version", "derived"],
+                ))
+            if conflicts is not None:
+                await conn.execute(sa.delete(t.conflict).where(
+                    t.conflict.c.session_id == sid,
+                ))
+                ranks = {rid: i for i, rid in enumerate(asked_rids)}
+                rows = [{
+                    "session_id": sid, "rid": c["rid"], "kind": c["kind"],
+                    "handling": c["handling"], "summary": c.get("summary", ""),
+                    "subjects": c.get("subjects") or [],
+                    "detector": c.get("detector", "rule"), "owner": c.get("owner"),
+                    "doc": c, "asked": c["rid"] in ranks,
+                    "ask_rank": ranks.get(c["rid"]), "version": ver,
+                } for c in conflicts]
+                if rows:
+                    await conn.execute(t.conflict.insert(), rows)
+        return int(ver)
+
     async def load_state(self, sid: str, *, keys: Iterable[str] | None = None,
                          include_derived: bool = True) -> dict[str, Any]:
-        from . import schema as t
         import sqlalchemy as sa
+
+        from . import schema as t
         q = sa.select(t.session_state.c.key, t.session_state.c.doc).where(
             t.session_state.c.session_id == sid)
         if keys is not None:
@@ -889,8 +2015,9 @@ class PgRepo:
         return {k: v for k, v in rs}
 
     async def list_conflicts(self, sid: str) -> list[dict[str, Any]]:
-        from . import schema as t
         import sqlalchemy as sa
+
+        from . import schema as t
         async with self._engine.connect() as conn:
             rs = (await conn.execute(
                 sa.select(t.conflict.c.doc)
@@ -900,8 +2027,9 @@ class PgRepo:
         return list(rs)
 
     async def get_conflict(self, sid: str, rid: str) -> dict[str, Any] | None:
-        from . import schema as t
         import sqlalchemy as sa
+
+        from . import schema as t
         async with self._engine.connect() as conn:
             return (await conn.execute(sa.select(t.conflict.c.doc).where(
                 sa.and_(t.conflict.c.session_id == sid,
@@ -911,8 +2039,9 @@ class PgRepo:
     async def record_decision(self, sid: str, d: DecisionRow) -> DecisionRow:
         """append-only。推翻旧决定与写入新决定必须在同一事务里 ——
         否则 decision_live_answer_uq 会在中间态上炸。"""
-        from . import schema as t
         import sqlalchemy as sa
+
+        from . import schema as t
         d.ts = d.ts or time.time()
         async with self._engine.begin() as conn:
             # 发号走 session 上的计数器（行锁），不是 MAX(ordinal)+1：
@@ -944,8 +2073,9 @@ class PgRepo:
 
     async def list_decisions(self, sid: str, *, active_only: bool = False
                              ) -> list[DecisionRow]:
-        from . import schema as t
         import sqlalchemy as sa
+
+        from . import schema as t
         q = sa.select(t.decision).where(t.decision.c.session_id == sid)
         if active_only:
             q = q.where(t.decision.c.superseded_by.is_(None))
@@ -959,8 +2089,9 @@ class PgRepo:
             note=r["note"], ts=r["ts"]) for r in rs]
 
     async def answered_rids(self, sid: str) -> set[str]:
-        from . import schema as t
         import sqlalchemy as sa
+
+        from . import schema as t
         async with self._engine.connect() as conn:
             rs = (await conn.execute(
                 sa.select(t.decision.c.target_rid).where(sa.and_(
@@ -999,10 +2130,63 @@ class PgRepo:
                             "version", "updated_at"]))
         return await self.list_questions(sid)
 
+    async def save_question(self, sid: str, row: QuestionRow, *,
+                            expected_version: int | None = None) -> QuestionRow:
+        """单行 CAS；问题工作台不能用 bulk upsert 覆盖并发人工回答。"""
+        from datetime import UTC, datetime
+
+        import sqlalchemy as sa
+
+        from ..onto.questions import RevisionConflict
+        from . import schema as t
+        now = time.time()
+        values = {
+            "text": row.text, "status": row.status,
+            "owner_user_id": row.owner_user_id, "audience_role": row.audience_role,
+            "answer_schema": row.answer_schema, "priority": row.priority,
+            "dependencies": row.dependencies, "blocked_artifacts": row.blocked_artifacts,
+            "source_kind": row.source_kind, "source_ref": row.source_ref,
+            "doc": row.doc, "updated_at": datetime.fromtimestamp(row.updated or now, tz=UTC),
+        }
+        async with self._engine.begin() as conn:
+            if expected_version is None:
+                existing = (await conn.execute(sa.select(t.question_item.c.version).where(
+                    sa.and_(t.question_item.c.session_id == sid,
+                            t.question_item.c.id == row.id)))).scalar_one_or_none()
+                if existing is None:
+                    await conn.execute(t.question_item.insert().values(
+                        session_id=sid, id=row.id, version=row.version,
+                        created_at=datetime.fromtimestamp(row.created or now, tz=UTC),
+                        **values))
+                else:
+                    await conn.execute(t.question_item.update().where(sa.and_(
+                        t.question_item.c.session_id == sid,
+                        t.question_item.c.id == row.id)).values(version=row.version, **values))
+            else:
+                row.version = expected_version + 1
+                row.updated = row.updated or now
+                row.doc["version"] = row.version
+                row.doc["updatedAt"] = row.updated
+                values["doc"] = row.doc
+                values["updated_at"] = datetime.fromtimestamp(row.updated, tz=UTC)
+                result = await conn.execute(t.question_item.update().where(sa.and_(
+                    t.question_item.c.session_id == sid,
+                    t.question_item.c.id == row.id,
+                    t.question_item.c.version == expected_version
+                )).values(version=row.version, **values))
+                if not result.rowcount:
+                    actual = (await conn.execute(sa.select(t.question_item.c.version).where(
+                        sa.and_(t.question_item.c.session_id == sid,
+                                t.question_item.c.id == row.id)))).scalar_one_or_none()
+                    raise RevisionConflict(
+                        f"问题 {row.id} 预期 version {expected_version}，实际是 {actual}")
+        return row
+
     async def list_questions(self, sid: str, *, statuses: Sequence[str] | None = None
                              ) -> list[QuestionRow]:
-        from . import schema as t
         import sqlalchemy as sa
+
+        from . import schema as t
         q = sa.select(t.question_item).where(t.question_item.c.session_id == sid)
         if statuses is not None:
             q = q.where(t.question_item.c.status.in_(list(statuses)))
@@ -1012,8 +2196,9 @@ class PgRepo:
         return [_question_row(r) for r in rows]
 
     async def get_question(self, sid: str, qid: str) -> QuestionRow | None:
-        from . import schema as t
         import sqlalchemy as sa
+
+        from . import schema as t
         async with self._engine.connect() as conn:
             row = (await conn.execute(sa.select(t.question_item).where(sa.and_(
                 t.question_item.c.session_id == sid,
@@ -1028,7 +2213,14 @@ class PgRepo:
 
         from ..onto.questions import IdempotencyConflict
         from . import schema as t
+        if not row.idempotency_key:
+            raise ValueError("Decision 必须提供 idempotency_key")
         async with self._engine.begin() as conn:
+            # Postgres 上按 session 串行化 claim，避免两个 worker 同时看到
+            # “无 active decision”后插入同一内容哈希主键。SQLite 会忽略
+            # FOR UPDATE，其写事务仍会串行化。
+            await conn.execute(sa.select(t.session.c.id).where(
+                t.session.c.id == sid).with_for_update())
             existing = (await conn.execute(sa.select(t.decision_record).where(sa.and_(
                 t.decision_record.c.session_id == sid,
                 t.decision_record.c.idempotency_key == row.idempotency_key
@@ -1047,6 +2239,8 @@ class PgRepo:
             )).order_by(t.decision_record.c.created_at))).mappings().all()
             prior_rows = [_decision_record_row(r) for r in rows]
             active = _active_decision_v1(prior_rows, row.question_id)
+            if active and active.semantic_hash == row.semantic_hash:
+                return active, False
             if active:
                 row.supersedes = active.id
             row.created = row.created or time.time()
@@ -1061,9 +2255,42 @@ class PgRepo:
                 created_at=datetime.fromtimestamp(row.created, tz=UTC)))
         return row, True
 
-    async def list_decisions_v1(self, sid: str) -> list[DecisionRecordRow]:
-        from . import schema as t
+    async def finalize_decision_v1(self, sid: str, decision_id: str, *,
+                                   status: str, error: str = ""
+                                   ) -> DecisionRecordRow:
         import sqlalchemy as sa
+
+        from . import schema as t
+        if status not in {"applied", "failed"}:
+            raise ValueError(f"不支持的 Decision 终态: {status}")
+        async with self._engine.begin() as conn:
+            raw = (await conn.execute(sa.select(t.decision_record).where(sa.and_(
+                t.decision_record.c.session_id == sid,
+                t.decision_record.c.id == decision_id
+            )).with_for_update())).mappings().first()
+            if raw is None:
+                raise KeyError(f"没有 Decision {decision_id}")
+            row = _decision_record_row(raw)
+            current = str(row.metadata.get("status") or "applied")
+            if current in {"applied", "failed"} and current != status:
+                raise ValueError(f"Decision {decision_id} 已是 {current}，不能改为 {status}")
+            row.metadata = {**row.metadata, "status": status}
+            if error:
+                row.metadata["error"] = error
+            else:
+                row.metadata.pop("error", None)
+            # updated_at 未单独加列；终态时间放 metadata，保持 append-only 表主结构。
+            row.metadata["finalizedAt"] = time.time()
+            await conn.execute(t.decision_record.update().where(sa.and_(
+                t.decision_record.c.session_id == sid,
+                t.decision_record.c.id == decision_id
+            )).values(metadata=row.metadata))
+        return row
+
+    async def list_decisions_v1(self, sid: str) -> list[DecisionRecordRow]:
+        import sqlalchemy as sa
+
+        from . import schema as t
         async with self._engine.connect() as conn:
             rows = (await conn.execute(sa.select(t.decision_record).where(
                 t.decision_record.c.session_id == sid
@@ -1102,9 +2329,94 @@ class PgRepo:
                 created_at=datetime.fromtimestamp(row.created, tz=UTC)))
         return row, True
 
-    async def list_revisions(self, sid: str) -> list[RevisionRow]:
-        from . import schema as t
+    async def append_revision(self, sid: str,
+                              row: RevisionRow) -> tuple[RevisionRow, bool]:
+        """Postgres/SQLite 统一的原子 Revision 发号。"""
+        from datetime import UTC, datetime
+
         import sqlalchemy as sa
+
+        from . import schema as t
+        async with self._engine.begin() as conn:
+            # 与 Decision claim 使用同一 session 行串行化，不用 MAX+1 竞态。
+            await conn.execute(sa.select(t.session.c.id).where(
+                t.session.c.id == sid).with_for_update())
+            if row.idempotency_key:
+                existing = (await conn.execute(sa.select(t.revision_record).where(sa.and_(
+                    t.revision_record.c.session_id == sid,
+                    t.revision_record.c.idempotency_key == row.idempotency_key
+                )))).mappings().first()
+                if existing:
+                    return _revision_row(existing), False
+            prior = (await conn.execute(sa.select(
+                t.revision_record.c.id, t.revision_record.c.ordinal
+            ).where(t.revision_record.c.session_id == sid)
+                .order_by(t.revision_record.c.ordinal.desc()).limit(1))).first()
+            ordinal = int(prior.ordinal) + 1 if prior else 1
+            parent = prior.id if prior else None
+            row.ordinal = ordinal
+            row.id = f"rev.{ordinal}"
+            row.parent_id = parent
+            row.doc["id"] = row.id
+            row.doc["ordinal"] = ordinal
+            row.doc["parentId"] = parent
+            row.created = row.created or time.time()
+            await conn.execute(t.revision_record.insert().values(
+                session_id=sid, id=row.id, ordinal=row.ordinal,
+                parent_id=row.parent_id, kind=row.kind, status=row.status,
+                patch_set=row.patch_set, changed_ids=row.changed_ids,
+                invalidated_artifacts=row.invalidated_artifacts, actor=row.actor,
+                source_turn=row.source_turn, snapshot_hash=row.snapshot_hash,
+                idempotency_key=row.idempotency_key, doc=row.doc,
+                created_at=datetime.fromtimestamp(row.created, tz=UTC)))
+        return row, True
+
+    async def finalize_revision(self, sid: str, revision_id: str, *,
+                                status: str) -> RevisionRow:
+        """Atomically move ``proposed`` to one terminal artifact state."""
+        import sqlalchemy as sa
+
+        from . import schema as t
+        allowed = {"applied", "rejected", "rolled_back"}
+        if status not in allowed:
+            raise ValueError(f"不支持的 Revision 终态: {status}")
+        async with self._engine.begin() as conn:
+            raw = (await conn.execute(sa.select(t.revision_record).where(sa.and_(
+                t.revision_record.c.session_id == sid,
+                t.revision_record.c.id == revision_id,
+            )))).mappings().first()
+            if raw is None:
+                raise KeyError(f"没有 Revision {revision_id}")
+            row = _revision_row(raw)
+            terminal_doc = {**row.doc, "status": status}
+            updated = (await conn.execute(t.revision_record.update().where(sa.and_(
+                t.revision_record.c.session_id == sid,
+                t.revision_record.c.id == revision_id,
+                t.revision_record.c.status == "proposed",
+            )).values(status=status, doc=terminal_doc).returning(
+                t.revision_record,
+            ))).mappings().first()
+            if updated is not None:
+                return _revision_row(updated)
+
+            # SQLite ignores ``FOR UPDATE``.  The guarded UPDATE above is the actual
+            # arbitration point, so two terminal writers cannot both succeed.  Read
+            # back the winner to make same-status retries idempotent and reject a
+            # conflicting terminal transition.
+            current = (await conn.execute(sa.select(t.revision_record).where(sa.and_(
+                t.revision_record.c.session_id == sid,
+                t.revision_record.c.id == revision_id,
+            )))).mappings().one()
+            terminal = _revision_row(current)
+            if terminal.status != status:
+                raise ValueError(
+                    f"Revision {revision_id} 已是 {terminal.status}，不能改为 {status}")
+            return terminal
+
+    async def list_revisions(self, sid: str) -> list[RevisionRow]:
+        import sqlalchemy as sa
+
+        from . import schema as t
         async with self._engine.connect() as conn:
             rows = (await conn.execute(sa.select(t.revision_record).where(
                 t.revision_record.c.session_id == sid
@@ -1113,31 +2425,72 @@ class PgRepo:
 
     # ── 事件 ─────────────────────────────────────────────────────
     async def append_event(self, sid: str, kind: str,
-                           payload: dict[str, Any]) -> EventRow:
+                           payload: dict[str, Any], *, event_id: str = ""
+                           ) -> EventRow:
         """发号 + 落行一个事务。seq 由 session.next_event_seq 的行锁保证唯一 ——
         现在的 ``len(self.events)``（server.py:109）在多 worker 下必然重号。"""
+        import sqlalchemy as sa
+
         from . import schema as t
         blob_ref = None
         raw = json.dumps(payload, ensure_ascii=False, default=str)
-        if len(raw.encode("utf-8")) > EVENT_INLINE_LIMIT:
+        raw_bytes = raw.encode("utf-8")
+        # The row returned to the publisher is also the live SSE projection.  Keep
+        # that projection in the same JSON-normalised shape that ``read_events``
+        # will reconstruct after a reconnect; only the database representation may
+        # be replaced by a blob reference.
+        committed_payload = json.loads(raw)
+        stored_payload = committed_payload
+        if len(raw_bytes) > EVENT_INLINE_LIMIT:
             # 大 payload 落 blob。单条 node.completed node=CONFLICT 实测 235 KB，
             # 而那份内容 conflict 表里已经有了 —— 事件流不该是第二个副本。
-            blob_ref = await self._put_blob(raw.encode("utf-8"))
-            payload = {"_ref": blob_ref, "_bytes": len(raw.encode("utf-8"))}
+            blob_ref = await self._put_blob(raw_bytes)
+            stored_payload = {"_ref": blob_ref, "_bytes": len(raw_bytes)}
         ts = time.time()
         async with self._engine.begin() as conn:
-            seq = (await conn.execute(
+            # Lock the owning session before checking event_id.  This serialises
+            # same-session producers on both PostgreSQL and SQLite; a retry can
+            # observe a just-committed original before allocating another seq.
+            await conn.execute(
                 t.session.update().where(t.session.c.id == sid)
-                .values(next_event_seq=t.session.c.next_event_seq + 1)
-                .returning(t.session.c.next_event_seq))).scalar_one() - 1
+                .values(next_event_seq=t.session.c.next_event_seq))
+            if event_id:
+                prior = (await conn.execute(t.session_event.select().where(
+                    t.session_event.c.event_id == event_id))).mappings().first()
+                if prior is not None:
+                    prior_payload = prior["payload"]
+                    if prior["ref"]:
+                        prior_payload = json.loads(
+                            (await self._get_blob(conn, prior["ref"])).decode("utf-8"))
+                    return EventRow(seq=int(prior["seq"]), kind=prior["kind"],
+                                    payload=prior_payload, ts=prior["ts"],
+                                    event_id=prior["event_id"] or "")
+            # **计数器可能落在已提交行的后面，这时不能信它。** 一旦如此，分配出来
+            # 的 seq 会撞 UNIQUE 约束，而重试永远撞同一个号 —— 这个会话从此再也
+            # 写不进任何事件，界面上表现为"消息要刷新才出现"。历史上文件库跑在
+            # StaticPool 上（见 engine.py）就把计数器搅回去过，这些会话即使换了
+            # 连接池也还是坏的。所以从**表里的真实最大值**兜一次底，顺手把计数器
+            # 修回来 —— 自愈比一条修数据的 SQL 可靠，因为没人会记得去跑那条 SQL。
+            used = (await conn.execute(
+                sa.select(sa.func.max(t.session_event.c.seq))
+                .where(t.session_event.c.session_id == sid))).scalar()
+            nxt = (await conn.execute(
+                sa.select(t.session.c.next_event_seq)
+                .where(t.session.c.id == sid))).scalar_one()
+            seq = max(int(nxt or 0), int(used) + 1 if used is not None else 0)
+            await conn.execute(
+                t.session.update().where(t.session.c.id == sid)
+                .values(next_event_seq=seq + 1))
             await conn.execute(t.session_event.insert().values(
-                session_id=sid, seq=seq, kind=kind, payload=payload,
-                ref=blob_ref, ts=ts))
-        return EventRow(seq=int(seq), kind=kind, payload=payload, ts=ts)
+                session_id=sid, seq=seq, kind=kind, payload=stored_payload,
+                ref=blob_ref, ts=ts, event_id=event_id or None))
+        return EventRow(seq=int(seq), kind=kind, payload=committed_payload, ts=ts,
+                        event_id=event_id)
 
     async def read_events(self, sid: str, since: int = 0) -> list[EventRow]:
-        from . import schema as t
         import sqlalchemy as sa
+
+        from . import schema as t
         async with self._engine.connect() as conn:
             rs = (await conn.execute(
                 sa.select(t.session_event).where(sa.and_(
@@ -1149,12 +2502,14 @@ class PgRepo:
                 p = r["payload"]
                 if r["ref"]:
                     p = json.loads((await self._get_blob(conn, r["ref"])).decode("utf-8"))
-                out.append(EventRow(seq=r["seq"], kind=r["kind"], payload=p, ts=r["ts"]))
+                out.append(EventRow(seq=r["seq"], kind=r["kind"], payload=p, ts=r["ts"],
+                                    event_id=r["event_id"] or ""))
         return out
 
     async def count_events(self, sid: str) -> int:
-        from . import schema as t
         import sqlalchemy as sa
+
+        from . import schema as t
         async with self._engine.connect() as conn:
             return int((await conn.execute(
                 sa.select(sa.func.count()).select_from(t.session_event)
@@ -1175,8 +2530,9 @@ class PgRepo:
         return ref
 
     async def _get_blob(self, conn: Any, ref: str) -> bytes:
-        from . import schema as t
         import sqlalchemy as sa
+
+        from . import schema as t
         v = (await conn.execute(sa.select(t.blob.c.data)
                                 .where(t.blob.c.ref == ref))).scalar_one_or_none()
         if v is None:
@@ -1204,8 +2560,9 @@ class PgRepo:
 
     async def finish_run(self, run_id: str, *, status: str, error: str = "",
                          budget: dict[str, Any] | None = None) -> None:
-        from . import schema as t
         import sqlalchemy as sa
+
+        from . import schema as t
         async with self._engine.begin() as conn:
             await conn.execute(t.run.update().where(t.run.c.id == run_id).values(
                 status=status, error=error, budget=budget or {},
@@ -1224,6 +2581,7 @@ class PgRepo:
             async with self._engine.begin() as conn:
                 await conn.execute(t.app_user.insert().values(
                     id=row.id, username=row.username,
+                    display_name=row.display_name,
                     password_hash=row.password_hash, role=row.role,
                     active=row.active, prefs=row.prefs,
                     created_at=ts, updated_at=ts))
@@ -1271,7 +2629,8 @@ class PgRepo:
     async def update_user(self, uid: str, *, role: str | None = None,
                           active: bool | None = None,
                           password_hash: str | None = None,
-                          prefs: dict[str, Any] | None = None) -> UserRow | None:
+                          prefs: dict[str, Any] | None = None,
+                          display_name: str | None = None) -> UserRow | None:
         from . import schema as t
         vals: dict[str, Any] = {}
         if role is not None:
@@ -1282,6 +2641,8 @@ class PgRepo:
             vals["password_hash"] = password_hash
         if prefs is not None:
             vals["prefs"] = prefs
+        if display_name is not None:
+            vals["display_name"] = display_name
         if vals:
             async with self._engine.begin() as conn:
                 await conn.execute(t.app_user.update()
@@ -1342,6 +2703,39 @@ class PgRepo:
                                    .where(t.auth_session.c.user_id == uid))
         return int(r.rowcount or 0)
 
+    # ── 模型用量流水 ─────────────────────────────────────────────
+    async def add_usage(self, row: UsageRow) -> None:
+        from . import schema as t
+        row.validate()
+        async with self._engine.begin() as conn:
+            await conn.execute(t.llm_usage.insert().values(
+                id=row.id, ts=row.ts, day=row.day, owner=row.owner or "",
+                session_id=row.session_id or "", run_id=row.run_id or "",
+                node_id=row.node_id or "", kind=row.kind, model=row.model,
+                effort=row.effort or "", tok_in=row.tok_in, tok_out=row.tok_out,
+                cache_read=row.cache_read, cache_write=row.cache_write,
+                usd=row.usd, usd_source=row.usd_source, attempts=row.attempts,
+                status=row.status))
+
+    async def usage_since(self, since: float, *, owner: str | None = None,
+                          limit: int = 5000) -> list[UsageRow]:
+        import sqlalchemy as sa
+
+        from . import schema as t
+        if limit <= 0:
+            return []
+        q = sa.select(t.llm_usage).where(t.llm_usage.c.ts >= since)
+        if owner is not None:
+            # 空归属在库里是 ''、在内存实现里可能是 None —— 两边都认，否则换个
+            # repo 实现就静默少掉一半行（session.owner 上踩过同一个坑）
+            q = (q.where(sa.or_(t.llm_usage.c.owner == "",
+                                t.llm_usage.c.owner.is_(None)))
+                 if not owner else q.where(t.llm_usage.c.owner == owner))
+        async with self._engine.connect() as conn:
+            rs = (await conn.execute(
+                q.order_by(t.llm_usage.c.ts.desc()).limit(limit))).mappings().all()
+        return [_usage_row(r) for r in rs]
+
     async def prune_auth_sessions(self, *, now: float) -> int:
         from datetime import UTC, datetime
 
@@ -1397,8 +2791,11 @@ def _session_row(r: Any) -> SessionRow:
 
 def _active_decision_v1(rows: Sequence[DecisionRecordRow],
                         question_id: str) -> DecisionRecordRow | None:
-    superseded = {r.supersedes for r in rows if r.supersedes}
-    return next((r for r in reversed(rows)
+    # failed 是副作用没有生效的审计记录，既不能成为 active
+    # Decision，也不能靠 supersedes 把上一个成功决定从链上拿掉。
+    live = [r for r in rows if r.metadata.get("status") != "failed"]
+    superseded = {r.supersedes for r in live if r.supersedes}
+    return next((r for r in reversed(live)
                  if r.question_id == question_id and r.id not in superseded), None)
 
 
@@ -1440,7 +2837,19 @@ def _user_row(r: Any) -> UserRow:
     return UserRow(
         id=r["id"], username=r["username"], password_hash=r["password_hash"],
         role=r["role"], active=bool(r["active"]), prefs=dict(r["prefs"] or {}),
-        created=r["created_at"].timestamp())
+        created=r["created_at"].timestamp(),
+        display_name=r["display_name"] or "")
+
+
+def _usage_row(r: Any) -> UsageRow:
+    return UsageRow(
+        id=r["id"], ts=float(r["ts"]), day=r["day"], model=r["model"],
+        owner=r["owner"] or "", session_id=r["session_id"] or "",
+        run_id=r["run_id"] or "", node_id=r["node_id"] or "", kind=r["kind"],
+        effort=r["effort"] or "", tok_in=int(r["tok_in"]), tok_out=int(r["tok_out"]),
+        cache_read=int(r["cache_read"]), cache_write=int(r["cache_write"]),
+        usd=float(r["usd"]), usd_source=r["usd_source"],
+        attempts=int(r["attempts"]), status=r["status"])
 
 
 def _auth_row(r: Any) -> AuthSessionRow:
@@ -1455,7 +2864,21 @@ def build_repo(store: Any) -> Repo:
     return MemoryRepo() if not store.enabled else PgRepo(store.engine)
 
 
-__all__ = ["Repo", "MemoryRepo", "PgRepo", "SessionRow", "FileRow", "EventRow",
-           "DecisionRow", "QuestionRow", "DecisionRecordRow", "RevisionRow",
-           "UserRow", "AuthSessionRow", "SettingRow",
-           "DuplicateUsername", "build_repo"]
+__all__ = [
+    "AuthSessionRow",
+    "DecisionRecordRow",
+    "DecisionRow",
+    "DuplicateUsername",
+    "EventRow",
+    "FileRow",
+    "MemoryRepo",
+    "PgRepo",
+    "QuestionRow",
+    "Repo",
+    "RevisionRow",
+    "SessionRow",
+    "SettingRow",
+    "UsageRow",
+    "UserRow",
+    "build_repo",
+]

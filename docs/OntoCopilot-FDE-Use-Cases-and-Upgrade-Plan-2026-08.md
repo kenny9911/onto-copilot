@@ -1,5 +1,7 @@
 # OntoCopilot 面向 FDE 前线业务发现的 Use Case、现状审计与升级方案
 
+> **实施状态更新（2026-08-12）：** 本文的现状与缺口表保留为升级前基线；核心方案已经实现并接入 Web 前端。升级后的架构、API、Use Case 验收与部署说明见 [OntoCopilot FDE 升级实施报告](./OntoCopilot-FDE-Upgrade-Implementation-2026-08.md)。
+
 **审计日期：** 2026-08-12  
 **代码基线：** `4b651df68d97`（工作区存在用户未提交修改，本报告未改业务代码）  
 **审计对象：** OntoCopilot Web/API、业务语义模型、对话修改、产物交付，以及 Tools / Agents / Agent Workflow / Skills / CodeAct / Agent Loop / DAG  

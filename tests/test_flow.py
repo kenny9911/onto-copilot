@@ -135,7 +135,7 @@ def test_stages_come_from_outside_not_from_guessing():
     猜阶段会让整张图的骨架建立在没人确认过的判断上。"""
     steps = parse_steps(_REAL)
     g = build_flow(steps, file_name="x.xlsx")     # 不给 stages
-    assert set(n.stage for n in g.nodes.values()) == {"main"}
+    assert {n.stage for n in g.nodes.values()} == {"main"}
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -157,7 +157,7 @@ def test_codes_are_stable_across_processes():
     expr = ("from ontocopilot.onto.flow import code_for,NodeKind as K;"
             "print(code_for(K.EVENT,'某个说不上来的事'))")
     out = subprocess.run([sys.executable, "-c", expr],
-                         capture_output=True, text=True).stdout.strip()
+                         capture_output=True, text=True, check=False).stdout.strip()
     assert out == code_for(NodeKind.EVENT, "某个说不上来的事")
 
 
@@ -231,7 +231,7 @@ def test_mermaid_is_syntactically_plausible():
 
 
 def test_inferred_nodes_are_marked_in_mermaid():
-    g, n, p = _tiny()
+    g, n, _p = _tiny()
     n(NodeKind.ACTION, "有依据的")
     n(NodeKind.ACTION, "补出来的", grounded=False)
     m = to_mermaid(g)
@@ -275,7 +275,7 @@ def test_a_cyclic_graph_still_renders():
 async def test_flow_undo_restores_previous_version(tmp_path, monkeypatch):
     """flow.undo 弹出编辑前快照、还原整图并重出 SVG/主干；空栈时给错误而不是崩。
     人工加的节点回退后不该残留 —— 撤销要真的回到编辑前那一版。"""
-    import ontocopilot.server as server
+    from ontocopilot import server
     from ontocopilot.onto.flow_edit import apply_flow_edit
 
     monkeypatch.setattr(server, "ROOT", tmp_path)
@@ -294,7 +294,9 @@ async def test_flow_undo_restores_previous_version(tmp_path, monkeypatch):
 
     class Ctx:
         approved = True
-        pending: list = []
+
+        def __init__(self):
+            self.pending: list = []
 
     out = await reg.call("flow.undo", {}, Ctx(), scope="converse")
     assert out.get("已撤销") is True
@@ -309,7 +311,7 @@ async def test_flow_undo_restores_previous_version(tmp_path, monkeypatch):
 
 def test_push_version_caps_the_stack(monkeypatch):
     """版本栈要封顶，否则长命进程每编辑一次就无限长。"""
-    import ontocopilot.server as server
+    from ontocopilot import server
 
     s = server.Session(id="cap1")
     for i in range(server._VERSION_STACK_CAP + 5):
@@ -321,7 +323,7 @@ def test_push_version_caps_the_stack(monkeypatch):
 
 def test_replay_flow_patches_reapplies_manual_edits(monkeypatch, tmp_path):
     """补料重跑重建流程图后，人工加的节点要经补丁日志重现；重放不上的报 stale。"""
-    import ontocopilot.server as server
+    from ontocopilot import server
 
     monkeypatch.setattr(server, "ROOT", tmp_path)
     s = server.Session(id="replay1")
@@ -343,7 +345,7 @@ def test_replay_flow_patches_reapplies_manual_edits(monkeypatch, tmp_path):
 # 一个空白输入框对新用户是最不友好的界面：他知道这工具能分析业务文档，
 # 但不知道该说什么才有用。而每次回答之后同样有个断层 —— 系统刚说完
 # 「有 3 个死路」，他得自己想出「哪三个」这个问题。
-from ontocopilot.onto.prompts import followup_prompts, opening_prompts  # noqa: E402
+from ontocopilot.onto.prompts import followup_prompts, opening_prompts
 
 
 def test_opening_changes_with_state():
@@ -388,6 +390,38 @@ def test_followups_do_not_repeat_themselves():
     assert len({p["text"] for p in ps}) == len(ps)
 
 
+#: 那些「产物统计全空」的正常状态 —— 恰恰是老实现会返回空列表的地方。
+_THIN_STATES = (
+    ("没材料、纯聊天", {}, [], "idle"),
+    ("材料传了还没梳理", {}, ["a.xlsx"], "idle"),
+    ("跑完了但什么都没抽到", {"oir": {"stats": {}}, "flow": {"stats": {}}},
+     ["a.xlsx"], "done"),
+    ("只抽到对象、问题都答完了",
+     {"oir": {"stats": {"objects": 12, "properties": 48, "open_questions": 0}}},
+     ["a.xlsx"], "done"),
+)
+
+
+@pytest.mark.parametrize("name, state, files, status", _THIN_STATES)
+def test_prompts_are_never_empty(name, state, files, status):
+    """**一条都不能少。**
+
+    这两个函数是「接下来能干什么」的兜底。返回空列表，用户看到的就是一个没有
+    任何出口的空白 —— 而且恰恰在最需要指路的时候：材料传完还没开跑、梳理跑完
+    什么也没抽到。老实现只在"一份材料都没有"时才兜底。
+    """
+    assert opening_prompts(state=state, files=files, status=status), name
+    assert followup_prompts(answer="嗯。", state=state, files=files,
+                            status=status), name
+
+
+def test_followups_have_an_exit_even_when_the_turn_failed():
+    """回答是「这轮没跑通」时最需要一个出口，而它一个关键词都命不中。"""
+    ps = followup_prompts(answer="这轮没跑通：ModelError: 502 Bad Gateway",
+                          state={}, files=["a.xlsx"], status="idle")
+    assert ps and all(p["text"] and p["send"] for p in ps)
+
+
 def test_a_prompt_carries_what_it_actually_sends():
     """显示文案和实际问法可以不同 —— 「看看流程图」点下去该问出具体问题。"""
     st = {"flow": {"stats": {"actions": 17, "dead_ends": 3, "inferred_edges": 5}}}
@@ -399,11 +433,10 @@ def test_a_prompt_carries_what_it_actually_sends():
 # ══════════════════════════════════════════════════════════════════
 #  网关 / 阶段 / 缺口
 # ══════════════════════════════════════════════════════════════════
-from ontocopilot.onto.flow_extract import (  # noqa: E402
+from ontocopilot.onto.flow_extract import (
     attach_gateways,
     gaps_to_questions,
     parse_gateways,
-    stages_from_survey,
     survey_stage_groups,
 )
 
@@ -503,8 +536,8 @@ def test_main_path_drops_inferred_noise():
 # ══════════════════════════════════════════════════════════════════
 #  流程图编辑（对话动态改）
 # ══════════════════════════════════════════════════════════════════
-from ontocopilot.onto.flow import flow_from_dict  # noqa: E402
-from ontocopilot.onto.flow_edit import FlowEditError, apply_flow_edit  # noqa: E402
+from ontocopilot.onto.flow import flow_from_dict
+from ontocopilot.onto.flow_edit import FlowEditError, apply_flow_edit
 
 
 def _edit_graph():
@@ -679,8 +712,7 @@ _REAL_PBP = """（3）创建采购需求计划：基于已审批集采计划自�
 
 def _oir_with_api():
     """一份和 _REAL 那段流程说明对得上的接口清单。"""
-    from ontocopilot.onto.oir import (
-        OIR, ActionType, ObjectType, Provenance, extracted, inferred)
+    from ontocopilot.onto.oir import OIR, ActionType, ObjectType, Provenance, extracted, inferred
 
     prov = Provenance("f1", "x.xlsx", {"kind": "range", "sheet": "行动", "rows": [2, 2]})
     oir = OIR()
@@ -871,3 +903,25 @@ def test_a_query_verb_buried_mid_name_does_not_win():
 
     assert canonical_verb("queryPoApproveHistory") == "QUERY"
     assert canonical_verb("cancelOpenPbp") == "CANCEL"
+
+
+def test_followups_do_not_hand_back_what_he_just_asked():
+    """聊了十轮还把开场白推给他，是这套提示最伤人的失败模式 ——
+    它证明系统没在听。标点不同也算同一句。"""
+    asked = ["我手上有一堆业务流程文档你能帮我做什么",     # 无标点
+             "这类本体建模项目一般怎么推进？"]
+    ps = followup_prompts(answer="嗯。", state={}, files=[], status="idle",
+                          asked=asked)
+    texts = [p["text"] for p in ps]
+    assert "我手上有一堆业务流程文档，你能帮我做什么？" not in texts, texts
+    assert "这类本体建模项目一般怎么推进？" not in texts, texts
+    assert ps, "全筛掉了也不能一条不给"
+
+
+def test_followups_still_answer_when_everything_was_already_asked():
+    """他把兜底那几条全问过了 —— 一条提示都不给比重复一条更糟。"""
+    every = [p["text"] for p in followup_prompts(
+        answer="嗯。", state={}, files=[], status="idle")]
+    ps = followup_prompts(answer="嗯。", state={}, files=[], status="idle",
+                          asked=every)
+    assert ps

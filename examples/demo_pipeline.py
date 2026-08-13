@@ -21,7 +21,7 @@ from __future__ import annotations
 
 import asyncio
 import json
-from typing import Any
+from typing import Any, ClassVar
 
 from ontocopilot.kernel.budget import Budget
 from ontocopilot.kernel.bus.bus import AgentBus
@@ -72,10 +72,14 @@ RAW = {
         (81, "poHeader | 采购订单头 | —"),
     ],
     "ddl": [
-        ("clm_contract", "CREATE TABLE clm_contract (contract_id VARCHAR(32) PRIMARY KEY, "
-                         "plan_id VARCHAR(32), plan_amount DECIMAL(18,2)) -- 不含税·单次 CNY"),
-        ("pbp_header", "CREATE TABLE pbp_header (plan_id VARCHAR(32) PRIMARY KEY, "
-                       "plan_amount DECIMAL(18,2)) -- 含税·年度累计"),
+        ("clm_contract", (
+            "CREATE TABLE clm_contract (contract_id VARCHAR(32) PRIMARY KEY, "
+            "plan_id VARCHAR(32), plan_amount DECIMAL(18,2)) -- 不含税·单次 CNY"
+        )),
+        ("pbp_header", (
+            "CREATE TABLE pbp_header (plan_id VARCHAR(32) PRIMARY KEY, "
+            "plan_amount DECIMAL(18,2)) -- 含税·年度累计"
+        )),
     ],
     "openapi": [
         ("$.paths./purchase-plans/{id}/submit", "post submitPurchasePlan"),
@@ -149,7 +153,7 @@ class Parse(NodeHandler):
 class Extract(NodeHandler):
     """SINGLE_SHOT：走模型 + 强制 schema。离线用 ScriptedBackend 顶替。"""
 
-    schema = {
+    schema: ClassVar[dict[str, Any]] = {
         "type": "object",
         "required": ["objects"],
         "properties": {
@@ -454,7 +458,7 @@ async def main() -> None:
     print("═" * 74)
 
     # ── 第一程：跑到澄清门被人拦住 ─────────────────────────────
-    sched, rec, backend, cm = make_harness(
+    sched, _rec, backend, _cm = make_harness(
         resume=False, journal=journal, blobs=blobs, long_term=long_term)
     out = await sched.run(RUN_ID)
 
@@ -474,7 +478,7 @@ async def main() -> None:
 
     assert out.status is RunStatus.SUSPENDED, "澄清门应该拦住 Run"
     questions = out.pending_human["questions"]
-    print(f"\n▸ 澄清门 · Run 已挂起，等 FDE 拍板")
+    print("\n▸ 澄清门 · Run 已挂起，等 FDE 拍板")
     print(f"  路由: {out.pending_human['routing']}")
     for q in questions:
         print(f"\n  ── {q['title']}")
@@ -496,7 +500,7 @@ async def main() -> None:
     print(f"\n▸ FDE 决策 · {answer['option_id']}（{answer['note']}）")
 
     # ── 第二程：从 checkpoint 恢复 ─────────────────────────────
-    sched2, rec2, backend2, cm2 = make_harness(
+    sched2, _rec2, backend2, _cm2 = make_harness(
         resume=True, journal=journal, blobs=blobs, long_term=long_term)
     out2 = await sched2.run(RUN_ID)
 
@@ -505,12 +509,12 @@ async def main() -> None:
     print(f"  模型调用            {len(backend2.calls)} 次  ← 已完成的节点不重新付费")
 
     syn = out2.outputs["SYNTHESIZE"]
-    print(f"\n▸ 决策回写")
+    print("\n▸ 决策回写")
     print(f"  {syn['applied']['label']}")
     print(f"  变更实体 {syn['applied']['changed']}")
 
     t = syn["template"]
-    print(f"\n▸ 模板规格")
+    print("\n▸ 模板规格")
     print(f"  总格数      {t['total_cells']}")
     print(f"  预填        {t['prefilled']}（{t['prefill_rate']:.0%}）")
     print(f"  业务必填    {t['business_required']}  ← 黄底")

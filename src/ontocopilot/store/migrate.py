@@ -28,9 +28,13 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
-#: 迁移目录。放仓库根下的 migrations/，不在包里 —— 它是**运维资产**，
-#: docker-entrypoint 和 CI 都要直接读，藏进 wheel 里反而难拿。
-MIGRATIONS = Path(__file__).resolve().parents[3] / "migrations"
+#: 源码 checkout 继续直接读取仓库根目录，方便 CI/运维审阅；wheel 会把同一目录
+#: force-include 到 ``ontocopilot/migrations``，因此安装包也能独立执行迁移。
+_SOURCE_MIGRATIONS = Path(__file__).resolve().parents[3] / "migrations"
+_PACKAGED_MIGRATIONS = Path(__file__).resolve().parents[1] / "migrations"
+MIGRATIONS = (
+    _SOURCE_MIGRATIONS if _SOURCE_MIGRATIONS.is_dir() else _PACKAGED_MIGRATIONS
+)
 
 #: 迁移期间持有的会话级 advisory lock。多副本同时启动时只有一个真正执行，
 #: 其余阻塞等待，避免两个进程同时 CREATE TABLE。0x4F4E544F == b"ONTO"。
