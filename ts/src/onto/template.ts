@@ -252,7 +252,7 @@ export function cellWeight(c: Cell): number {
 
 /** 预填内容的哈希。回传时比一下就知道这格有没有被动过。 */
 export function prefillHash(c: Cell): string {
-  return c.value ? sha256Hex(c.value).slice(0, 11) : "";
+  return c.value ? sha256Hex(c.value).slice(0, 12) : "";
 }
 
 export function cellToDict(c: Cell): Record<string, unknown> {
