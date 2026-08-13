@@ -1,0 +1,7931 @@
+{
+ "read_returned": [
+  {
+   "name": "plain",
+   "file": "onto.audit.plain.xlsx",
+   "sheets": [
+    {
+     "title": "01_对象清单",
+     "grid": [
+      [
+       "本表填写说明：请逐行核对",
+       "",
+       "",
+       "",
+       ""
+      ],
+      [
+       "_oir_rid",
+       "_oir_hash",
+       "definition",
+       "owner",
+       "confirmed"
+      ],
+      [
+       "pt_amount_budget",
+       "hash",
+       "含税，年度累计",
+       "王明",
+       "已确认"
+      ],
+      [
+       "pt_amount_contract",
+       "hash",
+       "不含税，单次",
+       "李强",
+       "已确认"
+      ],
+      [
+       "pt_plan_id",
+       "hash",
+       "计划编号",
+       "王明",
+       "待确认"
+      ]
+     ],
+     "maxRow": 5,
+     "maxColumn": 5
+    }
+   ],
+   "returned": [
+    {
+     "rid": "pt_amount_budget",
+     "field": "definition",
+     "value": "含税，年度累计"
+    },
+    {
+     "rid": "pt_amount_budget",
+     "field": "owner",
+     "value": "王明"
+    },
+    {
+     "rid": "pt_amount_budget",
+     "field": "confirmed",
+     "value": "已确认"
+    },
+    {
+     "rid": "pt_amount_contract",
+     "field": "definition",
+     "value": "不含税，单次"
+    },
+    {
+     "rid": "pt_amount_contract",
+     "field": "owner",
+     "value": "李强"
+    },
+    {
+     "rid": "pt_amount_contract",
+     "field": "confirmed",
+     "value": "已确认"
+    },
+    {
+     "rid": "pt_plan_id",
+     "field": "definition",
+     "value": "计划编号"
+    },
+    {
+     "rid": "pt_plan_id",
+     "field": "owner",
+     "value": "王明"
+    },
+    {
+     "rid": "pt_plan_id",
+     "field": "confirmed",
+     "value": "待确认"
+    }
+   ]
+  },
+  {
+   "name": "shifted",
+   "file": "onto.audit.shifted.xlsx",
+   "sheets": [
+    {
+     "title": "01_对象清单",
+     "grid": [
+      [
+       "给张总看的汇总",
+       "",
+       "",
+       "",
+       "",
+       ""
+      ],
+      [
+       "",
+       "本表填写说明：请逐行核对",
+       "",
+       "",
+       "",
+       ""
+      ],
+      [
+       "",
+       "_oir_rid",
+       "_oir_hash",
+       "definition",
+       "owner",
+       "confirmed"
+      ],
+      [
+       "",
+       "pt_amount_budget",
+       "hash",
+       "含税，年度累计",
+       "王明",
+       "已确认"
+      ],
+      [
+       "",
+       "pt_amount_contract",
+       "hash",
+       "不含税，单次",
+       "李强",
+       "已确认"
+      ],
+      [
+       "",
+       "pt_plan_id",
+       "hash",
+       "计划编号",
+       "王明",
+       "待确认"
+      ]
+     ],
+     "maxRow": 6,
+     "maxColumn": 6
+    }
+   ],
+   "returned": [
+    {
+     "rid": "pt_amount_budget",
+     "field": "definition",
+     "value": "含税，年度累计"
+    },
+    {
+     "rid": "pt_amount_budget",
+     "field": "owner",
+     "value": "王明"
+    },
+    {
+     "rid": "pt_amount_budget",
+     "field": "confirmed",
+     "value": "已确认"
+    },
+    {
+     "rid": "pt_amount_contract",
+     "field": "definition",
+     "value": "不含税，单次"
+    },
+    {
+     "rid": "pt_amount_contract",
+     "field": "owner",
+     "value": "李强"
+    },
+    {
+     "rid": "pt_amount_contract",
+     "field": "confirmed",
+     "value": "已确认"
+    },
+    {
+     "rid": "pt_plan_id",
+     "field": "definition",
+     "value": "计划编号"
+    },
+    {
+     "rid": "pt_plan_id",
+     "field": "owner",
+     "value": "王明"
+    },
+    {
+     "rid": "pt_plan_id",
+     "field": "confirmed",
+     "value": "待确认"
+    },
+    {
+     "rid": "__damage__",
+     "field": "__damage__",
+     "value": "「01_对象清单」表头在第 3 行、锚点在第 2 列（原本是第 2 行第 1 列），已按实际位置读取"
+    }
+   ]
+  },
+  {
+   "name": "no_anchor",
+   "file": "onto.audit.no_anchor.xlsx",
+   "sheets": [
+    {
+     "title": "01_对象清单",
+     "grid": [
+      [
+       "本表填写说明：请逐行核对",
+       "",
+       "",
+       "",
+       ""
+      ],
+      [
+       "序号",
+       "_oir_hash",
+       "definition",
+       "owner",
+       "confirmed"
+      ],
+      [
+       "pt_amount_budget",
+       "hash",
+       "含税，年度累计",
+       "王明",
+       "已确认"
+      ],
+      [
+       "pt_amount_contract",
+       "hash",
+       "不含税，单次",
+       "李强",
+       "已确认"
+      ],
+      [
+       "pt_plan_id",
+       "hash",
+       "计划编号",
+       "王明",
+       "待确认"
+      ]
+     ],
+     "maxRow": 5,
+     "maxColumn": 5
+    }
+   ],
+   "returned": [
+    {
+     "rid": "__damage__",
+     "field": "__damage__",
+     "value": "「01_对象清单」找不到锚点列 _oir_rid —— 这张表的 3 行没有被读取。通常是因为顶部插了行、最左边插了列，或者隐藏列被删掉了"
+    }
+   ]
+  },
+  {
+   "name": "duplicated",
+   "file": "onto.audit.duplicated.xlsx",
+   "sheets": [
+    {
+     "title": "01_对象清单",
+     "grid": [
+      [
+       "本表填写说明：请逐行核对",
+       "",
+       "",
+       "",
+       ""
+      ],
+      [
+       "_oir_rid",
+       "_oir_hash",
+       "definition",
+       "owner",
+       "confirmed"
+      ],
+      [
+       "pt_amount_budget",
+       "hash",
+       "含税，年度累计",
+       "王明",
+       "已确认"
+      ],
+      [
+       "pt_amount_contract",
+       "hash",
+       "不含税，单次",
+       "李强",
+       "已确认"
+      ],
+      [
+       "pt_plan_id",
+       "hash",
+       "计划编号",
+       "王明",
+       "待确认"
+      ],
+      [
+       "pt_amount_budget",
+       "hash",
+       "复制粘贴出来的",
+       "赵六",
+       "已确认"
+      ]
+     ],
+     "maxRow": 6,
+     "maxColumn": 5
+    }
+   ],
+   "returned": [
+    {
+     "rid": "pt_amount_budget",
+     "field": "definition",
+     "value": "复制粘贴出来的"
+    },
+    {
+     "rid": "pt_amount_budget",
+     "field": "owner",
+     "value": "赵六"
+    },
+    {
+     "rid": "pt_amount_budget",
+     "field": "confirmed",
+     "value": "已确认"
+    },
+    {
+     "rid": "pt_amount_contract",
+     "field": "definition",
+     "value": "不含税，单次"
+    },
+    {
+     "rid": "pt_amount_contract",
+     "field": "owner",
+     "value": "李强"
+    },
+    {
+     "rid": "pt_amount_contract",
+     "field": "confirmed",
+     "value": "已确认"
+    },
+    {
+     "rid": "pt_plan_id",
+     "field": "definition",
+     "value": "计划编号"
+    },
+    {
+     "rid": "pt_plan_id",
+     "field": "owner",
+     "value": "王明"
+    },
+    {
+     "rid": "pt_plan_id",
+     "field": "confirmed",
+     "value": "待确认"
+    },
+    {
+     "rid": "__damage__",
+     "field": "__damage__",
+     "value": "「01_对象清单」第 6 行的 pt_amount_budget 与前面重复，后者已覆盖前者"
+    }
+   ]
+  },
+  {
+   "name": "note_sheet",
+   "file": "onto.audit.note_sheet.xlsx",
+   "sheets": [
+    {
+     "title": "01_对象清单",
+     "grid": [
+      [
+       "本表填写说明：请逐行核对",
+       "",
+       "",
+       "",
+       ""
+      ],
+      [
+       "_oir_rid",
+       "_oir_hash",
+       "definition",
+       "owner",
+       "confirmed"
+      ],
+      [
+       "pt_amount_budget",
+       "hash",
+       "含税，年度累计",
+       "王明",
+       "已确认"
+      ],
+      [
+       "pt_amount_contract",
+       "hash",
+       "不含税，单次",
+       "李强",
+       "已确认"
+      ],
+      [
+       "pt_plan_id",
+       "hash",
+       "计划编号",
+       "王明",
+       "待确认"
+      ]
+     ],
+     "maxRow": 5,
+     "maxColumn": 5
+    },
+    {
+     "title": "我的笔记",
+     "grid": [
+      [
+       "记一下：这批口径要问财务"
+      ],
+      [
+       "下周一之前给答复"
+      ]
+     ],
+     "maxRow": 2,
+     "maxColumn": 1
+    }
+   ],
+   "returned": [
+    {
+     "rid": "pt_amount_budget",
+     "field": "definition",
+     "value": "含税，年度累计"
+    },
+    {
+     "rid": "pt_amount_budget",
+     "field": "owner",
+     "value": "王明"
+    },
+    {
+     "rid": "pt_amount_budget",
+     "field": "confirmed",
+     "value": "已确认"
+    },
+    {
+     "rid": "pt_amount_contract",
+     "field": "definition",
+     "value": "不含税，单次"
+    },
+    {
+     "rid": "pt_amount_contract",
+     "field": "owner",
+     "value": "李强"
+    },
+    {
+     "rid": "pt_amount_contract",
+     "field": "confirmed",
+     "value": "已确认"
+    },
+    {
+     "rid": "pt_plan_id",
+     "field": "definition",
+     "value": "计划编号"
+    },
+    {
+     "rid": "pt_plan_id",
+     "field": "owner",
+     "value": "王明"
+    },
+    {
+     "rid": "pt_plan_id",
+     "field": "confirmed",
+     "value": "待确认"
+    }
+   ]
+  },
+  {
+   "name": "far_anchor",
+   "file": "onto.audit.far_anchor.xlsx",
+   "sheets": [
+    {
+     "title": "01_对象清单",
+     "grid": [
+      [
+       "",
+       "",
+       "",
+       "",
+       ""
+      ],
+      [
+       "",
+       "",
+       "",
+       "",
+       ""
+      ],
+      [
+       "",
+       "",
+       "",
+       "",
+       ""
+      ],
+      [
+       "",
+       "",
+       "",
+       "",
+       ""
+      ],
+      [
+       "",
+       "",
+       "",
+       "",
+       ""
+      ],
+      [
+       "",
+       "",
+       "",
+       "",
+       ""
+      ],
+      [
+       "",
+       "",
+       "",
+       "",
+       ""
+      ],
+      [
+       "本表填写说明：请逐行核对",
+       "",
+       "",
+       "",
+       ""
+      ],
+      [
+       "_oir_rid",
+       "_oir_hash",
+       "definition",
+       "owner",
+       "confirmed"
+      ],
+      [
+       "pt_amount_budget",
+       "hash",
+       "含税，年度累计",
+       "王明",
+       "已确认"
+      ],
+      [
+       "pt_amount_contract",
+       "hash",
+       "不含税，单次",
+       "李强",
+       "已确认"
+      ],
+      [
+       "pt_plan_id",
+       "hash",
+       "计划编号",
+       "王明",
+       "待确认"
+      ]
+     ],
+     "maxRow": 12,
+     "maxColumn": 5
+    }
+   ],
+   "returned": [
+    {
+     "rid": "__damage__",
+     "field": "__damage__",
+     "value": "「01_对象清单」找不到锚点列 _oir_rid —— 这张表的 10 行没有被读取。通常是因为顶部插了行、最左边插了列，或者隐藏列被删掉了"
+    }
+   ]
+  },
+  {
+   "name": "multi_sheet",
+   "file": "onto.audit.multi_sheet.xlsx",
+   "sheets": [
+    {
+     "title": "01_对象清单",
+     "grid": [
+      [
+       "本表填写说明：请逐行核对",
+       "",
+       "",
+       "",
+       ""
+      ],
+      [
+       "_oir_rid",
+       "_oir_hash",
+       "definition",
+       "owner",
+       "confirmed"
+      ],
+      [
+       "pt_amount_budget",
+       "hash",
+       "含税，年度累计",
+       "王明",
+       "已确认"
+      ],
+      [
+       "pt_amount_contract",
+       "hash",
+       "不含税，单次",
+       "李强",
+       "已确认"
+      ],
+      [
+       "pt_plan_id",
+       "hash",
+       "计划编号",
+       "王明",
+       "待确认"
+      ]
+     ],
+     "maxRow": 5,
+     "maxColumn": 5
+    },
+    {
+     "title": "03_关系清单",
+     "grid": [
+      [
+       "本表填写说明：请逐行核对",
+       "",
+       "",
+       "",
+       ""
+      ],
+      [
+       "_oir_rid",
+       "_oir_hash",
+       "definition",
+       "owner",
+       "confirmed"
+      ],
+      [
+       "lt_a_b",
+       "hash",
+       "一对多",
+       "王明",
+       "已确认"
+      ]
+     ],
+     "maxRow": 3,
+     "maxColumn": 5
+    }
+   ],
+   "returned": [
+    {
+     "rid": "pt_amount_budget",
+     "field": "definition",
+     "value": "含税，年度累计"
+    },
+    {
+     "rid": "pt_amount_budget",
+     "field": "owner",
+     "value": "王明"
+    },
+    {
+     "rid": "pt_amount_budget",
+     "field": "confirmed",
+     "value": "已确认"
+    },
+    {
+     "rid": "pt_amount_contract",
+     "field": "definition",
+     "value": "不含税，单次"
+    },
+    {
+     "rid": "pt_amount_contract",
+     "field": "owner",
+     "value": "李强"
+    },
+    {
+     "rid": "pt_amount_contract",
+     "field": "confirmed",
+     "value": "已确认"
+    },
+    {
+     "rid": "pt_plan_id",
+     "field": "definition",
+     "value": "计划编号"
+    },
+    {
+     "rid": "pt_plan_id",
+     "field": "owner",
+     "value": "王明"
+    },
+    {
+     "rid": "pt_plan_id",
+     "field": "confirmed",
+     "value": "待确认"
+    },
+    {
+     "rid": "lt_a_b",
+     "field": "definition",
+     "value": "一对多"
+    },
+    {
+     "rid": "lt_a_b",
+     "field": "owner",
+     "value": "王明"
+    },
+    {
+     "rid": "lt_a_b",
+     "field": "confirmed",
+     "value": "已确认"
+    }
+   ]
+  },
+  {
+   "name": "blank_col",
+   "file": "onto.audit.blank_col.xlsx",
+   "sheets": [
+    {
+     "title": "01_对象清单",
+     "grid": [
+      [
+       "本表填写说明：请逐行核对",
+       "",
+       "",
+       "",
+       "",
+       ""
+      ],
+      [
+       "_oir_rid",
+       "_oir_hash",
+       "definition",
+       "",
+       "owner",
+       "confirmed"
+      ],
+      [
+       "pt_amount_budget",
+       "hash",
+       "含税，年度累计",
+       "",
+       "王明",
+       "已确认"
+      ],
+      [
+       "pt_amount_contract",
+       "hash",
+       "不含税，单次",
+       "",
+       "李强",
+       "已确认"
+      ],
+      [
+       "pt_plan_id",
+       "hash",
+       "计划编号",
+       "",
+       "王明",
+       "待确认"
+      ]
+     ],
+     "maxRow": 5,
+     "maxColumn": 6
+    }
+   ],
+   "returned": [
+    {
+     "rid": "pt_amount_budget",
+     "field": "definition",
+     "value": "含税，年度累计"
+    },
+    {
+     "rid": "pt_amount_budget",
+     "field": "owner",
+     "value": "王明"
+    },
+    {
+     "rid": "pt_amount_budget",
+     "field": "confirmed",
+     "value": "已确认"
+    },
+    {
+     "rid": "pt_amount_contract",
+     "field": "definition",
+     "value": "不含税，单次"
+    },
+    {
+     "rid": "pt_amount_contract",
+     "field": "owner",
+     "value": "李强"
+    },
+    {
+     "rid": "pt_amount_contract",
+     "field": "confirmed",
+     "value": "已确认"
+    },
+    {
+     "rid": "pt_plan_id",
+     "field": "definition",
+     "value": "计划编号"
+    },
+    {
+     "rid": "pt_plan_id",
+     "field": "owner",
+     "value": "王明"
+    },
+    {
+     "rid": "pt_plan_id",
+     "field": "confirmed",
+     "value": "待确认"
+    }
+   ]
+  }
+ ],
+ "tiny_spec": {
+  "round": 1,
+  "sheets": [
+   {
+    "name": "01_对象清单",
+    "guide": "",
+    "columns": [],
+    "rows": [
+     {
+      "definition": {
+       "rid": "pt_amount_budget",
+       "sheet": "01_对象清单",
+       "field": "definition",
+       "value": "含税，年度累计",
+       "role": "required",
+       "owner": "王明",
+       "comment": "",
+       "options": null,
+       "conflict": false,
+       "expects_prose": true
+      },
+      "confirmed": {
+       "rid": "pt_amount_budget",
+       "sheet": "01_对象清单",
+       "field": "confirmed",
+       "value": "",
+       "role": "required",
+       "owner": "王明",
+       "comment": "",
+       "options": [
+        "已确认",
+        "待确认"
+       ],
+       "conflict": false,
+       "expects_prose": false
+      },
+      "apiName": {
+       "rid": "pt_amount_budget",
+       "sheet": "01_对象清单",
+       "field": "apiName",
+       "value": "planAmount",
+       "role": "prefilled",
+       "owner": "王明",
+       "comment": "",
+       "options": null,
+       "conflict": false,
+       "expects_prose": false
+      }
+     },
+     {
+      "definition": {
+       "rid": "pt_amount_contract",
+       "sheet": "01_对象清单",
+       "field": "definition",
+       "value": "",
+       "role": "required",
+       "owner": "李强",
+       "comment": "",
+       "options": null,
+       "conflict": false,
+       "expects_prose": true
+      },
+      "confirmed": {
+       "rid": "pt_amount_contract",
+       "sheet": "01_对象清单",
+       "field": "confirmed",
+       "value": "",
+       "role": "required",
+       "owner": "李强",
+       "comment": "",
+       "options": [
+        "已确认",
+        "待确认"
+       ],
+       "conflict": false,
+       "expects_prose": false
+      },
+      "apiName": {
+       "rid": "pt_amount_contract",
+       "sheet": "01_对象清单",
+       "field": "apiName",
+       "value": "contractAmount",
+       "role": "prefilled",
+       "owner": "李强",
+       "comment": "",
+       "options": null,
+       "conflict": false,
+       "expects_prose": false
+      }
+     },
+     {
+      "note": {
+       "rid": "ot_采购包",
+       "sheet": "01_对象清单",
+       "field": "note",
+       "value": "只读，不参与完成度",
+       "role": "locked",
+       "owner": null,
+       "comment": "",
+       "options": null,
+       "conflict": false,
+       "expects_prose": false
+      },
+      "displayName": {
+       "rid": "ot_采购包",
+       "sheet": "01_对象清单",
+       "field": "displayName",
+       "value": "采购包",
+       "role": "required",
+       "owner": null,
+       "comment": "",
+       "options": null,
+       "conflict": false,
+       "expects_prose": false
+      }
+     }
+    ]
+   }
+  ]
+ },
+ "audit": [
+  {
+   "label": "empty",
+   "returned": [],
+   "with_oir": false,
+   "summary": {
+    "completeness": 0.0,
+    "cells_compared": 8,
+    "cells_changed": 5,
+    "findings": {
+     "missing_required": 5
+    },
+    "auto_repaired": 0,
+    "slips": [
+     {
+      "owner": "王明",
+      "count": 2,
+      "by_kind": {
+       "missing_required": [
+        "01_对象清单 · definition 未填",
+        "01_对象清单 · confirmed 未填"
+       ]
+      }
+     },
+     {
+      "owner": "李强",
+      "count": 2,
+      "by_kind": {
+       "missing_required": [
+        "01_对象清单 · definition 未填",
+        "01_对象清单 · confirmed 未填"
+       ]
+      }
+     },
+     {
+      "owner": "未分派",
+      "count": 1,
+      "by_kind": {
+       "missing_required": [
+        "01_对象清单 · displayName 未填"
+       ]
+      }
+     }
+    ],
+    "unmatched_rows": [
+     "ot_采购包",
+     "pt_amount_budget",
+     "pt_amount_contract"
+    ],
+    "new_rows": [],
+    "damage": [],
+    "readable": true
+   },
+   "completeness": 0.0,
+   "findings": [
+    {
+     "rid": "cf_missing_required_f88525d4f4",
+     "kind": "missing_required",
+     "subjects": [
+      "pt_amount_budget"
+     ],
+     "summary": "01_对象清单 · definition 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": "王明",
+     "detector": "rule:REQ-01"
+    },
+    {
+     "rid": "cf_missing_required_9386f57a45",
+     "kind": "missing_required",
+     "subjects": [
+      "pt_amount_budget"
+     ],
+     "summary": "01_对象清单 · confirmed 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": "王明",
+     "detector": "rule:REQ-01"
+    },
+    {
+     "rid": "cf_missing_required_32b81aca97",
+     "kind": "missing_required",
+     "subjects": [
+      "pt_amount_contract"
+     ],
+     "summary": "01_对象清单 · definition 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": "李强",
+     "detector": "rule:REQ-01"
+    },
+    {
+     "rid": "cf_missing_required_bba017b5d1",
+     "kind": "missing_required",
+     "subjects": [
+      "pt_amount_contract"
+     ],
+     "summary": "01_对象清单 · confirmed 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": "李强",
+     "detector": "rule:REQ-01"
+    },
+    {
+     "rid": "cf_missing_required_60d611661f",
+     "kind": "missing_required",
+     "subjects": [
+      "ot_采购包"
+     ],
+     "summary": "01_对象清单 · displayName 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": null,
+     "detector": "rule:REQ-01"
+    }
+   ],
+   "auto_repaired": [],
+   "diffs": [
+    {
+     "rid": "pt_amount_budget",
+     "sheet": "01_对象清单",
+     "field": "definition",
+     "before": "含税，年度累计",
+     "after": "",
+     "role": "required",
+     "owner": "王明",
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_budget",
+     "sheet": "01_对象清单",
+     "field": "confirmed",
+     "before": "",
+     "after": "",
+     "role": "required",
+     "owner": "王明",
+     "changed": false,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_budget",
+     "sheet": "01_对象清单",
+     "field": "apiName",
+     "before": "planAmount",
+     "after": "",
+     "role": "prefilled",
+     "owner": "王明",
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_contract",
+     "sheet": "01_对象清单",
+     "field": "definition",
+     "before": "",
+     "after": "",
+     "role": "required",
+     "owner": "李强",
+     "changed": false,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_contract",
+     "sheet": "01_对象清单",
+     "field": "confirmed",
+     "before": "",
+     "after": "",
+     "role": "required",
+     "owner": "李强",
+     "changed": false,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_contract",
+     "sheet": "01_对象清单",
+     "field": "apiName",
+     "before": "contractAmount",
+     "after": "",
+     "role": "prefilled",
+     "owner": "李强",
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "ot_采购包",
+     "sheet": "01_对象清单",
+     "field": "note",
+     "before": "只读，不参与完成度",
+     "after": "",
+     "role": "locked",
+     "owner": null,
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "ot_采购包",
+     "sheet": "01_对象清单",
+     "field": "displayName",
+     "before": "采购包",
+     "after": "",
+     "role": "required",
+     "owner": null,
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    }
+   ],
+   "slips": [
+    {
+     "owner": "王明",
+     "count": 2,
+     "by_kind": {
+      "missing_required": [
+       "01_对象清单 · definition 未填",
+       "01_对象清单 · confirmed 未填"
+      ]
+     }
+    },
+    {
+     "owner": "李强",
+     "count": 2,
+     "by_kind": {
+      "missing_required": [
+       "01_对象清单 · definition 未填",
+       "01_对象清单 · confirmed 未填"
+      ]
+     }
+    },
+    {
+     "owner": "未分派",
+     "count": 1,
+     "by_kind": {
+      "missing_required": [
+       "01_对象清单 · displayName 未填"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "label": "all_missing",
+   "returned": [
+    {
+     "rid": "pt_amount_budget",
+     "field": "definition",
+     "value": ""
+    },
+    {
+     "rid": "pt_amount_budget",
+     "field": "confirmed",
+     "value": ""
+    },
+    {
+     "rid": "pt_amount_contract",
+     "field": "definition",
+     "value": ""
+    },
+    {
+     "rid": "pt_amount_contract",
+     "field": "confirmed",
+     "value": ""
+    },
+    {
+     "rid": "ot_采购包",
+     "field": "displayName",
+     "value": ""
+    }
+   ],
+   "with_oir": false,
+   "summary": {
+    "completeness": 0.0,
+    "cells_compared": 8,
+    "cells_changed": 5,
+    "findings": {
+     "missing_required": 5
+    },
+    "auto_repaired": 0,
+    "slips": [
+     {
+      "owner": "王明",
+      "count": 2,
+      "by_kind": {
+       "missing_required": [
+        "01_对象清单 · definition 未填",
+        "01_对象清单 · confirmed 未填"
+       ]
+      }
+     },
+     {
+      "owner": "李强",
+      "count": 2,
+      "by_kind": {
+       "missing_required": [
+        "01_对象清单 · definition 未填",
+        "01_对象清单 · confirmed 未填"
+       ]
+      }
+     },
+     {
+      "owner": "未分派",
+      "count": 1,
+      "by_kind": {
+       "missing_required": [
+        "01_对象清单 · displayName 未填"
+       ]
+      }
+     }
+    ],
+    "unmatched_rows": [
+     "ot_采购包",
+     "pt_amount_budget",
+     "pt_amount_contract"
+    ],
+    "new_rows": [],
+    "damage": [],
+    "readable": true
+   },
+   "completeness": 0.0,
+   "findings": [
+    {
+     "rid": "cf_missing_required_f88525d4f4",
+     "kind": "missing_required",
+     "subjects": [
+      "pt_amount_budget"
+     ],
+     "summary": "01_对象清单 · definition 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": "王明",
+     "detector": "rule:REQ-01"
+    },
+    {
+     "rid": "cf_missing_required_9386f57a45",
+     "kind": "missing_required",
+     "subjects": [
+      "pt_amount_budget"
+     ],
+     "summary": "01_对象清单 · confirmed 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": "王明",
+     "detector": "rule:REQ-01"
+    },
+    {
+     "rid": "cf_missing_required_32b81aca97",
+     "kind": "missing_required",
+     "subjects": [
+      "pt_amount_contract"
+     ],
+     "summary": "01_对象清单 · definition 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": "李强",
+     "detector": "rule:REQ-01"
+    },
+    {
+     "rid": "cf_missing_required_bba017b5d1",
+     "kind": "missing_required",
+     "subjects": [
+      "pt_amount_contract"
+     ],
+     "summary": "01_对象清单 · confirmed 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": "李强",
+     "detector": "rule:REQ-01"
+    },
+    {
+     "rid": "cf_missing_required_60d611661f",
+     "kind": "missing_required",
+     "subjects": [
+      "ot_采购包"
+     ],
+     "summary": "01_对象清单 · displayName 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": null,
+     "detector": "rule:REQ-01"
+    }
+   ],
+   "auto_repaired": [],
+   "diffs": [
+    {
+     "rid": "pt_amount_budget",
+     "sheet": "01_对象清单",
+     "field": "definition",
+     "before": "含税，年度累计",
+     "after": "",
+     "role": "required",
+     "owner": "王明",
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_budget",
+     "sheet": "01_对象清单",
+     "field": "confirmed",
+     "before": "",
+     "after": "",
+     "role": "required",
+     "owner": "王明",
+     "changed": false,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_budget",
+     "sheet": "01_对象清单",
+     "field": "apiName",
+     "before": "planAmount",
+     "after": "",
+     "role": "prefilled",
+     "owner": "王明",
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_contract",
+     "sheet": "01_对象清单",
+     "field": "definition",
+     "before": "",
+     "after": "",
+     "role": "required",
+     "owner": "李强",
+     "changed": false,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_contract",
+     "sheet": "01_对象清单",
+     "field": "confirmed",
+     "before": "",
+     "after": "",
+     "role": "required",
+     "owner": "李强",
+     "changed": false,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_contract",
+     "sheet": "01_对象清单",
+     "field": "apiName",
+     "before": "contractAmount",
+     "after": "",
+     "role": "prefilled",
+     "owner": "李强",
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "ot_采购包",
+     "sheet": "01_对象清单",
+     "field": "note",
+     "before": "只读，不参与完成度",
+     "after": "",
+     "role": "locked",
+     "owner": null,
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "ot_采购包",
+     "sheet": "01_对象清单",
+     "field": "displayName",
+     "before": "采购包",
+     "after": "",
+     "role": "required",
+     "owner": null,
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    }
+   ],
+   "slips": [
+    {
+     "owner": "王明",
+     "count": 2,
+     "by_kind": {
+      "missing_required": [
+       "01_对象清单 · definition 未填",
+       "01_对象清单 · confirmed 未填"
+      ]
+     }
+    },
+    {
+     "owner": "李强",
+     "count": 2,
+     "by_kind": {
+      "missing_required": [
+       "01_对象清单 · definition 未填",
+       "01_对象清单 · confirmed 未填"
+      ]
+     }
+    },
+    {
+     "owner": "未分派",
+     "count": 1,
+     "by_kind": {
+      "missing_required": [
+       "01_对象清单 · displayName 未填"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "label": "all_filled",
+   "returned": [
+    {
+     "rid": "pt_amount_budget",
+     "field": "definition",
+     "value": "不含税、单次结算，由财务共享中心维护"
+    },
+    {
+     "rid": "pt_amount_budget",
+     "field": "confirmed",
+     "value": "已确认"
+    },
+    {
+     "rid": "pt_amount_contract",
+     "field": "definition",
+     "value": "含税、年度累计，口径由预算科维护"
+    },
+    {
+     "rid": "pt_amount_contract",
+     "field": "confirmed",
+     "value": "待确认"
+    },
+    {
+     "rid": "ot_采购包",
+     "field": "displayName",
+     "value": "采购包（新）"
+    }
+   ],
+   "with_oir": false,
+   "summary": {
+    "completeness": 1.0,
+    "cells_compared": 8,
+    "cells_changed": 8,
+    "findings": {
+     "semantic_divergence": 1
+    },
+    "auto_repaired": 0,
+    "slips": [
+     {
+      "owner": "李强",
+      "count": 1,
+      "by_kind": {
+       "semantic_divergence": [
+        "回传后仍存在口径矛盾：时间粒度（单次 vs 年度累计）、税（不含税 vs 含税），需 李强、王明 对齐"
+       ]
+      }
+     }
+    ],
+    "unmatched_rows": [
+     "ot_采购包",
+     "pt_amount_budget",
+     "pt_amount_contract"
+    ],
+    "new_rows": [],
+    "damage": [],
+    "readable": true
+   },
+   "completeness": 1.0,
+   "findings": [
+    {
+     "rid": "cf_semantic_divergence_03ccaf29f2",
+     "kind": "semantic_divergence",
+     "subjects": [
+      "pt_amount_budget",
+      "pt_amount_contract"
+     ],
+     "summary": "回传后仍存在口径矛盾：时间粒度（单次 vs 年度累计）、税（不含税 vs 含税），需 李强、王明 对齐",
+     "handling": "ask_user",
+     "evidence": [],
+     "options": [],
+     "owner": "李强",
+     "detector": "rule:AXIS-01"
+    }
+   ],
+   "auto_repaired": [],
+   "diffs": [
+    {
+     "rid": "pt_amount_budget",
+     "sheet": "01_对象清单",
+     "field": "definition",
+     "before": "含税，年度累计",
+     "after": "不含税、单次结算，由财务共享中心维护",
+     "role": "required",
+     "owner": "王明",
+     "changed": true,
+     "filled": true,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_budget",
+     "sheet": "01_对象清单",
+     "field": "confirmed",
+     "before": "",
+     "after": "已确认",
+     "role": "required",
+     "owner": "王明",
+     "changed": true,
+     "filled": true,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_budget",
+     "sheet": "01_对象清单",
+     "field": "apiName",
+     "before": "planAmount",
+     "after": "",
+     "role": "prefilled",
+     "owner": "王明",
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_contract",
+     "sheet": "01_对象清单",
+     "field": "definition",
+     "before": "",
+     "after": "含税、年度累计，口径由预算科维护",
+     "role": "required",
+     "owner": "李强",
+     "changed": true,
+     "filled": true,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_contract",
+     "sheet": "01_对象清单",
+     "field": "confirmed",
+     "before": "",
+     "after": "待确认",
+     "role": "required",
+     "owner": "李强",
+     "changed": true,
+     "filled": true,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_contract",
+     "sheet": "01_对象清单",
+     "field": "apiName",
+     "before": "contractAmount",
+     "after": "",
+     "role": "prefilled",
+     "owner": "李强",
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "ot_采购包",
+     "sheet": "01_对象清单",
+     "field": "note",
+     "before": "只读，不参与完成度",
+     "after": "",
+     "role": "locked",
+     "owner": null,
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "ot_采购包",
+     "sheet": "01_对象清单",
+     "field": "displayName",
+     "before": "采购包",
+     "after": "采购包（新）",
+     "role": "required",
+     "owner": null,
+     "changed": true,
+     "filled": true,
+     "untouched_prefill": false
+    }
+   ],
+   "slips": [
+    {
+     "owner": "李强",
+     "count": 1,
+     "by_kind": {
+      "semantic_divergence": [
+       "回传后仍存在口径矛盾：时间粒度（单次 vs 年度累计）、税（不含税 vs 含税），需 李强、王明 对齐"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "label": "enum_violation",
+   "returned": [
+    {
+     "rid": "pt_amount_budget",
+     "field": "confirmed",
+     "value": "差不多确认了"
+    },
+    {
+     "rid": "pt_amount_contract",
+     "field": "confirmed",
+     "value": "已确认"
+    }
+   ],
+   "with_oir": false,
+   "summary": {
+    "completeness": 0.1667,
+    "cells_compared": 8,
+    "cells_changed": 7,
+    "findings": {
+     "missing_required": 3,
+     "type_mismatch": 1
+    },
+    "auto_repaired": 0,
+    "slips": [
+     {
+      "owner": "王明",
+      "count": 2,
+      "by_kind": {
+       "missing_required": [
+        "01_对象清单 · definition 未填"
+       ],
+       "type_mismatch": [
+        "01_对象清单 · confirmed 取值「差不多确认了」不在允许集合 已确认、待确认"
+       ]
+      }
+     },
+     {
+      "owner": "李强",
+      "count": 1,
+      "by_kind": {
+       "missing_required": [
+        "01_对象清单 · definition 未填"
+       ]
+      }
+     },
+     {
+      "owner": "未分派",
+      "count": 1,
+      "by_kind": {
+       "missing_required": [
+        "01_对象清单 · displayName 未填"
+       ]
+      }
+     }
+    ],
+    "unmatched_rows": [
+     "ot_采购包",
+     "pt_amount_budget",
+     "pt_amount_contract"
+    ],
+    "new_rows": [],
+    "damage": [],
+    "readable": true
+   },
+   "completeness": 0.16666666666666666,
+   "findings": [
+    {
+     "rid": "cf_missing_required_f88525d4f4",
+     "kind": "missing_required",
+     "subjects": [
+      "pt_amount_budget"
+     ],
+     "summary": "01_对象清单 · definition 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": "王明",
+     "detector": "rule:REQ-01"
+    },
+    {
+     "rid": "cf_missing_required_32b81aca97",
+     "kind": "missing_required",
+     "subjects": [
+      "pt_amount_contract"
+     ],
+     "summary": "01_对象清单 · definition 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": "李强",
+     "detector": "rule:REQ-01"
+    },
+    {
+     "rid": "cf_missing_required_60d611661f",
+     "kind": "missing_required",
+     "subjects": [
+      "ot_采购包"
+     ],
+     "summary": "01_对象清单 · displayName 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": null,
+     "detector": "rule:REQ-01"
+    },
+    {
+     "rid": "cf_type_mismatch_9386f57a45",
+     "kind": "type_mismatch",
+     "subjects": [
+      "pt_amount_budget"
+     ],
+     "summary": "01_对象清单 · confirmed 取值「差不多确认了」不在允许集合 已确认、待确认",
+     "handling": "ask_user",
+     "evidence": [],
+     "options": [],
+     "owner": "王明",
+     "detector": "rule:ENUM-01"
+    }
+   ],
+   "auto_repaired": [],
+   "diffs": [
+    {
+     "rid": "pt_amount_budget",
+     "sheet": "01_对象清单",
+     "field": "definition",
+     "before": "含税，年度累计",
+     "after": "",
+     "role": "required",
+     "owner": "王明",
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_budget",
+     "sheet": "01_对象清单",
+     "field": "confirmed",
+     "before": "",
+     "after": "差不多确认了",
+     "role": "required",
+     "owner": "王明",
+     "changed": true,
+     "filled": true,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_budget",
+     "sheet": "01_对象清单",
+     "field": "apiName",
+     "before": "planAmount",
+     "after": "",
+     "role": "prefilled",
+     "owner": "王明",
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_contract",
+     "sheet": "01_对象清单",
+     "field": "definition",
+     "before": "",
+     "after": "",
+     "role": "required",
+     "owner": "李强",
+     "changed": false,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_contract",
+     "sheet": "01_对象清单",
+     "field": "confirmed",
+     "before": "",
+     "after": "已确认",
+     "role": "required",
+     "owner": "李强",
+     "changed": true,
+     "filled": true,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_contract",
+     "sheet": "01_对象清单",
+     "field": "apiName",
+     "before": "contractAmount",
+     "after": "",
+     "role": "prefilled",
+     "owner": "李强",
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "ot_采购包",
+     "sheet": "01_对象清单",
+     "field": "note",
+     "before": "只读，不参与完成度",
+     "after": "",
+     "role": "locked",
+     "owner": null,
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "ot_采购包",
+     "sheet": "01_对象清单",
+     "field": "displayName",
+     "before": "采购包",
+     "after": "",
+     "role": "required",
+     "owner": null,
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    }
+   ],
+   "slips": [
+    {
+     "owner": "王明",
+     "count": 2,
+     "by_kind": {
+      "missing_required": [
+       "01_对象清单 · definition 未填"
+      ],
+      "type_mismatch": [
+       "01_对象清单 · confirmed 取值「差不多确认了」不在允许集合 已确认、待确认"
+      ]
+     }
+    },
+    {
+     "owner": "李强",
+     "count": 1,
+     "by_kind": {
+      "missing_required": [
+       "01_对象清单 · definition 未填"
+      ]
+     }
+    },
+    {
+     "owner": "未分派",
+     "count": 1,
+     "by_kind": {
+      "missing_required": [
+       "01_对象清单 · displayName 未填"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "label": "naming_violation",
+   "returned": [
+    {
+     "rid": "pt_amount_budget",
+     "field": "apiName",
+     "value": "计划金额"
+    },
+    {
+     "rid": "pt_amount_contract",
+     "field": "apiName",
+     "value": "contract_amount"
+    }
+   ],
+   "with_oir": false,
+   "summary": {
+    "completeness": 0.0,
+    "cells_compared": 8,
+    "cells_changed": 5,
+    "findings": {
+     "missing_required": 5
+    },
+    "auto_repaired": 2,
+    "slips": [
+     {
+      "owner": "王明",
+      "count": 2,
+      "by_kind": {
+       "missing_required": [
+        "01_对象清单 · definition 未填",
+        "01_对象清单 · confirmed 未填"
+       ]
+      }
+     },
+     {
+      "owner": "李强",
+      "count": 2,
+      "by_kind": {
+       "missing_required": [
+        "01_对象清单 · definition 未填",
+        "01_对象清单 · confirmed 未填"
+       ]
+      }
+     },
+     {
+      "owner": "未分派",
+      "count": 1,
+      "by_kind": {
+       "missing_required": [
+        "01_对象清单 · displayName 未填"
+       ]
+      }
+     }
+    ],
+    "unmatched_rows": [
+     "ot_采购包",
+     "pt_amount_budget",
+     "pt_amount_contract"
+    ],
+    "new_rows": [],
+    "damage": [],
+    "readable": true
+   },
+   "completeness": 0.0,
+   "findings": [
+    {
+     "rid": "cf_missing_required_f88525d4f4",
+     "kind": "missing_required",
+     "subjects": [
+      "pt_amount_budget"
+     ],
+     "summary": "01_对象清单 · definition 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": "王明",
+     "detector": "rule:REQ-01"
+    },
+    {
+     "rid": "cf_missing_required_9386f57a45",
+     "kind": "missing_required",
+     "subjects": [
+      "pt_amount_budget"
+     ],
+     "summary": "01_对象清单 · confirmed 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": "王明",
+     "detector": "rule:REQ-01"
+    },
+    {
+     "rid": "cf_missing_required_32b81aca97",
+     "kind": "missing_required",
+     "subjects": [
+      "pt_amount_contract"
+     ],
+     "summary": "01_对象清单 · definition 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": "李强",
+     "detector": "rule:REQ-01"
+    },
+    {
+     "rid": "cf_missing_required_bba017b5d1",
+     "kind": "missing_required",
+     "subjects": [
+      "pt_amount_contract"
+     ],
+     "summary": "01_对象清单 · confirmed 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": "李强",
+     "detector": "rule:REQ-01"
+    },
+    {
+     "rid": "cf_missing_required_60d611661f",
+     "kind": "missing_required",
+     "subjects": [
+      "ot_采购包"
+     ],
+     "summary": "01_对象清单 · displayName 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": null,
+     "detector": "rule:REQ-01"
+    }
+   ],
+   "auto_repaired": [
+    {
+     "conflict": "cf_naming_violation_7e41601af2",
+     "rid": "pt_amount_budget",
+     "field": "apiName",
+     "to": "计划金额",
+     "reversible": true
+    },
+    {
+     "conflict": "cf_naming_violation_0016b76962",
+     "rid": "pt_amount_contract",
+     "field": "apiName",
+     "to": "contractAmount",
+     "reversible": true
+    }
+   ],
+   "diffs": [
+    {
+     "rid": "pt_amount_budget",
+     "sheet": "01_对象清单",
+     "field": "definition",
+     "before": "含税，年度累计",
+     "after": "",
+     "role": "required",
+     "owner": "王明",
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_budget",
+     "sheet": "01_对象清单",
+     "field": "confirmed",
+     "before": "",
+     "after": "",
+     "role": "required",
+     "owner": "王明",
+     "changed": false,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_budget",
+     "sheet": "01_对象清单",
+     "field": "apiName",
+     "before": "planAmount",
+     "after": "计划金额",
+     "role": "prefilled",
+     "owner": "王明",
+     "changed": true,
+     "filled": true,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_contract",
+     "sheet": "01_对象清单",
+     "field": "definition",
+     "before": "",
+     "after": "",
+     "role": "required",
+     "owner": "李强",
+     "changed": false,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_contract",
+     "sheet": "01_对象清单",
+     "field": "confirmed",
+     "before": "",
+     "after": "",
+     "role": "required",
+     "owner": "李强",
+     "changed": false,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_contract",
+     "sheet": "01_对象清单",
+     "field": "apiName",
+     "before": "contractAmount",
+     "after": "contract_amount",
+     "role": "prefilled",
+     "owner": "李强",
+     "changed": true,
+     "filled": true,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "ot_采购包",
+     "sheet": "01_对象清单",
+     "field": "note",
+     "before": "只读，不参与完成度",
+     "after": "",
+     "role": "locked",
+     "owner": null,
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "ot_采购包",
+     "sheet": "01_对象清单",
+     "field": "displayName",
+     "before": "采购包",
+     "after": "",
+     "role": "required",
+     "owner": null,
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    }
+   ],
+   "slips": [
+    {
+     "owner": "王明",
+     "count": 2,
+     "by_kind": {
+      "missing_required": [
+       "01_对象清单 · definition 未填",
+       "01_对象清单 · confirmed 未填"
+      ]
+     }
+    },
+    {
+     "owner": "李强",
+     "count": 2,
+     "by_kind": {
+      "missing_required": [
+       "01_对象清单 · definition 未填",
+       "01_对象清单 · confirmed 未填"
+      ]
+     }
+    },
+    {
+     "owner": "未分派",
+     "count": 1,
+     "by_kind": {
+      "missing_required": [
+       "01_对象清单 · displayName 未填"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "label": "naming_violation_with_oir",
+   "returned": [
+    {
+     "rid": "pt_amount_budget",
+     "field": "apiName",
+     "value": "plan_amount"
+    }
+   ],
+   "with_oir": true,
+   "summary": {
+    "completeness": 0.0,
+    "cells_compared": 8,
+    "cells_changed": 5,
+    "findings": {
+     "missing_required": 5
+    },
+    "auto_repaired": 1,
+    "slips": [
+     {
+      "owner": "王明",
+      "count": 2,
+      "by_kind": {
+       "missing_required": [
+        "01_对象清单 · definition 未填",
+        "01_对象清单 · confirmed 未填"
+       ]
+      }
+     },
+     {
+      "owner": "李强",
+      "count": 2,
+      "by_kind": {
+       "missing_required": [
+        "01_对象清单 · definition 未填",
+        "01_对象清单 · confirmed 未填"
+       ]
+      }
+     },
+     {
+      "owner": "未分派",
+      "count": 1,
+      "by_kind": {
+       "missing_required": [
+        "01_对象清单 · displayName 未填"
+       ]
+      }
+     }
+    ],
+    "unmatched_rows": [
+     "ot_采购包",
+     "pt_amount_budget",
+     "pt_amount_contract"
+    ],
+    "new_rows": [],
+    "damage": [],
+    "readable": true
+   },
+   "completeness": 0.0,
+   "findings": [
+    {
+     "rid": "cf_missing_required_f88525d4f4",
+     "kind": "missing_required",
+     "subjects": [
+      "pt_amount_budget"
+     ],
+     "summary": "01_对象清单 · definition 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": "王明",
+     "detector": "rule:REQ-01"
+    },
+    {
+     "rid": "cf_missing_required_9386f57a45",
+     "kind": "missing_required",
+     "subjects": [
+      "pt_amount_budget"
+     ],
+     "summary": "01_对象清单 · confirmed 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": "王明",
+     "detector": "rule:REQ-01"
+    },
+    {
+     "rid": "cf_missing_required_32b81aca97",
+     "kind": "missing_required",
+     "subjects": [
+      "pt_amount_contract"
+     ],
+     "summary": "01_对象清单 · definition 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": "李强",
+     "detector": "rule:REQ-01"
+    },
+    {
+     "rid": "cf_missing_required_bba017b5d1",
+     "kind": "missing_required",
+     "subjects": [
+      "pt_amount_contract"
+     ],
+     "summary": "01_对象清单 · confirmed 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": "李强",
+     "detector": "rule:REQ-01"
+    },
+    {
+     "rid": "cf_missing_required_60d611661f",
+     "kind": "missing_required",
+     "subjects": [
+      "ot_采购包"
+     ],
+     "summary": "01_对象清单 · displayName 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": null,
+     "detector": "rule:REQ-01"
+    }
+   ],
+   "auto_repaired": [
+    {
+     "conflict": "cf_naming_violation_7e41601af2",
+     "rid": "pt_amount_budget",
+     "field": "apiName",
+     "to": "planAmount",
+     "reversible": true,
+     "from": "计划金额"
+    }
+   ],
+   "diffs": [
+    {
+     "rid": "pt_amount_budget",
+     "sheet": "01_对象清单",
+     "field": "definition",
+     "before": "含税，年度累计",
+     "after": "",
+     "role": "required",
+     "owner": "王明",
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_budget",
+     "sheet": "01_对象清单",
+     "field": "confirmed",
+     "before": "",
+     "after": "",
+     "role": "required",
+     "owner": "王明",
+     "changed": false,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_budget",
+     "sheet": "01_对象清单",
+     "field": "apiName",
+     "before": "planAmount",
+     "after": "plan_amount",
+     "role": "prefilled",
+     "owner": "王明",
+     "changed": true,
+     "filled": true,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_contract",
+     "sheet": "01_对象清单",
+     "field": "definition",
+     "before": "",
+     "after": "",
+     "role": "required",
+     "owner": "李强",
+     "changed": false,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_contract",
+     "sheet": "01_对象清单",
+     "field": "confirmed",
+     "before": "",
+     "after": "",
+     "role": "required",
+     "owner": "李强",
+     "changed": false,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_contract",
+     "sheet": "01_对象清单",
+     "field": "apiName",
+     "before": "contractAmount",
+     "after": "",
+     "role": "prefilled",
+     "owner": "李强",
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "ot_采购包",
+     "sheet": "01_对象清单",
+     "field": "note",
+     "before": "只读，不参与完成度",
+     "after": "",
+     "role": "locked",
+     "owner": null,
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "ot_采购包",
+     "sheet": "01_对象清单",
+     "field": "displayName",
+     "before": "采购包",
+     "after": "",
+     "role": "required",
+     "owner": null,
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    }
+   ],
+   "slips": [
+    {
+     "owner": "王明",
+     "count": 2,
+     "by_kind": {
+      "missing_required": [
+       "01_对象清单 · definition 未填",
+       "01_对象清单 · confirmed 未填"
+      ]
+     }
+    },
+    {
+     "owner": "李强",
+     "count": 2,
+     "by_kind": {
+      "missing_required": [
+       "01_对象清单 · definition 未填",
+       "01_对象清单 · confirmed 未填"
+      ]
+     }
+    },
+    {
+     "owner": "未分派",
+     "count": 1,
+     "by_kind": {
+      "missing_required": [
+       "01_对象清单 · displayName 未填"
+      ]
+     }
+    }
+   ],
+   "oir_after": {
+    "objects": [
+     {
+      "rid": "ot_采购包",
+      "kind": "ObjectType",
+      "apiName": {
+       "value": "采购包",
+       "origin": "extracted",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "displayName": {
+       "value": "采购包",
+       "origin": "extracted",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "description": {
+       "value": "",
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "primaryKey": {
+       "value": [],
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "properties": [
+       "pt_amount_budget",
+       "pt_amount_contract"
+      ],
+      "aliases": [],
+      "owner": null,
+      "status": "candidate",
+      "conflicts": []
+     }
+    ],
+    "properties": [
+     {
+      "rid": "pt_amount_budget",
+      "parent": "ot_采购包",
+      "kind": "PropertyType",
+      "apiName": {
+       "value": "planAmount",
+       "origin": "auto_repaired",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "displayName": {
+       "value": "计划金额",
+       "origin": "extracted",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "baseType": {
+       "value": "DECIMAL",
+       "origin": "extracted",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "definition": {
+       "value": "",
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "semanticType": {
+       "value": null,
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "unit": {
+       "value": null,
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "valueDomain": {
+       "value": null,
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "required": {
+       "value": false,
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "owner": null,
+      "status": "candidate",
+      "conflicts": []
+     },
+     {
+      "rid": "pt_amount_contract",
+      "parent": "ot_采购包",
+      "kind": "PropertyType",
+      "apiName": {
+       "value": "合同金额",
+       "origin": "extracted",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "displayName": {
+       "value": "合同金额",
+       "origin": "extracted",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "baseType": {
+       "value": "DECIMAL",
+       "origin": "extracted",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "definition": {
+       "value": "",
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "semanticType": {
+       "value": null,
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "unit": {
+       "value": null,
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "valueDomain": {
+       "value": null,
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "required": {
+       "value": false,
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "owner": null,
+      "status": "candidate",
+      "conflicts": []
+     }
+    ],
+    "links": [
+     {
+      "rid": "lt_a_b",
+      "kind": "LinkType",
+      "apiName": {
+       "value": "包_供",
+       "origin": "extracted",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "from": "ot_采购包",
+      "to": "ot_采购包",
+      "cardinality": {
+       "value": "ONE_TO_MANY",
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "joinKey": {
+       "value": null,
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "status": "candidate",
+      "conflicts": []
+     }
+    ],
+    "rules": [
+     {
+      "rid": "br_1",
+      "kind": "BusinessRule",
+      "statement": {
+       "value": "采购包必须审批",
+       "origin": "extracted",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "ruleKind": {
+       "value": "OTHER",
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "appliesTo": [],
+      "actor": {
+       "value": "",
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "status": "candidate"
+     }
+    ],
+    "questions": [
+     {
+      "rid": "oq_1",
+      "kind": "OpenQuestion",
+      "text": {
+       "value": "上限是多少？",
+       "origin": "extracted",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "options": [],
+      "answer": {
+       "value": "",
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "group": "",
+      "code": "",
+      "appliesTo": [],
+      "askedBy": "customer",
+      "owner": null,
+      "status": "candidate"
+     }
+    ],
+    "actions": [
+     {
+      "rid": "at_publish",
+      "kind": "ActionType",
+      "apiName": {
+       "value": "发布",
+       "origin": "extracted",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "appliesTo": [],
+      "parameters": {
+       "value": [],
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "effects": {
+       "value": [],
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "sourceEndpoint": {
+       "value": null,
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "status": "candidate"
+     }
+    ],
+    "stats": {
+     "objects": 1,
+     "properties": 2,
+     "links": 1,
+     "actions": 1,
+     "rules": 1,
+     "questions": 1,
+     "open_questions": 1,
+     "orphans": 0,
+     "confirmed": 0
+    }
+   }
+  },
+  {
+   "label": "naming_ok",
+   "returned": [
+    {
+     "rid": "pt_amount_budget",
+     "field": "apiName",
+     "value": "planAmountNew"
+    }
+   ],
+   "with_oir": false,
+   "summary": {
+    "completeness": 0.0,
+    "cells_compared": 8,
+    "cells_changed": 5,
+    "findings": {
+     "missing_required": 5
+    },
+    "auto_repaired": 0,
+    "slips": [
+     {
+      "owner": "王明",
+      "count": 2,
+      "by_kind": {
+       "missing_required": [
+        "01_对象清单 · definition 未填",
+        "01_对象清单 · confirmed 未填"
+       ]
+      }
+     },
+     {
+      "owner": "李强",
+      "count": 2,
+      "by_kind": {
+       "missing_required": [
+        "01_对象清单 · definition 未填",
+        "01_对象清单 · confirmed 未填"
+       ]
+      }
+     },
+     {
+      "owner": "未分派",
+      "count": 1,
+      "by_kind": {
+       "missing_required": [
+        "01_对象清单 · displayName 未填"
+       ]
+      }
+     }
+    ],
+    "unmatched_rows": [
+     "ot_采购包",
+     "pt_amount_budget",
+     "pt_amount_contract"
+    ],
+    "new_rows": [],
+    "damage": [],
+    "readable": true
+   },
+   "completeness": 0.0,
+   "findings": [
+    {
+     "rid": "cf_missing_required_f88525d4f4",
+     "kind": "missing_required",
+     "subjects": [
+      "pt_amount_budget"
+     ],
+     "summary": "01_对象清单 · definition 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": "王明",
+     "detector": "rule:REQ-01"
+    },
+    {
+     "rid": "cf_missing_required_9386f57a45",
+     "kind": "missing_required",
+     "subjects": [
+      "pt_amount_budget"
+     ],
+     "summary": "01_对象清单 · confirmed 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": "王明",
+     "detector": "rule:REQ-01"
+    },
+    {
+     "rid": "cf_missing_required_32b81aca97",
+     "kind": "missing_required",
+     "subjects": [
+      "pt_amount_contract"
+     ],
+     "summary": "01_对象清单 · definition 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": "李强",
+     "detector": "rule:REQ-01"
+    },
+    {
+     "rid": "cf_missing_required_bba017b5d1",
+     "kind": "missing_required",
+     "subjects": [
+      "pt_amount_contract"
+     ],
+     "summary": "01_对象清单 · confirmed 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": "李强",
+     "detector": "rule:REQ-01"
+    },
+    {
+     "rid": "cf_missing_required_60d611661f",
+     "kind": "missing_required",
+     "subjects": [
+      "ot_采购包"
+     ],
+     "summary": "01_对象清单 · displayName 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": null,
+     "detector": "rule:REQ-01"
+    }
+   ],
+   "auto_repaired": [],
+   "diffs": [
+    {
+     "rid": "pt_amount_budget",
+     "sheet": "01_对象清单",
+     "field": "definition",
+     "before": "含税，年度累计",
+     "after": "",
+     "role": "required",
+     "owner": "王明",
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_budget",
+     "sheet": "01_对象清单",
+     "field": "confirmed",
+     "before": "",
+     "after": "",
+     "role": "required",
+     "owner": "王明",
+     "changed": false,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_budget",
+     "sheet": "01_对象清单",
+     "field": "apiName",
+     "before": "planAmount",
+     "after": "planAmountNew",
+     "role": "prefilled",
+     "owner": "王明",
+     "changed": true,
+     "filled": true,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_contract",
+     "sheet": "01_对象清单",
+     "field": "definition",
+     "before": "",
+     "after": "",
+     "role": "required",
+     "owner": "李强",
+     "changed": false,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_contract",
+     "sheet": "01_对象清单",
+     "field": "confirmed",
+     "before": "",
+     "after": "",
+     "role": "required",
+     "owner": "李强",
+     "changed": false,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_contract",
+     "sheet": "01_对象清单",
+     "field": "apiName",
+     "before": "contractAmount",
+     "after": "",
+     "role": "prefilled",
+     "owner": "李强",
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "ot_采购包",
+     "sheet": "01_对象清单",
+     "field": "note",
+     "before": "只读，不参与完成度",
+     "after": "",
+     "role": "locked",
+     "owner": null,
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "ot_采购包",
+     "sheet": "01_对象清单",
+     "field": "displayName",
+     "before": "采购包",
+     "after": "",
+     "role": "required",
+     "owner": null,
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    }
+   ],
+   "slips": [
+    {
+     "owner": "王明",
+     "count": 2,
+     "by_kind": {
+      "missing_required": [
+       "01_对象清单 · definition 未填",
+       "01_对象清单 · confirmed 未填"
+      ]
+     }
+    },
+    {
+     "owner": "李强",
+     "count": 2,
+     "by_kind": {
+      "missing_required": [
+       "01_对象清单 · definition 未填",
+       "01_对象清单 · confirmed 未填"
+      ]
+     }
+    },
+    {
+     "owner": "未分派",
+     "count": 1,
+     "by_kind": {
+      "missing_required": [
+       "01_对象清单 · displayName 未填"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "label": "perfunctory_placeholder",
+   "returned": [
+    {
+     "rid": "pt_amount_budget",
+     "field": "definition",
+     "value": "无"
+    },
+    {
+     "rid": "pt_amount_contract",
+     "field": "definition",
+     "value": "待定"
+    }
+   ],
+   "with_oir": false,
+   "summary": {
+    "completeness": 0.0,
+    "cells_compared": 8,
+    "cells_changed": 6,
+    "findings": {
+     "missing_required": 3,
+     "perfunctory": 2
+    },
+    "auto_repaired": 0,
+    "slips": [
+     {
+      "owner": "王明",
+      "count": 2,
+      "by_kind": {
+       "missing_required": [
+        "01_对象清单 · confirmed 未填"
+       ],
+       "perfunctory": [
+        "01_对象清单 · definition 疑似敷衍（PLACEHOLDER、TOO_SHORT）"
+       ]
+      }
+     },
+     {
+      "owner": "李强",
+      "count": 2,
+      "by_kind": {
+       "missing_required": [
+        "01_对象清单 · confirmed 未填"
+       ],
+       "perfunctory": [
+        "01_对象清单 · definition 疑似敷衍（PLACEHOLDER、TOO_SHORT）"
+       ]
+      }
+     },
+     {
+      "owner": "未分派",
+      "count": 1,
+      "by_kind": {
+       "missing_required": [
+        "01_对象清单 · displayName 未填"
+       ]
+      }
+     }
+    ],
+    "unmatched_rows": [
+     "ot_采购包",
+     "pt_amount_budget",
+     "pt_amount_contract"
+    ],
+    "new_rows": [],
+    "damage": [],
+    "readable": true
+   },
+   "completeness": 0.0,
+   "findings": [
+    {
+     "rid": "cf_missing_required_9386f57a45",
+     "kind": "missing_required",
+     "subjects": [
+      "pt_amount_budget"
+     ],
+     "summary": "01_对象清单 · confirmed 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": "王明",
+     "detector": "rule:REQ-01"
+    },
+    {
+     "rid": "cf_missing_required_bba017b5d1",
+     "kind": "missing_required",
+     "subjects": [
+      "pt_amount_contract"
+     ],
+     "summary": "01_对象清单 · confirmed 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": "李强",
+     "detector": "rule:REQ-01"
+    },
+    {
+     "rid": "cf_missing_required_60d611661f",
+     "kind": "missing_required",
+     "subjects": [
+      "ot_采购包"
+     ],
+     "summary": "01_对象清单 · displayName 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": null,
+     "detector": "rule:REQ-01"
+    },
+    {
+     "rid": "cf_perfunctory_f88525d4f4",
+     "kind": "perfunctory",
+     "subjects": [
+      "pt_amount_budget"
+     ],
+     "summary": "01_对象清单 · definition 疑似敷衍（PLACEHOLDER、TOO_SHORT）",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": "王明",
+     "detector": "heuristic:PERF-01"
+    },
+    {
+     "rid": "cf_perfunctory_32b81aca97",
+     "kind": "perfunctory",
+     "subjects": [
+      "pt_amount_contract"
+     ],
+     "summary": "01_对象清单 · definition 疑似敷衍（PLACEHOLDER、TOO_SHORT）",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": "李强",
+     "detector": "heuristic:PERF-01"
+    }
+   ],
+   "auto_repaired": [],
+   "diffs": [
+    {
+     "rid": "pt_amount_budget",
+     "sheet": "01_对象清单",
+     "field": "definition",
+     "before": "含税，年度累计",
+     "after": "无",
+     "role": "required",
+     "owner": "王明",
+     "changed": true,
+     "filled": true,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_budget",
+     "sheet": "01_对象清单",
+     "field": "confirmed",
+     "before": "",
+     "after": "",
+     "role": "required",
+     "owner": "王明",
+     "changed": false,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_budget",
+     "sheet": "01_对象清单",
+     "field": "apiName",
+     "before": "planAmount",
+     "after": "",
+     "role": "prefilled",
+     "owner": "王明",
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_contract",
+     "sheet": "01_对象清单",
+     "field": "definition",
+     "before": "",
+     "after": "待定",
+     "role": "required",
+     "owner": "李强",
+     "changed": true,
+     "filled": true,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_contract",
+     "sheet": "01_对象清单",
+     "field": "confirmed",
+     "before": "",
+     "after": "",
+     "role": "required",
+     "owner": "李强",
+     "changed": false,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_contract",
+     "sheet": "01_对象清单",
+     "field": "apiName",
+     "before": "contractAmount",
+     "after": "",
+     "role": "prefilled",
+     "owner": "李强",
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "ot_采购包",
+     "sheet": "01_对象清单",
+     "field": "note",
+     "before": "只读，不参与完成度",
+     "after": "",
+     "role": "locked",
+     "owner": null,
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "ot_采购包",
+     "sheet": "01_对象清单",
+     "field": "displayName",
+     "before": "采购包",
+     "after": "",
+     "role": "required",
+     "owner": null,
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    }
+   ],
+   "slips": [
+    {
+     "owner": "王明",
+     "count": 2,
+     "by_kind": {
+      "missing_required": [
+       "01_对象清单 · confirmed 未填"
+      ],
+      "perfunctory": [
+       "01_对象清单 · definition 疑似敷衍（PLACEHOLDER、TOO_SHORT）"
+      ]
+     }
+    },
+    {
+     "owner": "李强",
+     "count": 2,
+     "by_kind": {
+      "missing_required": [
+       "01_对象清单 · confirmed 未填"
+      ],
+      "perfunctory": [
+       "01_对象清单 · definition 疑似敷衍（PLACEHOLDER、TOO_SHORT）"
+      ]
+     }
+    },
+    {
+     "owner": "未分派",
+     "count": 1,
+     "by_kind": {
+      "missing_required": [
+       "01_对象清单 · displayName 未填"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "label": "perfunctory_too_short",
+   "returned": [
+    {
+     "rid": "pt_amount_budget",
+     "field": "definition",
+     "value": "税"
+    },
+    {
+     "rid": "pt_amount_contract",
+     "field": "definition",
+     "value": "含税口径见附表说明"
+    }
+   ],
+   "with_oir": false,
+   "summary": {
+    "completeness": 0.3333,
+    "cells_compared": 8,
+    "cells_changed": 6,
+    "findings": {
+     "missing_required": 3,
+     "perfunctory": 1
+    },
+    "auto_repaired": 0,
+    "slips": [
+     {
+      "owner": "王明",
+      "count": 2,
+      "by_kind": {
+       "missing_required": [
+        "01_对象清单 · confirmed 未填"
+       ],
+       "perfunctory": [
+        "01_对象清单 · definition 疑似敷衍（TOO_SHORT）"
+       ]
+      }
+     },
+     {
+      "owner": "李强",
+      "count": 1,
+      "by_kind": {
+       "missing_required": [
+        "01_对象清单 · confirmed 未填"
+       ]
+      }
+     },
+     {
+      "owner": "未分派",
+      "count": 1,
+      "by_kind": {
+       "missing_required": [
+        "01_对象清单 · displayName 未填"
+       ]
+      }
+     }
+    ],
+    "unmatched_rows": [
+     "ot_采购包",
+     "pt_amount_budget",
+     "pt_amount_contract"
+    ],
+    "new_rows": [],
+    "damage": [],
+    "readable": true
+   },
+   "completeness": 0.3333333333333333,
+   "findings": [
+    {
+     "rid": "cf_missing_required_9386f57a45",
+     "kind": "missing_required",
+     "subjects": [
+      "pt_amount_budget"
+     ],
+     "summary": "01_对象清单 · confirmed 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": "王明",
+     "detector": "rule:REQ-01"
+    },
+    {
+     "rid": "cf_missing_required_bba017b5d1",
+     "kind": "missing_required",
+     "subjects": [
+      "pt_amount_contract"
+     ],
+     "summary": "01_对象清单 · confirmed 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": "李强",
+     "detector": "rule:REQ-01"
+    },
+    {
+     "rid": "cf_missing_required_60d611661f",
+     "kind": "missing_required",
+     "subjects": [
+      "ot_采购包"
+     ],
+     "summary": "01_对象清单 · displayName 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": null,
+     "detector": "rule:REQ-01"
+    },
+    {
+     "rid": "cf_perfunctory_f88525d4f4",
+     "kind": "perfunctory",
+     "subjects": [
+      "pt_amount_budget"
+     ],
+     "summary": "01_对象清单 · definition 疑似敷衍（TOO_SHORT）",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": "王明",
+     "detector": "heuristic:PERF-01"
+    }
+   ],
+   "auto_repaired": [],
+   "diffs": [
+    {
+     "rid": "pt_amount_budget",
+     "sheet": "01_对象清单",
+     "field": "definition",
+     "before": "含税，年度累计",
+     "after": "税",
+     "role": "required",
+     "owner": "王明",
+     "changed": true,
+     "filled": true,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_budget",
+     "sheet": "01_对象清单",
+     "field": "confirmed",
+     "before": "",
+     "after": "",
+     "role": "required",
+     "owner": "王明",
+     "changed": false,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_budget",
+     "sheet": "01_对象清单",
+     "field": "apiName",
+     "before": "planAmount",
+     "after": "",
+     "role": "prefilled",
+     "owner": "王明",
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_contract",
+     "sheet": "01_对象清单",
+     "field": "definition",
+     "before": "",
+     "after": "含税口径见附表说明",
+     "role": "required",
+     "owner": "李强",
+     "changed": true,
+     "filled": true,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_contract",
+     "sheet": "01_对象清单",
+     "field": "confirmed",
+     "before": "",
+     "after": "",
+     "role": "required",
+     "owner": "李强",
+     "changed": false,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_contract",
+     "sheet": "01_对象清单",
+     "field": "apiName",
+     "before": "contractAmount",
+     "after": "",
+     "role": "prefilled",
+     "owner": "李强",
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "ot_采购包",
+     "sheet": "01_对象清单",
+     "field": "note",
+     "before": "只读，不参与完成度",
+     "after": "",
+     "role": "locked",
+     "owner": null,
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "ot_采购包",
+     "sheet": "01_对象清单",
+     "field": "displayName",
+     "before": "采购包",
+     "after": "",
+     "role": "required",
+     "owner": null,
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    }
+   ],
+   "slips": [
+    {
+     "owner": "王明",
+     "count": 2,
+     "by_kind": {
+      "missing_required": [
+       "01_对象清单 · confirmed 未填"
+      ],
+      "perfunctory": [
+       "01_对象清单 · definition 疑似敷衍（TOO_SHORT）"
+      ]
+     }
+    },
+    {
+     "owner": "李强",
+     "count": 1,
+     "by_kind": {
+      "missing_required": [
+       "01_对象清单 · confirmed 未填"
+      ]
+     }
+    },
+    {
+     "owner": "未分派",
+     "count": 1,
+     "by_kind": {
+      "missing_required": [
+       "01_对象清单 · displayName 未填"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "label": "perfunctory_unchanged_prefill",
+   "returned": [
+    {
+     "rid": "pt_amount_budget",
+     "field": "definition",
+     "value": "含税，年度累计"
+    },
+    {
+     "rid": "pt_amount_contract",
+     "field": "definition",
+     "value": "不含税、单次结算，由财务共享中心维护"
+    }
+   ],
+   "with_oir": false,
+   "summary": {
+    "completeness": 0.3333,
+    "cells_compared": 8,
+    "cells_changed": 5,
+    "findings": {
+     "missing_required": 3,
+     "perfunctory": 1,
+     "semantic_divergence": 1
+    },
+    "auto_repaired": 0,
+    "slips": [
+     {
+      "owner": "王明",
+      "count": 2,
+      "by_kind": {
+       "missing_required": [
+        "01_对象清单 · confirmed 未填"
+       ],
+       "perfunctory": [
+        "01_对象清单 · definition 疑似敷衍（UNCHANGED_PREFILL）：AI 预填值被原样交回，这格没有被真正审过"
+       ]
+      }
+     },
+     {
+      "owner": "李强",
+      "count": 2,
+      "by_kind": {
+       "missing_required": [
+        "01_对象清单 · confirmed 未填"
+       ],
+       "semantic_divergence": [
+        "回传后仍存在口径矛盾：时间粒度（年度累计 vs 单次）、税（含税 vs 不含税），需 李强、王明 对齐"
+       ]
+      }
+     },
+     {
+      "owner": "未分派",
+      "count": 1,
+      "by_kind": {
+       "missing_required": [
+        "01_对象清单 · displayName 未填"
+       ]
+      }
+     }
+    ],
+    "unmatched_rows": [
+     "ot_采购包",
+     "pt_amount_budget",
+     "pt_amount_contract"
+    ],
+    "new_rows": [],
+    "damage": [],
+    "readable": true
+   },
+   "completeness": 0.3333333333333333,
+   "findings": [
+    {
+     "rid": "cf_missing_required_9386f57a45",
+     "kind": "missing_required",
+     "subjects": [
+      "pt_amount_budget"
+     ],
+     "summary": "01_对象清单 · confirmed 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": "王明",
+     "detector": "rule:REQ-01"
+    },
+    {
+     "rid": "cf_missing_required_bba017b5d1",
+     "kind": "missing_required",
+     "subjects": [
+      "pt_amount_contract"
+     ],
+     "summary": "01_对象清单 · confirmed 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": "李强",
+     "detector": "rule:REQ-01"
+    },
+    {
+     "rid": "cf_missing_required_60d611661f",
+     "kind": "missing_required",
+     "subjects": [
+      "ot_采购包"
+     ],
+     "summary": "01_对象清单 · displayName 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": null,
+     "detector": "rule:REQ-01"
+    },
+    {
+     "rid": "cf_perfunctory_f88525d4f4",
+     "kind": "perfunctory",
+     "subjects": [
+      "pt_amount_budget"
+     ],
+     "summary": "01_对象清单 · definition 疑似敷衍（UNCHANGED_PREFILL）：AI 预填值被原样交回，这格没有被真正审过",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": "王明",
+     "detector": "heuristic:PERF-01"
+    },
+    {
+     "rid": "cf_semantic_divergence_03ccaf29f2",
+     "kind": "semantic_divergence",
+     "subjects": [
+      "pt_amount_budget",
+      "pt_amount_contract"
+     ],
+     "summary": "回传后仍存在口径矛盾：时间粒度（年度累计 vs 单次）、税（含税 vs 不含税），需 李强、王明 对齐",
+     "handling": "ask_user",
+     "evidence": [],
+     "options": [],
+     "owner": "李强",
+     "detector": "rule:AXIS-01"
+    }
+   ],
+   "auto_repaired": [],
+   "diffs": [
+    {
+     "rid": "pt_amount_budget",
+     "sheet": "01_对象清单",
+     "field": "definition",
+     "before": "含税，年度累计",
+     "after": "含税，年度累计",
+     "role": "required",
+     "owner": "王明",
+     "changed": false,
+     "filled": true,
+     "untouched_prefill": true
+    },
+    {
+     "rid": "pt_amount_budget",
+     "sheet": "01_对象清单",
+     "field": "confirmed",
+     "before": "",
+     "after": "",
+     "role": "required",
+     "owner": "王明",
+     "changed": false,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_budget",
+     "sheet": "01_对象清单",
+     "field": "apiName",
+     "before": "planAmount",
+     "after": "",
+     "role": "prefilled",
+     "owner": "王明",
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_contract",
+     "sheet": "01_对象清单",
+     "field": "definition",
+     "before": "",
+     "after": "不含税、单次结算，由财务共享中心维护",
+     "role": "required",
+     "owner": "李强",
+     "changed": true,
+     "filled": true,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_contract",
+     "sheet": "01_对象清单",
+     "field": "confirmed",
+     "before": "",
+     "after": "",
+     "role": "required",
+     "owner": "李强",
+     "changed": false,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_contract",
+     "sheet": "01_对象清单",
+     "field": "apiName",
+     "before": "contractAmount",
+     "after": "",
+     "role": "prefilled",
+     "owner": "李强",
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "ot_采购包",
+     "sheet": "01_对象清单",
+     "field": "note",
+     "before": "只读，不参与完成度",
+     "after": "",
+     "role": "locked",
+     "owner": null,
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "ot_采购包",
+     "sheet": "01_对象清单",
+     "field": "displayName",
+     "before": "采购包",
+     "after": "",
+     "role": "required",
+     "owner": null,
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    }
+   ],
+   "slips": [
+    {
+     "owner": "王明",
+     "count": 2,
+     "by_kind": {
+      "missing_required": [
+       "01_对象清单 · confirmed 未填"
+      ],
+      "perfunctory": [
+       "01_对象清单 · definition 疑似敷衍（UNCHANGED_PREFILL）：AI 预填值被原样交回，这格没有被真正审过"
+      ]
+     }
+    },
+    {
+     "owner": "李强",
+     "count": 2,
+     "by_kind": {
+      "missing_required": [
+       "01_对象清单 · confirmed 未填"
+      ],
+      "semantic_divergence": [
+       "回传后仍存在口径矛盾：时间粒度（年度累计 vs 单次）、税（含税 vs 不含税），需 李强、王明 对齐"
+      ]
+     }
+    },
+    {
+     "owner": "未分派",
+     "count": 1,
+     "by_kind": {
+      "missing_required": [
+       "01_对象清单 · displayName 未填"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "label": "perfunctory_copied_header",
+   "returned": [
+    {
+     "rid": "pt_amount_budget",
+     "field": "definition",
+     "value": "definition"
+    }
+   ],
+   "with_oir": false,
+   "summary": {
+    "completeness": 0.0,
+    "cells_compared": 8,
+    "cells_changed": 5,
+    "findings": {
+     "missing_required": 4,
+     "perfunctory": 1
+    },
+    "auto_repaired": 0,
+    "slips": [
+     {
+      "owner": "王明",
+      "count": 2,
+      "by_kind": {
+       "missing_required": [
+        "01_对象清单 · confirmed 未填"
+       ],
+       "perfunctory": [
+        "01_对象清单 · definition 疑似敷衍（COPIED_HEADER）"
+       ]
+      }
+     },
+     {
+      "owner": "李强",
+      "count": 2,
+      "by_kind": {
+       "missing_required": [
+        "01_对象清单 · definition 未填",
+        "01_对象清单 · confirmed 未填"
+       ]
+      }
+     },
+     {
+      "owner": "未分派",
+      "count": 1,
+      "by_kind": {
+       "missing_required": [
+        "01_对象清单 · displayName 未填"
+       ]
+      }
+     }
+    ],
+    "unmatched_rows": [
+     "ot_采购包",
+     "pt_amount_budget",
+     "pt_amount_contract"
+    ],
+    "new_rows": [],
+    "damage": [],
+    "readable": true
+   },
+   "completeness": 0.0,
+   "findings": [
+    {
+     "rid": "cf_missing_required_9386f57a45",
+     "kind": "missing_required",
+     "subjects": [
+      "pt_amount_budget"
+     ],
+     "summary": "01_对象清单 · confirmed 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": "王明",
+     "detector": "rule:REQ-01"
+    },
+    {
+     "rid": "cf_missing_required_32b81aca97",
+     "kind": "missing_required",
+     "subjects": [
+      "pt_amount_contract"
+     ],
+     "summary": "01_对象清单 · definition 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": "李强",
+     "detector": "rule:REQ-01"
+    },
+    {
+     "rid": "cf_missing_required_bba017b5d1",
+     "kind": "missing_required",
+     "subjects": [
+      "pt_amount_contract"
+     ],
+     "summary": "01_对象清单 · confirmed 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": "李强",
+     "detector": "rule:REQ-01"
+    },
+    {
+     "rid": "cf_missing_required_60d611661f",
+     "kind": "missing_required",
+     "subjects": [
+      "ot_采购包"
+     ],
+     "summary": "01_对象清单 · displayName 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": null,
+     "detector": "rule:REQ-01"
+    },
+    {
+     "rid": "cf_perfunctory_f88525d4f4",
+     "kind": "perfunctory",
+     "subjects": [
+      "pt_amount_budget"
+     ],
+     "summary": "01_对象清单 · definition 疑似敷衍（COPIED_HEADER）",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": "王明",
+     "detector": "heuristic:PERF-01"
+    }
+   ],
+   "auto_repaired": [],
+   "diffs": [
+    {
+     "rid": "pt_amount_budget",
+     "sheet": "01_对象清单",
+     "field": "definition",
+     "before": "含税，年度累计",
+     "after": "definition",
+     "role": "required",
+     "owner": "王明",
+     "changed": true,
+     "filled": true,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_budget",
+     "sheet": "01_对象清单",
+     "field": "confirmed",
+     "before": "",
+     "after": "",
+     "role": "required",
+     "owner": "王明",
+     "changed": false,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_budget",
+     "sheet": "01_对象清单",
+     "field": "apiName",
+     "before": "planAmount",
+     "after": "",
+     "role": "prefilled",
+     "owner": "王明",
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_contract",
+     "sheet": "01_对象清单",
+     "field": "definition",
+     "before": "",
+     "after": "",
+     "role": "required",
+     "owner": "李强",
+     "changed": false,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_contract",
+     "sheet": "01_对象清单",
+     "field": "confirmed",
+     "before": "",
+     "after": "",
+     "role": "required",
+     "owner": "李强",
+     "changed": false,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_contract",
+     "sheet": "01_对象清单",
+     "field": "apiName",
+     "before": "contractAmount",
+     "after": "",
+     "role": "prefilled",
+     "owner": "李强",
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "ot_采购包",
+     "sheet": "01_对象清单",
+     "field": "note",
+     "before": "只读，不参与完成度",
+     "after": "",
+     "role": "locked",
+     "owner": null,
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "ot_采购包",
+     "sheet": "01_对象清单",
+     "field": "displayName",
+     "before": "采购包",
+     "after": "",
+     "role": "required",
+     "owner": null,
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    }
+   ],
+   "slips": [
+    {
+     "owner": "王明",
+     "count": 2,
+     "by_kind": {
+      "missing_required": [
+       "01_对象清单 · confirmed 未填"
+      ],
+      "perfunctory": [
+       "01_对象清单 · definition 疑似敷衍（COPIED_HEADER）"
+      ]
+     }
+    },
+    {
+     "owner": "李强",
+     "count": 2,
+     "by_kind": {
+      "missing_required": [
+       "01_对象清单 · definition 未填",
+       "01_对象清单 · confirmed 未填"
+      ]
+     }
+    },
+    {
+     "owner": "未分派",
+     "count": 1,
+     "by_kind": {
+      "missing_required": [
+       "01_对象清单 · displayName 未填"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "label": "perfunctory_bulk_filled",
+   "returned": [
+    {
+     "rid": "pt_amount_budget",
+     "field": "definition",
+     "value": "以实际发生额为准，具体口径参见财务制度"
+    },
+    {
+     "rid": "pt_amount_contract",
+     "field": "definition",
+     "value": "以实际发生额为准，具体口径参见财务制度"
+    }
+   ],
+   "with_oir": false,
+   "summary": {
+    "completeness": 0.6667,
+    "cells_compared": 8,
+    "cells_changed": 6,
+    "findings": {
+     "missing_required": 3
+    },
+    "auto_repaired": 0,
+    "slips": [
+     {
+      "owner": "王明",
+      "count": 1,
+      "by_kind": {
+       "missing_required": [
+        "01_对象清单 · confirmed 未填"
+       ]
+      }
+     },
+     {
+      "owner": "李强",
+      "count": 1,
+      "by_kind": {
+       "missing_required": [
+        "01_对象清单 · confirmed 未填"
+       ]
+      }
+     },
+     {
+      "owner": "未分派",
+      "count": 1,
+      "by_kind": {
+       "missing_required": [
+        "01_对象清单 · displayName 未填"
+       ]
+      }
+     }
+    ],
+    "unmatched_rows": [
+     "ot_采购包",
+     "pt_amount_budget",
+     "pt_amount_contract"
+    ],
+    "new_rows": [],
+    "damage": [],
+    "readable": true
+   },
+   "completeness": 0.6666666666666666,
+   "findings": [
+    {
+     "rid": "cf_missing_required_9386f57a45",
+     "kind": "missing_required",
+     "subjects": [
+      "pt_amount_budget"
+     ],
+     "summary": "01_对象清单 · confirmed 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": "王明",
+     "detector": "rule:REQ-01"
+    },
+    {
+     "rid": "cf_missing_required_bba017b5d1",
+     "kind": "missing_required",
+     "subjects": [
+      "pt_amount_contract"
+     ],
+     "summary": "01_对象清单 · confirmed 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": "李强",
+     "detector": "rule:REQ-01"
+    },
+    {
+     "rid": "cf_missing_required_60d611661f",
+     "kind": "missing_required",
+     "subjects": [
+      "ot_采购包"
+     ],
+     "summary": "01_对象清单 · displayName 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": null,
+     "detector": "rule:REQ-01"
+    }
+   ],
+   "auto_repaired": [],
+   "diffs": [
+    {
+     "rid": "pt_amount_budget",
+     "sheet": "01_对象清单",
+     "field": "definition",
+     "before": "含税，年度累计",
+     "after": "以实际发生额为准，具体口径参见财务制度",
+     "role": "required",
+     "owner": "王明",
+     "changed": true,
+     "filled": true,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_budget",
+     "sheet": "01_对象清单",
+     "field": "confirmed",
+     "before": "",
+     "after": "",
+     "role": "required",
+     "owner": "王明",
+     "changed": false,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_budget",
+     "sheet": "01_对象清单",
+     "field": "apiName",
+     "before": "planAmount",
+     "after": "",
+     "role": "prefilled",
+     "owner": "王明",
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_contract",
+     "sheet": "01_对象清单",
+     "field": "definition",
+     "before": "",
+     "after": "以实际发生额为准，具体口径参见财务制度",
+     "role": "required",
+     "owner": "李强",
+     "changed": true,
+     "filled": true,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_contract",
+     "sheet": "01_对象清单",
+     "field": "confirmed",
+     "before": "",
+     "after": "",
+     "role": "required",
+     "owner": "李强",
+     "changed": false,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_contract",
+     "sheet": "01_对象清单",
+     "field": "apiName",
+     "before": "contractAmount",
+     "after": "",
+     "role": "prefilled",
+     "owner": "李强",
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "ot_采购包",
+     "sheet": "01_对象清单",
+     "field": "note",
+     "before": "只读，不参与完成度",
+     "after": "",
+     "role": "locked",
+     "owner": null,
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "ot_采购包",
+     "sheet": "01_对象清单",
+     "field": "displayName",
+     "before": "采购包",
+     "after": "",
+     "role": "required",
+     "owner": null,
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    }
+   ],
+   "slips": [
+    {
+     "owner": "王明",
+     "count": 1,
+     "by_kind": {
+      "missing_required": [
+       "01_对象清单 · confirmed 未填"
+      ]
+     }
+    },
+    {
+     "owner": "李强",
+     "count": 1,
+     "by_kind": {
+      "missing_required": [
+       "01_对象清单 · confirmed 未填"
+      ]
+     }
+    },
+    {
+     "owner": "未分派",
+     "count": 1,
+     "by_kind": {
+      "missing_required": [
+       "01_对象清单 · displayName 未填"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "label": "enum_column_not_bulk_filled",
+   "returned": [
+    {
+     "rid": "pt_amount_budget",
+     "field": "confirmed",
+     "value": "已确认"
+    },
+    {
+     "rid": "pt_amount_contract",
+     "field": "confirmed",
+     "value": "已确认"
+    }
+   ],
+   "with_oir": false,
+   "summary": {
+    "completeness": 0.1667,
+    "cells_compared": 8,
+    "cells_changed": 7,
+    "findings": {
+     "missing_required": 3
+    },
+    "auto_repaired": 0,
+    "slips": [
+     {
+      "owner": "王明",
+      "count": 1,
+      "by_kind": {
+       "missing_required": [
+        "01_对象清单 · definition 未填"
+       ]
+      }
+     },
+     {
+      "owner": "李强",
+      "count": 1,
+      "by_kind": {
+       "missing_required": [
+        "01_对象清单 · definition 未填"
+       ]
+      }
+     },
+     {
+      "owner": "未分派",
+      "count": 1,
+      "by_kind": {
+       "missing_required": [
+        "01_对象清单 · displayName 未填"
+       ]
+      }
+     }
+    ],
+    "unmatched_rows": [
+     "ot_采购包",
+     "pt_amount_budget",
+     "pt_amount_contract"
+    ],
+    "new_rows": [],
+    "damage": [],
+    "readable": true
+   },
+   "completeness": 0.16666666666666666,
+   "findings": [
+    {
+     "rid": "cf_missing_required_f88525d4f4",
+     "kind": "missing_required",
+     "subjects": [
+      "pt_amount_budget"
+     ],
+     "summary": "01_对象清单 · definition 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": "王明",
+     "detector": "rule:REQ-01"
+    },
+    {
+     "rid": "cf_missing_required_32b81aca97",
+     "kind": "missing_required",
+     "subjects": [
+      "pt_amount_contract"
+     ],
+     "summary": "01_对象清单 · definition 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": "李强",
+     "detector": "rule:REQ-01"
+    },
+    {
+     "rid": "cf_missing_required_60d611661f",
+     "kind": "missing_required",
+     "subjects": [
+      "ot_采购包"
+     ],
+     "summary": "01_对象清单 · displayName 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": null,
+     "detector": "rule:REQ-01"
+    }
+   ],
+   "auto_repaired": [],
+   "diffs": [
+    {
+     "rid": "pt_amount_budget",
+     "sheet": "01_对象清单",
+     "field": "definition",
+     "before": "含税，年度累计",
+     "after": "",
+     "role": "required",
+     "owner": "王明",
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_budget",
+     "sheet": "01_对象清单",
+     "field": "confirmed",
+     "before": "",
+     "after": "已确认",
+     "role": "required",
+     "owner": "王明",
+     "changed": true,
+     "filled": true,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_budget",
+     "sheet": "01_对象清单",
+     "field": "apiName",
+     "before": "planAmount",
+     "after": "",
+     "role": "prefilled",
+     "owner": "王明",
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_contract",
+     "sheet": "01_对象清单",
+     "field": "definition",
+     "before": "",
+     "after": "",
+     "role": "required",
+     "owner": "李强",
+     "changed": false,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_contract",
+     "sheet": "01_对象清单",
+     "field": "confirmed",
+     "before": "",
+     "after": "已确认",
+     "role": "required",
+     "owner": "李强",
+     "changed": true,
+     "filled": true,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_contract",
+     "sheet": "01_对象清单",
+     "field": "apiName",
+     "before": "contractAmount",
+     "after": "",
+     "role": "prefilled",
+     "owner": "李强",
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "ot_采购包",
+     "sheet": "01_对象清单",
+     "field": "note",
+     "before": "只读，不参与完成度",
+     "after": "",
+     "role": "locked",
+     "owner": null,
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "ot_采购包",
+     "sheet": "01_对象清单",
+     "field": "displayName",
+     "before": "采购包",
+     "after": "",
+     "role": "required",
+     "owner": null,
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    }
+   ],
+   "slips": [
+    {
+     "owner": "王明",
+     "count": 1,
+     "by_kind": {
+      "missing_required": [
+       "01_对象清单 · definition 未填"
+      ]
+     }
+    },
+    {
+     "owner": "李强",
+     "count": 1,
+     "by_kind": {
+      "missing_required": [
+       "01_对象清单 · definition 未填"
+      ]
+     }
+    },
+    {
+     "owner": "未分派",
+     "count": 1,
+     "by_kind": {
+      "missing_required": [
+       "01_对象清单 · displayName 未填"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "label": "divergence_tax",
+   "returned": [
+    {
+     "rid": "pt_amount_budget",
+     "field": "definition",
+     "value": "含税口径，按发票金额统计"
+    },
+    {
+     "rid": "pt_amount_contract",
+     "field": "definition",
+     "value": "不含税口径，按净额统计"
+    }
+   ],
+   "with_oir": false,
+   "summary": {
+    "completeness": 0.6667,
+    "cells_compared": 8,
+    "cells_changed": 6,
+    "findings": {
+     "missing_required": 3,
+     "semantic_divergence": 1
+    },
+    "auto_repaired": 0,
+    "slips": [
+     {
+      "owner": "李强",
+      "count": 2,
+      "by_kind": {
+       "missing_required": [
+        "01_对象清单 · confirmed 未填"
+       ],
+       "semantic_divergence": [
+        "回传后仍存在口径矛盾：税（含税 vs 不含税），需 李强、王明 对齐"
+       ]
+      }
+     },
+     {
+      "owner": "王明",
+      "count": 1,
+      "by_kind": {
+       "missing_required": [
+        "01_对象清单 · confirmed 未填"
+       ]
+      }
+     },
+     {
+      "owner": "未分派",
+      "count": 1,
+      "by_kind": {
+       "missing_required": [
+        "01_对象清单 · displayName 未填"
+       ]
+      }
+     }
+    ],
+    "unmatched_rows": [
+     "ot_采购包",
+     "pt_amount_budget",
+     "pt_amount_contract"
+    ],
+    "new_rows": [],
+    "damage": [],
+    "readable": true
+   },
+   "completeness": 0.6666666666666666,
+   "findings": [
+    {
+     "rid": "cf_missing_required_9386f57a45",
+     "kind": "missing_required",
+     "subjects": [
+      "pt_amount_budget"
+     ],
+     "summary": "01_对象清单 · confirmed 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": "王明",
+     "detector": "rule:REQ-01"
+    },
+    {
+     "rid": "cf_missing_required_bba017b5d1",
+     "kind": "missing_required",
+     "subjects": [
+      "pt_amount_contract"
+     ],
+     "summary": "01_对象清单 · confirmed 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": "李强",
+     "detector": "rule:REQ-01"
+    },
+    {
+     "rid": "cf_missing_required_60d611661f",
+     "kind": "missing_required",
+     "subjects": [
+      "ot_采购包"
+     ],
+     "summary": "01_对象清单 · displayName 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": null,
+     "detector": "rule:REQ-01"
+    },
+    {
+     "rid": "cf_semantic_divergence_03ccaf29f2",
+     "kind": "semantic_divergence",
+     "subjects": [
+      "pt_amount_budget",
+      "pt_amount_contract"
+     ],
+     "summary": "回传后仍存在口径矛盾：税（含税 vs 不含税），需 李强、王明 对齐",
+     "handling": "ask_user",
+     "evidence": [],
+     "options": [],
+     "owner": "李强",
+     "detector": "rule:AXIS-01"
+    }
+   ],
+   "auto_repaired": [],
+   "diffs": [
+    {
+     "rid": "pt_amount_budget",
+     "sheet": "01_对象清单",
+     "field": "definition",
+     "before": "含税，年度累计",
+     "after": "含税口径，按发票金额统计",
+     "role": "required",
+     "owner": "王明",
+     "changed": true,
+     "filled": true,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_budget",
+     "sheet": "01_对象清单",
+     "field": "confirmed",
+     "before": "",
+     "after": "",
+     "role": "required",
+     "owner": "王明",
+     "changed": false,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_budget",
+     "sheet": "01_对象清单",
+     "field": "apiName",
+     "before": "planAmount",
+     "after": "",
+     "role": "prefilled",
+     "owner": "王明",
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_contract",
+     "sheet": "01_对象清单",
+     "field": "definition",
+     "before": "",
+     "after": "不含税口径，按净额统计",
+     "role": "required",
+     "owner": "李强",
+     "changed": true,
+     "filled": true,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_contract",
+     "sheet": "01_对象清单",
+     "field": "confirmed",
+     "before": "",
+     "after": "",
+     "role": "required",
+     "owner": "李强",
+     "changed": false,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_contract",
+     "sheet": "01_对象清单",
+     "field": "apiName",
+     "before": "contractAmount",
+     "after": "",
+     "role": "prefilled",
+     "owner": "李强",
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "ot_采购包",
+     "sheet": "01_对象清单",
+     "field": "note",
+     "before": "只读，不参与完成度",
+     "after": "",
+     "role": "locked",
+     "owner": null,
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "ot_采购包",
+     "sheet": "01_对象清单",
+     "field": "displayName",
+     "before": "采购包",
+     "after": "",
+     "role": "required",
+     "owner": null,
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    }
+   ],
+   "slips": [
+    {
+     "owner": "李强",
+     "count": 2,
+     "by_kind": {
+      "missing_required": [
+       "01_对象清单 · confirmed 未填"
+      ],
+      "semantic_divergence": [
+       "回传后仍存在口径矛盾：税（含税 vs 不含税），需 李强、王明 对齐"
+      ]
+     }
+    },
+    {
+     "owner": "王明",
+     "count": 1,
+     "by_kind": {
+      "missing_required": [
+       "01_对象清单 · confirmed 未填"
+      ]
+     }
+    },
+    {
+     "owner": "未分派",
+     "count": 1,
+     "by_kind": {
+      "missing_required": [
+       "01_对象清单 · displayName 未填"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "label": "divergence_none",
+   "returned": [
+    {
+     "rid": "pt_amount_budget",
+     "field": "definition",
+     "value": "含税口径，按发票金额统计"
+    },
+    {
+     "rid": "pt_amount_contract",
+     "field": "definition",
+     "value": "含税口径，按发票统计"
+    }
+   ],
+   "with_oir": false,
+   "summary": {
+    "completeness": 0.6667,
+    "cells_compared": 8,
+    "cells_changed": 6,
+    "findings": {
+     "missing_required": 3
+    },
+    "auto_repaired": 0,
+    "slips": [
+     {
+      "owner": "王明",
+      "count": 1,
+      "by_kind": {
+       "missing_required": [
+        "01_对象清单 · confirmed 未填"
+       ]
+      }
+     },
+     {
+      "owner": "李强",
+      "count": 1,
+      "by_kind": {
+       "missing_required": [
+        "01_对象清单 · confirmed 未填"
+       ]
+      }
+     },
+     {
+      "owner": "未分派",
+      "count": 1,
+      "by_kind": {
+       "missing_required": [
+        "01_对象清单 · displayName 未填"
+       ]
+      }
+     }
+    ],
+    "unmatched_rows": [
+     "ot_采购包",
+     "pt_amount_budget",
+     "pt_amount_contract"
+    ],
+    "new_rows": [],
+    "damage": [],
+    "readable": true
+   },
+   "completeness": 0.6666666666666666,
+   "findings": [
+    {
+     "rid": "cf_missing_required_9386f57a45",
+     "kind": "missing_required",
+     "subjects": [
+      "pt_amount_budget"
+     ],
+     "summary": "01_对象清单 · confirmed 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": "王明",
+     "detector": "rule:REQ-01"
+    },
+    {
+     "rid": "cf_missing_required_bba017b5d1",
+     "kind": "missing_required",
+     "subjects": [
+      "pt_amount_contract"
+     ],
+     "summary": "01_对象清单 · confirmed 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": "李强",
+     "detector": "rule:REQ-01"
+    },
+    {
+     "rid": "cf_missing_required_60d611661f",
+     "kind": "missing_required",
+     "subjects": [
+      "ot_采购包"
+     ],
+     "summary": "01_对象清单 · displayName 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": null,
+     "detector": "rule:REQ-01"
+    }
+   ],
+   "auto_repaired": [],
+   "diffs": [
+    {
+     "rid": "pt_amount_budget",
+     "sheet": "01_对象清单",
+     "field": "definition",
+     "before": "含税，年度累计",
+     "after": "含税口径，按发票金额统计",
+     "role": "required",
+     "owner": "王明",
+     "changed": true,
+     "filled": true,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_budget",
+     "sheet": "01_对象清单",
+     "field": "confirmed",
+     "before": "",
+     "after": "",
+     "role": "required",
+     "owner": "王明",
+     "changed": false,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_budget",
+     "sheet": "01_对象清单",
+     "field": "apiName",
+     "before": "planAmount",
+     "after": "",
+     "role": "prefilled",
+     "owner": "王明",
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_contract",
+     "sheet": "01_对象清单",
+     "field": "definition",
+     "before": "",
+     "after": "含税口径，按发票统计",
+     "role": "required",
+     "owner": "李强",
+     "changed": true,
+     "filled": true,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_contract",
+     "sheet": "01_对象清单",
+     "field": "confirmed",
+     "before": "",
+     "after": "",
+     "role": "required",
+     "owner": "李强",
+     "changed": false,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_contract",
+     "sheet": "01_对象清单",
+     "field": "apiName",
+     "before": "contractAmount",
+     "after": "",
+     "role": "prefilled",
+     "owner": "李强",
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "ot_采购包",
+     "sheet": "01_对象清单",
+     "field": "note",
+     "before": "只读，不参与完成度",
+     "after": "",
+     "role": "locked",
+     "owner": null,
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "ot_采购包",
+     "sheet": "01_对象清单",
+     "field": "displayName",
+     "before": "采购包",
+     "after": "",
+     "role": "required",
+     "owner": null,
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    }
+   ],
+   "slips": [
+    {
+     "owner": "王明",
+     "count": 1,
+     "by_kind": {
+      "missing_required": [
+       "01_对象清单 · confirmed 未填"
+      ]
+     }
+    },
+    {
+     "owner": "李强",
+     "count": 1,
+     "by_kind": {
+      "missing_required": [
+       "01_对象清单 · confirmed 未填"
+      ]
+     }
+    },
+    {
+     "owner": "未分派",
+     "count": 1,
+     "by_kind": {
+      "missing_required": [
+       "01_对象清单 · displayName 未填"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "label": "new_rows",
+   "returned": [
+    {
+     "rid": "pt_不认识的",
+     "field": "definition",
+     "value": "业务方自己加的一行"
+    },
+    {
+     "rid": "pt_amount_budget",
+     "field": "definition",
+     "value": "含税，按发票"
+    }
+   ],
+   "with_oir": false,
+   "summary": {
+    "completeness": 0.3333,
+    "cells_compared": 8,
+    "cells_changed": 5,
+    "findings": {
+     "missing_required": 4
+    },
+    "auto_repaired": 0,
+    "slips": [
+     {
+      "owner": "李强",
+      "count": 2,
+      "by_kind": {
+       "missing_required": [
+        "01_对象清单 · definition 未填",
+        "01_对象清单 · confirmed 未填"
+       ]
+      }
+     },
+     {
+      "owner": "王明",
+      "count": 1,
+      "by_kind": {
+       "missing_required": [
+        "01_对象清单 · confirmed 未填"
+       ]
+      }
+     },
+     {
+      "owner": "未分派",
+      "count": 1,
+      "by_kind": {
+       "missing_required": [
+        "01_对象清单 · displayName 未填"
+       ]
+      }
+     }
+    ],
+    "unmatched_rows": [
+     "ot_采购包",
+     "pt_amount_budget",
+     "pt_amount_contract"
+    ],
+    "new_rows": [
+     "pt_不认识的"
+    ],
+    "damage": [],
+    "readable": true
+   },
+   "completeness": 0.3333333333333333,
+   "findings": [
+    {
+     "rid": "cf_missing_required_9386f57a45",
+     "kind": "missing_required",
+     "subjects": [
+      "pt_amount_budget"
+     ],
+     "summary": "01_对象清单 · confirmed 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": "王明",
+     "detector": "rule:REQ-01"
+    },
+    {
+     "rid": "cf_missing_required_32b81aca97",
+     "kind": "missing_required",
+     "subjects": [
+      "pt_amount_contract"
+     ],
+     "summary": "01_对象清单 · definition 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": "李强",
+     "detector": "rule:REQ-01"
+    },
+    {
+     "rid": "cf_missing_required_bba017b5d1",
+     "kind": "missing_required",
+     "subjects": [
+      "pt_amount_contract"
+     ],
+     "summary": "01_对象清单 · confirmed 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": "李强",
+     "detector": "rule:REQ-01"
+    },
+    {
+     "rid": "cf_missing_required_60d611661f",
+     "kind": "missing_required",
+     "subjects": [
+      "ot_采购包"
+     ],
+     "summary": "01_对象清单 · displayName 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": null,
+     "detector": "rule:REQ-01"
+    }
+   ],
+   "auto_repaired": [],
+   "diffs": [
+    {
+     "rid": "pt_amount_budget",
+     "sheet": "01_对象清单",
+     "field": "definition",
+     "before": "含税，年度累计",
+     "after": "含税，按发票",
+     "role": "required",
+     "owner": "王明",
+     "changed": true,
+     "filled": true,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_budget",
+     "sheet": "01_对象清单",
+     "field": "confirmed",
+     "before": "",
+     "after": "",
+     "role": "required",
+     "owner": "王明",
+     "changed": false,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_budget",
+     "sheet": "01_对象清单",
+     "field": "apiName",
+     "before": "planAmount",
+     "after": "",
+     "role": "prefilled",
+     "owner": "王明",
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_contract",
+     "sheet": "01_对象清单",
+     "field": "definition",
+     "before": "",
+     "after": "",
+     "role": "required",
+     "owner": "李强",
+     "changed": false,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_contract",
+     "sheet": "01_对象清单",
+     "field": "confirmed",
+     "before": "",
+     "after": "",
+     "role": "required",
+     "owner": "李强",
+     "changed": false,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_contract",
+     "sheet": "01_对象清单",
+     "field": "apiName",
+     "before": "contractAmount",
+     "after": "",
+     "role": "prefilled",
+     "owner": "李强",
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "ot_采购包",
+     "sheet": "01_对象清单",
+     "field": "note",
+     "before": "只读，不参与完成度",
+     "after": "",
+     "role": "locked",
+     "owner": null,
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "ot_采购包",
+     "sheet": "01_对象清单",
+     "field": "displayName",
+     "before": "采购包",
+     "after": "",
+     "role": "required",
+     "owner": null,
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    }
+   ],
+   "slips": [
+    {
+     "owner": "李强",
+     "count": 2,
+     "by_kind": {
+      "missing_required": [
+       "01_对象清单 · definition 未填",
+       "01_对象清单 · confirmed 未填"
+      ]
+     }
+    },
+    {
+     "owner": "王明",
+     "count": 1,
+     "by_kind": {
+      "missing_required": [
+       "01_对象清单 · confirmed 未填"
+      ]
+     }
+    },
+    {
+     "owner": "未分派",
+     "count": 1,
+     "by_kind": {
+      "missing_required": [
+       "01_对象清单 · displayName 未填"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "label": "damage",
+   "returned": [
+    {
+     "rid": "__damage__",
+     "field": "__damage__",
+     "value": "「01_对象清单」找不到锚点列 _oir_rid\n第二条损伤"
+    }
+   ],
+   "with_oir": false,
+   "summary": {
+    "completeness": 0.0,
+    "cells_compared": 8,
+    "cells_changed": 5,
+    "findings": {
+     "perfunctory": 1,
+     "missing_required": 5
+    },
+    "auto_repaired": 0,
+    "slips": [
+     {
+      "owner": "未分派",
+      "count": 2,
+      "by_kind": {
+       "perfunctory": [
+        "回传件结构被改动，有内容没能读回来：\n「01_对象清单」找不到锚点列 _oir_rid\n第二条损伤"
+       ],
+       "missing_required": [
+        "01_对象清单 · displayName 未填"
+       ]
+      }
+     },
+     {
+      "owner": "王明",
+      "count": 2,
+      "by_kind": {
+       "missing_required": [
+        "01_对象清单 · definition 未填",
+        "01_对象清单 · confirmed 未填"
+       ]
+      }
+     },
+     {
+      "owner": "李强",
+      "count": 2,
+      "by_kind": {
+       "missing_required": [
+        "01_对象清单 · definition 未填",
+        "01_对象清单 · confirmed 未填"
+       ]
+      }
+     }
+    ],
+    "unmatched_rows": [
+     "ot_采购包",
+     "pt_amount_budget",
+     "pt_amount_contract"
+    ],
+    "new_rows": [],
+    "damage": [
+     "「01_对象清单」找不到锚点列 _oir_rid",
+     "第二条损伤"
+    ],
+    "readable": false
+   },
+   "completeness": 0.0,
+   "findings": [
+    {
+     "rid": "cf_return_damaged",
+     "kind": "perfunctory",
+     "subjects": [],
+     "summary": "回传件结构被改动，有内容没能读回来：\n「01_对象清单」找不到锚点列 _oir_rid\n第二条损伤",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": null,
+     "detector": "rule:return_structure"
+    },
+    {
+     "rid": "cf_missing_required_f88525d4f4",
+     "kind": "missing_required",
+     "subjects": [
+      "pt_amount_budget"
+     ],
+     "summary": "01_对象清单 · definition 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": "王明",
+     "detector": "rule:REQ-01"
+    },
+    {
+     "rid": "cf_missing_required_9386f57a45",
+     "kind": "missing_required",
+     "subjects": [
+      "pt_amount_budget"
+     ],
+     "summary": "01_对象清单 · confirmed 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": "王明",
+     "detector": "rule:REQ-01"
+    },
+    {
+     "rid": "cf_missing_required_32b81aca97",
+     "kind": "missing_required",
+     "subjects": [
+      "pt_amount_contract"
+     ],
+     "summary": "01_对象清单 · definition 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": "李强",
+     "detector": "rule:REQ-01"
+    },
+    {
+     "rid": "cf_missing_required_bba017b5d1",
+     "kind": "missing_required",
+     "subjects": [
+      "pt_amount_contract"
+     ],
+     "summary": "01_对象清单 · confirmed 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": "李强",
+     "detector": "rule:REQ-01"
+    },
+    {
+     "rid": "cf_missing_required_60d611661f",
+     "kind": "missing_required",
+     "subjects": [
+      "ot_采购包"
+     ],
+     "summary": "01_对象清单 · displayName 未填",
+     "handling": "round_trip",
+     "evidence": [],
+     "options": [],
+     "owner": null,
+     "detector": "rule:REQ-01"
+    }
+   ],
+   "auto_repaired": [],
+   "diffs": [
+    {
+     "rid": "pt_amount_budget",
+     "sheet": "01_对象清单",
+     "field": "definition",
+     "before": "含税，年度累计",
+     "after": "",
+     "role": "required",
+     "owner": "王明",
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_budget",
+     "sheet": "01_对象清单",
+     "field": "confirmed",
+     "before": "",
+     "after": "",
+     "role": "required",
+     "owner": "王明",
+     "changed": false,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_budget",
+     "sheet": "01_对象清单",
+     "field": "apiName",
+     "before": "planAmount",
+     "after": "",
+     "role": "prefilled",
+     "owner": "王明",
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_contract",
+     "sheet": "01_对象清单",
+     "field": "definition",
+     "before": "",
+     "after": "",
+     "role": "required",
+     "owner": "李强",
+     "changed": false,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_contract",
+     "sheet": "01_对象清单",
+     "field": "confirmed",
+     "before": "",
+     "after": "",
+     "role": "required",
+     "owner": "李强",
+     "changed": false,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "pt_amount_contract",
+     "sheet": "01_对象清单",
+     "field": "apiName",
+     "before": "contractAmount",
+     "after": "",
+     "role": "prefilled",
+     "owner": "李强",
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "ot_采购包",
+     "sheet": "01_对象清单",
+     "field": "note",
+     "before": "只读，不参与完成度",
+     "after": "",
+     "role": "locked",
+     "owner": null,
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    },
+    {
+     "rid": "ot_采购包",
+     "sheet": "01_对象清单",
+     "field": "displayName",
+     "before": "采购包",
+     "after": "",
+     "role": "required",
+     "owner": null,
+     "changed": true,
+     "filled": false,
+     "untouched_prefill": false
+    }
+   ],
+   "slips": [
+    {
+     "owner": "未分派",
+     "count": 2,
+     "by_kind": {
+      "perfunctory": [
+       "回传件结构被改动，有内容没能读回来：\n「01_对象清单」找不到锚点列 _oir_rid\n第二条损伤"
+      ],
+      "missing_required": [
+       "01_对象清单 · displayName 未填"
+      ]
+     }
+    },
+    {
+     "owner": "王明",
+     "count": 2,
+     "by_kind": {
+      "missing_required": [
+       "01_对象清单 · definition 未填",
+       "01_对象清单 · confirmed 未填"
+      ]
+     }
+    },
+    {
+     "owner": "李强",
+     "count": 2,
+     "by_kind": {
+      "missing_required": [
+       "01_对象清单 · definition 未填",
+       "01_对象清单 · confirmed 未填"
+      ]
+     }
+    }
+   ]
+  }
+ ],
+ "pipeline_template_empty": {
+  "summary": {
+   "completeness": 0.0,
+   "cells_compared": 96,
+   "cells_changed": 59,
+   "findings": {
+    "missing_required": 18
+   },
+   "auto_repaired": 0,
+   "slips": [
+    {
+     "owner": "未分派",
+     "count": 18,
+     "by_kind": {
+      "missing_required": [
+       "02_待澄清问题 · 答复 未填",
+       "02_待澄清问题 · 答复 未填",
+       "02_待澄清问题 · 答复 未填",
+       "02_待澄清问题 · 答复 未填",
+       "02_待澄清问题 · 答复 未填",
+       "01_对象清单 · description 未填",
+       "01_对象清单 · description 未填",
+       "01_对象清单 · description 未填",
+       "01_对象清单 · description 未填",
+       "01_对象清单 · description 未填",
+       "01_对象清单 · description 未填",
+       "01_对象清单 · description 未填",
+       "04_动作清单 · effects 未填",
+       "04_动作清单 · effects 未填",
+       "04_动作清单 · effects 未填",
+       "04_动作清单 · effects 未填",
+       "05_术语表 · correct 未填",
+       "05_术语表 · correct 未填"
+      ]
+     }
+    }
+   ],
+   "unmatched_rows": [
+    "at_cancelopenpbp",
+    "at_createpbp",
+    "at_createpo",
+    "at_queryopenpbpheader",
+    "at_querypoheader",
+    "at_updatepo",
+    "oq_empty_container_材料里有一张叫_实体间关系_待梳理_的表_但里面",
+    "oq_enum_进度状态标准_目前列了_6_个取值_未开始_执行中_部分完成_已完成_",
+    "oq_object_no_description_有_7_个业务对象只有名字_没有一句",
+    "oq_slot_数值未定_1_需进行采购包总金额上线控制_如超出xx金额_则采购包创建",
+    "oq_slot_数值未定_2_实际与计划基线对比_如提前xx天需要进行预警提醒_这里的",
+    "ot_pbpheader",
+    "ot_pbpline",
+    "ot_pbprel",
+    "ot_poactionlog",
+    "ot_poheader",
+    "ot_poline",
+    "ot_potaxline"
+   ],
+   "new_rows": [],
+   "damage": [],
+   "readable": true
+  },
+  "findings_count": 18,
+  "first_findings": [
+   {
+    "rid": "cf_missing_required_4e275381c9",
+    "kind": "missing_required",
+    "subjects": [
+     "oq_slot_数值未定_1_需进行采购包总金额上线控制_如超出xx金额_则采购包创建"
+    ],
+    "summary": "02_待澄清问题 · 答复 未填",
+    "handling": "round_trip",
+    "evidence": [],
+    "options": [],
+    "owner": null,
+    "detector": "rule:REQ-01"
+   },
+   {
+    "rid": "cf_missing_required_0163746444",
+    "kind": "missing_required",
+    "subjects": [
+     "oq_slot_数值未定_2_实际与计划基线对比_如提前xx天需要进行预警提醒_这里的"
+    ],
+    "summary": "02_待澄清问题 · 答复 未填",
+    "handling": "round_trip",
+    "evidence": [],
+    "options": [],
+    "owner": null,
+    "detector": "rule:REQ-01"
+   },
+   {
+    "rid": "cf_missing_required_7c11724ad7",
+    "kind": "missing_required",
+    "subjects": [
+     "oq_enum_进度状态标准_目前列了_6_个取值_未开始_执行中_部分完成_已完成_"
+    ],
+    "summary": "02_待澄清问题 · 答复 未填",
+    "handling": "round_trip",
+    "evidence": [],
+    "options": [],
+    "owner": null,
+    "detector": "rule:REQ-01"
+   },
+   {
+    "rid": "cf_missing_required_6794edf3b8",
+    "kind": "missing_required",
+    "subjects": [
+     "oq_empty_container_材料里有一张叫_实体间关系_待梳理_的表_但里面"
+    ],
+    "summary": "02_待澄清问题 · 答复 未填",
+    "handling": "round_trip",
+    "evidence": [],
+    "options": [],
+    "owner": null,
+    "detector": "rule:REQ-01"
+   },
+   {
+    "rid": "cf_missing_required_84c0bcafa4",
+    "kind": "missing_required",
+    "subjects": [
+     "oq_object_no_description_有_7_个业务对象只有名字_没有一句"
+    ],
+    "summary": "02_待澄清问题 · 答复 未填",
+    "handling": "round_trip",
+    "evidence": [],
+    "options": [],
+    "owner": null,
+    "detector": "rule:REQ-01"
+   },
+   {
+    "rid": "cf_missing_required_fd8b393c16",
+    "kind": "missing_required",
+    "subjects": [
+     "ot_pbpheader"
+    ],
+    "summary": "01_对象清单 · description 未填",
+    "handling": "round_trip",
+    "evidence": [],
+    "options": [],
+    "owner": null,
+    "detector": "rule:REQ-01"
+   },
+   {
+    "rid": "cf_missing_required_d33601e62d",
+    "kind": "missing_required",
+    "subjects": [
+     "ot_pbpline"
+    ],
+    "summary": "01_对象清单 · description 未填",
+    "handling": "round_trip",
+    "evidence": [],
+    "options": [],
+    "owner": null,
+    "detector": "rule:REQ-01"
+   },
+   {
+    "rid": "cf_missing_required_545f63da4f",
+    "kind": "missing_required",
+    "subjects": [
+     "ot_pbprel"
+    ],
+    "summary": "01_对象清单 · description 未填",
+    "handling": "round_trip",
+    "evidence": [],
+    "options": [],
+    "owner": null,
+    "detector": "rule:REQ-01"
+   }
+  ]
+ },
+ "merge": [
+  {
+   "label": "writes_back",
+   "returned": [
+    {
+     "rid": "pt_amount_budget",
+     "field": "definition",
+     "value": "不含税、单次"
+    },
+    {
+     "rid": "ot_采购包",
+     "field": "displayName",
+     "value": "采购包（改名）"
+    }
+   ],
+   "changed": [
+    "pt_amount_budget.definition",
+    "ot_采购包.displayName"
+   ],
+   "dropped": [],
+   "oir_after": {
+    "objects": [
+     {
+      "rid": "ot_采购包",
+      "kind": "ObjectType",
+      "apiName": {
+       "value": "采购包",
+       "origin": "extracted",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "displayName": {
+       "value": "采购包（改名）",
+       "origin": "user",
+       "confidence": 0.98,
+       "evidence": [
+        {
+         "file_id": "human",
+         "file_name": "人工决策",
+         "locator": {
+          "kind": "meta",
+          "field": "业务方回传（未分派）"
+         },
+         "snippet": "业务方回传（未分派）",
+         "extractor": "human",
+         "confidence": 1.0,
+         "cite": "人工决策#业务方回传（未分派）"
+        }
+       ]
+      },
+      "description": {
+       "value": "",
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "primaryKey": {
+       "value": [],
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "properties": [
+       "pt_amount_budget",
+       "pt_amount_contract"
+      ],
+      "aliases": [],
+      "owner": null,
+      "status": "candidate",
+      "conflicts": []
+     }
+    ],
+    "properties": [
+     {
+      "rid": "pt_amount_budget",
+      "parent": "ot_采购包",
+      "kind": "PropertyType",
+      "apiName": {
+       "value": "计划金额",
+       "origin": "extracted",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "displayName": {
+       "value": "计划金额",
+       "origin": "extracted",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "baseType": {
+       "value": "DECIMAL",
+       "origin": "extracted",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "definition": {
+       "value": "不含税、单次",
+       "origin": "user",
+       "confidence": 0.98,
+       "evidence": [
+        {
+         "file_id": "human",
+         "file_name": "人工决策",
+         "locator": {
+          "kind": "meta",
+          "field": "业务方回传（王明）"
+         },
+         "snippet": "业务方回传（王明）",
+         "extractor": "human",
+         "confidence": 1.0,
+         "cite": "人工决策#业务方回传（王明）"
+        }
+       ]
+      },
+      "semanticType": {
+       "value": null,
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "unit": {
+       "value": null,
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "valueDomain": {
+       "value": null,
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "required": {
+       "value": false,
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "owner": null,
+      "status": "candidate",
+      "conflicts": []
+     },
+     {
+      "rid": "pt_amount_contract",
+      "parent": "ot_采购包",
+      "kind": "PropertyType",
+      "apiName": {
+       "value": "合同金额",
+       "origin": "extracted",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "displayName": {
+       "value": "合同金额",
+       "origin": "extracted",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "baseType": {
+       "value": "DECIMAL",
+       "origin": "extracted",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "definition": {
+       "value": "",
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "semanticType": {
+       "value": null,
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "unit": {
+       "value": null,
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "valueDomain": {
+       "value": null,
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "required": {
+       "value": false,
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "owner": null,
+      "status": "candidate",
+      "conflicts": []
+     }
+    ],
+    "links": [
+     {
+      "rid": "lt_a_b",
+      "kind": "LinkType",
+      "apiName": {
+       "value": "包_供",
+       "origin": "extracted",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "from": "ot_采购包",
+      "to": "ot_采购包",
+      "cardinality": {
+       "value": "ONE_TO_MANY",
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "joinKey": {
+       "value": null,
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "status": "candidate",
+      "conflicts": []
+     }
+    ],
+    "rules": [
+     {
+      "rid": "br_1",
+      "kind": "BusinessRule",
+      "statement": {
+       "value": "采购包必须审批",
+       "origin": "extracted",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "ruleKind": {
+       "value": "OTHER",
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "appliesTo": [],
+      "actor": {
+       "value": "",
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "status": "candidate"
+     }
+    ],
+    "questions": [
+     {
+      "rid": "oq_1",
+      "kind": "OpenQuestion",
+      "text": {
+       "value": "上限是多少？",
+       "origin": "extracted",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "options": [],
+      "answer": {
+       "value": "",
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "group": "",
+      "code": "",
+      "appliesTo": [],
+      "askedBy": "customer",
+      "owner": null,
+      "status": "candidate"
+     }
+    ],
+    "actions": [
+     {
+      "rid": "at_publish",
+      "kind": "ActionType",
+      "apiName": {
+       "value": "发布",
+       "origin": "extracted",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "appliesTo": [],
+      "parameters": {
+       "value": [],
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "effects": {
+       "value": [],
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "sourceEndpoint": {
+       "value": null,
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "status": "candidate"
+     }
+    ],
+    "stats": {
+     "objects": 1,
+     "properties": 2,
+     "links": 1,
+     "actions": 1,
+     "rules": 1,
+     "questions": 1,
+     "open_questions": 1,
+     "orphans": 0,
+     "confirmed": 0
+    }
+   }
+  },
+  {
+   "label": "untouched_prefill_not_written",
+   "returned": [
+    {
+     "rid": "pt_amount_budget",
+     "field": "definition",
+     "value": "含税，年度累计"
+    }
+   ],
+   "changed": [],
+   "dropped": [],
+   "oir_after": {
+    "objects": [
+     {
+      "rid": "ot_采购包",
+      "kind": "ObjectType",
+      "apiName": {
+       "value": "采购包",
+       "origin": "extracted",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "displayName": {
+       "value": "采购包",
+       "origin": "extracted",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "description": {
+       "value": "",
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "primaryKey": {
+       "value": [],
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "properties": [
+       "pt_amount_budget",
+       "pt_amount_contract"
+      ],
+      "aliases": [],
+      "owner": null,
+      "status": "candidate",
+      "conflicts": []
+     }
+    ],
+    "properties": [
+     {
+      "rid": "pt_amount_budget",
+      "parent": "ot_采购包",
+      "kind": "PropertyType",
+      "apiName": {
+       "value": "计划金额",
+       "origin": "extracted",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "displayName": {
+       "value": "计划金额",
+       "origin": "extracted",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "baseType": {
+       "value": "DECIMAL",
+       "origin": "extracted",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "definition": {
+       "value": "",
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "semanticType": {
+       "value": null,
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "unit": {
+       "value": null,
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "valueDomain": {
+       "value": null,
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "required": {
+       "value": false,
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "owner": null,
+      "status": "candidate",
+      "conflicts": []
+     },
+     {
+      "rid": "pt_amount_contract",
+      "parent": "ot_采购包",
+      "kind": "PropertyType",
+      "apiName": {
+       "value": "合同金额",
+       "origin": "extracted",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "displayName": {
+       "value": "合同金额",
+       "origin": "extracted",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "baseType": {
+       "value": "DECIMAL",
+       "origin": "extracted",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "definition": {
+       "value": "",
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "semanticType": {
+       "value": null,
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "unit": {
+       "value": null,
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "valueDomain": {
+       "value": null,
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "required": {
+       "value": false,
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "owner": null,
+      "status": "candidate",
+      "conflicts": []
+     }
+    ],
+    "links": [
+     {
+      "rid": "lt_a_b",
+      "kind": "LinkType",
+      "apiName": {
+       "value": "包_供",
+       "origin": "extracted",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "from": "ot_采购包",
+      "to": "ot_采购包",
+      "cardinality": {
+       "value": "ONE_TO_MANY",
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "joinKey": {
+       "value": null,
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "status": "candidate",
+      "conflicts": []
+     }
+    ],
+    "rules": [
+     {
+      "rid": "br_1",
+      "kind": "BusinessRule",
+      "statement": {
+       "value": "采购包必须审批",
+       "origin": "extracted",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "ruleKind": {
+       "value": "OTHER",
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "appliesTo": [],
+      "actor": {
+       "value": "",
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "status": "candidate"
+     }
+    ],
+    "questions": [
+     {
+      "rid": "oq_1",
+      "kind": "OpenQuestion",
+      "text": {
+       "value": "上限是多少？",
+       "origin": "extracted",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "options": [],
+      "answer": {
+       "value": "",
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "group": "",
+      "code": "",
+      "appliesTo": [],
+      "askedBy": "customer",
+      "owner": null,
+      "status": "candidate"
+     }
+    ],
+    "actions": [
+     {
+      "rid": "at_publish",
+      "kind": "ActionType",
+      "apiName": {
+       "value": "发布",
+       "origin": "extracted",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "appliesTo": [],
+      "parameters": {
+       "value": [],
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "effects": {
+       "value": [],
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "sourceEndpoint": {
+       "value": null,
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "status": "candidate"
+     }
+    ],
+    "stats": {
+     "objects": 1,
+     "properties": 2,
+     "links": 1,
+     "actions": 1,
+     "rules": 1,
+     "questions": 1,
+     "open_questions": 1,
+     "orphans": 0,
+     "confirmed": 0
+    }
+   }
+  },
+  {
+   "label": "dropped_no_path",
+   "returned": [
+    {
+     "rid": "pt_amount_budget",
+     "field": "confirmed",
+     "value": "已确认"
+    }
+   ],
+   "changed": [],
+   "dropped": [
+    "pt_amount_budget.confirmed（没有回写路径）"
+   ],
+   "oir_after": {
+    "objects": [
+     {
+      "rid": "ot_采购包",
+      "kind": "ObjectType",
+      "apiName": {
+       "value": "采购包",
+       "origin": "extracted",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "displayName": {
+       "value": "采购包",
+       "origin": "extracted",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "description": {
+       "value": "",
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "primaryKey": {
+       "value": [],
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "properties": [
+       "pt_amount_budget",
+       "pt_amount_contract"
+      ],
+      "aliases": [],
+      "owner": null,
+      "status": "candidate",
+      "conflicts": []
+     }
+    ],
+    "properties": [
+     {
+      "rid": "pt_amount_budget",
+      "parent": "ot_采购包",
+      "kind": "PropertyType",
+      "apiName": {
+       "value": "计划金额",
+       "origin": "extracted",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "displayName": {
+       "value": "计划金额",
+       "origin": "extracted",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "baseType": {
+       "value": "DECIMAL",
+       "origin": "extracted",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "definition": {
+       "value": "",
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "semanticType": {
+       "value": null,
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "unit": {
+       "value": null,
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "valueDomain": {
+       "value": null,
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "required": {
+       "value": false,
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "owner": null,
+      "status": "candidate",
+      "conflicts": []
+     },
+     {
+      "rid": "pt_amount_contract",
+      "parent": "ot_采购包",
+      "kind": "PropertyType",
+      "apiName": {
+       "value": "合同金额",
+       "origin": "extracted",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "displayName": {
+       "value": "合同金额",
+       "origin": "extracted",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "baseType": {
+       "value": "DECIMAL",
+       "origin": "extracted",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "definition": {
+       "value": "",
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "semanticType": {
+       "value": null,
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "unit": {
+       "value": null,
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "valueDomain": {
+       "value": null,
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "required": {
+       "value": false,
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "owner": null,
+      "status": "candidate",
+      "conflicts": []
+     }
+    ],
+    "links": [
+     {
+      "rid": "lt_a_b",
+      "kind": "LinkType",
+      "apiName": {
+       "value": "包_供",
+       "origin": "extracted",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "from": "ot_采购包",
+      "to": "ot_采购包",
+      "cardinality": {
+       "value": "ONE_TO_MANY",
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "joinKey": {
+       "value": null,
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "status": "candidate",
+      "conflicts": []
+     }
+    ],
+    "rules": [
+     {
+      "rid": "br_1",
+      "kind": "BusinessRule",
+      "statement": {
+       "value": "采购包必须审批",
+       "origin": "extracted",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "ruleKind": {
+       "value": "OTHER",
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "appliesTo": [],
+      "actor": {
+       "value": "",
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "status": "candidate"
+     }
+    ],
+    "questions": [
+     {
+      "rid": "oq_1",
+      "kind": "OpenQuestion",
+      "text": {
+       "value": "上限是多少？",
+       "origin": "extracted",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "options": [],
+      "answer": {
+       "value": "",
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "group": "",
+      "code": "",
+      "appliesTo": [],
+      "askedBy": "customer",
+      "owner": null,
+      "status": "candidate"
+     }
+    ],
+    "actions": [
+     {
+      "rid": "at_publish",
+      "kind": "ActionType",
+      "apiName": {
+       "value": "发布",
+       "origin": "extracted",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "appliesTo": [],
+      "parameters": {
+       "value": [],
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "effects": {
+       "value": [],
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "sourceEndpoint": {
+       "value": null,
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "status": "candidate"
+     }
+    ],
+    "stats": {
+     "objects": 1,
+     "properties": 2,
+     "links": 1,
+     "actions": 1,
+     "rules": 1,
+     "questions": 1,
+     "open_questions": 1,
+     "orphans": 0,
+     "confirmed": 0
+    }
+   }
+  },
+  {
+   "label": "dropped_unknown_rid",
+   "returned": [
+    {
+     "rid": "pt_不认识的",
+     "field": "definition",
+     "value": "x"
+    }
+   ],
+   "changed": [],
+   "dropped": [],
+   "oir_after": {
+    "objects": [
+     {
+      "rid": "ot_采购包",
+      "kind": "ObjectType",
+      "apiName": {
+       "value": "采购包",
+       "origin": "extracted",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "displayName": {
+       "value": "采购包",
+       "origin": "extracted",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "description": {
+       "value": "",
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "primaryKey": {
+       "value": [],
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "properties": [
+       "pt_amount_budget",
+       "pt_amount_contract"
+      ],
+      "aliases": [],
+      "owner": null,
+      "status": "candidate",
+      "conflicts": []
+     }
+    ],
+    "properties": [
+     {
+      "rid": "pt_amount_budget",
+      "parent": "ot_采购包",
+      "kind": "PropertyType",
+      "apiName": {
+       "value": "计划金额",
+       "origin": "extracted",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "displayName": {
+       "value": "计划金额",
+       "origin": "extracted",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "baseType": {
+       "value": "DECIMAL",
+       "origin": "extracted",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "definition": {
+       "value": "",
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "semanticType": {
+       "value": null,
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "unit": {
+       "value": null,
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "valueDomain": {
+       "value": null,
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "required": {
+       "value": false,
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "owner": null,
+      "status": "candidate",
+      "conflicts": []
+     },
+     {
+      "rid": "pt_amount_contract",
+      "parent": "ot_采购包",
+      "kind": "PropertyType",
+      "apiName": {
+       "value": "合同金额",
+       "origin": "extracted",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "displayName": {
+       "value": "合同金额",
+       "origin": "extracted",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "baseType": {
+       "value": "DECIMAL",
+       "origin": "extracted",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "definition": {
+       "value": "",
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "semanticType": {
+       "value": null,
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "unit": {
+       "value": null,
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "valueDomain": {
+       "value": null,
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "required": {
+       "value": false,
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "owner": null,
+      "status": "candidate",
+      "conflicts": []
+     }
+    ],
+    "links": [
+     {
+      "rid": "lt_a_b",
+      "kind": "LinkType",
+      "apiName": {
+       "value": "包_供",
+       "origin": "extracted",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "from": "ot_采购包",
+      "to": "ot_采购包",
+      "cardinality": {
+       "value": "ONE_TO_MANY",
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "joinKey": {
+       "value": null,
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "status": "candidate",
+      "conflicts": []
+     }
+    ],
+    "rules": [
+     {
+      "rid": "br_1",
+      "kind": "BusinessRule",
+      "statement": {
+       "value": "采购包必须审批",
+       "origin": "extracted",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "ruleKind": {
+       "value": "OTHER",
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "appliesTo": [],
+      "actor": {
+       "value": "",
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "status": "candidate"
+     }
+    ],
+    "questions": [
+     {
+      "rid": "oq_1",
+      "kind": "OpenQuestion",
+      "text": {
+       "value": "上限是多少？",
+       "origin": "extracted",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "options": [],
+      "answer": {
+       "value": "",
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "group": "",
+      "code": "",
+      "appliesTo": [],
+      "askedBy": "customer",
+      "owner": null,
+      "status": "candidate"
+     }
+    ],
+    "actions": [
+     {
+      "rid": "at_publish",
+      "kind": "ActionType",
+      "apiName": {
+       "value": "发布",
+       "origin": "extracted",
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "file_id": "f1",
+         "file_name": "采购计划.xlsx",
+         "locator": {
+          "kind": "cell"
+         },
+         "snippet": "采购包",
+         "extractor": "docling",
+         "confidence": 0.5,
+         "cite": "采购计划.xlsx!!RNoneCNone"
+        }
+       ]
+      },
+      "appliesTo": [],
+      "parameters": {
+       "value": [],
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "effects": {
+       "value": [],
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "sourceEndpoint": {
+       "value": null,
+       "origin": "inferred",
+       "confidence": 0.4,
+       "evidence": []
+      },
+      "status": "candidate"
+     }
+    ],
+    "stats": {
+     "objects": 1,
+     "properties": 2,
+     "links": 1,
+     "actions": 1,
+     "rules": 1,
+     "questions": 1,
+     "open_questions": 1,
+     "orphans": 0,
+     "confirmed": 0
+    }
+   }
+  }
+ ],
+ "py_round": [
+  {
+   "x": 0.5,
+   "nd": 0,
+   "out": 0.0
+  },
+  {
+   "x": 0.5,
+   "nd": 2,
+   "out": 0.5
+  },
+  {
+   "x": 0.5,
+   "nd": 3,
+   "out": 0.5
+  },
+  {
+   "x": 0.5,
+   "nd": 4,
+   "out": 0.5
+  },
+  {
+   "x": 1.5,
+   "nd": 0,
+   "out": 2.0
+  },
+  {
+   "x": 1.5,
+   "nd": 2,
+   "out": 1.5
+  },
+  {
+   "x": 1.5,
+   "nd": 3,
+   "out": 1.5
+  },
+  {
+   "x": 1.5,
+   "nd": 4,
+   "out": 1.5
+  },
+  {
+   "x": 2.5,
+   "nd": 0,
+   "out": 2.0
+  },
+  {
+   "x": 2.5,
+   "nd": 2,
+   "out": 2.5
+  },
+  {
+   "x": 2.5,
+   "nd": 3,
+   "out": 2.5
+  },
+  {
+   "x": 2.5,
+   "nd": 4,
+   "out": 2.5
+  },
+  {
+   "x": 0.0625,
+   "nd": 0,
+   "out": 0.0
+  },
+  {
+   "x": 0.0625,
+   "nd": 2,
+   "out": 0.06
+  },
+  {
+   "x": 0.0625,
+   "nd": 3,
+   "out": 0.062
+  },
+  {
+   "x": 0.0625,
+   "nd": 4,
+   "out": 0.0625
+  },
+  {
+   "x": 0.125,
+   "nd": 0,
+   "out": 0.0
+  },
+  {
+   "x": 0.125,
+   "nd": 2,
+   "out": 0.12
+  },
+  {
+   "x": 0.125,
+   "nd": 3,
+   "out": 0.125
+  },
+  {
+   "x": 0.125,
+   "nd": 4,
+   "out": 0.125
+  },
+  {
+   "x": 0.12345,
+   "nd": 0,
+   "out": 0.0
+  },
+  {
+   "x": 0.12345,
+   "nd": 2,
+   "out": 0.12
+  },
+  {
+   "x": 0.12345,
+   "nd": 3,
+   "out": 0.123
+  },
+  {
+   "x": 0.12345,
+   "nd": 4,
+   "out": 0.1235
+  },
+  {
+   "x": 0.12355,
+   "nd": 0,
+   "out": 0.0
+  },
+  {
+   "x": 0.12355,
+   "nd": 2,
+   "out": 0.12
+  },
+  {
+   "x": 0.12355,
+   "nd": 3,
+   "out": 0.124
+  },
+  {
+   "x": 0.12355,
+   "nd": 4,
+   "out": 0.1235
+  },
+  {
+   "x": 0.1235,
+   "nd": 0,
+   "out": 0.0
+  },
+  {
+   "x": 0.1235,
+   "nd": 2,
+   "out": 0.12
+  },
+  {
+   "x": 0.1235,
+   "nd": 3,
+   "out": 0.123
+  },
+  {
+   "x": 0.1235,
+   "nd": 4,
+   "out": 0.1235
+  },
+  {
+   "x": 0.1245,
+   "nd": 0,
+   "out": 0.0
+  },
+  {
+   "x": 0.1245,
+   "nd": 2,
+   "out": 0.12
+  },
+  {
+   "x": 0.1245,
+   "nd": 3,
+   "out": 0.124
+  },
+  {
+   "x": 0.1245,
+   "nd": 4,
+   "out": 0.1245
+  },
+  {
+   "x": 0.3333333333333333,
+   "nd": 0,
+   "out": 0.0
+  },
+  {
+   "x": 0.3333333333333333,
+   "nd": 2,
+   "out": 0.33
+  },
+  {
+   "x": 0.3333333333333333,
+   "nd": 3,
+   "out": 0.333
+  },
+  {
+   "x": 0.3333333333333333,
+   "nd": 4,
+   "out": 0.3333
+  },
+  {
+   "x": 0.6666666666666666,
+   "nd": 0,
+   "out": 1.0
+  },
+  {
+   "x": 0.6666666666666666,
+   "nd": 2,
+   "out": 0.67
+  },
+  {
+   "x": 0.6666666666666666,
+   "nd": 3,
+   "out": 0.667
+  },
+  {
+   "x": 0.6666666666666666,
+   "nd": 4,
+   "out": 0.6667
+  },
+  {
+   "x": 0.9995,
+   "nd": 0,
+   "out": 1.0
+  },
+  {
+   "x": 0.9995,
+   "nd": 2,
+   "out": 1.0
+  },
+  {
+   "x": 0.9995,
+   "nd": 3,
+   "out": 1.0
+  },
+  {
+   "x": 0.9995,
+   "nd": 4,
+   "out": 0.9995
+  },
+  {
+   "x": 0.99995,
+   "nd": 0,
+   "out": 1.0
+  },
+  {
+   "x": 0.99995,
+   "nd": 2,
+   "out": 1.0
+  },
+  {
+   "x": 0.99995,
+   "nd": 3,
+   "out": 1.0
+  },
+  {
+   "x": 0.99995,
+   "nd": 4,
+   "out": 1.0
+  },
+  {
+   "x": -0.0001,
+   "nd": 0,
+   "out": -0.0
+  },
+  {
+   "x": -0.0001,
+   "nd": 2,
+   "out": -0.0
+  },
+  {
+   "x": -0.0001,
+   "nd": 3,
+   "out": -0.0
+  },
+  {
+   "x": -0.0001,
+   "nd": 4,
+   "out": -0.0001
+  },
+  {
+   "x": 0.0,
+   "nd": 0,
+   "out": 0.0
+  },
+  {
+   "x": 0.0,
+   "nd": 2,
+   "out": 0.0
+  },
+  {
+   "x": 0.0,
+   "nd": 3,
+   "out": 0.0
+  },
+  {
+   "x": 0.0,
+   "nd": 4,
+   "out": 0.0
+  },
+  {
+   "x": 123.4565,
+   "nd": 0,
+   "out": 123.0
+  },
+  {
+   "x": 123.4565,
+   "nd": 2,
+   "out": 123.46
+  },
+  {
+   "x": 123.4565,
+   "nd": 3,
+   "out": 123.457
+  },
+  {
+   "x": 123.4565,
+   "nd": 4,
+   "out": 123.4565
+  },
+  {
+   "x": 0.7142857142857143,
+   "nd": 0,
+   "out": 1.0
+  },
+  {
+   "x": 0.7142857142857143,
+   "nd": 2,
+   "out": 0.71
+  },
+  {
+   "x": 0.7142857142857143,
+   "nd": 3,
+   "out": 0.714
+  },
+  {
+   "x": 0.7142857142857143,
+   "nd": 4,
+   "out": 0.7143
+  }
+ ]
+}

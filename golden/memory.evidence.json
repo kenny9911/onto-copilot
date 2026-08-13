@@ -1,0 +1,8231 @@
+{
+ "tokenize": [
+  {
+   "in": "",
+   "out": []
+  },
+  {
+   "in": " ",
+   "out": []
+  },
+  {
+   "in": "clmContract",
+   "out": [
+    "clmcontract",
+    "clm",
+    "contract"
+   ]
+  },
+  {
+   "in": "plan_amount",
+   "out": [
+    "plan",
+    "amount"
+   ]
+  },
+  {
+   "in": "采购包头",
+   "out": [
+    "采",
+    "购",
+    "包",
+    "头",
+    "采购",
+    "购包",
+    "包头"
+   ]
+  },
+  {
+   "in": "采购业务计划头 pbpHeader 年度滚动",
+   "out": [
+    "采",
+    "购",
+    "业",
+    "务",
+    "计",
+    "划",
+    "头",
+    "采购",
+    "购业",
+    "业务",
+    "务计",
+    "计划",
+    "划头",
+    "pbpheader",
+    "pbp",
+    "header",
+    "年",
+    "度",
+    "滚",
+    "动",
+    "年度",
+    "度滚",
+    "滚动"
+   ]
+  },
+  {
+   "in": "CREATE TABLE clm_contract (plan_amount DECIMAL(18,2)) -- 不含税·单次",
+   "out": [
+    "create",
+    "table",
+    "clm",
+    "contract",
+    "plan",
+    "amount",
+    "decimal",
+    "18",
+    "2",
+    "不",
+    "含",
+    "税",
+    "不含",
+    "含税",
+    "单",
+    "次",
+    "单次"
+   ]
+  },
+  {
+   "in": "aB",
+   "out": [
+    "ab"
+   ]
+  },
+  {
+   "in": "aBc",
+   "out": [
+    "abc"
+   ]
+  },
+  {
+   "in": "aBcd",
+   "out": [
+    "abcd",
+    "a",
+    "bcd"
+   ]
+  },
+  {
+   "in": "abCd",
+   "out": [
+    "abcd",
+    "ab",
+    "cd"
+   ]
+  },
+  {
+   "in": "ABCD",
+   "out": [
+    "abcd"
+   ]
+  },
+  {
+   "in": "a1B2c3D",
+   "out": [
+    "a1b2c3d",
+    "a1",
+    "b2c3",
+    "d"
+   ]
+  },
+  {
+   "in": "XMLHttpRequest",
+   "out": [
+    "xmlhttprequest",
+    "xmlhttp",
+    "request"
+   ]
+  },
+  {
+   "in": "planAmount2024",
+   "out": [
+    "planamount2024",
+    "plan",
+    "amount2024"
+   ]
+  },
+  {
+   "in": "１２３",
+   "out": [
+    "１２３"
+   ]
+  },
+  {
+   "in": "ABC２",
+   "out": [
+    "abc",
+    "２"
+   ]
+  },
+  {
+   "in": "٤٢",
+   "out": [
+    "٤٢"
+   ]
+  },
+  {
+   "in": "R44C6",
+   "out": [
+    "r44c6",
+    "r44",
+    "c6"
+   ]
+  },
+  {
+   "in": "㐀",
+   "out": [
+    "㐀"
+   ]
+  },
+  {
+   "in": "鿿",
+   "out": [
+    "鿿"
+   ]
+  },
+  {
+   "in": "㏿",
+   "out": []
+  },
+  {
+   "in": "ꀀ",
+   "out": []
+  },
+  {
+   "in": "一二三四",
+   "out": [
+    "一",
+    "二",
+    "三",
+    "四",
+    "一二",
+    "二三",
+    "三四"
+   ]
+  },
+  {
+   "in": "一",
+   "out": [
+    "一"
+   ]
+  },
+  {
+   "in": "中a中",
+   "out": [
+    "中",
+    "a",
+    "中"
+   ]
+  },
+  {
+   "in": "𠀀",
+   "out": []
+  },
+  {
+   "in": "采购 采购",
+   "out": [
+    "采",
+    "购",
+    "采购",
+    "采",
+    "购",
+    "采购"
+   ]
+  },
+  {
+   "in": "訂單 order_no 字段",
+   "out": [
+    "訂",
+    "單",
+    "訂單",
+    "order",
+    "no",
+    "字",
+    "段",
+    "字段"
+   ]
+  },
+  {
+   "in": "混合Mixed名称2024",
+   "out": [
+    "混",
+    "合",
+    "混合",
+    "mixed",
+    "名",
+    "称",
+    "名称",
+    "2024"
+   ]
+  },
+  {
+   "in": "  多  空格  ",
+   "out": [
+    "多",
+    "空",
+    "格",
+    "空格"
+   ]
+  },
+  {
+   "in": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "out": [
+    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+   ]
+  },
+  {
+   "in": "中中中中中中中中中中中中中中中中中中中中",
+   "out": [
+    "中",
+    "中",
+    "中",
+    "中",
+    "中",
+    "中",
+    "中",
+    "中",
+    "中",
+    "中",
+    "中",
+    "中",
+    "中",
+    "中",
+    "中",
+    "中",
+    "中",
+    "中",
+    "中",
+    "中",
+    "中中",
+    "中中",
+    "中中",
+    "中中",
+    "中中",
+    "中中",
+    "中中",
+    "中中",
+    "中中",
+    "中中",
+    "中中",
+    "中中",
+    "中中",
+    "中中",
+    "中中",
+    "中中",
+    "中中",
+    "中中",
+    "中中"
+   ]
+  },
+  {
+   "in": "\n\t",
+   "out": []
+  }
+ ],
+ "chunks": [
+  {
+   "chunk_id": "f3:c0",
+   "file_id": "f3",
+   "file_name": "实体梳理.xlsx",
+   "locator": {
+    "kind": "cell",
+    "sheet": "业务对象实体梳理",
+    "row": 40,
+    "col": "F"
+   },
+   "render": "采购业务计划头 pbpHeader 年度滚动",
+   "order": 0
+  },
+  {
+   "chunk_id": "f3:c1",
+   "file_id": "f3",
+   "file_name": "实体梳理.xlsx",
+   "locator": {
+    "kind": "cell",
+    "sheet": "业务对象实体梳理",
+    "row": 41,
+    "col": "F"
+   },
+   "render": "采购业务计划行 pbpLine 按物料拆分",
+   "order": 1
+  },
+  {
+   "chunk_id": "f3:c2",
+   "file_id": "f3",
+   "file_name": "实体梳理.xlsx",
+   "locator": {
+    "kind": "cell",
+    "sheet": "业务对象实体梳理",
+    "row": 44,
+    "col": "F"
+   },
+   "render": "clmContract 采购合同 计划金额（含税，年度累计）",
+   "order": 2,
+   "tags": [
+    "rule"
+   ]
+  },
+  {
+   "chunk_id": "f3:c3",
+   "file_id": "f3",
+   "file_name": "实体梳理.xlsx",
+   "locator": {
+    "kind": "cell",
+    "sheet": "业务对象实体梳理",
+    "row": 45,
+    "col": "F"
+   },
+   "render": "supplierCode 供应商编码",
+   "order": 3
+  },
+  {
+   "chunk_id": "f3:c4",
+   "file_id": "f3",
+   "file_name": "实体梳理.xlsx",
+   "locator": {
+    "kind": "range",
+    "sheet": "供应商主数据",
+    "rows": [
+     80,
+     84
+    ]
+   },
+   "render": "poHeader 采购订单头",
+   "order": 4,
+   "context": "第 4 章 订单域"
+  },
+  {
+   "chunk_id": "f5:d0",
+   "file_id": "f5",
+   "file_name": "schema.ddl",
+   "locator": {
+    "kind": "ddl",
+    "object": "clm_contract"
+   },
+   "render": "CREATE TABLE clm_contract (plan_amount DECIMAL(18,2)) -- 不含税·单次",
+   "order": 0,
+   "tags": [
+    "fk",
+    "relation"
+   ]
+  },
+  {
+   "chunk_id": "f5:d1",
+   "file_id": "f5",
+   "file_name": "schema.ddl",
+   "locator": {
+    "kind": "ddl",
+    "object": "supplier"
+   },
+   "render": "CREATE TABLE supplier (supplier_code VARCHAR(32))",
+   "order": 1
+  },
+  {
+   "chunk_id": "f7:p0",
+   "file_id": "f7",
+   "file_name": "需求说明.docx",
+   "locator": {
+    "kind": "page",
+    "page": 3,
+    "section": "采购流程"
+   },
+   "render": "一个执行计划可拆入多个采购包",
+   "order": 0,
+   "tags": [
+    "para"
+   ]
+  },
+  {
+   "chunk_id": "f7:p1",
+   "file_id": "f7",
+   "file_name": "需求说明.docx",
+   "locator": {
+    "kind": "page",
+    "page": 3,
+    "section": "采购流程"
+   },
+   "render": "一个执行计划可拆入多个采购包",
+   "order": 1,
+   "tags": [
+    "para",
+    "rule"
+   ]
+  },
+  {
+   "chunk_id": "f9:j0",
+   "file_id": "f9",
+   "file_name": "openapi.json",
+   "locator": {
+    "kind": "json",
+    "pointer": "$.components.schemas.Plan"
+   },
+   "render": "Plan: plan_amount number 计划金额",
+   "order": 0
+  },
+  {
+   "chunk_id": "f9:m0",
+   "file_id": "f9",
+   "file_name": "openapi.json",
+   "locator": {
+    "kind": "meta",
+    "field": "title"
+   },
+   "render": "采购中台 OpenAPI",
+   "order": 1
+  },
+  {
+   "chunk_id": "f9:x0",
+   "file_id": "f9",
+   "file_name": "openapi.json",
+   "locator": {
+    "kind": "xml",
+    "pointer": "/root/item[1]"
+   },
+   "render": "xml 里的一段",
+   "order": 2
+  },
+  {
+   "chunk_id": "f9:u0",
+   "file_id": "f9",
+   "file_name": "openapi.json",
+   "locator": {
+    "kind": "不认识的种类"
+   },
+   "render": "未知 kind 的切片",
+   "order": 3
+  },
+  {
+   "chunk_id": "f9:e0",
+   "file_id": "f9",
+   "file_name": "openapi.json",
+   "locator": {},
+   "render": "空 locator 的切片",
+   "order": 4
+  },
+  {
+   "chunk_id": "f9:n0",
+   "file_id": "f9",
+   "file_name": "openapi.json",
+   "locator": {
+    "kind": "cell"
+   },
+   "render": "缺 row col 的 cell",
+   "order": 5
+  },
+  {
+   "chunk_id": "f9:n1",
+   "file_id": "f9",
+   "file_name": "openapi.json",
+   "locator": {
+    "kind": "range",
+    "sheet": "无行号"
+   },
+   "render": "缺 rows 的 range",
+   "order": 6
+  },
+  {
+   "chunk_id": "fZ:s0",
+   "file_id": "fZ",
+   "file_name": "😀.xlsx",
+   "locator": {
+    "kind": "cell",
+    "sheet": "S",
+    "row": 1,
+    "col": "A"
+   },
+   "render": "供应商 星平面 文件名",
+   "order": 0
+  },
+  {
+   "chunk_id": "fZ:s1",
+   "file_id": "fZ",
+   "file_name": "￿.xlsx",
+   "locator": {
+    "kind": "cell",
+    "sheet": "S",
+    "row": 2,
+    "col": "A"
+   },
+   "render": "供应商 BMP 末尾 文件名",
+   "order": 1
+  }
+ ],
+ "dup_chunk": {
+  "chunk_id": "f3:c0",
+  "file_id": "f3",
+  "file_name": "冒名顶替.xlsx",
+  "locator": {},
+  "render": "这条不该进索引",
+  "order": 99
+ },
+ "chunk_meta": [
+  {
+   "chunk_id": "f3:c0",
+   "cite": "实体梳理.xlsx!业务对象实体梳理!R40CF",
+   "tokens": 13
+  },
+  {
+   "chunk_id": "f3:c1",
+   "cite": "实体梳理.xlsx!业务对象实体梳理!R41CF",
+   "tokens": 14
+  },
+  {
+   "chunk_id": "f3:c2",
+   "cite": "实体梳理.xlsx!业务对象实体梳理!R44CF",
+   "tokens": 20
+  },
+  {
+   "chunk_id": "f3:c3",
+   "cite": "实体梳理.xlsx!业务对象实体梳理!R45CF",
+   "tokens": 8
+  },
+  {
+   "chunk_id": "f3:c4",
+   "cite": "实体梳理.xlsx!供应商主数据!R80-84",
+   "tokens": 7
+  },
+  {
+   "chunk_id": "f5:d0",
+   "cite": "schema.ddl#clm_contract",
+   "tokens": 19
+  },
+  {
+   "chunk_id": "f5:d1",
+   "cite": "schema.ddl#supplier",
+   "tokens": 12
+  },
+  {
+   "chunk_id": "f7:p0",
+   "cite": "需求说明.docx#p3",
+   "tokens": 15
+  },
+  {
+   "chunk_id": "f7:p1",
+   "cite": "需求说明.docx#p3",
+   "tokens": 15
+  },
+  {
+   "chunk_id": "f9:j0",
+   "cite": "openapi.json#$.components.schemas.Plan",
+   "tokens": 10
+  },
+  {
+   "chunk_id": "f9:m0",
+   "cite": "openapi.json#title",
+   "tokens": 6
+  },
+  {
+   "chunk_id": "f9:x0",
+   "cite": "openapi.json#/root/item[1]",
+   "tokens": 5
+  },
+  {
+   "chunk_id": "f9:u0",
+   "cite": "openapi.json",
+   "tokens": 6
+  },
+  {
+   "chunk_id": "f9:e0",
+   "cite": "openapi.json",
+   "tokens": 6
+  },
+  {
+   "chunk_id": "f9:n0",
+   "cite": "openapi.json!!RNoneCNone",
+   "tokens": 5
+  },
+  {
+   "chunk_id": "f9:n1",
+   "cite": "openapi.json!无行号!R0-0",
+   "tokens": 5
+  },
+  {
+   "chunk_id": "fZ:s0",
+   "cite": "😀.xlsx!S!R1CA",
+   "tokens": 10
+  },
+  {
+   "chunk_id": "fZ:s1",
+   "cite": "￿.xlsx!S!R2CA",
+   "tokens": 9
+  }
+ ],
+ "index_state": {
+  "len": 18,
+  "ids": [
+   "f3:c0",
+   "f3:c1",
+   "f3:c2",
+   "f3:c3",
+   "f3:c4",
+   "f5:d0",
+   "f5:d1",
+   "f7:p0",
+   "f7:p1",
+   "f9:j0",
+   "f9:m0",
+   "f9:x0",
+   "f9:u0",
+   "f9:e0",
+   "f9:n0",
+   "f9:n1",
+   "fZ:s0",
+   "fZ:s1"
+  ],
+  "doc_len": {
+   "f3:c0": 46,
+   "f3:c1": 48,
+   "f3:c2": 50,
+   "f3:c3": 35,
+   "f3:c4": 39,
+   "f5:d0": 19,
+   "f5:d1": 9,
+   "f7:p0": 42,
+   "f7:p1": 42,
+   "f9:j0": 13,
+   "f9:m0": 12,
+   "f9:x0": 10,
+   "f9:u0": 11,
+   "f9:e0": 9,
+   "f9:n0": 7,
+   "f9:n1": 11,
+   "fZ:s0": 17,
+   "fZ:s1": 16
+  },
+  "df": {
+   "采": 7,
+   "购": 7,
+   "业": 4,
+   "务": 4,
+   "计": 6,
+   "划": 6,
+   "头": 2,
+   "采购": 7,
+   "购业": 2,
+   "业务": 4,
+   "务计": 2,
+   "计划": 6,
+   "划头": 1,
+   "pbpheader": 1,
+   "pbp": 2,
+   "header": 2,
+   "年": 2,
+   "度": 2,
+   "滚": 1,
+   "动": 1,
+   "年度": 2,
+   "度滚": 1,
+   "滚动": 1,
+   "实": 5,
+   "体": 5,
+   "梳": 5,
+   "理": 5,
+   "实体": 5,
+   "体梳": 5,
+   "梳理": 5,
+   "xlsx": 7,
+   "对": 4,
+   "象": 4,
+   "务对": 4,
+   "对象": 4,
+   "象实": 4,
+   "行": 4,
+   "划行": 1,
+   "pbpline": 1,
+   "line": 1,
+   "按": 1,
+   "物": 1,
+   "料": 1,
+   "拆": 3,
+   "分": 1,
+   "按物": 1,
+   "物料": 1,
+   "料拆": 1,
+   "拆分": 1,
+   "clmcontract": 1,
+   "clm": 2,
+   "contract": 2,
+   "合": 1,
+   "同": 1,
+   "购合": 1,
+   "合同": 1,
+   "金": 2,
+   "额": 2,
+   "划金": 2,
+   "金额": 2,
+   "含": 2,
+   "税": 2,
+   "含税": 2,
+   "累": 1,
+   "度累": 1,
+   "累计": 1,
+   "suppliercode": 1,
+   "supplier": 2,
+   "code": 2,
+   "供": 4,
+   "应": 4,
+   "商": 4,
+   "编": 1,
+   "码": 1,
+   "供应": 4,
+   "应商": 4,
+   "商编": 1,
+   "编码": 1,
+   "poheader": 1,
+   "po": 1,
+   "订": 1,
+   "单": 2,
+   "购订": 1,
+   "订单": 1,
+   "单头": 1,
+   "第": 1,
+   "4": 1,
+   "章": 1,
+   "域": 1,
+   "单域": 1,
+   "主": 1,
+   "数": 1,
+   "据": 1,
+   "商主": 1,
+   "主数": 1,
+   "数据": 1,
+   "create": 2,
+   "table": 2,
+   "plan": 2,
+   "amount": 2,
+   "decimal": 1,
+   "18": 1,
+   "2": 1,
+   "不": 1,
+   "不含": 1,
+   "次": 1,
+   "单次": 1,
+   "schema": 2,
+   "ddl": 2,
+   "varchar": 1,
+   "32": 1,
+   "一": 3,
+   "个": 2,
+   "执": 2,
+   "可": 2,
+   "入": 2,
+   "多": 2,
+   "包": 2,
+   "一个": 2,
+   "个执": 2,
+   "执行": 2,
+   "行计": 2,
+   "划可": 2,
+   "可拆": 2,
+   "拆入": 2,
+   "入多": 2,
+   "多个": 2,
+   "个采": 2,
+   "购包": 2,
+   "需": 2,
+   "求": 2,
+   "说": 2,
+   "明": 2,
+   "需求": 2,
+   "求说": 2,
+   "说明": 2,
+   "docx": 2,
+   "流": 2,
+   "程": 2,
+   "购流": 2,
+   "流程": 2,
+   "number": 1,
+   "openapi": 7,
+   "json": 7,
+   "中": 1,
+   "台": 1,
+   "购中": 1,
+   "中台": 1,
+   "open": 1,
+   "api": 1,
+   "xml": 1,
+   "里": 1,
+   "的": 5,
+   "段": 1,
+   "里的": 1,
+   "的一": 1,
+   "一段": 1,
+   "未": 1,
+   "知": 1,
+   "未知": 1,
+   "kind": 1,
+   "切": 2,
+   "片": 2,
+   "的切": 2,
+   "切片": 2,
+   "空": 1,
+   "locator": 1,
+   "缺": 2,
+   "row": 1,
+   "col": 1,
+   "cell": 1,
+   "rows": 1,
+   "range": 1,
+   "无": 1,
+   "号": 1,
+   "无行": 1,
+   "行号": 1,
+   "星": 1,
+   "平": 1,
+   "面": 1,
+   "星平": 1,
+   "平面": 1,
+   "文": 2,
+   "件": 2,
+   "名": 2,
+   "文件": 2,
+   "件名": 2,
+   "s": 2,
+   "bmp": 1,
+   "末": 1,
+   "尾": 1,
+   "末尾": 1
+  },
+  "avg_len": 24.22222222222222,
+  "postings": {
+   "采": [
+    "f3:c0",
+    "f3:c1",
+    "f3:c2",
+    "f3:c4",
+    "f7:p0",
+    "f7:p1",
+    "f9:m0"
+   ],
+   "购": [
+    "f3:c0",
+    "f3:c1",
+    "f3:c2",
+    "f3:c4",
+    "f7:p0",
+    "f7:p1",
+    "f9:m0"
+   ],
+   "业": [
+    "f3:c0",
+    "f3:c1",
+    "f3:c2",
+    "f3:c3"
+   ],
+   "务": [
+    "f3:c0",
+    "f3:c1",
+    "f3:c2",
+    "f3:c3"
+   ],
+   "计": [
+    "f3:c0",
+    "f3:c1",
+    "f3:c2",
+    "f7:p0",
+    "f7:p1",
+    "f9:j0"
+   ],
+   "划": [
+    "f3:c0",
+    "f3:c1",
+    "f3:c2",
+    "f7:p0",
+    "f7:p1",
+    "f9:j0"
+   ],
+   "头": [
+    "f3:c0",
+    "f3:c4"
+   ],
+   "采购": [
+    "f3:c0",
+    "f3:c1",
+    "f3:c2",
+    "f3:c4",
+    "f7:p0",
+    "f7:p1",
+    "f9:m0"
+   ],
+   "购业": [
+    "f3:c0",
+    "f3:c1"
+   ],
+   "业务": [
+    "f3:c0",
+    "f3:c1",
+    "f3:c2",
+    "f3:c3"
+   ],
+   "务计": [
+    "f3:c0",
+    "f3:c1"
+   ],
+   "计划": [
+    "f3:c0",
+    "f3:c1",
+    "f3:c2",
+    "f7:p0",
+    "f7:p1",
+    "f9:j0"
+   ],
+   "划头": [
+    "f3:c0"
+   ],
+   "pbpheader": [
+    "f3:c0"
+   ],
+   "pbp": [
+    "f3:c0",
+    "f3:c1"
+   ],
+   "header": [
+    "f3:c0",
+    "f3:c4"
+   ],
+   "年": [
+    "f3:c0",
+    "f3:c2"
+   ],
+   "度": [
+    "f3:c0",
+    "f3:c2"
+   ],
+   "滚": [
+    "f3:c0"
+   ],
+   "动": [
+    "f3:c0"
+   ],
+   "年度": [
+    "f3:c0",
+    "f3:c2"
+   ],
+   "度滚": [
+    "f3:c0"
+   ],
+   "滚动": [
+    "f3:c0"
+   ],
+   "实": [
+    "f3:c0",
+    "f3:c1",
+    "f3:c2",
+    "f3:c3",
+    "f3:c4"
+   ],
+   "体": [
+    "f3:c0",
+    "f3:c1",
+    "f3:c2",
+    "f3:c3",
+    "f3:c4"
+   ],
+   "梳": [
+    "f3:c0",
+    "f3:c1",
+    "f3:c2",
+    "f3:c3",
+    "f3:c4"
+   ],
+   "理": [
+    "f3:c0",
+    "f3:c1",
+    "f3:c2",
+    "f3:c3",
+    "f3:c4"
+   ],
+   "实体": [
+    "f3:c0",
+    "f3:c1",
+    "f3:c2",
+    "f3:c3",
+    "f3:c4"
+   ],
+   "体梳": [
+    "f3:c0",
+    "f3:c1",
+    "f3:c2",
+    "f3:c3",
+    "f3:c4"
+   ],
+   "梳理": [
+    "f3:c0",
+    "f3:c1",
+    "f3:c2",
+    "f3:c3",
+    "f3:c4"
+   ],
+   "xlsx": [
+    "f3:c0",
+    "f3:c1",
+    "f3:c2",
+    "f3:c3",
+    "f3:c4",
+    "fZ:s0",
+    "fZ:s1"
+   ],
+   "对": [
+    "f3:c0",
+    "f3:c1",
+    "f3:c2",
+    "f3:c3"
+   ],
+   "象": [
+    "f3:c0",
+    "f3:c1",
+    "f3:c2",
+    "f3:c3"
+   ],
+   "务对": [
+    "f3:c0",
+    "f3:c1",
+    "f3:c2",
+    "f3:c3"
+   ],
+   "对象": [
+    "f3:c0",
+    "f3:c1",
+    "f3:c2",
+    "f3:c3"
+   ],
+   "象实": [
+    "f3:c0",
+    "f3:c1",
+    "f3:c2",
+    "f3:c3"
+   ],
+   "行": [
+    "f3:c1",
+    "f7:p0",
+    "f7:p1",
+    "f9:n1"
+   ],
+   "划行": [
+    "f3:c1"
+   ],
+   "pbpline": [
+    "f3:c1"
+   ],
+   "line": [
+    "f3:c1"
+   ],
+   "按": [
+    "f3:c1"
+   ],
+   "物": [
+    "f3:c1"
+   ],
+   "料": [
+    "f3:c1"
+   ],
+   "拆": [
+    "f3:c1",
+    "f7:p0",
+    "f7:p1"
+   ],
+   "分": [
+    "f3:c1"
+   ],
+   "按物": [
+    "f3:c1"
+   ],
+   "物料": [
+    "f3:c1"
+   ],
+   "料拆": [
+    "f3:c1"
+   ],
+   "拆分": [
+    "f3:c1"
+   ],
+   "clmcontract": [
+    "f3:c2"
+   ],
+   "clm": [
+    "f3:c2",
+    "f5:d0"
+   ],
+   "contract": [
+    "f3:c2",
+    "f5:d0"
+   ],
+   "合": [
+    "f3:c2"
+   ],
+   "同": [
+    "f3:c2"
+   ],
+   "购合": [
+    "f3:c2"
+   ],
+   "合同": [
+    "f3:c2"
+   ],
+   "金": [
+    "f3:c2",
+    "f9:j0"
+   ],
+   "额": [
+    "f3:c2",
+    "f9:j0"
+   ],
+   "划金": [
+    "f3:c2",
+    "f9:j0"
+   ],
+   "金额": [
+    "f3:c2",
+    "f9:j0"
+   ],
+   "含": [
+    "f3:c2",
+    "f5:d0"
+   ],
+   "税": [
+    "f3:c2",
+    "f5:d0"
+   ],
+   "含税": [
+    "f3:c2",
+    "f5:d0"
+   ],
+   "累": [
+    "f3:c2"
+   ],
+   "度累": [
+    "f3:c2"
+   ],
+   "累计": [
+    "f3:c2"
+   ],
+   "suppliercode": [
+    "f3:c3"
+   ],
+   "supplier": [
+    "f3:c3",
+    "f5:d1"
+   ],
+   "code": [
+    "f3:c3",
+    "f5:d1"
+   ],
+   "供": [
+    "f3:c3",
+    "f3:c4",
+    "fZ:s0",
+    "fZ:s1"
+   ],
+   "应": [
+    "f3:c3",
+    "f3:c4",
+    "fZ:s0",
+    "fZ:s1"
+   ],
+   "商": [
+    "f3:c3",
+    "f3:c4",
+    "fZ:s0",
+    "fZ:s1"
+   ],
+   "编": [
+    "f3:c3"
+   ],
+   "码": [
+    "f3:c3"
+   ],
+   "供应": [
+    "f3:c3",
+    "f3:c4",
+    "fZ:s0",
+    "fZ:s1"
+   ],
+   "应商": [
+    "f3:c3",
+    "f3:c4",
+    "fZ:s0",
+    "fZ:s1"
+   ],
+   "商编": [
+    "f3:c3"
+   ],
+   "编码": [
+    "f3:c3"
+   ],
+   "poheader": [
+    "f3:c4"
+   ],
+   "po": [
+    "f3:c4"
+   ],
+   "订": [
+    "f3:c4"
+   ],
+   "单": [
+    "f3:c4",
+    "f5:d0"
+   ],
+   "购订": [
+    "f3:c4"
+   ],
+   "订单": [
+    "f3:c4"
+   ],
+   "单头": [
+    "f3:c4"
+   ],
+   "第": [
+    "f3:c4"
+   ],
+   "4": [
+    "f3:c4"
+   ],
+   "章": [
+    "f3:c4"
+   ],
+   "域": [
+    "f3:c4"
+   ],
+   "单域": [
+    "f3:c4"
+   ],
+   "主": [
+    "f3:c4"
+   ],
+   "数": [
+    "f3:c4"
+   ],
+   "据": [
+    "f3:c4"
+   ],
+   "商主": [
+    "f3:c4"
+   ],
+   "主数": [
+    "f3:c4"
+   ],
+   "数据": [
+    "f3:c4"
+   ],
+   "create": [
+    "f5:d0",
+    "f5:d1"
+   ],
+   "table": [
+    "f5:d0",
+    "f5:d1"
+   ],
+   "plan": [
+    "f5:d0",
+    "f9:j0"
+   ],
+   "amount": [
+    "f5:d0",
+    "f9:j0"
+   ],
+   "decimal": [
+    "f5:d0"
+   ],
+   "18": [
+    "f5:d0"
+   ],
+   "2": [
+    "f5:d0"
+   ],
+   "不": [
+    "f5:d0"
+   ],
+   "不含": [
+    "f5:d0"
+   ],
+   "次": [
+    "f5:d0"
+   ],
+   "单次": [
+    "f5:d0"
+   ],
+   "schema": [
+    "f5:d0",
+    "f5:d1"
+   ],
+   "ddl": [
+    "f5:d0",
+    "f5:d1"
+   ],
+   "varchar": [
+    "f5:d1"
+   ],
+   "32": [
+    "f5:d1"
+   ],
+   "一": [
+    "f7:p0",
+    "f7:p1",
+    "f9:x0"
+   ],
+   "个": [
+    "f7:p0",
+    "f7:p1"
+   ],
+   "执": [
+    "f7:p0",
+    "f7:p1"
+   ],
+   "可": [
+    "f7:p0",
+    "f7:p1"
+   ],
+   "入": [
+    "f7:p0",
+    "f7:p1"
+   ],
+   "多": [
+    "f7:p0",
+    "f7:p1"
+   ],
+   "包": [
+    "f7:p0",
+    "f7:p1"
+   ],
+   "一个": [
+    "f7:p0",
+    "f7:p1"
+   ],
+   "个执": [
+    "f7:p0",
+    "f7:p1"
+   ],
+   "执行": [
+    "f7:p0",
+    "f7:p1"
+   ],
+   "行计": [
+    "f7:p0",
+    "f7:p1"
+   ],
+   "划可": [
+    "f7:p0",
+    "f7:p1"
+   ],
+   "可拆": [
+    "f7:p0",
+    "f7:p1"
+   ],
+   "拆入": [
+    "f7:p0",
+    "f7:p1"
+   ],
+   "入多": [
+    "f7:p0",
+    "f7:p1"
+   ],
+   "多个": [
+    "f7:p0",
+    "f7:p1"
+   ],
+   "个采": [
+    "f7:p0",
+    "f7:p1"
+   ],
+   "购包": [
+    "f7:p0",
+    "f7:p1"
+   ],
+   "需": [
+    "f7:p0",
+    "f7:p1"
+   ],
+   "求": [
+    "f7:p0",
+    "f7:p1"
+   ],
+   "说": [
+    "f7:p0",
+    "f7:p1"
+   ],
+   "明": [
+    "f7:p0",
+    "f7:p1"
+   ],
+   "需求": [
+    "f7:p0",
+    "f7:p1"
+   ],
+   "求说": [
+    "f7:p0",
+    "f7:p1"
+   ],
+   "说明": [
+    "f7:p0",
+    "f7:p1"
+   ],
+   "docx": [
+    "f7:p0",
+    "f7:p1"
+   ],
+   "流": [
+    "f7:p0",
+    "f7:p1"
+   ],
+   "程": [
+    "f7:p0",
+    "f7:p1"
+   ],
+   "购流": [
+    "f7:p0",
+    "f7:p1"
+   ],
+   "流程": [
+    "f7:p0",
+    "f7:p1"
+   ],
+   "number": [
+    "f9:j0"
+   ],
+   "openapi": [
+    "f9:j0",
+    "f9:m0",
+    "f9:x0",
+    "f9:u0",
+    "f9:e0",
+    "f9:n0",
+    "f9:n1"
+   ],
+   "json": [
+    "f9:j0",
+    "f9:m0",
+    "f9:x0",
+    "f9:u0",
+    "f9:e0",
+    "f9:n0",
+    "f9:n1"
+   ],
+   "中": [
+    "f9:m0"
+   ],
+   "台": [
+    "f9:m0"
+   ],
+   "购中": [
+    "f9:m0"
+   ],
+   "中台": [
+    "f9:m0"
+   ],
+   "open": [
+    "f9:m0"
+   ],
+   "api": [
+    "f9:m0"
+   ],
+   "xml": [
+    "f9:x0"
+   ],
+   "里": [
+    "f9:x0"
+   ],
+   "的": [
+    "f9:x0",
+    "f9:u0",
+    "f9:e0",
+    "f9:n0",
+    "f9:n1"
+   ],
+   "段": [
+    "f9:x0"
+   ],
+   "里的": [
+    "f9:x0"
+   ],
+   "的一": [
+    "f9:x0"
+   ],
+   "一段": [
+    "f9:x0"
+   ],
+   "未": [
+    "f9:u0"
+   ],
+   "知": [
+    "f9:u0"
+   ],
+   "未知": [
+    "f9:u0"
+   ],
+   "kind": [
+    "f9:u0"
+   ],
+   "切": [
+    "f9:u0",
+    "f9:e0"
+   ],
+   "片": [
+    "f9:u0",
+    "f9:e0"
+   ],
+   "的切": [
+    "f9:u0",
+    "f9:e0"
+   ],
+   "切片": [
+    "f9:u0",
+    "f9:e0"
+   ],
+   "空": [
+    "f9:e0"
+   ],
+   "locator": [
+    "f9:e0"
+   ],
+   "缺": [
+    "f9:n0",
+    "f9:n1"
+   ],
+   "row": [
+    "f9:n0"
+   ],
+   "col": [
+    "f9:n0"
+   ],
+   "cell": [
+    "f9:n0"
+   ],
+   "rows": [
+    "f9:n1"
+   ],
+   "range": [
+    "f9:n1"
+   ],
+   "无": [
+    "f9:n1"
+   ],
+   "号": [
+    "f9:n1"
+   ],
+   "无行": [
+    "f9:n1"
+   ],
+   "行号": [
+    "f9:n1"
+   ],
+   "星": [
+    "fZ:s0"
+   ],
+   "平": [
+    "fZ:s0"
+   ],
+   "面": [
+    "fZ:s0"
+   ],
+   "星平": [
+    "fZ:s0"
+   ],
+   "平面": [
+    "fZ:s0"
+   ],
+   "文": [
+    "fZ:s0",
+    "fZ:s1"
+   ],
+   "件": [
+    "fZ:s0",
+    "fZ:s1"
+   ],
+   "名": [
+    "fZ:s0",
+    "fZ:s1"
+   ],
+   "文件": [
+    "fZ:s0",
+    "fZ:s1"
+   ],
+   "件名": [
+    "fZ:s0",
+    "fZ:s1"
+   ],
+   "s": [
+    "fZ:s0",
+    "fZ:s1"
+   ],
+   "bmp": [
+    "fZ:s1"
+   ],
+   "末": [
+    "fZ:s1"
+   ],
+   "尾": [
+    "fZ:s1"
+   ],
+   "末尾": [
+    "fZ:s1"
+   ]
+  },
+  "by_file": {
+   "f3": [
+    "f3:c0",
+    "f3:c1",
+    "f3:c2",
+    "f3:c3",
+    "f3:c4"
+   ],
+   "f5": [
+    "f5:d0",
+    "f5:d1"
+   ],
+   "f7": [
+    "f7:p0",
+    "f7:p1"
+   ],
+   "f9": [
+    "f9:j0",
+    "f9:m0",
+    "f9:x0",
+    "f9:u0",
+    "f9:e0",
+    "f9:n0",
+    "f9:n1"
+   ],
+   "fZ": [
+    "fZ:s0",
+    "fZ:s1"
+   ]
+  },
+  "file_names": {
+   "实体梳理.xlsx": "f3",
+   "schema.ddl": "f5",
+   "需求说明.docx": "f7",
+   "openapi.json": "f9",
+   "😀.xlsx": "fZ",
+   "￿.xlsx": "fZ"
+  },
+  "by_file_api": {
+   "f3": [
+    "f3:c0",
+    "f3:c1",
+    "f3:c2",
+    "f3:c3",
+    "f3:c4"
+   ],
+   "f5": [
+    "f5:d0",
+    "f5:d1"
+   ],
+   "f7": [
+    "f7:p0",
+    "f7:p1"
+   ],
+   "f9": [
+    "f9:j0",
+    "f9:m0",
+    "f9:x0",
+    "f9:u0",
+    "f9:e0",
+    "f9:n0",
+    "f9:n1"
+   ],
+   "fZ": [
+    "fZ:s0",
+    "fZ:s1"
+   ],
+   "不存在": []
+  },
+  "get": {
+   "f3:c0": "f3:c0",
+   "不存在": null
+  }
+ },
+ "search": [
+  {
+   "query": "clmContract 计划金额",
+   "kwargs": {
+    "top_k": 5,
+    "expand": 0
+   },
+   "ids": [
+    "f3:c2",
+    "f9:j0",
+    "f5:d0",
+    "f7:p1",
+    "f3:c0"
+   ],
+   "cites": [
+    "实体梳理.xlsx!业务对象实体梳理!R44CF",
+    "openapi.json#$.components.schemas.Plan",
+    "schema.ddl#clm_contract",
+    "需求说明.docx#p3",
+    "实体梳理.xlsx!业务对象实体梳理!R40CF"
+   ],
+   "tokens": [
+    20,
+    10,
+    19,
+    15,
+    13
+   ]
+  },
+  {
+   "query": "clmContract 计划金额",
+   "kwargs": {
+    "top_k": 5,
+    "expand": 0,
+    "diversify_by_file": false
+   },
+   "ids": [
+    "f3:c2",
+    "f9:j0",
+    "f5:d0",
+    "f7:p1",
+    "f7:p0"
+   ],
+   "cites": [
+    "实体梳理.xlsx!业务对象实体梳理!R44CF",
+    "openapi.json#$.components.schemas.Plan",
+    "schema.ddl#clm_contract",
+    "需求说明.docx#p3",
+    "需求说明.docx#p3"
+   ],
+   "tokens": [
+    20,
+    10,
+    19,
+    15,
+    15
+   ]
+  },
+  {
+   "query": "clmContract",
+   "kwargs": {
+    "top_k": 1,
+    "expand": 0
+   },
+   "ids": [
+    "f3:c2"
+   ],
+   "cites": [
+    "实体梳理.xlsx!业务对象实体梳理!R44CF"
+   ],
+   "tokens": [
+    20
+   ]
+  },
+  {
+   "query": "clmContract",
+   "kwargs": {
+    "top_k": 1,
+    "expand": 1
+   },
+   "ids": [
+    "f3:c1",
+    "f3:c2",
+    "f3:c3"
+   ],
+   "cites": [
+    "实体梳理.xlsx!业务对象实体梳理!R41CF",
+    "实体梳理.xlsx!业务对象实体梳理!R44CF",
+    "实体梳理.xlsx!业务对象实体梳理!R45CF"
+   ],
+   "tokens": [
+    14,
+    20,
+    8
+   ]
+  },
+  {
+   "query": "clmContract",
+   "kwargs": {
+    "top_k": 1,
+    "expand": 2
+   },
+   "ids": [
+    "f3:c0",
+    "f3:c1",
+    "f3:c2",
+    "f3:c3",
+    "f3:c4"
+   ],
+   "cites": [
+    "实体梳理.xlsx!业务对象实体梳理!R40CF",
+    "实体梳理.xlsx!业务对象实体梳理!R41CF",
+    "实体梳理.xlsx!业务对象实体梳理!R44CF",
+    "实体梳理.xlsx!业务对象实体梳理!R45CF",
+    "实体梳理.xlsx!供应商主数据!R80-84"
+   ],
+   "tokens": [
+    13,
+    14,
+    20,
+    8,
+    7
+   ]
+  },
+  {
+   "query": "clmContract",
+   "kwargs": {
+    "top_k": 1,
+    "expand": 99
+   },
+   "ids": [
+    "f3:c0",
+    "f3:c1",
+    "f3:c2",
+    "f3:c3",
+    "f3:c4"
+   ],
+   "cites": [
+    "实体梳理.xlsx!业务对象实体梳理!R40CF",
+    "实体梳理.xlsx!业务对象实体梳理!R41CF",
+    "实体梳理.xlsx!业务对象实体梳理!R44CF",
+    "实体梳理.xlsx!业务对象实体梳理!R45CF",
+    "实体梳理.xlsx!供应商主数据!R80-84"
+   ],
+   "tokens": [
+    13,
+    14,
+    20,
+    8,
+    7
+   ]
+  },
+  {
+   "query": "供应商编码",
+   "kwargs": {
+    "top_k": 10,
+    "expand": 0
+   },
+   "ids": [
+    "f3:c3",
+    "fZ:s1",
+    "f3:c4",
+    "fZ:s0"
+   ],
+   "cites": [
+    "实体梳理.xlsx!业务对象实体梳理!R45CF",
+    "￿.xlsx!S!R2CA",
+    "实体梳理.xlsx!供应商主数据!R80-84",
+    "😀.xlsx!S!R1CA"
+   ],
+   "tokens": [
+    8,
+    9,
+    7,
+    10
+   ]
+  },
+  {
+   "query": "执行计划 采购包",
+   "kwargs": {
+    "top_k": 2,
+    "expand": 0,
+    "diversify_by_file": false
+   },
+   "ids": [
+    "f7:p1",
+    "f7:p0"
+   ],
+   "cites": [
+    "需求说明.docx#p3",
+    "需求说明.docx#p3"
+   ],
+   "tokens": [
+    15,
+    15
+   ]
+  },
+  {
+   "query": "plan_amount 计划金额",
+   "kwargs": {
+    "top_k": 5,
+    "expand": 0,
+    "kinds": [
+     "ddl"
+    ]
+   },
+   "ids": [
+    "f5:d0"
+   ],
+   "cites": [
+    "schema.ddl#clm_contract"
+   ],
+   "tokens": [
+    19
+   ]
+  },
+  {
+   "query": "plan_amount 计划金额",
+   "kwargs": {
+    "top_k": 5,
+    "expand": 0,
+    "kinds": [
+     "ddl",
+     "json"
+    ]
+   },
+   "ids": [
+    "f9:j0",
+    "f5:d0"
+   ],
+   "cites": [
+    "openapi.json#$.components.schemas.Plan",
+    "schema.ddl#clm_contract"
+   ],
+   "tokens": [
+    10,
+    19
+   ]
+  },
+  {
+   "query": "plan_amount 计划金额",
+   "kwargs": {
+    "top_k": 5,
+    "expand": 0,
+    "kinds": []
+   },
+   "ids": [],
+   "cites": [],
+   "tokens": []
+  },
+  {
+   "query": "采购",
+   "kwargs": {
+    "top_k": 9,
+    "expand": 0,
+    "tags": [
+     "rule"
+    ]
+   },
+   "ids": [
+    "f7:p1",
+    "f3:c2"
+   ],
+   "cites": [
+    "需求说明.docx#p3",
+    "实体梳理.xlsx!业务对象实体梳理!R44CF"
+   ],
+   "tokens": [
+    15,
+    20
+   ]
+  },
+  {
+   "query": "采购",
+   "kwargs": {
+    "top_k": 9,
+    "expand": 0,
+    "tags": [
+     "rule",
+     "fk"
+    ]
+   },
+   "ids": [
+    "f7:p1",
+    "f3:c2"
+   ],
+   "cites": [
+    "需求说明.docx#p3",
+    "实体梳理.xlsx!业务对象实体梳理!R44CF"
+   ],
+   "tokens": [
+    15,
+    20
+   ]
+  },
+  {
+   "query": "采购",
+   "kwargs": {
+    "top_k": 9,
+    "expand": 0,
+    "tags": []
+   },
+   "ids": [],
+   "cites": [],
+   "tokens": []
+  },
+  {
+   "query": "计划金额",
+   "kwargs": {
+    "top_k": 9,
+    "expand": 0,
+    "files": [
+     "f3"
+    ]
+   },
+   "ids": [
+    "f3:c2",
+    "f3:c0",
+    "f3:c1"
+   ],
+   "cites": [
+    "实体梳理.xlsx!业务对象实体梳理!R44CF",
+    "实体梳理.xlsx!业务对象实体梳理!R40CF",
+    "实体梳理.xlsx!业务对象实体梳理!R41CF"
+   ],
+   "tokens": [
+    20,
+    13,
+    14
+   ]
+  },
+  {
+   "query": "计划金额",
+   "kwargs": {
+    "top_k": 9,
+    "expand": 0,
+    "files": [
+     "f3",
+     "f5"
+    ]
+   },
+   "ids": [
+    "f3:c2",
+    "f3:c0",
+    "f3:c1"
+   ],
+   "cites": [
+    "实体梳理.xlsx!业务对象实体梳理!R44CF",
+    "实体梳理.xlsx!业务对象实体梳理!R40CF",
+    "实体梳理.xlsx!业务对象实体梳理!R41CF"
+   ],
+   "tokens": [
+    20,
+    13,
+    14
+   ]
+  },
+  {
+   "query": "计划金额",
+   "kwargs": {
+    "top_k": 9,
+    "expand": 0,
+    "files": [
+     "实体梳理.xlsx"
+    ]
+   },
+   "ids": [],
+   "cites": [],
+   "tokens": []
+  },
+  {
+   "query": "计划金额",
+   "kwargs": {
+    "top_k": 9,
+    "expand": 0,
+    "files": []
+   },
+   "ids": [],
+   "cites": [],
+   "tokens": []
+  },
+  {
+   "query": "计划金额",
+   "kwargs": {
+    "top_k": 1,
+    "expand": 0
+   },
+   "ids": [
+    "f9:j0"
+   ],
+   "cites": [
+    "openapi.json#$.components.schemas.Plan"
+   ],
+   "tokens": [
+    10
+   ]
+  },
+  {
+   "query": "计划金额",
+   "kwargs": {
+    "top_k": 2,
+    "expand": 0
+   },
+   "ids": [
+    "f9:j0",
+    "f3:c2"
+   ],
+   "cites": [
+    "openapi.json#$.components.schemas.Plan",
+    "实体梳理.xlsx!业务对象实体梳理!R44CF"
+   ],
+   "tokens": [
+    10,
+    20
+   ]
+  },
+  {
+   "query": "计划金额",
+   "kwargs": {
+    "top_k": 3,
+    "expand": 0
+   },
+   "ids": [
+    "f9:j0",
+    "f3:c2",
+    "f7:p1"
+   ],
+   "cites": [
+    "openapi.json#$.components.schemas.Plan",
+    "实体梳理.xlsx!业务对象实体梳理!R44CF",
+    "需求说明.docx#p3"
+   ],
+   "tokens": [
+    10,
+    20,
+    15
+   ]
+  },
+  {
+   "query": "计划金额",
+   "kwargs": {
+    "top_k": 0,
+    "expand": 0
+   },
+   "ids": [],
+   "cites": [],
+   "tokens": []
+  },
+  {
+   "query": "计划金额",
+   "kwargs": {
+    "top_k": 3,
+    "expand": 0,
+    "diversify_by_file": false
+   },
+   "ids": [
+    "f9:j0",
+    "f3:c2",
+    "f7:p1"
+   ],
+   "cites": [
+    "openapi.json#$.components.schemas.Plan",
+    "实体梳理.xlsx!业务对象实体梳理!R44CF",
+    "需求说明.docx#p3"
+   ],
+   "tokens": [
+    10,
+    20,
+    15
+   ]
+  },
+  {
+   "query": "采购",
+   "kwargs": {
+    "top_k": 9,
+    "expand": 0,
+    "budget_tokens": 8
+   },
+   "ids": [
+    "f9:m0"
+   ],
+   "cites": [
+    "openapi.json#title"
+   ],
+   "tokens": [
+    6
+   ]
+  },
+  {
+   "query": "采购",
+   "kwargs": {
+    "top_k": 9,
+    "expand": 0,
+    "budget_tokens": 0
+   },
+   "ids": [],
+   "cites": [],
+   "tokens": []
+  },
+  {
+   "query": "采购",
+   "kwargs": {
+    "top_k": 9,
+    "expand": 0,
+    "budget_tokens": 10000
+   },
+   "ids": [
+    "f7:p1",
+    "f9:m0",
+    "f3:c2",
+    "f7:p0",
+    "f3:c4",
+    "f3:c0",
+    "f3:c1"
+   ],
+   "cites": [
+    "需求说明.docx#p3",
+    "openapi.json#title",
+    "实体梳理.xlsx!业务对象实体梳理!R44CF",
+    "需求说明.docx#p3",
+    "实体梳理.xlsx!供应商主数据!R80-84",
+    "实体梳理.xlsx!业务对象实体梳理!R40CF",
+    "实体梳理.xlsx!业务对象实体梳理!R41CF"
+   ],
+   "tokens": [
+    15,
+    6,
+    20,
+    15,
+    7,
+    13,
+    14
+   ]
+  },
+  {
+   "query": "供应商主数据",
+   "kwargs": {
+    "top_k": 3,
+    "expand": 0
+   },
+   "ids": [
+    "f3:c4",
+    "fZ:s1",
+    "f3:c3"
+   ],
+   "cites": [
+    "实体梳理.xlsx!供应商主数据!R80-84",
+    "￿.xlsx!S!R2CA",
+    "实体梳理.xlsx!业务对象实体梳理!R45CF"
+   ],
+   "tokens": [
+    7,
+    9,
+    8
+   ]
+  },
+  {
+   "query": "采购流程",
+   "kwargs": {
+    "top_k": 3,
+    "expand": 0
+   },
+   "ids": [
+    "f7:p1",
+    "f9:m0",
+    "f3:c2"
+   ],
+   "cites": [
+    "需求说明.docx#p3",
+    "openapi.json#title",
+    "实体梳理.xlsx!业务对象实体梳理!R44CF"
+   ],
+   "tokens": [
+    15,
+    6,
+    20
+   ]
+  },
+  {
+   "query": "订单域",
+   "kwargs": {
+    "top_k": 3,
+    "expand": 0
+   },
+   "ids": [
+    "f3:c4",
+    "f5:d0"
+   ],
+   "cites": [
+    "实体梳理.xlsx!供应商主数据!R80-84",
+    "schema.ddl#clm_contract"
+   ],
+   "tokens": [
+    7,
+    19
+   ]
+  },
+  {
+   "query": "实体梳理",
+   "kwargs": {
+    "top_k": 3,
+    "expand": 0
+   },
+   "ids": [
+    "f3:c2",
+    "f3:c3",
+    "f3:c0"
+   ],
+   "cites": [
+    "实体梳理.xlsx!业务对象实体梳理!R44CF",
+    "实体梳理.xlsx!业务对象实体梳理!R45CF",
+    "实体梳理.xlsx!业务对象实体梳理!R40CF"
+   ],
+   "tokens": [
+    20,
+    8,
+    13
+   ]
+  },
+  {
+   "query": "",
+   "kwargs": {
+    "top_k": 5
+   },
+   "ids": [],
+   "cites": [],
+   "tokens": []
+  },
+  {
+   "query": "   ",
+   "kwargs": {
+    "top_k": 5
+   },
+   "ids": [],
+   "cites": [],
+   "tokens": []
+  },
+  {
+   "query": "完全不存在的词",
+   "kwargs": {
+    "top_k": 5
+   },
+   "ids": [
+    "f5:d0",
+    "f5:d1",
+    "f9:m0",
+    "f9:x0",
+    "f9:u0",
+    "f9:e0",
+    "f9:n0",
+    "f9:n1"
+   ],
+   "cites": [
+    "schema.ddl#clm_contract",
+    "schema.ddl#supplier",
+    "openapi.json#title",
+    "openapi.json#/root/item[1]",
+    "openapi.json",
+    "openapi.json",
+    "openapi.json!!RNoneCNone",
+    "openapi.json!无行号!R0-0"
+   ],
+   "tokens": [
+    19,
+    12,
+    6,
+    5,
+    6,
+    6,
+    5,
+    5
+   ]
+  },
+  {
+   "query": "𠀀",
+   "kwargs": {
+    "top_k": 5
+   },
+   "ids": [],
+   "cites": [],
+   "tokens": []
+  },
+  {
+   "query": "１２３",
+   "kwargs": {
+    "top_k": 5
+   },
+   "ids": [],
+   "cites": [],
+   "tokens": []
+  },
+  {
+   "query": "星平面 BMP 文件名",
+   "kwargs": {
+    "top_k": 4,
+    "expand": 1
+   },
+   "ids": [
+    "fZ:s0",
+    "fZ:s1"
+   ],
+   "cites": [
+    "😀.xlsx!S!R1CA",
+    "￿.xlsx!S!R2CA"
+   ],
+   "tokens": [
+    10,
+    9
+   ]
+  }
+ ],
+ "rerank": {
+  "reversed": [
+   "f7:p1",
+   "f3:c2",
+   "f9:j0"
+  ],
+  "dropped": [
+   "f9:j0"
+  ],
+  "before_budget": [
+   "f3:c4"
+  ]
+ },
+ "by_locator": [
+  {
+   "kwargs": {},
+   "ids": [
+    "f9:j0",
+    "f9:m0",
+    "f9:x0",
+    "f9:u0",
+    "f9:e0",
+    "f9:n0",
+    "f9:n1",
+    "f5:d0",
+    "f5:d1",
+    "f3:c0",
+    "f3:c1",
+    "f3:c2",
+    "f3:c3",
+    "f3:c4",
+    "f7:p0",
+    "f7:p1",
+    "fZ:s1",
+    "fZ:s0"
+   ]
+  },
+  {
+   "kwargs": {
+    "file": "实体梳理"
+   },
+   "ids": [
+    "f3:c0",
+    "f3:c1",
+    "f3:c2",
+    "f3:c3",
+    "f3:c4"
+   ]
+  },
+  {
+   "kwargs": {
+    "file": ".xlsx"
+   },
+   "ids": [
+    "f3:c0",
+    "f3:c1",
+    "f3:c2",
+    "f3:c3",
+    "f3:c4",
+    "fZ:s1",
+    "fZ:s0"
+   ]
+  },
+  {
+   "kwargs": {
+    "file": "不存在"
+   },
+   "ids": []
+  },
+  {
+   "kwargs": {
+    "container": "业务对象"
+   },
+   "ids": [
+    "f3:c0",
+    "f3:c1",
+    "f3:c2",
+    "f3:c3"
+   ]
+  },
+  {
+   "kwargs": {
+    "container": "采购流程"
+   },
+   "ids": [
+    "f7:p0",
+    "f7:p1"
+   ]
+  },
+  {
+   "kwargs": {
+    "container": "clm_contract"
+   },
+   "ids": [
+    "f5:d0"
+   ]
+  },
+  {
+   "kwargs": {
+    "container": "供应商"
+   },
+   "ids": [
+    "f3:c4"
+   ]
+  },
+  {
+   "kwargs": {
+    "rows": [
+     40,
+     41
+    ]
+   },
+   "ids": [
+    "f3:c0",
+    "f3:c1"
+   ]
+  },
+  {
+   "kwargs": {
+    "rows": [
+     44,
+     44
+    ]
+   },
+   "ids": [
+    "f3:c2"
+   ]
+  },
+  {
+   "kwargs": {
+    "rows": [
+     80,
+     80
+    ]
+   },
+   "ids": [
+    "f3:c4"
+   ]
+  },
+  {
+   "kwargs": {
+    "rows": [
+     84,
+     84
+    ]
+   },
+   "ids": [
+    "f3:c4"
+   ]
+  },
+  {
+   "kwargs": {
+    "rows": [
+     85,
+     85
+    ]
+   },
+   "ids": []
+  },
+  {
+   "kwargs": {
+    "rows": [
+     0,
+     0
+    ]
+   },
+   "ids": []
+  },
+  {
+   "kwargs": {
+    "rows": [
+     1,
+     2
+    ]
+   },
+   "ids": [
+    "fZ:s1",
+    "fZ:s0"
+   ]
+  },
+  {
+   "kwargs": {
+    "file": "实体梳理",
+    "container": "业务对象",
+    "rows": [
+     41,
+     45
+    ]
+   },
+   "ids": [
+    "f3:c1",
+    "f3:c2",
+    "f3:c3"
+   ]
+  },
+  {
+   "kwargs": {
+    "limit": 3
+   },
+   "ids": [
+    "f9:j0",
+    "f9:m0",
+    "f9:x0"
+   ]
+  },
+  {
+   "kwargs": {
+    "limit": 0
+   },
+   "ids": []
+  }
+ ],
+ "render": {
+  "empty": "",
+  "one": "⟦schema.ddl#clm_contract⟧\nCREATE TABLE clm_contract (plan_amount DECIMAL(18,2)) -- 不含税·单次",
+  "many": "⟦实体梳理.xlsx!业务对象实体梳理!R40CF⟧\n采购业务计划头 pbpHeader 年度滚动\n\n⟦实体梳理.xlsx!业务对象实体梳理!R41CF⟧\n采购业务计划行 pbpLine 按物料拆分\n\n⟦实体梳理.xlsx!业务对象实体梳理!R44CF⟧\nclmContract 采购合同 计划金额（含税，年度累计）\n\n⟦实体梳理.xlsx!业务对象实体梳理!R45CF⟧\nsupplierCode 供应商编码\n\n⟦实体梳理.xlsx!供应商主数据!R80-84⟧\npoHeader 采购订单头"
+ },
+ "tie_nondeterminism": {
+  "note": "同分条目的顺序在 Python 侧随 PYTHONHASHSEED 变（实测 5 个种子 5 种顺序），所以没有可对齐的期望值。TS 侧固定为倒排遍历序，本节只校验集合与条数。",
+  "chunks": [
+   "aa",
+   "bb",
+   "cc",
+   "dd",
+   "ee",
+   "ff",
+   "gg",
+   "hh"
+  ],
+  "query": "采购 合同",
+  "sorted_ids": [
+   "aa",
+   "bb",
+   "cc",
+   "dd",
+   "ee",
+   "ff",
+   "gg",
+   "hh"
+  ]
+ },
+ "short_term": {
+  "extract_locators": [
+   {
+    "in": "",
+    "out": []
+   },
+   {
+    "in": "见 实体梳理.xlsx!业务对象实体梳理!R44C6 与 schema.ddl#clm_contract，另有 openapi.json 的 $.components.schemas.Plan，切片 f3:sheet0",
+    "out": [
+     "实体梳理.xlsx!业务对象实体梳理!R44C6",
+     "schema.ddl#clm_contract",
+     "openapi.json",
+     "$.components.schemas.Plan",
+     "f3:sheet0"
+    ]
+   },
+   {
+    "in": "f3:sheet0:rows[40..48]",
+    "out": [
+     "f3:sheet0"
+    ]
+   },
+   {
+    "in": "clm_contract:L12-18",
+    "out": []
+   },
+   {
+    "in": "R44C6",
+    "out": [
+     "R44C6"
+    ]
+   },
+   {
+    "in": "R44C6x",
+    "out": []
+   },
+   {
+    "in": "xR44C6",
+    "out": []
+   },
+   {
+    "in": "见R44C6",
+    "out": []
+   },
+   {
+    "in": "见f3:sheet0",
+    "out": []
+   },
+   {
+    "in": "R４４C６",
+    "out": [
+     "R４４C６"
+    ]
+   },
+   {
+    "in": "a.xlsx b.csv c.docx d.json e.ddl f.sql g.png h.pdf",
+    "out": [
+     "a.xlsx",
+     "b.csv",
+     "c.docx",
+     "d.json",
+     "e.ddl",
+     "f.sql",
+     "g.png",
+     "h.pdf"
+    ]
+   },
+   {
+    "in": "i.txt",
+    "out": []
+   },
+   {
+    "in": "报价单.xlsx",
+    "out": [
+     "报价单.xlsx"
+    ]
+   },
+   {
+    "in": "报价单.xlsx!Sheet1",
+    "out": [
+     "报价单.xlsx!Sheet1"
+    ]
+   },
+   {
+    "in": "报价单.xlsx:Sheet1",
+    "out": [
+     "报价单.xlsx:Sheet1"
+    ]
+   },
+   {
+    "in": "报价单.xlsx#Sheet1",
+    "out": [
+     "报价单.xlsx#Sheet1"
+    ]
+   },
+   {
+    "in": "报价单.xlsx?Sheet1",
+    "out": [
+     "报价单.xlsx"
+    ]
+   },
+   {
+    "in": "见 报价单.xlsx!Sheet1，然后",
+    "out": [
+     "报价单.xlsx!Sheet1"
+    ]
+   },
+   {
+    "in": "见 报价单.xlsx!Sheet1、然后",
+    "out": [
+     "报价单.xlsx!Sheet1"
+    ]
+   },
+   {
+    "in": "见 报价单.xlsx!Sheet1)",
+    "out": [
+     "报价单.xlsx!Sheet1"
+    ]
+   },
+   {
+    "in": "见 报价单.xlsx!Sheet1】",
+    "out": [
+     "报价单.xlsx!Sheet1"
+    ]
+   },
+   {
+    "in": "见 报价单.xlsx!Sheet1;x",
+    "out": [
+     "报价单.xlsx!Sheet1"
+    ]
+   },
+   {
+    "in": "报价单.xlsx!Sheet1 尾",
+    "out": [
+     "报价单.xlsx!Sheet1"
+    ]
+   },
+   {
+    "in": "报价单.xlsx!Sheet1　尾",
+    "out": [
+     "报价单.xlsx!Sheet1"
+    ]
+   },
+   {
+    "in": "报价单.xlsx!Sheet1尾",
+    "out": [
+     "报价单.xlsx!Sheet1"
+    ]
+   },
+   {
+    "in": "报价单.xlsx!Sheet1\u001c尾",
+    "out": [
+     "报价单.xlsx!Sheet1"
+    ]
+   },
+   {
+    "in": "报价单.xlsx!Sheet1﻿尾",
+    "out": [
+     "报价单.xlsx!Sheet1﻿尾"
+    ]
+   },
+   {
+    "in": "$.a.b[0].*",
+    "out": [
+     "$.a.b[0].*"
+    ]
+   },
+   {
+    "in": "$.",
+    "out": []
+   },
+   {
+    "in": "f0:a f12:b[3].c",
+    "out": [
+     "f0:a",
+     "f12:b[3].c"
+    ]
+   },
+   {
+    "in": "f:x",
+    "out": []
+   },
+   {
+    "in": "重复 R1C1 R1C1 R2C2 R1C1",
+    "out": [
+     "R1C1",
+     "R2C2"
+    ]
+   },
+   {
+    "in": "计划金额.xlsx!表!R1C1 与 计划金额.xlsx!表!R1C1",
+    "out": [
+     "计划金额.xlsx!表!R1C1"
+    ]
+   }
+  ],
+  "turn": [
+   {
+    "init": {},
+    "out": {
+     "thought": "",
+     "action": "",
+     "observation": "",
+     "compressed": false,
+     "tokens": 0,
+     "render": ""
+    }
+   },
+   {
+    "init": {
+     "thought": "想"
+    },
+    "out": {
+     "thought": "想",
+     "action": "",
+     "observation": "",
+     "compressed": false,
+     "tokens": 2,
+     "render": "想: 想"
+    }
+   },
+   {
+    "init": {
+     "action": "做"
+    },
+    "out": {
+     "thought": "",
+     "action": "做",
+     "observation": "",
+     "compressed": false,
+     "tokens": 2,
+     "render": "做: 做"
+    }
+   },
+   {
+    "init": {
+     "observation": "见"
+    },
+    "out": {
+     "thought": "",
+     "action": "",
+     "observation": "见",
+     "compressed": false,
+     "tokens": 2,
+     "render": "见: 见"
+    }
+   },
+   {
+    "init": {
+     "thought": "t",
+     "action": "a",
+     "observation": "o"
+    },
+    "out": {
+     "thought": "t",
+     "action": "a",
+     "observation": "o",
+     "compressed": false,
+     "tokens": 3,
+     "render": "想: t\n做: a\n见: o"
+    }
+   },
+   {
+    "init": {
+     "thought": "推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理",
+     "action": "evidence.search(q='计划金额')",
+     "observation": "命中 实体梳理.xlsx!业务对象实体梳理!R44C6"
+    },
+    "out": {
+     "thought": "推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理",
+     "action": "evidence.search(q='计划金额')",
+     "observation": "命中 实体梳理.xlsx!业务对象实体梳理!R44C6",
+     "compressed": false,
+     "tokens": 87,
+     "render": "想: 推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理\n做: evidence.search(q='计划金额')\n见: 命中 实体梳理.xlsx!业务对象实体梳理!R44C6"
+    }
+   },
+   {
+    "init": {
+     "thought": "",
+     "action": "",
+     "observation": "",
+     "compressed": true
+    },
+    "out": {
+     "thought": "",
+     "action": "",
+     "observation": "",
+     "compressed": true,
+     "tokens": 0,
+     "render": ""
+    }
+   },
+   {
+    "init": {
+     "observation": "😀😀😀😀😀😀😀😀😀😀"
+    },
+    "out": {
+     "thought": "",
+     "action": "",
+     "observation": "😀😀😀😀😀😀😀😀😀😀",
+     "compressed": false,
+     "tokens": 2,
+     "render": "见: 😀😀😀😀😀😀😀😀😀😀"
+    }
+   }
+  ],
+  "heuristic_summary": [
+   {
+    "turns": [],
+    "out": "（已压缩 0 轮）动作: ；要点: "
+   },
+   {
+    "turns": [
+     {
+      "action": "a1",
+      "observation": "观察一。观察二。"
+     }
+    ],
+    "out": "（已压缩 1 轮）动作: a1；要点: 观察一"
+   },
+   {
+    "turns": [
+     {
+      "action": "act0",
+      "observation": "观察0。后半句0"
+     },
+     {
+      "action": "act1",
+      "observation": "观察1。后半句1"
+     },
+     {
+      "action": "act2",
+      "observation": "观察2。后半句2"
+     },
+     {
+      "action": "act3",
+      "observation": "观察3。后半句3"
+     },
+     {
+      "action": "act4",
+      "observation": "观察4。后半句4"
+     },
+     {
+      "action": "act5",
+      "observation": "观察5。后半句5"
+     },
+     {
+      "action": "act6",
+      "observation": "观察6。后半句6"
+     },
+     {
+      "action": "act7",
+      "observation": "观察7。后半句7"
+     },
+     {
+      "action": "act8",
+      "observation": "观察8。后半句8"
+     },
+     {
+      "action": "act9",
+      "observation": "观察9。后半句9"
+     }
+    ],
+    "out": "（已压缩 10 轮）动作: act0 → act1 → act2 → act3 → act4 → act5 → act6 → act7；要点: 观察0；观察1；观察2；观察3"
+   },
+   {
+    "turns": [
+     {
+      "thought": "只有想法"
+     },
+     {
+      "thought": "只有想法"
+     },
+     {
+      "thought": "只有想法"
+     }
+    ],
+    "out": "（已压缩 3 轮）动作: ；要点: "
+   },
+   {
+    "turns": [
+     {
+      "action": "a",
+      "observation": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀"
+     }
+    ],
+    "out": "（已压缩 1 轮）动作: a；要点: 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀"
+   },
+   {
+    "turns": [
+     {
+      "action": "a",
+      "observation": "中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中"
+     }
+    ],
+    "out": "（已压缩 1 轮）动作: a；要点: 中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中"
+   },
+   {
+    "turns": [
+     {
+      "action": "a",
+      "observation": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+     }
+    ],
+    "out": "（已压缩 1 轮）动作: a；要点: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+   },
+   {
+    "turns": [
+     {
+      "action": "a",
+      "observation": "前缀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀。尾巴"
+     }
+    ],
+    "out": "（已压缩 1 轮）动作: a；要点: 前缀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀"
+   }
+  ],
+  "scratchpad": [
+   {
+    "name": "压缩后 locator 一条不少",
+    "init": {
+     "budget_tokens": 400,
+     "keep_verbatim": 2
+    },
+    "appends": [
+     {
+      "thought": "第 0 轮：检查金额口径 补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明",
+      "action": "evidence.search(q='计划金额 0')",
+      "observation": "命中 实体梳理.xlsx!业务对象实体梳理!R40C6，口径含税年度"
+     },
+     {
+      "thought": "第 1 轮：检查金额口径 补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明",
+      "action": "evidence.search(q='计划金额 1')",
+      "observation": "命中 实体梳理.xlsx!业务对象实体梳理!R41C6，口径含税年度"
+     },
+     {
+      "thought": "第 2 轮：检查金额口径 补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明",
+      "action": "evidence.search(q='计划金额 2')",
+      "observation": "命中 实体梳理.xlsx!业务对象实体梳理!R42C6，口径含税年度"
+     },
+     {
+      "thought": "第 3 轮：检查金额口径 补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明",
+      "action": "evidence.search(q='计划金额 3')",
+      "observation": "命中 实体梳理.xlsx!业务对象实体梳理!R43C6，口径含税年度"
+     },
+     {
+      "thought": "第 4 轮：检查金额口径 补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明",
+      "action": "evidence.search(q='计划金额 4')",
+      "observation": "命中 实体梳理.xlsx!业务对象实体梳理!R44C6，口径含税年度"
+     },
+     {
+      "thought": "第 5 轮：检查金额口径 补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明",
+      "action": "evidence.search(q='计划金额 5')",
+      "observation": "命中 实体梳理.xlsx!业务对象实体梳理!R45C6，口径含税年度"
+     },
+     {
+      "thought": "第 6 轮：检查金额口径 补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明",
+      "action": "evidence.search(q='计划金额 6')",
+      "observation": "命中 实体梳理.xlsx!业务对象实体梳理!R46C6，口径含税年度"
+     },
+     {
+      "thought": "第 7 轮：检查金额口径 补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明",
+      "action": "evidence.search(q='计划金额 7')",
+      "observation": "命中 实体梳理.xlsx!业务对象实体梳理!R47C6，口径含税年度"
+     },
+     {
+      "thought": "第 8 轮：检查金额口径 补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明",
+      "action": "evidence.search(q='计划金额 8')",
+      "observation": "命中 实体梳理.xlsx!业务对象实体梳理!R48C6，口径含税年度"
+     },
+     {
+      "thought": "第 9 轮：检查金额口径 补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明",
+      "action": "evidence.search(q='计划金额 9')",
+      "observation": "命中 实体梳理.xlsx!业务对象实体梳理!R49C6，口径含税年度"
+     },
+     {
+      "thought": "第 10 轮：检查金额口径 补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明",
+      "action": "evidence.search(q='计划金额 10')",
+      "observation": "命中 实体梳理.xlsx!业务对象实体梳理!R50C6，口径含税年度"
+     },
+     {
+      "thought": "第 11 轮：检查金额口径 补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明",
+      "action": "evidence.search(q='计划金额 11')",
+      "observation": "命中 实体梳理.xlsx!业务对象实体梳理!R51C6，口径含税年度"
+     }
+    ],
+    "after_append": {
+     "len": 12,
+     "turns": [
+      {
+       "thought": "第 0 轮：检查金额口径 补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明",
+       "action": "evidence.search(q='计划金额 0')",
+       "observation": "命中 实体梳理.xlsx!业务对象实体梳理!R40C6，口径含税年度",
+       "compressed": false,
+       "tokens": 123,
+       "render": "想: 第 0 轮：检查金额口径 补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明\n做: evidence.search(q='计划金额 0')\n见: 命中 实体梳理.xlsx!业务对象实体梳理!R40C6，口径含税年度"
+      },
+      {
+       "thought": "第 1 轮：检查金额口径 补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明",
+       "action": "evidence.search(q='计划金额 1')",
+       "observation": "命中 实体梳理.xlsx!业务对象实体梳理!R41C6，口径含税年度",
+       "compressed": false,
+       "tokens": 123,
+       "render": "想: 第 1 轮：检查金额口径 补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明\n做: evidence.search(q='计划金额 1')\n见: 命中 实体梳理.xlsx!业务对象实体梳理!R41C6，口径含税年度"
+      },
+      {
+       "thought": "第 2 轮：检查金额口径 补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明",
+       "action": "evidence.search(q='计划金额 2')",
+       "observation": "命中 实体梳理.xlsx!业务对象实体梳理!R42C6，口径含税年度",
+       "compressed": false,
+       "tokens": 123,
+       "render": "想: 第 2 轮：检查金额口径 补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明\n做: evidence.search(q='计划金额 2')\n见: 命中 实体梳理.xlsx!业务对象实体梳理!R42C6，口径含税年度"
+      },
+      {
+       "thought": "第 3 轮：检查金额口径 补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明",
+       "action": "evidence.search(q='计划金额 3')",
+       "observation": "命中 实体梳理.xlsx!业务对象实体梳理!R43C6，口径含税年度",
+       "compressed": false,
+       "tokens": 123,
+       "render": "想: 第 3 轮：检查金额口径 补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明\n做: evidence.search(q='计划金额 3')\n见: 命中 实体梳理.xlsx!业务对象实体梳理!R43C6，口径含税年度"
+      },
+      {
+       "thought": "第 4 轮：检查金额口径 补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明",
+       "action": "evidence.search(q='计划金额 4')",
+       "observation": "命中 实体梳理.xlsx!业务对象实体梳理!R44C6，口径含税年度",
+       "compressed": false,
+       "tokens": 123,
+       "render": "想: 第 4 轮：检查金额口径 补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明\n做: evidence.search(q='计划金额 4')\n见: 命中 实体梳理.xlsx!业务对象实体梳理!R44C6，口径含税年度"
+      },
+      {
+       "thought": "第 5 轮：检查金额口径 补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明",
+       "action": "evidence.search(q='计划金额 5')",
+       "observation": "命中 实体梳理.xlsx!业务对象实体梳理!R45C6，口径含税年度",
+       "compressed": false,
+       "tokens": 123,
+       "render": "想: 第 5 轮：检查金额口径 补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明\n做: evidence.search(q='计划金额 5')\n见: 命中 实体梳理.xlsx!业务对象实体梳理!R45C6，口径含税年度"
+      },
+      {
+       "thought": "第 6 轮：检查金额口径 补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明",
+       "action": "evidence.search(q='计划金额 6')",
+       "observation": "命中 实体梳理.xlsx!业务对象实体梳理!R46C6，口径含税年度",
+       "compressed": false,
+       "tokens": 123,
+       "render": "想: 第 6 轮：检查金额口径 补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明\n做: evidence.search(q='计划金额 6')\n见: 命中 实体梳理.xlsx!业务对象实体梳理!R46C6，口径含税年度"
+      },
+      {
+       "thought": "第 7 轮：检查金额口径 补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明",
+       "action": "evidence.search(q='计划金额 7')",
+       "observation": "命中 实体梳理.xlsx!业务对象实体梳理!R47C6，口径含税年度",
+       "compressed": false,
+       "tokens": 123,
+       "render": "想: 第 7 轮：检查金额口径 补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明\n做: evidence.search(q='计划金额 7')\n见: 命中 实体梳理.xlsx!业务对象实体梳理!R47C6，口径含税年度"
+      },
+      {
+       "thought": "第 8 轮：检查金额口径 补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明",
+       "action": "evidence.search(q='计划金额 8')",
+       "observation": "命中 实体梳理.xlsx!业务对象实体梳理!R48C6，口径含税年度",
+       "compressed": false,
+       "tokens": 123,
+       "render": "想: 第 8 轮：检查金额口径 补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明\n做: evidence.search(q='计划金额 8')\n见: 命中 实体梳理.xlsx!业务对象实体梳理!R48C6，口径含税年度"
+      },
+      {
+       "thought": "第 9 轮：检查金额口径 补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明",
+       "action": "evidence.search(q='计划金额 9')",
+       "observation": "命中 实体梳理.xlsx!业务对象实体梳理!R49C6，口径含税年度",
+       "compressed": false,
+       "tokens": 123,
+       "render": "想: 第 9 轮：检查金额口径 补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明\n做: evidence.search(q='计划金额 9')\n见: 命中 实体梳理.xlsx!业务对象实体梳理!R49C6，口径含税年度"
+      },
+      {
+       "thought": "第 10 轮：检查金额口径 补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明",
+       "action": "evidence.search(q='计划金额 10')",
+       "observation": "命中 实体梳理.xlsx!业务对象实体梳理!R50C6，口径含税年度",
+       "compressed": false,
+       "tokens": 124,
+       "render": "想: 第 10 轮：检查金额口径 补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明\n做: evidence.search(q='计划金额 10')\n见: 命中 实体梳理.xlsx!业务对象实体梳理!R50C6，口径含税年度"
+      },
+      {
+       "thought": "第 11 轮：检查金额口径 补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明",
+       "action": "evidence.search(q='计划金额 11')",
+       "observation": "命中 实体梳理.xlsx!业务对象实体梳理!R51C6，口径含税年度",
+       "compressed": false,
+       "tokens": 124,
+       "render": "想: 第 11 轮：检查金额口径 补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明\n做: evidence.search(q='计划金额 11')\n见: 命中 实体梳理.xlsx!业务对象实体梳理!R51C6，口径含税年度"
+      }
+     ],
+     "locators": [
+      "实体梳理.xlsx!业务对象实体梳理!R40C6",
+      "实体梳理.xlsx!业务对象实体梳理!R41C6",
+      "实体梳理.xlsx!业务对象实体梳理!R42C6",
+      "实体梳理.xlsx!业务对象实体梳理!R43C6",
+      "实体梳理.xlsx!业务对象实体梳理!R44C6",
+      "实体梳理.xlsx!业务对象实体梳理!R45C6",
+      "实体梳理.xlsx!业务对象实体梳理!R46C6",
+      "实体梳理.xlsx!业务对象实体梳理!R47C6",
+      "实体梳理.xlsx!业务对象实体梳理!R48C6",
+      "实体梳理.xlsx!业务对象实体梳理!R49C6",
+      "实体梳理.xlsx!业务对象实体梳理!R50C6",
+      "实体梳理.xlsx!业务对象实体梳理!R51C6"
+     ],
+     "tokens": 1660,
+     "compactions": 0,
+     "render": "想: 第 0 轮：检查金额口径 补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明\n做: evidence.search(q='计划金额 0')\n见: 命中 实体梳理.xlsx!业务对象实体梳理!R40C6，口径含税年度\n\n想: 第 1 轮：检查金额口径 补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明\n做: evidence.search(q='计划金额 1')\n见: 命中 实体梳理.xlsx!业务对象实体梳理!R41C6，口径含税年度\n\n想: 第 2 轮：检查金额口径 补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明\n做: evidence.search(q='计划金额 2')\n见: 命中 实体梳理.xlsx!业务对象实体梳理!R42C6，口径含税年度\n\n想: 第 3 轮：检查金额口径 补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明\n做: evidence.search(q='计划金额 3')\n见: 命中 实体梳理.xlsx!业务对象实体梳理!R43C6，口径含税年度\n\n想: 第 4 轮：检查金额口径 补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明\n做: evidence.search(q='计划金额 4')\n见: 命中 实体梳理.xlsx!业务对象实体梳理!R44C6，口径含税年度\n\n想: 第 5 轮：检查金额口径 补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明\n做: evidence.search(q='计划金额 5')\n见: 命中 实体梳理.xlsx!业务对象实体梳理!R45C6，口径含税年度\n\n想: 第 6 轮：检查金额口径 补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明\n做: evidence.search(q='计划金额 6')\n见: 命中 实体梳理.xlsx!业务对象实体梳理!R46C6，口径含税年度\n\n想: 第 7 轮：检查金额口径 补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明\n做: evidence.search(q='计划金额 7')\n见: 命中 实体梳理.xlsx!业务对象实体梳理!R47C6，口径含税年度\n\n想: 第 8 轮：检查金额口径 补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明\n做: evidence.search(q='计划金额 8')\n见: 命中 实体梳理.xlsx!业务对象实体梳理!R48C6，口径含税年度\n\n想: 第 9 轮：检查金额口径 补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明\n做: evidence.search(q='计划金额 9')\n见: 命中 实体梳理.xlsx!业务对象实体梳理!R49C6，口径含税年度\n\n想: 第 10 轮：检查金额口径 补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明\n做: evidence.search(q='计划金额 10')\n见: 命中 实体梳理.xlsx!业务对象实体梳理!R50C6，口径含税年度\n\n想: 第 11 轮：检查金额口径 补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明\n做: evidence.search(q='计划金额 11')\n见: 命中 实体梳理.xlsx!业务对象实体梳理!R51C6，口径含税年度\n\n[本节点已引用的证据位置] 实体梳理.xlsx!业务对象实体梳理!R40C6、实体梳理.xlsx!业务对象实体梳理!R41C6、实体梳理.xlsx!业务对象实体梳理!R42C6、实体梳理.xlsx!业务对象实体梳理!R43C6、实体梳理.xlsx!业务对象实体梳理!R44C6、实体梳理.xlsx!业务对象实体梳理!R45C6、实体梳理.xlsx!业务对象实体梳理!R46C6、实体梳理.xlsx!业务对象实体梳理!R47C6、实体梳理.xlsx!业务对象实体梳理!R48C6、实体梳理.xlsx!业务对象实体梳理!R49C6、实体梳理.xlsx!业务对象实体梳理!R50C6、实体梳理.xlsx!业务对象实体梳理!R51C6",
+     "over_budget": [
+      {
+       "threshold": 0.0,
+       "out": true
+      },
+      {
+       "threshold": 0.5,
+       "out": true
+      },
+      {
+       "threshold": 0.7,
+       "out": true
+      },
+      {
+       "threshold": 1.0,
+       "out": true
+      },
+      {
+       "threshold": 2.0,
+       "out": true
+      }
+     ],
+     "digest": [
+      {
+       "max_tokens": 600,
+       "out": {
+        "turns": 12,
+        "summary": "（已压缩 12 轮）动作: evidence.search(q='计划金额 0') → evidence.search(q='计划金额 1') → evidence.search(q='计划金额 2') → evidence.search(q='计划金额 3') → evidence.search(q='计划金额 4') → evidence.search(q='计划金额 5') → evidence.search(q='计划金额 6') → evidence.search(q='计划金额 7')；要点: 命中 实体梳理.xlsx!业务对象实体梳理!R40C6，口径含税年度；命中 实体梳理.xlsx!业务对象实体梳理!R41C6，口径含税年度；命中 实体梳理.xlsx!业务对象实体梳理!R42C6，口径含税年度；命中 实体梳理.xlsx!业务对象实体梳理!R43C6，口径含税年度",
+        "locators": [
+         "实体梳理.xlsx!业务对象实体梳理!R40C6",
+         "实体梳理.xlsx!业务对象实体梳理!R41C6",
+         "实体梳理.xlsx!业务对象实体梳理!R42C6",
+         "实体梳理.xlsx!业务对象实体梳理!R43C6",
+         "实体梳理.xlsx!业务对象实体梳理!R44C6",
+         "实体梳理.xlsx!业务对象实体梳理!R45C6",
+         "实体梳理.xlsx!业务对象实体梳理!R46C6",
+         "实体梳理.xlsx!业务对象实体梳理!R47C6",
+         "实体梳理.xlsx!业务对象实体梳理!R48C6",
+         "实体梳理.xlsx!业务对象实体梳理!R49C6",
+         "实体梳理.xlsx!业务对象实体梳理!R50C6",
+         "实体梳理.xlsx!业务对象实体梳理!R51C6"
+        ],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 200,
+       "out": {
+        "turns": 12,
+        "summary": "（已压缩 12 轮）动作: evidence.search(q='计划金额 0') → evidence.search(q='计划金额 1') → evidence.search(q='计划金额 2') → evidence.search(q='计划金额 3') → evidence.search(q='计划金额 4') → evidence.search(q='计划金额 5') → evidence.search(q='计划金额 6') → evidence.search(q='计划金额 7')；要点: 命中 实体梳理.xlsx!业务对象实体梳理!R40C6，口径含税年度；命中 实体梳理.xlsx!业务对象实体梳理!R41C6，口径含税年度；命中 实体梳理.xlsx!业务对象实体梳理!R42C6，口径含税年度；命中 实体梳理.xlsx!业务对象实体梳理!R43C6，口径含税年度",
+        "locators": [
+         "实体梳理.xlsx!业务对象实体梳理!R40C6",
+         "实体梳理.xlsx!业务对象实体梳理!R41C6",
+         "实体梳理.xlsx!业务对象实体梳理!R42C6",
+         "实体梳理.xlsx!业务对象实体梳理!R43C6",
+         "实体梳理.xlsx!业务对象实体梳理!R44C6",
+         "实体梳理.xlsx!业务对象实体梳理!R45C6",
+         "实体梳理.xlsx!业务对象实体梳理!R46C6",
+         "实体梳理.xlsx!业务对象实体梳理!R47C6",
+         "实体梳理.xlsx!业务对象实体梳理!R48C6",
+         "实体梳理.xlsx!业务对象实体梳理!R49C6",
+         "实体梳理.xlsx!业务对象实体梳理!R50C6",
+         "实体梳理.xlsx!业务对象实体梳理!R51C6"
+        ],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 60,
+       "out": {
+        "turns": 12,
+        "summary": "（已压缩 12 轮）动作: evidence.search(q='计划金额 0') → evidence.search(q='计划金额 1') → evidence.search(q='计划金额 2') → evidence.search(q='计划金额 ",
+        "locators": [
+         "实体梳理.xlsx!业务对象实体梳理!R40C6",
+         "实体梳理.xlsx!业务对象实体梳理!R41C6",
+         "实体梳理.xlsx!业务对象实体梳理!R42C6",
+         "实体梳理.xlsx!业务对象实体梳理!R43C6",
+         "实体梳理.xlsx!业务对象实体梳理!R44C6",
+         "实体梳理.xlsx!业务对象实体梳理!R45C6",
+         "实体梳理.xlsx!业务对象实体梳理!R46C6",
+         "实体梳理.xlsx!业务对象实体梳理!R47C6",
+         "实体梳理.xlsx!业务对象实体梳理!R48C6",
+         "实体梳理.xlsx!业务对象实体梳理!R49C6",
+         "实体梳理.xlsx!业务对象实体梳理!R50C6",
+         "实体梳理.xlsx!业务对象实体梳理!R51C6"
+        ],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 20,
+       "out": {
+        "turns": 12,
+        "summary": "（已压缩 12 轮）动作: evidence.search(q='计划金额 0') → evidence.search(q='计",
+        "locators": [
+         "实体梳理.xlsx!业务对象实体梳理!R40C6",
+         "实体梳理.xlsx!业务对象实体梳理!R41C6",
+         "实体梳理.xlsx!业务对象实体梳理!R42C6",
+         "实体梳理.xlsx!业务对象实体梳理!R43C6",
+         "实体梳理.xlsx!业务对象实体梳理!R44C6",
+         "实体梳理.xlsx!业务对象实体梳理!R45C6",
+         "实体梳理.xlsx!业务对象实体梳理!R46C6",
+         "实体梳理.xlsx!业务对象实体梳理!R47C6",
+         "实体梳理.xlsx!业务对象实体梳理!R48C6",
+         "实体梳理.xlsx!业务对象实体梳理!R49C6",
+         "实体梳理.xlsx!业务对象实体梳理!R50C6",
+         "实体梳理.xlsx!业务对象实体梳理!R51C6"
+        ],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 5,
+       "out": {
+        "turns": 12,
+        "summary": "（已压缩 12 轮）动作: evidence.search(q='计划金额 0') → evidence.search(q='计",
+        "locators": [
+         "实体梳理.xlsx!业务对象实体梳理!R40C6",
+         "实体梳理.xlsx!业务对象实体梳理!R41C6",
+         "实体梳理.xlsx!业务对象实体梳理!R42C6",
+         "实体梳理.xlsx!业务对象实体梳理!R43C6",
+         "实体梳理.xlsx!业务对象实体梳理!R44C6",
+         "实体梳理.xlsx!业务对象实体梳理!R45C6",
+         "实体梳理.xlsx!业务对象实体梳理!R46C6",
+         "实体梳理.xlsx!业务对象实体梳理!R47C6",
+         "实体梳理.xlsx!业务对象实体梳理!R48C6",
+         "实体梳理.xlsx!业务对象实体梳理!R49C6",
+         "实体梳理.xlsx!业务对象实体梳理!R50C6",
+         "实体梳理.xlsx!业务对象实体梳理!R51C6"
+        ],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 1,
+       "out": {
+        "turns": 12,
+        "summary": "（已压缩 12 轮）动作: evidence.search(q='计划金额 0') → evidence.search(q='计",
+        "locators": [
+         "实体梳理.xlsx!业务对象实体梳理!R40C6",
+         "实体梳理.xlsx!业务对象实体梳理!R41C6",
+         "实体梳理.xlsx!业务对象实体梳理!R42C6",
+         "实体梳理.xlsx!业务对象实体梳理!R43C6",
+         "实体梳理.xlsx!业务对象实体梳理!R44C6",
+         "实体梳理.xlsx!业务对象实体梳理!R45C6",
+         "实体梳理.xlsx!业务对象实体梳理!R46C6",
+         "实体梳理.xlsx!业务对象实体梳理!R47C6",
+         "实体梳理.xlsx!业务对象实体梳理!R48C6",
+         "实体梳理.xlsx!业务对象实体梳理!R49C6",
+         "实体梳理.xlsx!业务对象实体梳理!R50C6",
+         "实体梳理.xlsx!业务对象实体梳理!R51C6"
+        ],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 0,
+       "out": {
+        "turns": 12,
+        "summary": "（已压缩 12 轮）动作: evidence.search(q='计划金额 0') → evidence.search(q='计",
+        "locators": [
+         "实体梳理.xlsx!业务对象实体梳理!R40C6",
+         "实体梳理.xlsx!业务对象实体梳理!R41C6",
+         "实体梳理.xlsx!业务对象实体梳理!R42C6",
+         "实体梳理.xlsx!业务对象实体梳理!R43C6",
+         "实体梳理.xlsx!业务对象实体梳理!R44C6",
+         "实体梳理.xlsx!业务对象实体梳理!R45C6",
+         "实体梳理.xlsx!业务对象实体梳理!R46C6",
+         "实体梳理.xlsx!业务对象实体梳理!R47C6",
+         "实体梳理.xlsx!业务对象实体梳理!R48C6",
+         "实体梳理.xlsx!业务对象实体梳理!R49C6",
+         "实体梳理.xlsx!业务对象实体梳理!R50C6",
+         "实体梳理.xlsx!业务对象实体梳理!R51C6"
+        ],
+        "compactions": 0
+       }
+      }
+     ]
+    },
+    "steps": [
+     {
+      "op": "compact_to_fit",
+      "args": [
+       0.7
+      ],
+      "ret": 1,
+      "snapshot": {
+       "len": 3,
+       "turns": [
+        {
+         "thought": "",
+         "action": "",
+         "observation": "（已压缩 10 轮）动作: evidence.search(q='计划金额 0') → evidence.search(q='计划金额 1') → evidence.search(q='计划金额 2') → evidence.search(q='计划金额 3') → evidence.search(q='计划金额 4') → evidence.search(q='计划金额 5') → evidence.search(q='计划金额 6') → evidence.search(q='计划金额 7')；要点: 命中 实体梳理.xlsx!业务对象实体梳理!R40C6，口径含税年度；命中 实体梳理.xlsx!业务对象实体梳理!R41C6，口径含税年度；命中 实体梳理.xlsx!业务对象实体梳理!R42C6，口径含税年度；命中 实体梳理.xlsx!业务对象实体梳理!R43C6，口径含税年度",
+         "compressed": true,
+         "tokens": 196,
+         "render": "见: （已压缩 10 轮）动作: evidence.search(q='计划金额 0') → evidence.search(q='计划金额 1') → evidence.search(q='计划金额 2') → evidence.search(q='计划金额 3') → evidence.search(q='计划金额 4') → evidence.search(q='计划金额 5') → evidence.search(q='计划金额 6') → evidence.search(q='计划金额 7')；要点: 命中 实体梳理.xlsx!业务对象实体梳理!R40C6，口径含税年度；命中 实体梳理.xlsx!业务对象实体梳理!R41C6，口径含税年度；命中 实体梳理.xlsx!业务对象实体梳理!R42C6，口径含税年度；命中 实体梳理.xlsx!业务对象实体梳理!R43C6，口径含税年度"
+        },
+        {
+         "thought": "第 10 轮：检查金额口径 补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明",
+         "action": "evidence.search(q='计划金额 10')",
+         "observation": "命中 实体梳理.xlsx!业务对象实体梳理!R50C6，口径含税年度",
+         "compressed": false,
+         "tokens": 124,
+         "render": "想: 第 10 轮：检查金额口径 补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明\n做: evidence.search(q='计划金额 10')\n见: 命中 实体梳理.xlsx!业务对象实体梳理!R50C6，口径含税年度"
+        },
+        {
+         "thought": "第 11 轮：检查金额口径 补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明",
+         "action": "evidence.search(q='计划金额 11')",
+         "observation": "命中 实体梳理.xlsx!业务对象实体梳理!R51C6，口径含税年度",
+         "compressed": false,
+         "tokens": 124,
+         "render": "想: 第 11 轮：检查金额口径 补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明\n做: evidence.search(q='计划金额 11')\n见: 命中 实体梳理.xlsx!业务对象实体梳理!R51C6，口径含税年度"
+        }
+       ],
+       "locators": [
+        "实体梳理.xlsx!业务对象实体梳理!R40C6",
+        "实体梳理.xlsx!业务对象实体梳理!R41C6",
+        "实体梳理.xlsx!业务对象实体梳理!R42C6",
+        "实体梳理.xlsx!业务对象实体梳理!R43C6",
+        "实体梳理.xlsx!业务对象实体梳理!R44C6",
+        "实体梳理.xlsx!业务对象实体梳理!R45C6",
+        "实体梳理.xlsx!业务对象实体梳理!R46C6",
+        "实体梳理.xlsx!业务对象实体梳理!R47C6",
+        "实体梳理.xlsx!业务对象实体梳理!R48C6",
+        "实体梳理.xlsx!业务对象实体梳理!R49C6",
+        "实体梳理.xlsx!业务对象实体梳理!R50C6",
+        "实体梳理.xlsx!业务对象实体梳理!R51C6"
+       ],
+       "tokens": 626,
+       "compactions": 1,
+       "render": "见: （已压缩 10 轮）动作: evidence.search(q='计划金额 0') → evidence.search(q='计划金额 1') → evidence.search(q='计划金额 2') → evidence.search(q='计划金额 3') → evidence.search(q='计划金额 4') → evidence.search(q='计划金额 5') → evidence.search(q='计划金额 6') → evidence.search(q='计划金额 7')；要点: 命中 实体梳理.xlsx!业务对象实体梳理!R40C6，口径含税年度；命中 实体梳理.xlsx!业务对象实体梳理!R41C6，口径含税年度；命中 实体梳理.xlsx!业务对象实体梳理!R42C6，口径含税年度；命中 实体梳理.xlsx!业务对象实体梳理!R43C6，口径含税年度\n\n想: 第 10 轮：检查金额口径 补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明\n做: evidence.search(q='计划金额 10')\n见: 命中 实体梳理.xlsx!业务对象实体梳理!R50C6，口径含税年度\n\n想: 第 11 轮：检查金额口径 补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明补充说明\n做: evidence.search(q='计划金额 11')\n见: 命中 实体梳理.xlsx!业务对象实体梳理!R51C6，口径含税年度\n\n[本节点已引用的证据位置] 实体梳理.xlsx!业务对象实体梳理!R40C6、实体梳理.xlsx!业务对象实体梳理!R41C6、实体梳理.xlsx!业务对象实体梳理!R42C6、实体梳理.xlsx!业务对象实体梳理!R43C6、实体梳理.xlsx!业务对象实体梳理!R44C6、实体梳理.xlsx!业务对象实体梳理!R45C6、实体梳理.xlsx!业务对象实体梳理!R46C6、实体梳理.xlsx!业务对象实体梳理!R47C6、实体梳理.xlsx!业务对象实体梳理!R48C6、实体梳理.xlsx!业务对象实体梳理!R49C6、实体梳理.xlsx!业务对象实体梳理!R50C6、实体梳理.xlsx!业务对象实体梳理!R51C6",
+       "over_budget": [
+        {
+         "threshold": 0.0,
+         "out": true
+        },
+        {
+         "threshold": 0.5,
+         "out": true
+        },
+        {
+         "threshold": 0.7,
+         "out": true
+        },
+        {
+         "threshold": 1.0,
+         "out": true
+        },
+        {
+         "threshold": 2.0,
+         "out": false
+        }
+       ],
+       "digest": [
+        {
+         "max_tokens": 600,
+         "out": {
+          "turns": 3,
+          "summary": "（已压缩 3 轮）动作: evidence.search(q='计划金额 10') → evidence.search(q='计划金额 11')；要点: （已压缩 10 轮）动作: evidence.search(q='计划金额 0') → evidence.search(q='计划金额 1') → eviden；命中 实体梳理.xlsx!业务对象实体梳理!R50C6，口径含税年度；命中 实体梳理.xlsx!业务对象实体梳理!R51C6，口径含税年度",
+          "locators": [
+           "实体梳理.xlsx!业务对象实体梳理!R40C6",
+           "实体梳理.xlsx!业务对象实体梳理!R41C6",
+           "实体梳理.xlsx!业务对象实体梳理!R42C6",
+           "实体梳理.xlsx!业务对象实体梳理!R43C6",
+           "实体梳理.xlsx!业务对象实体梳理!R44C6",
+           "实体梳理.xlsx!业务对象实体梳理!R45C6",
+           "实体梳理.xlsx!业务对象实体梳理!R46C6",
+           "实体梳理.xlsx!业务对象实体梳理!R47C6",
+           "实体梳理.xlsx!业务对象实体梳理!R48C6",
+           "实体梳理.xlsx!业务对象实体梳理!R49C6",
+           "实体梳理.xlsx!业务对象实体梳理!R50C6",
+           "实体梳理.xlsx!业务对象实体梳理!R51C6"
+          ],
+          "compactions": 1
+         }
+        },
+        {
+         "max_tokens": 200,
+         "out": {
+          "turns": 3,
+          "summary": "（已压缩 3 轮）动作: evidence.search(q='计划金额 10') → evidence.search(q='计划金额 11')；要点: （已压缩 10 轮）动作: evidence.search(q='计划金额 0') → evidence.search(q='计划金额 1') → eviden；命中 实体梳理.xlsx!业务对象实体梳理!R50C6，口径含税年度；命中 实体梳理.xlsx!业务对象实体梳理!R51C6，口径含税年度",
+          "locators": [
+           "实体梳理.xlsx!业务对象实体梳理!R40C6",
+           "实体梳理.xlsx!业务对象实体梳理!R41C6",
+           "实体梳理.xlsx!业务对象实体梳理!R42C6",
+           "实体梳理.xlsx!业务对象实体梳理!R43C6",
+           "实体梳理.xlsx!业务对象实体梳理!R44C6",
+           "实体梳理.xlsx!业务对象实体梳理!R45C6",
+           "实体梳理.xlsx!业务对象实体梳理!R46C6",
+           "实体梳理.xlsx!业务对象实体梳理!R47C6",
+           "实体梳理.xlsx!业务对象实体梳理!R48C6",
+           "实体梳理.xlsx!业务对象实体梳理!R49C6",
+           "实体梳理.xlsx!业务对象实体梳理!R50C6",
+           "实体梳理.xlsx!业务对象实体梳理!R51C6"
+          ],
+          "compactions": 1
+         }
+        },
+        {
+         "max_tokens": 60,
+         "out": {
+          "turns": 3,
+          "summary": "（已压缩 3 轮）动作: evidence.search(q='计划金额 10') → evidence.search(q='计划金额 11')；要点: （已压缩 10 轮）动作: evidence.search(q='计划金额 ",
+          "locators": [
+           "实体梳理.xlsx!业务对象实体梳理!R40C6",
+           "实体梳理.xlsx!业务对象实体梳理!R41C6",
+           "实体梳理.xlsx!业务对象实体梳理!R42C6",
+           "实体梳理.xlsx!业务对象实体梳理!R43C6",
+           "实体梳理.xlsx!业务对象实体梳理!R44C6",
+           "实体梳理.xlsx!业务对象实体梳理!R45C6",
+           "实体梳理.xlsx!业务对象实体梳理!R46C6",
+           "实体梳理.xlsx!业务对象实体梳理!R47C6",
+           "实体梳理.xlsx!业务对象实体梳理!R48C6",
+           "实体梳理.xlsx!业务对象实体梳理!R49C6",
+           "实体梳理.xlsx!业务对象实体梳理!R50C6",
+           "实体梳理.xlsx!业务对象实体梳理!R51C6"
+          ],
+          "compactions": 1
+         }
+        },
+        {
+         "max_tokens": 20,
+         "out": {
+          "turns": 3,
+          "summary": "（已压缩 3 轮）动作: evidence.search(q='计划金额 10') → evidence.search(q='计划金额 11')；",
+          "locators": [
+           "实体梳理.xlsx!业务对象实体梳理!R40C6",
+           "实体梳理.xlsx!业务对象实体梳理!R41C6",
+           "实体梳理.xlsx!业务对象实体梳理!R42C6",
+           "实体梳理.xlsx!业务对象实体梳理!R43C6",
+           "实体梳理.xlsx!业务对象实体梳理!R44C6",
+           "实体梳理.xlsx!业务对象实体梳理!R45C6",
+           "实体梳理.xlsx!业务对象实体梳理!R46C6",
+           "实体梳理.xlsx!业务对象实体梳理!R47C6",
+           "实体梳理.xlsx!业务对象实体梳理!R48C6",
+           "实体梳理.xlsx!业务对象实体梳理!R49C6",
+           "实体梳理.xlsx!业务对象实体梳理!R50C6",
+           "实体梳理.xlsx!业务对象实体梳理!R51C6"
+          ],
+          "compactions": 1
+         }
+        },
+        {
+         "max_tokens": 5,
+         "out": {
+          "turns": 3,
+          "summary": "（已压缩 3 轮）动作: evidence.search(q='计划金额 10') → evidence.search(q='计划金额 11')；",
+          "locators": [
+           "实体梳理.xlsx!业务对象实体梳理!R40C6",
+           "实体梳理.xlsx!业务对象实体梳理!R41C6",
+           "实体梳理.xlsx!业务对象实体梳理!R42C6",
+           "实体梳理.xlsx!业务对象实体梳理!R43C6",
+           "实体梳理.xlsx!业务对象实体梳理!R44C6",
+           "实体梳理.xlsx!业务对象实体梳理!R45C6",
+           "实体梳理.xlsx!业务对象实体梳理!R46C6",
+           "实体梳理.xlsx!业务对象实体梳理!R47C6",
+           "实体梳理.xlsx!业务对象实体梳理!R48C6",
+           "实体梳理.xlsx!业务对象实体梳理!R49C6",
+           "实体梳理.xlsx!业务对象实体梳理!R50C6",
+           "实体梳理.xlsx!业务对象实体梳理!R51C6"
+          ],
+          "compactions": 1
+         }
+        },
+        {
+         "max_tokens": 1,
+         "out": {
+          "turns": 3,
+          "summary": "（已压缩 3 轮）动作: evidence.search(q='计划金额 10') → evidence.search(q='计划金额 11')；",
+          "locators": [
+           "实体梳理.xlsx!业务对象实体梳理!R40C6",
+           "实体梳理.xlsx!业务对象实体梳理!R41C6",
+           "实体梳理.xlsx!业务对象实体梳理!R42C6",
+           "实体梳理.xlsx!业务对象实体梳理!R43C6",
+           "实体梳理.xlsx!业务对象实体梳理!R44C6",
+           "实体梳理.xlsx!业务对象实体梳理!R45C6",
+           "实体梳理.xlsx!业务对象实体梳理!R46C6",
+           "实体梳理.xlsx!业务对象实体梳理!R47C6",
+           "实体梳理.xlsx!业务对象实体梳理!R48C6",
+           "实体梳理.xlsx!业务对象实体梳理!R49C6",
+           "实体梳理.xlsx!业务对象实体梳理!R50C6",
+           "实体梳理.xlsx!业务对象实体梳理!R51C6"
+          ],
+          "compactions": 1
+         }
+        },
+        {
+         "max_tokens": 0,
+         "out": {
+          "turns": 3,
+          "summary": "（已压缩 3 轮）动作: evidence.search(q='计划金额 10') → evidence.search(q='计划金额 11')；",
+          "locators": [
+           "实体梳理.xlsx!业务对象实体梳理!R40C6",
+           "实体梳理.xlsx!业务对象实体梳理!R41C6",
+           "实体梳理.xlsx!业务对象实体梳理!R42C6",
+           "实体梳理.xlsx!业务对象实体梳理!R43C6",
+           "实体梳理.xlsx!业务对象实体梳理!R44C6",
+           "实体梳理.xlsx!业务对象实体梳理!R45C6",
+           "实体梳理.xlsx!业务对象实体梳理!R46C6",
+           "实体梳理.xlsx!业务对象实体梳理!R47C6",
+           "实体梳理.xlsx!业务对象实体梳理!R48C6",
+           "实体梳理.xlsx!业务对象实体梳理!R49C6",
+           "实体梳理.xlsx!业务对象实体梳理!R50C6",
+           "实体梳理.xlsx!业务对象实体梳理!R51C6"
+          ],
+          "compactions": 1
+         }
+        }
+       ]
+      }
+     }
+    ]
+   },
+   {
+    "name": "keep_verbatim 边界：head <= 1 不压",
+    "init": {
+     "budget_tokens": 10,
+     "keep_verbatim": 2
+    },
+    "appends": [
+     {
+      "thought": "t0",
+      "action": "a0",
+      "observation": "o0"
+     },
+     {
+      "thought": "t1",
+      "action": "a1",
+      "observation": "o1"
+     },
+     {
+      "thought": "t2",
+      "action": "a2",
+      "observation": "o2"
+     }
+    ],
+    "after_append": {
+     "len": 3,
+     "turns": [
+      {
+       "thought": "t0",
+       "action": "a0",
+       "observation": "o0",
+       "compressed": false,
+       "tokens": 3,
+       "render": "想: t0\n做: a0\n见: o0"
+      },
+      {
+       "thought": "t1",
+       "action": "a1",
+       "observation": "o1",
+       "compressed": false,
+       "tokens": 3,
+       "render": "想: t1\n做: a1\n见: o1"
+      },
+      {
+       "thought": "t2",
+       "action": "a2",
+       "observation": "o2",
+       "compressed": false,
+       "tokens": 3,
+       "render": "想: t2\n做: a2\n见: o2"
+      }
+     ],
+     "locators": [],
+     "tokens": 9,
+     "compactions": 0,
+     "render": "想: t0\n做: a0\n见: o0\n\n想: t1\n做: a1\n见: o1\n\n想: t2\n做: a2\n见: o2",
+     "over_budget": [
+      {
+       "threshold": 0.0,
+       "out": true
+      },
+      {
+       "threshold": 0.5,
+       "out": true
+      },
+      {
+       "threshold": 0.7,
+       "out": true
+      },
+      {
+       "threshold": 1.0,
+       "out": false
+      },
+      {
+       "threshold": 2.0,
+       "out": false
+      }
+     ],
+     "digest": [
+      {
+       "max_tokens": 600,
+       "out": {
+        "turns": 3,
+        "summary": "（已压缩 3 轮）动作: a0 → a1 → a2；要点: o0；o1；o2",
+        "locators": [],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 200,
+       "out": {
+        "turns": 3,
+        "summary": "（已压缩 3 轮）动作: a0 → a1 → a2；要点: o0；o1；o2",
+        "locators": [],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 60,
+       "out": {
+        "turns": 3,
+        "summary": "（已压缩 3 轮）动作: a0 → a1 → a2；要点: o0；o1；o2",
+        "locators": [],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 20,
+       "out": {
+        "turns": 3,
+        "summary": "（已压缩 3 轮）动作: a0 → a1 → a2；要点: o0；o1；o2",
+        "locators": [],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 5,
+       "out": {
+        "turns": 3,
+        "summary": "（已压缩 3 轮）动作: a0 → a1 → a2；要点: o0；o1；o2",
+        "locators": [],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 1,
+       "out": {
+        "turns": 3,
+        "summary": "（已压缩 3 轮）动作: a0 → a1 → a2；要点: o0；o1；o2",
+        "locators": [],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 0,
+       "out": {
+        "turns": 3,
+        "summary": "（已压缩 3 轮）动作: a0 → a1 → a2；要点: o0；o1；o2",
+        "locators": [],
+        "compactions": 0
+       }
+      }
+     ]
+    },
+    "steps": [
+     {
+      "op": "compact",
+      "args": [],
+      "ret": false,
+      "snapshot": {
+       "len": 3,
+       "turns": [
+        {
+         "thought": "t0",
+         "action": "a0",
+         "observation": "o0",
+         "compressed": false,
+         "tokens": 3,
+         "render": "想: t0\n做: a0\n见: o0"
+        },
+        {
+         "thought": "t1",
+         "action": "a1",
+         "observation": "o1",
+         "compressed": false,
+         "tokens": 3,
+         "render": "想: t1\n做: a1\n见: o1"
+        },
+        {
+         "thought": "t2",
+         "action": "a2",
+         "observation": "o2",
+         "compressed": false,
+         "tokens": 3,
+         "render": "想: t2\n做: a2\n见: o2"
+        }
+       ],
+       "locators": [],
+       "tokens": 9,
+       "compactions": 0,
+       "render": "想: t0\n做: a0\n见: o0\n\n想: t1\n做: a1\n见: o1\n\n想: t2\n做: a2\n见: o2",
+       "over_budget": [
+        {
+         "threshold": 0.0,
+         "out": true
+        },
+        {
+         "threshold": 0.5,
+         "out": true
+        },
+        {
+         "threshold": 0.7,
+         "out": true
+        },
+        {
+         "threshold": 1.0,
+         "out": false
+        },
+        {
+         "threshold": 2.0,
+         "out": false
+        }
+       ],
+       "digest": [
+        {
+         "max_tokens": 600,
+         "out": {
+          "turns": 3,
+          "summary": "（已压缩 3 轮）动作: a0 → a1 → a2；要点: o0；o1；o2",
+          "locators": [],
+          "compactions": 0
+         }
+        },
+        {
+         "max_tokens": 200,
+         "out": {
+          "turns": 3,
+          "summary": "（已压缩 3 轮）动作: a0 → a1 → a2；要点: o0；o1；o2",
+          "locators": [],
+          "compactions": 0
+         }
+        },
+        {
+         "max_tokens": 60,
+         "out": {
+          "turns": 3,
+          "summary": "（已压缩 3 轮）动作: a0 → a1 → a2；要点: o0；o1；o2",
+          "locators": [],
+          "compactions": 0
+         }
+        },
+        {
+         "max_tokens": 20,
+         "out": {
+          "turns": 3,
+          "summary": "（已压缩 3 轮）动作: a0 → a1 → a2；要点: o0；o1；o2",
+          "locators": [],
+          "compactions": 0
+         }
+        },
+        {
+         "max_tokens": 5,
+         "out": {
+          "turns": 3,
+          "summary": "（已压缩 3 轮）动作: a0 → a1 → a2；要点: o0；o1；o2",
+          "locators": [],
+          "compactions": 0
+         }
+        },
+        {
+         "max_tokens": 1,
+         "out": {
+          "turns": 3,
+          "summary": "（已压缩 3 轮）动作: a0 → a1 → a2；要点: o0；o1；o2",
+          "locators": [],
+          "compactions": 0
+         }
+        },
+        {
+         "max_tokens": 0,
+         "out": {
+          "turns": 3,
+          "summary": "（已压缩 3 轮）动作: a0 → a1 → a2；要点: o0；o1；o2",
+          "locators": [],
+          "compactions": 0
+         }
+        }
+       ]
+      }
+     },
+     {
+      "op": "compact",
+      "args": [],
+      "ret": false,
+      "snapshot": {
+       "len": 3,
+       "turns": [
+        {
+         "thought": "t0",
+         "action": "a0",
+         "observation": "o0",
+         "compressed": false,
+         "tokens": 3,
+         "render": "想: t0\n做: a0\n见: o0"
+        },
+        {
+         "thought": "t1",
+         "action": "a1",
+         "observation": "o1",
+         "compressed": false,
+         "tokens": 3,
+         "render": "想: t1\n做: a1\n见: o1"
+        },
+        {
+         "thought": "t2",
+         "action": "a2",
+         "observation": "o2",
+         "compressed": false,
+         "tokens": 3,
+         "render": "想: t2\n做: a2\n见: o2"
+        }
+       ],
+       "locators": [],
+       "tokens": 9,
+       "compactions": 0,
+       "render": "想: t0\n做: a0\n见: o0\n\n想: t1\n做: a1\n见: o1\n\n想: t2\n做: a2\n见: o2",
+       "over_budget": [
+        {
+         "threshold": 0.0,
+         "out": true
+        },
+        {
+         "threshold": 0.5,
+         "out": true
+        },
+        {
+         "threshold": 0.7,
+         "out": true
+        },
+        {
+         "threshold": 1.0,
+         "out": false
+        },
+        {
+         "threshold": 2.0,
+         "out": false
+        }
+       ],
+       "digest": [
+        {
+         "max_tokens": 600,
+         "out": {
+          "turns": 3,
+          "summary": "（已压缩 3 轮）动作: a0 → a1 → a2；要点: o0；o1；o2",
+          "locators": [],
+          "compactions": 0
+         }
+        },
+        {
+         "max_tokens": 200,
+         "out": {
+          "turns": 3,
+          "summary": "（已压缩 3 轮）动作: a0 → a1 → a2；要点: o0；o1；o2",
+          "locators": [],
+          "compactions": 0
+         }
+        },
+        {
+         "max_tokens": 60,
+         "out": {
+          "turns": 3,
+          "summary": "（已压缩 3 轮）动作: a0 → a1 → a2；要点: o0；o1；o2",
+          "locators": [],
+          "compactions": 0
+         }
+        },
+        {
+         "max_tokens": 20,
+         "out": {
+          "turns": 3,
+          "summary": "（已压缩 3 轮）动作: a0 → a1 → a2；要点: o0；o1；o2",
+          "locators": [],
+          "compactions": 0
+         }
+        },
+        {
+         "max_tokens": 5,
+         "out": {
+          "turns": 3,
+          "summary": "（已压缩 3 轮）动作: a0 → a1 → a2；要点: o0；o1；o2",
+          "locators": [],
+          "compactions": 0
+         }
+        },
+        {
+         "max_tokens": 1,
+         "out": {
+          "turns": 3,
+          "summary": "（已压缩 3 轮）动作: a0 → a1 → a2；要点: o0；o1；o2",
+          "locators": [],
+          "compactions": 0
+         }
+        },
+        {
+         "max_tokens": 0,
+         "out": {
+          "turns": 3,
+          "summary": "（已压缩 3 轮）动作: a0 → a1 → a2；要点: o0；o1；o2",
+          "locators": [],
+          "compactions": 0
+         }
+        }
+       ]
+      }
+     },
+     {
+      "op": "compact",
+      "args": [],
+      "ret": false,
+      "snapshot": {
+       "len": 3,
+       "turns": [
+        {
+         "thought": "t0",
+         "action": "a0",
+         "observation": "o0",
+         "compressed": false,
+         "tokens": 3,
+         "render": "想: t0\n做: a0\n见: o0"
+        },
+        {
+         "thought": "t1",
+         "action": "a1",
+         "observation": "o1",
+         "compressed": false,
+         "tokens": 3,
+         "render": "想: t1\n做: a1\n见: o1"
+        },
+        {
+         "thought": "t2",
+         "action": "a2",
+         "observation": "o2",
+         "compressed": false,
+         "tokens": 3,
+         "render": "想: t2\n做: a2\n见: o2"
+        }
+       ],
+       "locators": [],
+       "tokens": 9,
+       "compactions": 0,
+       "render": "想: t0\n做: a0\n见: o0\n\n想: t1\n做: a1\n见: o1\n\n想: t2\n做: a2\n见: o2",
+       "over_budget": [
+        {
+         "threshold": 0.0,
+         "out": true
+        },
+        {
+         "threshold": 0.5,
+         "out": true
+        },
+        {
+         "threshold": 0.7,
+         "out": true
+        },
+        {
+         "threshold": 1.0,
+         "out": false
+        },
+        {
+         "threshold": 2.0,
+         "out": false
+        }
+       ],
+       "digest": [
+        {
+         "max_tokens": 600,
+         "out": {
+          "turns": 3,
+          "summary": "（已压缩 3 轮）动作: a0 → a1 → a2；要点: o0；o1；o2",
+          "locators": [],
+          "compactions": 0
+         }
+        },
+        {
+         "max_tokens": 200,
+         "out": {
+          "turns": 3,
+          "summary": "（已压缩 3 轮）动作: a0 → a1 → a2；要点: o0；o1；o2",
+          "locators": [],
+          "compactions": 0
+         }
+        },
+        {
+         "max_tokens": 60,
+         "out": {
+          "turns": 3,
+          "summary": "（已压缩 3 轮）动作: a0 → a1 → a2；要点: o0；o1；o2",
+          "locators": [],
+          "compactions": 0
+         }
+        },
+        {
+         "max_tokens": 20,
+         "out": {
+          "turns": 3,
+          "summary": "（已压缩 3 轮）动作: a0 → a1 → a2；要点: o0；o1；o2",
+          "locators": [],
+          "compactions": 0
+         }
+        },
+        {
+         "max_tokens": 5,
+         "out": {
+          "turns": 3,
+          "summary": "（已压缩 3 轮）动作: a0 → a1 → a2；要点: o0；o1；o2",
+          "locators": [],
+          "compactions": 0
+         }
+        },
+        {
+         "max_tokens": 1,
+         "out": {
+          "turns": 3,
+          "summary": "（已压缩 3 轮）动作: a0 → a1 → a2；要点: o0；o1；o2",
+          "locators": [],
+          "compactions": 0
+         }
+        },
+        {
+         "max_tokens": 0,
+         "out": {
+          "turns": 3,
+          "summary": "（已压缩 3 轮）动作: a0 → a1 → a2；要点: o0；o1；o2",
+          "locators": [],
+          "compactions": 0
+         }
+        }
+       ]
+      }
+     }
+    ]
+   },
+   {
+    "name": "keep_verbatim=0：全部可压，但压过一次就没收益",
+    "init": {
+     "budget_tokens": 10,
+     "keep_verbatim": 0
+    },
+    "appends": [
+     {
+      "thought": "t0",
+      "action": "a0",
+      "observation": "o0"
+     },
+     {
+      "thought": "t1",
+      "action": "a1",
+      "observation": "o1"
+     },
+     {
+      "thought": "t2",
+      "action": "a2",
+      "observation": "o2"
+     },
+     {
+      "thought": "t3",
+      "action": "a3",
+      "observation": "o3"
+     }
+    ],
+    "after_append": {
+     "len": 4,
+     "turns": [
+      {
+       "thought": "t0",
+       "action": "a0",
+       "observation": "o0",
+       "compressed": false,
+       "tokens": 3,
+       "render": "想: t0\n做: a0\n见: o0"
+      },
+      {
+       "thought": "t1",
+       "action": "a1",
+       "observation": "o1",
+       "compressed": false,
+       "tokens": 3,
+       "render": "想: t1\n做: a1\n见: o1"
+      },
+      {
+       "thought": "t2",
+       "action": "a2",
+       "observation": "o2",
+       "compressed": false,
+       "tokens": 3,
+       "render": "想: t2\n做: a2\n见: o2"
+      },
+      {
+       "thought": "t3",
+       "action": "a3",
+       "observation": "o3",
+       "compressed": false,
+       "tokens": 3,
+       "render": "想: t3\n做: a3\n见: o3"
+      }
+     ],
+     "locators": [],
+     "tokens": 12,
+     "compactions": 0,
+     "render": "想: t0\n做: a0\n见: o0\n\n想: t1\n做: a1\n见: o1\n\n想: t2\n做: a2\n见: o2\n\n想: t3\n做: a3\n见: o3",
+     "over_budget": [
+      {
+       "threshold": 0.0,
+       "out": true
+      },
+      {
+       "threshold": 0.5,
+       "out": true
+      },
+      {
+       "threshold": 0.7,
+       "out": true
+      },
+      {
+       "threshold": 1.0,
+       "out": true
+      },
+      {
+       "threshold": 2.0,
+       "out": false
+      }
+     ],
+     "digest": [
+      {
+       "max_tokens": 600,
+       "out": {
+        "turns": 4,
+        "summary": "（已压缩 4 轮）动作: a0 → a1 → a2 → a3；要点: o0；o1；o2；o3",
+        "locators": [],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 200,
+       "out": {
+        "turns": 4,
+        "summary": "（已压缩 4 轮）动作: a0 → a1 → a2 → a3；要点: o0；o1；o2；o3",
+        "locators": [],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 60,
+       "out": {
+        "turns": 4,
+        "summary": "（已压缩 4 轮）动作: a0 → a1 → a2 → a3；要点: o0；o1；o2；o3",
+        "locators": [],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 20,
+       "out": {
+        "turns": 4,
+        "summary": "（已压缩 4 轮）动作: a0 → a1 → a2 → a3；要点: o0；o1；o2；o3",
+        "locators": [],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 5,
+       "out": {
+        "turns": 4,
+        "summary": "（已压缩 4 轮）动作: a0 → a1 → a2 → a3；要点: o0；o1；o2；o3",
+        "locators": [],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 1,
+       "out": {
+        "turns": 4,
+        "summary": "（已压缩 4 轮）动作: a0 → a1 → a2 → a3；要点: o0；o1；o2；o3",
+        "locators": [],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 0,
+       "out": {
+        "turns": 4,
+        "summary": "（已压缩 4 轮）动作: a0 → a1 → a2 → a3；要点: o0；o1；o2；o3",
+        "locators": [],
+        "compactions": 0
+       }
+      }
+     ]
+    },
+    "steps": [
+     {
+      "op": "compact",
+      "args": [],
+      "ret": true,
+      "snapshot": {
+       "len": 1,
+       "turns": [
+        {
+         "thought": "",
+         "action": "",
+         "observation": "（已压缩 4 轮）动作: a0 → a1 → a2 → a3；要点: o0；o1；o2；o3",
+         "compressed": true,
+         "tokens": 22,
+         "render": "见: （已压缩 4 轮）动作: a0 → a1 → a2 → a3；要点: o0；o1；o2；o3"
+        }
+       ],
+       "locators": [],
+       "tokens": 22,
+       "compactions": 1,
+       "render": "见: （已压缩 4 轮）动作: a0 → a1 → a2 → a3；要点: o0；o1；o2；o3",
+       "over_budget": [
+        {
+         "threshold": 0.0,
+         "out": true
+        },
+        {
+         "threshold": 0.5,
+         "out": true
+        },
+        {
+         "threshold": 0.7,
+         "out": true
+        },
+        {
+         "threshold": 1.0,
+         "out": true
+        },
+        {
+         "threshold": 2.0,
+         "out": true
+        }
+       ],
+       "digest": [
+        {
+         "max_tokens": 600,
+         "out": {
+          "turns": 1,
+          "summary": "（已压缩 1 轮）动作: ；要点: （已压缩 4 轮）动作: a0 → a1 → a2 → a3；要点: o0；o1；o2；o3",
+          "locators": [],
+          "compactions": 1
+         }
+        },
+        {
+         "max_tokens": 200,
+         "out": {
+          "turns": 1,
+          "summary": "（已压缩 1 轮）动作: ；要点: （已压缩 4 轮）动作: a0 → a1 → a2 → a3；要点: o0；o1；o2；o3",
+          "locators": [],
+          "compactions": 1
+         }
+        },
+        {
+         "max_tokens": 60,
+         "out": {
+          "turns": 1,
+          "summary": "（已压缩 1 轮）动作: ；要点: （已压缩 4 轮）动作: a0 → a1 → a2 → a3；要点: o0；o1；o2；o3",
+          "locators": [],
+          "compactions": 1
+         }
+        },
+        {
+         "max_tokens": 20,
+         "out": {
+          "turns": 1,
+          "summary": "（已压缩 1 轮）动作: ；要点: （已压缩 4 轮）动作: a0 → a1 → a2 → a3；要点: o0；o1；o2；o3",
+          "locators": [],
+          "compactions": 1
+         }
+        },
+        {
+         "max_tokens": 5,
+         "out": {
+          "turns": 1,
+          "summary": "（已压缩 1 轮）动作: ；要点: （已压缩 4 轮）动作: a0 → a1 → a2 → a3；要点: o0；o1；o2；o3",
+          "locators": [],
+          "compactions": 1
+         }
+        },
+        {
+         "max_tokens": 1,
+         "out": {
+          "turns": 1,
+          "summary": "（已压缩 1 轮）动作: ；要点: （已压缩 4 轮）动作: a0 → a1 → a2 → a3；要点: o0；o1；o2；o3",
+          "locators": [],
+          "compactions": 1
+         }
+        },
+        {
+         "max_tokens": 0,
+         "out": {
+          "turns": 1,
+          "summary": "（已压缩 1 轮）动作: ；要点: （已压缩 4 轮）动作: a0 → a1 → a2 → a3；要点: o0；o1；o2；o3",
+          "locators": [],
+          "compactions": 1
+         }
+        }
+       ]
+      }
+     },
+     {
+      "op": "compact",
+      "args": [],
+      "ret": false,
+      "snapshot": {
+       "len": 1,
+       "turns": [
+        {
+         "thought": "",
+         "action": "",
+         "observation": "（已压缩 4 轮）动作: a0 → a1 → a2 → a3；要点: o0；o1；o2；o3",
+         "compressed": true,
+         "tokens": 22,
+         "render": "见: （已压缩 4 轮）动作: a0 → a1 → a2 → a3；要点: o0；o1；o2；o3"
+        }
+       ],
+       "locators": [],
+       "tokens": 22,
+       "compactions": 1,
+       "render": "见: （已压缩 4 轮）动作: a0 → a1 → a2 → a3；要点: o0；o1；o2；o3",
+       "over_budget": [
+        {
+         "threshold": 0.0,
+         "out": true
+        },
+        {
+         "threshold": 0.5,
+         "out": true
+        },
+        {
+         "threshold": 0.7,
+         "out": true
+        },
+        {
+         "threshold": 1.0,
+         "out": true
+        },
+        {
+         "threshold": 2.0,
+         "out": true
+        }
+       ],
+       "digest": [
+        {
+         "max_tokens": 600,
+         "out": {
+          "turns": 1,
+          "summary": "（已压缩 1 轮）动作: ；要点: （已压缩 4 轮）动作: a0 → a1 → a2 → a3；要点: o0；o1；o2；o3",
+          "locators": [],
+          "compactions": 1
+         }
+        },
+        {
+         "max_tokens": 200,
+         "out": {
+          "turns": 1,
+          "summary": "（已压缩 1 轮）动作: ；要点: （已压缩 4 轮）动作: a0 → a1 → a2 → a3；要点: o0；o1；o2；o3",
+          "locators": [],
+          "compactions": 1
+         }
+        },
+        {
+         "max_tokens": 60,
+         "out": {
+          "turns": 1,
+          "summary": "（已压缩 1 轮）动作: ；要点: （已压缩 4 轮）动作: a0 → a1 → a2 → a3；要点: o0；o1；o2；o3",
+          "locators": [],
+          "compactions": 1
+         }
+        },
+        {
+         "max_tokens": 20,
+         "out": {
+          "turns": 1,
+          "summary": "（已压缩 1 轮）动作: ；要点: （已压缩 4 轮）动作: a0 → a1 → a2 → a3；要点: o0；o1；o2；o3",
+          "locators": [],
+          "compactions": 1
+         }
+        },
+        {
+         "max_tokens": 5,
+         "out": {
+          "turns": 1,
+          "summary": "（已压缩 1 轮）动作: ；要点: （已压缩 4 轮）动作: a0 → a1 → a2 → a3；要点: o0；o1；o2；o3",
+          "locators": [],
+          "compactions": 1
+         }
+        },
+        {
+         "max_tokens": 1,
+         "out": {
+          "turns": 1,
+          "summary": "（已压缩 1 轮）动作: ；要点: （已压缩 4 轮）动作: a0 → a1 → a2 → a3；要点: o0；o1；o2；o3",
+          "locators": [],
+          "compactions": 1
+         }
+        },
+        {
+         "max_tokens": 0,
+         "out": {
+          "turns": 1,
+          "summary": "（已压缩 1 轮）动作: ；要点: （已压缩 4 轮）动作: a0 → a1 → a2 → a3；要点: o0；o1；o2；o3",
+          "locators": [],
+          "compactions": 1
+         }
+        }
+       ]
+      }
+     },
+     {
+      "op": "compact_to_fit",
+      "args": [
+       0.7
+      ],
+      "ret": 0,
+      "snapshot": {
+       "len": 1,
+       "turns": [
+        {
+         "thought": "",
+         "action": "",
+         "observation": "（已压缩 4 轮）动作: a0 → a1 → a2 → a3；要点: o0；o1；o2；o3",
+         "compressed": true,
+         "tokens": 22,
+         "render": "见: （已压缩 4 轮）动作: a0 → a1 → a2 → a3；要点: o0；o1；o2；o3"
+        }
+       ],
+       "locators": [],
+       "tokens": 22,
+       "compactions": 1,
+       "render": "见: （已压缩 4 轮）动作: a0 → a1 → a2 → a3；要点: o0；o1；o2；o3",
+       "over_budget": [
+        {
+         "threshold": 0.0,
+         "out": true
+        },
+        {
+         "threshold": 0.5,
+         "out": true
+        },
+        {
+         "threshold": 0.7,
+         "out": true
+        },
+        {
+         "threshold": 1.0,
+         "out": true
+        },
+        {
+         "threshold": 2.0,
+         "out": true
+        }
+       ],
+       "digest": [
+        {
+         "max_tokens": 600,
+         "out": {
+          "turns": 1,
+          "summary": "（已压缩 1 轮）动作: ；要点: （已压缩 4 轮）动作: a0 → a1 → a2 → a3；要点: o0；o1；o2；o3",
+          "locators": [],
+          "compactions": 1
+         }
+        },
+        {
+         "max_tokens": 200,
+         "out": {
+          "turns": 1,
+          "summary": "（已压缩 1 轮）动作: ；要点: （已压缩 4 轮）动作: a0 → a1 → a2 → a3；要点: o0；o1；o2；o3",
+          "locators": [],
+          "compactions": 1
+         }
+        },
+        {
+         "max_tokens": 60,
+         "out": {
+          "turns": 1,
+          "summary": "（已压缩 1 轮）动作: ；要点: （已压缩 4 轮）动作: a0 → a1 → a2 → a3；要点: o0；o1；o2；o3",
+          "locators": [],
+          "compactions": 1
+         }
+        },
+        {
+         "max_tokens": 20,
+         "out": {
+          "turns": 1,
+          "summary": "（已压缩 1 轮）动作: ；要点: （已压缩 4 轮）动作: a0 → a1 → a2 → a3；要点: o0；o1；o2；o3",
+          "locators": [],
+          "compactions": 1
+         }
+        },
+        {
+         "max_tokens": 5,
+         "out": {
+          "turns": 1,
+          "summary": "（已压缩 1 轮）动作: ；要点: （已压缩 4 轮）动作: a0 → a1 → a2 → a3；要点: o0；o1；o2；o3",
+          "locators": [],
+          "compactions": 1
+         }
+        },
+        {
+         "max_tokens": 1,
+         "out": {
+          "turns": 1,
+          "summary": "（已压缩 1 轮）动作: ；要点: （已压缩 4 轮）动作: a0 → a1 → a2 → a3；要点: o0；o1；o2；o3",
+          "locators": [],
+          "compactions": 1
+         }
+        },
+        {
+         "max_tokens": 0,
+         "out": {
+          "turns": 1,
+          "summary": "（已压缩 1 轮）动作: ；要点: （已压缩 4 轮）动作: a0 → a1 → a2 → a3；要点: o0；o1；o2；o3",
+          "locators": [],
+          "compactions": 1
+         }
+        }
+       ]
+      }
+     }
+    ]
+   },
+   {
+    "name": "只有一轮：压不动",
+    "init": {
+     "budget_tokens": 1,
+     "keep_verbatim": 6
+    },
+    "appends": [
+     {
+      "thought": "只此一轮"
+     }
+    ],
+    "after_append": {
+     "len": 1,
+     "turns": [
+      {
+       "thought": "只此一轮",
+       "action": "",
+       "observation": "",
+       "compressed": false,
+       "tokens": 5,
+       "render": "想: 只此一轮"
+      }
+     ],
+     "locators": [],
+     "tokens": 5,
+     "compactions": 0,
+     "render": "想: 只此一轮",
+     "over_budget": [
+      {
+       "threshold": 0.0,
+       "out": true
+      },
+      {
+       "threshold": 0.5,
+       "out": true
+      },
+      {
+       "threshold": 0.7,
+       "out": true
+      },
+      {
+       "threshold": 1.0,
+       "out": true
+      },
+      {
+       "threshold": 2.0,
+       "out": true
+      }
+     ],
+     "digest": [
+      {
+       "max_tokens": 600,
+       "out": {
+        "turns": 1,
+        "summary": "（已压缩 1 轮）动作: ；要点: ",
+        "locators": [],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 200,
+       "out": {
+        "turns": 1,
+        "summary": "（已压缩 1 轮）动作: ；要点: ",
+        "locators": [],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 60,
+       "out": {
+        "turns": 1,
+        "summary": "（已压缩 1 轮）动作: ；要点: ",
+        "locators": [],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 20,
+       "out": {
+        "turns": 1,
+        "summary": "（已压缩 1 轮）动作: ；要点: ",
+        "locators": [],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 5,
+       "out": {
+        "turns": 1,
+        "summary": "（已压缩 1 轮）动作: ；要点: ",
+        "locators": [],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 1,
+       "out": {
+        "turns": 1,
+        "summary": "（已压缩 1 轮）动作: ；要点: ",
+        "locators": [],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 0,
+       "out": {
+        "turns": 1,
+        "summary": "（已压缩 1 轮）动作: ；要点: ",
+        "locators": [],
+        "compactions": 0
+       }
+      }
+     ]
+    },
+    "steps": [
+     {
+      "op": "compact",
+      "args": [],
+      "ret": false,
+      "snapshot": {
+       "len": 1,
+       "turns": [
+        {
+         "thought": "只此一轮",
+         "action": "",
+         "observation": "",
+         "compressed": false,
+         "tokens": 5,
+         "render": "想: 只此一轮"
+        }
+       ],
+       "locators": [],
+       "tokens": 5,
+       "compactions": 0,
+       "render": "想: 只此一轮",
+       "over_budget": [
+        {
+         "threshold": 0.0,
+         "out": true
+        },
+        {
+         "threshold": 0.5,
+         "out": true
+        },
+        {
+         "threshold": 0.7,
+         "out": true
+        },
+        {
+         "threshold": 1.0,
+         "out": true
+        },
+        {
+         "threshold": 2.0,
+         "out": true
+        }
+       ],
+       "digest": [
+        {
+         "max_tokens": 600,
+         "out": {
+          "turns": 1,
+          "summary": "（已压缩 1 轮）动作: ；要点: ",
+          "locators": [],
+          "compactions": 0
+         }
+        },
+        {
+         "max_tokens": 200,
+         "out": {
+          "turns": 1,
+          "summary": "（已压缩 1 轮）动作: ；要点: ",
+          "locators": [],
+          "compactions": 0
+         }
+        },
+        {
+         "max_tokens": 60,
+         "out": {
+          "turns": 1,
+          "summary": "（已压缩 1 轮）动作: ；要点: ",
+          "locators": [],
+          "compactions": 0
+         }
+        },
+        {
+         "max_tokens": 20,
+         "out": {
+          "turns": 1,
+          "summary": "（已压缩 1 轮）动作: ；要点: ",
+          "locators": [],
+          "compactions": 0
+         }
+        },
+        {
+         "max_tokens": 5,
+         "out": {
+          "turns": 1,
+          "summary": "（已压缩 1 轮）动作: ；要点: ",
+          "locators": [],
+          "compactions": 0
+         }
+        },
+        {
+         "max_tokens": 1,
+         "out": {
+          "turns": 1,
+          "summary": "（已压缩 1 轮）动作: ；要点: ",
+          "locators": [],
+          "compactions": 0
+         }
+        },
+        {
+         "max_tokens": 0,
+         "out": {
+          "turns": 1,
+          "summary": "（已压缩 1 轮）动作: ；要点: ",
+          "locators": [],
+          "compactions": 0
+         }
+        }
+       ]
+      }
+     },
+     {
+      "op": "compact_to_fit",
+      "args": [
+       0.7
+      ],
+      "ret": 0,
+      "snapshot": {
+       "len": 1,
+       "turns": [
+        {
+         "thought": "只此一轮",
+         "action": "",
+         "observation": "",
+         "compressed": false,
+         "tokens": 5,
+         "render": "想: 只此一轮"
+        }
+       ],
+       "locators": [],
+       "tokens": 5,
+       "compactions": 0,
+       "render": "想: 只此一轮",
+       "over_budget": [
+        {
+         "threshold": 0.0,
+         "out": true
+        },
+        {
+         "threshold": 0.5,
+         "out": true
+        },
+        {
+         "threshold": 0.7,
+         "out": true
+        },
+        {
+         "threshold": 1.0,
+         "out": true
+        },
+        {
+         "threshold": 2.0,
+         "out": true
+        }
+       ],
+       "digest": [
+        {
+         "max_tokens": 600,
+         "out": {
+          "turns": 1,
+          "summary": "（已压缩 1 轮）动作: ；要点: ",
+          "locators": [],
+          "compactions": 0
+         }
+        },
+        {
+         "max_tokens": 200,
+         "out": {
+          "turns": 1,
+          "summary": "（已压缩 1 轮）动作: ；要点: ",
+          "locators": [],
+          "compactions": 0
+         }
+        },
+        {
+         "max_tokens": 60,
+         "out": {
+          "turns": 1,
+          "summary": "（已压缩 1 轮）动作: ；要点: ",
+          "locators": [],
+          "compactions": 0
+         }
+        },
+        {
+         "max_tokens": 20,
+         "out": {
+          "turns": 1,
+          "summary": "（已压缩 1 轮）动作: ；要点: ",
+          "locators": [],
+          "compactions": 0
+         }
+        },
+        {
+         "max_tokens": 5,
+         "out": {
+          "turns": 1,
+          "summary": "（已压缩 1 轮）动作: ；要点: ",
+          "locators": [],
+          "compactions": 0
+         }
+        },
+        {
+         "max_tokens": 1,
+         "out": {
+          "turns": 1,
+          "summary": "（已压缩 1 轮）动作: ；要点: ",
+          "locators": [],
+          "compactions": 0
+         }
+        },
+        {
+         "max_tokens": 0,
+         "out": {
+          "turns": 1,
+          "summary": "（已压缩 1 轮）动作: ；要点: ",
+          "locators": [],
+          "compactions": 0
+         }
+        }
+       ]
+      }
+     }
+    ]
+   },
+   {
+    "name": "空 scratchpad",
+    "init": {},
+    "appends": [],
+    "after_append": {
+     "len": 0,
+     "turns": [],
+     "locators": [],
+     "tokens": 0,
+     "compactions": 0,
+     "render": "",
+     "over_budget": [
+      {
+       "threshold": 0.0,
+       "out": false
+      },
+      {
+       "threshold": 0.5,
+       "out": false
+      },
+      {
+       "threshold": 0.7,
+       "out": false
+      },
+      {
+       "threshold": 1.0,
+       "out": false
+      },
+      {
+       "threshold": 2.0,
+       "out": false
+      }
+     ],
+     "digest": [
+      {
+       "max_tokens": 600,
+       "out": {
+        "turns": 0,
+        "summary": "",
+        "locators": [],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 200,
+       "out": {
+        "turns": 0,
+        "summary": "",
+        "locators": [],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 60,
+       "out": {
+        "turns": 0,
+        "summary": "",
+        "locators": [],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 20,
+       "out": {
+        "turns": 0,
+        "summary": "",
+        "locators": [],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 5,
+       "out": {
+        "turns": 0,
+        "summary": "",
+        "locators": [],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 1,
+       "out": {
+        "turns": 0,
+        "summary": "",
+        "locators": [],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 0,
+       "out": {
+        "turns": 0,
+        "summary": "",
+        "locators": [],
+        "compactions": 0
+       }
+      }
+     ]
+    },
+    "steps": [
+     {
+      "op": "compact",
+      "args": [],
+      "ret": false,
+      "snapshot": {
+       "len": 0,
+       "turns": [],
+       "locators": [],
+       "tokens": 0,
+       "compactions": 0,
+       "render": "",
+       "over_budget": [
+        {
+         "threshold": 0.0,
+         "out": false
+        },
+        {
+         "threshold": 0.5,
+         "out": false
+        },
+        {
+         "threshold": 0.7,
+         "out": false
+        },
+        {
+         "threshold": 1.0,
+         "out": false
+        },
+        {
+         "threshold": 2.0,
+         "out": false
+        }
+       ],
+       "digest": [
+        {
+         "max_tokens": 600,
+         "out": {
+          "turns": 0,
+          "summary": "",
+          "locators": [],
+          "compactions": 0
+         }
+        },
+        {
+         "max_tokens": 200,
+         "out": {
+          "turns": 0,
+          "summary": "",
+          "locators": [],
+          "compactions": 0
+         }
+        },
+        {
+         "max_tokens": 60,
+         "out": {
+          "turns": 0,
+          "summary": "",
+          "locators": [],
+          "compactions": 0
+         }
+        },
+        {
+         "max_tokens": 20,
+         "out": {
+          "turns": 0,
+          "summary": "",
+          "locators": [],
+          "compactions": 0
+         }
+        },
+        {
+         "max_tokens": 5,
+         "out": {
+          "turns": 0,
+          "summary": "",
+          "locators": [],
+          "compactions": 0
+         }
+        },
+        {
+         "max_tokens": 1,
+         "out": {
+          "turns": 0,
+          "summary": "",
+          "locators": [],
+          "compactions": 0
+         }
+        },
+        {
+         "max_tokens": 0,
+         "out": {
+          "turns": 0,
+          "summary": "",
+          "locators": [],
+          "compactions": 0
+         }
+        }
+       ]
+      }
+     },
+     {
+      "op": "compact_to_fit",
+      "args": [
+       0.7
+      ],
+      "ret": 0,
+      "snapshot": {
+       "len": 0,
+       "turns": [],
+       "locators": [],
+       "tokens": 0,
+       "compactions": 0,
+       "render": "",
+       "over_budget": [
+        {
+         "threshold": 0.0,
+         "out": false
+        },
+        {
+         "threshold": 0.5,
+         "out": false
+        },
+        {
+         "threshold": 0.7,
+         "out": false
+        },
+        {
+         "threshold": 1.0,
+         "out": false
+        },
+        {
+         "threshold": 2.0,
+         "out": false
+        }
+       ],
+       "digest": [
+        {
+         "max_tokens": 600,
+         "out": {
+          "turns": 0,
+          "summary": "",
+          "locators": [],
+          "compactions": 0
+         }
+        },
+        {
+         "max_tokens": 200,
+         "out": {
+          "turns": 0,
+          "summary": "",
+          "locators": [],
+          "compactions": 0
+         }
+        },
+        {
+         "max_tokens": 60,
+         "out": {
+          "turns": 0,
+          "summary": "",
+          "locators": [],
+          "compactions": 0
+         }
+        },
+        {
+         "max_tokens": 20,
+         "out": {
+          "turns": 0,
+          "summary": "",
+          "locators": [],
+          "compactions": 0
+         }
+        },
+        {
+         "max_tokens": 5,
+         "out": {
+          "turns": 0,
+          "summary": "",
+          "locators": [],
+          "compactions": 0
+         }
+        },
+        {
+         "max_tokens": 1,
+         "out": {
+          "turns": 0,
+          "summary": "",
+          "locators": [],
+          "compactions": 0
+         }
+        },
+        {
+         "max_tokens": 0,
+         "out": {
+          "turns": 0,
+          "summary": "",
+          "locators": [],
+          "compactions": 0
+         }
+        }
+       ]
+      }
+     }
+    ]
+   },
+   {
+    "name": "没有 locator 时 render 不挂尾巴",
+    "init": {},
+    "appends": [
+     {
+      "thought": "纯文字",
+      "action": "无位置",
+      "observation": "也没有"
+     }
+    ],
+    "after_append": {
+     "len": 1,
+     "turns": [
+      {
+       "thought": "纯文字",
+       "action": "无位置",
+       "observation": "也没有",
+       "compressed": false,
+       "tokens": 12,
+       "render": "想: 纯文字\n做: 无位置\n见: 也没有"
+      }
+     ],
+     "locators": [],
+     "tokens": 12,
+     "compactions": 0,
+     "render": "想: 纯文字\n做: 无位置\n见: 也没有",
+     "over_budget": [
+      {
+       "threshold": 0.0,
+       "out": true
+      },
+      {
+       "threshold": 0.5,
+       "out": false
+      },
+      {
+       "threshold": 0.7,
+       "out": false
+      },
+      {
+       "threshold": 1.0,
+       "out": false
+      },
+      {
+       "threshold": 2.0,
+       "out": false
+      }
+     ],
+     "digest": [
+      {
+       "max_tokens": 600,
+       "out": {
+        "turns": 1,
+        "summary": "（已压缩 1 轮）动作: 无位置；要点: 也没有",
+        "locators": [],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 200,
+       "out": {
+        "turns": 1,
+        "summary": "（已压缩 1 轮）动作: 无位置；要点: 也没有",
+        "locators": [],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 60,
+       "out": {
+        "turns": 1,
+        "summary": "（已压缩 1 轮）动作: 无位置；要点: 也没有",
+        "locators": [],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 20,
+       "out": {
+        "turns": 1,
+        "summary": "（已压缩 1 轮）动作: 无位置；要点: 也没有",
+        "locators": [],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 5,
+       "out": {
+        "turns": 1,
+        "summary": "（已压缩 1 轮）动作: 无位置；要点: 也没有",
+        "locators": [],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 1,
+       "out": {
+        "turns": 1,
+        "summary": "（已压缩 1 轮）动作: 无位置；要点: 也没有",
+        "locators": [],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 0,
+       "out": {
+        "turns": 1,
+        "summary": "（已压缩 1 轮）动作: 无位置；要点: 也没有",
+        "locators": [],
+        "compactions": 0
+       }
+      }
+     ]
+    },
+    "steps": []
+   },
+   {
+    "name": "只有 locator、没有可渲染正文",
+    "init": {},
+    "appends": [
+     {
+      "thought": "",
+      "action": "",
+      "observation": "R44C6"
+     }
+    ],
+    "after_append": {
+     "len": 1,
+     "turns": [
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R44C6",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R44C6"
+      }
+     ],
+     "locators": [
+      "R44C6"
+     ],
+     "tokens": 2,
+     "compactions": 0,
+     "render": "见: R44C6\n\n[本节点已引用的证据位置] R44C6",
+     "over_budget": [
+      {
+       "threshold": 0.0,
+       "out": true
+      },
+      {
+       "threshold": 0.5,
+       "out": false
+      },
+      {
+       "threshold": 0.7,
+       "out": false
+      },
+      {
+       "threshold": 1.0,
+       "out": false
+      },
+      {
+       "threshold": 2.0,
+       "out": false
+      }
+     ],
+     "digest": [
+      {
+       "max_tokens": 600,
+       "out": {
+        "turns": 1,
+        "summary": "（已压缩 1 轮）动作: ；要点: R44C6",
+        "locators": [
+         "R44C6"
+        ],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 200,
+       "out": {
+        "turns": 1,
+        "summary": "（已压缩 1 轮）动作: ；要点: R44C6",
+        "locators": [
+         "R44C6"
+        ],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 60,
+       "out": {
+        "turns": 1,
+        "summary": "（已压缩 1 轮）动作: ；要点: R44C6",
+        "locators": [
+         "R44C6"
+        ],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 20,
+       "out": {
+        "turns": 1,
+        "summary": "（已压缩 1 轮）动作: ；要点: R44C6",
+        "locators": [
+         "R44C6"
+        ],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 5,
+       "out": {
+        "turns": 1,
+        "summary": "（已压缩 1 轮）动作: ；要点: R44C6",
+        "locators": [
+         "R44C6"
+        ],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 1,
+       "out": {
+        "turns": 1,
+        "summary": "（已压缩 1 轮）动作: ；要点: R44C6",
+        "locators": [
+         "R44C6"
+        ],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 0,
+       "out": {
+        "turns": 1,
+        "summary": "（已压缩 1 轮）动作: ；要点: R44C6",
+        "locators": [
+         "R44C6"
+        ],
+        "compactions": 0
+       }
+      }
+     ]
+    },
+    "steps": []
+   },
+   {
+    "name": "locator 超 40 条：render 只贴前 40",
+    "init": {
+     "budget_tokens": 100000
+    },
+    "appends": [
+     {
+      "observation": "R1C1"
+     },
+     {
+      "observation": "R2C1"
+     },
+     {
+      "observation": "R3C1"
+     },
+     {
+      "observation": "R4C1"
+     },
+     {
+      "observation": "R5C1"
+     },
+     {
+      "observation": "R6C1"
+     },
+     {
+      "observation": "R7C1"
+     },
+     {
+      "observation": "R8C1"
+     },
+     {
+      "observation": "R9C1"
+     },
+     {
+      "observation": "R10C1"
+     },
+     {
+      "observation": "R11C1"
+     },
+     {
+      "observation": "R12C1"
+     },
+     {
+      "observation": "R13C1"
+     },
+     {
+      "observation": "R14C1"
+     },
+     {
+      "observation": "R15C1"
+     },
+     {
+      "observation": "R16C1"
+     },
+     {
+      "observation": "R17C1"
+     },
+     {
+      "observation": "R18C1"
+     },
+     {
+      "observation": "R19C1"
+     },
+     {
+      "observation": "R20C1"
+     },
+     {
+      "observation": "R21C1"
+     },
+     {
+      "observation": "R22C1"
+     },
+     {
+      "observation": "R23C1"
+     },
+     {
+      "observation": "R24C1"
+     },
+     {
+      "observation": "R25C1"
+     },
+     {
+      "observation": "R26C1"
+     },
+     {
+      "observation": "R27C1"
+     },
+     {
+      "observation": "R28C1"
+     },
+     {
+      "observation": "R29C1"
+     },
+     {
+      "observation": "R30C1"
+     },
+     {
+      "observation": "R31C1"
+     },
+     {
+      "observation": "R32C1"
+     },
+     {
+      "observation": "R33C1"
+     },
+     {
+      "observation": "R34C1"
+     },
+     {
+      "observation": "R35C1"
+     },
+     {
+      "observation": "R36C1"
+     },
+     {
+      "observation": "R37C1"
+     },
+     {
+      "observation": "R38C1"
+     },
+     {
+      "observation": "R39C1"
+     },
+     {
+      "observation": "R40C1"
+     },
+     {
+      "observation": "R41C1"
+     },
+     {
+      "observation": "R42C1"
+     },
+     {
+      "observation": "R43C1"
+     },
+     {
+      "observation": "R44C1"
+     },
+     {
+      "observation": "R45C1"
+     },
+     {
+      "observation": "R46C1"
+     },
+     {
+      "observation": "R47C1"
+     },
+     {
+      "observation": "R48C1"
+     },
+     {
+      "observation": "R49C1"
+     },
+     {
+      "observation": "R50C1"
+     },
+     {
+      "observation": "R51C1"
+     },
+     {
+      "observation": "R52C1"
+     },
+     {
+      "observation": "R53C1"
+     },
+     {
+      "observation": "R54C1"
+     },
+     {
+      "observation": "R55C1"
+     },
+     {
+      "observation": "R56C1"
+     },
+     {
+      "observation": "R57C1"
+     },
+     {
+      "observation": "R58C1"
+     },
+     {
+      "observation": "R59C1"
+     },
+     {
+      "observation": "R60C1"
+     },
+     {
+      "observation": "R61C1"
+     },
+     {
+      "observation": "R62C1"
+     },
+     {
+      "observation": "R63C1"
+     },
+     {
+      "observation": "R64C1"
+     },
+     {
+      "observation": "R65C1"
+     },
+     {
+      "observation": "R66C1"
+     },
+     {
+      "observation": "R67C1"
+     },
+     {
+      "observation": "R68C1"
+     },
+     {
+      "observation": "R69C1"
+     }
+    ],
+    "after_append": {
+     "len": 69,
+     "turns": [
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R1C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R1C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R2C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R2C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R3C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R3C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R4C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R4C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R5C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R5C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R6C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R6C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R7C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R7C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R8C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R8C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R9C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R9C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R10C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R10C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R11C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R11C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R12C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R12C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R13C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R13C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R14C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R14C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R15C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R15C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R16C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R16C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R17C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R17C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R18C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R18C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R19C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R19C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R20C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R20C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R21C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R21C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R22C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R22C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R23C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R23C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R24C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R24C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R25C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R25C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R26C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R26C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R27C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R27C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R28C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R28C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R29C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R29C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R30C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R30C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R31C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R31C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R32C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R32C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R33C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R33C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R34C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R34C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R35C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R35C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R36C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R36C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R37C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R37C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R38C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R38C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R39C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R39C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R40C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R40C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R41C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R41C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R42C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R42C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R43C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R43C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R44C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R44C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R45C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R45C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R46C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R46C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R47C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R47C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R48C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R48C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R49C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R49C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R50C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R50C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R51C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R51C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R52C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R52C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R53C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R53C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R54C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R54C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R55C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R55C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R56C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R56C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R57C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R57C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R58C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R58C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R59C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R59C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R60C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R60C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R61C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R61C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R62C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R62C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R63C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R63C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R64C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R64C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R65C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R65C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R66C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R66C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R67C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R67C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R68C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R68C1"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "R69C1",
+       "compressed": false,
+       "tokens": 1,
+       "render": "见: R69C1"
+      }
+     ],
+     "locators": [
+      "R1C1",
+      "R2C1",
+      "R3C1",
+      "R4C1",
+      "R5C1",
+      "R6C1",
+      "R7C1",
+      "R8C1",
+      "R9C1",
+      "R10C1",
+      "R11C1",
+      "R12C1",
+      "R13C1",
+      "R14C1",
+      "R15C1",
+      "R16C1",
+      "R17C1",
+      "R18C1",
+      "R19C1",
+      "R20C1",
+      "R21C1",
+      "R22C1",
+      "R23C1",
+      "R24C1",
+      "R25C1",
+      "R26C1",
+      "R27C1",
+      "R28C1",
+      "R29C1",
+      "R30C1",
+      "R31C1",
+      "R32C1",
+      "R33C1",
+      "R34C1",
+      "R35C1",
+      "R36C1",
+      "R37C1",
+      "R38C1",
+      "R39C1",
+      "R40C1",
+      "R41C1",
+      "R42C1",
+      "R43C1",
+      "R44C1",
+      "R45C1",
+      "R46C1",
+      "R47C1",
+      "R48C1",
+      "R49C1",
+      "R50C1",
+      "R51C1",
+      "R52C1",
+      "R53C1",
+      "R54C1",
+      "R55C1",
+      "R56C1",
+      "R57C1",
+      "R58C1",
+      "R59C1",
+      "R60C1",
+      "R61C1",
+      "R62C1",
+      "R63C1",
+      "R64C1",
+      "R65C1",
+      "R66C1",
+      "R67C1",
+      "R68C1",
+      "R69C1"
+     ],
+     "tokens": 170,
+     "compactions": 0,
+     "render": "见: R1C1\n\n见: R2C1\n\n见: R3C1\n\n见: R4C1\n\n见: R5C1\n\n见: R6C1\n\n见: R7C1\n\n见: R8C1\n\n见: R9C1\n\n见: R10C1\n\n见: R11C1\n\n见: R12C1\n\n见: R13C1\n\n见: R14C1\n\n见: R15C1\n\n见: R16C1\n\n见: R17C1\n\n见: R18C1\n\n见: R19C1\n\n见: R20C1\n\n见: R21C1\n\n见: R22C1\n\n见: R23C1\n\n见: R24C1\n\n见: R25C1\n\n见: R26C1\n\n见: R27C1\n\n见: R28C1\n\n见: R29C1\n\n见: R30C1\n\n见: R31C1\n\n见: R32C1\n\n见: R33C1\n\n见: R34C1\n\n见: R35C1\n\n见: R36C1\n\n见: R37C1\n\n见: R38C1\n\n见: R39C1\n\n见: R40C1\n\n见: R41C1\n\n见: R42C1\n\n见: R43C1\n\n见: R44C1\n\n见: R45C1\n\n见: R46C1\n\n见: R47C1\n\n见: R48C1\n\n见: R49C1\n\n见: R50C1\n\n见: R51C1\n\n见: R52C1\n\n见: R53C1\n\n见: R54C1\n\n见: R55C1\n\n见: R56C1\n\n见: R57C1\n\n见: R58C1\n\n见: R59C1\n\n见: R60C1\n\n见: R61C1\n\n见: R62C1\n\n见: R63C1\n\n见: R64C1\n\n见: R65C1\n\n见: R66C1\n\n见: R67C1\n\n见: R68C1\n\n见: R69C1\n\n[本节点已引用的证据位置] R1C1、R2C1、R3C1、R4C1、R5C1、R6C1、R7C1、R8C1、R9C1、R10C1、R11C1、R12C1、R13C1、R14C1、R15C1、R16C1、R17C1、R18C1、R19C1、R20C1、R21C1、R22C1、R23C1、R24C1、R25C1、R26C1、R27C1、R28C1、R29C1、R30C1、R31C1、R32C1、R33C1、R34C1、R35C1、R36C1、R37C1、R38C1、R39C1、R40C1",
+     "over_budget": [
+      {
+       "threshold": 0.0,
+       "out": true
+      },
+      {
+       "threshold": 0.5,
+       "out": false
+      },
+      {
+       "threshold": 0.7,
+       "out": false
+      },
+      {
+       "threshold": 1.0,
+       "out": false
+      },
+      {
+       "threshold": 2.0,
+       "out": false
+      }
+     ],
+     "digest": [
+      {
+       "max_tokens": 600,
+       "out": {
+        "turns": 69,
+        "summary": "（已压缩 69 轮）动作: ；要点: R1C1；R2C1；R3C1；R4C1",
+        "locators": [
+         "R1C1",
+         "R2C1",
+         "R3C1",
+         "R4C1",
+         "R5C1",
+         "R6C1",
+         "R7C1",
+         "R8C1",
+         "R9C1",
+         "R10C1",
+         "R11C1",
+         "R12C1",
+         "R13C1",
+         "R14C1",
+         "R15C1",
+         "R16C1",
+         "R17C1",
+         "R18C1",
+         "R19C1",
+         "R20C1",
+         "R21C1",
+         "R22C1",
+         "R23C1",
+         "R24C1",
+         "R25C1",
+         "R26C1",
+         "R27C1",
+         "R28C1",
+         "R29C1",
+         "R30C1",
+         "R31C1",
+         "R32C1",
+         "R33C1",
+         "R34C1",
+         "R35C1",
+         "R36C1",
+         "R37C1",
+         "R38C1",
+         "R39C1",
+         "R40C1",
+         "R41C1",
+         "R42C1",
+         "R43C1",
+         "R44C1",
+         "R45C1",
+         "R46C1",
+         "R47C1",
+         "R48C1",
+         "R49C1",
+         "R50C1",
+         "R51C1",
+         "R52C1",
+         "R53C1",
+         "R54C1",
+         "R55C1",
+         "R56C1",
+         "R57C1",
+         "R58C1",
+         "R59C1",
+         "R60C1",
+         "R61C1",
+         "R62C1",
+         "R63C1",
+         "R64C1"
+        ],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 200,
+       "out": {
+        "turns": 69,
+        "summary": "（已压缩 69 轮）动作: ；要点: R1C1；R2C1；R3C1；R4C1",
+        "locators": [
+         "R1C1",
+         "R2C1",
+         "R3C1",
+         "R4C1",
+         "R5C1",
+         "R6C1",
+         "R7C1",
+         "R8C1",
+         "R9C1",
+         "R10C1",
+         "R11C1",
+         "R12C1",
+         "R13C1",
+         "R14C1",
+         "R15C1",
+         "R16C1",
+         "R17C1",
+         "R18C1",
+         "R19C1",
+         "R20C1",
+         "R21C1",
+         "R22C1",
+         "R23C1",
+         "R24C1",
+         "R25C1",
+         "R26C1",
+         "R27C1",
+         "R28C1",
+         "R29C1",
+         "R30C1",
+         "R31C1",
+         "R32C1",
+         "R33C1",
+         "R34C1",
+         "R35C1",
+         "R36C1",
+         "R37C1",
+         "R38C1",
+         "R39C1",
+         "R40C1",
+         "R41C1",
+         "R42C1",
+         "R43C1",
+         "R44C1",
+         "R45C1",
+         "R46C1",
+         "R47C1",
+         "R48C1",
+         "R49C1",
+         "R50C1",
+         "R51C1",
+         "R52C1",
+         "R53C1",
+         "R54C1",
+         "R55C1",
+         "R56C1",
+         "R57C1",
+         "R58C1",
+         "R59C1",
+         "R60C1",
+         "R61C1",
+         "R62C1",
+         "R63C1",
+         "R64C1"
+        ],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 60,
+       "out": {
+        "turns": 69,
+        "summary": "（已压缩 69 轮）动作: ；要点: R1C1；R2C1；R3C1；R4C1",
+        "locators": [
+         "R1C1",
+         "R2C1",
+         "R3C1",
+         "R4C1",
+         "R5C1",
+         "R6C1",
+         "R7C1",
+         "R8C1",
+         "R9C1",
+         "R10C1",
+         "R11C1",
+         "R12C1",
+         "R13C1",
+         "R14C1",
+         "R15C1",
+         "R16C1",
+         "R17C1",
+         "R18C1",
+         "R19C1",
+         "R20C1",
+         "R21C1",
+         "R22C1",
+         "R23C1",
+         "R24C1",
+         "R25C1",
+         "R26C1",
+         "R27C1",
+         "R28C1",
+         "R29C1",
+         "R30C1",
+         "R31C1",
+         "R32C1",
+         "R33C1",
+         "R34C1",
+         "R35C1",
+         "R36C1",
+         "R37C1",
+         "R38C1",
+         "R39C1",
+         "R40C1",
+         "R41C1",
+         "R42C1",
+         "R43C1",
+         "R44C1",
+         "R45C1",
+         "R46C1",
+         "R47C1",
+         "R48C1",
+         "R49C1",
+         "R50C1",
+         "R51C1",
+         "R52C1",
+         "R53C1",
+         "R54C1",
+         "R55C1",
+         "R56C1",
+         "R57C1",
+         "R58C1",
+         "R59C1",
+         "R60C1",
+         "R61C1",
+         "R62C1",
+         "R63C1",
+         "R64C1"
+        ],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 20,
+       "out": {
+        "turns": 69,
+        "summary": "（已压缩 69 轮）动作: ；要点: R1C1；R2C1；R3C1；R4C1",
+        "locators": [
+         "R1C1",
+         "R2C1",
+         "R3C1",
+         "R4C1",
+         "R5C1",
+         "R6C1",
+         "R7C1",
+         "R8C1",
+         "R9C1",
+         "R10C1",
+         "R11C1",
+         "R12C1",
+         "R13C1",
+         "R14C1",
+         "R15C1",
+         "R16C1",
+         "R17C1",
+         "R18C1",
+         "R19C1",
+         "R20C1",
+         "R21C1",
+         "R22C1",
+         "R23C1",
+         "R24C1",
+         "R25C1",
+         "R26C1",
+         "R27C1",
+         "R28C1",
+         "R29C1",
+         "R30C1",
+         "R31C1",
+         "R32C1",
+         "R33C1",
+         "R34C1",
+         "R35C1",
+         "R36C1",
+         "R37C1",
+         "R38C1",
+         "R39C1",
+         "R40C1",
+         "R41C1",
+         "R42C1",
+         "R43C1",
+         "R44C1",
+         "R45C1",
+         "R46C1",
+         "R47C1",
+         "R48C1",
+         "R49C1",
+         "R50C1",
+         "R51C1",
+         "R52C1",
+         "R53C1",
+         "R54C1",
+         "R55C1",
+         "R56C1",
+         "R57C1",
+         "R58C1",
+         "R59C1",
+         "R60C1",
+         "R61C1",
+         "R62C1",
+         "R63C1",
+         "R64C1"
+        ],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 5,
+       "out": {
+        "turns": 69,
+        "summary": "（已压缩 69 轮）动作: ；要点: R1C1；R2C1；R3C1；R4C1",
+        "locators": [
+         "R1C1",
+         "R2C1",
+         "R3C1",
+         "R4C1",
+         "R5C1",
+         "R6C1",
+         "R7C1",
+         "R8C1",
+         "R9C1",
+         "R10C1",
+         "R11C1",
+         "R12C1",
+         "R13C1",
+         "R14C1",
+         "R15C1",
+         "R16C1",
+         "R17C1",
+         "R18C1",
+         "R19C1",
+         "R20C1",
+         "R21C1",
+         "R22C1",
+         "R23C1",
+         "R24C1",
+         "R25C1",
+         "R26C1",
+         "R27C1",
+         "R28C1",
+         "R29C1",
+         "R30C1",
+         "R31C1",
+         "R32C1",
+         "R33C1",
+         "R34C1",
+         "R35C1",
+         "R36C1",
+         "R37C1",
+         "R38C1",
+         "R39C1",
+         "R40C1",
+         "R41C1",
+         "R42C1",
+         "R43C1",
+         "R44C1",
+         "R45C1",
+         "R46C1",
+         "R47C1",
+         "R48C1",
+         "R49C1",
+         "R50C1",
+         "R51C1",
+         "R52C1",
+         "R53C1",
+         "R54C1",
+         "R55C1",
+         "R56C1",
+         "R57C1",
+         "R58C1",
+         "R59C1",
+         "R60C1",
+         "R61C1",
+         "R62C1",
+         "R63C1",
+         "R64C1"
+        ],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 1,
+       "out": {
+        "turns": 69,
+        "summary": "（已压缩 69 轮）动作: ；要点: R1C1；R2C1；R3C1；R4C1",
+        "locators": [
+         "R1C1",
+         "R2C1",
+         "R3C1",
+         "R4C1",
+         "R5C1",
+         "R6C1",
+         "R7C1",
+         "R8C1",
+         "R9C1",
+         "R10C1",
+         "R11C1",
+         "R12C1",
+         "R13C1",
+         "R14C1",
+         "R15C1",
+         "R16C1",
+         "R17C1",
+         "R18C1",
+         "R19C1",
+         "R20C1",
+         "R21C1",
+         "R22C1",
+         "R23C1",
+         "R24C1",
+         "R25C1",
+         "R26C1",
+         "R27C1",
+         "R28C1",
+         "R29C1",
+         "R30C1",
+         "R31C1",
+         "R32C1",
+         "R33C1",
+         "R34C1",
+         "R35C1",
+         "R36C1",
+         "R37C1",
+         "R38C1",
+         "R39C1",
+         "R40C1",
+         "R41C1",
+         "R42C1",
+         "R43C1",
+         "R44C1",
+         "R45C1",
+         "R46C1",
+         "R47C1",
+         "R48C1",
+         "R49C1",
+         "R50C1",
+         "R51C1",
+         "R52C1",
+         "R53C1",
+         "R54C1",
+         "R55C1",
+         "R56C1",
+         "R57C1",
+         "R58C1",
+         "R59C1",
+         "R60C1",
+         "R61C1",
+         "R62C1",
+         "R63C1",
+         "R64C1"
+        ],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 0,
+       "out": {
+        "turns": 69,
+        "summary": "（已压缩 69 轮）动作: ；要点: R1C1；R2C1；R3C1；R4C1",
+        "locators": [
+         "R1C1",
+         "R2C1",
+         "R3C1",
+         "R4C1",
+         "R5C1",
+         "R6C1",
+         "R7C1",
+         "R8C1",
+         "R9C1",
+         "R10C1",
+         "R11C1",
+         "R12C1",
+         "R13C1",
+         "R14C1",
+         "R15C1",
+         "R16C1",
+         "R17C1",
+         "R18C1",
+         "R19C1",
+         "R20C1",
+         "R21C1",
+         "R22C1",
+         "R23C1",
+         "R24C1",
+         "R25C1",
+         "R26C1",
+         "R27C1",
+         "R28C1",
+         "R29C1",
+         "R30C1",
+         "R31C1",
+         "R32C1",
+         "R33C1",
+         "R34C1",
+         "R35C1",
+         "R36C1",
+         "R37C1",
+         "R38C1",
+         "R39C1",
+         "R40C1",
+         "R41C1",
+         "R42C1",
+         "R43C1",
+         "R44C1",
+         "R45C1",
+         "R46C1",
+         "R47C1",
+         "R48C1",
+         "R49C1",
+         "R50C1",
+         "R51C1",
+         "R52C1",
+         "R53C1",
+         "R54C1",
+         "R55C1",
+         "R56C1",
+         "R57C1",
+         "R58C1",
+         "R59C1",
+         "R60C1",
+         "R61C1",
+         "R62C1",
+         "R63C1",
+         "R64C1"
+        ],
+        "compactions": 0
+       }
+      }
+     ]
+    },
+    "steps": []
+   },
+   {
+    "name": "emoji：digest 截断按码点",
+    "init": {
+     "budget_tokens": 500,
+     "keep_verbatim": 2
+    },
+    "appends": [
+     {
+      "thought": "推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理",
+      "action": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+      "observation": "观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察"
+     },
+     {
+      "thought": "推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理",
+      "action": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+      "observation": "观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察"
+     },
+     {
+      "thought": "推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理",
+      "action": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+      "observation": "观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察"
+     },
+     {
+      "thought": "推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理",
+      "action": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+      "observation": "观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察"
+     },
+     {
+      "thought": "推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理",
+      "action": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+      "observation": "观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察"
+     },
+     {
+      "thought": "推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理",
+      "action": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+      "observation": "观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察"
+     }
+    ],
+    "after_append": {
+     "len": 6,
+     "turns": [
+      {
+       "thought": "推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理",
+       "action": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+       "observation": "观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察",
+       "compressed": false,
+       "tokens": 167,
+       "render": "想: 推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理\n做: 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀\n见: 观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察"
+      },
+      {
+       "thought": "推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理",
+       "action": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+       "observation": "观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察",
+       "compressed": false,
+       "tokens": 167,
+       "render": "想: 推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理\n做: 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀\n见: 观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察"
+      },
+      {
+       "thought": "推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理",
+       "action": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+       "observation": "观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察",
+       "compressed": false,
+       "tokens": 167,
+       "render": "想: 推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理\n做: 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀\n见: 观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察"
+      },
+      {
+       "thought": "推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理",
+       "action": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+       "observation": "观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察",
+       "compressed": false,
+       "tokens": 167,
+       "render": "想: 推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理\n做: 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀\n见: 观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察"
+      },
+      {
+       "thought": "推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理",
+       "action": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+       "observation": "观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察",
+       "compressed": false,
+       "tokens": 167,
+       "render": "想: 推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理\n做: 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀\n见: 观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察"
+      },
+      {
+       "thought": "推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理",
+       "action": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+       "observation": "观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察",
+       "compressed": false,
+       "tokens": 167,
+       "render": "想: 推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理\n做: 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀\n见: 观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察"
+      }
+     ],
+     "locators": [],
+     "tokens": 1002,
+     "compactions": 0,
+     "render": "想: 推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理\n做: 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀\n见: 观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察\n\n想: 推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理\n做: 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀\n见: 观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察\n\n想: 推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理\n做: 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀\n见: 观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察\n\n想: 推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理\n做: 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀\n见: 观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察\n\n想: 推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理\n做: 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀\n见: 观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察\n\n想: 推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理\n做: 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀\n见: 观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察",
+     "over_budget": [
+      {
+       "threshold": 0.0,
+       "out": true
+      },
+      {
+       "threshold": 0.5,
+       "out": true
+      },
+      {
+       "threshold": 0.7,
+       "out": true
+      },
+      {
+       "threshold": 1.0,
+       "out": true
+      },
+      {
+       "threshold": 2.0,
+       "out": true
+      }
+     ],
+     "digest": [
+      {
+       "max_tokens": 600,
+       "out": {
+        "turns": 6,
+        "summary": "（已压缩 6 轮）动作: 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀 → 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀 → 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀 → 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀 → 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀 → 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀；要点: 观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察；观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察；观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察；观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察",
+        "locators": [],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 200,
+       "out": {
+        "turns": 6,
+        "summary": "（已压缩 6 轮）动作: 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀 → 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀 → 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀 → 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀 → 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀 → 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀；要点: 观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察；观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察",
+        "locators": [],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 60,
+       "out": {
+        "turns": 6,
+        "summary": "（已压缩 6 轮）动作: 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀 → 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀 → 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀 → 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀 → 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀 → 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀；要点: 观察",
+        "locators": [],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 20,
+       "out": {
+        "turns": 6,
+        "summary": "（已压缩 6 轮）动作: 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀 → 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀 → 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+        "locators": [],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 5,
+       "out": {
+        "turns": 6,
+        "summary": "（已压缩 6 轮）动作: 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀 → 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀 → 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+        "locators": [],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 1,
+       "out": {
+        "turns": 6,
+        "summary": "（已压缩 6 轮）动作: 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀 → 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀 → 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+        "locators": [],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 0,
+       "out": {
+        "turns": 6,
+        "summary": "（已压缩 6 轮）动作: 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀 → 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀 → 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+        "locators": [],
+        "compactions": 0
+       }
+      }
+     ]
+    },
+    "steps": [
+     {
+      "op": "compact_to_fit",
+      "args": [
+       0.5
+      ],
+      "ret": 1,
+      "snapshot": {
+       "len": 3,
+       "turns": [
+        {
+         "thought": "",
+         "action": "",
+         "observation": "（已压缩 4 轮）动作: 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀 → 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀 → 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀 → 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀；要点: 观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察；观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察；观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察；观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察",
+         "compressed": true,
+         "tokens": 358,
+         "render": "见: （已压缩 4 轮）动作: 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀 → 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀 → 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀 → 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀；要点: 观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察；观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察；观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察；观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察"
+        },
+        {
+         "thought": "推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理",
+         "action": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+         "observation": "观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察",
+         "compressed": false,
+         "tokens": 167,
+         "render": "想: 推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理\n做: 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀\n见: 观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察"
+        },
+        {
+         "thought": "推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理",
+         "action": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+         "observation": "观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察",
+         "compressed": false,
+         "tokens": 167,
+         "render": "想: 推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理\n做: 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀\n见: 观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察"
+        }
+       ],
+       "locators": [],
+       "tokens": 692,
+       "compactions": 1,
+       "render": "见: （已压缩 4 轮）动作: 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀 → 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀 → 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀 → 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀；要点: 观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察；观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察；观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察；观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察\n\n想: 推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理\n做: 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀\n见: 观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察\n\n想: 推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理推理\n做: 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀\n见: 观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察",
+       "over_budget": [
+        {
+         "threshold": 0.0,
+         "out": true
+        },
+        {
+         "threshold": 0.5,
+         "out": true
+        },
+        {
+         "threshold": 0.7,
+         "out": true
+        },
+        {
+         "threshold": 1.0,
+         "out": true
+        },
+        {
+         "threshold": 2.0,
+         "out": false
+        }
+       ],
+       "digest": [
+        {
+         "max_tokens": 600,
+         "out": {
+          "turns": 3,
+          "summary": "（已压缩 3 轮）动作: 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀 → 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀；要点: （已压缩 4 轮）动作: 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀 → 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀 → 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀 ；观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察；观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察",
+          "locators": [],
+          "compactions": 1
+         }
+        },
+        {
+         "max_tokens": 200,
+         "out": {
+          "turns": 3,
+          "summary": "（已压缩 3 轮）动作: 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀 → 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀；要点: （已压缩 4 轮）动作: 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀 → 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀 → 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀 ；观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察观察；观察观察观察观察观察观察观察观察观察观",
+          "locators": [],
+          "compactions": 1
+         }
+        },
+        {
+         "max_tokens": 60,
+         "out": {
+          "turns": 3,
+          "summary": "（已压缩 3 轮）动作: 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀 → 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀；要点: （已压缩 4 轮）动作: 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀 → 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀 → 😀😀😀",
+          "locators": [],
+          "compactions": 1
+         }
+        },
+        {
+         "max_tokens": 20,
+         "out": {
+          "turns": 3,
+          "summary": "（已压缩 3 轮）动作: 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀 → 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀；要点: （已压缩 4 轮）动作: 😀😀😀😀",
+          "locators": [],
+          "compactions": 1
+         }
+        },
+        {
+         "max_tokens": 5,
+         "out": {
+          "turns": 3,
+          "summary": "（已压缩 3 轮）动作: 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀 → 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀；要点: （已压缩 4 轮）动作: 😀😀😀😀",
+          "locators": [],
+          "compactions": 1
+         }
+        },
+        {
+         "max_tokens": 1,
+         "out": {
+          "turns": 3,
+          "summary": "（已压缩 3 轮）动作: 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀 → 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀；要点: （已压缩 4 轮）动作: 😀😀😀😀",
+          "locators": [],
+          "compactions": 1
+         }
+        },
+        {
+         "max_tokens": 0,
+         "out": {
+          "turns": 3,
+          "summary": "（已压缩 3 轮）动作: 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀 → 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀；要点: （已压缩 4 轮）动作: 😀😀😀😀",
+          "locators": [],
+          "compactions": 1
+         }
+        }
+       ]
+      }
+     }
+    ]
+   },
+   {
+    "name": "threshold 边界：正好等于不算超",
+    "init": {
+     "budget_tokens": 100,
+     "keep_verbatim": 1
+    },
+    "appends": [
+     {
+      "observation": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+     },
+     {
+      "observation": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+     },
+     {
+      "observation": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+     },
+     {
+      "observation": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+     },
+     {
+      "observation": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+     },
+     {
+      "observation": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+     }
+    ],
+    "after_append": {
+     "len": 6,
+     "turns": [
+      {
+       "thought": "",
+       "action": "",
+       "observation": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+       "compressed": false,
+       "tokens": 10,
+       "render": "见: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+       "compressed": false,
+       "tokens": 10,
+       "render": "见: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+       "compressed": false,
+       "tokens": 10,
+       "render": "见: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+       "compressed": false,
+       "tokens": 10,
+       "render": "见: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+       "compressed": false,
+       "tokens": 10,
+       "render": "见: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+      },
+      {
+       "thought": "",
+       "action": "",
+       "observation": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+       "compressed": false,
+       "tokens": 10,
+       "render": "见: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+      }
+     ],
+     "locators": [],
+     "tokens": 60,
+     "compactions": 0,
+     "render": "见: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n\n见: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n\n见: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n\n见: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n\n见: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n\n见: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+     "over_budget": [
+      {
+       "threshold": 0.0,
+       "out": true
+      },
+      {
+       "threshold": 0.5,
+       "out": true
+      },
+      {
+       "threshold": 0.7,
+       "out": false
+      },
+      {
+       "threshold": 1.0,
+       "out": false
+      },
+      {
+       "threshold": 2.0,
+       "out": false
+      }
+     ],
+     "digest": [
+      {
+       "max_tokens": 600,
+       "out": {
+        "turns": 6,
+        "summary": "（已压缩 6 轮）动作: ；要点: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx；xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx；xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx；xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "locators": [],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 200,
+       "out": {
+        "turns": 6,
+        "summary": "（已压缩 6 轮）动作: ；要点: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx；xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx；xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx；xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "locators": [],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 60,
+       "out": {
+        "turns": 6,
+        "summary": "（已压缩 6 轮）动作: ；要点: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx；xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx；xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx；xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "locators": [],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 20,
+       "out": {
+        "turns": 6,
+        "summary": "（已压缩 6 轮）动作: ；要点: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx；xxxxxxxxxxxxxx",
+        "locators": [],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 5,
+       "out": {
+        "turns": 6,
+        "summary": "（已压缩 6 轮）动作: ；要点: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx；xxxxxxxxxxxxxx",
+        "locators": [],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 1,
+       "out": {
+        "turns": 6,
+        "summary": "（已压缩 6 轮）动作: ；要点: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx；xxxxxxxxxxxxxx",
+        "locators": [],
+        "compactions": 0
+       }
+      },
+      {
+       "max_tokens": 0,
+       "out": {
+        "turns": 6,
+        "summary": "（已压缩 6 轮）动作: ；要点: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx；xxxxxxxxxxxxxx",
+        "locators": [],
+        "compactions": 0
+       }
+      }
+     ]
+    },
+    "steps": [
+     {
+      "op": "compact_to_fit",
+      "args": [
+       1.0
+      ],
+      "ret": 0,
+      "snapshot": {
+       "len": 6,
+       "turns": [
+        {
+         "thought": "",
+         "action": "",
+         "observation": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+         "compressed": false,
+         "tokens": 10,
+         "render": "见: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        },
+        {
+         "thought": "",
+         "action": "",
+         "observation": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+         "compressed": false,
+         "tokens": 10,
+         "render": "见: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        },
+        {
+         "thought": "",
+         "action": "",
+         "observation": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+         "compressed": false,
+         "tokens": 10,
+         "render": "见: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        },
+        {
+         "thought": "",
+         "action": "",
+         "observation": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+         "compressed": false,
+         "tokens": 10,
+         "render": "见: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        },
+        {
+         "thought": "",
+         "action": "",
+         "observation": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+         "compressed": false,
+         "tokens": 10,
+         "render": "见: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        },
+        {
+         "thought": "",
+         "action": "",
+         "observation": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+         "compressed": false,
+         "tokens": 10,
+         "render": "见: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        }
+       ],
+       "locators": [],
+       "tokens": 60,
+       "compactions": 0,
+       "render": "见: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n\n见: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n\n见: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n\n见: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n\n见: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n\n见: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+       "over_budget": [
+        {
+         "threshold": 0.0,
+         "out": true
+        },
+        {
+         "threshold": 0.5,
+         "out": true
+        },
+        {
+         "threshold": 0.7,
+         "out": false
+        },
+        {
+         "threshold": 1.0,
+         "out": false
+        },
+        {
+         "threshold": 2.0,
+         "out": false
+        }
+       ],
+       "digest": [
+        {
+         "max_tokens": 600,
+         "out": {
+          "turns": 6,
+          "summary": "（已压缩 6 轮）动作: ；要点: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx；xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx；xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx；xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "locators": [],
+          "compactions": 0
+         }
+        },
+        {
+         "max_tokens": 200,
+         "out": {
+          "turns": 6,
+          "summary": "（已压缩 6 轮）动作: ；要点: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx；xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx；xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx；xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "locators": [],
+          "compactions": 0
+         }
+        },
+        {
+         "max_tokens": 60,
+         "out": {
+          "turns": 6,
+          "summary": "（已压缩 6 轮）动作: ；要点: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx；xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx；xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx；xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "locators": [],
+          "compactions": 0
+         }
+        },
+        {
+         "max_tokens": 20,
+         "out": {
+          "turns": 6,
+          "summary": "（已压缩 6 轮）动作: ；要点: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx；xxxxxxxxxxxxxx",
+          "locators": [],
+          "compactions": 0
+         }
+        },
+        {
+         "max_tokens": 5,
+         "out": {
+          "turns": 6,
+          "summary": "（已压缩 6 轮）动作: ；要点: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx；xxxxxxxxxxxxxx",
+          "locators": [],
+          "compactions": 0
+         }
+        },
+        {
+         "max_tokens": 1,
+         "out": {
+          "turns": 6,
+          "summary": "（已压缩 6 轮）动作: ；要点: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx；xxxxxxxxxxxxxx",
+          "locators": [],
+          "compactions": 0
+         }
+        },
+        {
+         "max_tokens": 0,
+         "out": {
+          "turns": 6,
+          "summary": "（已压缩 6 轮）动作: ；要点: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx；xxxxxxxxxxxxxx",
+          "locators": [],
+          "compactions": 0
+         }
+        }
+       ]
+      }
+     },
+     {
+      "op": "compact_to_fit",
+      "args": [
+       0.1
+      ],
+      "ret": 1,
+      "snapshot": {
+       "len": 2,
+       "turns": [
+        {
+         "thought": "",
+         "action": "",
+         "observation": "（已压缩 5 轮）动作: ；要点: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx；xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx；xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx；xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+         "compressed": true,
+         "tokens": 55,
+         "render": "见: （已压缩 5 轮）动作: ；要点: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx；xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx；xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx；xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        },
+        {
+         "thought": "",
+         "action": "",
+         "observation": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+         "compressed": false,
+         "tokens": 10,
+         "render": "见: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        }
+       ],
+       "locators": [],
+       "tokens": 65,
+       "compactions": 1,
+       "render": "见: （已压缩 5 轮）动作: ；要点: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx；xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx；xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx；xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n\n见: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+       "over_budget": [
+        {
+         "threshold": 0.0,
+         "out": true
+        },
+        {
+         "threshold": 0.5,
+         "out": true
+        },
+        {
+         "threshold": 0.7,
+         "out": false
+        },
+        {
+         "threshold": 1.0,
+         "out": false
+        },
+        {
+         "threshold": 2.0,
+         "out": false
+        }
+       ],
+       "digest": [
+        {
+         "max_tokens": 600,
+         "out": {
+          "turns": 2,
+          "summary": "（已压缩 2 轮）动作: ；要点: （已压缩 5 轮）动作: ；要点: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx；xxxxxxxxxxxxxxxxxxxxx；xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "locators": [],
+          "compactions": 1
+         }
+        },
+        {
+         "max_tokens": 200,
+         "out": {
+          "turns": 2,
+          "summary": "（已压缩 2 轮）动作: ；要点: （已压缩 5 轮）动作: ；要点: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx；xxxxxxxxxxxxxxxxxxxxx；xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "locators": [],
+          "compactions": 1
+         }
+        },
+        {
+         "max_tokens": 60,
+         "out": {
+          "turns": 2,
+          "summary": "（已压缩 2 轮）动作: ；要点: （已压缩 5 轮）动作: ；要点: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx；xxxxxxxxxxxxxxxxxxxxx；xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "locators": [],
+          "compactions": 1
+         }
+        },
+        {
+         "max_tokens": 20,
+         "out": {
+          "turns": 2,
+          "summary": "（已压缩 2 轮）动作: ；要点: （已压缩 5 轮）动作: ；要点: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "locators": [],
+          "compactions": 1
+         }
+        },
+        {
+         "max_tokens": 5,
+         "out": {
+          "turns": 2,
+          "summary": "（已压缩 2 轮）动作: ；要点: （已压缩 5 轮）动作: ；要点: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "locators": [],
+          "compactions": 1
+         }
+        },
+        {
+         "max_tokens": 1,
+         "out": {
+          "turns": 2,
+          "summary": "（已压缩 2 轮）动作: ；要点: （已压缩 5 轮）动作: ；要点: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "locators": [],
+          "compactions": 1
+         }
+        },
+        {
+         "max_tokens": 0,
+         "out": {
+          "turns": 2,
+          "summary": "（已压缩 2 轮）动作: ；要点: （已压缩 5 轮）动作: ；要点: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "locators": [],
+          "compactions": 1
+         }
+        }
+       ]
+      }
+     }
+    ]
+   }
+  ],
+  "working_set": [
+   {
+    "name": "通配 fan-out",
+    "puts": [
+     [
+      "PARSE.xlsx",
+      {
+       "n": 1
+      },
+      null
+     ],
+     [
+      "PARSE.docx",
+      {
+       "n": 2
+      },
+      null
+     ],
+     [
+      "PARSE.ddl",
+      {
+       "n": 3
+      },
+      null
+     ],
+     [
+      "ALIGN",
+      {
+       "n": 4
+      },
+      {
+       "turns": 2
+      }
+     ]
+    ],
+    "outputs": {
+     "PARSE.xlsx": {
+      "n": 1
+     },
+     "PARSE.docx": {
+      "n": 2
+     },
+     "PARSE.ddl": {
+      "n": 3
+     },
+     "ALIGN": {
+      "n": 4
+     }
+    },
+    "digests": {
+     "ALIGN": {
+      "turns": 2
+     }
+    },
+    "output_keys": [
+     "PARSE.xlsx",
+     "PARSE.docx",
+     "PARSE.ddl",
+     "ALIGN"
+    ],
+    "selects": [
+     {
+      "ids": [
+       "PARSE.*"
+      ],
+      "out": {
+       "PARSE.xlsx": {
+        "n": 1
+       },
+       "PARSE.docx": {
+        "n": 2
+       },
+       "PARSE.ddl": {
+        "n": 3
+       }
+      },
+      "keys": [
+       "PARSE.xlsx",
+       "PARSE.docx",
+       "PARSE.ddl"
+      ]
+     },
+     {
+      "ids": [
+       "PARSE.*",
+       "ALIGN"
+      ],
+      "out": {
+       "PARSE.xlsx": {
+        "n": 1
+       },
+       "PARSE.docx": {
+        "n": 2
+       },
+       "PARSE.ddl": {
+        "n": 3
+       },
+       "ALIGN": {
+        "n": 4
+       }
+      },
+      "keys": [
+       "PARSE.xlsx",
+       "PARSE.docx",
+       "PARSE.ddl",
+       "ALIGN"
+      ]
+     },
+     {
+      "ids": [
+       "ALIGN"
+      ],
+      "out": {
+       "ALIGN": {
+        "n": 4
+       }
+      },
+      "keys": [
+       "ALIGN"
+      ]
+     },
+     {
+      "ids": [
+       "NOPE"
+      ],
+      "out": {},
+      "keys": []
+     },
+     {
+      "ids": [
+       "PARSE.xlsx"
+      ],
+      "out": {
+       "PARSE.xlsx": {
+        "n": 1
+       }
+      },
+      "keys": [
+       "PARSE.xlsx"
+      ]
+     },
+     {
+      "ids": [
+       ".*"
+      ],
+      "out": {},
+      "keys": []
+     },
+     {
+      "ids": [
+       "*"
+      ],
+      "out": {},
+      "keys": []
+     },
+     {
+      "ids": [],
+      "out": {},
+      "keys": []
+     }
+    ],
+    "gets": [
+     {
+      "id": "ALIGN",
+      "out": {
+       "n": 4
+      },
+      "default": {
+       "n": 4
+      }
+     },
+     {
+      "id": "NOPE",
+      "out": null,
+      "default": "缺省"
+     }
+    ],
+    "json": "{\"PARSE.xlsx\": {\"n\": 1}, \"PARSE.docx\": {\"n\": 2}, \"PARSE.ddl\": {\"n\": 3}, \"ALIGN\": {\"n\": 4}}",
+    "tokens": 22
+   },
+   {
+    "name": "digest 为假值时不写 digests",
+    "puts": [
+     [
+      "A",
+      1,
+      null
+     ],
+     [
+      "B",
+      2,
+      {}
+     ],
+     [
+      "C",
+      3,
+      {
+       "turns": 0
+      }
+     ]
+    ],
+    "outputs": {
+     "A": 1,
+     "B": 2,
+     "C": 3
+    },
+    "digests": {
+     "C": {
+      "turns": 0
+     }
+    },
+    "output_keys": [
+     "A",
+     "B",
+     "C"
+    ],
+    "selects": [
+     {
+      "ids": [
+       "A",
+       "B",
+       "C"
+      ],
+      "out": {
+       "A": 1,
+       "B": 2,
+       "C": 3
+      },
+      "keys": [
+       "A",
+       "B",
+       "C"
+      ]
+     }
+    ],
+    "gets": [
+     {
+      "id": "A",
+      "out": 1,
+      "default": 1
+     },
+     {
+      "id": "B",
+      "out": 2,
+      "default": 2
+     },
+     {
+      "id": "C",
+      "out": 3,
+      "default": 3
+     }
+    ],
+    "json": "{\"A\": 1, \"B\": 2, \"C\": 3}",
+    "tokens": 6
+   },
+   {
+    "name": "同 key 覆盖",
+    "puts": [
+     [
+      "A",
+      {
+       "v": 1
+      },
+      {
+       "d": 1
+      }
+     ],
+     [
+      "A",
+      {
+       "v": 2
+      },
+      null
+     ]
+    ],
+    "outputs": {
+     "A": {
+      "v": 2
+     }
+    },
+    "digests": {
+     "A": {
+      "d": 1
+     }
+    },
+    "output_keys": [
+     "A"
+    ],
+    "selects": [
+     {
+      "ids": [
+       "A"
+      ],
+      "out": {
+       "A": {
+        "v": 2
+       }
+      },
+      "keys": [
+       "A"
+      ]
+     }
+    ],
+    "gets": [
+     {
+      "id": "A",
+      "out": {
+       "v": 2
+      },
+      "default": {
+       "v": 2
+      }
+     }
+    ],
+    "json": "{\"A\": {\"v\": 2}}",
+    "tokens": 3
+   },
+   {
+    "name": "tokens：中文 + 嵌套 + 小数",
+    "puts": [
+     [
+      "A",
+      {
+       "名称": "采购合同",
+       "行": [
+        1,
+        2,
+        3
+       ],
+       "比例": 0.5
+      },
+      null
+     ],
+     [
+      "B",
+      "纯字符串",
+      null
+     ]
+    ],
+    "outputs": {
+     "A": {
+      "名称": "采购合同",
+      "行": [
+       1,
+       2,
+       3
+      ],
+      "比例": 0.5
+     },
+     "B": "纯字符串"
+    },
+    "digests": {},
+    "output_keys": [
+     "A",
+     "B"
+    ],
+    "selects": [
+     {
+      "ids": [
+       "A",
+       "B"
+      ],
+      "out": {
+       "A": {
+        "名称": "采购合同",
+        "行": [
+         1,
+         2,
+         3
+        ],
+        "比例": 0.5
+       },
+       "B": "纯字符串"
+      },
+      "keys": [
+       "A",
+       "B"
+      ]
+     }
+    ],
+    "gets": [
+     {
+      "id": "A",
+      "out": {
+       "名称": "采购合同",
+       "行": [
+        1,
+        2,
+        3
+       ],
+       "比例": 0.5
+      },
+      "default": {
+       "名称": "采购合同",
+       "行": [
+        1,
+        2,
+        3
+       ],
+       "比例": 0.5
+      }
+     }
+    ],
+    "json": "{\"A\": {\"名称\": \"采购合同\", \"行\": [1, 2, 3], \"比例\": 0.5}, \"B\": \"纯字符串\"}",
+    "tokens": 25
+   },
+   {
+    "name": "tokens：整数值的 float（已知分叉）",
+    "puts": [
+     [
+      "A",
+      {
+       "x": 1.0
+      },
+      null
+     ]
+    ],
+    "outputs": {
+     "A": {
+      "x": 1.0
+     }
+    },
+    "digests": {},
+    "output_keys": [
+     "A"
+    ],
+    "selects": [
+     {
+      "ids": [
+       "A"
+      ],
+      "out": {
+       "A": {
+        "x": 1.0
+       }
+      },
+      "keys": [
+       "A"
+      ]
+     }
+    ],
+    "gets": [
+     {
+      "id": "A",
+      "out": {
+       "x": 1.0
+      },
+      "default": {
+       "x": 1.0
+      }
+     }
+    ],
+    "json": "{\"A\": {\"x\": 1.0}}",
+    "tokens": 4
+   },
+   {
+    "name": "空",
+    "puts": [],
+    "outputs": {},
+    "digests": {},
+    "output_keys": [],
+    "selects": [
+     {
+      "ids": [
+       "PARSE.*"
+      ],
+      "out": {},
+      "keys": []
+     }
+    ],
+    "gets": [
+     {
+      "id": "X",
+      "out": null,
+      "default": "缺省"
+     }
+    ],
+    "json": "{}",
+    "tokens": 1
+   }
+  ]
+ }
+}

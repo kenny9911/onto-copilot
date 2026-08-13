@@ -1,0 +1,1619 @@
+{
+  "blocking": [
+    {
+      "name": "merge",
+      "pairs": [
+        [
+          "ot_a",
+          "ot_b"
+        ]
+      ]
+    },
+    {
+      "name": "election",
+      "pairs": [
+        [
+          "ot_biz",
+          "ot_phys"
+        ]
+      ]
+    },
+    {
+      "name": "not_merged",
+      "pairs": [
+        [
+          "ot_a",
+          "ot_b"
+        ]
+      ]
+    },
+    {
+      "name": "no_structure",
+      "pairs": [
+        [
+          "ot_a",
+          "ot_b"
+        ]
+      ]
+    },
+    {
+      "name": "alias_only",
+      "pairs": [
+        [
+          "ot_a",
+          "ot_b"
+        ]
+      ]
+    },
+    {
+      "name": "transitive",
+      "pairs": [
+        [
+          "ot_a",
+          "ot_b"
+        ],
+        [
+          "ot_a",
+          "ot_c"
+        ],
+        [
+          "ot_b",
+          "ot_c"
+        ]
+      ]
+    },
+    {
+      "name": "repoint",
+      "pairs": [
+        [
+          "ot_a",
+          "ot_b"
+        ]
+      ]
+    },
+    {
+      "name": "nothing_common",
+      "pairs": []
+    },
+    {
+      "name": "thresholds_default",
+      "pairs": [
+        [
+          "ot_a",
+          "ot_b"
+        ]
+      ]
+    },
+    {
+      "name": "thresholds_strict",
+      "pairs": [
+        [
+          "ot_a",
+          "ot_b"
+        ]
+      ]
+    },
+    {
+      "name": "thresholds_loose",
+      "pairs": [
+        [
+          "ot_a",
+          "ot_b"
+        ]
+      ]
+    },
+    {
+      "name": "no_structural_guard_off",
+      "pairs": [
+        [
+          "ot_a",
+          "ot_b"
+        ]
+      ]
+    },
+    {
+      "name": "pk_types",
+      "pairs": [
+        [
+          "ot_a",
+          "ot_b"
+        ]
+      ]
+    },
+    {
+      "name": "single",
+      "pairs": []
+    },
+    {
+      "name": "empty",
+      "pairs": []
+    }
+  ],
+  "scenarios": [
+    {
+      "apply_log": [
+        {
+          "aliases_kept": [
+            "purchasePlanHeader",
+            "采购需求计划"
+          ],
+          "into": "ot_a",
+          "merged": "ot_b"
+        }
+      ],
+      "name": "merge",
+      "oir_after": {
+        "actions": [],
+        "links": [],
+        "objects": [
+          {
+            "aliases": [
+              "purchasePlanHeader",
+              "采购需求计划"
+            ],
+            "apiName": "pbpHeader",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "displayName": "采购业务计划头",
+            "properties": [
+              "p1",
+              "p2",
+              "p3",
+              "p4"
+            ],
+            "rid": "ot_a"
+          }
+        ],
+        "properties": [
+          {
+            "apiName": "planId",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "definition": "",
+            "parent": "ot_a",
+            "rid": "p1"
+          },
+          {
+            "apiName": "planAmount",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "definition": "",
+            "parent": "ot_a",
+            "rid": "p2"
+          },
+          {
+            "apiName": "planId",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "definition": "",
+            "parent": "ot_a",
+            "rid": "p3"
+          },
+          {
+            "apiName": "planAmount",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "definition": "",
+            "parent": "ot_a",
+            "rid": "p4"
+          }
+        ]
+      },
+      "policy": null,
+      "result": {
+        "clusters": [
+          [
+            "ot_a",
+            "ot_b"
+          ]
+        ],
+        "merged": [
+          [
+            "ot_b",
+            "ot_a"
+          ]
+        ],
+        "scores": [
+          {
+            "a": "ot_a",
+            "alias": true,
+            "b": "ot_b",
+            "name": 0.533,
+            "reasons": [
+              "共享词元 ['计划', '采购']",
+              "别名重合 ['pbpheader']",
+              "字段重叠 2/2"
+            ],
+            "structure": 1.0,
+            "total": 1.087
+          }
+        ],
+        "summary": {
+          "candidates_scored": 1,
+          "clusters": 1,
+          "merged_away": 1,
+          "uncertain_pairs": 0
+        },
+        "uncertain": []
+      }
+    },
+    {
+      "apply_log": [
+        {
+          "aliases_kept": [
+            "purchasePlan",
+            "采购计划"
+          ],
+          "into": "ot_phys",
+          "merged": "ot_biz"
+        }
+      ],
+      "name": "election",
+      "oir_after": {
+        "actions": [],
+        "links": [],
+        "objects": [
+          {
+            "aliases": [
+              "purchasePlan",
+              "采购计划"
+            ],
+            "apiName": "pbpHeader",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "displayName": "采购业务计划头",
+            "properties": [
+              "p2",
+              "p4",
+              "p1",
+              "p3"
+            ],
+            "rid": "ot_phys"
+          }
+        ],
+        "properties": [
+          {
+            "apiName": "planId",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "definition": "",
+            "parent": "ot_phys",
+            "rid": "p1"
+          },
+          {
+            "apiName": "planId",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "definition": "",
+            "parent": "ot_phys",
+            "rid": "p2"
+          },
+          {
+            "apiName": "planAmount",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "definition": "",
+            "parent": "ot_phys",
+            "rid": "p3"
+          },
+          {
+            "apiName": "planAmount",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "definition": "",
+            "parent": "ot_phys",
+            "rid": "p4"
+          }
+        ]
+      },
+      "policy": null,
+      "result": {
+        "clusters": [
+          [
+            "ot_biz",
+            "ot_phys"
+          ]
+        ],
+        "merged": [
+          [
+            "ot_phys",
+            "ot_biz"
+          ]
+        ],
+        "scores": [
+          {
+            "a": "ot_biz",
+            "alias": false,
+            "b": "ot_phys",
+            "name": 0.2,
+            "reasons": [
+              "共享词元 ['计划', '采购']",
+              "字段重叠 2/2"
+            ],
+            "structure": 1.0,
+            "total": 0.72
+          }
+        ],
+        "summary": {
+          "candidates_scored": 1,
+          "clusters": 1,
+          "merged_away": 1,
+          "uncertain_pairs": 0
+        },
+        "uncertain": []
+      }
+    },
+    {
+      "apply_log": [],
+      "name": "not_merged",
+      "oir_after": {
+        "actions": [],
+        "links": [],
+        "objects": [
+          {
+            "aliases": [],
+            "apiName": "purchasePlan",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "displayName": "采购计划",
+            "properties": [
+              "p1",
+              "p2"
+            ],
+            "rid": "ot_a"
+          },
+          {
+            "aliases": [],
+            "apiName": "purchasePlanTemplate",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "displayName": "采购计划模板",
+            "properties": [
+              "p3",
+              "p4"
+            ],
+            "rid": "ot_b"
+          }
+        ],
+        "properties": [
+          {
+            "apiName": "planId",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "definition": "",
+            "parent": "ot_a",
+            "rid": "p1"
+          },
+          {
+            "apiName": "planAmount",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "definition": "",
+            "parent": "ot_a",
+            "rid": "p2"
+          },
+          {
+            "apiName": "templateId",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "definition": "",
+            "parent": "ot_b",
+            "rid": "p3"
+          },
+          {
+            "apiName": "layoutJson",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "definition": "",
+            "parent": "ot_b",
+            "rid": "p4"
+          }
+        ]
+      },
+      "policy": null,
+      "result": {
+        "clusters": [
+          [
+            "ot_a"
+          ],
+          [
+            "ot_b"
+          ]
+        ],
+        "merged": [],
+        "scores": [
+          {
+            "a": "ot_a",
+            "alias": false,
+            "b": "ot_b",
+            "name": 0.675,
+            "reasons": [
+              "共享词元 ['plan', 'purchase', '计划', '购计', '采购']",
+              "字段集合无交集，无结构证据",
+              "字段重叠 0/2"
+            ],
+            "structure": 0.0,
+            "total": 0.236
+          }
+        ],
+        "summary": {
+          "candidates_scored": 1,
+          "clusters": 2,
+          "merged_away": 0,
+          "uncertain_pairs": 0
+        },
+        "uncertain": []
+      }
+    },
+    {
+      "apply_log": [],
+      "name": "no_structure",
+      "oir_after": {
+        "actions": [],
+        "links": [],
+        "objects": [
+          {
+            "aliases": [],
+            "apiName": "purchasePlan",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "displayName": "采购计划",
+            "properties": [],
+            "rid": "ot_a"
+          },
+          {
+            "aliases": [],
+            "apiName": "purchasePlan",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "displayName": "采购计划",
+            "properties": [],
+            "rid": "ot_b"
+          }
+        ],
+        "properties": []
+      },
+      "policy": null,
+      "result": {
+        "clusters": [
+          [
+            "ot_a"
+          ],
+          [
+            "ot_b"
+          ]
+        ],
+        "merged": [],
+        "scores": [
+          {
+            "a": "ot_a",
+            "alias": true,
+            "b": "ot_b",
+            "name": 1.0,
+            "reasons": [
+              "共享词元 ['plan', 'purchase', '计划', '购计', '采购']",
+              "别名重合 ['purchaseplan', '采购计划']",
+              "至少一边没有属性，无结构证据"
+            ],
+            "structure": 0.0,
+            "total": 0.6
+          }
+        ],
+        "summary": {
+          "candidates_scored": 1,
+          "clusters": 2,
+          "merged_away": 0,
+          "uncertain_pairs": 1
+        },
+        "uncertain": [
+          {
+            "a": "ot_a",
+            "alias": true,
+            "b": "ot_b",
+            "name": 1.0,
+            "reasons": [
+              "共享词元 ['plan', 'purchase', '计划', '购计', '采购']",
+              "别名重合 ['purchaseplan', '采购计划']",
+              "至少一边没有属性，无结构证据"
+            ],
+            "structure": 0.0,
+            "total": 0.6
+          }
+        ]
+      }
+    },
+    {
+      "apply_log": [],
+      "name": "alias_only",
+      "oir_after": {
+        "actions": [],
+        "links": [],
+        "objects": [
+          {
+            "aliases": [],
+            "apiName": "pbpHeader",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "displayName": "采购业务计划头",
+            "properties": [],
+            "rid": "ot_a"
+          },
+          {
+            "aliases": [
+              "pbpHeader"
+            ],
+            "apiName": "purchasePlanHeader",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "displayName": "采购需求计划",
+            "properties": [],
+            "rid": "ot_b"
+          }
+        ],
+        "properties": []
+      },
+      "policy": null,
+      "result": {
+        "clusters": [
+          [
+            "ot_a"
+          ],
+          [
+            "ot_b"
+          ]
+        ],
+        "merged": [],
+        "scores": [
+          {
+            "a": "ot_a",
+            "alias": true,
+            "b": "ot_b",
+            "name": 0.533,
+            "reasons": [
+              "共享词元 ['计划', '采购']",
+              "别名重合 ['pbpheader']",
+              "至少一边没有属性，无结构证据"
+            ],
+            "structure": 0.0,
+            "total": 0.437
+          }
+        ],
+        "summary": {
+          "candidates_scored": 1,
+          "clusters": 2,
+          "merged_away": 0,
+          "uncertain_pairs": 0
+        },
+        "uncertain": []
+      }
+    },
+    {
+      "apply_log": [
+        {
+          "aliases_kept": [
+            "purchasePlanHeader"
+          ],
+          "into": "ot_a",
+          "merged": "ot_b"
+        },
+        {
+          "aliases_kept": [
+            "purchasePlanHeader",
+            "planHeader"
+          ],
+          "into": "ot_a",
+          "merged": "ot_c"
+        }
+      ],
+      "name": "transitive",
+      "oir_after": {
+        "actions": [],
+        "links": [],
+        "objects": [
+          {
+            "aliases": [
+              "purchasePlanHeader",
+              "planHeader"
+            ],
+            "apiName": "pbpHeader",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "displayName": "采购计划头",
+            "properties": [
+              "ot_a_planId",
+              "ot_a_planAmount",
+              "ot_a_planName",
+              "ot_b_planId",
+              "ot_b_planAmount",
+              "ot_b_planName",
+              "ot_c_planId",
+              "ot_c_planAmount",
+              "ot_c_planName"
+            ],
+            "rid": "ot_a"
+          }
+        ],
+        "properties": [
+          {
+            "apiName": "planId",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "definition": "",
+            "parent": "ot_a",
+            "rid": "ot_a_planId"
+          },
+          {
+            "apiName": "planAmount",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "definition": "",
+            "parent": "ot_a",
+            "rid": "ot_a_planAmount"
+          },
+          {
+            "apiName": "planName",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "definition": "",
+            "parent": "ot_a",
+            "rid": "ot_a_planName"
+          },
+          {
+            "apiName": "planId",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "definition": "",
+            "parent": "ot_a",
+            "rid": "ot_b_planId"
+          },
+          {
+            "apiName": "planAmount",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "definition": "",
+            "parent": "ot_a",
+            "rid": "ot_b_planAmount"
+          },
+          {
+            "apiName": "planName",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "definition": "",
+            "parent": "ot_a",
+            "rid": "ot_b_planName"
+          },
+          {
+            "apiName": "planId",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "definition": "",
+            "parent": "ot_a",
+            "rid": "ot_c_planId"
+          },
+          {
+            "apiName": "planAmount",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "definition": "",
+            "parent": "ot_a",
+            "rid": "ot_c_planAmount"
+          },
+          {
+            "apiName": "planName",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "definition": "",
+            "parent": "ot_a",
+            "rid": "ot_c_planName"
+          }
+        ]
+      },
+      "policy": null,
+      "result": {
+        "clusters": [
+          [
+            "ot_a",
+            "ot_b",
+            "ot_c"
+          ]
+        ],
+        "merged": [
+          [
+            "ot_b",
+            "ot_a"
+          ],
+          [
+            "ot_c",
+            "ot_a"
+          ]
+        ],
+        "scores": [
+          {
+            "a": "ot_a",
+            "alias": true,
+            "b": "ot_b",
+            "name": 0.571,
+            "reasons": [
+              "共享词元 ['划头', '计划', '购计', '采购']",
+              "别名重合 ['采购计划头']",
+              "字段重叠 3/3"
+            ],
+            "structure": 1.0,
+            "total": 1.1
+          },
+          {
+            "a": "ot_a",
+            "alias": true,
+            "b": "ot_c",
+            "name": 0.667,
+            "reasons": [
+              "共享词元 ['划头', '计划', '购计', '采购']",
+              "别名重合 ['采购计划头']",
+              "字段重叠 3/3"
+            ],
+            "structure": 1.0,
+            "total": 1.133
+          },
+          {
+            "a": "ot_b",
+            "alias": true,
+            "b": "ot_c",
+            "name": 0.833,
+            "reasons": [
+              "共享词元 ['plan', '划头', '计划', '购计', '采购']",
+              "别名重合 ['采购计划头']",
+              "字段重叠 3/3"
+            ],
+            "structure": 1.0,
+            "total": 1.192
+          }
+        ],
+        "summary": {
+          "candidates_scored": 3,
+          "clusters": 1,
+          "merged_away": 2,
+          "uncertain_pairs": 0
+        },
+        "uncertain": []
+      }
+    },
+    {
+      "apply_log": [
+        {
+          "aliases_kept": [
+            "purchasePlanHeader"
+          ],
+          "into": "ot_a",
+          "merged": "ot_b"
+        }
+      ],
+      "name": "repoint",
+      "oir_after": {
+        "actions": [
+          {
+            "apiName": "submitPlan",
+            "apiNameOrigin": "extracted",
+            "appliesTo": [
+              "ot_a",
+              "ot_c"
+            ],
+            "rid": "at"
+          }
+        ],
+        "links": [
+          {
+            "apiName": "planContracts",
+            "conflicts": [],
+            "from": "ot_a",
+            "rid": "lt",
+            "to": "ot_c"
+          }
+        ],
+        "objects": [
+          {
+            "aliases": [
+              "purchasePlanHeader"
+            ],
+            "apiName": "pbpHeader",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "displayName": "计划头",
+            "properties": [
+              "p1",
+              "p3",
+              "p2",
+              "p4"
+            ],
+            "rid": "ot_a"
+          },
+          {
+            "aliases": [],
+            "apiName": "clmContract",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "displayName": "采购合同",
+            "properties": [
+              "p5"
+            ],
+            "rid": "ot_c"
+          }
+        ],
+        "properties": [
+          {
+            "apiName": "planId",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "definition": "",
+            "parent": "ot_a",
+            "rid": "p1"
+          },
+          {
+            "apiName": "planId",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "definition": "",
+            "parent": "ot_a",
+            "rid": "p2"
+          },
+          {
+            "apiName": "planAmount",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "definition": "",
+            "parent": "ot_a",
+            "rid": "p3"
+          },
+          {
+            "apiName": "planAmount",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "definition": "",
+            "parent": "ot_a",
+            "rid": "p4"
+          },
+          {
+            "apiName": "contractId",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "definition": "",
+            "parent": "ot_c",
+            "rid": "p5"
+          }
+        ]
+      },
+      "policy": null,
+      "result": {
+        "clusters": [
+          [
+            "ot_a",
+            "ot_b"
+          ],
+          [
+            "ot_c"
+          ]
+        ],
+        "merged": [
+          [
+            "ot_b",
+            "ot_a"
+          ]
+        ],
+        "scores": [
+          {
+            "a": "ot_a",
+            "alias": true,
+            "b": "ot_b",
+            "name": 0.533,
+            "reasons": [
+              "共享词元 ['划头', '计划']",
+              "别名重合 ['计划头']",
+              "字段重叠 2/2"
+            ],
+            "structure": 1.0,
+            "total": 1.087
+          }
+        ],
+        "summary": {
+          "candidates_scored": 1,
+          "clusters": 2,
+          "merged_away": 1,
+          "uncertain_pairs": 0
+        },
+        "uncertain": []
+      }
+    },
+    {
+      "apply_log": [],
+      "name": "nothing_common",
+      "oir_after": {
+        "actions": [],
+        "links": [],
+        "objects": [
+          {
+            "aliases": [],
+            "apiName": "purchasePlan",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "displayName": "purchasePlan",
+            "properties": [],
+            "rid": "ot_a"
+          },
+          {
+            "aliases": [],
+            "apiName": "supplierBank",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "displayName": "supplierBank",
+            "properties": [],
+            "rid": "ot_b"
+          },
+          {
+            "aliases": [],
+            "apiName": "taxCode",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "displayName": "taxCode",
+            "properties": [],
+            "rid": "ot_c"
+          }
+        ],
+        "properties": []
+      },
+      "policy": null,
+      "result": {
+        "clusters": [
+          [
+            "ot_a"
+          ],
+          [
+            "ot_b"
+          ],
+          [
+            "ot_c"
+          ]
+        ],
+        "merged": [],
+        "scores": [],
+        "summary": {
+          "candidates_scored": 0,
+          "clusters": 3,
+          "merged_away": 0,
+          "uncertain_pairs": 0
+        },
+        "uncertain": []
+      }
+    },
+    {
+      "apply_log": [
+        {
+          "aliases_kept": [
+            "purchasePlan",
+            "采购计划"
+          ],
+          "into": "ot_b",
+          "merged": "ot_a"
+        }
+      ],
+      "name": "thresholds_default",
+      "oir_after": {
+        "actions": [],
+        "links": [],
+        "objects": [
+          {
+            "aliases": [
+              "purchasePlan",
+              "采购计划"
+            ],
+            "apiName": "purchasePlanV2",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "displayName": "采购计划V2",
+            "properties": [
+              "p2",
+              "p1"
+            ],
+            "rid": "ot_b"
+          }
+        ],
+        "properties": [
+          {
+            "apiName": "planId",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "definition": "",
+            "parent": "ot_b",
+            "rid": "p1"
+          },
+          {
+            "apiName": "planId",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "definition": "",
+            "parent": "ot_b",
+            "rid": "p2"
+          }
+        ]
+      },
+      "policy": null,
+      "result": {
+        "clusters": [
+          [
+            "ot_a",
+            "ot_b"
+          ]
+        ],
+        "merged": [
+          [
+            "ot_b",
+            "ot_a"
+          ]
+        ],
+        "scores": [
+          {
+            "a": "ot_a",
+            "alias": false,
+            "b": "ot_b",
+            "name": 0.833,
+            "reasons": [
+              "共享词元 ['plan', 'purchase', '计划', '购计', '采购']",
+              "字段重叠 1/1"
+            ],
+            "structure": 1.0,
+            "total": 0.942
+          }
+        ],
+        "summary": {
+          "candidates_scored": 1,
+          "clusters": 1,
+          "merged_away": 1,
+          "uncertain_pairs": 0
+        },
+        "uncertain": []
+      }
+    },
+    {
+      "apply_log": [],
+      "name": "thresholds_strict",
+      "oir_after": {
+        "actions": [],
+        "links": [],
+        "objects": [
+          {
+            "aliases": [],
+            "apiName": "purchasePlan",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "displayName": "采购计划",
+            "properties": [
+              "p1"
+            ],
+            "rid": "ot_a"
+          },
+          {
+            "aliases": [],
+            "apiName": "purchasePlanV2",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "displayName": "采购计划V2",
+            "properties": [
+              "p2"
+            ],
+            "rid": "ot_b"
+          }
+        ],
+        "properties": [
+          {
+            "apiName": "planId",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "definition": "",
+            "parent": "ot_a",
+            "rid": "p1"
+          },
+          {
+            "apiName": "planId",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "definition": "",
+            "parent": "ot_b",
+            "rid": "p2"
+          }
+        ]
+      },
+      "policy": {
+        "merge_at": 0.99,
+        "require_structural": true,
+        "review_at": 0.45
+      },
+      "result": {
+        "clusters": [
+          [
+            "ot_a"
+          ],
+          [
+            "ot_b"
+          ]
+        ],
+        "merged": [],
+        "scores": [
+          {
+            "a": "ot_a",
+            "alias": false,
+            "b": "ot_b",
+            "name": 0.833,
+            "reasons": [
+              "共享词元 ['plan', 'purchase', '计划', '购计', '采购']",
+              "字段重叠 1/1"
+            ],
+            "structure": 1.0,
+            "total": 0.942
+          }
+        ],
+        "summary": {
+          "candidates_scored": 1,
+          "clusters": 2,
+          "merged_away": 0,
+          "uncertain_pairs": 1
+        },
+        "uncertain": [
+          {
+            "a": "ot_a",
+            "alias": false,
+            "b": "ot_b",
+            "name": 0.833,
+            "reasons": [
+              "共享词元 ['plan', 'purchase', '计划', '购计', '采购']",
+              "字段重叠 1/1"
+            ],
+            "structure": 1.0,
+            "total": 0.942
+          }
+        ]
+      }
+    },
+    {
+      "apply_log": [
+        {
+          "aliases_kept": [
+            "purchasePlan",
+            "采购计划"
+          ],
+          "into": "ot_b",
+          "merged": "ot_a"
+        }
+      ],
+      "name": "thresholds_loose",
+      "oir_after": {
+        "actions": [],
+        "links": [],
+        "objects": [
+          {
+            "aliases": [
+              "purchasePlan",
+              "采购计划"
+            ],
+            "apiName": "purchasePlanV2",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "displayName": "采购计划V2",
+            "properties": [
+              "p2",
+              "p1"
+            ],
+            "rid": "ot_b"
+          }
+        ],
+        "properties": [
+          {
+            "apiName": "planId",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "definition": "",
+            "parent": "ot_b",
+            "rid": "p1"
+          },
+          {
+            "apiName": "planId",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "definition": "",
+            "parent": "ot_b",
+            "rid": "p2"
+          }
+        ]
+      },
+      "policy": {
+        "merge_at": 0.3,
+        "require_structural": true,
+        "review_at": 0.45
+      },
+      "result": {
+        "clusters": [
+          [
+            "ot_a",
+            "ot_b"
+          ]
+        ],
+        "merged": [
+          [
+            "ot_b",
+            "ot_a"
+          ]
+        ],
+        "scores": [
+          {
+            "a": "ot_a",
+            "alias": false,
+            "b": "ot_b",
+            "name": 0.833,
+            "reasons": [
+              "共享词元 ['plan', 'purchase', '计划', '购计', '采购']",
+              "字段重叠 1/1"
+            ],
+            "structure": 1.0,
+            "total": 0.942
+          }
+        ],
+        "summary": {
+          "candidates_scored": 1,
+          "clusters": 1,
+          "merged_away": 1,
+          "uncertain_pairs": 0
+        },
+        "uncertain": []
+      }
+    },
+    {
+      "apply_log": [
+        {
+          "aliases_kept": [],
+          "into": "ot_b",
+          "merged": "ot_a"
+        }
+      ],
+      "name": "no_structural_guard_off",
+      "oir_after": {
+        "actions": [],
+        "links": [],
+        "objects": [
+          {
+            "aliases": [],
+            "apiName": "purchasePlan",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "displayName": "采购计划",
+            "properties": [],
+            "rid": "ot_b"
+          }
+        ],
+        "properties": []
+      },
+      "policy": {
+        "merge_at": 0.5,
+        "require_structural": false,
+        "review_at": 0.45
+      },
+      "result": {
+        "clusters": [
+          [
+            "ot_a",
+            "ot_b"
+          ]
+        ],
+        "merged": [
+          [
+            "ot_b",
+            "ot_a"
+          ]
+        ],
+        "scores": [
+          {
+            "a": "ot_a",
+            "alias": true,
+            "b": "ot_b",
+            "name": 1.0,
+            "reasons": [
+              "共享词元 ['plan', 'purchase', '计划', '购计', '采购']",
+              "别名重合 ['purchaseplan', '采购计划']",
+              "至少一边没有属性，无结构证据"
+            ],
+            "structure": 0.0,
+            "total": 0.6
+          }
+        ],
+        "summary": {
+          "candidates_scored": 1,
+          "clusters": 1,
+          "merged_away": 1,
+          "uncertain_pairs": 0
+        },
+        "uncertain": []
+      }
+    },
+    {
+      "apply_log": [
+        {
+          "aliases_kept": [
+            "purchasePlanHeader"
+          ],
+          "into": "ot_a",
+          "merged": "ot_b"
+        }
+      ],
+      "name": "pk_types",
+      "oir_after": {
+        "actions": [],
+        "links": [],
+        "objects": [
+          {
+            "aliases": [
+              "purchasePlanHeader"
+            ],
+            "apiName": "pbpHeader",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "displayName": "计划头",
+            "properties": [
+              "p1",
+              "p2"
+            ],
+            "rid": "ot_a"
+          }
+        ],
+        "properties": [
+          {
+            "apiName": "planId",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "definition": "",
+            "parent": "ot_a",
+            "rid": "p1"
+          },
+          {
+            "apiName": "planId",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "definition": "",
+            "parent": "ot_a",
+            "rid": "p2"
+          }
+        ]
+      },
+      "policy": null,
+      "result": {
+        "clusters": [
+          [
+            "ot_a",
+            "ot_b"
+          ]
+        ],
+        "merged": [
+          [
+            "ot_b",
+            "ot_a"
+          ]
+        ],
+        "scores": [
+          {
+            "a": "ot_a",
+            "alias": true,
+            "b": "ot_b",
+            "name": 0.533,
+            "reasons": [
+              "共享词元 ['划头', '计划']",
+              "别名重合 ['计划头']",
+              "字段重叠 1/1",
+              "主键类型一致"
+            ],
+            "structure": 1.0,
+            "total": 1.087
+          }
+        ],
+        "summary": {
+          "candidates_scored": 1,
+          "clusters": 1,
+          "merged_away": 1,
+          "uncertain_pairs": 0
+        },
+        "uncertain": []
+      }
+    },
+    {
+      "apply_log": [],
+      "name": "single",
+      "oir_after": {
+        "actions": [],
+        "links": [],
+        "objects": [
+          {
+            "aliases": [],
+            "apiName": "purchasePlan",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "displayName": "采购计划",
+            "properties": [],
+            "rid": "ot_only"
+          }
+        ],
+        "properties": []
+      },
+      "policy": null,
+      "result": {
+        "clusters": [
+          [
+            "ot_only"
+          ]
+        ],
+        "merged": [],
+        "scores": [],
+        "summary": {
+          "candidates_scored": 0,
+          "clusters": 1,
+          "merged_away": 0,
+          "uncertain_pairs": 0
+        },
+        "uncertain": []
+      }
+    },
+    {
+      "apply_log": [],
+      "name": "empty",
+      "oir_after": {
+        "actions": [],
+        "links": [],
+        "objects": [],
+        "properties": []
+      },
+      "policy": null,
+      "result": {
+        "clusters": [],
+        "merged": [],
+        "scores": [],
+        "summary": {
+          "candidates_scored": 0,
+          "clusters": 0,
+          "merged_away": 0,
+          "uncertain_pairs": 0
+        },
+        "uncertain": []
+      }
+    }
+  ],
+  "tokens": [
+    {
+      "in": "",
+      "out": []
+    },
+    {
+      "in": "purchasePlanHeader",
+      "out": [
+        "plan",
+        "purchase"
+      ]
+    },
+    {
+      "in": "plan_amount",
+      "out": [
+        "amount",
+        "plan"
+      ]
+    },
+    {
+      "in": "头",
+      "out": [
+        "头"
+      ]
+    },
+    {
+      "in": "采购计划头",
+      "out": [
+        "划头",
+        "计划",
+        "购计",
+        "采购"
+      ]
+    },
+    {
+      "in": "采购计划",
+      "out": [
+        "计划",
+        "购计",
+        "采购"
+      ]
+    },
+    {
+      "in": "pbpHeader",
+      "out": [
+        "pbp"
+      ]
+    },
+    {
+      "in": "pbp_header",
+      "out": [
+        "pbp"
+      ]
+    },
+    {
+      "in": "PurchasePlan",
+      "out": [
+        "plan",
+        "purchase"
+      ]
+    },
+    {
+      "in": "purchase plan/header",
+      "out": [
+        "plan",
+        "purchase"
+      ]
+    },
+    {
+      "in": "采购需求计划",
+      "out": [
+        "求计",
+        "计划",
+        "购需",
+        "采购",
+        "需求"
+      ]
+    },
+    {
+      "in": "明细行",
+      "out": [
+        "细行"
+      ]
+    },
+    {
+      "in": "clmContract",
+      "out": [
+        "clm",
+        "contract"
+      ]
+    },
+    {
+      "in": "a",
+      "out": []
+    },
+    {
+      "in": "ab",
+      "out": [
+        "ab"
+      ]
+    },
+    {
+      "in": "abc",
+      "out": [
+        "abc"
+      ]
+    },
+    {
+      "in": "采购计划-Header",
+      "out": [
+        "计划",
+        "购计",
+        "采购"
+      ]
+    },
+    {
+      "in": "订单Line明细",
+      "out": [
+        "订单"
+      ]
+    },
+    {
+      "in": "PO",
+      "out": [
+        "po"
+      ]
+    },
+    {
+      "in": "计划金额Amount",
+      "out": [
+        "amount",
+        "划金",
+        "计划",
+        "金额"
+      ]
+    }
+  ]
+}

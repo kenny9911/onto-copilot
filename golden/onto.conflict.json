@@ -1,0 +1,5777 @@
+{
+  "axes": {
+    "axis_ambiguities": [
+      {
+        "in": "",
+        "out": []
+      },
+      {
+        "in": "含税，年度累计，CNY",
+        "out": []
+      },
+      {
+        "in": "不含税，单次，CNY",
+        "out": []
+      },
+      {
+        "in": "不含税·单次·CNY",
+        "out": []
+      },
+      {
+        "in": "金额",
+        "out": []
+      },
+      {
+        "in": "计划金额。口径：含税，年度累计，CNY（Excel 批注 R5-5 与 DDL 注释 pbp_header.plan_amount '含税·年度累计·CNY' 一致）。注意与 clmContract.planAmount 在税轴(含税/不含税)、时间粒度轴(年度累计/单次)上口径不同，两处均保留，交业务方拍板",
+        "out": []
+      },
+      {
+        "in": "计划金额。口径：不含税，单次，CNY（Excel 批注 R8-8 与 DDL 注释 clm_contract.plan_amount '不含税·单次·CNY' 一致）。注意与 pbpHeader.planAmount 在税轴(含税/不含税)、时间粒度轴(年度累计/单次)上口径不同，两处均保留，交业务方拍板",
+        "out": []
+      },
+      {
+        "in": "计划金额。口径（Excel 批注）：含税，年度累计，CNY；DDL 注释一致",
+        "out": []
+      },
+      {
+        "in": "计划金额，含税/不含税两种口径都在用",
+        "out": [
+          "税"
+        ]
+      },
+      {
+        "in": "口径：未税，月度，USD",
+        "out": []
+      },
+      {
+        "in": "口径:价税合计，全年，人民币，预算",
+        "out": []
+      },
+      {
+        "in": "定义：净额结算，per_time，实际执行，美元",
+        "out": [
+          "币种"
+        ]
+      },
+      {
+        "in": "定义:annual budget net amount",
+        "out": []
+      },
+      {
+        "in": "本次采购的计划金额，指含税总价",
+        "out": []
+      },
+      {
+        "in": "计划金额按不含税口径统计",
+        "out": []
+      },
+      {
+        "in": "计划金额取工艺路线上首道工序的产能上限",
+        "out": []
+      },
+      {
+        "in": "计划金额取末道工序的产能下限",
+        "out": []
+      },
+      {
+        "in": "含税总价",
+        "out": []
+      },
+      {
+        "in": "  含税，年度累计。  ",
+        "out": []
+      },
+      {
+        "in": "注意：含税",
+        "out": []
+      },
+      {
+        "in": "（含税）年度累计",
+        "out": []
+      },
+      {
+        "in": "参见附件，含税",
+        "out": []
+      },
+      {
+        "in": "含税，年度累计。注意与合同域在税轴(含税/不含税)上不同",
+        "out": []
+      },
+      {
+        "in": "monthly net per time actual USD",
+        "out": [
+          "时间粒度"
+        ]
+      },
+      {
+        "in": "净额net",
+        "out": []
+      },
+      {
+        "in": "a net b",
+        "out": []
+      },
+      {
+        "in": "netto",
+        "out": []
+      },
+      {
+        "in": "_net_",
+        "out": []
+      },
+      {
+        "in": "NET",
+        "out": []
+      },
+      {
+        "in": "单元格",
+        "out": []
+      }
+    ],
+    "axis_diff": [
+      {
+        "a": "含税，年度累计",
+        "b": "不含税，单次",
+        "out": [
+          [
+            "时间粒度",
+            [
+              "年度累计",
+              "单次"
+            ]
+          ],
+          [
+            "税",
+            [
+              "含税",
+              "不含税"
+            ]
+          ]
+        ]
+      },
+      {
+        "a": "含税，年度累计",
+        "b": "金额",
+        "out": []
+      },
+      {
+        "a": "计划金额。口径：含税，年度累计，CNY（Excel 批注 R5-5 与 DDL 注释 pbp_header.plan_amount '含税·年度累计·CNY' 一致）。注意与 clmContract.planAmount 在税轴(含税/不含税)、时间粒度轴(年度累计/单次)上口径不同，两处均保留，交业务方拍板",
+        "b": "计划金额。口径：不含税，单次，CNY（Excel 批注 R8-8 与 DDL 注释 clm_contract.plan_amount '不含税·单次·CNY' 一致）。注意与 pbpHeader.planAmount 在税轴(含税/不含税)、时间粒度轴(年度累计/单次)上口径不同，两处均保留，交业务方拍板",
+        "out": [
+          [
+            "时间粒度",
+            [
+              "年度累计",
+              "单次"
+            ]
+          ],
+          [
+            "税",
+            [
+              "含税",
+              "不含税"
+            ]
+          ]
+        ]
+      },
+      {
+        "a": "含税，年度累计，CNY",
+        "b": "不含税，单次，CNY",
+        "out": [
+          [
+            "时间粒度",
+            [
+              "年度累计",
+              "单次"
+            ]
+          ],
+          [
+            "税",
+            [
+              "含税",
+              "不含税"
+            ]
+          ]
+        ]
+      },
+      {
+        "a": "本次采购的计划金额，指含税总价",
+        "b": "计划金额按不含税口径统计",
+        "out": [
+          [
+            "税",
+            [
+              "含税",
+              "不含税"
+            ]
+          ]
+        ]
+      },
+      {
+        "a": "口径：未税，月度，USD",
+        "b": "口径:价税合计，全年，人民币，预算",
+        "out": [
+          [
+            "币种",
+            [
+              "USD",
+              "CNY"
+            ]
+          ],
+          [
+            "时间粒度",
+            [
+              "月度",
+              "年度累计"
+            ]
+          ],
+          [
+            "税",
+            [
+              "不含税",
+              "含税"
+            ]
+          ]
+        ]
+      },
+      {
+        "a": "",
+        "b": "",
+        "out": []
+      },
+      {
+        "a": "含税总价",
+        "b": "含税总价",
+        "out": []
+      },
+      {
+        "a": "计划金额取工艺路线上首道工序的产能上限",
+        "b": "计划金额取末道工序的产能下限",
+        "out": []
+      }
+    ],
+    "canonical_axes": [
+      {
+        "in": "",
+        "out": "∅"
+      },
+      {
+        "in": "含税，年度累计，CNY",
+        "out": "币种=CNY|时间粒度=年度累计|税=含税"
+      },
+      {
+        "in": "不含税，单次，CNY",
+        "out": "币种=CNY|时间粒度=单次|税=不含税"
+      },
+      {
+        "in": "不含税·单次·CNY",
+        "out": "币种=CNY|时间粒度=单次|税=不含税"
+      },
+      {
+        "in": "金额",
+        "out": "∅"
+      },
+      {
+        "in": "计划金额。口径：含税，年度累计，CNY（Excel 批注 R5-5 与 DDL 注释 pbp_header.plan_amount '含税·年度累计·CNY' 一致）。注意与 clmContract.planAmount 在税轴(含税/不含税)、时间粒度轴(年度累计/单次)上口径不同，两处均保留，交业务方拍板",
+        "out": "口径主体=计划|币种=CNY|时间粒度=年度累计|税=含税"
+      },
+      {
+        "in": "计划金额。口径：不含税，单次，CNY（Excel 批注 R8-8 与 DDL 注释 clm_contract.plan_amount '不含税·单次·CNY' 一致）。注意与 pbpHeader.planAmount 在税轴(含税/不含税)、时间粒度轴(年度累计/单次)上口径不同，两处均保留，交业务方拍板",
+        "out": "口径主体=计划|币种=CNY|时间粒度=单次|税=不含税"
+      },
+      {
+        "in": "计划金额。口径（Excel 批注）：含税，年度累计，CNY；DDL 注释一致",
+        "out": "口径主体=计划|币种=CNY|时间粒度=年度累计|税=含税"
+      },
+      {
+        "in": "计划金额，含税/不含税两种口径都在用",
+        "out": "口径主体=计划"
+      },
+      {
+        "in": "口径：未税，月度，USD",
+        "out": "币种=USD|时间粒度=月度|税=不含税"
+      },
+      {
+        "in": "口径:价税合计，全年，人民币，预算",
+        "out": "口径主体=计划|币种=CNY|时间粒度=年度累计|税=含税"
+      },
+      {
+        "in": "定义：净额结算，per_time，实际执行，美元",
+        "out": "口径主体=执行|时间粒度=单次|税=不含税"
+      },
+      {
+        "in": "定义:annual budget net amount",
+        "out": "口径主体=计划|时间粒度=年度累计|税=不含税"
+      },
+      {
+        "in": "本次采购的计划金额，指含税总价",
+        "out": "口径主体=计划|税=含税"
+      },
+      {
+        "in": "计划金额按不含税口径统计",
+        "out": "口径主体=计划|税=不含税"
+      },
+      {
+        "in": "计划金额取工艺路线上首道工序的产能上限",
+        "out": "口径主体=计划"
+      },
+      {
+        "in": "计划金额取末道工序的产能下限",
+        "out": "口径主体=计划"
+      },
+      {
+        "in": "含税总价",
+        "out": "税=含税"
+      },
+      {
+        "in": "  含税，年度累计。  ",
+        "out": "时间粒度=年度累计|税=含税"
+      },
+      {
+        "in": "注意：含税",
+        "out": "税=含税"
+      },
+      {
+        "in": "（含税）年度累计",
+        "out": "时间粒度=年度累计|税=含税"
+      },
+      {
+        "in": "参见附件，含税",
+        "out": "税=含税"
+      },
+      {
+        "in": "含税，年度累计。注意与合同域在税轴(含税/不含税)上不同",
+        "out": "时间粒度=年度累计|税=含税"
+      },
+      {
+        "in": "monthly net per time actual USD",
+        "out": "口径主体=执行|币种=USD|税=不含税"
+      },
+      {
+        "in": "净额net",
+        "out": "税=不含税"
+      },
+      {
+        "in": "a net b",
+        "out": "税=不含税"
+      },
+      {
+        "in": "netto",
+        "out": "∅"
+      },
+      {
+        "in": "_net_",
+        "out": "∅"
+      },
+      {
+        "in": "NET",
+        "out": "税=不含税"
+      },
+      {
+        "in": "单元格",
+        "out": "币种=CNY"
+      }
+    ],
+    "parse_axes": [
+      {
+        "in": "",
+        "out": []
+      },
+      {
+        "in": "含税，年度累计，CNY",
+        "out": [
+          [
+            "税",
+            "含税"
+          ],
+          [
+            "时间粒度",
+            "年度累计"
+          ],
+          [
+            "币种",
+            "CNY"
+          ]
+        ]
+      },
+      {
+        "in": "不含税，单次，CNY",
+        "out": [
+          [
+            "税",
+            "不含税"
+          ],
+          [
+            "时间粒度",
+            "单次"
+          ],
+          [
+            "币种",
+            "CNY"
+          ]
+        ]
+      },
+      {
+        "in": "不含税·单次·CNY",
+        "out": [
+          [
+            "税",
+            "不含税"
+          ],
+          [
+            "时间粒度",
+            "单次"
+          ],
+          [
+            "币种",
+            "CNY"
+          ]
+        ]
+      },
+      {
+        "in": "金额",
+        "out": []
+      },
+      {
+        "in": "计划金额。口径：含税，年度累计，CNY（Excel 批注 R5-5 与 DDL 注释 pbp_header.plan_amount '含税·年度累计·CNY' 一致）。注意与 clmContract.planAmount 在税轴(含税/不含税)、时间粒度轴(年度累计/单次)上口径不同，两处均保留，交业务方拍板",
+        "out": [
+          [
+            "税",
+            "含税"
+          ],
+          [
+            "时间粒度",
+            "年度累计"
+          ],
+          [
+            "口径主体",
+            "计划"
+          ],
+          [
+            "币种",
+            "CNY"
+          ]
+        ]
+      },
+      {
+        "in": "计划金额。口径：不含税，单次，CNY（Excel 批注 R8-8 与 DDL 注释 clm_contract.plan_amount '不含税·单次·CNY' 一致）。注意与 pbpHeader.planAmount 在税轴(含税/不含税)、时间粒度轴(年度累计/单次)上口径不同，两处均保留，交业务方拍板",
+        "out": [
+          [
+            "税",
+            "不含税"
+          ],
+          [
+            "时间粒度",
+            "单次"
+          ],
+          [
+            "口径主体",
+            "计划"
+          ],
+          [
+            "币种",
+            "CNY"
+          ]
+        ]
+      },
+      {
+        "in": "计划金额。口径（Excel 批注）：含税，年度累计，CNY；DDL 注释一致",
+        "out": [
+          [
+            "税",
+            "含税"
+          ],
+          [
+            "时间粒度",
+            "年度累计"
+          ],
+          [
+            "口径主体",
+            "计划"
+          ],
+          [
+            "币种",
+            "CNY"
+          ]
+        ]
+      },
+      {
+        "in": "计划金额，含税/不含税两种口径都在用",
+        "out": [
+          [
+            "口径主体",
+            "计划"
+          ]
+        ]
+      },
+      {
+        "in": "口径：未税，月度，USD",
+        "out": [
+          [
+            "税",
+            "不含税"
+          ],
+          [
+            "时间粒度",
+            "月度"
+          ],
+          [
+            "币种",
+            "USD"
+          ]
+        ]
+      },
+      {
+        "in": "口径:价税合计，全年，人民币，预算",
+        "out": [
+          [
+            "税",
+            "含税"
+          ],
+          [
+            "时间粒度",
+            "年度累计"
+          ],
+          [
+            "口径主体",
+            "计划"
+          ],
+          [
+            "币种",
+            "CNY"
+          ]
+        ]
+      },
+      {
+        "in": "定义：净额结算，per_time，实际执行，美元",
+        "out": [
+          [
+            "税",
+            "不含税"
+          ],
+          [
+            "时间粒度",
+            "单次"
+          ],
+          [
+            "口径主体",
+            "执行"
+          ]
+        ]
+      },
+      {
+        "in": "定义:annual budget net amount",
+        "out": [
+          [
+            "税",
+            "不含税"
+          ],
+          [
+            "时间粒度",
+            "年度累计"
+          ],
+          [
+            "口径主体",
+            "计划"
+          ]
+        ]
+      },
+      {
+        "in": "本次采购的计划金额，指含税总价",
+        "out": [
+          [
+            "税",
+            "含税"
+          ],
+          [
+            "口径主体",
+            "计划"
+          ]
+        ]
+      },
+      {
+        "in": "计划金额按不含税口径统计",
+        "out": [
+          [
+            "税",
+            "不含税"
+          ],
+          [
+            "口径主体",
+            "计划"
+          ]
+        ]
+      },
+      {
+        "in": "计划金额取工艺路线上首道工序的产能上限",
+        "out": [
+          [
+            "口径主体",
+            "计划"
+          ]
+        ]
+      },
+      {
+        "in": "计划金额取末道工序的产能下限",
+        "out": [
+          [
+            "口径主体",
+            "计划"
+          ]
+        ]
+      },
+      {
+        "in": "含税总价",
+        "out": [
+          [
+            "税",
+            "含税"
+          ]
+        ]
+      },
+      {
+        "in": "  含税，年度累计。  ",
+        "out": [
+          [
+            "税",
+            "含税"
+          ],
+          [
+            "时间粒度",
+            "年度累计"
+          ]
+        ]
+      },
+      {
+        "in": "注意：含税",
+        "out": [
+          [
+            "税",
+            "含税"
+          ]
+        ]
+      },
+      {
+        "in": "（含税）年度累计",
+        "out": [
+          [
+            "税",
+            "含税"
+          ],
+          [
+            "时间粒度",
+            "年度累计"
+          ]
+        ]
+      },
+      {
+        "in": "参见附件，含税",
+        "out": [
+          [
+            "税",
+            "含税"
+          ]
+        ]
+      },
+      {
+        "in": "含税，年度累计。注意与合同域在税轴(含税/不含税)上不同",
+        "out": [
+          [
+            "税",
+            "含税"
+          ],
+          [
+            "时间粒度",
+            "年度累计"
+          ]
+        ]
+      },
+      {
+        "in": "monthly net per time actual USD",
+        "out": [
+          [
+            "税",
+            "不含税"
+          ],
+          [
+            "口径主体",
+            "执行"
+          ],
+          [
+            "币种",
+            "USD"
+          ]
+        ]
+      },
+      {
+        "in": "净额net",
+        "out": [
+          [
+            "税",
+            "不含税"
+          ]
+        ]
+      },
+      {
+        "in": "a net b",
+        "out": [
+          [
+            "税",
+            "不含税"
+          ]
+        ]
+      },
+      {
+        "in": "netto",
+        "out": []
+      },
+      {
+        "in": "_net_",
+        "out": []
+      },
+      {
+        "in": "NET",
+        "out": [
+          [
+            "税",
+            "不含税"
+          ]
+        ]
+      },
+      {
+        "in": "单元格",
+        "out": [
+          [
+            "币种",
+            "CNY"
+          ]
+        ]
+      }
+    ],
+    "parse_axes_whole": [
+      {
+        "in": "",
+        "out": []
+      },
+      {
+        "in": "含税，年度累计，CNY",
+        "out": [
+          [
+            "税",
+            "含税"
+          ],
+          [
+            "时间粒度",
+            "年度累计"
+          ],
+          [
+            "币种",
+            "CNY"
+          ]
+        ]
+      },
+      {
+        "in": "不含税，单次，CNY",
+        "out": [
+          [
+            "税",
+            "不含税"
+          ],
+          [
+            "时间粒度",
+            "单次"
+          ],
+          [
+            "币种",
+            "CNY"
+          ]
+        ]
+      },
+      {
+        "in": "不含税·单次·CNY",
+        "out": [
+          [
+            "税",
+            "不含税"
+          ],
+          [
+            "时间粒度",
+            "单次"
+          ],
+          [
+            "币种",
+            "CNY"
+          ]
+        ]
+      },
+      {
+        "in": "金额",
+        "out": []
+      },
+      {
+        "in": "计划金额。口径：含税，年度累计，CNY（Excel 批注 R5-5 与 DDL 注释 pbp_header.plan_amount '含税·年度累计·CNY' 一致）。注意与 clmContract.planAmount 在税轴(含税/不含税)、时间粒度轴(年度累计/单次)上口径不同，两处均保留，交业务方拍板",
+        "out": [
+          [
+            "税",
+            "含税"
+          ],
+          [
+            "时间粒度",
+            "年度累计"
+          ],
+          [
+            "口径主体",
+            "计划"
+          ],
+          [
+            "币种",
+            "CNY"
+          ]
+        ]
+      },
+      {
+        "in": "计划金额。口径：不含税，单次，CNY（Excel 批注 R8-8 与 DDL 注释 clm_contract.plan_amount '不含税·单次·CNY' 一致）。注意与 pbpHeader.planAmount 在税轴(含税/不含税)、时间粒度轴(年度累计/单次)上口径不同，两处均保留，交业务方拍板",
+        "out": [
+          [
+            "税",
+            "不含税"
+          ],
+          [
+            "时间粒度",
+            "单次"
+          ],
+          [
+            "口径主体",
+            "计划"
+          ],
+          [
+            "币种",
+            "CNY"
+          ]
+        ]
+      },
+      {
+        "in": "计划金额。口径（Excel 批注）：含税，年度累计，CNY；DDL 注释一致",
+        "out": [
+          [
+            "税",
+            "含税"
+          ],
+          [
+            "时间粒度",
+            "年度累计"
+          ],
+          [
+            "口径主体",
+            "计划"
+          ],
+          [
+            "币种",
+            "CNY"
+          ]
+        ]
+      },
+      {
+        "in": "计划金额，含税/不含税两种口径都在用",
+        "out": [
+          [
+            "口径主体",
+            "计划"
+          ]
+        ]
+      },
+      {
+        "in": "口径：未税，月度，USD",
+        "out": [
+          [
+            "税",
+            "不含税"
+          ],
+          [
+            "时间粒度",
+            "月度"
+          ],
+          [
+            "币种",
+            "USD"
+          ]
+        ]
+      },
+      {
+        "in": "口径:价税合计，全年，人民币，预算",
+        "out": [
+          [
+            "税",
+            "含税"
+          ],
+          [
+            "时间粒度",
+            "年度累计"
+          ],
+          [
+            "口径主体",
+            "计划"
+          ],
+          [
+            "币种",
+            "CNY"
+          ]
+        ]
+      },
+      {
+        "in": "定义：净额结算，per_time，实际执行，美元",
+        "out": [
+          [
+            "税",
+            "不含税"
+          ],
+          [
+            "时间粒度",
+            "单次"
+          ],
+          [
+            "口径主体",
+            "执行"
+          ]
+        ]
+      },
+      {
+        "in": "定义:annual budget net amount",
+        "out": [
+          [
+            "税",
+            "不含税"
+          ],
+          [
+            "时间粒度",
+            "年度累计"
+          ],
+          [
+            "口径主体",
+            "计划"
+          ]
+        ]
+      },
+      {
+        "in": "本次采购的计划金额，指含税总价",
+        "out": [
+          [
+            "税",
+            "含税"
+          ],
+          [
+            "口径主体",
+            "计划"
+          ]
+        ]
+      },
+      {
+        "in": "计划金额按不含税口径统计",
+        "out": [
+          [
+            "税",
+            "不含税"
+          ],
+          [
+            "口径主体",
+            "计划"
+          ]
+        ]
+      },
+      {
+        "in": "计划金额取工艺路线上首道工序的产能上限",
+        "out": [
+          [
+            "口径主体",
+            "计划"
+          ]
+        ]
+      },
+      {
+        "in": "计划金额取末道工序的产能下限",
+        "out": [
+          [
+            "口径主体",
+            "计划"
+          ]
+        ]
+      },
+      {
+        "in": "含税总价",
+        "out": [
+          [
+            "税",
+            "含税"
+          ]
+        ]
+      },
+      {
+        "in": "  含税，年度累计。  ",
+        "out": [
+          [
+            "税",
+            "含税"
+          ],
+          [
+            "时间粒度",
+            "年度累计"
+          ]
+        ]
+      },
+      {
+        "in": "注意：含税",
+        "out": [
+          [
+            "税",
+            "含税"
+          ]
+        ]
+      },
+      {
+        "in": "（含税）年度累计",
+        "out": [
+          [
+            "税",
+            "含税"
+          ],
+          [
+            "时间粒度",
+            "年度累计"
+          ]
+        ]
+      },
+      {
+        "in": "参见附件，含税",
+        "out": [
+          [
+            "税",
+            "含税"
+          ]
+        ]
+      },
+      {
+        "in": "含税，年度累计。注意与合同域在税轴(含税/不含税)上不同",
+        "out": [
+          [
+            "税",
+            "含税"
+          ],
+          [
+            "时间粒度",
+            "年度累计"
+          ]
+        ]
+      },
+      {
+        "in": "monthly net per time actual USD",
+        "out": [
+          [
+            "税",
+            "不含税"
+          ],
+          [
+            "口径主体",
+            "执行"
+          ],
+          [
+            "币种",
+            "USD"
+          ]
+        ]
+      },
+      {
+        "in": "净额net",
+        "out": [
+          [
+            "税",
+            "不含税"
+          ]
+        ]
+      },
+      {
+        "in": "a net b",
+        "out": [
+          [
+            "税",
+            "不含税"
+          ]
+        ]
+      },
+      {
+        "in": "netto",
+        "out": []
+      },
+      {
+        "in": "_net_",
+        "out": []
+      },
+      {
+        "in": "NET",
+        "out": [
+          [
+            "税",
+            "不含税"
+          ]
+        ]
+      },
+      {
+        "in": "单元格",
+        "out": [
+          [
+            "币种",
+            "CNY"
+          ]
+        ]
+      }
+    ],
+    "primary_clause": [
+      {
+        "in": "",
+        "out": ""
+      },
+      {
+        "in": "含税，年度累计，CNY",
+        "out": "含税，年度累计，CNY"
+      },
+      {
+        "in": "不含税，单次，CNY",
+        "out": "不含税，单次，CNY"
+      },
+      {
+        "in": "不含税·单次·CNY",
+        "out": "不含税·单次·CNY"
+      },
+      {
+        "in": "金额",
+        "out": "金额"
+      },
+      {
+        "in": "计划金额。口径：含税，年度累计，CNY（Excel 批注 R5-5 与 DDL 注释 pbp_header.plan_amount '含税·年度累计·CNY' 一致）。注意与 clmContract.planAmount 在税轴(含税/不含税)、时间粒度轴(年度累计/单次)上口径不同，两处均保留，交业务方拍板",
+        "out": "含税，年度累计，CNY"
+      },
+      {
+        "in": "计划金额。口径：不含税，单次，CNY（Excel 批注 R8-8 与 DDL 注释 clm_contract.plan_amount '不含税·单次·CNY' 一致）。注意与 pbpHeader.planAmount 在税轴(含税/不含税)、时间粒度轴(年度累计/单次)上口径不同，两处均保留，交业务方拍板",
+        "out": "不含税，单次，CNY"
+      },
+      {
+        "in": "计划金额。口径（Excel 批注）：含税，年度累计，CNY；DDL 注释一致",
+        "out": "计划金额。口径"
+      },
+      {
+        "in": "计划金额，含税/不含税两种口径都在用",
+        "out": "计划金额，含税/不含税两种口径都在用"
+      },
+      {
+        "in": "口径：未税，月度，USD",
+        "out": "未税，月度，USD"
+      },
+      {
+        "in": "口径:价税合计，全年，人民币，预算",
+        "out": "价税合计，全年，人民币，预算"
+      },
+      {
+        "in": "定义：净额结算，per_time，实际执行，美元",
+        "out": "净额结算，per_time，实际执行，美元"
+      },
+      {
+        "in": "定义:annual budget net amount",
+        "out": "annual budget net amount"
+      },
+      {
+        "in": "本次采购的计划金额，指含税总价",
+        "out": "本次采购的计划金额，指含税总价"
+      },
+      {
+        "in": "计划金额按不含税口径统计",
+        "out": "计划金额按不含税口径统计"
+      },
+      {
+        "in": "计划金额取工艺路线上首道工序的产能上限",
+        "out": "计划金额取工艺路线上首道工序的产能上限"
+      },
+      {
+        "in": "计划金额取末道工序的产能下限",
+        "out": "计划金额取末道工序的产能下限"
+      },
+      {
+        "in": "含税总价",
+        "out": "含税总价"
+      },
+      {
+        "in": "  含税，年度累计。  ",
+        "out": "含税，年度累计"
+      },
+      {
+        "in": "注意：含税",
+        "out": "注意：含税"
+      },
+      {
+        "in": "（含税）年度累计",
+        "out": "（含税）年度累计"
+      },
+      {
+        "in": "参见附件，含税",
+        "out": "参见附件，含税"
+      },
+      {
+        "in": "含税，年度累计。注意与合同域在税轴(含税/不含税)上不同",
+        "out": "含税，年度累计"
+      },
+      {
+        "in": "monthly net per time actual USD",
+        "out": "monthly net per time actual USD"
+      },
+      {
+        "in": "净额net",
+        "out": "净额net"
+      },
+      {
+        "in": "a net b",
+        "out": "a net b"
+      },
+      {
+        "in": "netto",
+        "out": "netto"
+      },
+      {
+        "in": "_net_",
+        "out": "_net_"
+      },
+      {
+        "in": "NET",
+        "out": "NET"
+      },
+      {
+        "in": "单元格",
+        "out": "单元格"
+      }
+    ],
+    "undescribed_diff": [
+      {
+        "a": "",
+        "b": "",
+        "out": []
+      },
+      {
+        "a": "含税总价",
+        "b": "含税总价",
+        "out": []
+      },
+      {
+        "a": "计划金额取工艺路线上首道工序的产能上限",
+        "b": "计划金额取末道工序的产能下限",
+        "out": [
+          "工艺路线上首",
+          "末",
+          "上",
+          "下"
+        ]
+      },
+      {
+        "a": "含税，年度累计，CNY",
+        "b": "不含税，单次，CNY",
+        "out": [
+          "不",
+          "年度累计",
+          "单次"
+        ]
+      },
+      {
+        "a": "A、B。C；D",
+        "b": "A B C D",
+        "out": []
+      },
+      {
+        "a": "🙂计划",
+        "b": "🙃计划",
+        "out": [
+          "🙂",
+          "🙃"
+        ]
+      },
+      {
+        "a": "abcdefghijklmn",
+        "b": "xbxdxfxhxjxlxn",
+        "out": [
+          "a",
+          "x",
+          "c",
+          "e",
+          "g",
+          "i"
+        ]
+      }
+    ],
+    "undescribed_diff_limit": [
+      {
+        "a": "abcdefghijklmn",
+        "b": "xbxdxfxhxjxlxn",
+        "limit": 2,
+        "out": [
+          "a",
+          "x"
+        ]
+      },
+      {
+        "a": "abcdefghijklmn",
+        "b": "xbxdxfxhxjxlxn",
+        "limit": 0,
+        "out": []
+      },
+      {
+        "a": "abcdefghijklmn",
+        "b": "xbxdxfxhxjxlxn",
+        "limit": 100,
+        "out": [
+          "a",
+          "x",
+          "c",
+          "e",
+          "g",
+          "i",
+          "k",
+          "m"
+        ]
+      }
+    ]
+  },
+  "detectors": {
+    "auto_repair_divergence_is_noop": {
+      "log": [],
+      "oir_after": {
+        "actions": [],
+        "links": [
+          {
+            "apiName": "planContracts",
+            "conflicts": [],
+            "from": "ot_purchase_plan_header",
+            "rid": "lt_plan_contract",
+            "to": "ot_clm_contract"
+          }
+        ],
+        "objects": [
+          {
+            "aliases": [],
+            "apiName": "purchasePlanHeader",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "displayName": "采购业务计划头",
+            "properties": [
+              "pt_plan_id",
+              "pt_plan_amount_budget"
+            ],
+            "rid": "ot_purchase_plan_header"
+          },
+          {
+            "aliases": [],
+            "apiName": "clmContract",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "displayName": "采购合同",
+            "properties": [
+              "pt_contract_id",
+              "pt_plan_amount_contract"
+            ],
+            "rid": "ot_clm_contract"
+          }
+        ],
+        "properties": [
+          {
+            "apiName": "planId",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "definition": "主键",
+            "parent": "ot_purchase_plan_header",
+            "rid": "pt_plan_id"
+          },
+          {
+            "apiName": "contractId",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "definition": "主键",
+            "parent": "ot_clm_contract",
+            "rid": "pt_contract_id"
+          },
+          {
+            "apiName": "planAmount",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "definition": "含税，年度累计，CNY",
+            "parent": "ot_purchase_plan_header",
+            "rid": "pt_plan_amount_budget"
+          },
+          {
+            "apiName": "planAmount",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "definition": "不含税，单次，CNY",
+            "parent": "ot_clm_contract",
+            "rid": "pt_plan_amount_contract"
+          }
+        ]
+      }
+    },
+    "auto_repair_naming": {
+      "log": [
+        {
+          "conflict": "cf_naming_violation_42a891a467",
+          "field": "apiName",
+          "from": "plan_amount",
+          "reversible": true,
+          "rid": "pt_snake",
+          "to": "planAmount"
+        }
+      ],
+      "oir_after": {
+        "actions": [
+          {
+            "apiName": "submitPlan",
+            "apiNameOrigin": "extracted",
+            "appliesTo": [
+              "ot_good"
+            ],
+            "rid": "at_submit"
+          }
+        ],
+        "links": [],
+        "objects": [
+          {
+            "aliases": [],
+            "apiName": "purchasePlan",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "displayName": "采购计划",
+            "properties": [
+              "pt_ok",
+              "pt_snake"
+            ],
+            "rid": "ot_good"
+          },
+          {
+            "aliases": [],
+            "apiName": "采购合同",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "displayName": "采购合同",
+            "properties": [
+              "pt_nodef"
+            ],
+            "rid": "ot_bad"
+          },
+          {
+            "aliases": [],
+            "apiName": "po",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "displayName": "采购订单",
+            "properties": [],
+            "rid": "ot_abbr"
+          }
+        ],
+        "properties": [
+          {
+            "apiName": "planId",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "definition": "计划编号，主键",
+            "parent": "ot_good",
+            "rid": "pt_ok"
+          },
+          {
+            "apiName": "planAmount",
+            "apiNameOrigin": "auto_repaired",
+            "conflicts": [],
+            "definition": "含税，年度累计",
+            "parent": "ot_good",
+            "rid": "pt_snake"
+          },
+          {
+            "apiName": "contractAmount",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "definition": "   ",
+            "parent": "ot_bad",
+            "rid": "pt_nodef"
+          }
+        ]
+      }
+    },
+    "detect_all_base": {
+      "conflicts": [
+        {
+          "detector": "rule:AXIS-01",
+          "evidence": [
+            {
+              "cite": "实体梳理.xlsx!业务对象实体梳理!R44CF",
+              "confidence": 0.94,
+              "extractor": "docling",
+              "file_id": "f3",
+              "file_name": "实体梳理.xlsx",
+              "locator": {
+                "col": "F",
+                "kind": "cell",
+                "row": 44,
+                "sheet": "业务对象实体梳理"
+              },
+              "snippet": "计划金额（含税，年度累计）"
+            },
+            {
+              "cite": "schema.ddl#clm_contract",
+              "confidence": 0.9,
+              "extractor": "sqlglot",
+              "file_id": "f5",
+              "file_name": "schema.ddl",
+              "locator": {
+                "kind": "ddl",
+                "object": "clm_contract"
+              },
+              "snippet": "-- 不含税·单次"
+            }
+          ],
+          "handling": "ask_user",
+          "kind": "semantic_divergence",
+          "options": [
+            {
+              "effect": {
+                "axes": "时间粒度_税",
+                "split": [
+                  "pt_plan_amount_budget",
+                  "pt_plan_amount_contract"
+                ]
+              },
+              "evidence": [
+                {
+                  "cite": "实体梳理.xlsx!业务对象实体梳理!R44CF",
+                  "confidence": 0.94,
+                  "extractor": "docling",
+                  "file_id": "f3",
+                  "file_name": "实体梳理.xlsx",
+                  "locator": {
+                    "col": "F",
+                    "kind": "cell",
+                    "row": 44,
+                    "sheet": "业务对象实体梳理"
+                  },
+                  "snippet": "计划金额（含税，年度累计）"
+                },
+                {
+                  "cite": "schema.ddl#clm_contract",
+                  "confidence": 0.9,
+                  "extractor": "sqlglot",
+                  "file_id": "f5",
+                  "file_name": "schema.ddl",
+                  "locator": {
+                    "kind": "ddl",
+                    "object": "clm_contract"
+                  },
+                  "snippet": "-- 不含税·单次"
+                }
+              ],
+              "id": "split_two_properties",
+              "label": "拆成两个属性：planAmountTaxInclAnnual / planAmountNetPerTime",
+              "rationale": "信息不丢，但下游报表口径要跟着改"
+            },
+            {
+              "effect": {
+                "unify_to": "pt_plan_amount_budget"
+              },
+              "evidence": [
+                {
+                  "cite": "实体梳理.xlsx!业务对象实体梳理!R44CF",
+                  "confidence": 0.94,
+                  "extractor": "docling",
+                  "file_id": "f3",
+                  "file_name": "实体梳理.xlsx",
+                  "locator": {
+                    "col": "F",
+                    "kind": "cell",
+                    "row": 44,
+                    "sheet": "业务对象实体梳理"
+                  },
+                  "snippet": "计划金额（含税，年度累计）"
+                }
+              ],
+              "id": "unify_a",
+              "label": "统一为 A 口径（含税，年度累计，CNY）",
+              "rationale": "B 处标记为派生，需补换算规则"
+            },
+            {
+              "effect": {
+                "unify_to": "pt_plan_amount_contract"
+              },
+              "evidence": [
+                {
+                  "cite": "schema.ddl#clm_contract",
+                  "confidence": 0.9,
+                  "extractor": "sqlglot",
+                  "file_id": "f5",
+                  "file_name": "schema.ddl",
+                  "locator": {
+                    "kind": "ddl",
+                    "object": "clm_contract"
+                  },
+                  "snippet": "-- 不含税·单次"
+                }
+              ],
+              "id": "unify_b",
+              "label": "统一为 B 口径（不含税，单次，CNY）",
+              "rationale": "A 处标记为派生，历史数据需回溯"
+            },
+            {
+              "effect": {
+                "defer": true
+              },
+              "evidence": [],
+              "id": "defer_to_template",
+              "label": "先不定，转成模板里的业务必填项",
+              "rationale": "推迟到业务方填写时消解"
+            }
+          ],
+          "owner": null,
+          "rid": "cf_semantic_divergence_b606de99da",
+          "subjects": [
+            "pt_plan_amount_budget",
+            "pt_plan_amount_contract"
+          ],
+          "summary": null,
+          "summary_axes": [
+            "时间粒度（年度累计 vs 单次）",
+            "税（含税 vs 不含税）"
+          ],
+          "summary_head": "「计划金额」口径不一致（2 种口径、涉及 2 处）："
+        },
+        {
+          "detector": "rule:ACT-01",
+          "evidence": [
+            {
+              "cite": "openapi.json#$.paths./purchase-plans",
+              "confidence": 0.85,
+              "extractor": "openapi",
+              "file_id": "openapi",
+              "file_name": "openapi.json",
+              "locator": {
+                "kind": "json",
+                "pointer": "$.paths./purchase-plans"
+              },
+              "snippet": "POST /purchase-plans/{id}/submit → submitPurchasePlan"
+            },
+            {
+              "cite": "openapi.json#",
+              "confidence": 0.85,
+              "extractor": "openapi",
+              "file_id": "openapi",
+              "file_name": "openapi.json",
+              "locator": {
+                "kind": "json",
+                "pointer": ""
+              },
+              "snippet": "POST /contracts → createClmContract"
+            }
+          ],
+          "handling": "ask_user",
+          "kind": "missing_action",
+          "options": [
+            {
+              "effect": {
+                "draft_actions": {
+                  "ot_clm_contract": [
+                    "createClmContract"
+                  ],
+                  "ot_purchase_plan_header": [
+                    "submitPurchasePlan"
+                  ]
+                }
+              },
+              "evidence": [
+                {
+                  "cite": "openapi.json#$.paths./purchase-plans",
+                  "confidence": 0.85,
+                  "extractor": "openapi",
+                  "file_id": "openapi",
+                  "file_name": "openapi.json",
+                  "locator": {
+                    "kind": "json",
+                    "pointer": "$.paths./purchase-plans"
+                  },
+                  "snippet": "POST /purchase-plans/{id}/submit → submitPurchasePlan"
+                },
+                {
+                  "cite": "openapi.json#",
+                  "confidence": 0.85,
+                  "extractor": "openapi",
+                  "file_id": "openapi",
+                  "file_name": "openapi.json",
+                  "locator": {
+                    "kind": "json",
+                    "pointer": ""
+                  },
+                  "snippet": "POST /contracts → createClmContract"
+                }
+              ],
+              "id": "draft_from_openapi",
+              "label": "反推草稿，覆盖 2/2 个对象",
+              "rationale": "标记为 DRAFT_FROM_API 进模板让业务确认 —— 从「改」开始比从「写」开始完成率高得多"
+            },
+            {
+              "effect": {},
+              "evidence": [],
+              "id": "leave_blank",
+              "label": "留空让业务自己填",
+              "rationale": "预计完成率低于 30%"
+            }
+          ],
+          "owner": null,
+          "rid": "cf_missing_action_b5dedf7c56",
+          "subjects": [
+            "ot_purchase_plan_header",
+            "ot_clm_contract"
+          ],
+          "summary": "2 个对象没有任何 ActionType；OpenAPI 里有写端点可覆盖其中 2 个"
+        },
+        {
+          "detector": "profiler:TYPE-01",
+          "evidence": [],
+          "handling": "ask_user",
+          "kind": "type_mismatch",
+          "options": [
+            {
+              "effect": {
+                "set_base_type": "STRING"
+              },
+              "evidence": [],
+              "id": "use_actual",
+              "label": "改为 STRING",
+              "rationale": "以实际数据为准"
+            },
+            {
+              "effect": {},
+              "evidence": [],
+              "id": "keep_declared",
+              "label": "保留 DECIMAL",
+              "rationale": "数据侧需清洗"
+            }
+          ],
+          "owner": null,
+          "rid": "cf_type_mismatch_02d271af45",
+          "subjects": [
+            "pt_plan_amount_budget"
+          ],
+          "summary": "planAmount: 声明 DECIMAL，实际数据看起来是 STRING（样本 1200 行）"
+        },
+        {
+          "detector": "heuristic:PERF-01",
+          "evidence": [],
+          "handling": "round_trip",
+          "kind": "perfunctory",
+          "options": [],
+          "owner": "王明",
+          "rid": "cf_perfunctory_73c9187fdc",
+          "subjects": [
+            "pt_plan_id"
+          ],
+          "summary": "口径定义 疑似敷衍填写（PLACEHOLDER、TOO_SHORT）"
+        }
+      ],
+      "oir_after": {
+        "actions": [],
+        "links": [
+          {
+            "apiName": "planContracts",
+            "conflicts": [],
+            "from": "ot_purchase_plan_header",
+            "rid": "lt_plan_contract",
+            "to": "ot_clm_contract"
+          }
+        ],
+        "objects": [
+          {
+            "aliases": [],
+            "apiName": "purchasePlanHeader",
+            "apiNameOrigin": "extracted",
+            "conflicts": [
+              "cf_missing_action_b5dedf7c56"
+            ],
+            "displayName": "采购业务计划头",
+            "properties": [
+              "pt_plan_id",
+              "pt_plan_amount_budget"
+            ],
+            "rid": "ot_purchase_plan_header"
+          },
+          {
+            "aliases": [],
+            "apiName": "clmContract",
+            "apiNameOrigin": "extracted",
+            "conflicts": [
+              "cf_missing_action_b5dedf7c56"
+            ],
+            "displayName": "采购合同",
+            "properties": [
+              "pt_contract_id",
+              "pt_plan_amount_contract"
+            ],
+            "rid": "ot_clm_contract"
+          }
+        ],
+        "properties": [
+          {
+            "apiName": "planId",
+            "apiNameOrigin": "extracted",
+            "conflicts": [
+              "cf_perfunctory_73c9187fdc"
+            ],
+            "definition": "主键",
+            "parent": "ot_purchase_plan_header",
+            "rid": "pt_plan_id"
+          },
+          {
+            "apiName": "contractId",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "definition": "主键",
+            "parent": "ot_clm_contract",
+            "rid": "pt_contract_id"
+          },
+          {
+            "apiName": "planAmount",
+            "apiNameOrigin": "extracted",
+            "conflicts": [
+              "cf_semantic_divergence_b606de99da",
+              "cf_type_mismatch_02d271af45"
+            ],
+            "definition": "含税，年度累计，CNY",
+            "parent": "ot_purchase_plan_header",
+            "rid": "pt_plan_amount_budget"
+          },
+          {
+            "apiName": "planAmount",
+            "apiNameOrigin": "extracted",
+            "conflicts": [
+              "cf_semantic_divergence_b606de99da"
+            ],
+            "definition": "不含税，单次，CNY",
+            "parent": "ot_clm_contract",
+            "rid": "pt_plan_amount_contract"
+          }
+        ]
+      }
+    },
+    "detect_all_messy": {
+      "conflicts": [
+        {
+          "detector": "rule:NAME-01",
+          "evidence": [
+            {
+              "cite": "实体梳理.xlsx!业务对象实体梳理!R2CF",
+              "confidence": 0.94,
+              "extractor": "docling",
+              "file_id": "f3",
+              "file_name": "实体梳理.xlsx",
+              "locator": {
+                "col": "F",
+                "kind": "cell",
+                "row": 2,
+                "sheet": "业务对象实体梳理"
+              },
+              "snippet": "y"
+            }
+          ],
+          "handling": "auto_repair",
+          "kind": "naming_violation",
+          "options": [
+            {
+              "effect": {
+                "set_api_name": "采购合同"
+              },
+              "evidence": [],
+              "id": "apply",
+              "label": "改为 采购合同",
+              "rationale": "可逆、零语义损失"
+            }
+          ],
+          "owner": null,
+          "rid": "cf_naming_violation_0d48b2902a",
+          "subjects": [
+            "ot_bad"
+          ],
+          "summary": "ot_bad: apiName 含中文"
+        },
+        {
+          "detector": "rule:NAME-01",
+          "evidence": [
+            {
+              "cite": "实体梳理.xlsx!业务对象实体梳理!R3CF",
+              "confidence": 0.94,
+              "extractor": "docling",
+              "file_id": "f3",
+              "file_name": "实体梳理.xlsx",
+              "locator": {
+                "col": "F",
+                "kind": "cell",
+                "row": 3,
+                "sheet": "业务对象实体梳理"
+              },
+              "snippet": "z"
+            }
+          ],
+          "handling": "auto_repair",
+          "kind": "naming_violation",
+          "options": [
+            {
+              "effect": {
+                "set_api_name": "po"
+              },
+              "evidence": [],
+              "id": "apply",
+              "label": "改为 po",
+              "rationale": "可逆、零语义损失"
+            }
+          ],
+          "owner": null,
+          "rid": "cf_naming_violation_09482e99ee",
+          "subjects": [
+            "ot_abbr"
+          ],
+          "summary": "ot_abbr: 疑似未登记缩写"
+        },
+        {
+          "detector": "rule:NAME-01",
+          "evidence": [
+            {
+              "cite": "实体梳理.xlsx!业务对象实体梳理!R9CF",
+              "confidence": 0.94,
+              "extractor": "docling",
+              "file_id": "f3",
+              "file_name": "实体梳理.xlsx",
+              "locator": {
+                "col": "F",
+                "kind": "cell",
+                "row": 9,
+                "sheet": "业务对象实体梳理"
+              },
+              "snippet": "含税，年度累计"
+            }
+          ],
+          "handling": "auto_repair",
+          "kind": "naming_violation",
+          "options": [
+            {
+              "effect": {
+                "set_api_name": "planAmount"
+              },
+              "evidence": [],
+              "id": "apply",
+              "label": "改为 planAmount",
+              "rationale": "可逆、零语义损失"
+            }
+          ],
+          "owner": null,
+          "rid": "cf_naming_violation_42a891a467",
+          "subjects": [
+            "pt_snake"
+          ],
+          "summary": "pt_snake: apiName 不是 lowerCamelCase"
+        },
+        {
+          "detector": "rule:REQ-01",
+          "evidence": [],
+          "handling": "round_trip",
+          "kind": "missing_required",
+          "options": [],
+          "owner": "李强",
+          "rid": "cf_missing_required_c13bda09f5",
+          "subjects": [
+            "pt_nodef"
+          ],
+          "summary": "contractAmount: 缺 口径定义、显示名"
+        },
+        {
+          "detector": "rule:REQ-02",
+          "evidence": [],
+          "handling": "round_trip",
+          "kind": "missing_required",
+          "options": [],
+          "owner": null,
+          "rid": "cf_missing_required_341f04ec6a",
+          "subjects": [
+            "ot_bad"
+          ],
+          "summary": "采购合同: 未声明主键"
+        },
+        {
+          "detector": "rule:GRAPH-01",
+          "evidence": [
+            {
+              "cite": "实体梳理.xlsx!业务对象实体梳理!R1CF",
+              "confidence": 0.94,
+              "extractor": "docling",
+              "file_id": "f3",
+              "file_name": "实体梳理.xlsx",
+              "locator": {
+                "col": "F",
+                "kind": "cell",
+                "row": 1,
+                "sheet": "业务对象实体梳理"
+              },
+              "snippet": "x"
+            }
+          ],
+          "handling": "hint",
+          "kind": "orphan",
+          "options": [],
+          "owner": null,
+          "rid": "cf_orphan_c205650bd0",
+          "subjects": [
+            "ot_good"
+          ],
+          "summary": "purchasePlan 与任何对象都没有关系，可能是遗漏"
+        },
+        {
+          "detector": "rule:GRAPH-01",
+          "evidence": [
+            {
+              "cite": "实体梳理.xlsx!业务对象实体梳理!R2CF",
+              "confidence": 0.94,
+              "extractor": "docling",
+              "file_id": "f3",
+              "file_name": "实体梳理.xlsx",
+              "locator": {
+                "col": "F",
+                "kind": "cell",
+                "row": 2,
+                "sheet": "业务对象实体梳理"
+              },
+              "snippet": "y"
+            }
+          ],
+          "handling": "hint",
+          "kind": "orphan",
+          "options": [],
+          "owner": null,
+          "rid": "cf_orphan_0d48b2902a",
+          "subjects": [
+            "ot_bad"
+          ],
+          "summary": "采购合同 与任何对象都没有关系，可能是遗漏"
+        },
+        {
+          "detector": "rule:GRAPH-01",
+          "evidence": [
+            {
+              "cite": "实体梳理.xlsx!业务对象实体梳理!R3CF",
+              "confidence": 0.94,
+              "extractor": "docling",
+              "file_id": "f3",
+              "file_name": "实体梳理.xlsx",
+              "locator": {
+                "col": "F",
+                "kind": "cell",
+                "row": 3,
+                "sheet": "业务对象实体梳理"
+              },
+              "snippet": "z"
+            }
+          ],
+          "handling": "hint",
+          "kind": "orphan",
+          "options": [],
+          "owner": null,
+          "rid": "cf_orphan_09482e99ee",
+          "subjects": [
+            "ot_abbr"
+          ],
+          "summary": "po 与任何对象都没有关系，可能是遗漏"
+        },
+        {
+          "detector": "rule:ACT-01",
+          "evidence": [],
+          "handling": "ask_user",
+          "kind": "missing_action",
+          "options": [
+            {
+              "effect": {},
+              "evidence": [],
+              "id": "leave_blank",
+              "label": "留空让业务自己填",
+              "rationale": "预计完成率低于 30%"
+            }
+          ],
+          "owner": null,
+          "rid": "cf_missing_action_fca19ca7fd",
+          "subjects": [
+            "ot_bad",
+            "ot_abbr"
+          ],
+          "summary": "2 个对象没有任何 ActionType；OpenAPI 里没有可用端点"
+        }
+      ],
+      "oir_after": {
+        "actions": [
+          {
+            "apiName": "submitPlan",
+            "apiNameOrigin": "extracted",
+            "appliesTo": [
+              "ot_good"
+            ],
+            "rid": "at_submit"
+          }
+        ],
+        "links": [],
+        "objects": [
+          {
+            "aliases": [],
+            "apiName": "purchasePlan",
+            "apiNameOrigin": "extracted",
+            "conflicts": [
+              "cf_orphan_c205650bd0"
+            ],
+            "displayName": "采购计划",
+            "properties": [
+              "pt_ok",
+              "pt_snake"
+            ],
+            "rid": "ot_good"
+          },
+          {
+            "aliases": [],
+            "apiName": "采购合同",
+            "apiNameOrigin": "extracted",
+            "conflicts": [
+              "cf_naming_violation_0d48b2902a",
+              "cf_missing_required_341f04ec6a",
+              "cf_orphan_0d48b2902a",
+              "cf_missing_action_fca19ca7fd"
+            ],
+            "displayName": "采购合同",
+            "properties": [
+              "pt_nodef"
+            ],
+            "rid": "ot_bad"
+          },
+          {
+            "aliases": [],
+            "apiName": "po",
+            "apiNameOrigin": "extracted",
+            "conflicts": [
+              "cf_naming_violation_09482e99ee",
+              "cf_orphan_09482e99ee",
+              "cf_missing_action_fca19ca7fd"
+            ],
+            "displayName": "采购订单",
+            "properties": [],
+            "rid": "ot_abbr"
+          }
+        ],
+        "properties": [
+          {
+            "apiName": "planId",
+            "apiNameOrigin": "extracted",
+            "conflicts": [],
+            "definition": "计划编号，主键",
+            "parent": "ot_good",
+            "rid": "pt_ok"
+          },
+          {
+            "apiName": "plan_amount",
+            "apiNameOrigin": "extracted",
+            "conflicts": [
+              "cf_naming_violation_42a891a467"
+            ],
+            "definition": "含税，年度累计",
+            "parent": "ot_good",
+            "rid": "pt_snake"
+          },
+          {
+            "apiName": "contractAmount",
+            "apiNameOrigin": "extracted",
+            "conflicts": [
+              "cf_missing_required_c13bda09f5"
+            ],
+            "definition": "   ",
+            "parent": "ot_bad",
+            "rid": "pt_nodef"
+          }
+        ]
+      }
+    },
+    "missing_actions_all_covered": [
+      {
+        "detector": "rule:ACT-01",
+        "evidence": [],
+        "handling": "ask_user",
+        "kind": "missing_action",
+        "options": [
+          {
+            "effect": {},
+            "evidence": [],
+            "id": "leave_blank",
+            "label": "留空让业务自己填",
+            "rationale": "预计完成率低于 30%"
+          }
+        ],
+        "owner": null,
+        "rid": "cf_missing_action_fca19ca7fd",
+        "subjects": [
+          "ot_bad",
+          "ot_abbr"
+        ],
+        "summary": "2 个对象没有任何 ActionType；OpenAPI 里没有可用端点"
+      }
+    ],
+    "missing_actions_base": [
+      {
+        "detector": "rule:ACT-01",
+        "evidence": [
+          {
+            "cite": "openapi.json#$.paths./purchase-plans",
+            "confidence": 0.85,
+            "extractor": "openapi",
+            "file_id": "openapi",
+            "file_name": "openapi.json",
+            "locator": {
+              "kind": "json",
+              "pointer": "$.paths./purchase-plans"
+            },
+            "snippet": "POST /purchase-plans/{id}/submit → submitPurchasePlan"
+          },
+          {
+            "cite": "openapi.json#",
+            "confidence": 0.85,
+            "extractor": "openapi",
+            "file_id": "openapi",
+            "file_name": "openapi.json",
+            "locator": {
+              "kind": "json",
+              "pointer": ""
+            },
+            "snippet": "POST /contracts → createClmContract"
+          }
+        ],
+        "handling": "ask_user",
+        "kind": "missing_action",
+        "options": [
+          {
+            "effect": {
+              "draft_actions": {
+                "ot_clm_contract": [
+                  "createClmContract"
+                ],
+                "ot_purchase_plan_header": [
+                  "submitPurchasePlan"
+                ]
+              }
+            },
+            "evidence": [
+              {
+                "cite": "openapi.json#$.paths./purchase-plans",
+                "confidence": 0.85,
+                "extractor": "openapi",
+                "file_id": "openapi",
+                "file_name": "openapi.json",
+                "locator": {
+                  "kind": "json",
+                  "pointer": "$.paths./purchase-plans"
+                },
+                "snippet": "POST /purchase-plans/{id}/submit → submitPurchasePlan"
+              },
+              {
+                "cite": "openapi.json#",
+                "confidence": 0.85,
+                "extractor": "openapi",
+                "file_id": "openapi",
+                "file_name": "openapi.json",
+                "locator": {
+                  "kind": "json",
+                  "pointer": ""
+                },
+                "snippet": "POST /contracts → createClmContract"
+              }
+            ],
+            "id": "draft_from_openapi",
+            "label": "反推草稿，覆盖 2/2 个对象",
+            "rationale": "标记为 DRAFT_FROM_API 进模板让业务确认 —— 从「改」开始比从「写」开始完成率高得多"
+          },
+          {
+            "effect": {},
+            "evidence": [],
+            "id": "leave_blank",
+            "label": "留空让业务自己填",
+            "rationale": "预计完成率低于 30%"
+          }
+        ],
+        "owner": null,
+        "rid": "cf_missing_action_b5dedf7c56",
+        "subjects": [
+          "ot_purchase_plan_header",
+          "ot_clm_contract"
+        ],
+        "summary": "2 个对象没有任何 ActionType；OpenAPI 里有写端点可覆盖其中 2 个"
+      }
+    ],
+    "missing_actions_get_only": [
+      {
+        "detector": "rule:ACT-01",
+        "evidence": [],
+        "handling": "ask_user",
+        "kind": "missing_action",
+        "options": [
+          {
+            "effect": {},
+            "evidence": [],
+            "id": "leave_blank",
+            "label": "留空让业务自己填",
+            "rationale": "预计完成率低于 30%"
+          }
+        ],
+        "owner": null,
+        "rid": "cf_missing_action_b5dedf7c56",
+        "subjects": [
+          "ot_purchase_plan_header",
+          "ot_clm_contract"
+        ],
+        "summary": "2 个对象没有任何 ActionType；OpenAPI 里没有可用端点"
+      }
+    ],
+    "missing_actions_no_endpoints": [
+      {
+        "detector": "rule:ACT-01",
+        "evidence": [],
+        "handling": "ask_user",
+        "kind": "missing_action",
+        "options": [
+          {
+            "effect": {},
+            "evidence": [],
+            "id": "leave_blank",
+            "label": "留空让业务自己填",
+            "rationale": "预计完成率低于 30%"
+          }
+        ],
+        "owner": null,
+        "rid": "cf_missing_action_b5dedf7c56",
+        "subjects": [
+          "ot_purchase_plan_header",
+          "ot_clm_contract"
+        ],
+        "summary": "2 个对象没有任何 ActionType；OpenAPI 里没有可用端点"
+      }
+    ],
+    "missing_required_messy": [
+      {
+        "detector": "rule:REQ-01",
+        "evidence": [],
+        "handling": "round_trip",
+        "kind": "missing_required",
+        "options": [],
+        "owner": "李强",
+        "rid": "cf_missing_required_c13bda09f5",
+        "subjects": [
+          "pt_nodef"
+        ],
+        "summary": "contractAmount: 缺 口径定义、显示名"
+      },
+      {
+        "detector": "rule:REQ-02",
+        "evidence": [],
+        "handling": "round_trip",
+        "kind": "missing_required",
+        "options": [],
+        "owner": null,
+        "rid": "cf_missing_required_341f04ec6a",
+        "subjects": [
+          "ot_bad"
+        ],
+        "summary": "采购合同: 未声明主键"
+      }
+    ],
+    "naming_messy": [
+      {
+        "detector": "rule:NAME-01",
+        "evidence": [
+          {
+            "cite": "实体梳理.xlsx!业务对象实体梳理!R2CF",
+            "confidence": 0.94,
+            "extractor": "docling",
+            "file_id": "f3",
+            "file_name": "实体梳理.xlsx",
+            "locator": {
+              "col": "F",
+              "kind": "cell",
+              "row": 2,
+              "sheet": "业务对象实体梳理"
+            },
+            "snippet": "y"
+          }
+        ],
+        "handling": "auto_repair",
+        "kind": "naming_violation",
+        "options": [
+          {
+            "effect": {
+              "set_api_name": "采购合同"
+            },
+            "evidence": [],
+            "id": "apply",
+            "label": "改为 采购合同",
+            "rationale": "可逆、零语义损失"
+          }
+        ],
+        "owner": null,
+        "rid": "cf_naming_violation_0d48b2902a",
+        "subjects": [
+          "ot_bad"
+        ],
+        "summary": "ot_bad: apiName 含中文"
+      },
+      {
+        "detector": "rule:NAME-01",
+        "evidence": [
+          {
+            "cite": "实体梳理.xlsx!业务对象实体梳理!R3CF",
+            "confidence": 0.94,
+            "extractor": "docling",
+            "file_id": "f3",
+            "file_name": "实体梳理.xlsx",
+            "locator": {
+              "col": "F",
+              "kind": "cell",
+              "row": 3,
+              "sheet": "业务对象实体梳理"
+            },
+            "snippet": "z"
+          }
+        ],
+        "handling": "auto_repair",
+        "kind": "naming_violation",
+        "options": [
+          {
+            "effect": {
+              "set_api_name": "po"
+            },
+            "evidence": [],
+            "id": "apply",
+            "label": "改为 po",
+            "rationale": "可逆、零语义损失"
+          }
+        ],
+        "owner": null,
+        "rid": "cf_naming_violation_09482e99ee",
+        "subjects": [
+          "ot_abbr"
+        ],
+        "summary": "ot_abbr: 疑似未登记缩写"
+      },
+      {
+        "detector": "rule:NAME-01",
+        "evidence": [
+          {
+            "cite": "实体梳理.xlsx!业务对象实体梳理!R9CF",
+            "confidence": 0.94,
+            "extractor": "docling",
+            "file_id": "f3",
+            "file_name": "实体梳理.xlsx",
+            "locator": {
+              "col": "F",
+              "kind": "cell",
+              "row": 9,
+              "sheet": "业务对象实体梳理"
+            },
+            "snippet": "含税，年度累计"
+          }
+        ],
+        "handling": "auto_repair",
+        "kind": "naming_violation",
+        "options": [
+          {
+            "effect": {
+              "set_api_name": "planAmount"
+            },
+            "evidence": [],
+            "id": "apply",
+            "label": "改为 planAmount",
+            "rationale": "可逆、零语义损失"
+          }
+        ],
+        "owner": null,
+        "rid": "cf_naming_violation_42a891a467",
+        "subjects": [
+          "pt_snake"
+        ],
+        "summary": "pt_snake: apiName 不是 lowerCamelCase"
+      }
+    ],
+    "naming_with_dictionary": [
+      {
+        "detector": "rule:NAME-01",
+        "evidence": [
+          {
+            "cite": "实体梳理.xlsx!业务对象实体梳理!R2CF",
+            "confidence": 0.94,
+            "extractor": "docling",
+            "file_id": "f3",
+            "file_name": "实体梳理.xlsx",
+            "locator": {
+              "col": "F",
+              "kind": "cell",
+              "row": 2,
+              "sheet": "业务对象实体梳理"
+            },
+            "snippet": "y"
+          }
+        ],
+        "handling": "auto_repair",
+        "kind": "naming_violation",
+        "options": [
+          {
+            "effect": {
+              "set_api_name": "采购合同"
+            },
+            "evidence": [],
+            "id": "apply",
+            "label": "改为 采购合同",
+            "rationale": "可逆、零语义损失"
+          }
+        ],
+        "owner": null,
+        "rid": "cf_naming_violation_0d48b2902a",
+        "subjects": [
+          "ot_bad"
+        ],
+        "summary": "ot_bad: apiName 含中文"
+      },
+      {
+        "detector": "rule:NAME-01",
+        "evidence": [
+          {
+            "cite": "实体梳理.xlsx!业务对象实体梳理!R9CF",
+            "confidence": 0.94,
+            "extractor": "docling",
+            "file_id": "f3",
+            "file_name": "实体梳理.xlsx",
+            "locator": {
+              "col": "F",
+              "kind": "cell",
+              "row": 9,
+              "sheet": "业务对象实体梳理"
+            },
+            "snippet": "含税，年度累计"
+          }
+        ],
+        "handling": "auto_repair",
+        "kind": "naming_violation",
+        "options": [
+          {
+            "effect": {
+              "set_api_name": "planAmount"
+            },
+            "evidence": [],
+            "id": "apply",
+            "label": "改为 planAmount",
+            "rationale": "可逆、零语义损失"
+          }
+        ],
+        "owner": null,
+        "rid": "cf_naming_violation_42a891a467",
+        "subjects": [
+          "pt_snake"
+        ],
+        "summary": "pt_snake: apiName 不是 lowerCamelCase"
+      }
+    ],
+    "orphans_base": [],
+    "orphans_messy": [
+      {
+        "detector": "rule:GRAPH-01",
+        "evidence": [
+          {
+            "cite": "实体梳理.xlsx!业务对象实体梳理!R1CF",
+            "confidence": 0.94,
+            "extractor": "docling",
+            "file_id": "f3",
+            "file_name": "实体梳理.xlsx",
+            "locator": {
+              "col": "F",
+              "kind": "cell",
+              "row": 1,
+              "sheet": "业务对象实体梳理"
+            },
+            "snippet": "x"
+          }
+        ],
+        "handling": "hint",
+        "kind": "orphan",
+        "options": [],
+        "owner": null,
+        "rid": "cf_orphan_c205650bd0",
+        "subjects": [
+          "ot_good"
+        ],
+        "summary": "purchasePlan 与任何对象都没有关系，可能是遗漏"
+      },
+      {
+        "detector": "rule:GRAPH-01",
+        "evidence": [
+          {
+            "cite": "实体梳理.xlsx!业务对象实体梳理!R2CF",
+            "confidence": 0.94,
+            "extractor": "docling",
+            "file_id": "f3",
+            "file_name": "实体梳理.xlsx",
+            "locator": {
+              "col": "F",
+              "kind": "cell",
+              "row": 2,
+              "sheet": "业务对象实体梳理"
+            },
+            "snippet": "y"
+          }
+        ],
+        "handling": "hint",
+        "kind": "orphan",
+        "options": [],
+        "owner": null,
+        "rid": "cf_orphan_0d48b2902a",
+        "subjects": [
+          "ot_bad"
+        ],
+        "summary": "采购合同 与任何对象都没有关系，可能是遗漏"
+      },
+      {
+        "detector": "rule:GRAPH-01",
+        "evidence": [
+          {
+            "cite": "实体梳理.xlsx!业务对象实体梳理!R3CF",
+            "confidence": 0.94,
+            "extractor": "docling",
+            "file_id": "f3",
+            "file_name": "实体梳理.xlsx",
+            "locator": {
+              "col": "F",
+              "kind": "cell",
+              "row": 3,
+              "sheet": "业务对象实体梳理"
+            },
+            "snippet": "z"
+          }
+        ],
+        "handling": "hint",
+        "kind": "orphan",
+        "options": [],
+        "owner": null,
+        "rid": "cf_orphan_09482e99ee",
+        "subjects": [
+          "ot_abbr"
+        ],
+        "summary": "po 与任何对象都没有关系，可能是遗漏"
+      }
+    ],
+    "perfunctory": [
+      {
+        "detector": "heuristic:PERF-01",
+        "evidence": [],
+        "handling": "round_trip",
+        "kind": "perfunctory",
+        "options": [],
+        "owner": "王明",
+        "rid": "cf_perfunctory_3760f375ba",
+        "subjects": [
+          "pt_a"
+        ],
+        "summary": "口径定义 疑似敷衍填写（COPIED_HEADER）"
+      },
+      {
+        "detector": "heuristic:PERF-01",
+        "evidence": [],
+        "handling": "round_trip",
+        "kind": "perfunctory",
+        "options": [],
+        "owner": null,
+        "rid": "cf_perfunctory_ff712800e1",
+        "subjects": [
+          "pt_c"
+        ],
+        "summary": "字段 疑似敷衍填写（PLACEHOLDER、TOO_SHORT）"
+      }
+    ],
+    "semantic_divergence_base": [
+      {
+        "detector": "rule:AXIS-01",
+        "evidence": [
+          {
+            "cite": "实体梳理.xlsx!业务对象实体梳理!R44CF",
+            "confidence": 0.94,
+            "extractor": "docling",
+            "file_id": "f3",
+            "file_name": "实体梳理.xlsx",
+            "locator": {
+              "col": "F",
+              "kind": "cell",
+              "row": 44,
+              "sheet": "业务对象实体梳理"
+            },
+            "snippet": "计划金额（含税，年度累计）"
+          },
+          {
+            "cite": "schema.ddl#clm_contract",
+            "confidence": 0.9,
+            "extractor": "sqlglot",
+            "file_id": "f5",
+            "file_name": "schema.ddl",
+            "locator": {
+              "kind": "ddl",
+              "object": "clm_contract"
+            },
+            "snippet": "-- 不含税·单次"
+          }
+        ],
+        "handling": "ask_user",
+        "kind": "semantic_divergence",
+        "options": [
+          {
+            "effect": {
+              "axes": "时间粒度_税",
+              "split": [
+                "pt_plan_amount_budget",
+                "pt_plan_amount_contract"
+              ]
+            },
+            "evidence": [
+              {
+                "cite": "实体梳理.xlsx!业务对象实体梳理!R44CF",
+                "confidence": 0.94,
+                "extractor": "docling",
+                "file_id": "f3",
+                "file_name": "实体梳理.xlsx",
+                "locator": {
+                  "col": "F",
+                  "kind": "cell",
+                  "row": 44,
+                  "sheet": "业务对象实体梳理"
+                },
+                "snippet": "计划金额（含税，年度累计）"
+              },
+              {
+                "cite": "schema.ddl#clm_contract",
+                "confidence": 0.9,
+                "extractor": "sqlglot",
+                "file_id": "f5",
+                "file_name": "schema.ddl",
+                "locator": {
+                  "kind": "ddl",
+                  "object": "clm_contract"
+                },
+                "snippet": "-- 不含税·单次"
+              }
+            ],
+            "id": "split_two_properties",
+            "label": "拆成两个属性：planAmountTaxInclAnnual / planAmountNetPerTime",
+            "rationale": "信息不丢，但下游报表口径要跟着改"
+          },
+          {
+            "effect": {
+              "unify_to": "pt_plan_amount_budget"
+            },
+            "evidence": [
+              {
+                "cite": "实体梳理.xlsx!业务对象实体梳理!R44CF",
+                "confidence": 0.94,
+                "extractor": "docling",
+                "file_id": "f3",
+                "file_name": "实体梳理.xlsx",
+                "locator": {
+                  "col": "F",
+                  "kind": "cell",
+                  "row": 44,
+                  "sheet": "业务对象实体梳理"
+                },
+                "snippet": "计划金额（含税，年度累计）"
+              }
+            ],
+            "id": "unify_a",
+            "label": "统一为 A 口径（含税，年度累计，CNY）",
+            "rationale": "B 处标记为派生，需补换算规则"
+          },
+          {
+            "effect": {
+              "unify_to": "pt_plan_amount_contract"
+            },
+            "evidence": [
+              {
+                "cite": "schema.ddl#clm_contract",
+                "confidence": 0.9,
+                "extractor": "sqlglot",
+                "file_id": "f5",
+                "file_name": "schema.ddl",
+                "locator": {
+                  "kind": "ddl",
+                  "object": "clm_contract"
+                },
+                "snippet": "-- 不含税·单次"
+              }
+            ],
+            "id": "unify_b",
+            "label": "统一为 B 口径（不含税，单次，CNY）",
+            "rationale": "A 处标记为派生，历史数据需回溯"
+          },
+          {
+            "effect": {
+              "defer": true
+            },
+            "evidence": [],
+            "id": "defer_to_template",
+            "label": "先不定，转成模板里的业务必填项",
+            "rationale": "推迟到业务方填写时消解"
+          }
+        ],
+        "owner": null,
+        "rid": "cf_semantic_divergence_b606de99da",
+        "subjects": [
+          "pt_plan_amount_budget",
+          "pt_plan_amount_contract"
+        ],
+        "summary": null,
+        "summary_axes": [
+          "时间粒度（年度累计 vs 单次）",
+          "税（含税 vs 不含税）"
+        ],
+        "summary_head": "「计划金额」口径不一致（2 种口径、涉及 2 处）："
+      }
+    ],
+    "semantic_divergence_cases": [
+      {
+        "a": "本次采购的计划金额，指含税总价",
+        "b": "计划金额按不含税口径统计",
+        "name": "known_axis",
+        "out": [
+          {
+            "detector": "rule:AXIS-01",
+            "evidence": [
+              {
+                "cite": "实体梳理.xlsx!业务对象实体梳理!R9CF",
+                "confidence": 0.94,
+                "extractor": "docling",
+                "file_id": "f3",
+                "file_name": "实体梳理.xlsx",
+                "locator": {
+                  "col": "F",
+                  "kind": "cell",
+                  "row": 9,
+                  "sheet": "业务对象实体梳理"
+                },
+                "snippet": "本次采购的计划金额，指含税总价"
+              },
+              {
+                "cite": "实体梳理.xlsx!业务对象实体梳理!R9CF",
+                "confidence": 0.94,
+                "extractor": "docling",
+                "file_id": "f3",
+                "file_name": "实体梳理.xlsx",
+                "locator": {
+                  "col": "F",
+                  "kind": "cell",
+                  "row": 9,
+                  "sheet": "业务对象实体梳理"
+                },
+                "snippet": "计划金额按不含税口径统计"
+              }
+            ],
+            "handling": "ask_user",
+            "kind": "semantic_divergence",
+            "options": [
+              {
+                "effect": {
+                  "axes": "税",
+                  "split": [
+                    "p1",
+                    "p2"
+                  ]
+                },
+                "evidence": [
+                  {
+                    "cite": "实体梳理.xlsx!业务对象实体梳理!R9CF",
+                    "confidence": 0.94,
+                    "extractor": "docling",
+                    "file_id": "f3",
+                    "file_name": "实体梳理.xlsx",
+                    "locator": {
+                      "col": "F",
+                      "kind": "cell",
+                      "row": 9,
+                      "sheet": "业务对象实体梳理"
+                    },
+                    "snippet": "本次采购的计划金额，指含税总价"
+                  },
+                  {
+                    "cite": "实体梳理.xlsx!业务对象实体梳理!R9CF",
+                    "confidence": 0.94,
+                    "extractor": "docling",
+                    "file_id": "f3",
+                    "file_name": "实体梳理.xlsx",
+                    "locator": {
+                      "col": "F",
+                      "kind": "cell",
+                      "row": 9,
+                      "sheet": "业务对象实体梳理"
+                    },
+                    "snippet": "计划金额按不含税口径统计"
+                  }
+                ],
+                "id": "split_two_properties",
+                "label": "拆成两个属性：planAmountTaxIncl / planAmountNet",
+                "rationale": "信息不丢，但下游报表口径要跟着改"
+              },
+              {
+                "effect": {
+                  "unify_to": "p1"
+                },
+                "evidence": [
+                  {
+                    "cite": "实体梳理.xlsx!业务对象实体梳理!R9CF",
+                    "confidence": 0.94,
+                    "extractor": "docling",
+                    "file_id": "f3",
+                    "file_name": "实体梳理.xlsx",
+                    "locator": {
+                      "col": "F",
+                      "kind": "cell",
+                      "row": 9,
+                      "sheet": "业务对象实体梳理"
+                    },
+                    "snippet": "本次采购的计划金额，指含税总价"
+                  }
+                ],
+                "id": "unify_a",
+                "label": "统一为 A 口径（本次采购的计划金额，指含税总价）",
+                "rationale": "B 处标记为派生，需补换算规则"
+              },
+              {
+                "effect": {
+                  "unify_to": "p2"
+                },
+                "evidence": [
+                  {
+                    "cite": "实体梳理.xlsx!业务对象实体梳理!R9CF",
+                    "confidence": 0.94,
+                    "extractor": "docling",
+                    "file_id": "f3",
+                    "file_name": "实体梳理.xlsx",
+                    "locator": {
+                      "col": "F",
+                      "kind": "cell",
+                      "row": 9,
+                      "sheet": "业务对象实体梳理"
+                    },
+                    "snippet": "计划金额按不含税口径统计"
+                  }
+                ],
+                "id": "unify_b",
+                "label": "统一为 B 口径（计划金额按不含税口径统计）",
+                "rationale": "A 处标记为派生，历史数据需回溯"
+              },
+              {
+                "effect": {
+                  "defer": true
+                },
+                "evidence": [],
+                "id": "defer_to_template",
+                "label": "先不定，转成模板里的业务必填项",
+                "rationale": "推迟到业务方填写时消解"
+              }
+            ],
+            "owner": null,
+            "rid": "cf_semantic_divergence_72b2d360e5",
+            "subjects": [
+              "p1",
+              "p2"
+            ],
+            "summary": null,
+            "summary_axes": [
+              "税（含税 vs 不含税）"
+            ],
+            "summary_head": "「计划金额」口径不一致（2 种口径、涉及 2 处）："
+          }
+        ]
+      },
+      {
+        "a": "计划金额取工艺路线上首道工序的产能上限",
+        "b": "计划金额取末道工序的产能下限",
+        "name": "unknown_axis",
+        "out": [
+          {
+            "detector": "rule:AXIS-01",
+            "evidence": [
+              {
+                "cite": "实体梳理.xlsx!业务对象实体梳理!R9CF",
+                "confidence": 0.94,
+                "extractor": "docling",
+                "file_id": "f3",
+                "file_name": "实体梳理.xlsx",
+                "locator": {
+                  "col": "F",
+                  "kind": "cell",
+                  "row": 9,
+                  "sheet": "业务对象实体梳理"
+                },
+                "snippet": "计划金额取工艺路线上首道工序的产能上限"
+              },
+              {
+                "cite": "实体梳理.xlsx!业务对象实体梳理!R9CF",
+                "confidence": 0.94,
+                "extractor": "docling",
+                "file_id": "f3",
+                "file_name": "实体梳理.xlsx",
+                "locator": {
+                  "col": "F",
+                  "kind": "cell",
+                  "row": 9,
+                  "sheet": "业务对象实体梳理"
+                },
+                "snippet": "计划金额取末道工序的产能下限"
+              }
+            ],
+            "handling": "ask_user",
+            "kind": "semantic_divergence",
+            "options": [
+              {
+                "effect": {
+                  "axes": "",
+                  "split": [
+                    "p1",
+                    "p2"
+                  ]
+                },
+                "evidence": [
+                  {
+                    "cite": "实体梳理.xlsx!业务对象实体梳理!R9CF",
+                    "confidence": 0.94,
+                    "extractor": "docling",
+                    "file_id": "f3",
+                    "file_name": "实体梳理.xlsx",
+                    "locator": {
+                      "col": "F",
+                      "kind": "cell",
+                      "row": 9,
+                      "sheet": "业务对象实体梳理"
+                    },
+                    "snippet": "计划金额取工艺路线上首道工序的产能上限"
+                  },
+                  {
+                    "cite": "实体梳理.xlsx!业务对象实体梳理!R9CF",
+                    "confidence": 0.94,
+                    "extractor": "docling",
+                    "file_id": "f3",
+                    "file_name": "实体梳理.xlsx",
+                    "locator": {
+                      "col": "F",
+                      "kind": "cell",
+                      "row": 9,
+                      "sheet": "业务对象实体梳理"
+                    },
+                    "snippet": "计划金额取末道工序的产能下限"
+                  }
+                ],
+                "id": "split_two_properties",
+                "label": "拆成两个属性：planAmount / planAmount",
+                "rationale": "信息不丢，但下游报表口径要跟着改"
+              },
+              {
+                "effect": {
+                  "unify_to": "p1"
+                },
+                "evidence": [
+                  {
+                    "cite": "实体梳理.xlsx!业务对象实体梳理!R9CF",
+                    "confidence": 0.94,
+                    "extractor": "docling",
+                    "file_id": "f3",
+                    "file_name": "实体梳理.xlsx",
+                    "locator": {
+                      "col": "F",
+                      "kind": "cell",
+                      "row": 9,
+                      "sheet": "业务对象实体梳理"
+                    },
+                    "snippet": "计划金额取工艺路线上首道工序的产能上限"
+                  }
+                ],
+                "id": "unify_a",
+                "label": "统一为 A 口径（计划金额取工艺路线上首道工序的产能上限）",
+                "rationale": "B 处标记为派生，需补换算规则"
+              },
+              {
+                "effect": {
+                  "unify_to": "p2"
+                },
+                "evidence": [
+                  {
+                    "cite": "实体梳理.xlsx!业务对象实体梳理!R9CF",
+                    "confidence": 0.94,
+                    "extractor": "docling",
+                    "file_id": "f3",
+                    "file_name": "实体梳理.xlsx",
+                    "locator": {
+                      "col": "F",
+                      "kind": "cell",
+                      "row": 9,
+                      "sheet": "业务对象实体梳理"
+                    },
+                    "snippet": "计划金额取末道工序的产能下限"
+                  }
+                ],
+                "id": "unify_b",
+                "label": "统一为 B 口径（计划金额取末道工序的产能下限）",
+                "rationale": "A 处标记为派生，历史数据需回溯"
+              },
+              {
+                "effect": {
+                  "defer": true
+                },
+                "evidence": [],
+                "id": "defer_to_template",
+                "label": "先不定，转成模板里的业务必填项",
+                "rationale": "推迟到业务方填写时消解"
+              }
+            ],
+            "owner": null,
+            "rid": "cf_semantic_divergence_72b2d360e5",
+            "subjects": [
+              "p1",
+              "p2"
+            ],
+            "summary": null,
+            "summary_axes": [
+              "差在这几处：工艺路线上首、末、上、下（我判不出是哪一维）"
+            ],
+            "summary_head": "「计划金额」口径不一致（2 种口径、涉及 2 处）："
+          }
+        ]
+      },
+      {
+        "a": "含税总价",
+        "b": "含税总价",
+        "name": "identical",
+        "out": []
+      },
+      {
+        "a": "含税、年度累计。",
+        "b": "含税，年度累计",
+        "name": "punctuation_only",
+        "out": []
+      },
+      {
+        "a": "含税，年度累计",
+        "b": "金额",
+        "name": "one_sided",
+        "out": [
+          {
+            "detector": "rule:AXIS-01",
+            "evidence": [
+              {
+                "cite": "实体梳理.xlsx!业务对象实体梳理!R9CF",
+                "confidence": 0.94,
+                "extractor": "docling",
+                "file_id": "f3",
+                "file_name": "实体梳理.xlsx",
+                "locator": {
+                  "col": "F",
+                  "kind": "cell",
+                  "row": 9,
+                  "sheet": "业务对象实体梳理"
+                },
+                "snippet": "含税，年度累计"
+              },
+              {
+                "cite": "实体梳理.xlsx!业务对象实体梳理!R9CF",
+                "confidence": 0.94,
+                "extractor": "docling",
+                "file_id": "f3",
+                "file_name": "实体梳理.xlsx",
+                "locator": {
+                  "col": "F",
+                  "kind": "cell",
+                  "row": 9,
+                  "sheet": "业务对象实体梳理"
+                },
+                "snippet": "金额"
+              }
+            ],
+            "handling": "ask_user",
+            "kind": "semantic_divergence",
+            "options": [
+              {
+                "effect": {
+                  "axes": "",
+                  "split": [
+                    "p1",
+                    "p2"
+                  ]
+                },
+                "evidence": [
+                  {
+                    "cite": "实体梳理.xlsx!业务对象实体梳理!R9CF",
+                    "confidence": 0.94,
+                    "extractor": "docling",
+                    "file_id": "f3",
+                    "file_name": "实体梳理.xlsx",
+                    "locator": {
+                      "col": "F",
+                      "kind": "cell",
+                      "row": 9,
+                      "sheet": "业务对象实体梳理"
+                    },
+                    "snippet": "含税，年度累计"
+                  },
+                  {
+                    "cite": "实体梳理.xlsx!业务对象实体梳理!R9CF",
+                    "confidence": 0.94,
+                    "extractor": "docling",
+                    "file_id": "f3",
+                    "file_name": "实体梳理.xlsx",
+                    "locator": {
+                      "col": "F",
+                      "kind": "cell",
+                      "row": 9,
+                      "sheet": "业务对象实体梳理"
+                    },
+                    "snippet": "金额"
+                  }
+                ],
+                "id": "split_two_properties",
+                "label": "拆成两个属性：planAmountTaxInclAnnual / planAmount",
+                "rationale": "信息不丢，但下游报表口径要跟着改"
+              },
+              {
+                "effect": {
+                  "unify_to": "p1"
+                },
+                "evidence": [
+                  {
+                    "cite": "实体梳理.xlsx!业务对象实体梳理!R9CF",
+                    "confidence": 0.94,
+                    "extractor": "docling",
+                    "file_id": "f3",
+                    "file_name": "实体梳理.xlsx",
+                    "locator": {
+                      "col": "F",
+                      "kind": "cell",
+                      "row": 9,
+                      "sheet": "业务对象实体梳理"
+                    },
+                    "snippet": "含税，年度累计"
+                  }
+                ],
+                "id": "unify_a",
+                "label": "统一为 A 口径（含税，年度累计）",
+                "rationale": "B 处标记为派生，需补换算规则"
+              },
+              {
+                "effect": {
+                  "unify_to": "p2"
+                },
+                "evidence": [
+                  {
+                    "cite": "实体梳理.xlsx!业务对象实体梳理!R9CF",
+                    "confidence": 0.94,
+                    "extractor": "docling",
+                    "file_id": "f3",
+                    "file_name": "实体梳理.xlsx",
+                    "locator": {
+                      "col": "F",
+                      "kind": "cell",
+                      "row": 9,
+                      "sheet": "业务对象实体梳理"
+                    },
+                    "snippet": "金额"
+                  }
+                ],
+                "id": "unify_b",
+                "label": "统一为 B 口径（金额）",
+                "rationale": "A 处标记为派生，历史数据需回溯"
+              },
+              {
+                "effect": {
+                  "defer": true
+                },
+                "evidence": [],
+                "id": "defer_to_template",
+                "label": "先不定，转成模板里的业务必填项",
+                "rationale": "推迟到业务方填写时消解"
+              }
+            ],
+            "owner": null,
+            "rid": "cf_semantic_divergence_72b2d360e5",
+            "subjects": [
+              "p1",
+              "p2"
+            ],
+            "summary": null,
+            "summary_axes": [
+              "差在这几处：含税年度累计、金额（我判不出是哪一维）"
+            ],
+            "summary_head": "「计划金额」口径不一致（2 种口径、涉及 2 处）："
+          }
+        ]
+      },
+      {
+        "a": "",
+        "b": "",
+        "name": "both_empty",
+        "out": []
+      },
+      {
+        "a": "",
+        "b": "含税",
+        "name": "half_empty",
+        "out": [
+          {
+            "detector": "rule:AXIS-01",
+            "evidence": [
+              {
+                "cite": "实体梳理.xlsx!业务对象实体梳理!R9CF",
+                "confidence": 0.94,
+                "extractor": "docling",
+                "file_id": "f3",
+                "file_name": "实体梳理.xlsx",
+                "locator": {
+                  "col": "F",
+                  "kind": "cell",
+                  "row": 9,
+                  "sheet": "业务对象实体梳理"
+                },
+                "snippet": ""
+              },
+              {
+                "cite": "实体梳理.xlsx!业务对象实体梳理!R9CF",
+                "confidence": 0.94,
+                "extractor": "docling",
+                "file_id": "f3",
+                "file_name": "实体梳理.xlsx",
+                "locator": {
+                  "col": "F",
+                  "kind": "cell",
+                  "row": 9,
+                  "sheet": "业务对象实体梳理"
+                },
+                "snippet": "含税"
+              }
+            ],
+            "handling": "ask_user",
+            "kind": "semantic_divergence",
+            "options": [
+              {
+                "effect": {
+                  "axes": "",
+                  "split": [
+                    "p1",
+                    "p2"
+                  ]
+                },
+                "evidence": [
+                  {
+                    "cite": "实体梳理.xlsx!业务对象实体梳理!R9CF",
+                    "confidence": 0.94,
+                    "extractor": "docling",
+                    "file_id": "f3",
+                    "file_name": "实体梳理.xlsx",
+                    "locator": {
+                      "col": "F",
+                      "kind": "cell",
+                      "row": 9,
+                      "sheet": "业务对象实体梳理"
+                    },
+                    "snippet": ""
+                  },
+                  {
+                    "cite": "实体梳理.xlsx!业务对象实体梳理!R9CF",
+                    "confidence": 0.94,
+                    "extractor": "docling",
+                    "file_id": "f3",
+                    "file_name": "实体梳理.xlsx",
+                    "locator": {
+                      "col": "F",
+                      "kind": "cell",
+                      "row": 9,
+                      "sheet": "业务对象实体梳理"
+                    },
+                    "snippet": "含税"
+                  }
+                ],
+                "id": "split_two_properties",
+                "label": "拆成两个属性：planAmount / planAmountTaxIncl",
+                "rationale": "信息不丢，但下游报表口径要跟着改"
+              },
+              {
+                "effect": {
+                  "unify_to": "p1"
+                },
+                "evidence": [
+                  {
+                    "cite": "实体梳理.xlsx!业务对象实体梳理!R9CF",
+                    "confidence": 0.94,
+                    "extractor": "docling",
+                    "file_id": "f3",
+                    "file_name": "实体梳理.xlsx",
+                    "locator": {
+                      "col": "F",
+                      "kind": "cell",
+                      "row": 9,
+                      "sheet": "业务对象实体梳理"
+                    },
+                    "snippet": ""
+                  }
+                ],
+                "id": "unify_a",
+                "label": "统一为 A 口径（）",
+                "rationale": "B 处标记为派生，需补换算规则"
+              },
+              {
+                "effect": {
+                  "unify_to": "p2"
+                },
+                "evidence": [
+                  {
+                    "cite": "实体梳理.xlsx!业务对象实体梳理!R9CF",
+                    "confidence": 0.94,
+                    "extractor": "docling",
+                    "file_id": "f3",
+                    "file_name": "实体梳理.xlsx",
+                    "locator": {
+                      "col": "F",
+                      "kind": "cell",
+                      "row": 9,
+                      "sheet": "业务对象实体梳理"
+                    },
+                    "snippet": "含税"
+                  }
+                ],
+                "id": "unify_b",
+                "label": "统一为 B 口径（含税）",
+                "rationale": "A 处标记为派生，历史数据需回溯"
+              },
+              {
+                "effect": {
+                  "defer": true
+                },
+                "evidence": [],
+                "id": "defer_to_template",
+                "label": "先不定，转成模板里的业务必填项",
+                "rationale": "推迟到业务方填写时消解"
+              }
+            ],
+            "owner": null,
+            "rid": "cf_semantic_divergence_72b2d360e5",
+            "subjects": [
+              "p1",
+              "p2"
+            ],
+            "summary": null,
+            "summary_axes": [
+              "差在这几处：含税（我判不出是哪一维）"
+            ],
+            "summary_head": "「计划金额」口径不一致（2 种口径、涉及 2 处）："
+          }
+        ]
+      },
+      {
+        "a": "计划金额。口径：含税，年度累计，CNY（Excel 批注 R5-5 与 DDL 注释 pbp_header.plan_amount '含税·年度累计·CNY' 一致）。注意与 clmContract.planAmount 在税轴(含税/不含税)、时间粒度轴(年度累计/单次)上口径不同，两处均保留，交业务方拍板",
+        "b": "计划金额。口径：不含税，单次，CNY（Excel 批注 R8-8 与 DDL 注释 clm_contract.plan_amount '不含税·单次·CNY' 一致）。注意与 pbpHeader.planAmount 在税轴(含税/不含税)、时间粒度轴(年度累计/单次)上口径不同，两处均保留，交业务方拍板",
+        "name": "real_llm",
+        "out": [
+          {
+            "detector": "rule:AXIS-01",
+            "evidence": [
+              {
+                "cite": "实体梳理.xlsx!业务对象实体梳理!R9CF",
+                "confidence": 0.94,
+                "extractor": "docling",
+                "file_id": "f3",
+                "file_name": "实体梳理.xlsx",
+                "locator": {
+                  "col": "F",
+                  "kind": "cell",
+                  "row": 9,
+                  "sheet": "业务对象实体梳理"
+                },
+                "snippet": "计划金额。口径：含税，年度累计，CNY（Excel 批注 R5-5 与 DDL 注释 pbp_header.plan_amount '含税·年度累计·CNY' 一致）。注意与 clmContract.planAmount 在税轴(含税/不含税)、时间粒度轴(年度累计/单次)上口径不同，两处均保留，交业务方拍板"
+              },
+              {
+                "cite": "实体梳理.xlsx!业务对象实体梳理!R9CF",
+                "confidence": 0.94,
+                "extractor": "docling",
+                "file_id": "f3",
+                "file_name": "实体梳理.xlsx",
+                "locator": {
+                  "col": "F",
+                  "kind": "cell",
+                  "row": 9,
+                  "sheet": "业务对象实体梳理"
+                },
+                "snippet": "计划金额。口径：不含税，单次，CNY（Excel 批注 R8-8 与 DDL 注释 clm_contract.plan_amount '不含税·单次·CNY' 一致）。注意与 pbpHeader.planAmount 在税轴(含税/不含税)、时间粒度轴(年度累计/单次)上口径不同，两处均保留，交业务方拍板"
+              }
+            ],
+            "handling": "ask_user",
+            "kind": "semantic_divergence",
+            "options": [
+              {
+                "effect": {
+                  "axes": "时间粒度_税",
+                  "split": [
+                    "p1",
+                    "p2"
+                  ]
+                },
+                "evidence": [
+                  {
+                    "cite": "实体梳理.xlsx!业务对象实体梳理!R9CF",
+                    "confidence": 0.94,
+                    "extractor": "docling",
+                    "file_id": "f3",
+                    "file_name": "实体梳理.xlsx",
+                    "locator": {
+                      "col": "F",
+                      "kind": "cell",
+                      "row": 9,
+                      "sheet": "业务对象实体梳理"
+                    },
+                    "snippet": "计划金额。口径：含税，年度累计，CNY（Excel 批注 R5-5 与 DDL 注释 pbp_header.plan_amount '含税·年度累计·CNY' 一致）。注意与 clmContract.planAmount 在税轴(含税/不含税)、时间粒度轴(年度累计/单次)上口径不同，两处均保留，交业务方拍板"
+                  },
+                  {
+                    "cite": "实体梳理.xlsx!业务对象实体梳理!R9CF",
+                    "confidence": 0.94,
+                    "extractor": "docling",
+                    "file_id": "f3",
+                    "file_name": "实体梳理.xlsx",
+                    "locator": {
+                      "col": "F",
+                      "kind": "cell",
+                      "row": 9,
+                      "sheet": "业务对象实体梳理"
+                    },
+                    "snippet": "计划金额。口径：不含税，单次，CNY（Excel 批注 R8-8 与 DDL 注释 clm_contract.plan_amount '不含税·单次·CNY' 一致）。注意与 pbpHeader.planAmount 在税轴(含税/不含税)、时间粒度轴(年度累计/单次)上口径不同，两处均保留，交业务方拍板"
+                  }
+                ],
+                "id": "split_two_properties",
+                "label": "拆成两个属性：planAmountTaxInclAnnual / planAmountNetPerTime",
+                "rationale": "信息不丢，但下游报表口径要跟着改"
+              },
+              {
+                "effect": {
+                  "unify_to": "p1"
+                },
+                "evidence": [
+                  {
+                    "cite": "实体梳理.xlsx!业务对象实体梳理!R9CF",
+                    "confidence": 0.94,
+                    "extractor": "docling",
+                    "file_id": "f3",
+                    "file_name": "实体梳理.xlsx",
+                    "locator": {
+                      "col": "F",
+                      "kind": "cell",
+                      "row": 9,
+                      "sheet": "业务对象实体梳理"
+                    },
+                    "snippet": "计划金额。口径：含税，年度累计，CNY（Excel 批注 R5-5 与 DDL 注释 pbp_header.plan_amount '含税·年度累计·CNY' 一致）。注意与 clmContract.planAmount 在税轴(含税/不含税)、时间粒度轴(年度累计/单次)上口径不同，两处均保留，交业务方拍板"
+                  }
+                ],
+                "id": "unify_a",
+                "label": "统一为 A 口径（含税，年度累计，CNY）",
+                "rationale": "B 处标记为派生，需补换算规则"
+              },
+              {
+                "effect": {
+                  "unify_to": "p2"
+                },
+                "evidence": [
+                  {
+                    "cite": "实体梳理.xlsx!业务对象实体梳理!R9CF",
+                    "confidence": 0.94,
+                    "extractor": "docling",
+                    "file_id": "f3",
+                    "file_name": "实体梳理.xlsx",
+                    "locator": {
+                      "col": "F",
+                      "kind": "cell",
+                      "row": 9,
+                      "sheet": "业务对象实体梳理"
+                    },
+                    "snippet": "计划金额。口径：不含税，单次，CNY（Excel 批注 R8-8 与 DDL 注释 clm_contract.plan_amount '不含税·单次·CNY' 一致）。注意与 pbpHeader.planAmount 在税轴(含税/不含税)、时间粒度轴(年度累计/单次)上口径不同，两处均保留，交业务方拍板"
+                  }
+                ],
+                "id": "unify_b",
+                "label": "统一为 B 口径（不含税，单次，CNY）",
+                "rationale": "A 处标记为派生，历史数据需回溯"
+              },
+              {
+                "effect": {
+                  "defer": true
+                },
+                "evidence": [],
+                "id": "defer_to_template",
+                "label": "先不定，转成模板里的业务必填项",
+                "rationale": "推迟到业务方填写时消解"
+              }
+            ],
+            "owner": null,
+            "rid": "cf_semantic_divergence_72b2d360e5",
+            "subjects": [
+              "p1",
+              "p2"
+            ],
+            "summary": null,
+            "summary_axes": [
+              "时间粒度（年度累计 vs 单次）",
+              "税（含税 vs 不含税）"
+            ],
+            "summary_head": "「计划金额」口径不一致（2 种口径、涉及 2 处）："
+          }
+        ]
+      }
+    ],
+    "semantic_divergence_three": [
+      {
+        "detector": "rule:AXIS-01",
+        "evidence": [
+          {
+            "cite": "实体梳理.xlsx!业务对象实体梳理!R9CF",
+            "confidence": 0.94,
+            "extractor": "docling",
+            "file_id": "f3",
+            "file_name": "实体梳理.xlsx",
+            "locator": {
+              "col": "F",
+              "kind": "cell",
+              "row": 9,
+              "sheet": "业务对象实体梳理"
+            },
+            "snippet": "含税，年度累计"
+          },
+          {
+            "cite": "实体梳理.xlsx!业务对象实体梳理!R9CF",
+            "confidence": 0.94,
+            "extractor": "docling",
+            "file_id": "f3",
+            "file_name": "实体梳理.xlsx",
+            "locator": {
+              "col": "F",
+              "kind": "cell",
+              "row": 9,
+              "sheet": "业务对象实体梳理"
+            },
+            "snippet": "不含税，单次"
+          }
+        ],
+        "handling": "ask_user",
+        "kind": "semantic_divergence",
+        "options": [
+          {
+            "effect": {
+              "axes": "时间粒度_税",
+              "split": [
+                "p1",
+                "p3",
+                "p2"
+              ]
+            },
+            "evidence": [
+              {
+                "cite": "实体梳理.xlsx!业务对象实体梳理!R9CF",
+                "confidence": 0.94,
+                "extractor": "docling",
+                "file_id": "f3",
+                "file_name": "实体梳理.xlsx",
+                "locator": {
+                  "col": "F",
+                  "kind": "cell",
+                  "row": 9,
+                  "sheet": "业务对象实体梳理"
+                },
+                "snippet": "含税，年度累计"
+              },
+              {
+                "cite": "实体梳理.xlsx!业务对象实体梳理!R9CF",
+                "confidence": 0.94,
+                "extractor": "docling",
+                "file_id": "f3",
+                "file_name": "实体梳理.xlsx",
+                "locator": {
+                  "col": "F",
+                  "kind": "cell",
+                  "row": 9,
+                  "sheet": "业务对象实体梳理"
+                },
+                "snippet": "不含税，单次"
+              }
+            ],
+            "id": "split_two_properties",
+            "label": "拆成两个属性：planAmountTaxInclAnnual / planAmountNetPerTime",
+            "rationale": "信息不丢，但下游报表口径要跟着改"
+          },
+          {
+            "effect": {
+              "unify_to": "p1"
+            },
+            "evidence": [
+              {
+                "cite": "实体梳理.xlsx!业务对象实体梳理!R9CF",
+                "confidence": 0.94,
+                "extractor": "docling",
+                "file_id": "f3",
+                "file_name": "实体梳理.xlsx",
+                "locator": {
+                  "col": "F",
+                  "kind": "cell",
+                  "row": 9,
+                  "sheet": "业务对象实体梳理"
+                },
+                "snippet": "含税，年度累计"
+              }
+            ],
+            "id": "unify_a",
+            "label": "统一为 A 口径（含税，年度累计）",
+            "rationale": "B 处标记为派生，需补换算规则"
+          },
+          {
+            "effect": {
+              "unify_to": "p2"
+            },
+            "evidence": [
+              {
+                "cite": "实体梳理.xlsx!业务对象实体梳理!R9CF",
+                "confidence": 0.94,
+                "extractor": "docling",
+                "file_id": "f3",
+                "file_name": "实体梳理.xlsx",
+                "locator": {
+                  "col": "F",
+                  "kind": "cell",
+                  "row": 9,
+                  "sheet": "业务对象实体梳理"
+                },
+                "snippet": "不含税，单次"
+              }
+            ],
+            "id": "unify_b",
+            "label": "统一为 B 口径（不含税，单次）",
+            "rationale": "A 处标记为派生，历史数据需回溯"
+          },
+          {
+            "effect": {
+              "defer": true
+            },
+            "evidence": [],
+            "id": "defer_to_template",
+            "label": "先不定，转成模板里的业务必填项",
+            "rationale": "推迟到业务方填写时消解"
+          }
+        ],
+        "owner": null,
+        "rid": "cf_semantic_divergence_ce83321332",
+        "subjects": [
+          "p1",
+          "p2",
+          "p3"
+        ],
+        "summary": null,
+        "summary_axes": [
+          "时间粒度（年度累计 vs 单次）",
+          "税（含税 vs 不含税）"
+        ],
+        "summary_head": "「计划金额」口径不一致（2 种口径、涉及 3 处）："
+      }
+    ],
+    "type_mismatch": [
+      {
+        "detector": "profiler:TYPE-01",
+        "evidence": [],
+        "handling": "ask_user",
+        "kind": "type_mismatch",
+        "options": [
+          {
+            "effect": {
+              "set_base_type": "STRING"
+            },
+            "evidence": [],
+            "id": "use_actual",
+            "label": "改为 STRING",
+            "rationale": "以实际数据为准"
+          },
+          {
+            "effect": {},
+            "evidence": [],
+            "id": "keep_declared",
+            "label": "保留 DECIMAL",
+            "rationale": "数据侧需清洗"
+          }
+        ],
+        "owner": null,
+        "rid": "cf_type_mismatch_02d271af45",
+        "subjects": [
+          "pt_plan_amount_budget"
+        ],
+        "summary": "planAmount: 声明 DECIMAL，实际数据看起来是 STRING（样本 1200 行）"
+      },
+      {
+        "detector": "profiler:TYPE-01",
+        "evidence": [],
+        "handling": "ask_user",
+        "kind": "type_mismatch",
+        "options": [
+          {
+            "effect": {
+              "set_base_type": "INTEGER"
+            },
+            "evidence": [],
+            "id": "use_actual",
+            "label": "改为 INTEGER",
+            "rationale": "以实际数据为准"
+          },
+          {
+            "effect": {},
+            "evidence": [],
+            "id": "keep_declared",
+            "label": "保留 STRING",
+            "rationale": "数据侧需清洗"
+          }
+        ],
+        "owner": null,
+        "rid": "cf_type_mismatch_0534be3e3f",
+        "subjects": [
+          "pt_contract_id"
+        ],
+        "summary": "contractId: 声明 STRING，实际数据看起来是 INTEGER（样本 ? 行）"
+      }
+    ]
+  },
+  "rules": {
+    "endpoint_matches": [
+      {
+        "aliases": [],
+        "api_name": "purchasePlanHeader",
+        "endpoint": {
+          "method": "post",
+          "operationId": "submitPurchasePlan",
+          "path": "/purchase-plans/{id}/submit"
+        },
+        "out": true
+      },
+      {
+        "aliases": [],
+        "api_name": "clmContract",
+        "endpoint": {
+          "method": "post",
+          "operationId": "createClmContract",
+          "path": "/contracts"
+        },
+        "out": true
+      },
+      {
+        "aliases": [],
+        "api_name": "supplier",
+        "endpoint": {
+          "method": "get",
+          "operationId": "listSuppliers",
+          "path": "/suppliers"
+        },
+        "out": false
+      },
+      {
+        "aliases": [],
+        "api_name": "supplier",
+        "endpoint": {
+          "method": "DELETE",
+          "operationId": "deleteSupplier",
+          "path": "/suppliers/{id}"
+        },
+        "out": true
+      },
+      {
+        "aliases": [],
+        "api_name": "supplierBank",
+        "endpoint": {
+          "method": "patch",
+          "operationId": "updateSupplier",
+          "path": "/suppliers/{id}"
+        },
+        "out": false
+      },
+      {
+        "aliases": [],
+        "api_name": "采购计划",
+        "endpoint": {
+          "method": "put",
+          "operationId": "createPlan",
+          "path": "/plans"
+        },
+        "out": false
+      },
+      {
+        "aliases": [
+          "purchasePlan"
+        ],
+        "api_name": "计划",
+        "endpoint": {
+          "method": "put",
+          "operationId": "createPlan",
+          "path": "/plans"
+        },
+        "out": false
+      },
+      {
+        "aliases": [],
+        "api_name": "",
+        "endpoint": {
+          "method": "put",
+          "operationId": "createPlan",
+          "path": "/plans"
+        },
+        "out": false
+      },
+      {
+        "aliases": [],
+        "api_name": "planHeader",
+        "endpoint": {
+          "method": "post",
+          "path": "/plans"
+        },
+        "out": false
+      },
+      {
+        "aliases": [],
+        "api_name": "ab",
+        "endpoint": {
+          "method": "post",
+          "operationId": "",
+          "path": ""
+        },
+        "out": false
+      },
+      {
+        "aliases": [],
+        "api_name": "plan",
+        "endpoint": {
+          "method": 1,
+          "operationId": "postPlans",
+          "path": "/x"
+        },
+        "out": false
+      },
+      {
+        "aliases": [],
+        "api_name": "purchaseOrderLine",
+        "endpoint": {
+          "method": "post",
+          "operationId": "createPurchaseOrder",
+          "path": "/orders"
+        },
+        "out": true
+      }
+    ],
+    "perfunctory_signals": [
+      {
+        "in": {
+          "ai_prefill": "含税，年度累计，CNY",
+          "value": "含税，年度累计，CNY"
+        },
+        "out": [
+          "UNCHANGED_PREFILL"
+        ]
+      },
+      {
+        "in": {
+          "column_header": "口径定义",
+          "value": "口径定义"
+        },
+        "out": [
+          "COPIED_HEADER"
+        ]
+      },
+      {
+        "in": {
+          "column_header": "口径定义",
+          "value": "  口径定义  "
+        },
+        "out": [
+          "COPIED_HEADER"
+        ]
+      },
+      {
+        "in": {
+          "value": "待定"
+        },
+        "out": [
+          "PLACEHOLDER",
+          "TOO_SHORT"
+        ]
+      },
+      {
+        "in": {
+          "value": "N/A"
+        },
+        "out": [
+          "PLACEHOLDER",
+          "TOO_SHORT"
+        ]
+      },
+      {
+        "in": {
+          "value": "—"
+        },
+        "out": [
+          "PLACEHOLDER",
+          "TOO_SHORT"
+        ]
+      },
+      {
+        "in": {
+          "value": "无"
+        },
+        "out": [
+          "PLACEHOLDER",
+          "TOO_SHORT"
+        ]
+      },
+      {
+        "in": {
+          "column_distinct_ratio": 0.05,
+          "value": "按合同"
+        },
+        "out": [
+          "TOO_SHORT",
+          "BULK_FILLED"
+        ]
+      },
+      {
+        "in": {
+          "column_distinct_ratio": 0.05,
+          "expects_definition": false,
+          "value": "按合同"
+        },
+        "out": []
+      },
+      {
+        "in": {
+          "expects_definition": true,
+          "value": "不含税单次结算金额"
+        },
+        "out": []
+      },
+      {
+        "in": {
+          "expects_definition": true,
+          "value": "不含税"
+        },
+        "out": [
+          "TOO_SHORT"
+        ]
+      },
+      {
+        "in": {
+          "expects_definition": true,
+          "value": "不含税结算"
+        },
+        "out": []
+      },
+      {
+        "in": {
+          "expects_definition": true,
+          "value": ""
+        },
+        "out": []
+      },
+      {
+        "in": {
+          "ai_prefill": "",
+          "column_header": "",
+          "value": ""
+        },
+        "out": []
+      },
+      {
+        "in": {
+          "expects_definition": false,
+          "value": "是"
+        },
+        "out": []
+      },
+      {
+        "in": {
+          "expects_definition": true,
+          "value": "🙂🙂🙂🙂"
+        },
+        "out": []
+      },
+      {
+        "in": {
+          "expects_definition": true,
+          "value": "🙂🙂🙂"
+        },
+        "out": [
+          "TOO_SHORT"
+        ]
+      },
+      {
+        "in": {
+          "ai_prefill": "同上",
+          "column_distinct_ratio": 0.1,
+          "value": "同上"
+        },
+        "out": [
+          "PLACEHOLDER",
+          "TOO_SHORT",
+          "UNCHANGED_PREFILL",
+          "BULK_FILLED"
+        ]
+      }
+    ],
+    "policy": [
+      {
+        "evidence_decidable": true,
+        "handling": "ask_user",
+        "irreversibility": 1.0,
+        "kind": "semantic_divergence"
+      },
+      {
+        "evidence_decidable": true,
+        "handling": "ask_user",
+        "irreversibility": 0.8,
+        "kind": "duplicate"
+      },
+      {
+        "evidence_decidable": true,
+        "handling": "ask_user",
+        "irreversibility": 0.6,
+        "kind": "type_mismatch"
+      },
+      {
+        "evidence_decidable": false,
+        "handling": "ask_user",
+        "irreversibility": 0.7,
+        "kind": "missing_action"
+      },
+      {
+        "evidence_decidable": false,
+        "handling": "round_trip",
+        "irreversibility": 0.3,
+        "kind": "missing_required"
+      },
+      {
+        "evidence_decidable": false,
+        "handling": "round_trip",
+        "irreversibility": 0.3,
+        "kind": "perfunctory"
+      },
+      {
+        "evidence_decidable": false,
+        "handling": "auto_repair",
+        "irreversibility": 0.2,
+        "kind": "naming_violation"
+      },
+      {
+        "evidence_decidable": false,
+        "handling": "hint",
+        "irreversibility": 0.4,
+        "kind": "orphan"
+      }
+    ],
+    "to_camel": [
+      {
+        "in": "",
+        "out": ""
+      },
+      {
+        "in": "  ",
+        "out": "  "
+      },
+      {
+        "in": "---",
+        "out": "---"
+      },
+      {
+        "in": "planAmount",
+        "out": "planAmount"
+      },
+      {
+        "in": "plan_amount",
+        "out": "planAmount"
+      },
+      {
+        "in": "Plan Amount Total",
+        "out": "planAmountTotal"
+      },
+      {
+        "in": " Plan ",
+        "out": "plan"
+      },
+      {
+        "in": "Plan",
+        "out": "plan"
+      },
+      {
+        "in": "PLAN",
+        "out": "pLAN"
+      },
+      {
+        "in": "plan-amount-total",
+        "out": "planAmountTotal"
+      },
+      {
+        "in": "采购合同",
+        "out": "采购合同"
+      },
+      {
+        "in": "a",
+        "out": "a"
+      },
+      {
+        "in": "A",
+        "out": "a"
+      },
+      {
+        "in": "plan__amount",
+        "out": "planAmount"
+      },
+      {
+        "in": "_plan_amount_",
+        "out": "planAmount"
+      },
+      {
+        "in": "plan amount\tid",
+        "out": "planAmountId"
+      },
+      {
+        "in": "planAmount\n",
+        "out": "planamount"
+      },
+      {
+        "in": "计划_金额",
+        "out": "计划金额"
+      },
+      {
+        "in": "x",
+        "out": "x"
+      },
+      {
+        "in": "PlanAmount",
+        "out": "planAmount"
+      }
+    ]
+  },
+  "seqmatch": [
+    {
+      "a": "",
+      "autojunk_off": {
+        "blocks": [
+          [
+            0,
+            0,
+            0
+          ]
+        ],
+        "opcodes": [],
+        "ratio": 1.0
+      },
+      "autojunk_on": {
+        "blocks": [
+          [
+            0,
+            0,
+            0
+          ]
+        ],
+        "opcodes": [],
+        "ratio": 1.0
+      },
+      "b": ""
+    },
+    {
+      "a": "",
+      "autojunk_off": {
+        "blocks": [
+          [
+            0,
+            3,
+            0
+          ]
+        ],
+        "opcodes": [
+          [
+            "insert",
+            0,
+            0,
+            0,
+            3
+          ]
+        ],
+        "ratio": 0.0
+      },
+      "autojunk_on": {
+        "blocks": [
+          [
+            0,
+            3,
+            0
+          ]
+        ],
+        "opcodes": [
+          [
+            "insert",
+            0,
+            0,
+            0,
+            3
+          ]
+        ],
+        "ratio": 0.0
+      },
+      "b": "abc"
+    },
+    {
+      "a": "abc",
+      "autojunk_off": {
+        "blocks": [
+          [
+            3,
+            0,
+            0
+          ]
+        ],
+        "opcodes": [
+          [
+            "delete",
+            0,
+            3,
+            0,
+            0
+          ]
+        ],
+        "ratio": 0.0
+      },
+      "autojunk_on": {
+        "blocks": [
+          [
+            3,
+            0,
+            0
+          ]
+        ],
+        "opcodes": [
+          [
+            "delete",
+            0,
+            3,
+            0,
+            0
+          ]
+        ],
+        "ratio": 0.0
+      },
+      "b": ""
+    },
+    {
+      "a": "abc",
+      "autojunk_off": {
+        "blocks": [
+          [
+            0,
+            0,
+            3
+          ],
+          [
+            3,
+            3,
+            0
+          ]
+        ],
+        "opcodes": [
+          [
+            "equal",
+            0,
+            3,
+            0,
+            3
+          ]
+        ],
+        "ratio": 1.0
+      },
+      "autojunk_on": {
+        "blocks": [
+          [
+            0,
+            0,
+            3
+          ],
+          [
+            3,
+            3,
+            0
+          ]
+        ],
+        "opcodes": [
+          [
+            "equal",
+            0,
+            3,
+            0,
+            3
+          ]
+        ],
+        "ratio": 1.0
+      },
+      "b": "abc"
+    },
+    {
+      "a": "abc",
+      "autojunk_off": {
+        "blocks": [
+          [
+            3,
+            3,
+            0
+          ]
+        ],
+        "opcodes": [
+          [
+            "replace",
+            0,
+            3,
+            0,
+            3
+          ]
+        ],
+        "ratio": 0.0
+      },
+      "autojunk_on": {
+        "blocks": [
+          [
+            3,
+            3,
+            0
+          ]
+        ],
+        "opcodes": [
+          [
+            "replace",
+            0,
+            3,
+            0,
+            3
+          ]
+        ],
+        "ratio": 0.0
+      },
+      "b": "xyz"
+    },
+    {
+      "a": "abcdef",
+      "autojunk_off": {
+        "blocks": [
+          [
+            0,
+            0,
+            2
+          ],
+          [
+            3,
+            2,
+            1
+          ],
+          [
+            5,
+            3,
+            1
+          ],
+          [
+            6,
+            4,
+            0
+          ]
+        ],
+        "opcodes": [
+          [
+            "equal",
+            0,
+            2,
+            0,
+            2
+          ],
+          [
+            "delete",
+            2,
+            3,
+            2,
+            2
+          ],
+          [
+            "equal",
+            3,
+            4,
+            2,
+            3
+          ],
+          [
+            "delete",
+            4,
+            5,
+            3,
+            3
+          ],
+          [
+            "equal",
+            5,
+            6,
+            3,
+            4
+          ]
+        ],
+        "ratio": 0.8
+      },
+      "autojunk_on": {
+        "blocks": [
+          [
+            0,
+            0,
+            2
+          ],
+          [
+            3,
+            2,
+            1
+          ],
+          [
+            5,
+            3,
+            1
+          ],
+          [
+            6,
+            4,
+            0
+          ]
+        ],
+        "opcodes": [
+          [
+            "equal",
+            0,
+            2,
+            0,
+            2
+          ],
+          [
+            "delete",
+            2,
+            3,
+            2,
+            2
+          ],
+          [
+            "equal",
+            3,
+            4,
+            2,
+            3
+          ],
+          [
+            "delete",
+            4,
+            5,
+            3,
+            3
+          ],
+          [
+            "equal",
+            5,
+            6,
+            3,
+            4
+          ]
+        ],
+        "ratio": 0.8
+      },
+      "b": "abdf"
+    },
+    {
+      "a": "aaaa",
+      "autojunk_off": {
+        "blocks": [
+          [
+            0,
+            0,
+            2
+          ],
+          [
+            4,
+            2,
+            0
+          ]
+        ],
+        "opcodes": [
+          [
+            "equal",
+            0,
+            2,
+            0,
+            2
+          ],
+          [
+            "delete",
+            2,
+            4,
+            2,
+            2
+          ]
+        ],
+        "ratio": 0.6666666666666666
+      },
+      "autojunk_on": {
+        "blocks": [
+          [
+            0,
+            0,
+            2
+          ],
+          [
+            4,
+            2,
+            0
+          ]
+        ],
+        "opcodes": [
+          [
+            "equal",
+            0,
+            2,
+            0,
+            2
+          ],
+          [
+            "delete",
+            2,
+            4,
+            2,
+            2
+          ]
+        ],
+        "ratio": 0.6666666666666666
+      },
+      "b": "aa"
+    },
+    {
+      "a": "abab",
+      "autojunk_off": {
+        "blocks": [
+          [
+            0,
+            1,
+            3
+          ],
+          [
+            4,
+            4,
+            0
+          ]
+        ],
+        "opcodes": [
+          [
+            "insert",
+            0,
+            0,
+            0,
+            1
+          ],
+          [
+            "equal",
+            0,
+            3,
+            1,
+            4
+          ],
+          [
+            "delete",
+            3,
+            4,
+            4,
+            4
+          ]
+        ],
+        "ratio": 0.75
+      },
+      "autojunk_on": {
+        "blocks": [
+          [
+            0,
+            1,
+            3
+          ],
+          [
+            4,
+            4,
+            0
+          ]
+        ],
+        "opcodes": [
+          [
+            "insert",
+            0,
+            0,
+            0,
+            1
+          ],
+          [
+            "equal",
+            0,
+            3,
+            1,
+            4
+          ],
+          [
+            "delete",
+            3,
+            4,
+            4,
+            4
+          ]
+        ],
+        "ratio": 0.75
+      },
+      "b": "baba"
+    },
+    {
+      "a": "含税年度累计CNY",
+      "autojunk_off": {
+        "blocks": [
+          [
+            0,
+            1,
+            2
+          ],
+          [
+            6,
+            5,
+            3
+          ],
+          [
+            9,
+            8,
+            0
+          ]
+        ],
+        "opcodes": [
+          [
+            "insert",
+            0,
+            0,
+            0,
+            1
+          ],
+          [
+            "equal",
+            0,
+            2,
+            1,
+            3
+          ],
+          [
+            "replace",
+            2,
+            6,
+            3,
+            5
+          ],
+          [
+            "equal",
+            6,
+            9,
+            5,
+            8
+          ]
+        ],
+        "ratio": 0.5882352941176471
+      },
+      "autojunk_on": {
+        "blocks": [
+          [
+            0,
+            1,
+            2
+          ],
+          [
+            6,
+            5,
+            3
+          ],
+          [
+            9,
+            8,
+            0
+          ]
+        ],
+        "opcodes": [
+          [
+            "insert",
+            0,
+            0,
+            0,
+            1
+          ],
+          [
+            "equal",
+            0,
+            2,
+            1,
+            3
+          ],
+          [
+            "replace",
+            2,
+            6,
+            3,
+            5
+          ],
+          [
+            "equal",
+            6,
+            9,
+            5,
+            8
+          ]
+        ],
+        "ratio": 0.5882352941176471
+      },
+      "b": "不含税单次CNY"
+    },
+    {
+      "a": "计划金额取工艺路线上首道工序的产能上限",
+      "autojunk_off": {
+        "blocks": [
+          [
+            0,
+            0,
+            5
+          ],
+          [
+            11,
+            6,
+            6
+          ],
+          [
+            18,
+            13,
+            1
+          ],
+          [
+            19,
+            14,
+            0
+          ]
+        ],
+        "opcodes": [
+          [
+            "equal",
+            0,
+            5,
+            0,
+            5
+          ],
+          [
+            "replace",
+            5,
+            11,
+            5,
+            6
+          ],
+          [
+            "equal",
+            11,
+            17,
+            6,
+            12
+          ],
+          [
+            "replace",
+            17,
+            18,
+            12,
+            13
+          ],
+          [
+            "equal",
+            18,
+            19,
+            13,
+            14
+          ]
+        ],
+        "ratio": 0.7272727272727273
+      },
+      "autojunk_on": {
+        "blocks": [
+          [
+            0,
+            0,
+            5
+          ],
+          [
+            11,
+            6,
+            6
+          ],
+          [
+            18,
+            13,
+            1
+          ],
+          [
+            19,
+            14,
+            0
+          ]
+        ],
+        "opcodes": [
+          [
+            "equal",
+            0,
+            5,
+            0,
+            5
+          ],
+          [
+            "replace",
+            5,
+            11,
+            5,
+            6
+          ],
+          [
+            "equal",
+            11,
+            17,
+            6,
+            12
+          ],
+          [
+            "replace",
+            17,
+            18,
+            12,
+            13
+          ],
+          [
+            "equal",
+            18,
+            19,
+            13,
+            14
+          ]
+        ],
+        "ratio": 0.7272727272727273
+      },
+      "b": "计划金额取末道工序的产能下限"
+    },
+    {
+      "a": "计划金额",
+      "autojunk_off": {
+        "blocks": [
+          [
+            0,
+            0,
+            4
+          ],
+          [
+            4,
+            4,
+            0
+          ]
+        ],
+        "opcodes": [
+          [
+            "equal",
+            0,
+            4,
+            0,
+            4
+          ]
+        ],
+        "ratio": 1.0
+      },
+      "autojunk_on": {
+        "blocks": [
+          [
+            0,
+            0,
+            4
+          ],
+          [
+            4,
+            4,
+            0
+          ]
+        ],
+        "opcodes": [
+          [
+            "equal",
+            0,
+            4,
+            0,
+            4
+          ]
+        ],
+        "ratio": 1.0
+      },
+      "b": "计划金额"
+    },
+    {
+      "a": "🙂🙃🙂",
+      "autojunk_off": {
+        "blocks": [
+          [
+            0,
+            1,
+            2
+          ],
+          [
+            3,
+            3,
+            0
+          ]
+        ],
+        "opcodes": [
+          [
+            "insert",
+            0,
+            0,
+            0,
+            1
+          ],
+          [
+            "equal",
+            0,
+            2,
+            1,
+            3
+          ],
+          [
+            "delete",
+            2,
+            3,
+            3,
+            3
+          ]
+        ],
+        "ratio": 0.6666666666666666
+      },
+      "autojunk_on": {
+        "blocks": [
+          [
+            0,
+            1,
+            2
+          ],
+          [
+            3,
+            3,
+            0
+          ]
+        ],
+        "opcodes": [
+          [
+            "insert",
+            0,
+            0,
+            0,
+            1
+          ],
+          [
+            "equal",
+            0,
+            2,
+            1,
+            3
+          ],
+          [
+            "delete",
+            2,
+            3,
+            3,
+            3
+          ]
+        ],
+        "ratio": 0.6666666666666666
+      },
+      "b": "🙃🙂🙃"
+    },
+    {
+      "a": "a🙂b",
+      "autojunk_off": {
+        "blocks": [
+          [
+            0,
+            0,
+            1
+          ],
+          [
+            2,
+            1,
+            1
+          ],
+          [
+            3,
+            2,
+            0
+          ]
+        ],
+        "opcodes": [
+          [
+            "equal",
+            0,
+            1,
+            0,
+            1
+          ],
+          [
+            "delete",
+            1,
+            2,
+            1,
+            1
+          ],
+          [
+            "equal",
+            2,
+            3,
+            1,
+            2
+          ]
+        ],
+        "ratio": 0.8
+      },
+      "autojunk_on": {
+        "blocks": [
+          [
+            0,
+            0,
+            1
+          ],
+          [
+            2,
+            1,
+            1
+          ],
+          [
+            3,
+            2,
+            0
+          ]
+        ],
+        "opcodes": [
+          [
+            "equal",
+            0,
+            1,
+            0,
+            1
+          ],
+          [
+            "delete",
+            1,
+            2,
+            1,
+            1
+          ],
+          [
+            "equal",
+            2,
+            3,
+            1,
+            2
+          ]
+        ],
+        "ratio": 0.8
+      },
+      "b": "ab"
+    },
+    {
+      "a": "planamount",
+      "autojunk_off": {
+        "blocks": [
+          [
+            0,
+            0,
+            10
+          ],
+          [
+            10,
+            15,
+            0
+          ]
+        ],
+        "opcodes": [
+          [
+            "equal",
+            0,
+            10,
+            0,
+            10
+          ],
+          [
+            "insert",
+            10,
+            10,
+            10,
+            15
+          ]
+        ],
+        "ratio": 0.8
+      },
+      "autojunk_on": {
+        "blocks": [
+          [
+            0,
+            0,
+            10
+          ],
+          [
+            10,
+            15,
+            0
+          ]
+        ],
+        "opcodes": [
+          [
+            "equal",
+            0,
+            10,
+            0,
+            10
+          ],
+          [
+            "insert",
+            10,
+            10,
+            10,
+            15
+          ]
+        ],
+        "ratio": 0.8
+      },
+      "b": "planamounttotal"
+    },
+    {
+      "a": "purchaseplanheader",
+      "autojunk_off": {
+        "blocks": [
+          [
+            0,
+            0,
+            1
+          ],
+          [
+            8,
+            2,
+            1
+          ],
+          [
+            12,
+            3,
+            6
+          ],
+          [
+            18,
+            9,
+            0
+          ]
+        ],
+        "opcodes": [
+          [
+            "equal",
+            0,
+            1,
+            0,
+            1
+          ],
+          [
+            "replace",
+            1,
+            8,
+            1,
+            2
+          ],
+          [
+            "equal",
+            8,
+            9,
+            2,
+            3
+          ],
+          [
+            "delete",
+            9,
+            12,
+            3,
+            3
+          ],
+          [
+            "equal",
+            12,
+            18,
+            3,
+            9
+          ]
+        ],
+        "ratio": 0.5925925925925926
+      },
+      "autojunk_on": {
+        "blocks": [
+          [
+            0,
+            0,
+            1
+          ],
+          [
+            8,
+            2,
+            1
+          ],
+          [
+            12,
+            3,
+            6
+          ],
+          [
+            18,
+            9,
+            0
+          ]
+        ],
+        "opcodes": [
+          [
+            "equal",
+            0,
+            1,
+            0,
+            1
+          ],
+          [
+            "replace",
+            1,
+            8,
+            1,
+            2
+          ],
+          [
+            "equal",
+            8,
+            9,
+            2,
+            3
+          ],
+          [
+            "delete",
+            9,
+            12,
+            3,
+            3
+          ],
+          [
+            "equal",
+            12,
+            18,
+            3,
+            9
+          ]
+        ],
+        "ratio": 0.5925925925925926
+      },
+      "b": "pbpheader"
+    },
+    {
+      "a": "qwertyuiop",
+      "autojunk_off": {
+        "blocks": [
+          [
+            0,
+            9,
+            1
+          ],
+          [
+            10,
+            10,
+            0
+          ]
+        ],
+        "opcodes": [
+          [
+            "insert",
+            0,
+            0,
+            0,
+            9
+          ],
+          [
+            "equal",
+            0,
+            1,
+            9,
+            10
+          ],
+          [
+            "delete",
+            1,
+            10,
+            10,
+            10
+          ]
+        ],
+        "ratio": 0.1
+      },
+      "autojunk_on": {
+        "blocks": [
+          [
+            0,
+            9,
+            1
+          ],
+          [
+            10,
+            10,
+            0
+          ]
+        ],
+        "opcodes": [
+          [
+            "insert",
+            0,
+            0,
+            0,
+            9
+          ],
+          [
+            "equal",
+            0,
+            1,
+            9,
+            10
+          ],
+          [
+            "delete",
+            1,
+            10,
+            10,
+            10
+          ]
+        ],
+        "ratio": 0.1
+      },
+      "b": "poiuytrewq"
+    },
+    {
+      "a": "the quick brown fox",
+      "autojunk_off": {
+        "blocks": [
+          [
+            0,
+            0,
+            16
+          ],
+          [
+            17,
+            17,
+            1
+          ],
+          [
+            19,
+            19,
+            0
+          ]
+        ],
+        "opcodes": [
+          [
+            "equal",
+            0,
+            16,
+            0,
+            16
+          ],
+          [
+            "replace",
+            16,
+            17,
+            16,
+            17
+          ],
+          [
+            "equal",
+            17,
+            18,
+            17,
+            18
+          ],
+          [
+            "replace",
+            18,
+            19,
+            18,
+            19
+          ]
+        ],
+        "ratio": 0.8947368421052632
+      },
+      "autojunk_on": {
+        "blocks": [
+          [
+            0,
+            0,
+            16
+          ],
+          [
+            17,
+            17,
+            1
+          ],
+          [
+            19,
+            19,
+            0
+          ]
+        ],
+        "opcodes": [
+          [
+            "equal",
+            0,
+            16,
+            0,
+            16
+          ],
+          [
+            "replace",
+            16,
+            17,
+            16,
+            17
+          ],
+          [
+            "equal",
+            17,
+            18,
+            17,
+            18
+          ],
+          [
+            "replace",
+            18,
+            19,
+            18,
+            19
+          ]
+        ],
+        "ratio": 0.8947368421052632
+      },
+      "b": "the quick brown dog"
+    },
+    {
+      "a": "xxxxxxxxxxxxxxxxxxxx",
+      "autojunk_off": {
+        "blocks": [
+          [
+            0,
+            0,
+            3
+          ],
+          [
+            20,
+            3,
+            0
+          ]
+        ],
+        "opcodes": [
+          [
+            "equal",
+            0,
+            3,
+            0,
+            3
+          ],
+          [
+            "delete",
+            3,
+            20,
+            3,
+            3
+          ]
+        ],
+        "ratio": 0.2608695652173913
+      },
+      "autojunk_on": {
+        "blocks": [
+          [
+            0,
+            0,
+            3
+          ],
+          [
+            20,
+            3,
+            0
+          ]
+        ],
+        "opcodes": [
+          [
+            "equal",
+            0,
+            3,
+            0,
+            3
+          ],
+          [
+            "delete",
+            3,
+            20,
+            3,
+            3
+          ]
+        ],
+        "ratio": 0.2608695652173913
+      },
+      "b": "xxx"
+    },
+    {
+      "a": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxyxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "autojunk_off": {
+        "blocks": [
+          [
+            0,
+            0,
+            100
+          ],
+          [
+            101,
+            101,
+            109
+          ],
+          [
+            210,
+            210,
+            0
+          ]
+        ],
+        "opcodes": [
+          [
+            "equal",
+            0,
+            100,
+            0,
+            100
+          ],
+          [
+            "replace",
+            100,
+            101,
+            100,
+            101
+          ],
+          [
+            "equal",
+            101,
+            210,
+            101,
+            210
+          ]
+        ],
+        "ratio": 0.9952380952380953
+      },
+      "autojunk_on": {
+        "blocks": [
+          [
+            0,
+            0,
+            100
+          ],
+          [
+            210,
+            210,
+            0
+          ]
+        ],
+        "opcodes": [
+          [
+            "equal",
+            0,
+            100,
+            0,
+            100
+          ],
+          [
+            "replace",
+            100,
+            210,
+            100,
+            210
+          ]
+        ],
+        "ratio": 0.47619047619047616
+      },
+      "b": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxzxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    },
+    {
+      "a": "abababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababab",
+      "autojunk_off": {
+        "blocks": [
+          [
+            0,
+            1,
+            299
+          ],
+          [
+            300,
+            300,
+            0
+          ]
+        ],
+        "opcodes": [
+          [
+            "insert",
+            0,
+            0,
+            0,
+            1
+          ],
+          [
+            "equal",
+            0,
+            299,
+            1,
+            300
+          ],
+          [
+            "delete",
+            299,
+            300,
+            300,
+            300
+          ]
+        ],
+        "ratio": 0.9966666666666667
+      },
+      "autojunk_on": {
+        "blocks": [
+          [
+            300,
+            300,
+            0
+          ]
+        ],
+        "opcodes": [
+          [
+            "replace",
+            0,
+            300,
+            0,
+            300
+          ]
+        ],
+        "ratio": 0.0
+      },
+      "b": "babababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababa"
+    }
+  ]
+}

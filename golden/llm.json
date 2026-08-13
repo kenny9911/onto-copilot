@@ -1,0 +1,4362 @@
+{
+ "anthropic_build": [
+  {
+   "args": {
+    "cache_system": true,
+    "max_tokens": 100,
+    "model": {
+     "effort": "high",
+     "name": "anthropic/claude-sonnet-5",
+     "thinking": true,
+     "tier": "mid",
+     "usd_per_mtok_in": 3.0,
+     "usd_per_mtok_out": 15.0
+    },
+    "prompt": "hi",
+    "schema": null,
+    "system": ""
+   },
+   "out": {
+    "max_tokens": 100,
+    "messages": [
+     {
+      "content": "hi",
+      "role": "user"
+     }
+    ],
+    "model": "anthropic/claude-sonnet-5",
+    "output_config": {
+     "effort": "high"
+    },
+    "thinking": {
+     "type": "adaptive"
+    }
+   }
+  },
+  {
+   "args": {
+    "cache_system": true,
+    "max_tokens": 100,
+    "model": {
+     "effort": "high",
+     "name": "anthropic/claude-sonnet-5",
+     "thinking": true,
+     "tier": "mid",
+     "usd_per_mtok_in": 3.0,
+     "usd_per_mtok_out": 15.0
+    },
+    "prompt": "hi",
+    "schema": null,
+    "system": "系统"
+   },
+   "out": {
+    "max_tokens": 100,
+    "messages": [
+     {
+      "content": "hi",
+      "role": "user"
+     }
+    ],
+    "model": "anthropic/claude-sonnet-5",
+    "output_config": {
+     "effort": "high"
+    },
+    "system": [
+     {
+      "cache_control": {
+       "type": "ephemeral"
+      },
+      "text": "系统",
+      "type": "text"
+     }
+    ],
+    "thinking": {
+     "type": "adaptive"
+    }
+   }
+  },
+  {
+   "args": {
+    "cache_system": false,
+    "max_tokens": 100,
+    "model": {
+     "effort": "high",
+     "name": "anthropic/claude-sonnet-5",
+     "thinking": true,
+     "tier": "mid",
+     "usd_per_mtok_in": 3.0,
+     "usd_per_mtok_out": 15.0
+    },
+    "prompt": "hi",
+    "schema": null,
+    "system": "系统"
+   },
+   "out": {
+    "max_tokens": 100,
+    "messages": [
+     {
+      "content": "hi",
+      "role": "user"
+     }
+    ],
+    "model": "anthropic/claude-sonnet-5",
+    "output_config": {
+     "effort": "high"
+    },
+    "system": [
+     {
+      "text": "系统",
+      "type": "text"
+     }
+    ],
+    "thinking": {
+     "type": "adaptive"
+    }
+   }
+  },
+  {
+   "args": {
+    "cache_system": true,
+    "max_tokens": 20000,
+    "model": {
+     "effort": "high",
+     "name": "anthropic/claude-sonnet-5",
+     "thinking": true,
+     "tier": "mid",
+     "usd_per_mtok_in": 3.0,
+     "usd_per_mtok_out": 15.0
+    },
+    "prompt": "hi",
+    "schema": {
+     "properties": {
+      "ok": {
+       "type": "boolean"
+      }
+     },
+     "required": [
+      "ok"
+     ],
+     "type": "object"
+    },
+    "system": "系统"
+   },
+   "out": {
+    "max_tokens": 20000,
+    "messages": [
+     {
+      "content": "hi",
+      "role": "user"
+     }
+    ],
+    "model": "anthropic/claude-sonnet-5",
+    "output_config": {
+     "effort": "high",
+     "format": {
+      "schema": {
+       "additionalProperties": false,
+       "properties": {
+        "ok": {
+         "type": "boolean"
+        }
+       },
+       "required": [
+        "ok"
+       ],
+       "type": "object"
+      },
+      "type": "json_schema"
+     }
+    },
+    "system": [
+     {
+      "cache_control": {
+       "type": "ephemeral"
+      },
+      "text": "系统",
+      "type": "text"
+     }
+    ],
+    "thinking": {
+     "type": "adaptive"
+    }
+   }
+  },
+  {
+   "args": {
+    "cache_system": true,
+    "max_tokens": 100,
+    "model": {
+     "effort": null,
+     "name": "google/gemini-3.5-flash",
+     "thinking": null,
+     "tier": "mid",
+     "usd_per_mtok_in": 1.0,
+     "usd_per_mtok_out": 4.0
+    },
+    "prompt": "hi",
+    "schema": {
+     "properties": {
+      "ok": {
+       "type": "boolean"
+      }
+     },
+     "required": [
+      "ok"
+     ],
+     "type": "object"
+    },
+    "system": "系统"
+   },
+   "out": {
+    "max_tokens": 100,
+    "messages": [
+     {
+      "content": "hi",
+      "role": "user"
+     }
+    ],
+    "model": "google/gemini-3.5-flash",
+    "output_config": {
+     "format": {
+      "schema": {
+       "additionalProperties": false,
+       "properties": {
+        "ok": {
+         "type": "boolean"
+        }
+       },
+       "required": [
+        "ok"
+       ],
+       "type": "object"
+      },
+      "type": "json_schema"
+     }
+    },
+    "system": [
+     {
+      "cache_control": {
+       "type": "ephemeral"
+      },
+      "text": "系统",
+      "type": "text"
+     }
+    ]
+   }
+  }
+ ],
+ "catalog_cards": {
+  "anthropic/claude-sonnet-5": {
+   "effort": "medium",
+   "name": "anthropic/claude-sonnet-5",
+   "thinking": true,
+   "tier": "frontier",
+   "usd_per_mtok_in": 3,
+   "usd_per_mtok_out": 15
+  },
+  "deepseek/deepseek-v3.2": {
+   "effort": null,
+   "name": "deepseek/deepseek-v3.2",
+   "thinking": null,
+   "tier": "mid",
+   "usd_per_mtok_in": 0.3,
+   "usd_per_mtok_out": 1.2
+  },
+  "google/gemini-3.5-flash": {
+   "effort": null,
+   "name": "google/gemini-3.5-flash",
+   "thinking": null,
+   "tier": "mid",
+   "usd_per_mtok_in": 1,
+   "usd_per_mtok_out": 4
+  },
+  "openai/gpt-5.5": {
+   "effort": "high",
+   "name": "openai/gpt-5.5",
+   "thinking": true,
+   "tier": "frontier",
+   "usd_per_mtok_in": 5,
+   "usd_per_mtok_out": 25
+  }
+ },
+ "constants": {
+  "base_url_rstrip": "http://gw.test/v1",
+  "retryable_status": [
+   408,
+   409,
+   429,
+   500,
+   502,
+   503,
+   504,
+   529
+  ],
+  "stream_threshold": 16000,
+  "tier_effort": {
+   "critical": "xhigh",
+   "high": "high",
+   "low": null,
+   "medium": "medium"
+  },
+  "tier_keys": {
+   "critical": "critical",
+   "high": "high",
+   "low": "low",
+   "medium": "medium"
+  }
+ },
+ "cost": [
+  {
+   "cache_read": 0,
+   "cache_write": 0,
+   "spec": {
+    "effort": "high",
+    "name": "m",
+    "thinking": true,
+    "tier": "mid",
+    "usd_per_mtok_in": 3.0,
+    "usd_per_mtok_out": 15.0
+   },
+   "tok_in": 1000,
+   "tok_out": 500,
+   "usd": 0.0105
+  },
+  {
+   "cache_read": 0,
+   "cache_write": 0,
+   "spec": {
+    "effort": "high",
+    "name": "m",
+    "thinking": true,
+    "tier": "mid",
+    "usd_per_mtok_in": 3.0,
+    "usd_per_mtok_out": 15.0
+   },
+   "tok_in": 1000000,
+   "tok_out": 0,
+   "usd": 3.0
+  },
+  {
+   "cache_read": 1000000,
+   "cache_write": 0,
+   "spec": {
+    "effort": "high",
+    "name": "m",
+    "thinking": true,
+    "tier": "mid",
+    "usd_per_mtok_in": 3.0,
+    "usd_per_mtok_out": 15.0
+   },
+   "tok_in": 0,
+   "tok_out": 0,
+   "usd": 0.3
+  },
+  {
+   "cache_read": 0,
+   "cache_write": 1000000,
+   "spec": {
+    "effort": "high",
+    "name": "m",
+    "thinking": true,
+    "tier": "mid",
+    "usd_per_mtok_in": 3.0,
+    "usd_per_mtok_out": 15.0
+   },
+   "tok_in": 0,
+   "tok_out": 0,
+   "usd": 3.75
+  },
+  {
+   "cache_read": 1011,
+   "cache_write": 213,
+   "spec": {
+    "effort": "high",
+    "name": "m",
+    "thinking": true,
+    "tier": "mid",
+    "usd_per_mtok_in": 1.0,
+    "usd_per_mtok_out": 4.0
+   },
+   "tok_in": 12345,
+   "tok_out": 6789,
+   "usd": 0.03986835
+  },
+  {
+   "cache_read": 1,
+   "cache_write": 1,
+   "spec": {
+    "effort": "high",
+    "name": "m",
+    "thinking": true,
+    "tier": "mid",
+    "usd_per_mtok_in": 0.3,
+    "usd_per_mtok_out": 1.2
+   },
+   "tok_in": 7,
+   "tok_out": 3,
+   "usd": 6.104999999999999e-06
+  },
+  {
+   "cache_read": 0,
+   "cache_write": 0,
+   "spec": {
+    "effort": "high",
+    "name": "m",
+    "thinking": true,
+    "tier": "mid",
+    "usd_per_mtok_in": 5.0,
+    "usd_per_mtok_out": 25.0
+   },
+   "tok_in": 0,
+   "tok_out": 0,
+   "usd": 0.0
+  }
+ ],
+ "errors": {
+  "hierarchy": {
+   "ModelRefusal": [
+    "ModelError",
+    "HarnessError",
+    "Exception"
+   ],
+   "ModelTruncated": [
+    "ModelError",
+    "HarnessError",
+    "Exception"
+   ],
+   "QuotaExhausted": [
+    "ModelError",
+    "HarnessError",
+    "Exception"
+   ]
+  },
+  "model_error": "普通失败",
+  "quota_exhausted": [
+   {
+    "detail": "insufficient_quota",
+    "detail_len": 18,
+    "detail_out": "insufficient_quota",
+    "message": "m 网关账户余额/配额已耗尽（HTTP 429）：insufficient_quota",
+    "model": "m",
+    "status": 429
+   },
+   {
+    "detail": "  padded  ",
+    "detail_len": 6,
+    "detail_out": "padded",
+    "message": "m 网关账户余额/配额已耗尽（HTTP 402）：padded",
+    "model": "m",
+    "status": 402
+   },
+   {
+    "detail": "",
+    "detail_len": 0,
+    "detail_out": "",
+    "message": "m 网关账户余额/配额已耗尽（网关响应）：",
+    "model": "m",
+    "status": 0
+   },
+   {
+    "detail": "",
+    "detail_len": 0,
+    "detail_out": "",
+    "message": "m 网关账户余额/配额已耗尽（HTTP 402）：",
+    "model": "m",
+    "status": 402
+   },
+   {
+    "detail": "余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余",
+    "detail_len": 300,
+    "detail_out": "余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余",
+    "message": "测试模型 网关账户余额/配额已耗尽（HTTP 429）：余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余余",
+    "model": "测试模型",
+    "status": 429
+   },
+   {
+    "detail": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "detail_len": 300,
+    "detail_out": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "message": "m 网关账户余额/配额已耗尽（HTTP 402）：xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "model": "m",
+    "status": 402
+   }
+  ],
+  "refusal": [
+   {
+    "category": "safety",
+    "message": "m 拒绝了该请求（类别: safety）",
+    "model": "m"
+   },
+   {
+    "category": null,
+    "message": "m 拒绝了该请求（类别: 未标注）",
+    "model": "m"
+   },
+   {
+    "category": "",
+    "message": "m 拒绝了该请求（类别: 未标注）",
+    "model": "m"
+   },
+   {
+    "category": "自伤",
+    "message": "模型 拒绝了该请求（类别: 自伤）",
+    "model": "模型"
+   }
+  ]
+ },
+ "gateway": [
+  {
+   "backend_calls": [
+    {
+     "max_tokens": 16000,
+     "model": "stub-small",
+     "prompt": "问点什么",
+     "schema": false
+    }
+   ],
+   "budget": {
+    "tokens": 160.0,
+    "usd": 0.0002168
+   },
+   "budget_spent_events": [
+    {
+     "attempts": 1,
+     "cache_read": 10,
+     "cache_write": 0,
+     "effort": null,
+     "level": 0,
+     "model": "stub-small",
+     "status": "ok",
+     "tok_in": 120,
+     "tok_out": 30,
+     "usd": 0.00022
+    }
+   ],
+   "ledger": [
+    {
+     "attempts": 1,
+     "cache_read": 10,
+     "cache_write": 0,
+     "effort": "",
+     "model": "stub-small",
+     "node_id": "NODE",
+     "run_id": "plain",
+     "status": "ok",
+     "tok_in": 120,
+     "tok_out": 30,
+     "usd": 0.0002168,
+     "usd_source": "estimated"
+    }
+   ],
+   "name": "plain",
+   "outcome": {
+    "completion": {
+     "attempts": 1,
+     "data": null,
+     "model": "stub-small",
+     "text": "ok",
+     "usage": {
+      "cache_read": 10,
+      "cache_write": 0,
+      "tok_in": 120,
+      "tok_out": 30,
+      "usd": null
+     },
+     "usd": 0.0002168
+    },
+    "ok": true
+   }
+  },
+  {
+   "backend_calls": [
+    {
+     "max_tokens": 16000,
+     "model": "stub-small",
+     "prompt": "给我 JSON",
+     "schema": false
+    }
+   ],
+   "budget": {
+    "tokens": 2000.0,
+    "usd": 0.42
+   },
+   "budget_spent_events": [
+    {
+     "attempts": 1,
+     "cache_read": 0,
+     "cache_write": 0,
+     "effort": null,
+     "level": 0,
+     "model": "stub-small",
+     "status": "ok",
+     "tok_in": 1000,
+     "tok_out": 1000,
+     "usd": 0.42
+    }
+   ],
+   "ledger": [
+    {
+     "attempts": 1,
+     "cache_read": 0,
+     "cache_write": 0,
+     "effort": "",
+     "model": "stub-small",
+     "node_id": "NODE",
+     "run_id": "gateway-usd",
+     "status": "ok",
+     "tok_in": 1000,
+     "tok_out": 1000,
+     "usd": 0.42,
+     "usd_source": "gateway"
+    }
+   ],
+   "name": "gateway-usd",
+   "outcome": {
+    "completion": {
+     "attempts": 1,
+     "data": null,
+     "model": "stub-small",
+     "text": "ok",
+     "usage": {
+      "cache_read": 0,
+      "cache_write": 0,
+      "tok_in": 1000,
+      "tok_out": 1000,
+      "usd": 0.42
+     },
+     "usd": 0.42
+    },
+    "ok": true
+   }
+  },
+  {
+   "backend_calls": [
+    {
+     "max_tokens": 16000,
+     "model": "stub-small",
+     "prompt": "给我 JSON",
+     "schema": false
+    }
+   ],
+   "budget": {
+    "tokens": 1000000.0,
+    "usd": 0.8
+   },
+   "budget_spent_events": [
+    {
+     "attempts": 1,
+     "cache_read": 0,
+     "cache_write": 0,
+     "effort": null,
+     "level": 0,
+     "model": "stub-small",
+     "status": "ok",
+     "tok_in": 1000000,
+     "tok_out": 0,
+     "usd": 0.8
+    }
+   ],
+   "ledger": [
+    {
+     "attempts": 1,
+     "cache_read": 0,
+     "cache_write": 0,
+     "effort": "",
+     "model": "stub-small",
+     "node_id": "NODE",
+     "run_id": "estimated-usd",
+     "status": "ok",
+     "tok_in": 1000000,
+     "tok_out": 0,
+     "usd": 0.8,
+     "usd_source": "estimated"
+    }
+   ],
+   "name": "estimated-usd",
+   "outcome": {
+    "completion": {
+     "attempts": 1,
+     "data": null,
+     "model": "stub-small",
+     "text": "ok",
+     "usage": {
+      "cache_read": 0,
+      "cache_write": 0,
+      "tok_in": 1000000,
+      "tok_out": 0,
+      "usd": null
+     },
+     "usd": 0.8
+    },
+    "ok": true
+   }
+  },
+  {
+   "backend_calls": [
+    {
+     "max_tokens": 16000,
+     "model": "stub-small",
+     "prompt": "给我 JSON",
+     "schema": true
+    },
+    {
+     "max_tokens": 16000,
+     "model": "stub-small",
+     "prompt": "给我 JSON\n\n【上次输出不合要求】$ 缺少必填字段 'ok'\n请只输出符合 schema 的 JSON，不要任何解释文字。",
+     "schema": true
+    },
+    {
+     "max_tokens": 16000,
+     "model": "stub-small",
+     "prompt": "给我 JSON\n\n【上次输出不合要求】$.ok 应为 boolean\n请只输出符合 schema 的 JSON，不要任何解释文字。",
+     "schema": true
+    }
+   ],
+   "budget": {
+    "tokens": 460.0,
+    "usd": 0.000784
+   },
+   "budget_spent_events": [
+    {
+     "attempts": 3,
+     "cache_read": 0,
+     "cache_write": 0,
+     "effort": null,
+     "level": 0,
+     "model": "stub-small",
+     "status": "ok",
+     "tok_in": 330,
+     "tok_out": 130,
+     "usd": 0.00078
+    }
+   ],
+   "ledger": [
+    {
+     "attempts": 3,
+     "cache_read": 0,
+     "cache_write": 0,
+     "effort": "",
+     "model": "stub-small",
+     "node_id": "NODE",
+     "run_id": "validate-retry",
+     "status": "ok",
+     "tok_in": 330,
+     "tok_out": 130,
+     "usd": 0.000784,
+     "usd_source": "estimated"
+    }
+   ],
+   "name": "validate-retry",
+   "outcome": {
+    "completion": {
+     "attempts": 3,
+     "data": {
+      "ok": true
+     },
+     "model": "stub-small",
+     "text": "{\"ok\": true}",
+     "usage": {
+      "cache_read": 0,
+      "cache_write": 0,
+      "tok_in": 330,
+      "tok_out": 130,
+      "usd": null
+     },
+     "usd": 0.000784
+    },
+    "ok": true
+   }
+  },
+  {
+   "backend_calls": [
+    {
+     "max_tokens": 16000,
+     "model": "stub-small",
+     "prompt": "给我 JSON",
+     "schema": true
+    },
+    {
+     "max_tokens": 16000,
+     "model": "stub-small",
+     "prompt": "给我 JSON\n\n【上次输出不合要求】输出里找不到 JSON\n请只输出符合 schema 的 JSON，不要任何解释文字。",
+     "schema": true
+    }
+   ],
+   "budget": {
+    "tokens": 290.0,
+    "usd": 0.00045599999999999997
+   },
+   "budget_spent_events": [
+    {
+     "attempts": 2,
+     "cache_read": 0,
+     "cache_write": 0,
+     "effort": null,
+     "level": 0,
+     "model": "stub-small",
+     "status": "ok",
+     "tok_in": 220,
+     "tok_out": 70,
+     "usd": 0.00046
+    }
+   ],
+   "ledger": [
+    {
+     "attempts": 2,
+     "cache_read": 0,
+     "cache_write": 0,
+     "effort": "",
+     "model": "stub-small",
+     "node_id": "NODE",
+     "run_id": "parse-retry",
+     "status": "ok",
+     "tok_in": 220,
+     "tok_out": 70,
+     "usd": 0.00045599999999999997,
+     "usd_source": "estimated"
+    }
+   ],
+   "name": "parse-retry",
+   "outcome": {
+    "completion": {
+     "attempts": 2,
+     "data": {
+      "ok": true
+     },
+     "model": "stub-small",
+     "text": "{\"ok\": true}",
+     "usage": {
+      "cache_read": 0,
+      "cache_write": 0,
+      "tok_in": 220,
+      "tok_out": 70,
+      "usd": null
+     },
+     "usd": 0.00045599999999999997
+    },
+    "ok": true
+   }
+  },
+  {
+   "backend_calls": [
+    {
+     "max_tokens": 16000,
+     "model": "stub-small",
+     "prompt": "给我 JSON",
+     "schema": true
+    },
+    {
+     "max_tokens": 16000,
+     "model": "stub-small",
+     "prompt": "给我 JSON\n\n【上次输出不合要求】$ 缺少必填字段 'ok'\n请只输出符合 schema 的 JSON，不要任何解释文字。",
+     "schema": true
+    },
+    {
+     "max_tokens": 16000,
+     "model": "stub-small",
+     "prompt": "给我 JSON\n\n【上次输出不合要求】$ 缺少必填字段 'ok'\n请只输出符合 schema 的 JSON，不要任何解释文字。",
+     "schema": true
+    }
+   ],
+   "budget": {
+    "tokens": 630.0,
+    "usd": 0.0006000000000000001
+   },
+   "budget_spent_events": [
+    {
+     "attempts": 3,
+     "cache_read": 0,
+     "cache_write": 0,
+     "effort": null,
+     "level": 0,
+     "model": "stub-small",
+     "status": "failed",
+     "tok_in": 600,
+     "tok_out": 30,
+     "usd": 0.0006
+    }
+   ],
+   "ledger": [
+    {
+     "attempts": 3,
+     "cache_read": 0,
+     "cache_write": 0,
+     "effort": "",
+     "model": "stub-small",
+     "node_id": "NODE",
+     "run_id": "all-bad",
+     "status": "failed",
+     "tok_in": 600,
+     "tok_out": 30,
+     "usd": 0.0006000000000000001,
+     "usd_source": "estimated"
+    }
+   ],
+   "name": "all-bad",
+   "outcome": {
+    "exc": "ModelError",
+    "message": "stub-small 连续 3 次输出不合 schema: $ 缺少必填字段 'ok'",
+    "ok": false
+   }
+  },
+  {
+   "backend_calls": [
+    {
+     "max_tokens": 16000,
+     "model": "stub-small",
+     "prompt": "给我 JSON",
+     "schema": true
+    },
+    {
+     "max_tokens": 16000,
+     "model": "stub-small",
+     "prompt": "给我 JSON\n\n【上次输出不合要求】$ 缺少必填字段 'ok'\n请只输出符合 schema 的 JSON，不要任何解释文字。",
+     "schema": true
+    }
+   ],
+   "budget": {
+    "tokens": 33.0,
+    "usd": 0.100024
+   },
+   "budget_spent_events": [
+    {
+     "attempts": 2,
+     "cache_read": 0,
+     "cache_write": 0,
+     "effort": null,
+     "level": 0,
+     "model": "stub-small",
+     "status": "ok",
+     "tok_in": 30,
+     "tok_out": 3,
+     "usd": 0.10002
+    }
+   ],
+   "ledger": [
+    {
+     "attempts": 2,
+     "cache_read": 0,
+     "cache_write": 0,
+     "effort": "",
+     "model": "stub-small",
+     "node_id": "NODE",
+     "run_id": "mixed-usd",
+     "status": "ok",
+     "tok_in": 30,
+     "tok_out": 3,
+     "usd": 0.100024,
+     "usd_source": "estimated"
+    }
+   ],
+   "name": "mixed-usd",
+   "outcome": {
+    "completion": {
+     "attempts": 2,
+     "data": {
+      "ok": true
+     },
+     "model": "stub-small",
+     "text": "{\"ok\": true}",
+     "usage": {
+      "cache_read": 0,
+      "cache_write": 0,
+      "tok_in": 30,
+      "tok_out": 3,
+      "usd": null
+     },
+     "usd": 0.100024
+    },
+    "ok": true
+   }
+  },
+  {
+   "backend_calls": [
+    {
+     "max_tokens": 16000,
+     "model": "stub-small",
+     "prompt": "给我 JSON",
+     "schema": true
+    },
+    {
+     "max_tokens": 48000,
+     "model": "stub-small",
+     "prompt": "给我 JSON\n\n【上次输出不合要求】只有推理没有正文\n请只输出符合 schema 的 JSON，不要任何解释文字。",
+     "schema": true
+    }
+   ],
+   "budget": {
+    "tokens": 33.0,
+    "usd": 3.6e-05
+   },
+   "budget_spent_events": [
+    {
+     "attempts": 2,
+     "cache_read": 0,
+     "cache_write": 0,
+     "effort": null,
+     "level": 0,
+     "model": "stub-small",
+     "status": "ok",
+     "tok_in": 30,
+     "tok_out": 3,
+     "usd": 4e-05
+    }
+   ],
+   "ledger": [
+    {
+     "attempts": 2,
+     "cache_read": 0,
+     "cache_write": 0,
+     "effort": "",
+     "model": "stub-small",
+     "node_id": "NODE",
+     "run_id": "truncated",
+     "status": "ok",
+     "tok_in": 30,
+     "tok_out": 3,
+     "usd": 3.6e-05,
+     "usd_source": "estimated"
+    }
+   ],
+   "name": "truncated",
+   "outcome": {
+    "completion": {
+     "attempts": 2,
+     "data": {
+      "ok": true
+     },
+     "model": "stub-small",
+     "text": "{\"ok\": true}",
+     "usage": {
+      "cache_read": 0,
+      "cache_write": 0,
+      "tok_in": 30,
+      "tok_out": 3,
+      "usd": null
+     },
+     "usd": 3.6e-05
+    },
+    "ok": true
+   }
+  },
+  {
+   "backend_calls": [
+    {
+     "max_tokens": 16000,
+     "model": "stub-small",
+     "prompt": "给我 JSON",
+     "schema": true
+    },
+    {
+     "max_tokens": 48000,
+     "model": "stub-small",
+     "prompt": "给我 JSON\n\n【上次输出不合要求】一直只有推理\n请只输出符合 schema 的 JSON，不要任何解释文字。",
+     "schema": true
+    }
+   ],
+   "budget": {
+    "tokens": 0.0,
+    "usd": 0.0
+   },
+   "budget_spent_events": [
+    {
+     "attempts": 2,
+     "cache_read": 0,
+     "cache_write": 0,
+     "effort": null,
+     "level": 0,
+     "model": "stub-small",
+     "status": "failed",
+     "tok_in": 0,
+     "tok_out": 0,
+     "usd": 0.0
+    }
+   ],
+   "ledger": [
+    {
+     "attempts": 2,
+     "cache_read": 0,
+     "cache_write": 0,
+     "effort": "",
+     "model": "stub-small",
+     "node_id": "NODE",
+     "run_id": "truncated-forever",
+     "status": "failed",
+     "tok_in": 0,
+     "tok_out": 0,
+     "usd": 0.0,
+     "usd_source": "estimated"
+    }
+   ],
+   "name": "truncated-forever",
+   "outcome": {
+    "exc": "ModelTruncated",
+    "message": "一直只有推理",
+    "ok": false
+   }
+  },
+  {
+   "backend_calls": [
+    {
+     "max_tokens": 16000,
+     "model": "stub-small",
+     "prompt": "给我 JSON",
+     "schema": true
+    }
+   ],
+   "budget": {
+    "tokens": 0.0,
+    "usd": 0.0
+   },
+   "budget_spent_events": [
+    {
+     "attempts": 1,
+     "cache_read": 0,
+     "cache_write": 0,
+     "effort": null,
+     "level": 0,
+     "model": "stub-small",
+     "status": "failed",
+     "tok_in": 0,
+     "tok_out": 0,
+     "usd": 0.0
+    }
+   ],
+   "ledger": [
+    {
+     "attempts": 1,
+     "cache_read": 0,
+     "cache_write": 0,
+     "effort": "",
+     "model": "stub-small",
+     "node_id": "NODE",
+     "run_id": "quota",
+     "status": "failed",
+     "tok_in": 0,
+     "tok_out": 0,
+     "usd": 0.0,
+     "usd_source": "estimated"
+    }
+   ],
+   "name": "quota",
+   "outcome": {
+    "exc": "QuotaExhausted",
+    "message": "stub-small 网关账户余额/配额已耗尽（HTTP 429）：{\"error\":{\"message\":\"当前分组上游负载已饱和，请稍后再试\",\"type\":\"insufficient_quota\",\"code\":\"insufficient_user_quota\"}}",
+    "ok": false
+   }
+  },
+  {
+   "backend_calls": [
+    {
+     "max_tokens": 16000,
+     "model": "stub-small",
+     "prompt": "给我 JSON",
+     "schema": false
+    }
+   ],
+   "budget": {
+    "tokens": 0.0,
+    "usd": 0.0
+   },
+   "budget_spent_events": [
+    {
+     "attempts": 1,
+     "cache_read": 0,
+     "cache_write": 0,
+     "effort": null,
+     "level": 0,
+     "model": "stub-small",
+     "status": "failed",
+     "tok_in": 0,
+     "tok_out": 0,
+     "usd": 0.0
+    }
+   ],
+   "ledger": [
+    {
+     "attempts": 1,
+     "cache_read": 0,
+     "cache_write": 0,
+     "effort": "",
+     "model": "stub-small",
+     "node_id": "NODE",
+     "run_id": "no-schema-truncated",
+     "status": "failed",
+     "tok_in": 0,
+     "tok_out": 0,
+     "usd": 0.0,
+     "usd_source": "estimated"
+    }
+   ],
+   "name": "no-schema-truncated",
+   "outcome": {
+    "exc": "ModelTruncated",
+    "message": "正文空",
+    "ok": false
+   }
+  }
+ ],
+ "gateway_broken_sink": {
+  "budget_spent_events": [
+   {
+    "attempts": 1,
+    "cache_read": 0,
+    "cache_write": 0,
+    "effort": null,
+    "level": 0,
+    "model": "stub-small",
+    "status": "ok",
+    "tok_in": 1,
+    "tok_out": 1,
+    "usd": 0.0
+   }
+  ],
+  "completion": {
+   "attempts": 1,
+   "data": null,
+   "model": "stub-small",
+   "text": "ok",
+   "usage": {
+    "cache_read": 0,
+    "cache_write": 0,
+    "tok_in": 1,
+    "tok_out": 1,
+    "usd": null
+   },
+   "usd": 4.8e-06
+  }
+ },
+ "gateway_judge": {
+  "backend_calls": [
+   {
+    "max_tokens": 16000,
+    "model": "judge-two",
+    "prompt": "评一下",
+    "schema": false
+   }
+  ],
+  "completion": {
+   "attempts": 1,
+   "data": null,
+   "model": "judge-two",
+   "text": "ok",
+   "usage": {
+    "cache_read": 0,
+    "cache_write": 0,
+    "tok_in": 5,
+    "tok_out": 5,
+    "usd": null
+   },
+   "usd": 1.5e-05
+  },
+  "ledger": [
+   {
+    "attempts": 1,
+    "cache_read": 0,
+    "cache_write": 0,
+    "effort": "high",
+    "model": "judge-two",
+    "node_id": "NODE",
+    "run_id": "run-judge",
+    "status": "ok",
+    "tok_in": 5,
+    "tok_out": 5,
+    "usd": 1.5e-05,
+    "usd_source": "estimated"
+   }
+  ]
+ },
+ "gateway_replay": {
+  "first": {
+   "budget": {
+    "tokens": 44.0,
+    "usd": 0.30000000000000004
+   },
+   "budget_spent_events": [
+    {
+     "attempts": 2,
+     "cache_read": 3,
+     "cache_write": 5,
+     "effort": null,
+     "level": 0,
+     "model": "stub-small",
+     "status": "ok",
+     "tok_in": 30,
+     "tok_out": 6,
+     "usd": 0.3
+    }
+   ],
+   "completion": {
+    "attempts": 2,
+    "data": {
+     "ok": true
+    },
+    "model": "stub-small",
+    "text": "{\"ok\": true}",
+    "usage": {
+     "cache_read": 3,
+     "cache_write": 5,
+     "tok_in": 30,
+     "tok_out": 6,
+     "usd": 0.30000000000000004
+    },
+    "usd": 0.30000000000000004
+   },
+   "ledger": [
+    {
+     "attempts": 2,
+     "cache_read": 3,
+     "cache_write": 5,
+     "effort": "",
+     "model": "stub-small",
+     "node_id": "NODE",
+     "run_id": "run-usage",
+     "status": "ok",
+     "tok_in": 30,
+     "tok_out": 6,
+     "usd": 0.30000000000000004,
+     "usd_source": "gateway"
+    }
+   ]
+  },
+  "replay": {
+   "backend_calls": 2,
+   "budget": {
+    "tokens": 44.0,
+    "usd": 0.30000000000000004
+   },
+   "budget_spent_events": [
+    {
+     "attempts": 2,
+     "cache_read": 3,
+     "cache_write": 5,
+     "effort": null,
+     "level": 0,
+     "model": "stub-small",
+     "status": "ok",
+     "tok_in": 30,
+     "tok_out": 6,
+     "usd": 0.3
+    }
+   ],
+   "completion": {
+    "attempts": 2,
+    "data": {
+     "ok": true
+    },
+    "model": "stub-small",
+    "text": "{\"ok\": true}",
+    "usage": {
+     "cache_read": 3,
+     "cache_write": 5,
+     "tok_in": 30,
+     "tok_out": 6,
+     "usd": 0.30000000000000004
+    },
+    "usd": 0.30000000000000004
+   },
+   "ledger": []
+  }
+ },
+ "looks_truncated": [
+  {
+   "err": "JSON 不完整（输出被截断）",
+   "out": true
+  },
+  {
+   "err": "输出里找不到 JSON",
+   "out": false
+  },
+  {
+   "err": "Unterminated string starting at: line 1 column 7 (char 6)",
+   "out": true
+  },
+  {
+   "err": "Expecting value: line 1 column 1 (char 0)",
+   "out": true
+  },
+  {
+   "err": "Expecting ',' delimiter: line 1 column 5 (char 4)",
+   "out": true
+  },
+  {
+   "err": "Expecting property name enclosed in double quotes: line 1 column 2 (char 1)",
+   "out": true
+  },
+  {
+   "err": "字段 foo 不是 string",
+   "out": false
+  },
+  {
+   "err": "schema 里没有这个枚举值",
+   "out": false
+  },
+  {
+   "err": "$ 缺少必填字段 'ok'",
+   "out": false
+  },
+  {
+   "err": "$.a 应为 string",
+   "out": false
+  },
+  {
+   "err": "",
+   "out": false
+  },
+  {
+   "err": "内容被截断了",
+   "out": true
+  }
+ ],
+ "offending_field": [
+  {
+   "body_keys": [
+    "reasoning",
+    "response_format"
+   ],
+   "error_text": "Unknown field: response_format",
+   "out": "response_format"
+  },
+  {
+   "body_keys": [
+    "reasoning",
+    "response_format"
+   ],
+   "error_text": "unsupported parameter 'reasoning'",
+   "out": "reasoning"
+  },
+  {
+   "body_keys": [
+    "response_format"
+   ],
+   "error_text": "RESPONSE_FORMAT not allowed",
+   "out": "response_format"
+  },
+  {
+   "body_keys": [
+    "model"
+   ],
+   "error_text": "reasoning is not supported",
+   "out": null
+  },
+  {
+   "body_keys": [
+    "reasoning",
+    "response_format"
+   ],
+   "error_text": "something else broke",
+   "out": null
+  },
+  {
+   "body_keys": [
+    "reasoning",
+    "response_format"
+   ],
+   "error_text": "response_format and reasoning both bad",
+   "out": "response_format"
+  }
+ ],
+ "openai_build": [
+  {
+   "args": {
+    "drop": [],
+    "images": null,
+    "max_tokens": 100,
+    "model": {
+     "effort": "high",
+     "name": "anthropic/claude-sonnet-5",
+     "thinking": true,
+     "tier": "mid",
+     "usd_per_mtok_in": 3.0,
+     "usd_per_mtok_out": 15.0
+    },
+    "prompt": "hi",
+    "schema": null,
+    "system": ""
+   },
+   "out": {
+    "max_tokens": 100,
+    "messages": [
+     {
+      "content": "hi",
+      "role": "user"
+     }
+    ],
+    "model": "anthropic/claude-sonnet-5",
+    "reasoning": {
+     "effort": "high"
+    }
+   }
+  },
+  {
+   "args": {
+    "drop": [],
+    "images": null,
+    "max_tokens": 16000,
+    "model": {
+     "effort": "high",
+     "name": "anthropic/claude-sonnet-5",
+     "thinking": true,
+     "tier": "mid",
+     "usd_per_mtok_in": 3.0,
+     "usd_per_mtok_out": 15.0
+    },
+    "prompt": "hi",
+    "schema": {
+     "properties": {
+      "ok": {
+       "type": "boolean"
+      }
+     },
+     "required": [
+      "ok"
+     ],
+     "type": "object"
+    },
+    "system": "系统提示"
+   },
+   "out": {
+    "max_tokens": 16000,
+    "messages": [
+     {
+      "content": "系统提示",
+      "role": "system"
+     },
+     {
+      "content": "hi",
+      "role": "user"
+     }
+    ],
+    "model": "anthropic/claude-sonnet-5",
+    "reasoning": {
+     "effort": "high"
+    },
+    "response_format": {
+     "json_schema": {
+      "name": "output",
+      "schema": {
+       "additionalProperties": false,
+       "properties": {
+        "ok": {
+         "type": "boolean"
+        }
+       },
+       "required": [
+        "ok"
+       ],
+       "type": "object"
+      },
+      "strict": true
+     },
+     "type": "json_schema"
+    }
+   }
+  },
+  {
+   "args": {
+    "drop": [],
+    "images": null,
+    "max_tokens": 100,
+    "model": {
+     "effort": null,
+     "name": "google/gemini-3.5-flash",
+     "thinking": null,
+     "tier": "mid",
+     "usd_per_mtok_in": 1.0,
+     "usd_per_mtok_out": 4.0
+    },
+    "prompt": "hi",
+    "schema": {
+     "properties": {
+      "ok": {
+       "type": "boolean"
+      }
+     },
+     "required": [
+      "ok"
+     ],
+     "type": "object"
+    },
+    "system": "s"
+   },
+   "out": {
+    "max_tokens": 100,
+    "messages": [
+     {
+      "content": "s",
+      "role": "system"
+     },
+     {
+      "content": "hi",
+      "role": "user"
+     }
+    ],
+    "model": "google/gemini-3.5-flash",
+    "response_format": {
+     "json_schema": {
+      "name": "output",
+      "schema": {
+       "additionalProperties": false,
+       "properties": {
+        "ok": {
+         "type": "boolean"
+        }
+       },
+       "required": [
+        "ok"
+       ],
+       "type": "object"
+      },
+      "strict": true
+     },
+     "type": "json_schema"
+    }
+   }
+  },
+  {
+   "args": {
+    "drop": [],
+    "images": [
+     "data:image/png;base64,AAA",
+     "data:image/png;base64,BBB"
+    ],
+    "max_tokens": 100,
+    "model": {
+     "effort": "high",
+     "name": "anthropic/claude-sonnet-5",
+     "thinking": true,
+     "tier": "mid",
+     "usd_per_mtok_in": 3.0,
+     "usd_per_mtok_out": 15.0
+    },
+    "prompt": "看图",
+    "schema": null,
+    "system": ""
+   },
+   "out": {
+    "max_tokens": 100,
+    "messages": [
+     {
+      "content": [
+       {
+        "text": "看图",
+        "type": "text"
+       },
+       {
+        "image_url": {
+         "url": "data:image/png;base64,AAA"
+        },
+        "type": "image_url"
+       },
+       {
+        "image_url": {
+         "url": "data:image/png;base64,BBB"
+        },
+        "type": "image_url"
+       }
+      ],
+      "role": "user"
+     }
+    ],
+    "model": "anthropic/claude-sonnet-5",
+    "reasoning": {
+     "effort": "high"
+    }
+   }
+  },
+  {
+   "args": {
+    "drop": [
+     "reasoning"
+    ],
+    "images": null,
+    "max_tokens": 100,
+    "model": {
+     "effort": "high",
+     "name": "anthropic/claude-sonnet-5",
+     "thinking": true,
+     "tier": "mid",
+     "usd_per_mtok_in": 3.0,
+     "usd_per_mtok_out": 15.0
+    },
+    "prompt": "hi",
+    "schema": {
+     "properties": {
+      "ok": {
+       "type": "boolean"
+      }
+     },
+     "required": [
+      "ok"
+     ],
+     "type": "object"
+    },
+    "system": "s"
+   },
+   "out": {
+    "max_tokens": 100,
+    "messages": [
+     {
+      "content": "s",
+      "role": "system"
+     },
+     {
+      "content": "hi",
+      "role": "user"
+     }
+    ],
+    "model": "anthropic/claude-sonnet-5",
+    "response_format": {
+     "json_schema": {
+      "name": "output",
+      "schema": {
+       "additionalProperties": false,
+       "properties": {
+        "ok": {
+         "type": "boolean"
+        }
+       },
+       "required": [
+        "ok"
+       ],
+       "type": "object"
+      },
+      "strict": true
+     },
+     "type": "json_schema"
+    }
+   }
+  },
+  {
+   "args": {
+    "drop": [
+     "reasoning",
+     "response_format"
+    ],
+    "images": null,
+    "max_tokens": 100,
+    "model": {
+     "effort": "high",
+     "name": "anthropic/claude-sonnet-5",
+     "thinking": true,
+     "tier": "mid",
+     "usd_per_mtok_in": 3.0,
+     "usd_per_mtok_out": 15.0
+    },
+    "prompt": "hi",
+    "schema": {
+     "properties": {
+      "ok": {
+       "type": "boolean"
+      }
+     },
+     "required": [
+      "ok"
+     ],
+     "type": "object"
+    },
+    "system": "s"
+   },
+   "out": {
+    "max_tokens": 100,
+    "messages": [
+     {
+      "content": "s",
+      "role": "system"
+     },
+     {
+      "content": "hi",
+      "role": "user"
+     }
+    ],
+    "model": "anthropic/claude-sonnet-5"
+   }
+  }
+ ],
+ "openai_parse": [
+  {
+   "data": {
+    "choices": [
+     {
+      "finish_reason": "stop",
+      "message": {
+       "content": "ok"
+      }
+     }
+    ],
+    "usage": {
+     "completion_tokens": 5,
+     "prompt_tokens": 10
+    }
+   },
+   "ok": true,
+   "text": "ok",
+   "usage": {
+    "cache_read": 0,
+    "cache_write": 0,
+    "tok_in": 10,
+    "tok_out": 5,
+    "usd": null
+   }
+  },
+  {
+   "data": {
+    "choices": [
+     {
+      "finish_reason": "stop",
+      "message": {
+       "content": "ok"
+      }
+     }
+    ],
+    "usage": {
+     "completion_tokens": 5,
+     "cost": 0.0123,
+     "prompt_tokens": 100,
+     "prompt_tokens_details": {
+      "cache_write_tokens": 7,
+      "cached_tokens": 40
+     }
+    }
+   },
+   "ok": true,
+   "text": "ok",
+   "usage": {
+    "cache_read": 40,
+    "cache_write": 7,
+    "tok_in": 60,
+    "tok_out": 5,
+    "usd": 0.0123
+   }
+  },
+  {
+   "data": {
+    "choices": [
+     {
+      "finish_reason": "length",
+      "message": {
+       "content": ""
+      }
+     }
+    ],
+    "usage": {
+     "completion_tokens": 0,
+     "prompt_tokens": 1
+    }
+   },
+   "ok": true,
+   "text": "",
+   "usage": {
+    "cache_read": 0,
+    "cache_write": 0,
+    "tok_in": 1,
+    "tok_out": 0,
+    "usd": null
+   }
+  },
+  {
+   "data": {
+    "choices": [
+     {
+      "finish_reason": "length",
+      "message": {
+       "content": "",
+       "reasoning": "想了很久"
+      }
+     }
+    ],
+    "usage": {
+     "completion_tokens": 900,
+     "prompt_tokens": 1
+    }
+   },
+   "exc": "ModelTruncated",
+   "message": "test-model 只返回了推理内容、没有正文，多半是 max_tokens 不够（本次 finish_reason=length）",
+   "ok": false
+  },
+  {
+   "data": {
+    "choices": [
+     {
+      "finish_reason": "stop",
+      "message": {
+       "refusal": "safety"
+      }
+     }
+    ]
+   },
+   "exc": "ModelRefusal",
+   "message": "test-model 拒绝了该请求（类别: safety）",
+   "ok": false
+  },
+  {
+   "data": {
+    "choices": [
+     {
+      "finish_reason": "content_filter",
+      "message": {
+       "content": "x"
+      }
+     }
+    ]
+   },
+   "exc": "ModelRefusal",
+   "message": "test-model 拒绝了该请求（类别: content_filter）",
+   "ok": false
+  },
+  {
+   "data": {
+    "choices": []
+   },
+   "exc": "ModelError",
+   "message": "test-model 返回空 choices: {\"choices\": []}",
+   "ok": false
+  },
+  {
+   "data": {},
+   "exc": "ModelError",
+   "message": "test-model 返回空 choices: {}",
+   "ok": false
+  },
+  {
+   "data": {
+    "choices": [
+     {
+      "message": {
+       "content": "ok"
+      }
+     }
+    ],
+    "usage": {
+     "completion_tokens": 5,
+     "prompt_tokens": 10,
+     "prompt_tokens_details": {
+      "cached_tokens": 30
+     }
+    }
+   },
+   "ok": true,
+   "text": "ok",
+   "usage": {
+    "cache_read": 30,
+    "cache_write": 0,
+    "tok_in": 0,
+    "tok_out": 5,
+    "usd": null
+   }
+  },
+  {
+   "data": {
+    "choices": [
+     {
+      "message": {
+       "content": "ok"
+      }
+     }
+    ],
+    "usage": null
+   },
+   "ok": true,
+   "text": "ok",
+   "usage": {
+    "cache_read": 0,
+    "cache_write": 0,
+    "tok_in": 0,
+    "tok_out": 0,
+    "usd": null
+   }
+  },
+  {
+   "data": {
+    "choices": [
+     {
+      "message": null
+     }
+    ]
+   },
+   "ok": true,
+   "text": "",
+   "usage": {
+    "cache_read": 0,
+    "cache_write": 0,
+    "tok_in": 0,
+    "tok_out": 0,
+    "usd": null
+   }
+  }
+ ],
+ "parse_json": [
+  {
+   "error_kind": null,
+   "nonfinite": false,
+   "ok": true,
+   "text": "{\"answer\":\"hi\"}",
+   "truncated": false,
+   "value": {
+    "answer": "hi"
+   }
+  },
+  {
+   "error_kind": null,
+   "nonfinite": false,
+   "ok": true,
+   "text": "  {\"answer\":\"hi\"}  ",
+   "truncated": false,
+   "value": {
+    "answer": "hi"
+   }
+  },
+  {
+   "error_kind": null,
+   "nonfinite": false,
+   "ok": true,
+   "text": "```json\n{\"answer\":\"ok\"}\n```",
+   "truncated": false,
+   "value": {
+    "answer": "ok"
+   }
+  },
+  {
+   "error_kind": null,
+   "nonfinite": false,
+   "ok": true,
+   "text": "```\n{\"answer\":\"ok\"}\n```",
+   "truncated": false,
+   "value": {
+    "answer": "ok"
+   }
+  },
+  {
+   "error_kind": null,
+   "nonfinite": false,
+   "ok": true,
+   "text": "这是结果：{\"answer\":\"y\"} 完毕",
+   "truncated": false,
+   "value": {
+    "answer": "y"
+   }
+  },
+  {
+   "error_kind": null,
+   "nonfinite": false,
+   "ok": true,
+   "text": "{\"thought\": \"给他一份 schema 范例\", \"answer\": \"可以这样写：\\n```json\\n{\\n  \\\"type\\\": \\\"object\\\"\\n}\\n```\\n照着改。\", \"citations\": [], \"confidence\": 0.9}",
+   "truncated": false,
+   "value": {
+    "answer": "可以这样写：\n```json\n{\n  \"type\": \"object\"\n}\n```\n照着改。",
+    "citations": [],
+    "confidence": 0.9,
+    "thought": "给他一份 schema 范例"
+   }
+  },
+  {
+   "error_kind": null,
+   "nonfinite": false,
+   "ok": true,
+   "text": "前言\n```json\n{\"a\":1}\n```\n后记",
+   "truncated": false,
+   "value": {
+    "a": 1
+   }
+  },
+  {
+   "error_kind": null,
+   "nonfinite": false,
+   "ok": true,
+   "text": "[1, 2, 3]",
+   "truncated": false,
+   "value": [
+    1,
+    2,
+    3
+   ]
+  },
+  {
+   "error_kind": "decode",
+   "exc": "ValueError",
+   "message": "JSON 解析失败: Extra data: line 1 column 7 (char 6)",
+   "nonfinite": false,
+   "ok": false,
+   "text": "文字 [1,2] 文字 {\"a\":1}",
+   "truncated": false
+  },
+  {
+   "error_kind": null,
+   "nonfinite": false,
+   "ok": true,
+   "text": "\"裸字符串\"",
+   "truncated": false,
+   "value": "裸字符串"
+  },
+  {
+   "error_kind": null,
+   "nonfinite": false,
+   "ok": true,
+   "text": "42",
+   "truncated": false,
+   "value": 42
+  },
+  {
+   "error_kind": null,
+   "nonfinite": false,
+   "ok": true,
+   "text": "true",
+   "truncated": false,
+   "value": true
+  },
+  {
+   "error_kind": null,
+   "nonfinite": false,
+   "ok": true,
+   "text": "null",
+   "truncated": false,
+   "value": null
+  },
+  {
+   "error_kind": "not_found",
+   "exc": "ValueError",
+   "message": "输出里找不到 JSON",
+   "nonfinite": false,
+   "ok": false,
+   "text": "没有任何 JSON",
+   "truncated": false
+  },
+  {
+   "error_kind": "incomplete",
+   "exc": "ValueError",
+   "message": "JSON 不完整（输出被截断）",
+   "nonfinite": false,
+   "ok": false,
+   "text": "{",
+   "truncated": true
+  },
+  {
+   "error_kind": "incomplete",
+   "exc": "ValueError",
+   "message": "JSON 不完整（输出被截断）",
+   "nonfinite": false,
+   "ok": false,
+   "text": "{\"a\": 1",
+   "truncated": true
+  },
+  {
+   "error_kind": "decode",
+   "exc": "ValueError",
+   "message": "JSON 解析失败: Expecting value: line 1 column 7 (char 6)",
+   "nonfinite": false,
+   "ok": false,
+   "text": "{\"a\": }",
+   "truncated": true
+  },
+  {
+   "error_kind": "decode",
+   "exc": "ValueError",
+   "message": "JSON 解析失败: Expecting property name enclosed in double quotes: line 1 column 9 (char 8)",
+   "nonfinite": false,
+   "ok": false,
+   "text": "{\"a\": 1,}",
+   "truncated": true
+  },
+  {
+   "error_kind": "decode",
+   "exc": "ValueError",
+   "message": "JSON 解析失败: Expecting ',' delimiter: line 1 column 9 (char 8)",
+   "nonfinite": false,
+   "ok": false,
+   "text": "{\"a\": 1 \"b\": 2}",
+   "truncated": true
+  },
+  {
+   "error_kind": "incomplete",
+   "exc": "ValueError",
+   "message": "JSON 不完整（输出被截断）",
+   "nonfinite": false,
+   "ok": false,
+   "text": "{\"a\": \"未闭合",
+   "truncated": true
+  },
+  {
+   "error_kind": "incomplete",
+   "exc": "ValueError",
+   "message": "JSON 不完整（输出被截断）",
+   "nonfinite": false,
+   "ok": false,
+   "text": "```json\n{\"a\": 1\n```",
+   "truncated": true
+  },
+  {
+   "error_kind": "not_found",
+   "exc": "ValueError",
+   "message": "输出里找不到 JSON",
+   "nonfinite": false,
+   "ok": false,
+   "text": "```json\n坏的\n```{\"b\": 2}",
+   "truncated": false
+  },
+  {
+   "error_kind": null,
+   "nonfinite": true,
+   "ok": true,
+   "text": "NaN",
+   "truncated": false,
+   "value": "__nan__"
+  },
+  {
+   "error_kind": null,
+   "nonfinite": true,
+   "ok": true,
+   "text": "{\"x\": Infinity}",
+   "truncated": false,
+   "value": {
+    "x": "__inf__"
+   }
+  }
+ ],
+ "quota_judgement": [
+  {
+   "body": "",
+   "out": true,
+   "status": 402
+  },
+  {
+   "body": "whatever",
+   "out": true,
+   "status": 402
+  },
+  {
+   "body": "{\"error\":{\"message\":\"Rate limit reached for this model, please slow down\",\"type\":\"rate_limit_error\",\"code\":\"rate_limit_exceeded\"}}",
+   "out": true,
+   "status": 402
+  },
+  {
+   "body": "{\"error\":{\"message\":\"当前分组上游负载已饱和，请稍后再试\",\"type\":\"insufficient_quota\",\"code\":\"insufficient_user_quota\"}}",
+   "out": true,
+   "status": 429
+  },
+  {
+   "body": "{\"error\":{\"code\":\"INSUFFICIENT_QUOTA\"}}",
+   "out": true,
+   "status": 429
+  },
+  {
+   "body": "{\"error\":{\"message\":\"账户余额不足，请充值\"}}",
+   "out": true,
+   "status": 429
+  },
+  {
+   "body": "{\"error\":{\"message\":\"额度已用完\"}}",
+   "out": true,
+   "status": 429
+  },
+  {
+   "body": "{\"error\":{\"message\":\"credit balance is too low\"}}",
+   "out": true,
+   "status": 429
+  },
+  {
+   "body": "{\"error\":{\"message\":\"欠费停机\"}}",
+   "out": true,
+   "status": 429
+  },
+  {
+   "body": "{\"error\":{\"message\":\"CREDIT\"}}",
+   "out": true,
+   "status": 429
+  },
+  {
+   "body": "{\"error\":{\"type\":\"exceeded_current_quota\"}}",
+   "out": true,
+   "status": 429
+  },
+  {
+   "body": "{\"error\":{\"type\":\"quota_exceeded\"}}",
+   "out": true,
+   "status": 429
+  },
+  {
+   "body": "{\"error\":{\"type\":\"billing_hard_limit_reached\"}}",
+   "out": true,
+   "status": 429
+  },
+  {
+   "body": "{\"error\":{\"message\":\"Rate limit reached for this model, please slow down\",\"type\":\"rate_limit_error\",\"code\":\"rate_limit_exceeded\"}}",
+   "out": false,
+   "status": 429
+  },
+  {
+   "body": "",
+   "out": false,
+   "status": 429
+  },
+  {
+   "body": "{\"error\":{\"message\":\"Too many requests\"}}",
+   "out": false,
+   "status": 429
+  },
+  {
+   "body": "{\"error\":{\"message\":\"当前分组上游负载已饱和，请稍后再试\",\"type\":\"insufficient_quota\",\"code\":\"insufficient_user_quota\"}}",
+   "out": false,
+   "status": 500
+  },
+  {
+   "body": "{\"error\":{\"message\":\"余额\"}}",
+   "out": false,
+   "status": 503
+  },
+  {
+   "body": "{\"error\":{\"message\":\"当前分组上游负载已饱和，请稍后再试\",\"type\":\"insufficient_quota\",\"code\":\"insufficient_user_quota\"}}",
+   "out": false,
+   "status": 200
+  },
+  {
+   "body": "{\"error\":{\"message\":\"当前分组上游负载已饱和，请稍后再试\",\"type\":\"insufficient_quota\",\"code\":\"insufficient_user_quota\"}}",
+   "out": false,
+   "status": 401
+  },
+  {
+   "body": "{\"error\":{\"message\":\"当前分组上游负载已饱和，请稍后再试\",\"type\":\"insufficient_quota\",\"code\":\"insufficient_user_quota\"}}",
+   "out": false,
+   "status": 0
+  }
+ ],
+ "routing": {
+  "gateway_default": {
+   "critic_rounds": {
+    "critical": 3,
+    "high": 2,
+    "low": 0,
+    "medium": 1
+   },
+   "fast": {
+    "effort": "minimal",
+    "name": "google/gemini-3.5-flash",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 1.0,
+    "usd_per_mtok_out": 4.0
+   },
+   "judges": [
+    {
+     "effort": "high",
+     "name": "openai/gpt-5.5",
+     "thinking": true,
+     "tier": "frontier",
+     "usd_per_mtok_in": 5.0,
+     "usd_per_mtok_out": 25.0
+    },
+    {
+     "effort": null,
+     "name": "google/gemini-3.5-flash",
+     "thinking": null,
+     "tier": "mid",
+     "usd_per_mtok_in": 1.0,
+     "usd_per_mtok_out": 4.0
+    }
+   ],
+   "max_iterations": {
+    "critical": 12,
+    "high": 12,
+    "low": 1,
+    "medium": 4
+   },
+   "models": {
+    "critical": {
+     "effort": "xhigh",
+     "name": "anthropic/claude-sonnet-5",
+     "thinking": true,
+     "tier": "mid",
+     "usd_per_mtok_in": 3.0,
+     "usd_per_mtok_out": 15.0
+    },
+    "high": {
+     "effort": "high",
+     "name": "anthropic/claude-sonnet-5",
+     "thinking": true,
+     "tier": "mid",
+     "usd_per_mtok_in": 3.0,
+     "usd_per_mtok_out": 15.0
+    },
+    "low": {
+     "effort": null,
+     "name": "google/gemini-3.5-flash",
+     "thinking": null,
+     "tier": "mid",
+     "usd_per_mtok_in": 1.0,
+     "usd_per_mtok_out": 4.0
+    },
+    "medium": {
+     "effort": null,
+     "name": "google/gemini-3.5-flash",
+     "thinking": null,
+     "tier": "mid",
+     "usd_per_mtok_in": 1.0,
+     "usd_per_mtok_out": 4.0
+    }
+   },
+   "self_consistency": {
+    "critical": 3,
+    "high": 1,
+    "low": 1,
+    "medium": 1
+   }
+  },
+  "gateway_models": {
+   "flash": {
+    "effort": null,
+    "name": "google/gemini-3.5-flash",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 1.0,
+    "usd_per_mtok_out": 4.0
+   },
+   "flash_min": {
+    "effort": "minimal",
+    "name": "google/gemini-3.5-flash",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 1.0,
+    "usd_per_mtok_out": 4.0
+   },
+   "judge_google": {
+    "effort": null,
+    "name": "google/gemini-3.5-flash",
+    "thinking": null,
+    "tier": "mid",
+    "usd_per_mtok_in": 1.0,
+    "usd_per_mtok_out": 4.0
+   },
+   "judge_openai": {
+    "effort": "high",
+    "name": "openai/gpt-5.5",
+    "thinking": true,
+    "tier": "frontier",
+    "usd_per_mtok_in": 5.0,
+    "usd_per_mtok_out": 25.0
+   },
+   "sonnet": {
+    "effort": "high",
+    "name": "anthropic/claude-sonnet-5",
+    "thinking": true,
+    "tier": "mid",
+    "usd_per_mtok_in": 3.0,
+    "usd_per_mtok_out": 15.0
+   },
+   "sonnet_deep": {
+    "effort": "xhigh",
+    "name": "anthropic/claude-sonnet-5",
+    "thinking": true,
+    "tier": "mid",
+    "usd_per_mtok_in": 3.0,
+    "usd_per_mtok_out": 15.0
+   }
+  },
+  "gateway_overrides": [
+   {
+    "catalog": true,
+    "ok": true,
+    "overrides": {
+     "high": "google/gemini-3.5-flash"
+    },
+    "value": {
+     "critic_rounds": {
+      "critical": 3,
+      "high": 2,
+      "low": 0,
+      "medium": 1
+     },
+     "fast": {
+      "effort": "minimal",
+      "name": "google/gemini-3.5-flash",
+      "thinking": null,
+      "tier": "mid",
+      "usd_per_mtok_in": 1.0,
+      "usd_per_mtok_out": 4.0
+     },
+     "judges": [
+      {
+       "effort": "high",
+       "name": "openai/gpt-5.5",
+       "thinking": true,
+       "tier": "frontier",
+       "usd_per_mtok_in": 5.0,
+       "usd_per_mtok_out": 25.0
+      },
+      {
+       "effort": null,
+       "name": "google/gemini-3.5-flash",
+       "thinking": null,
+       "tier": "mid",
+       "usd_per_mtok_in": 1.0,
+       "usd_per_mtok_out": 4.0
+      }
+     ],
+     "max_iterations": {
+      "critical": 12,
+      "high": 12,
+      "low": 1,
+      "medium": 4
+     },
+     "models": {
+      "critical": {
+       "effort": "xhigh",
+       "name": "anthropic/claude-sonnet-5",
+       "thinking": true,
+       "tier": "mid",
+       "usd_per_mtok_in": 3.0,
+       "usd_per_mtok_out": 15.0
+      },
+      "high": {
+       "effort": null,
+       "name": "google/gemini-3.5-flash",
+       "thinking": null,
+       "tier": "mid",
+       "usd_per_mtok_in": 1,
+       "usd_per_mtok_out": 4
+      },
+      "low": {
+       "effort": null,
+       "name": "google/gemini-3.5-flash",
+       "thinking": null,
+       "tier": "mid",
+       "usd_per_mtok_in": 1.0,
+       "usd_per_mtok_out": 4.0
+      },
+      "medium": {
+       "effort": null,
+       "name": "google/gemini-3.5-flash",
+       "thinking": null,
+       "tier": "mid",
+       "usd_per_mtok_in": 1.0,
+       "usd_per_mtok_out": 4.0
+      }
+     },
+     "self_consistency": {
+      "critical": 3,
+      "high": 1,
+      "low": 1,
+      "medium": 1
+     }
+    }
+   },
+   {
+    "catalog": true,
+    "ok": true,
+    "overrides": {
+     "high": "openai/gpt-5.5"
+    },
+    "value": {
+     "critic_rounds": {
+      "critical": 3,
+      "high": 2,
+      "low": 0,
+      "medium": 1
+     },
+     "fast": {
+      "effort": "minimal",
+      "name": "google/gemini-3.5-flash",
+      "thinking": null,
+      "tier": "mid",
+      "usd_per_mtok_in": 1.0,
+      "usd_per_mtok_out": 4.0
+     },
+     "judges": [
+      {
+       "effort": "high",
+       "name": "openai/gpt-5.5",
+       "thinking": true,
+       "tier": "frontier",
+       "usd_per_mtok_in": 5.0,
+       "usd_per_mtok_out": 25.0
+      },
+      {
+       "effort": null,
+       "name": "google/gemini-3.5-flash",
+       "thinking": null,
+       "tier": "mid",
+       "usd_per_mtok_in": 1.0,
+       "usd_per_mtok_out": 4.0
+      }
+     ],
+     "max_iterations": {
+      "critical": 12,
+      "high": 12,
+      "low": 1,
+      "medium": 4
+     },
+     "models": {
+      "critical": {
+       "effort": "xhigh",
+       "name": "anthropic/claude-sonnet-5",
+       "thinking": true,
+       "tier": "mid",
+       "usd_per_mtok_in": 3.0,
+       "usd_per_mtok_out": 15.0
+      },
+      "high": {
+       "effort": "high",
+       "name": "openai/gpt-5.5",
+       "thinking": true,
+       "tier": "frontier",
+       "usd_per_mtok_in": 5,
+       "usd_per_mtok_out": 25
+      },
+      "low": {
+       "effort": null,
+       "name": "google/gemini-3.5-flash",
+       "thinking": null,
+       "tier": "mid",
+       "usd_per_mtok_in": 1.0,
+       "usd_per_mtok_out": 4.0
+      },
+      "medium": {
+       "effort": null,
+       "name": "google/gemini-3.5-flash",
+       "thinking": null,
+       "tier": "mid",
+       "usd_per_mtok_in": 1.0,
+       "usd_per_mtok_out": 4.0
+      }
+     },
+     "self_consistency": {
+      "critical": 3,
+      "high": 1,
+      "low": 1,
+      "medium": 1
+     }
+    }
+   },
+   {
+    "catalog": true,
+    "ok": true,
+    "overrides": {
+     "low": "openai/gpt-5.5"
+    },
+    "value": {
+     "critic_rounds": {
+      "critical": 3,
+      "high": 2,
+      "low": 0,
+      "medium": 1
+     },
+     "fast": {
+      "effort": "minimal",
+      "name": "google/gemini-3.5-flash",
+      "thinking": null,
+      "tier": "mid",
+      "usd_per_mtok_in": 1.0,
+      "usd_per_mtok_out": 4.0
+     },
+     "judges": [
+      {
+       "effort": "high",
+       "name": "openai/gpt-5.5",
+       "thinking": true,
+       "tier": "frontier",
+       "usd_per_mtok_in": 5.0,
+       "usd_per_mtok_out": 25.0
+      },
+      {
+       "effort": null,
+       "name": "google/gemini-3.5-flash",
+       "thinking": null,
+       "tier": "mid",
+       "usd_per_mtok_in": 1.0,
+       "usd_per_mtok_out": 4.0
+      }
+     ],
+     "max_iterations": {
+      "critical": 12,
+      "high": 12,
+      "low": 1,
+      "medium": 4
+     },
+     "models": {
+      "critical": {
+       "effort": "xhigh",
+       "name": "anthropic/claude-sonnet-5",
+       "thinking": true,
+       "tier": "mid",
+       "usd_per_mtok_in": 3.0,
+       "usd_per_mtok_out": 15.0
+      },
+      "high": {
+       "effort": "high",
+       "name": "anthropic/claude-sonnet-5",
+       "thinking": true,
+       "tier": "mid",
+       "usd_per_mtok_in": 3.0,
+       "usd_per_mtok_out": 15.0
+      },
+      "low": {
+       "effort": null,
+       "name": "openai/gpt-5.5",
+       "thinking": true,
+       "tier": "frontier",
+       "usd_per_mtok_in": 5,
+       "usd_per_mtok_out": 25
+      },
+      "medium": {
+       "effort": null,
+       "name": "google/gemini-3.5-flash",
+       "thinking": null,
+       "tier": "mid",
+       "usd_per_mtok_in": 1.0,
+       "usd_per_mtok_out": 4.0
+      }
+     },
+     "self_consistency": {
+      "critical": 3,
+      "high": 1,
+      "low": 1,
+      "medium": 1
+     }
+    }
+   },
+   {
+    "catalog": true,
+    "ok": true,
+    "overrides": {
+     "critical": "deepseek/deepseek-v3.2"
+    },
+    "value": {
+     "critic_rounds": {
+      "critical": 3,
+      "high": 2,
+      "low": 0,
+      "medium": 1
+     },
+     "fast": {
+      "effort": "minimal",
+      "name": "google/gemini-3.5-flash",
+      "thinking": null,
+      "tier": "mid",
+      "usd_per_mtok_in": 1.0,
+      "usd_per_mtok_out": 4.0
+     },
+     "judges": [
+      {
+       "effort": "high",
+       "name": "openai/gpt-5.5",
+       "thinking": true,
+       "tier": "frontier",
+       "usd_per_mtok_in": 5.0,
+       "usd_per_mtok_out": 25.0
+      },
+      {
+       "effort": null,
+       "name": "google/gemini-3.5-flash",
+       "thinking": null,
+       "tier": "mid",
+       "usd_per_mtok_in": 1.0,
+       "usd_per_mtok_out": 4.0
+      }
+     ],
+     "max_iterations": {
+      "critical": 12,
+      "high": 12,
+      "low": 1,
+      "medium": 4
+     },
+     "models": {
+      "critical": {
+       "effort": null,
+       "name": "deepseek/deepseek-v3.2",
+       "thinking": null,
+       "tier": "mid",
+       "usd_per_mtok_in": 0.3,
+       "usd_per_mtok_out": 1.2
+      },
+      "high": {
+       "effort": "high",
+       "name": "anthropic/claude-sonnet-5",
+       "thinking": true,
+       "tier": "mid",
+       "usd_per_mtok_in": 3.0,
+       "usd_per_mtok_out": 15.0
+      },
+      "low": {
+       "effort": null,
+       "name": "google/gemini-3.5-flash",
+       "thinking": null,
+       "tier": "mid",
+       "usd_per_mtok_in": 1.0,
+       "usd_per_mtok_out": 4.0
+      },
+      "medium": {
+       "effort": null,
+       "name": "google/gemini-3.5-flash",
+       "thinking": null,
+       "tier": "mid",
+       "usd_per_mtok_in": 1.0,
+       "usd_per_mtok_out": 4.0
+      }
+     },
+     "self_consistency": {
+      "critical": 3,
+      "high": 1,
+      "low": 1,
+      "medium": 1
+     }
+    }
+   },
+   {
+    "catalog": true,
+    "ok": true,
+    "overrides": {
+     "high": "some/unknown-model"
+    },
+    "value": {
+     "critic_rounds": {
+      "critical": 3,
+      "high": 2,
+      "low": 0,
+      "medium": 1
+     },
+     "fast": {
+      "effort": "minimal",
+      "name": "google/gemini-3.5-flash",
+      "thinking": null,
+      "tier": "mid",
+      "usd_per_mtok_in": 1.0,
+      "usd_per_mtok_out": 4.0
+     },
+     "judges": [
+      {
+       "effort": "high",
+       "name": "openai/gpt-5.5",
+       "thinking": true,
+       "tier": "frontier",
+       "usd_per_mtok_in": 5.0,
+       "usd_per_mtok_out": 25.0
+      },
+      {
+       "effort": null,
+       "name": "google/gemini-3.5-flash",
+       "thinking": null,
+       "tier": "mid",
+       "usd_per_mtok_in": 1.0,
+       "usd_per_mtok_out": 4.0
+      }
+     ],
+     "max_iterations": {
+      "critical": 12,
+      "high": 12,
+      "low": 1,
+      "medium": 4
+     },
+     "models": {
+      "critical": {
+       "effort": "xhigh",
+       "name": "anthropic/claude-sonnet-5",
+       "thinking": true,
+       "tier": "mid",
+       "usd_per_mtok_in": 3.0,
+       "usd_per_mtok_out": 15.0
+      },
+      "high": {
+       "effort": null,
+       "name": "some/unknown-model",
+       "thinking": null,
+       "tier": "mid",
+       "usd_per_mtok_in": 3.0,
+       "usd_per_mtok_out": 15.0
+      },
+      "low": {
+       "effort": null,
+       "name": "google/gemini-3.5-flash",
+       "thinking": null,
+       "tier": "mid",
+       "usd_per_mtok_in": 1.0,
+       "usd_per_mtok_out": 4.0
+      },
+      "medium": {
+       "effort": null,
+       "name": "google/gemini-3.5-flash",
+       "thinking": null,
+       "tier": "mid",
+       "usd_per_mtok_in": 1.0,
+       "usd_per_mtok_out": 4.0
+      }
+     },
+     "self_consistency": {
+      "critical": 3,
+      "high": 1,
+      "low": 1,
+      "medium": 1
+     }
+    }
+   },
+   {
+    "catalog": false,
+    "ok": true,
+    "overrides": {
+     "high": "openai/gpt-5.5"
+    },
+    "value": {
+     "critic_rounds": {
+      "critical": 3,
+      "high": 2,
+      "low": 0,
+      "medium": 1
+     },
+     "fast": {
+      "effort": "minimal",
+      "name": "google/gemini-3.5-flash",
+      "thinking": null,
+      "tier": "mid",
+      "usd_per_mtok_in": 1.0,
+      "usd_per_mtok_out": 4.0
+     },
+     "judges": [
+      {
+       "effort": "high",
+       "name": "openai/gpt-5.5",
+       "thinking": true,
+       "tier": "frontier",
+       "usd_per_mtok_in": 5.0,
+       "usd_per_mtok_out": 25.0
+      },
+      {
+       "effort": null,
+       "name": "google/gemini-3.5-flash",
+       "thinking": null,
+       "tier": "mid",
+       "usd_per_mtok_in": 1.0,
+       "usd_per_mtok_out": 4.0
+      }
+     ],
+     "max_iterations": {
+      "critical": 12,
+      "high": 12,
+      "low": 1,
+      "medium": 4
+     },
+     "models": {
+      "critical": {
+       "effort": "xhigh",
+       "name": "anthropic/claude-sonnet-5",
+       "thinking": true,
+       "tier": "mid",
+       "usd_per_mtok_in": 3.0,
+       "usd_per_mtok_out": 15.0
+      },
+      "high": {
+       "effort": null,
+       "name": "openai/gpt-5.5",
+       "thinking": null,
+       "tier": "mid",
+       "usd_per_mtok_in": 3.0,
+       "usd_per_mtok_out": 15.0
+      },
+      "low": {
+       "effort": null,
+       "name": "google/gemini-3.5-flash",
+       "thinking": null,
+       "tier": "mid",
+       "usd_per_mtok_in": 1.0,
+       "usd_per_mtok_out": 4.0
+      },
+      "medium": {
+       "effort": null,
+       "name": "google/gemini-3.5-flash",
+       "thinking": null,
+       "tier": "mid",
+       "usd_per_mtok_in": 1.0,
+       "usd_per_mtok_out": 4.0
+      }
+     },
+     "self_consistency": {
+      "critical": 3,
+      "high": 1,
+      "low": 1,
+      "medium": 1
+     }
+    }
+   },
+   {
+    "catalog": true,
+    "ok": true,
+    "overrides": {},
+    "value": {
+     "critic_rounds": {
+      "critical": 3,
+      "high": 2,
+      "low": 0,
+      "medium": 1
+     },
+     "fast": {
+      "effort": "minimal",
+      "name": "google/gemini-3.5-flash",
+      "thinking": null,
+      "tier": "mid",
+      "usd_per_mtok_in": 1.0,
+      "usd_per_mtok_out": 4.0
+     },
+     "judges": [
+      {
+       "effort": "high",
+       "name": "openai/gpt-5.5",
+       "thinking": true,
+       "tier": "frontier",
+       "usd_per_mtok_in": 5.0,
+       "usd_per_mtok_out": 25.0
+      },
+      {
+       "effort": null,
+       "name": "google/gemini-3.5-flash",
+       "thinking": null,
+       "tier": "mid",
+       "usd_per_mtok_in": 1.0,
+       "usd_per_mtok_out": 4.0
+      }
+     ],
+     "max_iterations": {
+      "critical": 12,
+      "high": 12,
+      "low": 1,
+      "medium": 4
+     },
+     "models": {
+      "critical": {
+       "effort": "xhigh",
+       "name": "anthropic/claude-sonnet-5",
+       "thinking": true,
+       "tier": "mid",
+       "usd_per_mtok_in": 3.0,
+       "usd_per_mtok_out": 15.0
+      },
+      "high": {
+       "effort": "high",
+       "name": "anthropic/claude-sonnet-5",
+       "thinking": true,
+       "tier": "mid",
+       "usd_per_mtok_in": 3.0,
+       "usd_per_mtok_out": 15.0
+      },
+      "low": {
+       "effort": null,
+       "name": "google/gemini-3.5-flash",
+       "thinking": null,
+       "tier": "mid",
+       "usd_per_mtok_in": 1.0,
+       "usd_per_mtok_out": 4.0
+      },
+      "medium": {
+       "effort": null,
+       "name": "google/gemini-3.5-flash",
+       "thinking": null,
+       "tier": "mid",
+       "usd_per_mtok_in": 1.0,
+       "usd_per_mtok_out": 4.0
+      }
+     },
+     "self_consistency": {
+      "critical": 3,
+      "high": 1,
+      "low": 1,
+      "medium": 1
+     }
+    }
+   },
+   {
+    "catalog": true,
+    "ok": true,
+    "overrides": null,
+    "value": {
+     "critic_rounds": {
+      "critical": 3,
+      "high": 2,
+      "low": 0,
+      "medium": 1
+     },
+     "fast": {
+      "effort": "minimal",
+      "name": "google/gemini-3.5-flash",
+      "thinking": null,
+      "tier": "mid",
+      "usd_per_mtok_in": 1.0,
+      "usd_per_mtok_out": 4.0
+     },
+     "judges": [
+      {
+       "effort": "high",
+       "name": "openai/gpt-5.5",
+       "thinking": true,
+       "tier": "frontier",
+       "usd_per_mtok_in": 5.0,
+       "usd_per_mtok_out": 25.0
+      },
+      {
+       "effort": null,
+       "name": "google/gemini-3.5-flash",
+       "thinking": null,
+       "tier": "mid",
+       "usd_per_mtok_in": 1.0,
+       "usd_per_mtok_out": 4.0
+      }
+     ],
+     "max_iterations": {
+      "critical": 12,
+      "high": 12,
+      "low": 1,
+      "medium": 4
+     },
+     "models": {
+      "critical": {
+       "effort": "xhigh",
+       "name": "anthropic/claude-sonnet-5",
+       "thinking": true,
+       "tier": "mid",
+       "usd_per_mtok_in": 3.0,
+       "usd_per_mtok_out": 15.0
+      },
+      "high": {
+       "effort": "high",
+       "name": "anthropic/claude-sonnet-5",
+       "thinking": true,
+       "tier": "mid",
+       "usd_per_mtok_in": 3.0,
+       "usd_per_mtok_out": 15.0
+      },
+      "low": {
+       "effort": null,
+       "name": "google/gemini-3.5-flash",
+       "thinking": null,
+       "tier": "mid",
+       "usd_per_mtok_in": 1.0,
+       "usd_per_mtok_out": 4.0
+      },
+      "medium": {
+       "effort": null,
+       "name": "google/gemini-3.5-flash",
+       "thinking": null,
+       "tier": "mid",
+       "usd_per_mtok_in": 1.0,
+       "usd_per_mtok_out": 4.0
+      }
+     },
+     "self_consistency": {
+      "critical": 3,
+      "high": 1,
+      "low": 1,
+      "medium": 1
+     }
+    }
+   }
+  ],
+  "judge_for": [
+   {
+    "generator": "claude-opus-5",
+    "ok": true,
+    "salt": 0,
+    "value": "claude-sonnet-5"
+   },
+   {
+    "generator": "claude-opus-5",
+    "ok": true,
+    "salt": 1,
+    "value": "claude-sonnet-5"
+   },
+   {
+    "generator": "claude-sonnet-5",
+    "ok": true,
+    "salt": 0,
+    "value": "claude-opus-5"
+   },
+   {
+    "generator": "claude-sonnet-5",
+    "ok": true,
+    "salt": 3,
+    "value": "claude-opus-5"
+   },
+   {
+    "generator": "other",
+    "ok": true,
+    "salt": 0,
+    "value": "claude-sonnet-5"
+   },
+   {
+    "generator": "other",
+    "ok": true,
+    "salt": 1,
+    "value": "claude-opus-5"
+   },
+   {
+    "generator": "other",
+    "ok": true,
+    "salt": 2,
+    "value": "claude-sonnet-5"
+   },
+   {
+    "generator": "other",
+    "ok": true,
+    "salt": 5,
+    "value": "claude-opus-5"
+   },
+   {
+    "generator": "other",
+    "ok": true,
+    "salt": -1,
+    "value": "claude-opus-5"
+   },
+   {
+    "generator": "other",
+    "ok": true,
+    "salt": -3,
+    "value": "claude-opus-5"
+   }
+  ],
+  "judge_for_empty": {
+   "exc": "ModelError",
+   "message": "没有可用的异构评委（生成模型 test-model）。同模型自评会引入自我增强偏差，网关拒绝这么做。",
+   "ok": false
+  },
+  "model_for": [
+   {
+    "difficulty": "low",
+    "ok": true,
+    "value": {
+     "effort": null,
+     "name": "stub-small",
+     "thinking": null,
+     "tier": "small",
+     "usd_per_mtok_in": 0.8,
+     "usd_per_mtok_out": 4.0
+    }
+   },
+   {
+    "difficulty": "medium",
+    "ok": true,
+    "value": {
+     "effort": "medium",
+     "name": "stub-mid",
+     "thinking": true,
+     "tier": "mid",
+     "usd_per_mtok_in": 3.0,
+     "usd_per_mtok_out": 15.0
+    }
+   },
+   {
+    "difficulty": "high",
+    "ok": true,
+    "value": {
+     "effort": "high",
+     "name": "stub-frontier",
+     "thinking": true,
+     "tier": "frontier",
+     "usd_per_mtok_in": 5.0,
+     "usd_per_mtok_out": 25.0
+    }
+   },
+   {
+    "difficulty": "critical",
+    "ok": true,
+    "value": {
+     "effort": "xhigh",
+     "name": "stub-frontier",
+     "thinking": true,
+     "tier": "frontier",
+     "usd_per_mtok_in": 5.0,
+     "usd_per_mtok_out": 25.0
+    }
+   }
+  ],
+  "model_for_missing": {
+   "exc": "ModelError",
+   "message": "难度 high 未配置模型",
+   "ok": false
+  },
+  "params": {
+   "critical": {
+    "critic_rounds": 3,
+    "iterations": 12,
+    "self_consistency": 3
+   },
+   "high": {
+    "critic_rounds": 2,
+    "iterations": 12,
+    "self_consistency": 1
+   },
+   "low": {
+    "critic_rounds": 0,
+    "iterations": 1,
+    "self_consistency": 1
+   },
+   "medium": {
+    "critic_rounds": 1,
+    "iterations": 4,
+    "self_consistency": 1
+   }
+  },
+  "production": {
+   "critic_rounds": {
+    "critical": 3,
+    "high": 2,
+    "low": 0,
+    "medium": 1
+   },
+   "fast": null,
+   "judges": [
+    {
+     "effort": "medium",
+     "name": "claude-sonnet-5",
+     "thinking": true,
+     "tier": "mid",
+     "usd_per_mtok_in": 3.0,
+     "usd_per_mtok_out": 15.0
+    },
+    {
+     "effort": "high",
+     "name": "claude-opus-5",
+     "thinking": true,
+     "tier": "frontier",
+     "usd_per_mtok_in": 5.0,
+     "usd_per_mtok_out": 25.0
+    }
+   ],
+   "max_iterations": {
+    "critical": 12,
+    "high": 12,
+    "low": 1,
+    "medium": 4
+   },
+   "models": {
+    "critical": {
+     "effort": "xhigh",
+     "name": "claude-opus-5",
+     "thinking": true,
+     "tier": "frontier",
+     "usd_per_mtok_in": 5.0,
+     "usd_per_mtok_out": 25.0
+    },
+    "high": {
+     "effort": "high",
+     "name": "claude-opus-5",
+     "thinking": true,
+     "tier": "frontier",
+     "usd_per_mtok_in": 5.0,
+     "usd_per_mtok_out": 25.0
+    },
+    "low": {
+     "effort": null,
+     "name": "claude-haiku-4-5",
+     "thinking": null,
+     "tier": "small",
+     "usd_per_mtok_in": 1.0,
+     "usd_per_mtok_out": 5.0
+    },
+    "medium": {
+     "effort": "medium",
+     "name": "claude-sonnet-5",
+     "thinking": true,
+     "tier": "mid",
+     "usd_per_mtok_in": 3.0,
+     "usd_per_mtok_out": 15.0
+    }
+   },
+   "self_consistency": {
+    "critical": 3,
+    "high": 1,
+    "low": 1,
+    "medium": 1
+   }
+  },
+  "production_models": {
+   "frontier": {
+    "effort": "high",
+    "name": "claude-opus-5",
+    "thinking": true,
+    "tier": "frontier",
+    "usd_per_mtok_in": 5.0,
+    "usd_per_mtok_out": 25.0
+   },
+   "frontier_deep": {
+    "effort": "xhigh",
+    "name": "claude-opus-5",
+    "thinking": true,
+    "tier": "frontier",
+    "usd_per_mtok_in": 5.0,
+    "usd_per_mtok_out": 25.0
+   },
+   "mid": {
+    "effort": "medium",
+    "name": "claude-sonnet-5",
+    "thinking": true,
+    "tier": "mid",
+    "usd_per_mtok_in": 3.0,
+    "usd_per_mtok_out": 15.0
+   },
+   "small": {
+    "effort": null,
+    "name": "claude-haiku-4-5",
+    "thinking": null,
+    "tier": "small",
+    "usd_per_mtok_in": 1.0,
+    "usd_per_mtok_out": 5.0
+   }
+  },
+  "stub": {
+   "critic_rounds": {
+    "critical": 3,
+    "high": 2,
+    "low": 0,
+    "medium": 1
+   },
+   "fast": null,
+   "judges": [
+    {
+     "effort": "high",
+     "name": "stub-judge",
+     "thinking": true,
+     "tier": "mid",
+     "usd_per_mtok_in": 3.0,
+     "usd_per_mtok_out": 15.0
+    },
+    {
+     "effort": "medium",
+     "name": "stub-mid",
+     "thinking": true,
+     "tier": "mid",
+     "usd_per_mtok_in": 3.0,
+     "usd_per_mtok_out": 15.0
+    }
+   ],
+   "max_iterations": {
+    "critical": 12,
+    "high": 12,
+    "low": 1,
+    "medium": 4
+   },
+   "models": {
+    "critical": {
+     "effort": "xhigh",
+     "name": "stub-frontier",
+     "thinking": true,
+     "tier": "frontier",
+     "usd_per_mtok_in": 5.0,
+     "usd_per_mtok_out": 25.0
+    },
+    "high": {
+     "effort": "high",
+     "name": "stub-frontier",
+     "thinking": true,
+     "tier": "frontier",
+     "usd_per_mtok_in": 5.0,
+     "usd_per_mtok_out": 25.0
+    },
+    "low": {
+     "effort": null,
+     "name": "stub-small",
+     "thinking": null,
+     "tier": "small",
+     "usd_per_mtok_in": 0.8,
+     "usd_per_mtok_out": 4.0
+    },
+    "medium": {
+     "effort": "medium",
+     "name": "stub-mid",
+     "thinking": true,
+     "tier": "mid",
+     "usd_per_mtok_in": 3.0,
+     "usd_per_mtok_out": 15.0
+    }
+   },
+   "self_consistency": {
+    "critical": 3,
+    "high": 1,
+    "low": 1,
+    "medium": 1
+   }
+  }
+ },
+ "scripted_backend": [
+  {
+   "prompt": "抽取 ObjectType 列表",
+   "system": "",
+   "text": "{\"objects\": [\"a\"]}",
+   "usage": {
+    "cache_read": 0,
+    "cache_write": 0,
+    "tok_in": 7,
+    "tok_out": 4,
+    "usd": null
+   }
+  },
+  {
+   "prompt": "多行\n匹配",
+   "system": "系统",
+   "text": "命中",
+   "usage": {
+    "cache_read": 0,
+    "cache_write": 0,
+    "tok_in": 7,
+    "tok_out": 3,
+    "usd": null
+   }
+  },
+  {
+   "prompt": "没有规则命中",
+   "system": "sys",
+   "text": "{}",
+   "usage": {
+    "cache_read": 0,
+    "cache_write": 0,
+    "tok_in": 7,
+    "tok_out": 1,
+    "usd": null
+   }
+  },
+  {
+   "prompt": "中文提示词很长中文提示词很长中文提示词很长",
+   "system": "",
+   "text": "{}",
+   "usage": {
+    "cache_read": 0,
+    "cache_write": 0,
+    "tok_in": 22,
+    "tok_out": 1,
+    "usd": null
+   }
+  }
+ ],
+ "strictify": [
+  {
+   "in": {
+    "properties": {
+     "a": {
+      "type": "number"
+     },
+     "b": {
+      "type": "string"
+     }
+    },
+    "type": "object"
+   },
+   "out": {
+    "additionalProperties": false,
+    "properties": {
+     "a": {
+      "type": "number"
+     },
+     "b": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "a",
+     "b"
+    ],
+    "type": "object"
+   }
+  },
+  {
+   "in": {
+    "properties": {},
+    "type": "object"
+   },
+   "out": {
+    "additionalProperties": false,
+    "properties": {},
+    "required": [],
+    "type": "object"
+   }
+  },
+  {
+   "in": {
+    "type": "object"
+   },
+   "out": {
+    "additionalProperties": false,
+    "properties": {},
+    "required": [],
+    "type": "object"
+   }
+  },
+  {
+   "in": {
+    "properties": {
+     "a": {
+      "properties": {
+       "z": {
+        "type": "string"
+       }
+      },
+      "type": "object"
+     }
+    },
+    "required": [
+     "a"
+    ],
+    "type": "object"
+   },
+   "out": {
+    "additionalProperties": false,
+    "properties": {
+     "a": {
+      "additionalProperties": false,
+      "properties": {
+       "z": {
+        "type": "string"
+       }
+      },
+      "required": [
+       "z"
+      ],
+      "type": "object"
+     }
+    },
+    "required": [
+     "a"
+    ],
+    "type": "object"
+   }
+  },
+  {
+   "in": {
+    "items": {
+     "properties": {
+      "k": {
+       "type": "string"
+      }
+     },
+     "type": "object"
+    },
+    "type": "array"
+   },
+   "out": {
+    "items": {
+     "additionalProperties": false,
+     "properties": {
+      "k": {
+       "type": "string"
+      }
+     },
+     "required": [
+      "k"
+     ],
+     "type": "object"
+    },
+    "type": "array"
+   }
+  },
+  {
+   "in": {
+    "type": "array"
+   },
+   "out": {
+    "type": "array"
+   }
+  },
+  {
+   "in": {
+    "enum": [
+     "a"
+    ],
+    "type": "string"
+   },
+   "out": {
+    "enum": [
+     "a"
+    ],
+    "type": "string"
+   }
+  },
+  {
+   "in": {
+    "properties": {
+     "A": {
+      "type": "string"
+     },
+     "z": {
+      "type": "string"
+     },
+     "中": {
+      "type": "string"
+     },
+     "￿": {
+      "type": "string"
+     },
+     "😀": {
+      "type": "string"
+     }
+    },
+    "type": "object"
+   },
+   "out": {
+    "additionalProperties": false,
+    "properties": {
+     "A": {
+      "type": "string"
+     },
+     "z": {
+      "type": "string"
+     },
+     "中": {
+      "type": "string"
+     },
+     "￿": {
+      "type": "string"
+     },
+     "😀": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "A",
+     "z",
+     "中",
+     "￿",
+     "😀"
+    ],
+    "type": "object"
+   }
+  },
+  {
+   "in": {
+    "additionalProperties": true,
+    "properties": {
+     "a": {
+      "type": "string"
+     }
+    },
+    "type": "object"
+   },
+   "out": {
+    "additionalProperties": false,
+    "properties": {
+     "a": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "a"
+    ],
+    "type": "object"
+   }
+  }
+ ],
+ "usage": [
+  {
+   "init": {},
+   "to_dict": {
+    "cache_read": 0,
+    "cache_write": 0,
+    "tok_in": 0,
+    "tok_out": 0,
+    "usd": null
+   },
+   "total": 0
+  },
+  {
+   "init": {
+    "tok_in": 10,
+    "tok_out": 5
+   },
+   "to_dict": {
+    "cache_read": 0,
+    "cache_write": 0,
+    "tok_in": 10,
+    "tok_out": 5,
+    "usd": null
+   },
+   "total": 15
+  },
+  {
+   "init": {
+    "cache_read": 3,
+    "cache_write": 7,
+    "tok_in": 10,
+    "tok_out": 5
+   },
+   "to_dict": {
+    "cache_read": 3,
+    "cache_write": 7,
+    "tok_in": 10,
+    "tok_out": 5,
+    "usd": null
+   },
+   "total": 25
+  },
+  {
+   "init": {
+    "cache_read": 3,
+    "cache_write": 4,
+    "tok_in": 1,
+    "tok_out": 2,
+    "usd": 0.125
+   },
+   "to_dict": {
+    "cache_read": 3,
+    "cache_write": 4,
+    "tok_in": 1,
+    "tok_out": 2,
+    "usd": 0.125
+   },
+   "total": 10
+  },
+  {
+   "init": {
+    "usd": 0.0
+   },
+   "to_dict": {
+    "cache_read": 0,
+    "cache_write": 0,
+    "tok_in": 0,
+    "tok_out": 0,
+    "usd": 0.0
+   },
+   "total": 0
+  }
+ ],
+ "validate": [
+  {
+   "data": {
+    "a": "x",
+    "b": 1
+   },
+   "ok": true,
+   "schema": {
+    "properties": {
+     "a": {
+      "type": "string"
+     },
+     "b": {
+      "type": "integer"
+     }
+    },
+    "required": [
+     "a",
+     "b"
+    ],
+    "type": "object"
+   },
+   "value": null
+  },
+  {
+   "data": {
+    "a": "x"
+   },
+   "exc": "ValueError",
+   "message": "$ 缺少必填字段 'b'",
+   "ok": false,
+   "schema": {
+    "properties": {
+     "a": {
+      "type": "string"
+     },
+     "b": {
+      "type": "integer"
+     }
+    },
+    "required": [
+     "a",
+     "b"
+    ],
+    "type": "object"
+   }
+  },
+  {
+   "data": {
+    "b": 1
+   },
+   "exc": "ValueError",
+   "message": "$ 缺少必填字段 'a'",
+   "ok": false,
+   "schema": {
+    "properties": {
+     "a": {
+      "type": "string"
+     },
+     "b": {
+      "type": "integer"
+     }
+    },
+    "required": [
+     "a",
+     "b"
+    ],
+    "type": "object"
+   }
+  },
+  {
+   "data": {
+    "a": 1,
+    "b": 1
+   },
+   "exc": "TypeError",
+   "message": "$.a 应为 string",
+   "ok": false,
+   "schema": {
+    "properties": {
+     "a": {
+      "type": "string"
+     },
+     "b": {
+      "type": "integer"
+     }
+    },
+    "required": [
+     "a",
+     "b"
+    ],
+    "type": "object"
+   }
+  },
+  {
+   "data": {
+    "a": "x",
+    "b": "1"
+   },
+   "exc": "TypeError",
+   "message": "$.b 应为 integer",
+   "ok": false,
+   "schema": {
+    "properties": {
+     "a": {
+      "type": "string"
+     },
+     "b": {
+      "type": "integer"
+     }
+    },
+    "required": [
+     "a",
+     "b"
+    ],
+    "type": "object"
+   }
+  },
+  {
+   "data": {
+    "a": "x",
+    "b": true
+   },
+   "exc": "TypeError",
+   "message": "$.b 应为 integer",
+   "ok": false,
+   "schema": {
+    "properties": {
+     "a": {
+      "type": "string"
+     },
+     "b": {
+      "type": "integer"
+     }
+    },
+    "required": [
+     "a",
+     "b"
+    ],
+    "type": "object"
+   }
+  },
+  {
+   "data": [],
+   "exc": "TypeError",
+   "message": "$ 应为 object，实际 list",
+   "ok": false,
+   "schema": {
+    "properties": {
+     "a": {
+      "type": "string"
+     },
+     "b": {
+      "type": "integer"
+     }
+    },
+    "required": [
+     "a",
+     "b"
+    ],
+    "type": "object"
+   }
+  },
+  {
+   "data": "串",
+   "exc": "TypeError",
+   "message": "$ 应为 object，实际 str",
+   "ok": false,
+   "schema": {
+    "properties": {
+     "a": {
+      "type": "string"
+     },
+     "b": {
+      "type": "integer"
+     }
+    },
+    "required": [
+     "a",
+     "b"
+    ],
+    "type": "object"
+   }
+  },
+  {
+   "data": null,
+   "exc": "TypeError",
+   "message": "$ 应为 object，实际 NoneType",
+   "ok": false,
+   "schema": {
+    "properties": {
+     "a": {
+      "type": "string"
+     },
+     "b": {
+      "type": "integer"
+     }
+    },
+    "required": [
+     "a",
+     "b"
+    ],
+    "type": "object"
+   }
+  },
+  {
+   "data": 3,
+   "exc": "TypeError",
+   "message": "$ 应为 object，实际 int",
+   "ok": false,
+   "schema": {
+    "properties": {
+     "a": {
+      "type": "string"
+     },
+     "b": {
+      "type": "integer"
+     }
+    },
+    "required": [
+     "a",
+     "b"
+    ],
+    "type": "object"
+   }
+  },
+  {
+   "data": [
+    {
+     "k": 1
+    },
+    {
+     "k": 2.5
+    }
+   ],
+   "ok": true,
+   "schema": {
+    "items": {
+     "properties": {
+      "k": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "k"
+     ],
+     "type": "object"
+    },
+    "type": "array"
+   },
+   "value": null
+  },
+  {
+   "data": [
+    {
+     "k": 1
+    },
+    {}
+   ],
+   "exc": "ValueError",
+   "message": "$[1] 缺少必填字段 'k'",
+   "ok": false,
+   "schema": {
+    "items": {
+     "properties": {
+      "k": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "k"
+     ],
+     "type": "object"
+    },
+    "type": "array"
+   }
+  },
+  {
+   "data": [
+    {
+     "k": "x"
+    }
+   ],
+   "exc": "TypeError",
+   "message": "$[0].k 应为 number",
+   "ok": false,
+   "schema": {
+    "items": {
+     "properties": {
+      "k": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "k"
+     ],
+     "type": "object"
+    },
+    "type": "array"
+   }
+  },
+  {
+   "data": {
+    "k": 1
+   },
+   "exc": "TypeError",
+   "message": "$ 应为 array，实际 dict",
+   "ok": false,
+   "schema": {
+    "items": {
+     "properties": {
+      "k": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "k"
+     ],
+     "type": "object"
+    },
+    "type": "array"
+   }
+  },
+  {
+   "data": [
+    {
+     "k": true
+    }
+   ],
+   "exc": "TypeError",
+   "message": "$[0].k 应为 number",
+   "ok": false,
+   "schema": {
+    "items": {
+     "properties": {
+      "k": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "k"
+     ],
+     "type": "object"
+    },
+    "type": "array"
+   }
+  },
+  {
+   "data": "中",
+   "ok": true,
+   "schema": {
+    "enum": [
+     "低",
+     "中",
+     "高"
+    ],
+    "type": "string"
+   },
+   "value": null
+  },
+  {
+   "data": "其他",
+   "exc": "ValueError",
+   "message": "$ 取值 '其他' 不在允许集合 ['低', '中', '高']",
+   "ok": false,
+   "schema": {
+    "enum": [
+     "低",
+     "中",
+     "高"
+    ],
+    "type": "string"
+   }
+  },
+  {
+   "data": 5,
+   "exc": "TypeError",
+   "message": "$ 应为 string",
+   "ok": false,
+   "schema": {
+    "enum": [
+     "低",
+     "中",
+     "高"
+    ],
+    "type": "string"
+   }
+  },
+  {
+   "data": {
+    "a": "x",
+    "b": 1
+   },
+   "ok": true,
+   "schema": {
+    "type": "object"
+   },
+   "value": null
+  },
+  {
+   "data": {
+    "a": "x"
+   },
+   "ok": true,
+   "schema": {},
+   "value": null
+  },
+  {
+   "data": true,
+   "ok": true,
+   "schema": {
+    "type": "boolean"
+   },
+   "value": null
+  },
+  {
+   "data": 1,
+   "exc": "TypeError",
+   "message": "$ 应为 boolean",
+   "ok": false,
+   "schema": {
+    "type": "boolean"
+   }
+  },
+  {
+   "data": "x",
+   "exc": "TypeError",
+   "message": "$ 应为 number",
+   "ok": false,
+   "schema": {
+    "type": "number"
+   }
+  },
+  {
+   "data": 1.5,
+   "exc": "TypeError",
+   "message": "$ 应为 integer",
+   "ok": false,
+   "schema": {
+    "type": "integer"
+   }
+  },
+  {
+   "data": 2.0,
+   "exc": "TypeError",
+   "message": "$ 应为 integer",
+   "ok": false,
+   "schema": {
+    "type": "integer"
+   }
+  },
+  {
+   "data": 2.0,
+   "exc": "TypeError",
+   "message": "$ 应为 object，实际 float",
+   "ok": false,
+   "schema": {
+    "properties": {
+     "a": {
+      "type": "string"
+     },
+     "b": {
+      "type": "integer"
+     }
+    },
+    "required": [
+     "a",
+     "b"
+    ],
+    "type": "object"
+   }
+  },
+  {
+   "data": "x",
+   "ok": true,
+   "schema": {
+    "type": "unknown-kind"
+   },
+   "value": null
+  },
+  {
+   "data": "b",
+   "ok": true,
+   "schema": {
+    "enum": [
+     "a",
+     "b"
+    ]
+   },
+   "value": null
+  },
+  {
+   "data": "c",
+   "exc": "ValueError",
+   "message": "$ 取值 'c' 不在允许集合 ['a', 'b']",
+   "ok": false,
+   "schema": {
+    "enum": [
+     "a",
+     "b"
+    ]
+   }
+  },
+  {
+   "data": "c",
+   "ok": true,
+   "schema": {
+    "enum": []
+   },
+   "value": null
+  },
+  {
+   "data": {
+    "a": "x",
+    "b": 1,
+    "多": 1
+   },
+   "ok": true,
+   "schema": {
+    "properties": {
+     "a": {
+      "type": "string"
+     },
+     "b": {
+      "type": "integer"
+     }
+    },
+    "required": [
+     "a",
+     "b"
+    ],
+    "type": "object"
+   },
+   "value": null
+  },
+  {
+   "data": {
+    "a": "x",
+    "b": 1
+   },
+   "exc": "ValueError",
+   "message": "$ 缺少必填字段 '缺失的中文键'",
+   "ok": false,
+   "schema": {
+    "required": [
+     "缺失的中文键"
+    ],
+    "type": "object"
+   }
+  }
+ ]
+}

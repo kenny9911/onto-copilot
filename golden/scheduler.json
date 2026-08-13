@@ -1,0 +1,3576 @@
+{
+ "_": "由 tools/golden/scheduler.py 生成。见该文件头部关于'程序而非对象'的说明。",
+ "run_status": {
+  "COMPLETED": "completed",
+  "SUSPENDED": "suspended",
+  "FAILED": "failed"
+ },
+ "metric_fixtures": {
+  "empty": {
+   "review_count": 0,
+   "all_passed": false,
+   "high_findings": 0,
+   "total_findings": 0,
+   "by_lens": {},
+   "high_by_lens": {},
+   "findings_by_lens": {},
+   "codes": []
+  },
+  "one_pass": {
+   "review_count": 1,
+   "all_passed": true,
+   "high_findings": 0,
+   "total_findings": 0,
+   "by_lens": {
+    "schema": true
+   },
+   "high_by_lens": {
+    "schema": 0
+   },
+   "findings_by_lens": {
+    "schema": 0
+   },
+   "codes": []
+  },
+  "mixed": {
+   "review_count": 2,
+   "all_passed": false,
+   "high_findings": 1,
+   "total_findings": 2,
+   "by_lens": {
+    "schema": true,
+    "provenance": false
+   },
+   "high_by_lens": {
+    "schema": 0,
+    "provenance": 1
+   },
+   "findings_by_lens": {
+    "schema": 0,
+    "provenance": 2
+   },
+   "codes": [
+    "EVIDENCE_MISSING",
+    "NAMING"
+   ]
+  },
+  "nested": {
+   "completeness": {
+    "required_fill_rate": 0.68,
+    "label": "低",
+    "ok": false,
+    "none": null
+   },
+   "count": 3,
+   "flag": true,
+   "zero": 0,
+   "name": "purchasePlan",
+   "items": [
+    1,
+    2
+   ],
+   "by_lens": {
+    "schema": true
+   },
+   "high_by_lens": {
+    "schema": 0
+   },
+   "findings_by_lens": {
+    "schema": 2
+   }
+  }
+ },
+ "requirements": [
+  {
+   "fixture": "empty",
+   "expr": "all_passed == true",
+   "result": false
+  },
+  {
+   "fixture": "empty",
+   "expr": "review_count == 0",
+   "result": true
+  },
+  {
+   "fixture": "one_pass",
+   "expr": "all_passed == true",
+   "result": true
+  },
+  {
+   "fixture": "one_pass",
+   "expr": "review_count >= 1",
+   "result": true
+  },
+  {
+   "fixture": "mixed",
+   "expr": "all_passed == false",
+   "result": true
+  },
+  {
+   "fixture": "mixed",
+   "expr": "high_findings > 0",
+   "result": true
+  },
+  {
+   "fixture": "mixed",
+   "expr": "total_findings == 2",
+   "result": true
+  },
+  {
+   "fixture": "mixed",
+   "expr": "schema.passed == true",
+   "result": true
+  },
+  {
+   "fixture": "mixed",
+   "expr": "provenance.passed == false",
+   "result": true
+  },
+  {
+   "fixture": "mixed",
+   "expr": "provenance.high_findings <= 1",
+   "result": true
+  },
+  {
+   "fixture": "mixed",
+   "expr": "provenance.total_findings == 2",
+   "result": true
+  },
+  {
+   "fixture": "mixed",
+   "expr": "by_lens.schema == true",
+   "result": true
+  },
+  {
+   "fixture": "nested",
+   "expr": "completeness.required_fill_rate >= 0.95",
+   "result": false
+  },
+  {
+   "fixture": "nested",
+   "expr": "completeness.required_fill_rate > 0.5",
+   "result": true
+  },
+  {
+   "fixture": "nested",
+   "expr": "completeness.label == '低'",
+   "result": true
+  },
+  {
+   "fixture": "nested",
+   "expr": "completeness.label != \"高\"",
+   "result": true
+  },
+  {
+   "fixture": "nested",
+   "expr": "completeness.ok == false",
+   "result": true
+  },
+  {
+   "fixture": "nested",
+   "expr": "completeness.none == null",
+   "result": true
+  },
+  {
+   "fixture": "nested",
+   "expr": "completeness.none != null",
+   "result": false
+  },
+  {
+   "fixture": "nested",
+   "expr": "count == 3",
+   "result": true
+  },
+  {
+   "fixture": "nested",
+   "expr": "count == 3.0",
+   "result": true
+  },
+  {
+   "fixture": "nested",
+   "expr": "count != -3",
+   "result": true
+  },
+  {
+   "fixture": "nested",
+   "expr": "flag == true",
+   "result": true
+  },
+  {
+   "fixture": "nested",
+   "expr": "flag == 1",
+   "result": true
+  },
+  {
+   "fixture": "nested",
+   "expr": "flag > 0",
+   "result": true
+  },
+  {
+   "fixture": "nested",
+   "expr": "zero == false",
+   "result": true
+  },
+  {
+   "fixture": "nested",
+   "expr": "name == 'purchasePlan'",
+   "result": true
+  },
+  {
+   "fixture": "nested",
+   "expr": "name > 'p'",
+   "result": true
+  },
+  {
+   "fixture": "nested",
+   "expr": "name == 1",
+   "result": false
+  },
+  {
+   "fixture": "nested",
+   "expr": "flag == TRUE",
+   "result": true
+  },
+  {
+   "fixture": "nested",
+   "expr": "completeness.none == NULL",
+   "result": true
+  },
+  {
+   "fixture": "nested",
+   "expr": "  count   ==   3  ",
+   "result": true
+  },
+  {
+   "fixture": "nested",
+   "expr": "count == 3\u001c",
+   "result": true
+  },
+  {
+   "fixture": "nested",
+   "expr": "count\t==\n3",
+   "result": true
+  },
+  {
+   "fixture": "nested",
+   "expr": "count === 3",
+   "error": "[gate] 不支持的 gate require 表达式: 'count === 3'",
+   "retryable": false
+  },
+  {
+   "fixture": "nested",
+   "expr": "count",
+   "error": "[gate] 不支持的 gate require 表达式: 'count'",
+   "retryable": false
+  },
+  {
+   "fixture": "nested",
+   "expr": "nope == 1",
+   "error": "[gate] gate require 引用未知指标: 'nope'",
+   "retryable": false
+  },
+  {
+   "fixture": "nested",
+   "expr": "completeness.nope == 1",
+   "error": "[gate] gate require 引用未知指标: 'completeness.nope'",
+   "retryable": false
+  },
+  {
+   "fixture": "nested",
+   "expr": "count.deeper == 1",
+   "error": "[gate] gate require 引用未知指标: 'count.deeper'",
+   "retryable": false
+  },
+  {
+   "fixture": "nested",
+   "expr": "name >= 1",
+   "error": "[gate] gate require 类型不可比较: 'name >= 1'",
+   "retryable": false
+  },
+  {
+   "fixture": "nested",
+   "expr": "completeness.none >= 0",
+   "error": "[gate] gate require 类型不可比较: 'completeness.none >= 0'",
+   "retryable": false
+  },
+  {
+   "fixture": "nested",
+   "expr": "items > 1",
+   "error": "[gate] gate require 类型不可比较: 'items > 1'",
+   "retryable": false
+  },
+  {
+   "fixture": "nested",
+   "expr": "completeness >= 1",
+   "error": "[gate] gate require 类型不可比较: 'completeness >= 1'",
+   "retryable": false
+  },
+  {
+   "fixture": "nested",
+   "expr": "1count == 1",
+   "error": "[gate] 不支持的 gate require 表达式: '1count == 1'",
+   "retryable": false
+  },
+  {
+   "fixture": "nested",
+   "expr": "count == 'unterminated",
+   "error": "[gate] 不支持的 gate require 表达式: \"count == 'unterminated\"",
+   "retryable": false
+  },
+  {
+   "fixture": "nested",
+   "expr": "count == 3﻿",
+   "error": "[gate] 不支持的 gate require 表达式: 'count == 3\\ufeff'",
+   "retryable": false
+  },
+  {
+   "fixture": "nested",
+   "expr": "count ​== 3",
+   "error": "[gate] 不支持的 gate require 表达式: 'count \\u200b== 3'",
+   "retryable": false
+  }
+ ],
+ "known_divergences": [
+  {
+   "fixture": "nested",
+   "expr": "count == ٣",
+   "result": true
+  }
+ ],
+ "cases": [
+  {
+   "name": "pipeline_flows_outputs_along_edges",
+   "input": {
+    "nodes": [
+     {
+      "id": "A",
+      "script": [
+       {
+        "do": "count"
+       }
+      ]
+     },
+     {
+      "id": "B",
+      "deps": [
+       "A"
+      ],
+      "script": [
+       {
+        "do": "sleep",
+        "s": 0.03,
+        "then": {
+         "do": "count"
+        }
+       }
+      ]
+     },
+     {
+      "id": "C",
+      "deps": [
+       "A"
+      ],
+      "script": [
+       {
+        "do": "sleep",
+        "s": 0.01,
+        "then": {
+         "do": "count"
+        }
+       }
+      ]
+     },
+     {
+      "id": "D",
+      "deps": [
+       "B",
+       "C"
+      ],
+      "script": [
+       {
+        "do": "count"
+       }
+      ]
+     }
+    ]
+   },
+   "outcome": {
+    "status": "completed",
+    "ok": true,
+    "outputs": {
+     "A": {
+      "n": 1
+     },
+     "C": {
+      "n": 2
+     },
+     "B": {
+      "n": 2
+     },
+     "D": {
+      "n": 5
+     }
+    },
+    "results": {
+     "A": {
+      "n": 1
+     },
+     "C": {
+      "n": 2
+     },
+     "B": {
+      "n": 2
+     },
+     "D": {
+      "n": 5
+     }
+    },
+    "pending_human": null,
+    "error": "",
+    "skipped": [],
+    "budget": {
+     "spent": {
+      "tokens": 0.0,
+      "wallclock_s": "<elapsed>",
+      "tool_calls": 0.0,
+      "usd": 0.0
+     },
+     "limits": {
+      "tokens": 2000000.0,
+      "wallclock_s": 3600.0,
+      "tool_calls": 500.0,
+      "usd": 50.0
+     },
+     "tightest": "wallclock_s",
+     "remaining_ratio": "<ratio>",
+     "level": 0,
+     "level_label": "正常"
+    }
+   },
+   "calls": {
+    "A": 1,
+    "B": 1,
+    "C": 1,
+    "D": 1
+   },
+   "events": [
+    {
+     "seq": 0,
+     "kind": "run.started",
+     "node_id": null,
+     "ref": null,
+     "payload": {
+      "dag": "t"
+     },
+     "payload_keys": [
+      "dag"
+     ]
+    },
+    {
+     "seq": 1,
+     "kind": "node.completed",
+     "node_id": "A",
+     "ref": "blob:e5d5f7c1d225fd6b13623ebb1b5b9d07",
+     "payload": {},
+     "payload_keys": []
+    },
+    {
+     "seq": 2,
+     "kind": "node.completed",
+     "node_id": "C",
+     "ref": "blob:fcb7ecf22a686fde527cafa2dd308d1c",
+     "payload": {},
+     "payload_keys": []
+    },
+    {
+     "seq": 3,
+     "kind": "node.completed",
+     "node_id": "B",
+     "ref": "blob:fcb7ecf22a686fde527cafa2dd308d1c",
+     "payload": {},
+     "payload_keys": []
+    },
+    {
+     "seq": 4,
+     "kind": "node.completed",
+     "node_id": "D",
+     "ref": "blob:903c540936fe762edee4df3fd1b38888",
+     "payload": {},
+     "payload_keys": []
+    },
+    {
+     "seq": 5,
+     "kind": "run.completed",
+     "node_id": null,
+     "ref": null,
+     "payload": {
+      "nodes": 4,
+      "restored": 0,
+      "budget": {
+       "spent": {
+        "tokens": 0.0,
+        "wallclock_s": "<elapsed>",
+        "tool_calls": 0.0,
+        "usd": 0.0
+       },
+       "limits": {
+        "tokens": 2000000.0,
+        "wallclock_s": 3600.0,
+        "tool_calls": 500.0,
+        "usd": 50.0
+       },
+       "tightest": "wallclock_s",
+       "remaining_ratio": "<ratio>",
+       "level": 0,
+       "level_label": "正常"
+      }
+     },
+     "payload_keys": [
+      "nodes",
+      "restored",
+      "budget"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "same_batch_completions_have_no_defined_order",
+   "input": {
+    "nodes": [
+     {
+      "id": "A",
+      "script": [
+       {
+        "do": "count"
+       }
+      ]
+     },
+     {
+      "id": "B",
+      "deps": [
+       "A"
+      ],
+      "script": [
+       {
+        "do": "count"
+       }
+      ]
+     },
+     {
+      "id": "C",
+      "deps": [
+       "A"
+      ],
+      "script": [
+       {
+        "do": "count"
+       }
+      ]
+     }
+    ]
+   },
+   "outcome": {
+    "status": "completed",
+    "ok": true,
+    "outputs": {
+     "A": {
+      "n": 1
+     },
+     "B": {
+      "n": 2
+     },
+     "C": {
+      "n": 2
+     }
+    },
+    "results": {
+     "A": {
+      "n": 1
+     },
+     "B": {
+      "n": 2
+     },
+     "C": {
+      "n": 2
+     }
+    },
+    "pending_human": null,
+    "error": "",
+    "skipped": [],
+    "budget": {
+     "spent": {
+      "tokens": 0.0,
+      "wallclock_s": "<elapsed>",
+      "tool_calls": 0.0,
+      "usd": 0.0
+     },
+     "limits": {
+      "tokens": 2000000.0,
+      "wallclock_s": 3600.0,
+      "tool_calls": 500.0,
+      "usd": 50.0
+     },
+     "tightest": "wallclock_s",
+     "remaining_ratio": "<ratio>",
+     "level": 0,
+     "level_label": "正常"
+    }
+   },
+   "calls": {
+    "A": 1,
+    "B": 1,
+    "C": 1
+   },
+   "events": [
+    {
+     "seq": 0,
+     "kind": "run.started",
+     "node_id": null,
+     "ref": null,
+     "payload": {
+      "dag": "t"
+     },
+     "payload_keys": [
+      "dag"
+     ]
+    },
+    {
+     "seq": 1,
+     "kind": "node.completed",
+     "node_id": "A",
+     "ref": "blob:e5d5f7c1d225fd6b13623ebb1b5b9d07",
+     "payload": {},
+     "payload_keys": []
+    },
+    {
+     "seq": 2,
+     "kind": "node.completed",
+     "node_id": "B",
+     "ref": "blob:fcb7ecf22a686fde527cafa2dd308d1c",
+     "payload": {},
+     "payload_keys": []
+    },
+    {
+     "seq": 3,
+     "kind": "node.completed",
+     "node_id": "C",
+     "ref": "blob:fcb7ecf22a686fde527cafa2dd308d1c",
+     "payload": {},
+     "payload_keys": []
+    },
+    {
+     "seq": 4,
+     "kind": "run.completed",
+     "node_id": null,
+     "ref": null,
+     "payload": {
+      "nodes": 3,
+      "restored": 0,
+      "budget": {
+       "spent": {
+        "tokens": 0.0,
+        "wallclock_s": "<elapsed>",
+        "tool_calls": 0.0,
+        "usd": 0.0
+       },
+       "limits": {
+        "tokens": 2000000.0,
+        "wallclock_s": 3600.0,
+        "tool_calls": 500.0,
+        "usd": 50.0
+       },
+       "tightest": "wallclock_s",
+       "remaining_ratio": "<ratio>",
+       "level": 0,
+       "level_label": "正常"
+      }
+     },
+     "payload_keys": [
+      "nodes",
+      "restored",
+      "budget"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "retry_then_succeed",
+   "input": {
+    "nodes": [
+     {
+      "id": "A",
+      "retries": 2,
+      "script": [
+       {
+        "do": "raise",
+        "error": "NodeFailure",
+        "reason": "临时故障"
+       },
+       {
+        "do": "raise",
+        "error": "NodeFailure",
+        "reason": "临时故障"
+       },
+       {
+        "do": "count"
+       }
+      ]
+     }
+    ]
+   },
+   "outcome": {
+    "status": "completed",
+    "ok": true,
+    "outputs": {
+     "A": {
+      "n": 1
+     }
+    },
+    "results": {
+     "A": {
+      "n": 1
+     }
+    },
+    "pending_human": null,
+    "error": "",
+    "skipped": [],
+    "budget": {
+     "spent": {
+      "tokens": 0.0,
+      "wallclock_s": "<elapsed>",
+      "tool_calls": 0.0,
+      "usd": 0.0
+     },
+     "limits": {
+      "tokens": 2000000.0,
+      "wallclock_s": 3600.0,
+      "tool_calls": 500.0,
+      "usd": 50.0
+     },
+     "tightest": "wallclock_s",
+     "remaining_ratio": "<ratio>",
+     "level": 0,
+     "level_label": "正常"
+    }
+   },
+   "calls": {
+    "A": 3
+   },
+   "events": [
+    {
+     "seq": 0,
+     "kind": "run.started",
+     "node_id": null,
+     "ref": null,
+     "payload": {
+      "dag": "t"
+     },
+     "payload_keys": [
+      "dag"
+     ]
+    },
+    {
+     "seq": 1,
+     "kind": "node.failed",
+     "node_id": "A",
+     "ref": null,
+     "payload": {
+      "attempt": 0,
+      "error": "NodeFailure: [A] 临时故障",
+      "will_retry": true
+     },
+     "payload_keys": [
+      "attempt",
+      "error",
+      "will_retry"
+     ]
+    },
+    {
+     "seq": 2,
+     "kind": "node.failed",
+     "node_id": "A",
+     "ref": null,
+     "payload": {
+      "attempt": 1,
+      "error": "NodeFailure: [A] 临时故障",
+      "will_retry": true
+     },
+     "payload_keys": [
+      "attempt",
+      "error",
+      "will_retry"
+     ]
+    },
+    {
+     "seq": 3,
+     "kind": "node.completed",
+     "node_id": "A",
+     "ref": "blob:e5d5f7c1d225fd6b13623ebb1b5b9d07",
+     "payload": {},
+     "payload_keys": []
+    },
+    {
+     "seq": 4,
+     "kind": "run.completed",
+     "node_id": null,
+     "ref": null,
+     "payload": {
+      "nodes": 1,
+      "restored": 0,
+      "budget": {
+       "spent": {
+        "tokens": 0.0,
+        "wallclock_s": "<elapsed>",
+        "tool_calls": 0.0,
+        "usd": 0.0
+       },
+       "limits": {
+        "tokens": 2000000.0,
+        "wallclock_s": 3600.0,
+        "tool_calls": 500.0,
+        "usd": 50.0
+       },
+       "tightest": "wallclock_s",
+       "remaining_ratio": "<ratio>",
+       "level": 0,
+       "level_label": "正常"
+      }
+     },
+     "payload_keys": [
+      "nodes",
+      "restored",
+      "budget"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "exhausted_retries_fail_the_run",
+   "input": {
+    "nodes": [
+     {
+      "id": "A",
+      "retries": 1,
+      "script": [
+       {
+        "do": "raise",
+        "error": "NodeFailure",
+        "reason": "临时故障"
+       }
+      ]
+     }
+    ]
+   },
+   "outcome": {
+    "status": "failed",
+    "ok": false,
+    "outputs": {},
+    "results": {},
+    "pending_human": null,
+    "error": "[A] NodeFailure: [A] 临时故障",
+    "skipped": [],
+    "budget": {
+     "spent": {
+      "tokens": 0.0,
+      "wallclock_s": "<elapsed>",
+      "tool_calls": 0.0,
+      "usd": 0.0
+     },
+     "limits": {
+      "tokens": 2000000.0,
+      "wallclock_s": 3600.0,
+      "tool_calls": 500.0,
+      "usd": 50.0
+     },
+     "tightest": "wallclock_s",
+     "remaining_ratio": "<ratio>",
+     "level": 0,
+     "level_label": "正常"
+    }
+   },
+   "calls": {
+    "A": 2
+   },
+   "events": [
+    {
+     "seq": 0,
+     "kind": "run.started",
+     "node_id": null,
+     "ref": null,
+     "payload": {
+      "dag": "t"
+     },
+     "payload_keys": [
+      "dag"
+     ]
+    },
+    {
+     "seq": 1,
+     "kind": "node.failed",
+     "node_id": "A",
+     "ref": null,
+     "payload": {
+      "attempt": 0,
+      "error": "NodeFailure: [A] 临时故障",
+      "will_retry": true
+     },
+     "payload_keys": [
+      "attempt",
+      "error",
+      "will_retry"
+     ]
+    },
+    {
+     "seq": 2,
+     "kind": "run.failed",
+     "node_id": null,
+     "ref": null,
+     "payload": {
+      "error": "[A] NodeFailure: [A] 临时故障"
+     },
+     "payload_keys": [
+      "error"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "quota_exhausted_is_never_retried",
+   "input": {
+    "nodes": [
+     {
+      "id": "A",
+      "retries": 3,
+      "script": [
+       {
+        "do": "raise",
+        "error": "QuotaExhausted",
+        "model": "gw-model",
+        "detail": "insufficient_user_quota",
+        "status": 429
+       }
+      ]
+     }
+    ]
+   },
+   "outcome": {
+    "status": "failed",
+    "ok": false,
+    "outputs": {},
+    "results": {},
+    "pending_human": null,
+    "error": "[A] QuotaExhausted: gw-model 网关账户余额/配额已耗尽（HTTP 429）：insufficient_user_quota",
+    "skipped": [],
+    "budget": {
+     "spent": {
+      "tokens": 0.0,
+      "wallclock_s": "<elapsed>",
+      "tool_calls": 0.0,
+      "usd": 0.0
+     },
+     "limits": {
+      "tokens": 2000000.0,
+      "wallclock_s": 3600.0,
+      "tool_calls": 500.0,
+      "usd": 50.0
+     },
+     "tightest": "wallclock_s",
+     "remaining_ratio": "<ratio>",
+     "level": 0,
+     "level_label": "正常"
+    }
+   },
+   "calls": {
+    "A": 1
+   },
+   "events": [
+    {
+     "seq": 0,
+     "kind": "run.started",
+     "node_id": null,
+     "ref": null,
+     "payload": {
+      "dag": "t"
+     },
+     "payload_keys": [
+      "dag"
+     ]
+    },
+    {
+     "seq": 1,
+     "kind": "run.failed",
+     "node_id": null,
+     "ref": null,
+     "payload": {
+      "error": "[A] QuotaExhausted: gw-model 网关账户余额/配额已耗尽（HTTP 429）：insufficient_user_quota"
+     },
+     "payload_keys": [
+      "error"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "non_retryable_failure_is_not_retried",
+   "input": {
+    "nodes": [
+     {
+      "id": "A",
+      "retries": 3,
+      "script": [
+       {
+        "do": "raise",
+        "error": "NodeFailure",
+        "reason": "schema 校验不过",
+        "retryable": false
+       }
+      ]
+     }
+    ]
+   },
+   "outcome": {
+    "status": "failed",
+    "ok": false,
+    "outputs": {},
+    "results": {},
+    "pending_human": null,
+    "error": "[A] NodeFailure: [A] schema 校验不过",
+    "skipped": [],
+    "budget": {
+     "spent": {
+      "tokens": 0.0,
+      "wallclock_s": "<elapsed>",
+      "tool_calls": 0.0,
+      "usd": 0.0
+     },
+     "limits": {
+      "tokens": 2000000.0,
+      "wallclock_s": 3600.0,
+      "tool_calls": 500.0,
+      "usd": 50.0
+     },
+     "tightest": "wallclock_s",
+     "remaining_ratio": "<ratio>",
+     "level": 0,
+     "level_label": "正常"
+    }
+   },
+   "calls": {
+    "A": 1
+   },
+   "events": [
+    {
+     "seq": 0,
+     "kind": "run.started",
+     "node_id": null,
+     "ref": null,
+     "payload": {
+      "dag": "t"
+     },
+     "payload_keys": [
+      "dag"
+     ]
+    },
+    {
+     "seq": 1,
+     "kind": "run.failed",
+     "node_id": null,
+     "ref": null,
+     "payload": {
+      "error": "[A] NodeFailure: [A] schema 校验不过"
+     },
+     "payload_keys": [
+      "error"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "wildcard_deps_form_a_barrier",
+   "input": {
+    "nodes": [
+     {
+      "id": "PARSE.f1",
+      "script": [
+       {
+        "do": "sleep",
+        "s": 0.03,
+        "then": {
+         "do": "count",
+         "add": 2
+        }
+       }
+      ]
+     },
+     {
+      "id": "PARSE.f2",
+      "script": [
+       {
+        "do": "count",
+        "add": 3
+       }
+      ]
+     },
+     {
+      "id": "EXTRACT",
+      "deps": [
+       "PARSE.*"
+      ],
+      "script": [
+       {
+        "do": "count"
+       }
+      ]
+     }
+    ]
+   },
+   "outcome": {
+    "status": "completed",
+    "ok": true,
+    "outputs": {
+     "PARSE.f2": {
+      "n": 3
+     },
+     "PARSE.f1": {
+      "n": 2
+     },
+     "EXTRACT": {
+      "n": 6
+     }
+    },
+    "results": {
+     "PARSE.f2": {
+      "n": 3
+     },
+     "PARSE.f1": {
+      "n": 2
+     },
+     "EXTRACT": {
+      "n": 6
+     }
+    },
+    "pending_human": null,
+    "error": "",
+    "skipped": [],
+    "budget": {
+     "spent": {
+      "tokens": 0.0,
+      "wallclock_s": "<elapsed>",
+      "tool_calls": 0.0,
+      "usd": 0.0
+     },
+     "limits": {
+      "tokens": 2000000.0,
+      "wallclock_s": 3600.0,
+      "tool_calls": 500.0,
+      "usd": 50.0
+     },
+     "tightest": "wallclock_s",
+     "remaining_ratio": "<ratio>",
+     "level": 0,
+     "level_label": "正常"
+    }
+   },
+   "calls": {
+    "EXTRACT": 1,
+    "PARSE.f1": 1,
+    "PARSE.f2": 1
+   },
+   "events": [
+    {
+     "seq": 0,
+     "kind": "run.started",
+     "node_id": null,
+     "ref": null,
+     "payload": {
+      "dag": "t"
+     },
+     "payload_keys": [
+      "dag"
+     ]
+    },
+    {
+     "seq": 1,
+     "kind": "node.completed",
+     "node_id": "PARSE.f2",
+     "ref": "blob:389d42d9a5766a33e43c9a95fe1e7555",
+     "payload": {},
+     "payload_keys": []
+    },
+    {
+     "seq": 2,
+     "kind": "node.completed",
+     "node_id": "PARSE.f1",
+     "ref": "blob:fcb7ecf22a686fde527cafa2dd308d1c",
+     "payload": {},
+     "payload_keys": []
+    },
+    {
+     "seq": 3,
+     "kind": "node.completed",
+     "node_id": "EXTRACT",
+     "ref": "blob:1b697982570fac683f5e92b35b18bfd8",
+     "payload": {},
+     "payload_keys": []
+    },
+    {
+     "seq": 4,
+     "kind": "run.completed",
+     "node_id": null,
+     "ref": null,
+     "payload": {
+      "nodes": 3,
+      "restored": 0,
+      "budget": {
+       "spent": {
+        "tokens": 0.0,
+        "wallclock_s": "<elapsed>",
+        "tool_calls": 0.0,
+        "usd": 0.0
+       },
+       "limits": {
+        "tokens": 2000000.0,
+        "wallclock_s": 3600.0,
+        "tool_calls": 500.0,
+        "usd": 50.0
+       },
+       "tightest": "wallclock_s",
+       "remaining_ratio": "<ratio>",
+       "level": 0,
+       "level_label": "正常"
+      }
+     },
+     "payload_keys": [
+      "nodes",
+      "restored",
+      "budget"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "normal_failure_still_uses_its_retries",
+   "input": {
+    "nodes": [
+     {
+      "id": "A",
+      "retries": 3,
+      "script": [
+       {
+        "do": "raise",
+        "error": "RuntimeError",
+        "msg": "上游 502"
+       }
+      ]
+     }
+    ]
+   },
+   "outcome": {
+    "status": "failed",
+    "ok": false,
+    "outputs": {},
+    "results": {},
+    "pending_human": null,
+    "error": "[A] RuntimeError: 上游 502",
+    "skipped": [],
+    "budget": {
+     "spent": {
+      "tokens": 0.0,
+      "wallclock_s": "<elapsed>",
+      "tool_calls": 0.0,
+      "usd": 0.0
+     },
+     "limits": {
+      "tokens": 2000000.0,
+      "wallclock_s": 3600.0,
+      "tool_calls": 500.0,
+      "usd": 50.0
+     },
+     "tightest": "wallclock_s",
+     "remaining_ratio": "<ratio>",
+     "level": 0,
+     "level_label": "正常"
+    }
+   },
+   "calls": {
+    "A": 4
+   },
+   "events": [
+    {
+     "seq": 0,
+     "kind": "run.started",
+     "node_id": null,
+     "ref": null,
+     "payload": {
+      "dag": "t"
+     },
+     "payload_keys": [
+      "dag"
+     ]
+    },
+    {
+     "seq": 1,
+     "kind": "node.failed",
+     "node_id": "A",
+     "ref": null,
+     "payload": {
+      "attempt": 0,
+      "error": "RuntimeError: 上游 502",
+      "will_retry": true
+     },
+     "payload_keys": [
+      "attempt",
+      "error",
+      "will_retry"
+     ]
+    },
+    {
+     "seq": 2,
+     "kind": "node.failed",
+     "node_id": "A",
+     "ref": null,
+     "payload": {
+      "attempt": 1,
+      "error": "RuntimeError: 上游 502",
+      "will_retry": true
+     },
+     "payload_keys": [
+      "attempt",
+      "error",
+      "will_retry"
+     ]
+    },
+    {
+     "seq": 3,
+     "kind": "node.failed",
+     "node_id": "A",
+     "ref": null,
+     "payload": {
+      "attempt": 2,
+      "error": "RuntimeError: 上游 502",
+      "will_retry": true
+     },
+     "payload_keys": [
+      "attempt",
+      "error",
+      "will_retry"
+     ]
+    },
+    {
+     "seq": 4,
+     "kind": "run.failed",
+     "node_id": null,
+     "ref": null,
+     "payload": {
+      "error": "[A] RuntimeError: 上游 502"
+     },
+     "payload_keys": [
+      "error"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "node_wallclock_is_a_hard_boundary",
+   "input": {
+    "nodes": [
+     {
+      "id": "SLOW",
+      "retries": 2,
+      "budget": {
+       "wallclock_s": 0.01
+      },
+      "script": [
+       {
+        "do": "sleep",
+        "s": 0.05,
+        "then": {
+         "do": "ok",
+         "output": {
+          "late": true
+         }
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "outcome": {
+    "status": "failed",
+    "ok": false,
+    "outputs": {},
+    "results": {},
+    "pending_human": null,
+    "error": "[SLOW] NodeFailure: [SLOW] 超过节点墙钟上限 0.01s",
+    "skipped": [],
+    "budget": {
+     "spent": {
+      "tokens": 0.0,
+      "wallclock_s": "<elapsed>",
+      "tool_calls": 0.0,
+      "usd": 0.0
+     },
+     "limits": {
+      "tokens": 2000000.0,
+      "wallclock_s": 3600.0,
+      "tool_calls": 500.0,
+      "usd": 50.0
+     },
+     "tightest": "wallclock_s",
+     "remaining_ratio": "<ratio>",
+     "level": 0,
+     "level_label": "正常"
+    }
+   },
+   "calls": {
+    "SLOW": 1
+   },
+   "events": [
+    {
+     "seq": 0,
+     "kind": "run.started",
+     "node_id": null,
+     "ref": null,
+     "payload": {
+      "dag": "t"
+     },
+     "payload_keys": [
+      "dag"
+     ]
+    },
+    {
+     "seq": 1,
+     "kind": "run.failed",
+     "node_id": null,
+     "ref": null,
+     "payload": {
+      "error": "[SLOW] NodeFailure: [SLOW] 超过节点墙钟上限 0.01s"
+     },
+     "payload_keys": [
+      "error"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "completed_nodes_are_restored_not_rerun",
+   "input": {
+    "nodes": [
+     {
+      "id": "A",
+      "script": [
+       {
+        "do": "count"
+       }
+      ]
+     },
+     {
+      "id": "B",
+      "deps": [
+       "A"
+      ],
+      "script": [
+       {
+        "do": "count"
+       }
+      ]
+     },
+     {
+      "id": "C",
+      "deps": [
+       "B"
+      ],
+      "script": [
+       {
+        "do": "count"
+       }
+      ]
+     }
+    ],
+    "history": [
+     {
+      "op": "complete",
+      "node": "A",
+      "output": {
+       "n": 1
+      }
+     },
+     {
+      "op": "complete",
+      "node": "B",
+      "output": {
+       "n": 2
+      }
+     }
+    ]
+   },
+   "outcome": {
+    "status": "completed",
+    "ok": true,
+    "outputs": {
+     "A": {
+      "n": 1
+     },
+     "B": {
+      "n": 2
+     },
+     "C": {
+      "n": 3
+     }
+    },
+    "results": {
+     "C": {
+      "n": 3
+     }
+    },
+    "pending_human": null,
+    "error": "",
+    "skipped": [
+     "A",
+     "B"
+    ],
+    "budget": {
+     "spent": {
+      "tokens": 0.0,
+      "wallclock_s": "<elapsed>",
+      "tool_calls": 0.0,
+      "usd": 0.0
+     },
+     "limits": {
+      "tokens": 2000000.0,
+      "wallclock_s": 3600.0,
+      "tool_calls": 500.0,
+      "usd": 50.0
+     },
+     "tightest": "wallclock_s",
+     "remaining_ratio": "<ratio>",
+     "level": 0,
+     "level_label": "正常"
+    }
+   },
+   "calls": {
+    "C": 1
+   },
+   "events": [
+    {
+     "seq": 0,
+     "kind": "node.completed",
+     "node_id": "A",
+     "ref": "blob:e5d5f7c1d225fd6b13623ebb1b5b9d07",
+     "payload": {},
+     "payload_keys": []
+    },
+    {
+     "seq": 1,
+     "kind": "node.completed",
+     "node_id": "B",
+     "ref": "blob:fcb7ecf22a686fde527cafa2dd308d1c",
+     "payload": {},
+     "payload_keys": []
+    },
+    {
+     "seq": 2,
+     "kind": "run.started",
+     "node_id": null,
+     "ref": null,
+     "payload": {
+      "dag": "t"
+     },
+     "payload_keys": [
+      "dag"
+     ]
+    },
+    {
+     "seq": 3,
+     "kind": "run.resumed",
+     "node_id": null,
+     "ref": null,
+     "payload": {
+      "restored": [
+       "A",
+       "B"
+      ]
+     },
+     "payload_keys": [
+      "restored"
+     ]
+    },
+    {
+     "seq": 4,
+     "kind": "node.completed",
+     "node_id": "C",
+     "ref": "blob:389d42d9a5766a33e43c9a95fe1e7555",
+     "payload": {},
+     "payload_keys": []
+    },
+    {
+     "seq": 5,
+     "kind": "run.completed",
+     "node_id": null,
+     "ref": null,
+     "payload": {
+      "nodes": 1,
+      "restored": 2,
+      "budget": {
+       "spent": {
+        "tokens": 0.0,
+        "wallclock_s": "<elapsed>",
+        "tool_calls": 0.0,
+        "usd": 0.0
+       },
+       "limits": {
+        "tokens": 2000000.0,
+        "wallclock_s": 3600.0,
+        "tool_calls": 500.0,
+        "usd": 50.0
+       },
+       "tightest": "wallclock_s",
+       "remaining_ratio": "<ratio>",
+       "level": 0,
+       "level_label": "正常"
+      }
+     },
+     "payload_keys": [
+      "nodes",
+      "restored",
+      "budget"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "seed_lands_in_outputs",
+   "input": {
+    "nodes": [
+     {
+      "id": "A",
+      "script": [
+       {
+        "do": "count"
+       }
+      ]
+     }
+    ],
+    "seed": {
+     "MATERIALS": {
+      "n": 7
+     }
+    }
+   },
+   "outcome": {
+    "status": "completed",
+    "ok": true,
+    "outputs": {
+     "MATERIALS": {
+      "n": 7
+     },
+     "A": {
+      "n": 1
+     }
+    },
+    "results": {
+     "A": {
+      "n": 1
+     }
+    },
+    "pending_human": null,
+    "error": "",
+    "skipped": [],
+    "budget": {
+     "spent": {
+      "tokens": 0.0,
+      "wallclock_s": "<elapsed>",
+      "tool_calls": 0.0,
+      "usd": 0.0
+     },
+     "limits": {
+      "tokens": 2000000.0,
+      "wallclock_s": 3600.0,
+      "tool_calls": 500.0,
+      "usd": 50.0
+     },
+     "tightest": "wallclock_s",
+     "remaining_ratio": "<ratio>",
+     "level": 0,
+     "level_label": "正常"
+    }
+   },
+   "calls": {
+    "A": 1
+   },
+   "events": [
+    {
+     "seq": 0,
+     "kind": "run.started",
+     "node_id": null,
+     "ref": null,
+     "payload": {
+      "dag": "t"
+     },
+     "payload_keys": [
+      "dag"
+     ]
+    },
+    {
+     "seq": 1,
+     "kind": "node.completed",
+     "node_id": "A",
+     "ref": "blob:e5d5f7c1d225fd6b13623ebb1b5b9d07",
+     "payload": {},
+     "payload_keys": []
+    },
+    {
+     "seq": 2,
+     "kind": "run.completed",
+     "node_id": null,
+     "ref": null,
+     "payload": {
+      "nodes": 1,
+      "restored": 0,
+      "budget": {
+       "spent": {
+        "tokens": 0.0,
+        "wallclock_s": "<elapsed>",
+        "tool_calls": 0.0,
+        "usd": 0.0
+       },
+       "limits": {
+        "tokens": 2000000.0,
+        "wallclock_s": 3600.0,
+        "tool_calls": 500.0,
+        "usd": 50.0
+       },
+       "tightest": "wallclock_s",
+       "remaining_ratio": "<ratio>",
+       "level": 0,
+       "level_label": "正常"
+      }
+     },
+     "payload_keys": [
+      "nodes",
+      "restored",
+      "budget"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "auto_gate_passes",
+   "input": {
+    "nodes": [
+     {
+      "id": "A",
+      "gate": {
+       "kind": "auto",
+       "require": [
+        "all_passed == true",
+        "high_findings < 1"
+       ]
+      },
+      "script": [
+       {
+        "do": "count",
+        "verdicts": [
+         {
+          "lens": "schema",
+          "passed": true
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   "outcome": {
+    "status": "completed",
+    "ok": true,
+    "outputs": {
+     "A": {
+      "n": 1
+     }
+    },
+    "results": {
+     "A": {
+      "n": 1
+     }
+    },
+    "pending_human": null,
+    "error": "",
+    "skipped": [],
+    "budget": {
+     "spent": {
+      "tokens": 0.0,
+      "wallclock_s": "<elapsed>",
+      "tool_calls": 0.0,
+      "usd": 0.0
+     },
+     "limits": {
+      "tokens": 2000000.0,
+      "wallclock_s": 3600.0,
+      "tool_calls": 500.0,
+      "usd": 50.0
+     },
+     "tightest": "wallclock_s",
+     "remaining_ratio": "<ratio>",
+     "level": 0,
+     "level_label": "正常"
+    }
+   },
+   "calls": {
+    "A": 1
+   },
+   "events": [
+    {
+     "seq": 0,
+     "kind": "run.started",
+     "node_id": null,
+     "ref": null,
+     "payload": {
+      "dag": "t"
+     },
+     "payload_keys": [
+      "dag"
+     ]
+    },
+    {
+     "seq": 1,
+     "kind": "gate.evaluated",
+     "node_id": "A",
+     "ref": null,
+     "payload": {
+      "gate": "auto",
+      "decision": "pass",
+      "reason": "全部硬门通过",
+      "failed": []
+     },
+     "payload_keys": [
+      "gate",
+      "decision",
+      "reason",
+      "failed"
+     ]
+    },
+    {
+     "seq": 2,
+     "kind": "node.completed",
+     "node_id": "A",
+     "ref": "blob:e5d5f7c1d225fd6b13623ebb1b5b9d07",
+     "payload": {},
+     "payload_keys": []
+    },
+    {
+     "seq": 3,
+     "kind": "run.completed",
+     "node_id": null,
+     "ref": null,
+     "payload": {
+      "nodes": 1,
+      "restored": 0,
+      "budget": {
+       "spent": {
+        "tokens": 0.0,
+        "wallclock_s": "<elapsed>",
+        "tool_calls": 0.0,
+        "usd": 0.0
+       },
+       "limits": {
+        "tokens": 2000000.0,
+        "wallclock_s": 3600.0,
+        "tool_calls": 500.0,
+        "usd": 50.0
+       },
+       "tightest": "wallclock_s",
+       "remaining_ratio": "<ratio>",
+       "level": 0,
+       "level_label": "正常"
+      }
+     },
+     "payload_keys": [
+      "nodes",
+      "restored",
+      "budget"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "auto_gate_blocks_downstream",
+   "input": {
+    "nodes": [
+     {
+      "id": "A",
+      "gate": {
+       "kind": "auto",
+       "require": [
+        "schema.passed == false"
+       ]
+      },
+      "script": [
+       {
+        "do": "count",
+        "verdicts": [
+         {
+          "lens": "schema",
+          "passed": true
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "id": "B",
+      "deps": [
+       "A"
+      ],
+      "script": [
+       {
+        "do": "count"
+       }
+      ]
+     }
+    ]
+   },
+   "outcome": {
+    "status": "failed",
+    "ok": false,
+    "outputs": {},
+    "results": {},
+    "pending_human": null,
+    "error": "[A] NodeFailure: [A] 质量门「auto」未通过：未通过: ['schema.passed == false']",
+    "skipped": [],
+    "budget": {
+     "spent": {
+      "tokens": 0.0,
+      "wallclock_s": "<elapsed>",
+      "tool_calls": 0.0,
+      "usd": 0.0
+     },
+     "limits": {
+      "tokens": 2000000.0,
+      "wallclock_s": 3600.0,
+      "tool_calls": 500.0,
+      "usd": 50.0
+     },
+     "tightest": "wallclock_s",
+     "remaining_ratio": "<ratio>",
+     "level": 0,
+     "level_label": "正常"
+    }
+   },
+   "calls": {
+    "A": 1
+   },
+   "events": [
+    {
+     "seq": 0,
+     "kind": "run.started",
+     "node_id": null,
+     "ref": null,
+     "payload": {
+      "dag": "t"
+     },
+     "payload_keys": [
+      "dag"
+     ]
+    },
+    {
+     "seq": 1,
+     "kind": "gate.evaluated",
+     "node_id": "A",
+     "ref": null,
+     "payload": {
+      "gate": "auto",
+      "decision": "abort",
+      "reason": "未通过: ['schema.passed == false']",
+      "failed": [
+       "schema.passed == false"
+      ]
+     },
+     "payload_keys": [
+      "gate",
+      "decision",
+      "reason",
+      "failed"
+     ]
+    },
+    {
+     "seq": 2,
+     "kind": "run.failed",
+     "node_id": null,
+     "ref": null,
+     "payload": {
+      "error": "[A] NodeFailure: [A] 质量门「auto」未通过：未通过: ['schema.passed == false']"
+     },
+     "payload_keys": [
+      "error"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "gate_reads_structured_output_metrics",
+   "input": {
+    "nodes": [
+     {
+      "id": "A",
+      "gate": {
+       "kind": "auto",
+       "require": [
+        "completeness.required_fill_rate >= 0.95"
+       ]
+      },
+      "script": [
+       {
+        "do": "ok",
+        "output": {
+         "completeness": {
+          "required_fill_rate": 0.68
+         }
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "outcome": {
+    "status": "failed",
+    "ok": false,
+    "outputs": {},
+    "results": {},
+    "pending_human": null,
+    "error": "[A] NodeFailure: [A] 质量门「auto」未通过：未通过: ['completeness.required_fill_rate >= 0.95']",
+    "skipped": [],
+    "budget": {
+     "spent": {
+      "tokens": 0.0,
+      "wallclock_s": "<elapsed>",
+      "tool_calls": 0.0,
+      "usd": 0.0
+     },
+     "limits": {
+      "tokens": 2000000.0,
+      "wallclock_s": 3600.0,
+      "tool_calls": 500.0,
+      "usd": 50.0
+     },
+     "tightest": "wallclock_s",
+     "remaining_ratio": "<ratio>",
+     "level": 0,
+     "level_label": "正常"
+    }
+   },
+   "calls": {
+    "A": 1
+   },
+   "events": [
+    {
+     "seq": 0,
+     "kind": "run.started",
+     "node_id": null,
+     "ref": null,
+     "payload": {
+      "dag": "t"
+     },
+     "payload_keys": [
+      "dag"
+     ]
+    },
+    {
+     "seq": 1,
+     "kind": "gate.evaluated",
+     "node_id": "A",
+     "ref": null,
+     "payload": {
+      "gate": "auto",
+      "decision": "abort",
+      "reason": "未通过: ['completeness.required_fill_rate >= 0.95']",
+      "failed": [
+       "completeness.required_fill_rate >= 0.95"
+      ]
+     },
+     "payload_keys": [
+      "gate",
+      "decision",
+      "reason",
+      "failed"
+     ]
+    },
+    {
+     "seq": 2,
+     "kind": "run.failed",
+     "node_id": null,
+     "ref": null,
+     "payload": {
+      "error": "[A] NodeFailure: [A] 质量门「auto」未通过：未通过: ['completeness.required_fill_rate >= 0.95']"
+     },
+     "payload_keys": [
+      "error"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "hitl_gate_suspends_the_run",
+   "input": {
+    "nodes": [
+     {
+      "id": "A",
+      "gate": {
+       "kind": "hitl"
+      },
+      "script": [
+       {
+        "do": "ok",
+        "output": {
+         "draft": "「计划金额」两个口径"
+        },
+        "verdicts": [
+         {
+          "lens": "schema",
+          "passed": false,
+          "findings": [
+           {
+            "severity": "high",
+            "code": "BAD"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   "outcome": {
+    "status": "suspended",
+    "ok": false,
+    "outputs": {},
+    "results": {},
+    "pending_human": {
+     "node": "A",
+     "request_id": "A:gate",
+     "kind": "gate",
+     "gate": "hitl",
+     "failed": [],
+     "metrics": {
+      "draft": "「计划金额」两个口径",
+      "review_count": 1,
+      "all_passed": false,
+      "high_findings": 1,
+      "total_findings": 1,
+      "by_lens": {
+       "schema": false
+      },
+      "high_by_lens": {
+       "schema": 1
+      },
+      "findings_by_lens": {
+       "schema": 1
+      },
+      "codes": [
+       "BAD"
+      ],
+      "output": {
+       "draft": "「计划金额」两个口径"
+      }
+     },
+     "output": {
+      "draft": "「计划金额」两个口径"
+     },
+     "actions": [
+      "pass",
+      "revise",
+      "abort"
+     ]
+    },
+    "error": "",
+    "skipped": [],
+    "budget": {
+     "spent": {
+      "tokens": 0.0,
+      "wallclock_s": "<elapsed>",
+      "tool_calls": 0.0,
+      "usd": 0.0
+     },
+     "limits": {
+      "tokens": 2000000.0,
+      "wallclock_s": 3600.0,
+      "tool_calls": 500.0,
+      "usd": 50.0
+     },
+     "tightest": "wallclock_s",
+     "remaining_ratio": "<ratio>",
+     "level": 0,
+     "level_label": "正常"
+    }
+   },
+   "calls": {
+    "A": 1
+   },
+   "events": [
+    {
+     "seq": 0,
+     "kind": "run.started",
+     "node_id": null,
+     "ref": null,
+     "payload": {
+      "dag": "t"
+     },
+     "payload_keys": [
+      "dag"
+     ]
+    },
+    {
+     "seq": 1,
+     "kind": "human.requested",
+     "node_id": "A",
+     "ref": null,
+     "payload": {
+      "request_id": "A:gate",
+      "kind": "gate",
+      "gate": "hitl",
+      "failed": [],
+      "metrics": {
+       "draft": "「计划金额」两个口径",
+       "review_count": 1,
+       "all_passed": false,
+       "high_findings": 1,
+       "total_findings": 1,
+       "by_lens": {
+        "schema": false
+       },
+       "high_by_lens": {
+        "schema": 1
+       },
+       "findings_by_lens": {
+        "schema": 1
+       },
+       "codes": [
+        "BAD"
+       ],
+       "output": {
+        "draft": "「计划金额」两个口径"
+       }
+      },
+      "output": {
+       "draft": "「计划金额」两个口径"
+      },
+      "actions": [
+       "pass",
+       "revise",
+       "abort"
+      ]
+     },
+     "payload_keys": [
+      "request_id",
+      "kind",
+      "gate",
+      "failed",
+      "metrics",
+      "output",
+      "actions"
+     ]
+    },
+    {
+     "seq": 2,
+     "kind": "run.suspended",
+     "node_id": null,
+     "ref": null,
+     "payload": {
+      "node": "A",
+      "request_id": "A:gate"
+     },
+     "payload_keys": [
+      "node",
+      "request_id"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "hitl_gate_commits_after_approval",
+   "input": {
+    "nodes": [
+     {
+      "id": "A",
+      "gate": {
+       "kind": "hitl"
+      },
+      "script": [
+       {
+        "do": "count"
+       }
+      ]
+     }
+    ],
+    "history": [
+     {
+      "op": "human",
+      "node": "A",
+      "request_id": "A:gate",
+      "answer": {
+       "decision": "pass"
+      }
+     }
+    ]
+   },
+   "outcome": {
+    "status": "completed",
+    "ok": true,
+    "outputs": {
+     "A": {
+      "n": 1
+     }
+    },
+    "results": {
+     "A": {
+      "n": 1
+     }
+    },
+    "pending_human": null,
+    "error": "",
+    "skipped": [],
+    "budget": {
+     "spent": {
+      "tokens": 0.0,
+      "wallclock_s": "<elapsed>",
+      "tool_calls": 0.0,
+      "usd": 0.0
+     },
+     "limits": {
+      "tokens": 2000000.0,
+      "wallclock_s": 3600.0,
+      "tool_calls": 500.0,
+      "usd": 50.0
+     },
+     "tightest": "wallclock_s",
+     "remaining_ratio": "<ratio>",
+     "level": 0,
+     "level_label": "正常"
+    }
+   },
+   "calls": {
+    "A": 1
+   },
+   "events": [
+    {
+     "seq": 0,
+     "kind": "human.recorded",
+     "node_id": "A",
+     "ref": null,
+     "payload": {
+      "request_id": "A:gate",
+      "answer": {
+       "decision": "pass"
+      }
+     },
+     "payload_keys": [
+      "request_id",
+      "answer"
+     ]
+    },
+    {
+     "seq": 1,
+     "kind": "run.started",
+     "node_id": null,
+     "ref": null,
+     "payload": {
+      "dag": "t"
+     },
+     "payload_keys": [
+      "dag"
+     ]
+    },
+    {
+     "seq": 2,
+     "kind": "gate.evaluated",
+     "node_id": "A",
+     "ref": null,
+     "payload": {
+      "gate": "hitl",
+      "decision": "pass",
+      "reason": "人工决策: pass",
+      "failed": []
+     },
+     "payload_keys": [
+      "gate",
+      "decision",
+      "reason",
+      "failed"
+     ]
+    },
+    {
+     "seq": 3,
+     "kind": "node.completed",
+     "node_id": "A",
+     "ref": "blob:e5d5f7c1d225fd6b13623ebb1b5b9d07",
+     "payload": {},
+     "payload_keys": []
+    },
+    {
+     "seq": 4,
+     "kind": "run.completed",
+     "node_id": null,
+     "ref": null,
+     "payload": {
+      "nodes": 1,
+      "restored": 0,
+      "budget": {
+       "spent": {
+        "tokens": 0.0,
+        "wallclock_s": "<elapsed>",
+        "tool_calls": 0.0,
+        "usd": 0.0
+       },
+       "limits": {
+        "tokens": 2000000.0,
+        "wallclock_s": 3600.0,
+        "tool_calls": 500.0,
+        "usd": 50.0
+       },
+       "tightest": "wallclock_s",
+       "remaining_ratio": "<ratio>",
+       "level": 0,
+       "level_label": "正常"
+      }
+     },
+     "payload_keys": [
+      "nodes",
+      "restored",
+      "budget"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "hitl_gate_revise_is_retryable",
+   "input": {
+    "nodes": [
+     {
+      "id": "A",
+      "retries": 1,
+      "gate": {
+       "kind": "hitl"
+      },
+      "script": [
+       {
+        "do": "count"
+       }
+      ]
+     }
+    ],
+    "history": [
+     {
+      "op": "human",
+      "node": "A",
+      "request_id": "A:gate",
+      "answer": {
+       "decision": "revise"
+      }
+     }
+    ]
+   },
+   "outcome": {
+    "status": "failed",
+    "ok": false,
+    "outputs": {},
+    "results": {},
+    "pending_human": null,
+    "error": "[A] NodeFailure: [A] 质量门「hitl」要求重做：人工决策: revise",
+    "skipped": [],
+    "budget": {
+     "spent": {
+      "tokens": 0.0,
+      "wallclock_s": "<elapsed>",
+      "tool_calls": 0.0,
+      "usd": 0.0
+     },
+     "limits": {
+      "tokens": 2000000.0,
+      "wallclock_s": 3600.0,
+      "tool_calls": 500.0,
+      "usd": 50.0
+     },
+     "tightest": "wallclock_s",
+     "remaining_ratio": "<ratio>",
+     "level": 0,
+     "level_label": "正常"
+    }
+   },
+   "calls": {
+    "A": 2
+   },
+   "events": [
+    {
+     "seq": 0,
+     "kind": "human.recorded",
+     "node_id": "A",
+     "ref": null,
+     "payload": {
+      "request_id": "A:gate",
+      "answer": {
+       "decision": "revise"
+      }
+     },
+     "payload_keys": [
+      "request_id",
+      "answer"
+     ]
+    },
+    {
+     "seq": 1,
+     "kind": "run.started",
+     "node_id": null,
+     "ref": null,
+     "payload": {
+      "dag": "t"
+     },
+     "payload_keys": [
+      "dag"
+     ]
+    },
+    {
+     "seq": 2,
+     "kind": "gate.evaluated",
+     "node_id": "A",
+     "ref": null,
+     "payload": {
+      "gate": "hitl",
+      "decision": "revise",
+      "reason": "人工决策: revise",
+      "failed": []
+     },
+     "payload_keys": [
+      "gate",
+      "decision",
+      "reason",
+      "failed"
+     ]
+    },
+    {
+     "seq": 3,
+     "kind": "node.failed",
+     "node_id": "A",
+     "ref": null,
+     "payload": {
+      "attempt": 0,
+      "error": "NodeFailure: [A] 质量门「hitl」要求重做：人工决策: revise",
+      "will_retry": true
+     },
+     "payload_keys": [
+      "attempt",
+      "error",
+      "will_retry"
+     ]
+    },
+    {
+     "seq": 4,
+     "kind": "gate.evaluated",
+     "node_id": "A",
+     "ref": null,
+     "payload": {
+      "gate": "hitl",
+      "decision": "revise",
+      "reason": "人工决策: revise",
+      "failed": []
+     },
+     "payload_keys": [
+      "gate",
+      "decision",
+      "reason",
+      "failed"
+     ]
+    },
+    {
+     "seq": 5,
+     "kind": "run.failed",
+     "node_id": null,
+     "ref": null,
+     "payload": {
+      "error": "[A] NodeFailure: [A] 质量门「hitl」要求重做：人工决策: revise"
+     },
+     "payload_keys": [
+      "error"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "hitl_gate_rejects_invalid_decision",
+   "input": {
+    "nodes": [
+     {
+      "id": "A",
+      "gate": {
+       "kind": "hitl"
+      },
+      "script": [
+       {
+        "do": "count"
+       }
+      ]
+     }
+    ],
+    "history": [
+     {
+      "op": "human",
+      "node": "A",
+      "request_id": "A:gate",
+      "answer": {
+       "decision": "什么"
+      }
+     }
+    ]
+   },
+   "outcome": {
+    "status": "failed",
+    "ok": false,
+    "outputs": {},
+    "results": {},
+    "pending_human": null,
+    "error": "[A] NodeFailure: [A] HITL gate 收到无效决策: '什么'",
+    "skipped": [],
+    "budget": {
+     "spent": {
+      "tokens": 0.0,
+      "wallclock_s": "<elapsed>",
+      "tool_calls": 0.0,
+      "usd": 0.0
+     },
+     "limits": {
+      "tokens": 2000000.0,
+      "wallclock_s": 3600.0,
+      "tool_calls": 500.0,
+      "usd": 50.0
+     },
+     "tightest": "wallclock_s",
+     "remaining_ratio": "<ratio>",
+     "level": 0,
+     "level_label": "正常"
+    }
+   },
+   "calls": {
+    "A": 1
+   },
+   "events": [
+    {
+     "seq": 0,
+     "kind": "human.recorded",
+     "node_id": "A",
+     "ref": null,
+     "payload": {
+      "request_id": "A:gate",
+      "answer": {
+       "decision": "什么"
+      }
+     },
+     "payload_keys": [
+      "request_id",
+      "answer"
+     ]
+    },
+    {
+     "seq": 1,
+     "kind": "run.started",
+     "node_id": null,
+     "ref": null,
+     "payload": {
+      "dag": "t"
+     },
+     "payload_keys": [
+      "dag"
+     ]
+    },
+    {
+     "seq": 2,
+     "kind": "run.failed",
+     "node_id": null,
+     "ref": null,
+     "payload": {
+      "error": "[A] NodeFailure: [A] HITL gate 收到无效决策: '什么'"
+     },
+     "payload_keys": [
+      "error"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "legacy_runtime_gate_still_works",
+   "input": {
+    "nodes": [
+     {
+      "id": "A",
+      "gate": {
+       "legacy": "review_count_gt0"
+      },
+      "script": [
+       {
+        "do": "count"
+       }
+      ]
+     }
+    ]
+   },
+   "outcome": {
+    "status": "failed",
+    "ok": false,
+    "outputs": {},
+    "results": {},
+    "pending_human": null,
+    "error": "[A] NodeFailure: [A] 质量门「legacy」未通过：未过: ['必须有评审']",
+    "skipped": [],
+    "budget": {
+     "spent": {
+      "tokens": 0.0,
+      "wallclock_s": "<elapsed>",
+      "tool_calls": 0.0,
+      "usd": 0.0
+     },
+     "limits": {
+      "tokens": 2000000.0,
+      "wallclock_s": 3600.0,
+      "tool_calls": 500.0,
+      "usd": 50.0
+     },
+     "tightest": "wallclock_s",
+     "remaining_ratio": "<ratio>",
+     "level": 0,
+     "level_label": "正常"
+    }
+   },
+   "calls": {
+    "A": 1
+   },
+   "events": [
+    {
+     "seq": 0,
+     "kind": "run.started",
+     "node_id": null,
+     "ref": null,
+     "payload": {
+      "dag": "t"
+     },
+     "payload_keys": [
+      "dag"
+     ]
+    },
+    {
+     "seq": 1,
+     "kind": "gate.evaluated",
+     "node_id": "A",
+     "ref": null,
+     "payload": {
+      "gate": "legacy",
+      "decision": "abort",
+      "reason": "未过: ['必须有评审']",
+      "failed": [
+       "必须有评审"
+      ]
+     },
+     "payload_keys": [
+      "gate",
+      "decision",
+      "reason",
+      "failed"
+     ]
+    },
+    {
+     "seq": 2,
+     "kind": "run.failed",
+     "node_id": null,
+     "ref": null,
+     "payload": {
+      "error": "[A] NodeFailure: [A] 质量门「legacy」未通过：未过: ['必须有评审']"
+     },
+     "payload_keys": [
+      "error"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "budget_degradation_is_broadcast_and_logged",
+   "input": {
+    "nodes": [
+     {
+      "id": "A",
+      "script": [
+       {
+        "do": "count"
+       }
+      ]
+     },
+     {
+      "id": "B",
+      "deps": [
+       "A"
+      ],
+      "script": [
+       {
+        "do": "count"
+       }
+      ]
+     }
+    ],
+    "budget": {
+     "limits": {
+      "tokens": 1000
+     },
+     "prespend": {
+      "tokens": 900
+     }
+    }
+   },
+   "outcome": {
+    "status": "completed",
+    "ok": true,
+    "outputs": {
+     "A": {
+      "n": 1
+     },
+     "B": {
+      "n": 2
+     }
+    },
+    "results": {
+     "A": {
+      "n": 1
+     },
+     "B": {
+      "n": 2
+     }
+    },
+    "pending_human": null,
+    "error": "",
+    "skipped": [],
+    "budget": {
+     "spent": {
+      "tokens": 900.0,
+      "wallclock_s": "<elapsed>",
+      "tool_calls": 0.0,
+      "usd": 0.0
+     },
+     "limits": {
+      "tokens": 1000.0,
+      "wallclock_s": 3600.0,
+      "tool_calls": 500.0,
+      "usd": 50.0
+     },
+     "tightest": "tokens",
+     "remaining_ratio": "<ratio>",
+     "level": 3,
+     "level_label": "仅规则评审（产物标记未经语义审核）"
+    }
+   },
+   "calls": {
+    "A": 1,
+    "B": 1
+   },
+   "events": [
+    {
+     "seq": 0,
+     "kind": "run.started",
+     "node_id": null,
+     "ref": null,
+     "payload": {
+      "dag": "t"
+     },
+     "payload_keys": [
+      "dag"
+     ]
+    },
+    {
+     "seq": 1,
+     "kind": "budget.degraded",
+     "node_id": null,
+     "ref": null,
+     "payload": {
+      "level": 3,
+      "label": "仅规则评审（产物标记未经语义审核）",
+      "spent": {
+       "tokens": 900.0,
+       "wallclock_s": "<elapsed>",
+       "tool_calls": 0.0,
+       "usd": 0.0
+      },
+      "limits": {
+       "tokens": 1000.0,
+       "wallclock_s": 3600.0,
+       "tool_calls": 500.0,
+       "usd": 50.0
+      },
+      "tightest": "tokens",
+      "remaining_ratio": "<ratio>",
+      "level_label": "仅规则评审（产物标记未经语义审核）"
+     },
+     "payload_keys": [
+      "level",
+      "label",
+      "spent",
+      "limits",
+      "tightest",
+      "remaining_ratio",
+      "level_label"
+     ]
+    },
+    {
+     "seq": 2,
+     "kind": "bus.message",
+     "node_id": "scheduler",
+     "ref": null,
+     "payload": {
+      "topic": "budget/degrade",
+      "mode": "broadcast",
+      "receivers": 0,
+      "level": 3,
+      "label": "仅规则评审（产物标记未经语义审核）"
+     },
+     "payload_keys": [
+      "topic",
+      "mode",
+      "receivers",
+      "level",
+      "label"
+     ]
+    },
+    {
+     "seq": 3,
+     "kind": "node.completed",
+     "node_id": "A",
+     "ref": "blob:e5d5f7c1d225fd6b13623ebb1b5b9d07",
+     "payload": {},
+     "payload_keys": []
+    },
+    {
+     "seq": 4,
+     "kind": "node.completed",
+     "node_id": "B",
+     "ref": "blob:fcb7ecf22a686fde527cafa2dd308d1c",
+     "payload": {},
+     "payload_keys": []
+    },
+    {
+     "seq": 5,
+     "kind": "run.completed",
+     "node_id": null,
+     "ref": null,
+     "payload": {
+      "nodes": 2,
+      "restored": 0,
+      "budget": {
+       "spent": {
+        "tokens": 900.0,
+        "wallclock_s": "<elapsed>",
+        "tool_calls": 0.0,
+        "usd": 0.0
+       },
+       "limits": {
+        "tokens": 1000.0,
+        "wallclock_s": 3600.0,
+        "tool_calls": 500.0,
+        "usd": 50.0
+       },
+       "tightest": "tokens",
+       "remaining_ratio": "<ratio>",
+       "level": 3,
+       "level_label": "仅规则评审（产物标记未经语义审核）"
+      }
+     },
+     "payload_keys": [
+      "nodes",
+      "restored",
+      "budget"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "run_wallclock_budget_exhausts_the_run",
+   "input": {
+    "nodes": [
+     {
+      "id": "A",
+      "script": [
+       {
+        "do": "spend",
+        "amounts": {
+         "wallclock_s": 1000000000.0
+        },
+        "then": {
+         "do": "count"
+        }
+       }
+      ]
+     },
+     {
+      "id": "B",
+      "deps": [
+       "A"
+      ],
+      "script": [
+       {
+        "do": "count"
+       }
+      ]
+     }
+    ]
+   },
+   "outcome": {
+    "status": "failed",
+    "ok": false,
+    "outputs": {},
+    "results": {
+     "A": {
+      "n": 1
+     }
+    },
+    "pending_human": null,
+    "error": "wallclock_s 预算耗尽: 1000000000 / 3600",
+    "skipped": [],
+    "budget": {
+     "spent": {
+      "tokens": 0.0,
+      "wallclock_s": "<elapsed>",
+      "tool_calls": 0.0,
+      "usd": 0.0
+     },
+     "limits": {
+      "tokens": 2000000.0,
+      "wallclock_s": 3600.0,
+      "tool_calls": 500.0,
+      "usd": 50.0
+     },
+     "tightest": "wallclock_s",
+     "remaining_ratio": "<ratio>",
+     "level": 4,
+     "level_label": "暂停并保存 checkpoint"
+    }
+   },
+   "calls": {
+    "A": 1
+   },
+   "events": [
+    {
+     "seq": 0,
+     "kind": "run.started",
+     "node_id": null,
+     "ref": null,
+     "payload": {
+      "dag": "t"
+     },
+     "payload_keys": [
+      "dag"
+     ]
+    },
+    {
+     "seq": 1,
+     "kind": "node.completed",
+     "node_id": "A",
+     "ref": "blob:e5d5f7c1d225fd6b13623ebb1b5b9d07",
+     "payload": {},
+     "payload_keys": []
+    },
+    {
+     "seq": 2,
+     "kind": "run.failed",
+     "node_id": null,
+     "ref": null,
+     "payload": {
+      "error": "wallclock_s 预算耗尽: 1000000000 / 3600"
+     },
+     "payload_keys": [
+      "error"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "hitl_node_suspends_the_run",
+   "input": {
+    "nodes": [
+     {
+      "id": "CLARIFY",
+      "mode": "hitl",
+      "script": [
+       {
+        "do": "ask_human",
+        "request_id": "CLARIFY:hitl",
+        "payload": {
+         "questions": [
+          "「计划金额」两个口径怎么处理？"
+         ]
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "outcome": {
+    "status": "suspended",
+    "ok": false,
+    "outputs": {},
+    "results": {},
+    "pending_human": {
+     "node": "CLARIFY",
+     "request_id": "CLARIFY:hitl",
+     "questions": [
+      "「计划金额」两个口径怎么处理？"
+     ]
+    },
+    "error": "",
+    "skipped": [],
+    "budget": {
+     "spent": {
+      "tokens": 0.0,
+      "wallclock_s": "<elapsed>",
+      "tool_calls": 0.0,
+      "usd": 0.0
+     },
+     "limits": {
+      "tokens": 2000000.0,
+      "wallclock_s": 3600.0,
+      "tool_calls": 500.0,
+      "usd": 50.0
+     },
+     "tightest": "wallclock_s",
+     "remaining_ratio": "<ratio>",
+     "level": 0,
+     "level_label": "正常"
+    }
+   },
+   "calls": {
+    "CLARIFY": 1
+   },
+   "events": [
+    {
+     "seq": 0,
+     "kind": "run.started",
+     "node_id": null,
+     "ref": null,
+     "payload": {
+      "dag": "t"
+     },
+     "payload_keys": [
+      "dag"
+     ]
+    },
+    {
+     "seq": 1,
+     "kind": "human.requested",
+     "node_id": "CLARIFY",
+     "ref": null,
+     "payload": {
+      "request_id": "CLARIFY:hitl",
+      "questions": [
+       "「计划金额」两个口径怎么处理？"
+      ]
+     },
+     "payload_keys": [
+      "request_id",
+      "questions"
+     ]
+    },
+    {
+     "seq": 2,
+     "kind": "run.suspended",
+     "node_id": null,
+     "ref": null,
+     "payload": {
+      "node": "CLARIFY",
+      "request_id": "CLARIFY:hitl"
+     },
+     "payload_keys": [
+      "node",
+      "request_id"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "hitl_node_resumes_with_the_answer",
+   "input": {
+    "nodes": [
+     {
+      "id": "CLARIFY",
+      "mode": "hitl",
+      "script": [
+       {
+        "do": "ask_human",
+        "request_id": "CLARIFY:hitl",
+        "payload": {
+         "questions": [
+          "「计划金额」两个口径怎么处理？"
+         ]
+        }
+       }
+      ]
+     }
+    ],
+    "history": [
+     {
+      "op": "human",
+      "node": "CLARIFY",
+      "request_id": "CLARIFY:hitl",
+      "answer": {
+       "option_id": "split_two_properties"
+      }
+     }
+    ]
+   },
+   "outcome": {
+    "status": "completed",
+    "ok": true,
+    "outputs": {
+     "CLARIFY": {
+      "option_id": "split_two_properties"
+     }
+    },
+    "results": {
+     "CLARIFY": {
+      "option_id": "split_two_properties"
+     }
+    },
+    "pending_human": null,
+    "error": "",
+    "skipped": [],
+    "budget": {
+     "spent": {
+      "tokens": 0.0,
+      "wallclock_s": "<elapsed>",
+      "tool_calls": 0.0,
+      "usd": 0.0
+     },
+     "limits": {
+      "tokens": 2000000.0,
+      "wallclock_s": 3600.0,
+      "tool_calls": 500.0,
+      "usd": 50.0
+     },
+     "tightest": "wallclock_s",
+     "remaining_ratio": "<ratio>",
+     "level": 0,
+     "level_label": "正常"
+    }
+   },
+   "calls": {
+    "CLARIFY": 1
+   },
+   "events": [
+    {
+     "seq": 0,
+     "kind": "human.recorded",
+     "node_id": "CLARIFY",
+     "ref": null,
+     "payload": {
+      "request_id": "CLARIFY:hitl",
+      "answer": {
+       "option_id": "split_two_properties"
+      }
+     },
+     "payload_keys": [
+      "request_id",
+      "answer"
+     ]
+    },
+    {
+     "seq": 1,
+     "kind": "run.started",
+     "node_id": null,
+     "ref": null,
+     "payload": {
+      "dag": "t"
+     },
+     "payload_keys": [
+      "dag"
+     ]
+    },
+    {
+     "seq": 2,
+     "kind": "node.completed",
+     "node_id": "CLARIFY",
+     "ref": "blob:1ea8b26ee84a369fd59987b40a08590e",
+     "payload": {},
+     "payload_keys": []
+    },
+    {
+     "seq": 3,
+     "kind": "run.completed",
+     "node_id": null,
+     "ref": null,
+     "payload": {
+      "nodes": 1,
+      "restored": 0,
+      "budget": {
+       "spent": {
+        "tokens": 0.0,
+        "wallclock_s": "<elapsed>",
+        "tool_calls": 0.0,
+        "usd": 0.0
+       },
+       "limits": {
+        "tokens": 2000000.0,
+        "wallclock_s": 3600.0,
+        "tool_calls": 500.0,
+        "usd": 50.0
+       },
+       "tightest": "wallclock_s",
+       "remaining_ratio": "<ratio>",
+       "level": 0,
+       "level_label": "正常"
+      }
+     },
+     "payload_keys": [
+      "nodes",
+      "restored",
+      "budget"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "unsatisfiable_deps_are_reported",
+   "input": {
+    "patch": "ghost_deps",
+    "nodes": [
+     {
+      "id": "B🐍",
+      "script": [
+       {
+        "do": "count"
+       }
+      ]
+     },
+     {
+      "id": "A'q",
+      "script": [
+       {
+        "do": "count"
+       }
+      ]
+     }
+    ]
+   },
+   "outcome": {
+    "status": "failed",
+    "ok": false,
+    "outputs": {},
+    "results": {},
+    "pending_human": null,
+    "error": "依赖无法满足，卡住的节点: [\"A'q\", 'B🐍']",
+    "skipped": [],
+    "budget": {
+     "spent": {
+      "tokens": 0.0,
+      "wallclock_s": "<elapsed>",
+      "tool_calls": 0.0,
+      "usd": 0.0
+     },
+     "limits": {
+      "tokens": 2000000.0,
+      "wallclock_s": 3600.0,
+      "tool_calls": 500.0,
+      "usd": 50.0
+     },
+     "tightest": "wallclock_s",
+     "remaining_ratio": "<ratio>",
+     "level": 0,
+     "level_label": "正常"
+    }
+   },
+   "calls": {},
+   "events": [
+    {
+     "seq": 0,
+     "kind": "run.started",
+     "node_id": null,
+     "ref": null,
+     "payload": {
+      "dag": "t"
+     },
+     "payload_keys": [
+      "dag"
+     ]
+    },
+    {
+     "seq": 1,
+     "kind": "run.failed",
+     "node_id": null,
+     "ref": null,
+     "payload": {
+      "error": "依赖无法满足，卡住的节点: [\"A'q\", 'B🐍']"
+     },
+     "payload_keys": [
+      "error"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "independent_branches_run_concurrently",
+   "input": {
+    "nodes": [
+     {
+      "id": "A",
+      "script": [
+       {
+        "do": "sleep",
+        "s": 0.05,
+        "then": {
+         "do": "count"
+        }
+       }
+      ]
+     },
+     {
+      "id": "B",
+      "script": [
+       {
+        "do": "sleep",
+        "s": 0.01,
+        "then": {
+         "do": "count"
+        }
+       }
+      ]
+     },
+     {
+      "id": "C",
+      "deps": [
+       "A",
+       "B"
+      ],
+      "script": [
+       {
+        "do": "count"
+       }
+      ]
+     }
+    ]
+   },
+   "outcome": {
+    "status": "completed",
+    "ok": true,
+    "outputs": {
+     "B": {
+      "n": 1
+     },
+     "A": {
+      "n": 1
+     },
+     "C": {
+      "n": 3
+     }
+    },
+    "results": {
+     "B": {
+      "n": 1
+     },
+     "A": {
+      "n": 1
+     },
+     "C": {
+      "n": 3
+     }
+    },
+    "pending_human": null,
+    "error": "",
+    "skipped": [],
+    "budget": {
+     "spent": {
+      "tokens": 0.0,
+      "wallclock_s": "<elapsed>",
+      "tool_calls": 0.0,
+      "usd": 0.0
+     },
+     "limits": {
+      "tokens": 2000000.0,
+      "wallclock_s": 3600.0,
+      "tool_calls": 500.0,
+      "usd": 50.0
+     },
+     "tightest": "wallclock_s",
+     "remaining_ratio": "<ratio>",
+     "level": 0,
+     "level_label": "正常"
+    }
+   },
+   "calls": {
+    "A": 1,
+    "B": 1,
+    "C": 1
+   },
+   "events": [
+    {
+     "seq": 0,
+     "kind": "run.started",
+     "node_id": null,
+     "ref": null,
+     "payload": {
+      "dag": "t"
+     },
+     "payload_keys": [
+      "dag"
+     ]
+    },
+    {
+     "seq": 1,
+     "kind": "node.completed",
+     "node_id": "B",
+     "ref": "blob:e5d5f7c1d225fd6b13623ebb1b5b9d07",
+     "payload": {},
+     "payload_keys": []
+    },
+    {
+     "seq": 2,
+     "kind": "node.completed",
+     "node_id": "A",
+     "ref": "blob:e5d5f7c1d225fd6b13623ebb1b5b9d07",
+     "payload": {},
+     "payload_keys": []
+    },
+    {
+     "seq": 3,
+     "kind": "node.completed",
+     "node_id": "C",
+     "ref": "blob:389d42d9a5766a33e43c9a95fe1e7555",
+     "payload": {},
+     "payload_keys": []
+    },
+    {
+     "seq": 4,
+     "kind": "run.completed",
+     "node_id": null,
+     "ref": null,
+     "payload": {
+      "nodes": 3,
+      "restored": 0,
+      "budget": {
+       "spent": {
+        "tokens": 0.0,
+        "wallclock_s": "<elapsed>",
+        "tool_calls": 0.0,
+        "usd": 0.0
+       },
+       "limits": {
+        "tokens": 2000000.0,
+        "wallclock_s": 3600.0,
+        "tool_calls": 500.0,
+        "usd": 50.0
+       },
+       "tightest": "wallclock_s",
+       "remaining_ratio": "<ratio>",
+       "level": 0,
+       "level_label": "正常"
+      }
+     },
+     "payload_keys": [
+      "nodes",
+      "restored",
+      "budget"
+     ]
+    }
+   ]
+  }
+ ]
+}

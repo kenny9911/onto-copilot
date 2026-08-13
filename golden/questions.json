@@ -1,0 +1,5875 @@
+{
+  "answer_question": {
+    "again": {
+      "created": false,
+      "decision": {
+        "$schema": "ontocopilot.decision/1",
+        "actor": "u1",
+        "actorRole": "business_owner",
+        "affectedIds": [
+          "rule.approval",
+          "flow.gateway.approval"
+        ],
+        "answer": true,
+        "authority": "process_owner",
+        "createdAt": 110.0,
+        "id": "dec_dabea1a19fff495b8c0c",
+        "idempotencyKey": "answer-1",
+        "metadata": {},
+        "questionId": "q.threshold",
+        "rationale": "",
+        "revision": 13,
+        "schemaVersion": "1.0.0",
+        "sourceTurn": "",
+        "supersedes": null
+      }
+    },
+    "backlog": {
+      "$schema": "ontocopilot.question-backlog/1",
+      "questions": [
+        {
+          "$schema": "ontocopilot.question/1",
+          "answerSchema": {
+            "type": "boolean"
+          },
+          "audienceRole": "",
+          "blastRadius": 0,
+          "blockedArtifacts": [
+            "rule.approval",
+            "flow.gateway.approval"
+          ],
+          "code": "",
+          "createdAt": 100.0,
+          "dependencies": [],
+          "evidenceIds": [],
+          "group": "",
+          "id": "q.threshold",
+          "informationGain": 0.0,
+          "metadata": {},
+          "options": [],
+          "ownerUserId": "",
+          "priority": "blocking",
+          "schemaVersion": "1.0.0",
+          "scopeRefs": [],
+          "sourceKind": "manual",
+          "sourceRef": "",
+          "status": "answered",
+          "text": "金额正好等于50万元时是否需要总监审批？",
+          "updatedAt": 113.0,
+          "version": 3,
+          "why": ""
+        }
+      ],
+      "schemaVersion": "1.0.0",
+      "stats": {
+        "answered": 1,
+        "assigned": 0,
+        "blocked": 0,
+        "blockingOpen": 0,
+        "cancelled": 0,
+        "deferred": 0,
+        "open": 0,
+        "total": 1
+      }
+    },
+    "first": {
+      "created": true,
+      "decision": {
+        "$schema": "ontocopilot.decision/1",
+        "actor": "u1",
+        "actorRole": "business_owner",
+        "affectedIds": [
+          "rule.approval",
+          "flow.gateway.approval"
+        ],
+        "answer": true,
+        "authority": "process_owner",
+        "createdAt": 110.0,
+        "id": "dec_dabea1a19fff495b8c0c",
+        "idempotencyKey": "answer-1",
+        "metadata": {},
+        "questionId": "q.threshold",
+        "rationale": "",
+        "revision": 13,
+        "schemaVersion": "1.0.0",
+        "sourceTurn": "",
+        "supersedes": null
+      }
+    },
+    "ledger": {
+      "$schema": "ontocopilot.decision-ledger/1",
+      "decisions": [
+        {
+          "$schema": "ontocopilot.decision/1",
+          "actor": "u1",
+          "actorRole": "business_owner",
+          "affectedIds": [
+            "rule.approval",
+            "flow.gateway.approval"
+          ],
+          "answer": true,
+          "authority": "process_owner",
+          "createdAt": 110.0,
+          "id": "dec_dabea1a19fff495b8c0c",
+          "idempotencyKey": "answer-1",
+          "metadata": {},
+          "questionId": "q.threshold",
+          "rationale": "",
+          "revision": 13,
+          "schemaVersion": "1.0.0",
+          "sourceTurn": "",
+          "supersedes": null
+        },
+        {
+          "$schema": "ontocopilot.decision/1",
+          "actor": "u1",
+          "actorRole": "",
+          "affectedIds": [
+            "rule.approval",
+            "flow.gateway.approval"
+          ],
+          "answer": false,
+          "authority": "",
+          "createdAt": 113.0,
+          "id": "dec_31b5ac89c6fcb663b34f",
+          "idempotencyKey": "answer-2",
+          "metadata": {},
+          "questionId": "q.threshold",
+          "rationale": "",
+          "revision": null,
+          "schemaVersion": "1.0.0",
+          "sourceTurn": "",
+          "supersedes": "dec_dabea1a19fff495b8c0c"
+        }
+      ],
+      "schemaVersion": "1.0.0"
+    },
+    "missing_key": {
+      "error": "ValueError",
+      "message": "回答必须提供 idempotency_key",
+      "ok": false
+    },
+    "missing_question": {
+      "error": "KeyError",
+      "message": "'没有这个问题'",
+      "ok": false
+    },
+    "schema_rejected": {
+      "error": "AnswerValidationError",
+      "message": "$answer 类型必须是 ['boolean']，实际是 str",
+      "ok": false
+    },
+    "superseding": {
+      "created": true,
+      "decision": {
+        "$schema": "ontocopilot.decision/1",
+        "actor": "u1",
+        "actorRole": "",
+        "affectedIds": [
+          "rule.approval",
+          "flow.gateway.approval"
+        ],
+        "answer": false,
+        "authority": "",
+        "createdAt": 113.0,
+        "id": "dec_31b5ac89c6fcb663b34f",
+        "idempotencyKey": "answer-2",
+        "metadata": {},
+        "questionId": "q.threshold",
+        "rationale": "",
+        "revision": null,
+        "schemaVersion": "1.0.0",
+        "sourceTurn": "",
+        "supersedes": "dec_dabea1a19fff495b8c0c"
+      }
+    }
+  },
+  "assign": [
+    {
+      "after": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "boolean"
+        },
+        "audienceRole": "process_owner",
+        "blastRadius": 0,
+        "blockedArtifacts": [
+          "rule.approval",
+          "flow.gateway.approval"
+        ],
+        "code": "",
+        "createdAt": 100.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "q.threshold",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "u1",
+        "priority": "blocking",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "manual",
+        "sourceRef": "",
+        "status": "assigned",
+        "text": "金额正好等于50万元时是否需要总监审批？",
+        "updatedAt": 101.0,
+        "version": 1,
+        "why": ""
+      },
+      "name": "open → assigned",
+      "result": {
+        "ok": true,
+        "value": null
+      }
+    },
+    {
+      "after": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "boolean"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [
+          "rule.approval",
+          "flow.gateway.approval"
+        ],
+        "code": "",
+        "createdAt": 100.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "q.threshold",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "u2",
+        "priority": "blocking",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "manual",
+        "sourceRef": "",
+        "status": "assigned",
+        "text": "金额正好等于50万元时是否需要总监审批？",
+        "updatedAt": 102.0,
+        "version": 1,
+        "why": ""
+      },
+      "name": "已 assigned 再分派只加 version",
+      "result": {
+        "ok": true,
+        "value": null
+      }
+    },
+    {
+      "after": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "boolean"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [
+          "rule.approval",
+          "flow.gateway.approval"
+        ],
+        "code": "",
+        "createdAt": 100.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "q.threshold",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "",
+        "priority": "blocking",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "manual",
+        "sourceRef": "",
+        "status": "open",
+        "text": "金额正好等于50万元时是否需要总监审批？",
+        "updatedAt": 100.0,
+        "version": 0,
+        "why": ""
+      },
+      "name": "空 owner 被拒",
+      "result": {
+        "error": "ValueError",
+        "message": "owner_user_id 不能为空",
+        "ok": false
+      }
+    },
+    {
+      "after": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "boolean"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [
+          "rule.approval",
+          "flow.gateway.approval"
+        ],
+        "code": "",
+        "createdAt": 100.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "q.threshold",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "",
+        "priority": "blocking",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "manual",
+        "sourceRef": "",
+        "status": "answered",
+        "text": "金额正好等于50万元时是否需要总监审批？",
+        "updatedAt": 100.0,
+        "version": 0,
+        "why": ""
+      },
+      "name": "终态问题不能直接分派",
+      "result": {
+        "error": "QuestionTransitionError",
+        "message": "终态问题 q.threshold 不能直接分派，请先 reopen",
+        "ok": false
+      }
+    },
+    {
+      "after": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "boolean"
+        },
+        "audienceRole": "erp",
+        "blastRadius": 0,
+        "blockedArtifacts": [
+          "rule.approval",
+          "flow.gateway.approval"
+        ],
+        "code": "",
+        "createdAt": 100.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "q.threshold",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "u1",
+        "priority": "blocking",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "manual",
+        "sourceRef": "",
+        "status": "assigned",
+        "text": "金额正好等于50万元时是否需要总监审批？",
+        "updatedAt": 103.0,
+        "version": 1,
+        "why": ""
+      },
+      "name": "owner 与 role 两头去空白",
+      "result": {
+        "ok": true,
+        "value": null
+      }
+    },
+    {
+      "after": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "boolean"
+        },
+        "audienceRole": "旧角色",
+        "blastRadius": 0,
+        "blockedArtifacts": [
+          "rule.approval",
+          "flow.gateway.approval"
+        ],
+        "code": "",
+        "createdAt": 100.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "q.threshold",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "u1",
+        "priority": "blocking",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "manual",
+        "sourceRef": "",
+        "status": "assigned",
+        "text": "金额正好等于50万元时是否需要总监审批？",
+        "updatedAt": 104.0,
+        "version": 1,
+        "why": ""
+      },
+      "name": "不传 audience_role 就不动它",
+      "result": {
+        "ok": true,
+        "value": null
+      }
+    }
+  ],
+  "backlog_lifecycle": {
+    "not_preserved": {
+      "$schema": "ontocopilot.question-backlog/1",
+      "questions": [
+        {
+          "$schema": "ontocopilot.question/1",
+          "answerSchema": {
+            "type": "string"
+          },
+          "audienceRole": "",
+          "blastRadius": 0,
+          "blockedArtifacts": [],
+          "code": "",
+          "createdAt": 1.0,
+          "dependencies": [],
+          "evidenceIds": [],
+          "group": "",
+          "id": "oq_1",
+          "informationGain": 0.0,
+          "metadata": {},
+          "options": [],
+          "ownerUserId": "",
+          "priority": "normal",
+          "schemaVersion": "1.0.0",
+          "scopeRefs": [],
+          "sourceKind": "manual",
+          "sourceRef": "",
+          "status": "open",
+          "text": "不保留 lifecycle",
+          "updatedAt": 1.0,
+          "version": 0,
+          "why": ""
+        }
+      ],
+      "schemaVersion": "1.0.0",
+      "stats": {
+        "answered": 0,
+        "assigned": 0,
+        "blocked": 0,
+        "blockingOpen": 0,
+        "cancelled": 0,
+        "deferred": 0,
+        "open": 1,
+        "total": 1
+      }
+    },
+    "preserved": {
+      "$schema": "ontocopilot.question-backlog/1",
+      "questions": [
+        {
+          "$schema": "ontocopilot.question/1",
+          "answerSchema": {
+            "type": "string"
+          },
+          "audienceRole": "旧角色",
+          "blastRadius": 0,
+          "blockedArtifacts": [],
+          "code": "",
+          "createdAt": 10.0,
+          "dependencies": [],
+          "evidenceIds": [],
+          "group": "",
+          "id": "oq_1",
+          "informationGain": 0.0,
+          "metadata": {},
+          "options": [],
+          "ownerUserId": "u1",
+          "priority": "normal",
+          "schemaVersion": "1.0.0",
+          "scopeRefs": [],
+          "sourceKind": "open_question",
+          "sourceRef": "oq_1",
+          "status": "deferred",
+          "text": "更新后的文案",
+          "updatedAt": 1700000000.0,
+          "version": 3,
+          "why": ""
+        }
+      ],
+      "schemaVersion": "1.0.0",
+      "stats": {
+        "answered": 0,
+        "assigned": 0,
+        "blocked": 0,
+        "blockingOpen": 0,
+        "cancelled": 0,
+        "deferred": 1,
+        "open": 0,
+        "total": 1
+      }
+    }
+  },
+  "build_backlog": {
+    "backlog": {
+      "$schema": "ontocopilot.question-backlog/1",
+      "questions": [
+        {
+          "$schema": "ontocopilot.question/1",
+          "answerSchema": {
+            "type": "string"
+          },
+          "audienceRole": "",
+          "blastRadius": 0,
+          "blockedArtifacts": [],
+          "code": "",
+          "createdAt": 1700000000.0,
+          "dependencies": [],
+          "evidenceIds": [],
+          "group": "",
+          "id": "oq_1",
+          "informationGain": 0.0,
+          "metadata": {},
+          "options": [
+            "3",
+            "5"
+          ],
+          "ownerUserId": "erp.consultant",
+          "priority": "normal",
+          "schemaVersion": "1.0.0",
+          "scopeRefs": [],
+          "sourceKind": "open_question",
+          "sourceRef": "oq_1",
+          "status": "assigned",
+          "text": "提前多少天预警？",
+          "updatedAt": 1700000000.0,
+          "version": 0,
+          "why": ""
+        },
+        {
+          "$schema": "ontocopilot.question/1",
+          "answerSchema": {
+            "type": "string"
+          },
+          "audienceRole": "",
+          "blastRadius": 0,
+          "blockedArtifacts": [],
+          "code": "",
+          "createdAt": 1700000000.0,
+          "dependencies": [],
+          "evidenceIds": [],
+          "group": "",
+          "id": "q_9d6fdd662729bf1ba1c8",
+          "informationGain": 0.0,
+          "metadata": {},
+          "options": [],
+          "ownerUserId": "",
+          "priority": "blocking",
+          "schemaVersion": "1.0.0",
+          "scopeRefs": [],
+          "sourceKind": "conflict",
+          "sourceRef": "cf_2",
+          "status": "open",
+          "text": "没被覆盖的 ask_user",
+          "updatedAt": 1700000000.0,
+          "version": 0,
+          "why": ""
+        },
+        {
+          "$schema": "ontocopilot.question/1",
+          "answerSchema": {
+            "type": "string"
+          },
+          "audienceRole": "",
+          "blastRadius": 0,
+          "blockedArtifacts": [],
+          "code": "",
+          "createdAt": 1700000000.0,
+          "dependencies": [],
+          "evidenceIds": [],
+          "group": "",
+          "id": "q_a3e5f2260c2e2b397493",
+          "informationGain": 0.0,
+          "metadata": {},
+          "options": [],
+          "ownerUserId": "",
+          "priority": "blocking",
+          "schemaVersion": "1.0.0",
+          "scopeRefs": [],
+          "sourceKind": "conflict",
+          "sourceRef": "cf_4",
+          "status": "open",
+          "text": "没有 handling 字段的照样问",
+          "updatedAt": 1700000000.0,
+          "version": 0,
+          "why": ""
+        },
+        {
+          "$schema": "ontocopilot.question/1",
+          "answerSchema": {
+            "enum": [
+              "include"
+            ],
+            "type": "string"
+          },
+          "audienceRole": "",
+          "blastRadius": 4,
+          "blockedArtifacts": [],
+          "code": "",
+          "createdAt": 1700000000.0,
+          "dependencies": [],
+          "evidenceIds": [],
+          "group": "",
+          "id": "q_cf1",
+          "informationGain": 0.8,
+          "metadata": {},
+          "options": [
+            {
+              "id": "include",
+              "label": "包含50万"
+            }
+          ],
+          "ownerUserId": "",
+          "priority": "blocking",
+          "schemaVersion": "1.0.0",
+          "scopeRefs": [],
+          "sourceKind": "conflict",
+          "sourceRef": "cf_1",
+          "status": "open",
+          "text": "审批边界不明确",
+          "updatedAt": 1700000000.0,
+          "version": 0,
+          "why": ""
+        }
+      ],
+      "schemaVersion": "1.0.0",
+      "stats": {
+        "answered": 0,
+        "assigned": 1,
+        "blocked": 0,
+        "blockingOpen": 3,
+        "cancelled": 0,
+        "deferred": 0,
+        "open": 3,
+        "total": 4
+      }
+    },
+    "card": {
+      "conflict_rid": "cf_1",
+      "id": "q_cf1",
+      "impact_count": 4,
+      "options": [
+        {
+          "id": "include",
+          "label": "包含50万"
+        }
+      ],
+      "score": 0.8,
+      "title": "审批边界不明确"
+    },
+    "conflicts": [
+      {
+        "handling": "ask_user",
+        "rid": "cf_1",
+        "summary": "已被 clarification 覆盖"
+      },
+      {
+        "handling": "ask_user",
+        "rid": "cf_2",
+        "summary": "没被覆盖的 ask_user"
+      },
+      {
+        "handling": "auto_repair",
+        "rid": "cf_3",
+        "summary": "auto_repair 的不问"
+      },
+      {
+        "id": "cf_4",
+        "title": "没有 handling 字段的照样问"
+      }
+    ],
+    "open_question": {
+      "answer": {
+        "confidence": 0.4,
+        "evidence": [],
+        "origin": "inferred",
+        "value": ""
+      },
+      "appliesTo": [],
+      "askedBy": "customer",
+      "code": "",
+      "group": "",
+      "kind": "OpenQuestion",
+      "options": [
+        "3",
+        "5"
+      ],
+      "owner": "erp.consultant",
+      "rid": "oq_1",
+      "status": "candidate",
+      "text": {
+        "confidence": 0.4,
+        "evidence": [],
+        "origin": "inferred",
+        "value": "提前多少天预警？"
+      }
+    }
+  },
+  "decision_from_dict": [
+    {
+      "decision": {
+        "$schema": "ontocopilot.decision/1",
+        "actor": "user",
+        "actorRole": "",
+        "affectedIds": [],
+        "answer": "是",
+        "authority": "",
+        "createdAt": 1700000000.0,
+        "id": "dec_f17d1794651f25b6688c",
+        "idempotencyKey": "",
+        "metadata": {},
+        "questionId": "q1",
+        "rationale": "",
+        "revision": null,
+        "schemaVersion": "1.0.0",
+        "sourceTurn": "",
+        "supersedes": null
+      },
+      "name": "最小输入：id 由语义摘要导出",
+      "raw": {
+        "answer": "是",
+        "question_id": "q1"
+      }
+    },
+    {
+      "decision": {
+        "$schema": "ontocopilot.decision/1",
+        "actor": "user",
+        "actorRole": "",
+        "affectedIds": [],
+        "answer": "是",
+        "authority": "",
+        "createdAt": 1700000000.0,
+        "id": "dec_03539137345ba61e5201",
+        "idempotencyKey": "",
+        "metadata": {},
+        "questionId": "q9",
+        "rationale": "",
+        "revision": null,
+        "schemaVersion": "1.0.0",
+        "sourceTurn": "",
+        "supersedes": null
+      },
+      "name": "target_rid 是 questionId 的第三顺位",
+      "raw": {
+        "answer": "是",
+        "target_rid": "q9"
+      }
+    },
+    {
+      "decision": {
+        "$schema": "ontocopilot.decision/1",
+        "actor": "user",
+        "actorRole": "",
+        "affectedIds": [],
+        "answer": "include",
+        "authority": "",
+        "createdAt": 1700000000.0,
+        "id": "dec_68028e25aa177507c3ef",
+        "idempotencyKey": "",
+        "metadata": {},
+        "questionId": "q1",
+        "rationale": "",
+        "revision": null,
+        "schemaVersion": "1.0.0",
+        "sourceTurn": "",
+        "supersedes": null
+      },
+      "name": "answer 回落 option_id",
+      "raw": {
+        "option_id": "include",
+        "questionId": "q1"
+      }
+    },
+    {
+      "decision": {
+        "$schema": "ontocopilot.decision/1",
+        "actor": "user",
+        "actorRole": "",
+        "affectedIds": [],
+        "answer": "金额含 50 万",
+        "authority": "",
+        "createdAt": 1700000000.0,
+        "id": "dec_d45e2da825480f40dad0",
+        "idempotencyKey": "",
+        "metadata": {},
+        "questionId": "q1",
+        "rationale": "",
+        "revision": null,
+        "schemaVersion": "1.0.0",
+        "sourceTurn": "",
+        "supersedes": null
+      },
+      "name": "answer 回落 statement",
+      "raw": {
+        "questionId": "q1",
+        "statement": "金额含 50 万"
+      }
+    },
+    {
+      "decision": {
+        "$schema": "ontocopilot.decision/1",
+        "actor": "user",
+        "actorRole": "",
+        "affectedIds": [],
+        "answer": null,
+        "authority": "",
+        "createdAt": 1700000000.0,
+        "id": "dec_1a5561616e0fdf5745c7",
+        "idempotencyKey": "",
+        "metadata": {},
+        "questionId": "q1",
+        "rationale": "",
+        "revision": null,
+        "schemaVersion": "1.0.0",
+        "sourceTurn": "",
+        "supersedes": null
+      },
+      "name": "显式 answer=None 不回落 option_id",
+      "raw": {
+        "answer": null,
+        "option_id": "include",
+        "questionId": "q1"
+      }
+    },
+    {
+      "decision": {
+        "$schema": "ontocopilot.decision/1",
+        "actor": "user",
+        "actorRole": "",
+        "affectedIds": [
+          "a",
+          "b"
+        ],
+        "answer": 1,
+        "authority": "",
+        "createdAt": 1700000000.0,
+        "id": "dec_a98f3456989961237a14",
+        "idempotencyKey": "",
+        "metadata": {},
+        "questionId": "q1",
+        "rationale": "",
+        "revision": null,
+        "schemaVersion": "1.0.0",
+        "sourceTurn": "",
+        "supersedes": null
+      },
+      "name": "changed 是 affectedIds 的第三顺位",
+      "raw": {
+        "answer": 1,
+        "changed": [
+          "a",
+          "b"
+        ],
+        "questionId": "q1"
+      }
+    },
+    {
+      "decision": {
+        "$schema": "ontocopilot.decision/1",
+        "actor": "user",
+        "actorRole": "",
+        "affectedIds": [],
+        "answer": 1,
+        "authority": "",
+        "createdAt": 42.5,
+        "id": "dec_a98f3456989961237a14",
+        "idempotencyKey": "",
+        "metadata": {},
+        "questionId": "q1",
+        "rationale": "",
+        "revision": null,
+        "schemaVersion": "1.0.0",
+        "sourceTurn": "",
+        "supersedes": null
+      },
+      "name": "ts 是 createdAt 的第二顺位",
+      "raw": {
+        "answer": 1,
+        "questionId": "q1",
+        "ts": 42.5
+      }
+    },
+    {
+      "decision": {
+        "$schema": "ontocopilot.decision/1",
+        "actor": "user",
+        "actorRole": "",
+        "affectedIds": [],
+        "answer": 1,
+        "authority": "",
+        "createdAt": 1700000000.0,
+        "id": "dec_a98f3456989961237a14",
+        "idempotencyKey": "",
+        "metadata": {},
+        "questionId": "q1",
+        "rationale": "顺手",
+        "revision": null,
+        "schemaVersion": "1.0.0",
+        "sourceTurn": "",
+        "supersedes": null
+      },
+      "name": "note 是 rationale 的第二顺位",
+      "raw": {
+        "answer": 1,
+        "note": "顺手",
+        "questionId": "q1"
+      }
+    }
+  ],
+  "decisions": {
+    "active_for_missing": null,
+    "active_for_q1": "dec_3d3ae306cf35a68ecd6d",
+    "duplicate_id": {
+      "error": "ValueError",
+      "message": "Decision id 重复",
+      "ok": false
+    },
+    "duplicate_key": {
+      "error": "ValueError",
+      "message": "Decision idempotencyKey 重复",
+      "ok": false
+    },
+    "fingerprint": "0ded9786f05d22e6660d80d0612ce64ba4f7db31c98828befc8aff5e57ca0212",
+    "from_dict_round_trip": {
+      "$schema": "ontocopilot.decision/1",
+      "actor": "u1",
+      "actorRole": "business_owner",
+      "affectedIds": [
+        "z.artifact",
+        "a.artifact",
+        "😀",
+        "￿"
+      ],
+      "answer": true,
+      "authority": "process_owner",
+      "createdAt": 500.0,
+      "id": "dec.1",
+      "idempotencyKey": "",
+      "metadata": {},
+      "questionId": "q1",
+      "rationale": "按 2026 年新制度",
+      "revision": null,
+      "schemaVersion": "1.0.0",
+      "sourceTurn": "",
+      "supersedes": null
+    },
+    "ledger": {
+      "$schema": "ontocopilot.decision-ledger/1",
+      "decisions": [
+        {
+          "$schema": "ontocopilot.decision/1",
+          "actor": "u1",
+          "actorRole": "",
+          "affectedIds": [],
+          "answer": true,
+          "authority": "",
+          "createdAt": 500.0,
+          "id": "dec_f206a556bc0e2f544b3b",
+          "idempotencyKey": "k1",
+          "metadata": {},
+          "questionId": "q1",
+          "rationale": "",
+          "revision": null,
+          "schemaVersion": "1.0.0",
+          "sourceTurn": "",
+          "supersedes": null
+        },
+        {
+          "$schema": "ontocopilot.decision/1",
+          "actor": "u1",
+          "actorRole": "",
+          "affectedIds": [],
+          "answer": false,
+          "authority": "",
+          "createdAt": 500.0,
+          "id": "dec_3d3ae306cf35a68ecd6d",
+          "idempotencyKey": "k2",
+          "metadata": {},
+          "questionId": "q1",
+          "rationale": "",
+          "revision": null,
+          "schemaVersion": "1.0.0",
+          "sourceTurn": "",
+          "supersedes": "dec_f206a556bc0e2f544b3b"
+        }
+      ],
+      "schemaVersion": "1.0.0"
+    },
+    "ledger_from_list": {
+      "$schema": "ontocopilot.decision-ledger/1",
+      "decisions": [
+        {
+          "$schema": "ontocopilot.decision/1",
+          "actor": "u1",
+          "actorRole": "",
+          "affectedIds": [],
+          "answer": true,
+          "authority": "",
+          "createdAt": 500.0,
+          "id": "dec_f206a556bc0e2f544b3b",
+          "idempotencyKey": "k1",
+          "metadata": {},
+          "questionId": "q1",
+          "rationale": "",
+          "revision": null,
+          "schemaVersion": "1.0.0",
+          "sourceTurn": "",
+          "supersedes": null
+        },
+        {
+          "$schema": "ontocopilot.decision/1",
+          "actor": "u1",
+          "actorRole": "",
+          "affectedIds": [],
+          "answer": false,
+          "authority": "",
+          "createdAt": 500.0,
+          "id": "dec_3d3ae306cf35a68ecd6d",
+          "idempotencyKey": "k2",
+          "metadata": {},
+          "questionId": "q1",
+          "rationale": "",
+          "revision": null,
+          "schemaVersion": "1.0.0",
+          "sourceTurn": "",
+          "supersedes": "dec_f206a556bc0e2f544b3b"
+        }
+      ],
+      "schemaVersion": "1.0.0"
+    },
+    "ledger_round_trip": {
+      "$schema": "ontocopilot.decision-ledger/1",
+      "decisions": [
+        {
+          "$schema": "ontocopilot.decision/1",
+          "actor": "u1",
+          "actorRole": "",
+          "affectedIds": [],
+          "answer": true,
+          "authority": "",
+          "createdAt": 500.0,
+          "id": "dec_f206a556bc0e2f544b3b",
+          "idempotencyKey": "k1",
+          "metadata": {},
+          "questionId": "q1",
+          "rationale": "",
+          "revision": null,
+          "schemaVersion": "1.0.0",
+          "sourceTurn": "",
+          "supersedes": null
+        },
+        {
+          "$schema": "ontocopilot.decision/1",
+          "actor": "u1",
+          "actorRole": "",
+          "affectedIds": [],
+          "answer": false,
+          "authority": "",
+          "createdAt": 500.0,
+          "id": "dec_3d3ae306cf35a68ecd6d",
+          "idempotencyKey": "k2",
+          "metadata": {},
+          "questionId": "q1",
+          "rationale": "",
+          "revision": null,
+          "schemaVersion": "1.0.0",
+          "sourceTurn": "",
+          "supersedes": "dec_f206a556bc0e2f544b3b"
+        }
+      ],
+      "schemaVersion": "1.0.0"
+    },
+    "records": [
+      {
+        "created": true,
+        "id": "dec_f206a556bc0e2f544b3b",
+        "name": "首次记录"
+      },
+      {
+        "created": false,
+        "id": "dec_f206a556bc0e2f544b3b",
+        "name": "同幂等键同内容"
+      },
+      {
+        "name": "同幂等键不同内容",
+        "result": {
+          "error": "IdempotencyConflict",
+          "message": "幂等键 'k1' 已用于另一份回答",
+          "ok": false
+        }
+      },
+      {
+        "created": true,
+        "id": "dec_3d3ae306cf35a68ecd6d",
+        "name": "新答案 supersede 旧的",
+        "supersedes": "dec_f206a556bc0e2f544b3b"
+      },
+      {
+        "created": false,
+        "id": "dec_3d3ae306cf35a68ecd6d",
+        "name": "与 active 完全一致"
+      }
+    ],
+    "semantic_payload": {
+      "actor": "u1",
+      "actorRole": "business_owner",
+      "affectedIds": [
+        "a.artifact",
+        "z.artifact",
+        "￿",
+        "😀"
+      ],
+      "answer": true,
+      "authority": "process_owner",
+      "questionId": "q1",
+      "rationale": "按 2026 年新制度",
+      "sourceTurn": ""
+    },
+    "to_dict": {
+      "$schema": "ontocopilot.decision/1",
+      "actor": "u1",
+      "actorRole": "business_owner",
+      "affectedIds": [
+        "z.artifact",
+        "a.artifact",
+        "😀",
+        "￿"
+      ],
+      "answer": true,
+      "authority": "process_owner",
+      "createdAt": 500.0,
+      "id": "dec.1",
+      "idempotencyKey": "",
+      "metadata": {},
+      "questionId": "q1",
+      "rationale": "按 2026 年新制度",
+      "revision": null,
+      "schemaVersion": "1.0.0",
+      "sourceTurn": "",
+      "supersedes": null
+    }
+  },
+  "from_dict": [
+    {
+      "name": "最小输入：只有 text，id 由内容摘要导出",
+      "question": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "q_15c76dc733318f8e5f8c",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "manual",
+        "sourceRef": "",
+        "status": "open",
+        "text": "提前多少天预警？",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      },
+      "raw": {
+        "text": "提前多少天预警？"
+      },
+      "round_trip": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "q_15c76dc733318f8e5f8c",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "manual",
+        "sourceRef": "",
+        "status": "open",
+        "text": "提前多少天预警？",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      }
+    },
+    {
+      "name": "id 优先于 rid",
+      "question": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "q1",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "open_question",
+        "sourceRef": "oq_1",
+        "status": "open",
+        "text": "x",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      },
+      "raw": {
+        "id": "q1",
+        "rid": "oq_1",
+        "text": "x"
+      },
+      "round_trip": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "q1",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "open_question",
+        "sourceRef": "oq_1",
+        "status": "open",
+        "text": "x",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      }
+    },
+    {
+      "name": "rid 存在即认定为 open_question 来源",
+      "question": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "oq_1",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "open_question",
+        "sourceRef": "oq_1",
+        "status": "open",
+        "text": "x",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      },
+      "raw": {
+        "rid": "oq_1",
+        "text": "x"
+      },
+      "round_trip": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "oq_1",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "open_question",
+        "sourceRef": "oq_1",
+        "status": "open",
+        "text": "x",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      }
+    },
+    {
+      "name": "conflict_rid 存在即认定为 conflict 来源",
+      "question": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "enum": [
+            "include"
+          ],
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 4,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "q_5f192b3868f4a3f7bfd4",
+        "informationGain": 0.8,
+        "metadata": {},
+        "options": [
+          {
+            "id": "include",
+            "label": "包含50万"
+          }
+        ],
+        "ownerUserId": "",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "conflict",
+        "sourceRef": "cf_1",
+        "status": "open",
+        "text": "审批边界不明确",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      },
+      "raw": {
+        "conflict_rid": "cf_1",
+        "impact_count": 4,
+        "options": [
+          {
+            "id": "include",
+            "label": "包含50万"
+          }
+        ],
+        "score": 0.8,
+        "title": "审批边界不明确"
+      },
+      "round_trip": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "enum": [
+            "include"
+          ],
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 4,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "q_5f192b3868f4a3f7bfd4",
+        "informationGain": 0.8,
+        "metadata": {},
+        "options": [
+          {
+            "id": "include",
+            "label": "包含50万"
+          }
+        ],
+        "ownerUserId": "",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "conflict",
+        "sourceRef": "cf_1",
+        "status": "open",
+        "text": "审批边界不明确",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      }
+    },
+    {
+      "name": "conflict 的 options 变成 enum 型 answerSchema",
+      "question": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "enum": [
+            "a",
+            "b",
+            "None"
+          ],
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "q_439c21d3ad6f771efd75",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [
+          "a",
+          {
+            "id": "b"
+          },
+          {
+            "x": 1
+          }
+        ],
+        "ownerUserId": "",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "conflict",
+        "sourceRef": "cf_2",
+        "status": "open",
+        "text": "口径冲突",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      },
+      "raw": {
+        "conflictRid": "cf_2",
+        "options": [
+          "a",
+          {
+            "id": "b"
+          },
+          {
+            "x": 1
+          }
+        ],
+        "summary": "口径冲突"
+      },
+      "round_trip": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "enum": [
+            "a",
+            "b",
+            "None"
+          ],
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "q_439c21d3ad6f771efd75",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [
+          "a",
+          {
+            "id": "b"
+          },
+          {
+            "x": 1
+          }
+        ],
+        "ownerUserId": "",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "conflict",
+        "sourceRef": "cf_2",
+        "status": "open",
+        "text": "口径冲突",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      }
+    },
+    {
+      "name": "open_question 的 options 不变成 enum",
+      "question": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "oq_2",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [
+          "甲",
+          "乙"
+        ],
+        "ownerUserId": "",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "open_question",
+        "sourceRef": "oq_2",
+        "status": "open",
+        "text": "x",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      },
+      "raw": {
+        "options": [
+          "甲",
+          "乙"
+        ],
+        "rid": "oq_2",
+        "text": "x"
+      },
+      "round_trip": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "oq_2",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [
+          "甲",
+          "乙"
+        ],
+        "ownerUserId": "",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "open_question",
+        "sourceRef": "oq_2",
+        "status": "open",
+        "text": "x",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      }
+    },
+    {
+      "name": "text 是 Assertion 字典时取 value",
+      "question": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "oq_3",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "open_question",
+        "sourceRef": "oq_3",
+        "status": "open",
+        "text": "更新后的文案",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      },
+      "raw": {
+        "rid": "oq_3",
+        "text": {
+          "origin": "extracted",
+          "value": "更新后的文案"
+        }
+      },
+      "round_trip": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "oq_3",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "open_question",
+        "sourceRef": "oq_3",
+        "status": "open",
+        "text": "更新后的文案",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      }
+    },
+    {
+      "name": "text 显式为 None 时不回落到 title",
+      "question": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "q_5a82cc7c24c36af0d516",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "manual",
+        "sourceRef": "",
+        "status": "open",
+        "text": "",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      },
+      "raw": {
+        "text": null,
+        "title": "标题不该被用上"
+      },
+      "round_trip": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "q_5a82cc7c24c36af0d516",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "manual",
+        "sourceRef": "",
+        "status": "open",
+        "text": "",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      }
+    },
+    {
+      "name": "没有 text 时回落 title",
+      "question": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "q_7f5a303b3017dd8b2f5d",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "manual",
+        "sourceRef": "",
+        "status": "open",
+        "text": "标题",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      },
+      "raw": {
+        "title": "标题"
+      },
+      "round_trip": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "q_7f5a303b3017dd8b2f5d",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "manual",
+        "sourceRef": "",
+        "status": "open",
+        "text": "标题",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      }
+    },
+    {
+      "name": "没有 text/title 时回落 summary",
+      "question": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "q_a0631bb42ce8add79992",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "manual",
+        "sourceRef": "",
+        "status": "open",
+        "text": "摘要",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      },
+      "raw": {
+        "summary": "摘要"
+      },
+      "round_trip": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "q_a0631bb42ce8add79992",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "manual",
+        "sourceRef": "",
+        "status": "open",
+        "text": "摘要",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      }
+    },
+    {
+      "name": "evidence id 从 text.evidence 里捞（先 id、再 cite、再 file_id）",
+      "question": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [
+          "ev1",
+          "材料.xlsx!表!R1-1",
+          "f9"
+        ],
+        "group": "",
+        "id": "oq_4",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "open_question",
+        "sourceRef": "oq_4",
+        "status": "open",
+        "text": "x",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      },
+      "raw": {
+        "rid": "oq_4",
+        "text": {
+          "evidence": [
+            {
+              "id": "ev1"
+            },
+            {
+              "cite": "材料.xlsx!表!R1-1"
+            },
+            {
+              "file_id": "f9"
+            },
+            {
+              "nothing": 1
+            },
+            "不是字典"
+          ],
+          "value": "x"
+        }
+      },
+      "round_trip": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [
+          "ev1",
+          "材料.xlsx!表!R1-1",
+          "f9"
+        ],
+        "group": "",
+        "id": "oq_4",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "open_question",
+        "sourceRef": "oq_4",
+        "status": "open",
+        "text": "x",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      }
+    },
+    {
+      "name": "显式 evidenceIds 优先于 text.evidence",
+      "question": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [
+          "显式的"
+        ],
+        "group": "",
+        "id": "oq_5",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "open_question",
+        "sourceRef": "oq_5",
+        "status": "open",
+        "text": "x",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      },
+      "raw": {
+        "evidenceIds": [
+          "显式的"
+        ],
+        "rid": "oq_5",
+        "text": {
+          "evidence": [
+            {
+              "id": "ev1"
+            }
+          ],
+          "value": "x"
+        }
+      },
+      "round_trip": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [
+          "显式的"
+        ],
+        "group": "",
+        "id": "oq_5",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "open_question",
+        "sourceRef": "oq_5",
+        "status": "open",
+        "text": "x",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      }
+    },
+    {
+      "name": "answer 非空即视为已回答",
+      "question": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "oq_6",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "open_question",
+        "sourceRef": "oq_6",
+        "status": "answered",
+        "text": "x",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      },
+      "raw": {
+        "answer": "是",
+        "rid": "oq_6",
+        "text": "x"
+      },
+      "round_trip": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "oq_6",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "open_question",
+        "sourceRef": "oq_6",
+        "status": "answered",
+        "text": "x",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      }
+    },
+    {
+      "name": "answer 是 Assertion 字典同样算",
+      "question": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "oq_7",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "open_question",
+        "sourceRef": "oq_7",
+        "status": "answered",
+        "text": "x",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      },
+      "raw": {
+        "answer": {
+          "value": "是"
+        },
+        "rid": "oq_7",
+        "text": "x"
+      },
+      "round_trip": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "oq_7",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "open_question",
+        "sourceRef": "oq_7",
+        "status": "answered",
+        "text": "x",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      }
+    },
+    {
+      "name": "answer 为 0 也算已回答（Python 的 not in (None,'',[],{}) 判据）",
+      "question": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "oq_8",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "open_question",
+        "sourceRef": "oq_8",
+        "status": "answered",
+        "text": "x",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      },
+      "raw": {
+        "answer": 0,
+        "rid": "oq_8",
+        "text": "x"
+      },
+      "round_trip": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "oq_8",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "open_question",
+        "sourceRef": "oq_8",
+        "status": "answered",
+        "text": "x",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      }
+    },
+    {
+      "name": "answer 为 False 也算已回答",
+      "question": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "oq_9",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "open_question",
+        "sourceRef": "oq_9",
+        "status": "answered",
+        "text": "x",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      },
+      "raw": {
+        "answer": false,
+        "rid": "oq_9",
+        "text": "x"
+      },
+      "round_trip": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "oq_9",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "open_question",
+        "sourceRef": "oq_9",
+        "status": "answered",
+        "text": "x",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      }
+    },
+    {
+      "name": "answer 为空列表不算",
+      "question": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "oq_10",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "open_question",
+        "sourceRef": "oq_10",
+        "status": "open",
+        "text": "x",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      },
+      "raw": {
+        "answer": [],
+        "rid": "oq_10",
+        "text": "x"
+      },
+      "round_trip": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "oq_10",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "open_question",
+        "sourceRef": "oq_10",
+        "status": "open",
+        "text": "x",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      }
+    },
+    {
+      "name": "answer 为空字典不算",
+      "question": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "oq_11",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "open_question",
+        "sourceRef": "oq_11",
+        "status": "open",
+        "text": "x",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      },
+      "raw": {
+        "answer": {},
+        "rid": "oq_11",
+        "text": "x"
+      },
+      "round_trip": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "oq_11",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "open_question",
+        "sourceRef": "oq_11",
+        "status": "open",
+        "text": "x",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      }
+    },
+    {
+      "name": "status=candidate 映射成 open",
+      "question": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "oq_12",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "open_question",
+        "sourceRef": "oq_12",
+        "status": "open",
+        "text": "x",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      },
+      "raw": {
+        "rid": "oq_12",
+        "status": "candidate",
+        "text": "x"
+      },
+      "round_trip": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "oq_12",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "open_question",
+        "sourceRef": "oq_12",
+        "status": "open",
+        "text": "x",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      }
+    },
+    {
+      "name": "status=confirmed 映射成 answered",
+      "question": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "oq_13",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "open_question",
+        "sourceRef": "oq_13",
+        "status": "answered",
+        "text": "x",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      },
+      "raw": {
+        "rid": "oq_13",
+        "status": "confirmed",
+        "text": "x"
+      },
+      "round_trip": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "oq_13",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "open_question",
+        "sourceRef": "oq_13",
+        "status": "answered",
+        "text": "x",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      }
+    },
+    {
+      "name": "status=rejected 映射成 cancelled",
+      "question": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "oq_14",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "open_question",
+        "sourceRef": "oq_14",
+        "status": "cancelled",
+        "text": "x",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      },
+      "raw": {
+        "rid": "oq_14",
+        "status": "rejected",
+        "text": "x"
+      },
+      "round_trip": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "oq_14",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "open_question",
+        "sourceRef": "oq_14",
+        "status": "cancelled",
+        "text": "x",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      }
+    },
+    {
+      "name": "status 大写解析不了 —— 回落 open",
+      "question": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "oq_15",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "open_question",
+        "sourceRef": "oq_15",
+        "status": "open",
+        "text": "x",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      },
+      "raw": {
+        "rid": "oq_15",
+        "status": "OPEN",
+        "text": "x"
+      },
+      "round_trip": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "oq_15",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "open_question",
+        "sourceRef": "oq_15",
+        "status": "open",
+        "text": "x",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      }
+    },
+    {
+      "name": "status 认不出来 —— 回落 open",
+      "question": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "oq_16",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "open_question",
+        "sourceRef": "oq_16",
+        "status": "open",
+        "text": "x",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      },
+      "raw": {
+        "rid": "oq_16",
+        "status": "不认识",
+        "text": "x"
+      },
+      "round_trip": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "oq_16",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "open_question",
+        "sourceRef": "oq_16",
+        "status": "open",
+        "text": "x",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      }
+    },
+    {
+      "name": "没有 status 但有 owner —— 推断成 assigned",
+      "question": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "oq_17",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "erp.consultant",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "open_question",
+        "sourceRef": "oq_17",
+        "status": "assigned",
+        "text": "x",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      },
+      "raw": {
+        "owner": "erp.consultant",
+        "rid": "oq_17",
+        "text": "x"
+      },
+      "round_trip": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "oq_17",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "erp.consultant",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "open_question",
+        "sourceRef": "oq_17",
+        "status": "assigned",
+        "text": "x",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      }
+    },
+    {
+      "name": "显式 status=open + owner —— 必须原样保留 open",
+      "question": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "q_17b",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "u1",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "manual",
+        "sourceRef": "",
+        "status": "open",
+        "text": "x",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      },
+      "raw": {
+        "id": "q_17b",
+        "ownerUserId": "u1",
+        "status": "open",
+        "text": "x"
+      },
+      "round_trip": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "q_17b",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "u1",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "manual",
+        "sourceRef": "",
+        "status": "open",
+        "text": "x",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      }
+    },
+    {
+      "name": "open_question + owner + candidate —— 解释成 assigned",
+      "question": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "oq_18",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "u1",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "open_question",
+        "sourceRef": "oq_18",
+        "status": "assigned",
+        "text": "x",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      },
+      "raw": {
+        "owner": "u1",
+        "rid": "oq_18",
+        "status": "candidate",
+        "text": "x"
+      },
+      "round_trip": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "oq_18",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "u1",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "open_question",
+        "sourceRef": "oq_18",
+        "status": "assigned",
+        "text": "x",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      }
+    },
+    {
+      "name": "blockedArtifacts 非空即 blocking 优先级",
+      "question": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [
+          "a"
+        ],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "q19",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "",
+        "priority": "blocking",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "manual",
+        "sourceRef": "",
+        "status": "open",
+        "text": "x",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      },
+      "raw": {
+        "blockedArtifacts": [
+          "a"
+        ],
+        "id": "q19",
+        "text": "x"
+      },
+      "round_trip": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [
+          "a"
+        ],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "q19",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "",
+        "priority": "blocking",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "manual",
+        "sourceRef": "",
+        "status": "open",
+        "text": "x",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      }
+    },
+    {
+      "name": "显式 priority 认不出来 —— 回落 normal",
+      "question": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "q20",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "manual",
+        "sourceRef": "",
+        "status": "open",
+        "text": "x",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      },
+      "raw": {
+        "id": "q20",
+        "priority": "紧急",
+        "text": "x"
+      },
+      "round_trip": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "q20",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "manual",
+        "sourceRef": "",
+        "status": "open",
+        "text": "x",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      }
+    },
+    {
+      "name": "priority 大小写不敏感",
+      "question": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "q21",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "",
+        "priority": "high",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "manual",
+        "sourceRef": "",
+        "status": "open",
+        "text": "x",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      },
+      "raw": {
+        "id": "q21",
+        "priority": "HIGH",
+        "text": "x"
+      },
+      "round_trip": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "q21",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "",
+        "priority": "high",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "manual",
+        "sourceRef": "",
+        "status": "open",
+        "text": "x",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      }
+    },
+    {
+      "name": "snake_case 别名全都认",
+      "question": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "number"
+        },
+        "audienceRole": "erp",
+        "blastRadius": 0,
+        "blockedArtifacts": [
+          "a1"
+        ],
+        "code": "",
+        "createdAt": 1.5,
+        "dependencies": [],
+        "evidenceIds": [
+          "e1"
+        ],
+        "group": "",
+        "id": "q22",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "",
+        "priority": "blocking",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [
+          "s1"
+        ],
+        "sourceKind": "manual",
+        "sourceRef": "",
+        "status": "open",
+        "text": "x",
+        "updatedAt": 2.5,
+        "version": 0,
+        "why": ""
+      },
+      "raw": {
+        "answer_schema": {
+          "type": "number"
+        },
+        "audience_role": "erp",
+        "blocked_artifacts": [
+          "a1"
+        ],
+        "created_at": 1.5,
+        "evidence_ids": [
+          "e1"
+        ],
+        "id": "q22",
+        "scope_refs": [
+          "s1"
+        ],
+        "text": "x",
+        "updated_at": 2.5
+      },
+      "round_trip": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "number"
+        },
+        "audienceRole": "erp",
+        "blastRadius": 0,
+        "blockedArtifacts": [
+          "a1"
+        ],
+        "code": "",
+        "createdAt": 1.5,
+        "dependencies": [],
+        "evidenceIds": [
+          "e1"
+        ],
+        "group": "",
+        "id": "q22",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "",
+        "priority": "blocking",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [
+          "s1"
+        ],
+        "sourceKind": "manual",
+        "sourceRef": "",
+        "status": "open",
+        "text": "x",
+        "updatedAt": 2.5,
+        "version": 0,
+        "why": ""
+      }
+    },
+    {
+      "name": "appliesTo 作为 scopeRefs 的第三顺位",
+      "question": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "oq_23",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [
+          "ot_a",
+          "ot_b"
+        ],
+        "sourceKind": "open_question",
+        "sourceRef": "oq_23",
+        "status": "open",
+        "text": "x",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      },
+      "raw": {
+        "appliesTo": [
+          "ot_a",
+          "ot_b"
+        ],
+        "rid": "oq_23",
+        "text": "x"
+      },
+      "round_trip": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "oq_23",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [
+          "ot_a",
+          "ot_b"
+        ],
+        "sourceKind": "open_question",
+        "sourceRef": "oq_23",
+        "status": "open",
+        "text": "x",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      }
+    },
+    {
+      "name": "informationGain 回落 score、blastRadius 回落 impact_count",
+      "question": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 4,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "q24",
+        "informationGain": 0.8,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "manual",
+        "sourceRef": "",
+        "status": "open",
+        "text": "x",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      },
+      "raw": {
+        "id": "q24",
+        "impact_count": 4,
+        "score": 0.8,
+        "text": "x"
+      },
+      "round_trip": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 4,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "q24",
+        "informationGain": 0.8,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "manual",
+        "sourceRef": "",
+        "status": "open",
+        "text": "x",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      }
+    },
+    {
+      "name": "缺 createdAt/updatedAt 时落到当前时间",
+      "question": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "q25",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "manual",
+        "sourceRef": "",
+        "status": "open",
+        "text": "x",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      },
+      "raw": {
+        "id": "q25",
+        "text": "x"
+      },
+      "round_trip": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "q25",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "manual",
+        "sourceRef": "",
+        "status": "open",
+        "text": "x",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      }
+    }
+  ],
+  "from_legacy": [
+    {
+      "name": "带证据与选项的客户问卷条目",
+      "open_question": {
+        "answer": {
+          "confidence": 0.4,
+          "evidence": [],
+          "origin": "inferred",
+          "value": ""
+        },
+        "appliesTo": [],
+        "askedBy": "customer",
+        "code": "3",
+        "group": "（1）编制集采计划",
+        "kind": "OpenQuestion",
+        "options": [
+          "全线下",
+          "系统里编"
+        ],
+        "owner": "erp.consultant",
+        "rid": "oq_own",
+        "status": "candidate",
+        "text": {
+          "confidence": 0.8,
+          "evidence": [
+            {
+              "cite": "材料.xlsx!问卷!R3CB",
+              "confidence": 1.0,
+              "extractor": "rule",
+              "file_id": "f1",
+              "file_name": "材料.xlsx",
+              "locator": {
+                "col": "B",
+                "kind": "cell",
+                "row": 3,
+                "sheet": "问卷"
+              },
+              "snippet": "集采和普通采购怎么分？"
+            }
+          ],
+          "origin": "extracted",
+          "value": "集采和普通采购怎么分？"
+        }
+      },
+      "question": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "3",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [
+          "材料.xlsx!问卷!R3CB"
+        ],
+        "group": "（1）编制集采计划",
+        "id": "oq_own",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [
+          "全线下",
+          "系统里编"
+        ],
+        "ownerUserId": "erp.consultant",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "open_question",
+        "sourceRef": "oq_own",
+        "status": "assigned",
+        "text": "集采和普通采购怎么分？",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      }
+    },
+    {
+      "name": "系统自挖、无 owner",
+      "open_question": {
+        "answer": {
+          "confidence": 0.4,
+          "evidence": [],
+          "origin": "inferred",
+          "value": ""
+        },
+        "appliesTo": [
+          "ot_a"
+        ],
+        "askedBy": "system",
+        "code": "",
+        "group": "",
+        "kind": "OpenQuestion",
+        "options": [],
+        "owner": null,
+        "rid": "oq_sys",
+        "status": "candidate",
+        "text": {
+          "confidence": 0.4,
+          "evidence": [],
+          "origin": "inferred",
+          "value": "这条规则管的是哪个单据？"
+        }
+      },
+      "question": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "oq_sys",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [
+          "ot_a"
+        ],
+        "sourceKind": "open_question",
+        "sourceRef": "oq_sys",
+        "status": "open",
+        "text": "这条规则管的是哪个单据？",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      }
+    },
+    {
+      "name": "已经有答复的条目",
+      "open_question": {
+        "answer": {
+          "confidence": 0.4,
+          "evidence": [],
+          "origin": "inferred",
+          "value": "要"
+        },
+        "appliesTo": [],
+        "askedBy": "customer",
+        "code": "",
+        "group": "",
+        "kind": "OpenQuestion",
+        "options": [],
+        "owner": null,
+        "rid": "oq_answered",
+        "status": "candidate",
+        "text": {
+          "confidence": 0.4,
+          "evidence": [],
+          "origin": "inferred",
+          "value": "要不要留痕？"
+        }
+      },
+      "question": {
+        "$schema": "ontocopilot.question/1",
+        "answerSchema": {
+          "type": "string"
+        },
+        "audienceRole": "",
+        "blastRadius": 0,
+        "blockedArtifacts": [],
+        "code": "",
+        "createdAt": 1700000000.0,
+        "dependencies": [],
+        "evidenceIds": [],
+        "group": "",
+        "id": "oq_answered",
+        "informationGain": 0.0,
+        "metadata": {},
+        "options": [],
+        "ownerUserId": "",
+        "priority": "normal",
+        "schemaVersion": "1.0.0",
+        "scopeRefs": [],
+        "sourceKind": "open_question",
+        "sourceRef": "oq_answered",
+        "status": "answered",
+        "text": "要不要留痕？",
+        "updatedAt": 1700000000.0,
+        "version": 0,
+        "why": ""
+      }
+    }
+  ],
+  "from_legacy_errors": [
+    {
+      "input": "一个字符串",
+      "result": {
+        "error": "TypeError",
+        "message": "无法转换为 Question: str",
+        "ok": false
+      }
+    },
+    {
+      "input": "一个列表",
+      "result": {
+        "error": "TypeError",
+        "message": "无法转换为 Question: list",
+        "ok": false
+      }
+    },
+    {
+      "input": "None",
+      "result": {
+        "error": "TypeError",
+        "message": "无法转换为 Question: NoneType",
+        "ok": false
+      }
+    },
+    {
+      "input": "一个整数",
+      "result": {
+        "error": "TypeError",
+        "message": "无法转换为 Question: int",
+        "ok": false
+      }
+    }
+  ],
+  "next_batch": [
+    {
+      "all": [
+        "q.ready",
+        "q.erp"
+      ],
+      "batch": [
+        "q.ready"
+      ],
+      "name": "依赖 / 角色 / 优先级三重过滤",
+      "stats": {
+        "answered": 1,
+        "assigned": 0,
+        "blocked": 0,
+        "blockingOpen": 2,
+        "cancelled": 0,
+        "deferred": 0,
+        "open": 3,
+        "total": 4
+      }
+    },
+    {
+      "batch": [
+        "q.blocking",
+        "q.high",
+        "q.normal",
+        "q.low"
+      ],
+      "name": "按优先级权重排"
+    },
+    {
+      "batch": [
+        "q.b",
+        "q.c",
+        "q.a",
+        "q.d"
+      ],
+      "name": "信息增益 × 影响半径"
+    },
+    {
+      "batch": [
+        "Zz",
+        "q.早",
+        "q.￿",
+        "q.😀",
+        "q.晚"
+      ],
+      "name": "created_at 然后 id 按 code point",
+      "to_dict_order": [
+        "Zz",
+        "q.早",
+        "q.￿",
+        "q.😀",
+        "q.晚"
+      ]
+    },
+    {
+      "batch": [
+        "q.free",
+        "q.mine"
+      ],
+      "name": "owner 过滤放行无主问题"
+    },
+    {
+      "name": "limit=0 与负数",
+      "negative": [],
+      "zero": []
+    }
+  ],
+  "now": 1700000000.0,
+  "patch": {
+    "op_errors": [
+      {
+        "name": "不支持的 op",
+        "result": {
+          "error": "ValueError",
+          "message": "不支持的 patch op: upsert",
+          "ok": false
+        }
+      },
+      {
+        "name": "path 不是 JSON Pointer",
+        "result": {
+          "error": "ValueError",
+          "message": "PatchOp.path 必须是 JSON Pointer",
+          "ok": false
+        }
+      },
+      {
+        "name": "move 缺 from_path",
+        "result": {
+          "error": "ValueError",
+          "message": "move 必须提供 from_path",
+          "ok": false
+        }
+      },
+      {
+        "name": "copy 的 from_path 不是 Pointer",
+        "result": {
+          "error": "ValueError",
+          "message": "copy 必须提供 from_path",
+          "ok": false
+        }
+      }
+    ],
+    "ops": [
+      {
+        "op": "replace",
+        "path": "/rules/rule.approval/expression",
+        "targetIds": [
+          "rule.approval"
+        ],
+        "value": "amount >= 500000"
+      },
+      {
+        "op": "remove",
+        "path": "/rules/rule.old"
+      },
+      {
+        "from": "/rules/a",
+        "op": "move",
+        "path": "/rules/b",
+        "value": null
+      }
+    ],
+    "ops_round_trip": [
+      {
+        "op": "replace",
+        "path": "/rules/rule.approval/expression",
+        "targetIds": [
+          "rule.approval"
+        ],
+        "value": "amount >= 500000"
+      },
+      {
+        "op": "remove",
+        "path": "/rules/rule.old"
+      },
+      {
+        "from": "/rules/a",
+        "op": "move",
+        "path": "/rules/b",
+        "value": null
+      }
+    ],
+    "patch": {
+      "$schema": "ontocopilot.patch-set/1",
+      "actor": "u1",
+      "affectedIds": [
+        "z.rule",
+        "a.rule"
+      ],
+      "baseRevision": 12,
+      "blockedArtifacts": [
+        "flow.approval"
+      ],
+      "createdAt": 600.0,
+      "fingerprint": "02f226e3a6ec30c1961d31686ceec48fbe04bb66cb42b8b94cc3ae1ce7003455",
+      "id": "patch.13",
+      "idempotencyKey": "edit-12-a",
+      "ops": [
+        {
+          "op": "replace",
+          "path": "/rules/rule.approval/expression",
+          "targetIds": [
+            "rule.approval"
+          ],
+          "value": "amount >= 500000"
+        },
+        {
+          "op": "remove",
+          "path": "/rules/rule.old"
+        },
+        {
+          "from": "/rules/a",
+          "op": "move",
+          "path": "/rules/b",
+          "value": null
+        }
+      ],
+      "reason": "",
+      "schemaVersion": "1.0.0"
+    },
+    "patch_id_from_ops": {
+      "$schema": "ontocopilot.patch-set/1",
+      "actor": "agent",
+      "affectedIds": [],
+      "baseRevision": 1,
+      "blockedArtifacts": [],
+      "createdAt": 1700000000.0,
+      "fingerprint": "be2d031d2b742e1789b9a9eca91708d6acc475a43b09e90a12e594d31084a44a",
+      "id": "patch_808965009a51a6a3aa9f",
+      "idempotencyKey": "",
+      "ops": [
+        {
+          "op": "add",
+          "path": "/a",
+          "value": 1
+        }
+      ],
+      "reason": "",
+      "schemaVersion": "1.0.0"
+    },
+    "patch_round_trip": {
+      "$schema": "ontocopilot.patch-set/1",
+      "actor": "u1",
+      "affectedIds": [
+        "z.rule",
+        "a.rule"
+      ],
+      "baseRevision": 12,
+      "blockedArtifacts": [
+        "flow.approval"
+      ],
+      "createdAt": 600.0,
+      "fingerprint": "02f226e3a6ec30c1961d31686ceec48fbe04bb66cb42b8b94cc3ae1ce7003455",
+      "id": "patch.13",
+      "idempotencyKey": "edit-12-a",
+      "ops": [
+        {
+          "op": "replace",
+          "path": "/rules/rule.approval/expression",
+          "targetIds": [
+            "rule.approval"
+          ],
+          "value": "amount >= 500000"
+        },
+        {
+          "op": "remove",
+          "path": "/rules/rule.old"
+        },
+        {
+          "from": "/rules/a",
+          "op": "move",
+          "path": "/rules/b",
+          "value": null
+        }
+      ],
+      "reason": "",
+      "schemaVersion": "1.0.0"
+    },
+    "require_base_conflict": {
+      "error": "RevisionConflict",
+      "message": "PatchSet patch.13 基于 revision 12，当前已是 13",
+      "ok": false
+    },
+    "require_base_ok": {
+      "ok": true,
+      "value": null
+    },
+    "revision": {
+      "$schema": "ontocopilot.revision/1",
+      "actor": "u1",
+      "changedIds": [
+        "rule.approval"
+      ],
+      "createdAt": 601.0,
+      "id": "rev.13",
+      "invalidatedArtifacts": [],
+      "kind": "answer",
+      "ordinal": 13,
+      "parentId": "rev.12",
+      "patchSet": {
+        "$schema": "ontocopilot.patch-set/1",
+        "actor": "u1",
+        "affectedIds": [
+          "z.rule",
+          "a.rule"
+        ],
+        "baseRevision": 12,
+        "blockedArtifacts": [
+          "flow.approval"
+        ],
+        "createdAt": 600.0,
+        "fingerprint": "02f226e3a6ec30c1961d31686ceec48fbe04bb66cb42b8b94cc3ae1ce7003455",
+        "id": "patch.13",
+        "idempotencyKey": "edit-12-a",
+        "ops": [
+          {
+            "op": "replace",
+            "path": "/rules/rule.approval/expression",
+            "targetIds": [
+              "rule.approval"
+            ],
+            "value": "amount >= 500000"
+          },
+          {
+            "op": "remove",
+            "path": "/rules/rule.old"
+          },
+          {
+            "from": "/rules/a",
+            "op": "move",
+            "path": "/rules/b",
+            "value": null
+          }
+        ],
+        "reason": "",
+        "schemaVersion": "1.0.0"
+      },
+      "schemaVersion": "1.0.0",
+      "snapshotHash": "",
+      "sourceTurn": "",
+      "status": "applied"
+    },
+    "revision_bad_status": {
+      "error": "ValueError",
+      "message": "'不认识' is not a valid RevisionStatus",
+      "ok": false
+    },
+    "revision_minimal": {
+      "$schema": "ontocopilot.revision/1",
+      "actor": "agent",
+      "changedIds": [],
+      "createdAt": 1700000000.0,
+      "id": "rev.1",
+      "invalidatedArtifacts": [],
+      "kind": "edit",
+      "ordinal": 0,
+      "parentId": null,
+      "patchSet": null,
+      "schemaVersion": "1.0.0",
+      "snapshotHash": "",
+      "sourceTurn": "",
+      "status": "proposed"
+    },
+    "revision_round_trip": {
+      "$schema": "ontocopilot.revision/1",
+      "actor": "u1",
+      "changedIds": [
+        "rule.approval"
+      ],
+      "createdAt": 601.0,
+      "id": "rev.13",
+      "invalidatedArtifacts": [],
+      "kind": "answer",
+      "ordinal": 13,
+      "parentId": "rev.12",
+      "patchSet": {
+        "$schema": "ontocopilot.patch-set/1",
+        "actor": "u1",
+        "affectedIds": [
+          "z.rule",
+          "a.rule"
+        ],
+        "baseRevision": 12,
+        "blockedArtifacts": [
+          "flow.approval"
+        ],
+        "createdAt": 600.0,
+        "fingerprint": "02f226e3a6ec30c1961d31686ceec48fbe04bb66cb42b8b94cc3ae1ce7003455",
+        "id": "patch.13",
+        "idempotencyKey": "edit-12-a",
+        "ops": [
+          {
+            "op": "replace",
+            "path": "/rules/rule.approval/expression",
+            "targetIds": [
+              "rule.approval"
+            ],
+            "value": "amount >= 500000"
+          },
+          {
+            "op": "remove",
+            "path": "/rules/rule.old"
+          },
+          {
+            "from": "/rules/a",
+            "op": "move",
+            "path": "/rules/b",
+            "value": null
+          }
+        ],
+        "reason": "",
+        "schemaVersion": "1.0.0"
+      },
+      "schemaVersion": "1.0.0",
+      "snapshotHash": "",
+      "sourceTurn": "",
+      "status": "applied"
+    }
+  },
+  "priorities": [
+    "blocking",
+    "high",
+    "normal",
+    "low"
+  ],
+  "revision_statuses": [
+    "proposed",
+    "applied",
+    "rejected",
+    "rolled_back"
+  ],
+  "round_trip": {
+    "question": {
+      "$schema": "ontocopilot.question/1",
+      "answerSchema": {
+        "type": "boolean"
+      },
+      "audienceRole": "business_owner",
+      "blastRadius": 0,
+      "blockedArtifacts": [
+        "rule.approval",
+        "flow.gateway.approval"
+      ],
+      "code": "",
+      "createdAt": 100.0,
+      "dependencies": [
+        "q.amount_basis"
+      ],
+      "evidenceIds": [
+        "ev.221"
+      ],
+      "group": "",
+      "id": "q.threshold",
+      "informationGain": 0.0,
+      "metadata": {},
+      "options": [],
+      "ownerUserId": "user.chen",
+      "priority": "blocking",
+      "schemaVersion": "1.0.0",
+      "scopeRefs": [],
+      "sourceKind": "manual",
+      "sourceRef": "",
+      "status": "open",
+      "text": "金额正好等于50万元时是否需要总监审批？",
+      "updatedAt": 100.0,
+      "version": 0,
+      "why": ""
+    },
+    "round_trip": {
+      "$schema": "ontocopilot.question/1",
+      "answerSchema": {
+        "type": "boolean"
+      },
+      "audienceRole": "business_owner",
+      "blastRadius": 0,
+      "blockedArtifacts": [
+        "rule.approval",
+        "flow.gateway.approval"
+      ],
+      "code": "",
+      "createdAt": 100.0,
+      "dependencies": [
+        "q.amount_basis"
+      ],
+      "evidenceIds": [
+        "ev.221"
+      ],
+      "group": "",
+      "id": "q.threshold",
+      "informationGain": 0.0,
+      "metadata": {},
+      "options": [],
+      "ownerUserId": "user.chen",
+      "priority": "blocking",
+      "schemaVersion": "1.0.0",
+      "scopeRefs": [],
+      "sourceKind": "manual",
+      "sourceRef": "",
+      "status": "open",
+      "text": "金额正好等于50万元时是否需要总监审批？",
+      "updatedAt": 100.0,
+      "version": 0,
+      "why": ""
+    }
+  },
+  "schema_version": "1.0.0",
+  "statuses": [
+    "open",
+    "assigned",
+    "blocked",
+    "answered",
+    "deferred",
+    "cancelled"
+  ],
+  "transitions": [
+    {
+      "after": {
+        "status": "open",
+        "updated_at": 100.0,
+        "version": 0
+      },
+      "from": "open",
+      "owner": "",
+      "result": {
+        "ok": true,
+        "value": null
+      },
+      "to": "open"
+    },
+    {
+      "after": {
+        "status": "open",
+        "updated_at": 100.0,
+        "version": 0
+      },
+      "from": "open",
+      "owner": "u1",
+      "result": {
+        "ok": true,
+        "value": null
+      },
+      "to": "open"
+    },
+    {
+      "after": {
+        "status": "open",
+        "updated_at": 100.0,
+        "version": 0
+      },
+      "from": "open",
+      "owner": "",
+      "result": {
+        "error": "QuestionTransitionError",
+        "message": "问题 q.threshold 分派前必须指定 owner_user_id",
+        "ok": false
+      },
+      "to": "assigned"
+    },
+    {
+      "after": {
+        "status": "assigned",
+        "updated_at": 200.0,
+        "version": 1
+      },
+      "from": "open",
+      "owner": "u1",
+      "result": {
+        "ok": true,
+        "value": null
+      },
+      "to": "assigned"
+    },
+    {
+      "after": {
+        "status": "blocked",
+        "updated_at": 200.0,
+        "version": 1
+      },
+      "from": "open",
+      "owner": "",
+      "result": {
+        "ok": true,
+        "value": null
+      },
+      "to": "blocked"
+    },
+    {
+      "after": {
+        "status": "blocked",
+        "updated_at": 200.0,
+        "version": 1
+      },
+      "from": "open",
+      "owner": "u1",
+      "result": {
+        "ok": true,
+        "value": null
+      },
+      "to": "blocked"
+    },
+    {
+      "after": {
+        "status": "answered",
+        "updated_at": 200.0,
+        "version": 1
+      },
+      "from": "open",
+      "owner": "",
+      "result": {
+        "ok": true,
+        "value": null
+      },
+      "to": "answered"
+    },
+    {
+      "after": {
+        "status": "answered",
+        "updated_at": 200.0,
+        "version": 1
+      },
+      "from": "open",
+      "owner": "u1",
+      "result": {
+        "ok": true,
+        "value": null
+      },
+      "to": "answered"
+    },
+    {
+      "after": {
+        "status": "deferred",
+        "updated_at": 200.0,
+        "version": 1
+      },
+      "from": "open",
+      "owner": "",
+      "result": {
+        "ok": true,
+        "value": null
+      },
+      "to": "deferred"
+    },
+    {
+      "after": {
+        "status": "deferred",
+        "updated_at": 200.0,
+        "version": 1
+      },
+      "from": "open",
+      "owner": "u1",
+      "result": {
+        "ok": true,
+        "value": null
+      },
+      "to": "deferred"
+    },
+    {
+      "after": {
+        "status": "cancelled",
+        "updated_at": 200.0,
+        "version": 1
+      },
+      "from": "open",
+      "owner": "",
+      "result": {
+        "ok": true,
+        "value": null
+      },
+      "to": "cancelled"
+    },
+    {
+      "after": {
+        "status": "cancelled",
+        "updated_at": 200.0,
+        "version": 1
+      },
+      "from": "open",
+      "owner": "u1",
+      "result": {
+        "ok": true,
+        "value": null
+      },
+      "to": "cancelled"
+    },
+    {
+      "after": {
+        "status": "open",
+        "updated_at": 100.0,
+        "version": 0
+      },
+      "from": "open",
+      "owner": "",
+      "result": {
+        "error": "ValueError",
+        "message": "'不存在的状态' is not a valid QuestionStatus",
+        "ok": false
+      },
+      "to": "不存在的状态"
+    },
+    {
+      "after": {
+        "status": "open",
+        "updated_at": 100.0,
+        "version": 0
+      },
+      "from": "open",
+      "owner": "u1",
+      "result": {
+        "error": "ValueError",
+        "message": "'不存在的状态' is not a valid QuestionStatus",
+        "ok": false
+      },
+      "to": "不存在的状态"
+    },
+    {
+      "after": {
+        "status": "open",
+        "updated_at": 200.0,
+        "version": 1
+      },
+      "from": "assigned",
+      "owner": "",
+      "result": {
+        "ok": true,
+        "value": null
+      },
+      "to": "open"
+    },
+    {
+      "after": {
+        "status": "open",
+        "updated_at": 200.0,
+        "version": 1
+      },
+      "from": "assigned",
+      "owner": "u1",
+      "result": {
+        "ok": true,
+        "value": null
+      },
+      "to": "open"
+    },
+    {
+      "after": {
+        "status": "assigned",
+        "updated_at": 100.0,
+        "version": 0
+      },
+      "from": "assigned",
+      "owner": "",
+      "result": {
+        "ok": true,
+        "value": null
+      },
+      "to": "assigned"
+    },
+    {
+      "after": {
+        "status": "assigned",
+        "updated_at": 100.0,
+        "version": 0
+      },
+      "from": "assigned",
+      "owner": "u1",
+      "result": {
+        "ok": true,
+        "value": null
+      },
+      "to": "assigned"
+    },
+    {
+      "after": {
+        "status": "blocked",
+        "updated_at": 200.0,
+        "version": 1
+      },
+      "from": "assigned",
+      "owner": "",
+      "result": {
+        "ok": true,
+        "value": null
+      },
+      "to": "blocked"
+    },
+    {
+      "after": {
+        "status": "blocked",
+        "updated_at": 200.0,
+        "version": 1
+      },
+      "from": "assigned",
+      "owner": "u1",
+      "result": {
+        "ok": true,
+        "value": null
+      },
+      "to": "blocked"
+    },
+    {
+      "after": {
+        "status": "answered",
+        "updated_at": 200.0,
+        "version": 1
+      },
+      "from": "assigned",
+      "owner": "",
+      "result": {
+        "ok": true,
+        "value": null
+      },
+      "to": "answered"
+    },
+    {
+      "after": {
+        "status": "answered",
+        "updated_at": 200.0,
+        "version": 1
+      },
+      "from": "assigned",
+      "owner": "u1",
+      "result": {
+        "ok": true,
+        "value": null
+      },
+      "to": "answered"
+    },
+    {
+      "after": {
+        "status": "deferred",
+        "updated_at": 200.0,
+        "version": 1
+      },
+      "from": "assigned",
+      "owner": "",
+      "result": {
+        "ok": true,
+        "value": null
+      },
+      "to": "deferred"
+    },
+    {
+      "after": {
+        "status": "deferred",
+        "updated_at": 200.0,
+        "version": 1
+      },
+      "from": "assigned",
+      "owner": "u1",
+      "result": {
+        "ok": true,
+        "value": null
+      },
+      "to": "deferred"
+    },
+    {
+      "after": {
+        "status": "cancelled",
+        "updated_at": 200.0,
+        "version": 1
+      },
+      "from": "assigned",
+      "owner": "",
+      "result": {
+        "ok": true,
+        "value": null
+      },
+      "to": "cancelled"
+    },
+    {
+      "after": {
+        "status": "cancelled",
+        "updated_at": 200.0,
+        "version": 1
+      },
+      "from": "assigned",
+      "owner": "u1",
+      "result": {
+        "ok": true,
+        "value": null
+      },
+      "to": "cancelled"
+    },
+    {
+      "after": {
+        "status": "assigned",
+        "updated_at": 100.0,
+        "version": 0
+      },
+      "from": "assigned",
+      "owner": "",
+      "result": {
+        "error": "ValueError",
+        "message": "'不存在的状态' is not a valid QuestionStatus",
+        "ok": false
+      },
+      "to": "不存在的状态"
+    },
+    {
+      "after": {
+        "status": "assigned",
+        "updated_at": 100.0,
+        "version": 0
+      },
+      "from": "assigned",
+      "owner": "u1",
+      "result": {
+        "error": "ValueError",
+        "message": "'不存在的状态' is not a valid QuestionStatus",
+        "ok": false
+      },
+      "to": "不存在的状态"
+    },
+    {
+      "after": {
+        "status": "open",
+        "updated_at": 200.0,
+        "version": 1
+      },
+      "from": "blocked",
+      "owner": "",
+      "result": {
+        "ok": true,
+        "value": null
+      },
+      "to": "open"
+    },
+    {
+      "after": {
+        "status": "open",
+        "updated_at": 200.0,
+        "version": 1
+      },
+      "from": "blocked",
+      "owner": "u1",
+      "result": {
+        "ok": true,
+        "value": null
+      },
+      "to": "open"
+    },
+    {
+      "after": {
+        "status": "blocked",
+        "updated_at": 100.0,
+        "version": 0
+      },
+      "from": "blocked",
+      "owner": "",
+      "result": {
+        "error": "QuestionTransitionError",
+        "message": "问题 q.threshold 分派前必须指定 owner_user_id",
+        "ok": false
+      },
+      "to": "assigned"
+    },
+    {
+      "after": {
+        "status": "assigned",
+        "updated_at": 200.0,
+        "version": 1
+      },
+      "from": "blocked",
+      "owner": "u1",
+      "result": {
+        "ok": true,
+        "value": null
+      },
+      "to": "assigned"
+    },
+    {
+      "after": {
+        "status": "blocked",
+        "updated_at": 100.0,
+        "version": 0
+      },
+      "from": "blocked",
+      "owner": "",
+      "result": {
+        "ok": true,
+        "value": null
+      },
+      "to": "blocked"
+    },
+    {
+      "after": {
+        "status": "blocked",
+        "updated_at": 100.0,
+        "version": 0
+      },
+      "from": "blocked",
+      "owner": "u1",
+      "result": {
+        "ok": true,
+        "value": null
+      },
+      "to": "blocked"
+    },
+    {
+      "after": {
+        "status": "blocked",
+        "updated_at": 100.0,
+        "version": 0
+      },
+      "from": "blocked",
+      "owner": "",
+      "result": {
+        "error": "QuestionTransitionError",
+        "message": "问题 q.threshold 不能从 blocked 转为 answered",
+        "ok": false
+      },
+      "to": "answered"
+    },
+    {
+      "after": {
+        "status": "blocked",
+        "updated_at": 100.0,
+        "version": 0
+      },
+      "from": "blocked",
+      "owner": "u1",
+      "result": {
+        "error": "QuestionTransitionError",
+        "message": "问题 q.threshold 不能从 blocked 转为 answered",
+        "ok": false
+      },
+      "to": "answered"
+    },
+    {
+      "after": {
+        "status": "deferred",
+        "updated_at": 200.0,
+        "version": 1
+      },
+      "from": "blocked",
+      "owner": "",
+      "result": {
+        "ok": true,
+        "value": null
+      },
+      "to": "deferred"
+    },
+    {
+      "after": {
+        "status": "deferred",
+        "updated_at": 200.0,
+        "version": 1
+      },
+      "from": "blocked",
+      "owner": "u1",
+      "result": {
+        "ok": true,
+        "value": null
+      },
+      "to": "deferred"
+    },
+    {
+      "after": {
+        "status": "cancelled",
+        "updated_at": 200.0,
+        "version": 1
+      },
+      "from": "blocked",
+      "owner": "",
+      "result": {
+        "ok": true,
+        "value": null
+      },
+      "to": "cancelled"
+    },
+    {
+      "after": {
+        "status": "cancelled",
+        "updated_at": 200.0,
+        "version": 1
+      },
+      "from": "blocked",
+      "owner": "u1",
+      "result": {
+        "ok": true,
+        "value": null
+      },
+      "to": "cancelled"
+    },
+    {
+      "after": {
+        "status": "blocked",
+        "updated_at": 100.0,
+        "version": 0
+      },
+      "from": "blocked",
+      "owner": "",
+      "result": {
+        "error": "ValueError",
+        "message": "'不存在的状态' is not a valid QuestionStatus",
+        "ok": false
+      },
+      "to": "不存在的状态"
+    },
+    {
+      "after": {
+        "status": "blocked",
+        "updated_at": 100.0,
+        "version": 0
+      },
+      "from": "blocked",
+      "owner": "u1",
+      "result": {
+        "error": "ValueError",
+        "message": "'不存在的状态' is not a valid QuestionStatus",
+        "ok": false
+      },
+      "to": "不存在的状态"
+    },
+    {
+      "after": {
+        "status": "open",
+        "updated_at": 200.0,
+        "version": 1
+      },
+      "from": "answered",
+      "owner": "",
+      "result": {
+        "ok": true,
+        "value": null
+      },
+      "to": "open"
+    },
+    {
+      "after": {
+        "status": "open",
+        "updated_at": 200.0,
+        "version": 1
+      },
+      "from": "answered",
+      "owner": "u1",
+      "result": {
+        "ok": true,
+        "value": null
+      },
+      "to": "open"
+    },
+    {
+      "after": {
+        "status": "answered",
+        "updated_at": 100.0,
+        "version": 0
+      },
+      "from": "answered",
+      "owner": "",
+      "result": {
+        "error": "QuestionTransitionError",
+        "message": "问题 q.threshold 不能从 answered 转为 assigned",
+        "ok": false
+      },
+      "to": "assigned"
+    },
+    {
+      "after": {
+        "status": "answered",
+        "updated_at": 100.0,
+        "version": 0
+      },
+      "from": "answered",
+      "owner": "u1",
+      "result": {
+        "error": "QuestionTransitionError",
+        "message": "问题 q.threshold 不能从 answered 转为 assigned",
+        "ok": false
+      },
+      "to": "assigned"
+    },
+    {
+      "after": {
+        "status": "answered",
+        "updated_at": 100.0,
+        "version": 0
+      },
+      "from": "answered",
+      "owner": "",
+      "result": {
+        "error": "QuestionTransitionError",
+        "message": "问题 q.threshold 不能从 answered 转为 blocked",
+        "ok": false
+      },
+      "to": "blocked"
+    },
+    {
+      "after": {
+        "status": "answered",
+        "updated_at": 100.0,
+        "version": 0
+      },
+      "from": "answered",
+      "owner": "u1",
+      "result": {
+        "error": "QuestionTransitionError",
+        "message": "问题 q.threshold 不能从 answered 转为 blocked",
+        "ok": false
+      },
+      "to": "blocked"
+    },
+    {
+      "after": {
+        "status": "answered",
+        "updated_at": 100.0,
+        "version": 0
+      },
+      "from": "answered",
+      "owner": "",
+      "result": {
+        "ok": true,
+        "value": null
+      },
+      "to": "answered"
+    },
+    {
+      "after": {
+        "status": "answered",
+        "updated_at": 100.0,
+        "version": 0
+      },
+      "from": "answered",
+      "owner": "u1",
+      "result": {
+        "ok": true,
+        "value": null
+      },
+      "to": "answered"
+    },
+    {
+      "after": {
+        "status": "answered",
+        "updated_at": 100.0,
+        "version": 0
+      },
+      "from": "answered",
+      "owner": "",
+      "result": {
+        "error": "QuestionTransitionError",
+        "message": "问题 q.threshold 不能从 answered 转为 deferred",
+        "ok": false
+      },
+      "to": "deferred"
+    },
+    {
+      "after": {
+        "status": "answered",
+        "updated_at": 100.0,
+        "version": 0
+      },
+      "from": "answered",
+      "owner": "u1",
+      "result": {
+        "error": "QuestionTransitionError",
+        "message": "问题 q.threshold 不能从 answered 转为 deferred",
+        "ok": false
+      },
+      "to": "deferred"
+    },
+    {
+      "after": {
+        "status": "cancelled",
+        "updated_at": 200.0,
+        "version": 1
+      },
+      "from": "answered",
+      "owner": "",
+      "result": {
+        "ok": true,
+        "value": null
+      },
+      "to": "cancelled"
+    },
+    {
+      "after": {
+        "status": "cancelled",
+        "updated_at": 200.0,
+        "version": 1
+      },
+      "from": "answered",
+      "owner": "u1",
+      "result": {
+        "ok": true,
+        "value": null
+      },
+      "to": "cancelled"
+    },
+    {
+      "after": {
+        "status": "answered",
+        "updated_at": 100.0,
+        "version": 0
+      },
+      "from": "answered",
+      "owner": "",
+      "result": {
+        "error": "ValueError",
+        "message": "'不存在的状态' is not a valid QuestionStatus",
+        "ok": false
+      },
+      "to": "不存在的状态"
+    },
+    {
+      "after": {
+        "status": "answered",
+        "updated_at": 100.0,
+        "version": 0
+      },
+      "from": "answered",
+      "owner": "u1",
+      "result": {
+        "error": "ValueError",
+        "message": "'不存在的状态' is not a valid QuestionStatus",
+        "ok": false
+      },
+      "to": "不存在的状态"
+    },
+    {
+      "after": {
+        "status": "open",
+        "updated_at": 200.0,
+        "version": 1
+      },
+      "from": "deferred",
+      "owner": "",
+      "result": {
+        "ok": true,
+        "value": null
+      },
+      "to": "open"
+    },
+    {
+      "after": {
+        "status": "open",
+        "updated_at": 200.0,
+        "version": 1
+      },
+      "from": "deferred",
+      "owner": "u1",
+      "result": {
+        "ok": true,
+        "value": null
+      },
+      "to": "open"
+    },
+    {
+      "after": {
+        "status": "deferred",
+        "updated_at": 100.0,
+        "version": 0
+      },
+      "from": "deferred",
+      "owner": "",
+      "result": {
+        "error": "QuestionTransitionError",
+        "message": "问题 q.threshold 分派前必须指定 owner_user_id",
+        "ok": false
+      },
+      "to": "assigned"
+    },
+    {
+      "after": {
+        "status": "assigned",
+        "updated_at": 200.0,
+        "version": 1
+      },
+      "from": "deferred",
+      "owner": "u1",
+      "result": {
+        "ok": true,
+        "value": null
+      },
+      "to": "assigned"
+    },
+    {
+      "after": {
+        "status": "deferred",
+        "updated_at": 100.0,
+        "version": 0
+      },
+      "from": "deferred",
+      "owner": "",
+      "result": {
+        "error": "QuestionTransitionError",
+        "message": "问题 q.threshold 不能从 deferred 转为 blocked",
+        "ok": false
+      },
+      "to": "blocked"
+    },
+    {
+      "after": {
+        "status": "deferred",
+        "updated_at": 100.0,
+        "version": 0
+      },
+      "from": "deferred",
+      "owner": "u1",
+      "result": {
+        "error": "QuestionTransitionError",
+        "message": "问题 q.threshold 不能从 deferred 转为 blocked",
+        "ok": false
+      },
+      "to": "blocked"
+    },
+    {
+      "after": {
+        "status": "deferred",
+        "updated_at": 100.0,
+        "version": 0
+      },
+      "from": "deferred",
+      "owner": "",
+      "result": {
+        "error": "QuestionTransitionError",
+        "message": "问题 q.threshold 不能从 deferred 转为 answered",
+        "ok": false
+      },
+      "to": "answered"
+    },
+    {
+      "after": {
+        "status": "deferred",
+        "updated_at": 100.0,
+        "version": 0
+      },
+      "from": "deferred",
+      "owner": "u1",
+      "result": {
+        "error": "QuestionTransitionError",
+        "message": "问题 q.threshold 不能从 deferred 转为 answered",
+        "ok": false
+      },
+      "to": "answered"
+    },
+    {
+      "after": {
+        "status": "deferred",
+        "updated_at": 100.0,
+        "version": 0
+      },
+      "from": "deferred",
+      "owner": "",
+      "result": {
+        "ok": true,
+        "value": null
+      },
+      "to": "deferred"
+    },
+    {
+      "after": {
+        "status": "deferred",
+        "updated_at": 100.0,
+        "version": 0
+      },
+      "from": "deferred",
+      "owner": "u1",
+      "result": {
+        "ok": true,
+        "value": null
+      },
+      "to": "deferred"
+    },
+    {
+      "after": {
+        "status": "cancelled",
+        "updated_at": 200.0,
+        "version": 1
+      },
+      "from": "deferred",
+      "owner": "",
+      "result": {
+        "ok": true,
+        "value": null
+      },
+      "to": "cancelled"
+    },
+    {
+      "after": {
+        "status": "cancelled",
+        "updated_at": 200.0,
+        "version": 1
+      },
+      "from": "deferred",
+      "owner": "u1",
+      "result": {
+        "ok": true,
+        "value": null
+      },
+      "to": "cancelled"
+    },
+    {
+      "after": {
+        "status": "deferred",
+        "updated_at": 100.0,
+        "version": 0
+      },
+      "from": "deferred",
+      "owner": "",
+      "result": {
+        "error": "ValueError",
+        "message": "'不存在的状态' is not a valid QuestionStatus",
+        "ok": false
+      },
+      "to": "不存在的状态"
+    },
+    {
+      "after": {
+        "status": "deferred",
+        "updated_at": 100.0,
+        "version": 0
+      },
+      "from": "deferred",
+      "owner": "u1",
+      "result": {
+        "error": "ValueError",
+        "message": "'不存在的状态' is not a valid QuestionStatus",
+        "ok": false
+      },
+      "to": "不存在的状态"
+    },
+    {
+      "after": {
+        "status": "open",
+        "updated_at": 200.0,
+        "version": 1
+      },
+      "from": "cancelled",
+      "owner": "",
+      "result": {
+        "ok": true,
+        "value": null
+      },
+      "to": "open"
+    },
+    {
+      "after": {
+        "status": "open",
+        "updated_at": 200.0,
+        "version": 1
+      },
+      "from": "cancelled",
+      "owner": "u1",
+      "result": {
+        "ok": true,
+        "value": null
+      },
+      "to": "open"
+    },
+    {
+      "after": {
+        "status": "cancelled",
+        "updated_at": 100.0,
+        "version": 0
+      },
+      "from": "cancelled",
+      "owner": "",
+      "result": {
+        "error": "QuestionTransitionError",
+        "message": "问题 q.threshold 不能从 cancelled 转为 assigned",
+        "ok": false
+      },
+      "to": "assigned"
+    },
+    {
+      "after": {
+        "status": "cancelled",
+        "updated_at": 100.0,
+        "version": 0
+      },
+      "from": "cancelled",
+      "owner": "u1",
+      "result": {
+        "error": "QuestionTransitionError",
+        "message": "问题 q.threshold 不能从 cancelled 转为 assigned",
+        "ok": false
+      },
+      "to": "assigned"
+    },
+    {
+      "after": {
+        "status": "cancelled",
+        "updated_at": 100.0,
+        "version": 0
+      },
+      "from": "cancelled",
+      "owner": "",
+      "result": {
+        "error": "QuestionTransitionError",
+        "message": "问题 q.threshold 不能从 cancelled 转为 blocked",
+        "ok": false
+      },
+      "to": "blocked"
+    },
+    {
+      "after": {
+        "status": "cancelled",
+        "updated_at": 100.0,
+        "version": 0
+      },
+      "from": "cancelled",
+      "owner": "u1",
+      "result": {
+        "error": "QuestionTransitionError",
+        "message": "问题 q.threshold 不能从 cancelled 转为 blocked",
+        "ok": false
+      },
+      "to": "blocked"
+    },
+    {
+      "after": {
+        "status": "cancelled",
+        "updated_at": 100.0,
+        "version": 0
+      },
+      "from": "cancelled",
+      "owner": "",
+      "result": {
+        "error": "QuestionTransitionError",
+        "message": "问题 q.threshold 不能从 cancelled 转为 answered",
+        "ok": false
+      },
+      "to": "answered"
+    },
+    {
+      "after": {
+        "status": "cancelled",
+        "updated_at": 100.0,
+        "version": 0
+      },
+      "from": "cancelled",
+      "owner": "u1",
+      "result": {
+        "error": "QuestionTransitionError",
+        "message": "问题 q.threshold 不能从 cancelled 转为 answered",
+        "ok": false
+      },
+      "to": "answered"
+    },
+    {
+      "after": {
+        "status": "cancelled",
+        "updated_at": 100.0,
+        "version": 0
+      },
+      "from": "cancelled",
+      "owner": "",
+      "result": {
+        "error": "QuestionTransitionError",
+        "message": "问题 q.threshold 不能从 cancelled 转为 deferred",
+        "ok": false
+      },
+      "to": "deferred"
+    },
+    {
+      "after": {
+        "status": "cancelled",
+        "updated_at": 100.0,
+        "version": 0
+      },
+      "from": "cancelled",
+      "owner": "u1",
+      "result": {
+        "error": "QuestionTransitionError",
+        "message": "问题 q.threshold 不能从 cancelled 转为 deferred",
+        "ok": false
+      },
+      "to": "deferred"
+    },
+    {
+      "after": {
+        "status": "cancelled",
+        "updated_at": 100.0,
+        "version": 0
+      },
+      "from": "cancelled",
+      "owner": "",
+      "result": {
+        "ok": true,
+        "value": null
+      },
+      "to": "cancelled"
+    },
+    {
+      "after": {
+        "status": "cancelled",
+        "updated_at": 100.0,
+        "version": 0
+      },
+      "from": "cancelled",
+      "owner": "u1",
+      "result": {
+        "ok": true,
+        "value": null
+      },
+      "to": "cancelled"
+    },
+    {
+      "after": {
+        "status": "cancelled",
+        "updated_at": 100.0,
+        "version": 0
+      },
+      "from": "cancelled",
+      "owner": "",
+      "result": {
+        "error": "ValueError",
+        "message": "'不存在的状态' is not a valid QuestionStatus",
+        "ok": false
+      },
+      "to": "不存在的状态"
+    },
+    {
+      "after": {
+        "status": "cancelled",
+        "updated_at": 100.0,
+        "version": 0
+      },
+      "from": "cancelled",
+      "owner": "u1",
+      "result": {
+        "error": "ValueError",
+        "message": "'不存在的状态' is not a valid QuestionStatus",
+        "ok": false
+      },
+      "to": "不存在的状态"
+    }
+  ],
+  "validate": {
+    "cases": [
+      {
+        "name": "空 schema 放行一切",
+        "result": {
+          "ok": true,
+          "value": null
+        },
+        "schema": {},
+        "value": {
+          "随便": 1
+        }
+      },
+      {
+        "name": "boolean 收 True",
+        "result": {
+          "ok": true,
+          "value": null
+        },
+        "schema": {
+          "type": "boolean"
+        },
+        "value": true
+      },
+      {
+        "name": "boolean 拒字符串",
+        "result": {
+          "error": "AnswerValidationError",
+          "message": "$answer 类型必须是 ['boolean']，实际是 str",
+          "ok": false
+        },
+        "schema": {
+          "type": "boolean"
+        },
+        "value": "是"
+      },
+      {
+        "name": "string 收字符串",
+        "result": {
+          "ok": true,
+          "value": null
+        },
+        "schema": {
+          "type": "string"
+        },
+        "value": "是"
+      },
+      {
+        "name": "number 收整数",
+        "result": {
+          "ok": true,
+          "value": null
+        },
+        "schema": {
+          "type": "number"
+        },
+        "value": 5
+      },
+      {
+        "name": "number 拒布尔",
+        "result": {
+          "error": "AnswerValidationError",
+          "message": "$answer 类型必须是 ['number']，实际是 bool",
+          "ok": false
+        },
+        "schema": {
+          "type": "number"
+        },
+        "value": true
+      },
+      {
+        "name": "integer 拒布尔",
+        "result": {
+          "error": "AnswerValidationError",
+          "message": "$answer 类型必须是 ['integer']，实际是 bool",
+          "ok": false
+        },
+        "schema": {
+          "type": "integer"
+        },
+        "value": true
+      },
+      {
+        "name": "integer 收整数",
+        "result": {
+          "ok": true,
+          "value": null
+        },
+        "schema": {
+          "type": "integer"
+        },
+        "value": 5
+      },
+      {
+        "name": "null 收 None",
+        "result": {
+          "ok": true,
+          "value": null
+        },
+        "schema": {
+          "type": "null"
+        },
+        "value": null
+      },
+      {
+        "name": "联合类型：string 或 null",
+        "result": {
+          "ok": true,
+          "value": null
+        },
+        "schema": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "value": null
+      },
+      {
+        "name": "未知类型名一律放行",
+        "result": {
+          "ok": true,
+          "value": null
+        },
+        "schema": {
+          "type": "geometry"
+        },
+        "value": 1
+      },
+      {
+        "name": "array 收列表",
+        "result": {
+          "ok": true,
+          "value": null
+        },
+        "schema": {
+          "type": "array"
+        },
+        "value": [
+          1,
+          2
+        ]
+      },
+      {
+        "name": "object 收字典",
+        "result": {
+          "ok": true,
+          "value": null
+        },
+        "schema": {
+          "type": "object"
+        },
+        "value": {
+          "a": 1
+        }
+      },
+      {
+        "name": "object 拒列表",
+        "result": {
+          "error": "AnswerValidationError",
+          "message": "$answer 类型必须是 ['object']，实际是 list",
+          "ok": false
+        },
+        "schema": {
+          "type": "object"
+        },
+        "value": [
+          1
+        ]
+      },
+      {
+        "name": "const 命中",
+        "result": {
+          "ok": true,
+          "value": null
+        },
+        "schema": {
+          "const": 5
+        },
+        "value": 5
+      },
+      {
+        "name": "const 不命中（数）",
+        "result": {
+          "error": "AnswerValidationError",
+          "message": "$answer 必须等于 5",
+          "ok": false
+        },
+        "schema": {
+          "const": 5
+        },
+        "value": 6
+      },
+      {
+        "name": "const 不命中（字符串）",
+        "result": {
+          "error": "AnswerValidationError",
+          "message": "$answer 必须等于 '包含'",
+          "ok": false
+        },
+        "schema": {
+          "const": "包含"
+        },
+        "value": "不包含"
+      },
+      {
+        "name": "const 不命中（None）",
+        "result": {
+          "error": "AnswerValidationError",
+          "message": "$answer 必须等于 None",
+          "ok": false
+        },
+        "schema": {
+          "const": null
+        },
+        "value": 1
+      },
+      {
+        "name": "enum 命中",
+        "result": {
+          "ok": true,
+          "value": null
+        },
+        "schema": {
+          "enum": [
+            "a",
+            "b"
+          ],
+          "type": "string"
+        },
+        "value": "a"
+      },
+      {
+        "name": "enum 不命中",
+        "result": {
+          "error": "AnswerValidationError",
+          "message": "$answer 必须是 ['a', 'b'] 之一",
+          "ok": false
+        },
+        "schema": {
+          "enum": [
+            "a",
+            "b"
+          ],
+          "type": "string"
+        },
+        "value": "c"
+      },
+      {
+        "name": "enum 里带引号的取值（repr 的引号规则）",
+        "result": {
+          "error": "AnswerValidationError",
+          "message": "$answer 必须是 [\"它说'好'\", '他说\"行\"'] 之一",
+          "ok": false
+        },
+        "schema": {
+          "enum": [
+            "它说'好'",
+            "他说\"行\""
+          ]
+        },
+        "value": "别的"
+      },
+      {
+        "name": "minLength 按 code point 数：中文+emoji 共 4 个字",
+        "result": {
+          "error": "AnswerValidationError",
+          "message": "$answer 太短",
+          "ok": false
+        },
+        "schema": {
+          "minLength": 5,
+          "type": "string"
+        },
+        "value": "中文😀啊"
+      },
+      {
+        "name": "minLength 刚好够",
+        "result": {
+          "ok": true,
+          "value": null
+        },
+        "schema": {
+          "minLength": 4,
+          "type": "string"
+        },
+        "value": "中文😀啊"
+      },
+      {
+        "name": "maxLength 超了",
+        "result": {
+          "error": "AnswerValidationError",
+          "message": "$answer 太长",
+          "ok": false
+        },
+        "schema": {
+          "maxLength": 3,
+          "type": "string"
+        },
+        "value": "中文😀啊"
+      },
+      {
+        "name": "minimum 不足",
+        "result": {
+          "error": "AnswerValidationError",
+          "message": "$answer 不能小于 500000",
+          "ok": false
+        },
+        "schema": {
+          "minimum": 500000,
+          "type": "number"
+        },
+        "value": 400000
+      },
+      {
+        "name": "maximum 超了",
+        "result": {
+          "error": "AnswerValidationError",
+          "message": "$answer 不能大于 10",
+          "ok": false
+        },
+        "schema": {
+          "maximum": 10,
+          "type": "number"
+        },
+        "value": 11
+      },
+      {
+        "name": "minimum 刚好",
+        "result": {
+          "ok": true,
+          "value": null
+        },
+        "schema": {
+          "minimum": 10,
+          "type": "number"
+        },
+        "value": 10
+      },
+      {
+        "name": "items 逐项校验，路径带下标",
+        "result": {
+          "error": "AnswerValidationError",
+          "message": "$answer[1] 类型必须是 ['string']，实际是 int",
+          "ok": false
+        },
+        "schema": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "value": [
+          "a",
+          2
+        ]
+      },
+      {
+        "name": "required 缺字段",
+        "result": {
+          "error": "AnswerValidationError",
+          "message": "$answer 缺少字段 ['b']",
+          "ok": false
+        },
+        "schema": {
+          "required": [
+            "a",
+            "b"
+          ],
+          "type": "object"
+        },
+        "value": {
+          "a": 1
+        }
+      },
+      {
+        "name": "properties 递归校验，路径带点",
+        "result": {
+          "error": "AnswerValidationError",
+          "message": "$answer.amount 不能小于 1",
+          "ok": false
+        },
+        "schema": {
+          "properties": {
+            "amount": {
+              "minimum": 1,
+              "type": "number"
+            }
+          },
+          "type": "object"
+        },
+        "value": {
+          "amount": 0
+        }
+      },
+      {
+        "name": "properties 里没出现的键不校验",
+        "result": {
+          "ok": true,
+          "value": null
+        },
+        "schema": {
+          "properties": {
+            "a": {
+              "type": "number"
+            }
+          },
+          "type": "object"
+        },
+        "value": {
+          "b": "随便"
+        }
+      },
+      {
+        "name": "嵌套：数组里的对象",
+        "result": {
+          "error": "AnswerValidationError",
+          "message": "$answer[1] 缺少字段 ['id']",
+          "ok": false
+        },
+        "schema": {
+          "items": {
+            "required": [
+              "id"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "value": [
+          {
+            "id": 1
+          },
+          {
+            "name": "x"
+          }
+        ]
+      }
+    ],
+    "divergent": [
+      {
+        "js": "ok",
+        "name": "integer 拒 3.0（JS 无法复现：3.0 就是 3）",
+        "result": {
+          "error": "AnswerValidationError",
+          "message": "$answer 类型必须是 ['integer']，实际是 float",
+          "ok": false
+        },
+        "schema": {
+          "type": "integer"
+        },
+        "value": 3.0
+      },
+      {
+        "js": "error",
+        "name": "integer 拒 2.5（JS 侧同样拒）",
+        "result": {
+          "error": "AnswerValidationError",
+          "message": "$answer 类型必须是 ['integer']，实际是 float",
+          "ok": false
+        },
+        "schema": {
+          "type": "integer"
+        },
+        "value": 2.5
+      }
+    ]
+  }
+}

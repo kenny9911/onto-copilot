@@ -1,0 +1,4762 @@
+{
+  "_readme": "由 tools/golden/parse_doc.py 导出。期望值一律取自这里，不要手写。",
+  "accepts": {
+    "bpmn": {
+      "A.BPMN": true,
+      "a.bpmn": true,
+      "a.bpmn20.XML": true,
+      "a.bpmn20.xml": true,
+      "a.bpmnx": false,
+      "a.xml": false,
+      "bpmn": false
+    },
+    "pptx": {
+      ".PPTX": true,
+      ".ppsx": true,
+      ".ppt": false,
+      ".pptm": true,
+      ".pptx": true,
+      ".xml": false
+    }
+  },
+  "bbox": [
+    {
+      "out": [
+        0.1,
+        0.2,
+        0.3,
+        0.4
+      ],
+      "raw": [
+        0.1,
+        0.2,
+        0.3,
+        0.4
+      ]
+    },
+    {
+      "out": [
+        0.25,
+        1.0,
+        0.0,
+        0.5
+      ],
+      "raw": [
+        "0.25",
+        2.0,
+        -1,
+        0.5
+      ]
+    },
+    {
+      "out": [
+        1.0,
+        0.0,
+        1.0,
+        1.0
+      ],
+      "raw": [
+        "nan",
+        0,
+        1,
+        1
+      ]
+    },
+    {
+      "out": [
+        1.0,
+        0.0,
+        0.5,
+        0.5
+      ],
+      "raw": [
+        "inf",
+        "-inf",
+        0.5,
+        0.5
+      ]
+    },
+    {
+      "out": [
+        1.0,
+        0.0,
+        0.5,
+        0.5
+      ],
+      "raw": [
+        true,
+        false,
+        0.5,
+        0.5
+      ]
+    },
+    {
+      "out": [
+        0.0,
+        0.0,
+        1.0,
+        1.0
+      ],
+      "raw": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "out": [
+        0.0,
+        0.0,
+        1.0,
+        1.0
+      ],
+      "raw": [
+        0,
+        0,
+        1,
+        1,
+        9
+      ]
+    },
+    {
+      "out": [
+        0.0,
+        0.0,
+        1.0,
+        1.0
+      ],
+      "raw": null
+    },
+    {
+      "out": [
+        0.0,
+        0.0,
+        1.0,
+        1.0
+      ],
+      "raw": []
+    },
+    {
+      "out": [
+        0.0,
+        0.0,
+        1.0,
+        1.0
+      ],
+      "raw": "abcd"
+    },
+    {
+      "out": [
+        0.0,
+        0.0,
+        1.0,
+        1.0
+      ],
+      "raw": {}
+    },
+    {
+      "out": [
+        0.0,
+        0.0,
+        1.0,
+        1.0
+      ],
+      "raw": {
+        "a": 1
+      }
+    },
+    {
+      "out": [
+        0.0,
+        0.0,
+        1.0,
+        1.0
+      ],
+      "raw": [
+        null,
+        0,
+        1,
+        1
+      ]
+    },
+    {
+      "out": [
+        0.0,
+        0.0,
+        1.0,
+        1.0
+      ],
+      "raw": [
+        [
+          0.1
+        ],
+        0,
+        1,
+        1
+      ]
+    }
+  ],
+  "bpmn": {
+    "anonymous": {
+      "accepts": true,
+      "doc": {
+        "chunks": [
+          {
+            "chunk_id": "f-bpmn-anonymous:bpmn:process-1",
+            "context": "",
+            "file_id": "f-bpmn-anonymous",
+            "file_name": "anon.bpmn",
+            "locator": {
+              "element": "process",
+              "id": "process-1",
+              "kind": "xml",
+              "pointer": "/definitions/process[@id=\"process-1\"]",
+              "process": "process-1"
+            },
+            "order": 0,
+            "raw": {
+              "documentation": "",
+              "id": "process-1",
+              "isExecutable": false,
+              "name": "process-1",
+              "nodes": [
+                {
+                  "attributes": {
+                    "async": "true"
+                  },
+                  "category": "task",
+                  "documentation": "子流程里也有节点",
+                  "event_definitions": [],
+                  "id": "sub",
+                  "incoming": [],
+                  "lanes": [
+                    {
+                      "id": "l1",
+                      "name": "前台"
+                    },
+                    {
+                      "id": "l1",
+                      "name": "前台"
+                    },
+                    {
+                      "id": "l2",
+                      "name": "l2"
+                    }
+                  ],
+                  "name": "子流程",
+                  "outgoing": [],
+                  "process_id": "process-1",
+                  "type": "subProcess"
+                },
+                {
+                  "attributes": {},
+                  "category": "task",
+                  "documentation": "",
+                  "event_definitions": [],
+                  "id": "inner",
+                  "incoming": [],
+                  "lanes": [],
+                  "name": "内层脚本",
+                  "outgoing": [],
+                  "process_id": "process-1",
+                  "type": "scriptTask"
+                },
+                {
+                  "attributes": {},
+                  "category": "task",
+                  "documentation": "",
+                  "event_definitions": [],
+                  "id": "anonymous-task-1",
+                  "incoming": [],
+                  "lanes": [],
+                  "name": "没有 id 的发送任务",
+                  "outgoing": [],
+                  "process_id": "process-1",
+                  "type": "sendTask"
+                },
+                {
+                  "attributes": {},
+                  "category": "task",
+                  "documentation": "",
+                  "event_definitions": [],
+                  "id": "ext",
+                  "incoming": [],
+                  "lanes": [],
+                  "name": "扩展任务",
+                  "outgoing": [],
+                  "process_id": "process-1",
+                  "type": "mailTask"
+                },
+                {
+                  "attributes": {},
+                  "category": "gateway",
+                  "documentation": "",
+                  "event_definitions": [],
+                  "id": "fg",
+                  "incoming": [],
+                  "lanes": [],
+                  "name": "fg",
+                  "outgoing": [],
+                  "process_id": "process-1",
+                  "type": "fancyGateway"
+                },
+                {
+                  "attributes": {},
+                  "category": "event",
+                  "documentation": "",
+                  "event_definitions": [
+                    {
+                      "attributes": {},
+                      "text": "PT5M",
+                      "type": "timerEventDefinition"
+                    }
+                  ],
+                  "id": "we",
+                  "incoming": [],
+                  "lanes": [],
+                  "name": "we",
+                  "outgoing": [],
+                  "process_id": "process-1",
+                  "type": "weirdEvent"
+                }
+              ],
+              "sequenceFlows": [
+                {
+                  "attributes": {},
+                  "condition": "",
+                  "documentation": "",
+                  "id": "flow-1",
+                  "name": "flow-1",
+                  "process_id": "process-1",
+                  "sourceRef": "sub",
+                  "targetRef": "ext",
+                  "type": "sequenceFlow"
+                }
+              ]
+            },
+            "render": "BPMN 流程 process-1（id=process-1）：6 个节点，1 条 sequenceFlow",
+            "tags": [
+              "bpmn",
+              "process"
+            ]
+          },
+          {
+            "chunk_id": "f-bpmn-anonymous:bpmn:process-1:sub",
+            "context": "",
+            "file_id": "f-bpmn-anonymous",
+            "file_name": "anon.bpmn",
+            "locator": {
+              "element": "subProcess",
+              "id": "sub",
+              "kind": "xml",
+              "pointer": "/definitions/process[@id=\"process-1\"]//subProcess[@id=\"sub\"]",
+              "process": "process-1"
+            },
+            "order": 1,
+            "raw": {
+              "attributes": {
+                "async": "true"
+              },
+              "category": "task",
+              "documentation": "子流程里也有节点",
+              "event_definitions": [],
+              "id": "sub",
+              "incoming": [],
+              "lanes": [
+                {
+                  "id": "l1",
+                  "name": "前台"
+                },
+                {
+                  "id": "l1",
+                  "name": "前台"
+                },
+                {
+                  "id": "l2",
+                  "name": "l2"
+                }
+              ],
+              "name": "子流程",
+              "outgoing": [],
+              "process_id": "process-1",
+              "type": "subProcess"
+            },
+            "render": "BPMN task 子流程（subProcess，id=sub）；流程=process-1；泳道=前台、前台、l2；说明=子流程里也有节点",
+            "tags": [
+              "bpmn",
+              "task",
+              "subProcess"
+            ]
+          },
+          {
+            "chunk_id": "f-bpmn-anonymous:bpmn:process-1:inner",
+            "context": "",
+            "file_id": "f-bpmn-anonymous",
+            "file_name": "anon.bpmn",
+            "locator": {
+              "element": "scriptTask",
+              "id": "inner",
+              "kind": "xml",
+              "pointer": "/definitions/process[@id=\"process-1\"]//scriptTask[@id=\"inner\"]",
+              "process": "process-1"
+            },
+            "order": 2,
+            "raw": {
+              "attributes": {},
+              "category": "task",
+              "documentation": "",
+              "event_definitions": [],
+              "id": "inner",
+              "incoming": [],
+              "lanes": [],
+              "name": "内层脚本",
+              "outgoing": [],
+              "process_id": "process-1",
+              "type": "scriptTask"
+            },
+            "render": "BPMN task 内层脚本（scriptTask，id=inner）；流程=process-1",
+            "tags": [
+              "bpmn",
+              "task",
+              "scriptTask"
+            ]
+          },
+          {
+            "chunk_id": "f-bpmn-anonymous:bpmn:process-1:anonymous-task-1",
+            "context": "",
+            "file_id": "f-bpmn-anonymous",
+            "file_name": "anon.bpmn",
+            "locator": {
+              "element": "sendTask",
+              "id": "anonymous-task-1",
+              "kind": "xml",
+              "pointer": "/definitions/process[@id=\"process-1\"]//sendTask[@id=\"anonymous-task-1\"]",
+              "process": "process-1"
+            },
+            "order": 3,
+            "raw": {
+              "attributes": {},
+              "category": "task",
+              "documentation": "",
+              "event_definitions": [],
+              "id": "anonymous-task-1",
+              "incoming": [],
+              "lanes": [],
+              "name": "没有 id 的发送任务",
+              "outgoing": [],
+              "process_id": "process-1",
+              "type": "sendTask"
+            },
+            "render": "BPMN task 没有 id 的发送任务（sendTask，id=anonymous-task-1）；流程=process-1",
+            "tags": [
+              "bpmn",
+              "task",
+              "sendTask"
+            ]
+          },
+          {
+            "chunk_id": "f-bpmn-anonymous:bpmn:process-1:ext",
+            "context": "",
+            "file_id": "f-bpmn-anonymous",
+            "file_name": "anon.bpmn",
+            "locator": {
+              "element": "mailTask",
+              "id": "ext",
+              "kind": "xml",
+              "pointer": "/definitions/process[@id=\"process-1\"]//mailTask[@id=\"ext\"]",
+              "process": "process-1"
+            },
+            "order": 4,
+            "raw": {
+              "attributes": {},
+              "category": "task",
+              "documentation": "",
+              "event_definitions": [],
+              "id": "ext",
+              "incoming": [],
+              "lanes": [],
+              "name": "扩展任务",
+              "outgoing": [],
+              "process_id": "process-1",
+              "type": "mailTask"
+            },
+            "render": "BPMN task 扩展任务（mailTask，id=ext）；流程=process-1",
+            "tags": [
+              "bpmn",
+              "task",
+              "mailTask"
+            ]
+          },
+          {
+            "chunk_id": "f-bpmn-anonymous:bpmn:process-1:fg",
+            "context": "",
+            "file_id": "f-bpmn-anonymous",
+            "file_name": "anon.bpmn",
+            "locator": {
+              "element": "fancyGateway",
+              "id": "fg",
+              "kind": "xml",
+              "pointer": "/definitions/process[@id=\"process-1\"]//fancyGateway[@id=\"fg\"]",
+              "process": "process-1"
+            },
+            "order": 5,
+            "raw": {
+              "attributes": {},
+              "category": "gateway",
+              "documentation": "",
+              "event_definitions": [],
+              "id": "fg",
+              "incoming": [],
+              "lanes": [],
+              "name": "fg",
+              "outgoing": [],
+              "process_id": "process-1",
+              "type": "fancyGateway"
+            },
+            "render": "BPMN gateway fg（fancyGateway，id=fg）；流程=process-1",
+            "tags": [
+              "bpmn",
+              "gateway",
+              "fancyGateway"
+            ]
+          },
+          {
+            "chunk_id": "f-bpmn-anonymous:bpmn:process-1:we",
+            "context": "",
+            "file_id": "f-bpmn-anonymous",
+            "file_name": "anon.bpmn",
+            "locator": {
+              "element": "weirdEvent",
+              "id": "we",
+              "kind": "xml",
+              "pointer": "/definitions/process[@id=\"process-1\"]//weirdEvent[@id=\"we\"]",
+              "process": "process-1"
+            },
+            "order": 6,
+            "raw": {
+              "attributes": {},
+              "category": "event",
+              "documentation": "",
+              "event_definitions": [
+                {
+                  "attributes": {},
+                  "text": "PT5M",
+                  "type": "timerEventDefinition"
+                }
+              ],
+              "id": "we",
+              "incoming": [],
+              "lanes": [],
+              "name": "we",
+              "outgoing": [],
+              "process_id": "process-1",
+              "type": "weirdEvent"
+            },
+            "render": "BPMN event we（weirdEvent，id=we）；流程=process-1；事件定义=timerEventDefinition",
+            "tags": [
+              "bpmn",
+              "event",
+              "weirdEvent"
+            ]
+          },
+          {
+            "chunk_id": "f-bpmn-anonymous:bpmn:process-1:flow-1",
+            "context": "",
+            "file_id": "f-bpmn-anonymous",
+            "file_name": "anon.bpmn",
+            "locator": {
+              "element": "sequenceFlow",
+              "id": "flow-1",
+              "kind": "xml",
+              "pointer": "/definitions/process[@id=\"process-1\"]//sequenceFlow[@id=\"flow-1\"]",
+              "process": "process-1"
+            },
+            "order": 7,
+            "raw": {
+              "attributes": {},
+              "condition": "",
+              "documentation": "",
+              "id": "flow-1",
+              "name": "flow-1",
+              "process_id": "process-1",
+              "sourceRef": "sub",
+              "targetRef": "ext",
+              "type": "sequenceFlow"
+            },
+            "render": "BPMN sequenceFlow flow-1：子流程（sub） → 扩展任务（ext）",
+            "tags": [
+              "bpmn",
+              "sequenceFlow",
+              "relation"
+            ]
+          }
+        ],
+        "file_id": "f-bpmn-anonymous",
+        "file_name": "anon.bpmn",
+        "findings": [
+          {
+            "kind": "missing_id",
+            "locator": {
+              "element": "process",
+              "id": "process-1",
+              "kind": "xml",
+              "pointer": "/definitions/process[@id=\"process-1\"]",
+              "process": "process-1"
+            },
+            "message": "第 1 个 process 没有 id，临时使用 process-1",
+            "severity": "warn"
+          },
+          {
+            "kind": "missing_id",
+            "locator": {
+              "element": "sendTask",
+              "id": "anonymous-task-1",
+              "kind": "xml",
+              "pointer": "/definitions/process[@id=\"process-1\"]//sendTask[@id=\"anonymous-task-1\"]",
+              "process": "process-1"
+            },
+            "message": "流程 process-1 的 sendTask 没有 id，临时使用 anonymous-task-1",
+            "severity": "warn"
+          },
+          {
+            "kind": "missing_id",
+            "locator": {
+              "element": "sequenceFlow",
+              "id": "flow-1",
+              "kind": "xml",
+              "pointer": "/definitions/process[@id=\"process-1\"]//sequenceFlow[@id=\"flow-1\"]",
+              "process": "process-1"
+            },
+            "message": "流程 process-1 的 sequenceFlow 没有 id，临时使用 flow-1",
+            "severity": "warn"
+          }
+        ],
+        "kind": "bpmn",
+        "meta": {
+          "definitions_id": "",
+          "namespace": "http://www.omg.org/spec/BPMN/20100524/MODEL",
+          "target_namespace": ""
+        },
+        "stats": {
+          "chunks": 8,
+          "file": "anon.bpmn",
+          "findings": 3,
+          "kind": "bpmn",
+          "nodes": 6,
+          "processes": 1,
+          "sequenceFlows": 1
+        },
+        "structured": {
+          "nodes": [
+            {
+              "attributes": {
+                "async": "true"
+              },
+              "category": "task",
+              "documentation": "子流程里也有节点",
+              "event_definitions": [],
+              "id": "sub",
+              "incoming": [],
+              "lanes": [
+                {
+                  "id": "l1",
+                  "name": "前台"
+                },
+                {
+                  "id": "l1",
+                  "name": "前台"
+                },
+                {
+                  "id": "l2",
+                  "name": "l2"
+                }
+              ],
+              "name": "子流程",
+              "outgoing": [],
+              "process_id": "process-1",
+              "type": "subProcess"
+            },
+            {
+              "attributes": {},
+              "category": "task",
+              "documentation": "",
+              "event_definitions": [],
+              "id": "inner",
+              "incoming": [],
+              "lanes": [],
+              "name": "内层脚本",
+              "outgoing": [],
+              "process_id": "process-1",
+              "type": "scriptTask"
+            },
+            {
+              "attributes": {},
+              "category": "task",
+              "documentation": "",
+              "event_definitions": [],
+              "id": "anonymous-task-1",
+              "incoming": [],
+              "lanes": [],
+              "name": "没有 id 的发送任务",
+              "outgoing": [],
+              "process_id": "process-1",
+              "type": "sendTask"
+            },
+            {
+              "attributes": {},
+              "category": "task",
+              "documentation": "",
+              "event_definitions": [],
+              "id": "ext",
+              "incoming": [],
+              "lanes": [],
+              "name": "扩展任务",
+              "outgoing": [],
+              "process_id": "process-1",
+              "type": "mailTask"
+            },
+            {
+              "attributes": {},
+              "category": "gateway",
+              "documentation": "",
+              "event_definitions": [],
+              "id": "fg",
+              "incoming": [],
+              "lanes": [],
+              "name": "fg",
+              "outgoing": [],
+              "process_id": "process-1",
+              "type": "fancyGateway"
+            },
+            {
+              "attributes": {},
+              "category": "event",
+              "documentation": "",
+              "event_definitions": [
+                {
+                  "attributes": {},
+                  "text": "PT5M",
+                  "type": "timerEventDefinition"
+                }
+              ],
+              "id": "we",
+              "incoming": [],
+              "lanes": [],
+              "name": "we",
+              "outgoing": [],
+              "process_id": "process-1",
+              "type": "weirdEvent"
+            }
+          ],
+          "processes": [
+            {
+              "documentation": "",
+              "id": "process-1",
+              "isExecutable": false,
+              "name": "process-1",
+              "nodes": [
+                {
+                  "attributes": {
+                    "async": "true"
+                  },
+                  "category": "task",
+                  "documentation": "子流程里也有节点",
+                  "event_definitions": [],
+                  "id": "sub",
+                  "incoming": [],
+                  "lanes": [
+                    {
+                      "id": "l1",
+                      "name": "前台"
+                    },
+                    {
+                      "id": "l1",
+                      "name": "前台"
+                    },
+                    {
+                      "id": "l2",
+                      "name": "l2"
+                    }
+                  ],
+                  "name": "子流程",
+                  "outgoing": [],
+                  "process_id": "process-1",
+                  "type": "subProcess"
+                },
+                {
+                  "attributes": {},
+                  "category": "task",
+                  "documentation": "",
+                  "event_definitions": [],
+                  "id": "inner",
+                  "incoming": [],
+                  "lanes": [],
+                  "name": "内层脚本",
+                  "outgoing": [],
+                  "process_id": "process-1",
+                  "type": "scriptTask"
+                },
+                {
+                  "attributes": {},
+                  "category": "task",
+                  "documentation": "",
+                  "event_definitions": [],
+                  "id": "anonymous-task-1",
+                  "incoming": [],
+                  "lanes": [],
+                  "name": "没有 id 的发送任务",
+                  "outgoing": [],
+                  "process_id": "process-1",
+                  "type": "sendTask"
+                },
+                {
+                  "attributes": {},
+                  "category": "task",
+                  "documentation": "",
+                  "event_definitions": [],
+                  "id": "ext",
+                  "incoming": [],
+                  "lanes": [],
+                  "name": "扩展任务",
+                  "outgoing": [],
+                  "process_id": "process-1",
+                  "type": "mailTask"
+                },
+                {
+                  "attributes": {},
+                  "category": "gateway",
+                  "documentation": "",
+                  "event_definitions": [],
+                  "id": "fg",
+                  "incoming": [],
+                  "lanes": [],
+                  "name": "fg",
+                  "outgoing": [],
+                  "process_id": "process-1",
+                  "type": "fancyGateway"
+                },
+                {
+                  "attributes": {},
+                  "category": "event",
+                  "documentation": "",
+                  "event_definitions": [
+                    {
+                      "attributes": {},
+                      "text": "PT5M",
+                      "type": "timerEventDefinition"
+                    }
+                  ],
+                  "id": "we",
+                  "incoming": [],
+                  "lanes": [],
+                  "name": "we",
+                  "outgoing": [],
+                  "process_id": "process-1",
+                  "type": "weirdEvent"
+                }
+              ],
+              "sequenceFlows": [
+                {
+                  "attributes": {},
+                  "condition": "",
+                  "documentation": "",
+                  "id": "flow-1",
+                  "name": "flow-1",
+                  "process_id": "process-1",
+                  "sourceRef": "sub",
+                  "targetRef": "ext",
+                  "type": "sequenceFlow"
+                }
+              ]
+            }
+          ],
+          "sequenceFlows": [
+            {
+              "attributes": {},
+              "condition": "",
+              "documentation": "",
+              "id": "flow-1",
+              "name": "flow-1",
+              "process_id": "process-1",
+              "sourceRef": "sub",
+              "targetRef": "ext",
+              "type": "sequenceFlow"
+            }
+          ]
+        }
+      },
+      "file": "anon.bpmn",
+      "xml": "<definitions xmlns=\"http://www.omg.org/spec/BPMN/20100524/MODEL\"\n xmlns:camunda=\"http://camunda.org/schema/1.0/bpmn\">\n <process isExecutable=\"FALSE\">\n  <laneSet><lane id=\"l1\" name=\"前台\"><flowNodeRef> sub </flowNodeRef>\n   <flowNodeRef>sub</flowNodeRef></lane>\n   <lane id=\"l2\"><flowNodeRef>sub</flowNodeRef></lane></laneSet>\n  <subProcess id=\"sub\" name=\"子流程\" camunda:async=\"true\">\n   <documentation>子流程里也有节点</documentation>\n   <scriptTask id=\"inner\" name=\"内层脚本\"/>\n   <sendTask name=\"没有 id 的发送任务\"/>\n  </subProcess>\n  <mailTask id=\"ext\" name=\"扩展任务\"/>\n  <fancyGateway id=\"fg\"/>\n  <weirdEvent id=\"we\"><timerEventDefinition><timeDuration>PT5M</timeDuration>\n   </timerEventDefinition></weirdEvent>\n  <sequenceFlow sourceRef=\"sub\" targetRef=\"ext\"/>\n </process>\n</definitions>"
+    },
+    "compound": {
+      "accepts": true,
+      "doc": {
+        "chunks": [
+          {
+            "chunk_id": "f-bpmn-compound:bpmn:p1",
+            "context": "",
+            "file_id": "f-bpmn-compound",
+            "file_name": "simple.bpmn20.xml",
+            "locator": {
+              "element": "process",
+              "id": "p1",
+              "kind": "xml",
+              "pointer": "/definitions/process[@id=\"p1\"]",
+              "process": "p1"
+            },
+            "order": 0,
+            "raw": {
+              "documentation": "",
+              "id": "p1",
+              "isExecutable": null,
+              "name": "退款流程",
+              "nodes": [
+                {
+                  "attributes": {},
+                  "category": "event",
+                  "documentation": "",
+                  "event_definitions": [],
+                  "id": "s",
+                  "incoming": [],
+                  "lanes": [],
+                  "name": "收到退款申请",
+                  "outgoing": [],
+                  "process_id": "p1",
+                  "type": "startEvent"
+                },
+                {
+                  "attributes": {},
+                  "category": "task",
+                  "documentation": "",
+                  "event_definitions": [],
+                  "id": "approve",
+                  "incoming": [],
+                  "lanes": [],
+                  "name": "业务人员审批退款",
+                  "outgoing": [],
+                  "process_id": "p1",
+                  "type": "manualTask"
+                }
+              ],
+              "sequenceFlows": [
+                {
+                  "attributes": {},
+                  "condition": "",
+                  "documentation": "",
+                  "id": "go",
+                  "name": "go",
+                  "process_id": "p1",
+                  "sourceRef": "s",
+                  "targetRef": "approve",
+                  "type": "sequenceFlow"
+                }
+              ]
+            },
+            "render": "BPMN 流程 退款流程（id=p1）：2 个节点，1 条 sequenceFlow",
+            "tags": [
+              "bpmn",
+              "process"
+            ]
+          },
+          {
+            "chunk_id": "f-bpmn-compound:bpmn:p1:s",
+            "context": "",
+            "file_id": "f-bpmn-compound",
+            "file_name": "simple.bpmn20.xml",
+            "locator": {
+              "element": "startEvent",
+              "id": "s",
+              "kind": "xml",
+              "pointer": "/definitions/process[@id=\"p1\"]//startEvent[@id=\"s\"]",
+              "process": "p1"
+            },
+            "order": 1,
+            "raw": {
+              "attributes": {},
+              "category": "event",
+              "documentation": "",
+              "event_definitions": [],
+              "id": "s",
+              "incoming": [],
+              "lanes": [],
+              "name": "收到退款申请",
+              "outgoing": [],
+              "process_id": "p1",
+              "type": "startEvent"
+            },
+            "render": "BPMN event 收到退款申请（startEvent，id=s）；流程=退款流程",
+            "tags": [
+              "bpmn",
+              "event",
+              "startEvent"
+            ]
+          },
+          {
+            "chunk_id": "f-bpmn-compound:bpmn:p1:approve",
+            "context": "",
+            "file_id": "f-bpmn-compound",
+            "file_name": "simple.bpmn20.xml",
+            "locator": {
+              "element": "manualTask",
+              "id": "approve",
+              "kind": "xml",
+              "pointer": "/definitions/process[@id=\"p1\"]//manualTask[@id=\"approve\"]",
+              "process": "p1"
+            },
+            "order": 2,
+            "raw": {
+              "attributes": {},
+              "category": "task",
+              "documentation": "",
+              "event_definitions": [],
+              "id": "approve",
+              "incoming": [],
+              "lanes": [],
+              "name": "业务人员审批退款",
+              "outgoing": [],
+              "process_id": "p1",
+              "type": "manualTask"
+            },
+            "render": "BPMN task 业务人员审批退款（manualTask，id=approve）；流程=退款流程",
+            "tags": [
+              "bpmn",
+              "task",
+              "manualTask"
+            ]
+          },
+          {
+            "chunk_id": "f-bpmn-compound:bpmn:p1:go",
+            "context": "",
+            "file_id": "f-bpmn-compound",
+            "file_name": "simple.bpmn20.xml",
+            "locator": {
+              "element": "sequenceFlow",
+              "id": "go",
+              "kind": "xml",
+              "pointer": "/definitions/process[@id=\"p1\"]//sequenceFlow[@id=\"go\"]",
+              "process": "p1"
+            },
+            "order": 3,
+            "raw": {
+              "attributes": {},
+              "condition": "",
+              "documentation": "",
+              "id": "go",
+              "name": "go",
+              "process_id": "p1",
+              "sourceRef": "s",
+              "targetRef": "approve",
+              "type": "sequenceFlow"
+            },
+            "render": "BPMN sequenceFlow go：收到退款申请（s） → 业务人员审批退款（approve）",
+            "tags": [
+              "bpmn",
+              "sequenceFlow",
+              "relation"
+            ]
+          }
+        ],
+        "file_id": "f-bpmn-compound",
+        "file_name": "simple.bpmn20.xml",
+        "findings": [],
+        "kind": "bpmn",
+        "meta": {
+          "definitions_id": "",
+          "namespace": "http://www.omg.org/spec/BPMN/20100524/MODEL",
+          "target_namespace": ""
+        },
+        "stats": {
+          "chunks": 4,
+          "file": "simple.bpmn20.xml",
+          "findings": 0,
+          "kind": "bpmn",
+          "nodes": 2,
+          "processes": 1,
+          "sequenceFlows": 1
+        },
+        "structured": {
+          "nodes": [
+            {
+              "attributes": {},
+              "category": "event",
+              "documentation": "",
+              "event_definitions": [],
+              "id": "s",
+              "incoming": [],
+              "lanes": [],
+              "name": "收到退款申请",
+              "outgoing": [],
+              "process_id": "p1",
+              "type": "startEvent"
+            },
+            {
+              "attributes": {},
+              "category": "task",
+              "documentation": "",
+              "event_definitions": [],
+              "id": "approve",
+              "incoming": [],
+              "lanes": [],
+              "name": "业务人员审批退款",
+              "outgoing": [],
+              "process_id": "p1",
+              "type": "manualTask"
+            }
+          ],
+          "processes": [
+            {
+              "documentation": "",
+              "id": "p1",
+              "isExecutable": null,
+              "name": "退款流程",
+              "nodes": [
+                {
+                  "attributes": {},
+                  "category": "event",
+                  "documentation": "",
+                  "event_definitions": [],
+                  "id": "s",
+                  "incoming": [],
+                  "lanes": [],
+                  "name": "收到退款申请",
+                  "outgoing": [],
+                  "process_id": "p1",
+                  "type": "startEvent"
+                },
+                {
+                  "attributes": {},
+                  "category": "task",
+                  "documentation": "",
+                  "event_definitions": [],
+                  "id": "approve",
+                  "incoming": [],
+                  "lanes": [],
+                  "name": "业务人员审批退款",
+                  "outgoing": [],
+                  "process_id": "p1",
+                  "type": "manualTask"
+                }
+              ],
+              "sequenceFlows": [
+                {
+                  "attributes": {},
+                  "condition": "",
+                  "documentation": "",
+                  "id": "go",
+                  "name": "go",
+                  "process_id": "p1",
+                  "sourceRef": "s",
+                  "targetRef": "approve",
+                  "type": "sequenceFlow"
+                }
+              ]
+            }
+          ],
+          "sequenceFlows": [
+            {
+              "attributes": {},
+              "condition": "",
+              "documentation": "",
+              "id": "go",
+              "name": "go",
+              "process_id": "p1",
+              "sourceRef": "s",
+              "targetRef": "approve",
+              "type": "sequenceFlow"
+            }
+          ]
+        }
+      },
+      "file": "simple.bpmn20.xml",
+      "xml": "<definitions xmlns=\"http://www.omg.org/spec/BPMN/20100524/MODEL\">\n <process id=\"p1\" name=\"退款流程\">\n  <startEvent id=\"s\" name=\"收到退款申请\"/>\n  <manualTask id=\"approve\" name=\"业务人员审批退款\"/>\n  <sequenceFlow id=\"go\" sourceRef=\"s\" targetRef=\"approve\"/>\n </process>\n</definitions>"
+    },
+    "dangling": {
+      "accepts": true,
+      "doc": {
+        "chunks": [
+          {
+            "chunk_id": "f-bpmn-dangling:bpmn:p",
+            "context": "",
+            "file_id": "f-bpmn-dangling",
+            "file_name": "broken.bpmn",
+            "locator": {
+              "element": "process",
+              "id": "p",
+              "kind": "xml",
+              "pointer": "/definitions/process[@id=\"p\"]",
+              "process": "p"
+            },
+            "order": 0,
+            "raw": {
+              "documentation": "",
+              "id": "p",
+              "isExecutable": null,
+              "name": "p",
+              "nodes": [
+                {
+                  "attributes": {},
+                  "category": "task",
+                  "documentation": "",
+                  "event_definitions": [],
+                  "id": "known",
+                  "incoming": [],
+                  "lanes": [],
+                  "name": "known",
+                  "outgoing": [],
+                  "process_id": "p",
+                  "type": "task"
+                }
+              ],
+              "sequenceFlows": [
+                {
+                  "attributes": {},
+                  "condition": "",
+                  "documentation": "",
+                  "id": "bad",
+                  "name": "bad",
+                  "process_id": "p",
+                  "sourceRef": "known",
+                  "targetRef": "missing",
+                  "type": "sequenceFlow"
+                }
+              ]
+            },
+            "render": "BPMN 流程 p（id=p）：1 个节点，1 条 sequenceFlow",
+            "tags": [
+              "bpmn",
+              "process"
+            ]
+          },
+          {
+            "chunk_id": "f-bpmn-dangling:bpmn:p:known",
+            "context": "",
+            "file_id": "f-bpmn-dangling",
+            "file_name": "broken.bpmn",
+            "locator": {
+              "element": "task",
+              "id": "known",
+              "kind": "xml",
+              "pointer": "/definitions/process[@id=\"p\"]//task[@id=\"known\"]",
+              "process": "p"
+            },
+            "order": 1,
+            "raw": {
+              "attributes": {},
+              "category": "task",
+              "documentation": "",
+              "event_definitions": [],
+              "id": "known",
+              "incoming": [],
+              "lanes": [],
+              "name": "known",
+              "outgoing": [],
+              "process_id": "p",
+              "type": "task"
+            },
+            "render": "BPMN task known（task，id=known）；流程=p",
+            "tags": [
+              "bpmn",
+              "task",
+              "task"
+            ]
+          },
+          {
+            "chunk_id": "f-bpmn-dangling:bpmn:p:bad",
+            "context": "",
+            "file_id": "f-bpmn-dangling",
+            "file_name": "broken.bpmn",
+            "locator": {
+              "element": "sequenceFlow",
+              "id": "bad",
+              "kind": "xml",
+              "pointer": "/definitions/process[@id=\"p\"]//sequenceFlow[@id=\"bad\"]",
+              "process": "p"
+            },
+            "order": 2,
+            "raw": {
+              "attributes": {},
+              "condition": "",
+              "documentation": "",
+              "id": "bad",
+              "name": "bad",
+              "process_id": "p",
+              "sourceRef": "known",
+              "targetRef": "missing",
+              "type": "sequenceFlow"
+            },
+            "render": "BPMN sequenceFlow bad：known（known） → missing（missing）",
+            "tags": [
+              "bpmn",
+              "sequenceFlow",
+              "relation"
+            ]
+          }
+        ],
+        "file_id": "f-bpmn-dangling",
+        "file_name": "broken.bpmn",
+        "findings": [
+          {
+            "kind": "dangling_reference",
+            "locator": {
+              "element": "sequenceFlow",
+              "id": "bad",
+              "kind": "xml",
+              "pointer": "/definitions/process[@id=\"p\"]//sequenceFlow[@id=\"bad\"]",
+              "process": "p"
+            },
+            "message": "sequenceFlow bad 的 targetRef='missing' 未指向已解析节点",
+            "severity": "warn"
+          }
+        ],
+        "kind": "bpmn",
+        "meta": {
+          "definitions_id": "",
+          "namespace": "http://www.omg.org/spec/BPMN/20100524/MODEL",
+          "target_namespace": ""
+        },
+        "stats": {
+          "chunks": 3,
+          "file": "broken.bpmn",
+          "findings": 1,
+          "kind": "bpmn",
+          "nodes": 1,
+          "processes": 1,
+          "sequenceFlows": 1
+        },
+        "structured": {
+          "nodes": [
+            {
+              "attributes": {},
+              "category": "task",
+              "documentation": "",
+              "event_definitions": [],
+              "id": "known",
+              "incoming": [],
+              "lanes": [],
+              "name": "known",
+              "outgoing": [],
+              "process_id": "p",
+              "type": "task"
+            }
+          ],
+          "processes": [
+            {
+              "documentation": "",
+              "id": "p",
+              "isExecutable": null,
+              "name": "p",
+              "nodes": [
+                {
+                  "attributes": {},
+                  "category": "task",
+                  "documentation": "",
+                  "event_definitions": [],
+                  "id": "known",
+                  "incoming": [],
+                  "lanes": [],
+                  "name": "known",
+                  "outgoing": [],
+                  "process_id": "p",
+                  "type": "task"
+                }
+              ],
+              "sequenceFlows": [
+                {
+                  "attributes": {},
+                  "condition": "",
+                  "documentation": "",
+                  "id": "bad",
+                  "name": "bad",
+                  "process_id": "p",
+                  "sourceRef": "known",
+                  "targetRef": "missing",
+                  "type": "sequenceFlow"
+                }
+              ]
+            }
+          ],
+          "sequenceFlows": [
+            {
+              "attributes": {},
+              "condition": "",
+              "documentation": "",
+              "id": "bad",
+              "name": "bad",
+              "process_id": "p",
+              "sourceRef": "known",
+              "targetRef": "missing",
+              "type": "sequenceFlow"
+            }
+          ]
+        }
+      },
+      "file": "broken.bpmn",
+      "xml": "<definitions xmlns=\"http://www.omg.org/spec/BPMN/20100524/MODEL\">\n <process id=\"p\"><task id=\"known\"/>\n <sequenceFlow id=\"bad\" sourceRef=\"known\" targetRef=\"missing\"/></process>\n</definitions>"
+    },
+    "malformed": {
+      "accepts": true,
+      "doc": {
+        "chunks": [],
+        "file_id": "f-bpmn-malformed",
+        "file_name": "bad.bpmn",
+        "findings": [
+          {
+            "kind": "parse_failed",
+            "locator": {
+              "column": 31,
+              "kind": "xml",
+              "line": 1,
+              "pointer": "/"
+            },
+            "message": "BPMN XML 语法错误：mismatched tag: line 1, column 31",
+            "severity": "warn"
+          }
+        ],
+        "kind": "bpmn",
+        "meta": {},
+        "stats": {
+          "chunks": 0,
+          "file": "bad.bpmn",
+          "findings": 1,
+          "kind": "bpmn"
+        },
+        "structured": {}
+      },
+      "file": "bad.bpmn",
+      "xml": "<definitions><process id=\"p\"></definitions>"
+    },
+    "no_process": {
+      "accepts": true,
+      "doc": {
+        "chunks": [],
+        "file_id": "f-bpmn-no_process",
+        "file_name": "empty.bpmn",
+        "findings": [
+          {
+            "kind": "no_processes",
+            "locator": {
+              "kind": "xml",
+              "pointer": "/"
+            },
+            "message": "BPMN 文件里没有 process",
+            "severity": "warn"
+          }
+        ],
+        "kind": "bpmn",
+        "meta": {
+          "definitions_id": "d0",
+          "namespace": "http://www.omg.org/spec/BPMN/20100524/MODEL",
+          "target_namespace": ""
+        },
+        "stats": {
+          "chunks": 0,
+          "file": "empty.bpmn",
+          "findings": 1,
+          "kind": "bpmn",
+          "nodes": 0,
+          "processes": 0,
+          "sequenceFlows": 0
+        },
+        "structured": {
+          "nodes": [],
+          "processes": [],
+          "sequenceFlows": []
+        }
+      },
+      "file": "empty.bpmn",
+      "xml": "<definitions xmlns=\"http://www.omg.org/spec/BPMN/20100524/MODEL\" id=\"d0\"/>"
+    },
+    "order": {
+      "accepts": true,
+      "doc": {
+        "chunks": [
+          {
+            "chunk_id": "f-bpmn-order:bpmn:order-process",
+            "context": "",
+            "file_id": "f-bpmn-order",
+            "file_name": "order.bpmn",
+            "locator": {
+              "element": "process",
+              "id": "order-process",
+              "kind": "xml",
+              "pointer": "/definitions/process[@id=\"order-process\"]",
+              "process": "order-process"
+            },
+            "order": 0,
+            "raw": {
+              "documentation": "从订单接收到完成发货",
+              "id": "order-process",
+              "isExecutable": true,
+              "name": "订单履约",
+              "nodes": [
+                {
+                  "attributes": {},
+                  "category": "event",
+                  "documentation": "",
+                  "event_definitions": [
+                    {
+                      "attributes": {
+                        "messageRef": "order-message"
+                      },
+                      "text": "",
+                      "type": "messageEventDefinition"
+                    }
+                  ],
+                  "id": "start",
+                  "incoming": [],
+                  "lanes": [],
+                  "name": "收到订单",
+                  "outgoing": [
+                    "f1"
+                  ],
+                  "process_id": "order-process",
+                  "type": "startEvent"
+                },
+                {
+                  "attributes": {},
+                  "category": "task",
+                  "documentation": "",
+                  "event_definitions": [],
+                  "id": "check-credit",
+                  "incoming": [
+                    "f1"
+                  ],
+                  "lanes": [
+                    {
+                      "id": "finance",
+                      "name": "财务"
+                    }
+                  ],
+                  "name": "信用检查",
+                  "outgoing": [
+                    "f2"
+                  ],
+                  "process_id": "order-process",
+                  "type": "userTask"
+                },
+                {
+                  "attributes": {
+                    "default": "f4"
+                  },
+                  "category": "gateway",
+                  "documentation": "",
+                  "event_definitions": [],
+                  "id": "credit-ok",
+                  "incoming": [
+                    "f2"
+                  ],
+                  "lanes": [],
+                  "name": "信用通过？",
+                  "outgoing": [
+                    "f3",
+                    "f4"
+                  ],
+                  "process_id": "order-process",
+                  "type": "exclusiveGateway"
+                },
+                {
+                  "attributes": {},
+                  "category": "task",
+                  "documentation": "",
+                  "event_definitions": [],
+                  "id": "ship",
+                  "incoming": [],
+                  "lanes": [],
+                  "name": "创建交货单",
+                  "outgoing": [],
+                  "process_id": "order-process",
+                  "type": "serviceTask"
+                },
+                {
+                  "attributes": {},
+                  "category": "event",
+                  "documentation": "",
+                  "event_definitions": [],
+                  "id": "done",
+                  "incoming": [],
+                  "lanes": [],
+                  "name": "结束",
+                  "outgoing": [],
+                  "process_id": "order-process",
+                  "type": "endEvent"
+                }
+              ],
+              "sequenceFlows": [
+                {
+                  "attributes": {},
+                  "condition": "",
+                  "documentation": "",
+                  "id": "f1",
+                  "name": "f1",
+                  "process_id": "order-process",
+                  "sourceRef": "start",
+                  "targetRef": "check-credit",
+                  "type": "sequenceFlow"
+                },
+                {
+                  "attributes": {},
+                  "condition": "",
+                  "documentation": "",
+                  "id": "f2",
+                  "name": "f2",
+                  "process_id": "order-process",
+                  "sourceRef": "check-credit",
+                  "targetRef": "credit-ok",
+                  "type": "sequenceFlow"
+                },
+                {
+                  "attributes": {},
+                  "condition": "${creditStatus == 'PASS'}",
+                  "documentation": "",
+                  "id": "f3",
+                  "name": "通过",
+                  "process_id": "order-process",
+                  "sourceRef": "credit-ok",
+                  "targetRef": "ship",
+                  "type": "sequenceFlow"
+                },
+                {
+                  "attributes": {},
+                  "condition": "",
+                  "documentation": "",
+                  "id": "f4",
+                  "name": "拒绝",
+                  "process_id": "order-process",
+                  "sourceRef": "credit-ok",
+                  "targetRef": "done",
+                  "type": "sequenceFlow"
+                }
+              ]
+            },
+            "render": "BPMN 流程 订单履约（id=order-process）：5 个节点，4 条 sequenceFlow。从订单接收到完成发货",
+            "tags": [
+              "bpmn",
+              "process"
+            ]
+          },
+          {
+            "chunk_id": "f-bpmn-order:bpmn:order-process:start",
+            "context": "",
+            "file_id": "f-bpmn-order",
+            "file_name": "order.bpmn",
+            "locator": {
+              "element": "startEvent",
+              "id": "start",
+              "kind": "xml",
+              "pointer": "/definitions/process[@id=\"order-process\"]//startEvent[@id=\"start\"]",
+              "process": "order-process"
+            },
+            "order": 1,
+            "raw": {
+              "attributes": {},
+              "category": "event",
+              "documentation": "",
+              "event_definitions": [
+                {
+                  "attributes": {
+                    "messageRef": "order-message"
+                  },
+                  "text": "",
+                  "type": "messageEventDefinition"
+                }
+              ],
+              "id": "start",
+              "incoming": [],
+              "lanes": [],
+              "name": "收到订单",
+              "outgoing": [
+                "f1"
+              ],
+              "process_id": "order-process",
+              "type": "startEvent"
+            },
+            "render": "BPMN event 收到订单（startEvent，id=start）；流程=订单履约；outgoing=f1；事件定义=messageEventDefinition",
+            "tags": [
+              "bpmn",
+              "event",
+              "startEvent"
+            ]
+          },
+          {
+            "chunk_id": "f-bpmn-order:bpmn:order-process:check-credit",
+            "context": "",
+            "file_id": "f-bpmn-order",
+            "file_name": "order.bpmn",
+            "locator": {
+              "element": "userTask",
+              "id": "check-credit",
+              "kind": "xml",
+              "pointer": "/definitions/process[@id=\"order-process\"]//userTask[@id=\"check-credit\"]",
+              "process": "order-process"
+            },
+            "order": 2,
+            "raw": {
+              "attributes": {},
+              "category": "task",
+              "documentation": "",
+              "event_definitions": [],
+              "id": "check-credit",
+              "incoming": [
+                "f1"
+              ],
+              "lanes": [
+                {
+                  "id": "finance",
+                  "name": "财务"
+                }
+              ],
+              "name": "信用检查",
+              "outgoing": [
+                "f2"
+              ],
+              "process_id": "order-process",
+              "type": "userTask"
+            },
+            "render": "BPMN task 信用检查（userTask，id=check-credit）；流程=订单履约；泳道=财务；incoming=f1；outgoing=f2",
+            "tags": [
+              "bpmn",
+              "task",
+              "userTask"
+            ]
+          },
+          {
+            "chunk_id": "f-bpmn-order:bpmn:order-process:credit-ok",
+            "context": "",
+            "file_id": "f-bpmn-order",
+            "file_name": "order.bpmn",
+            "locator": {
+              "element": "exclusiveGateway",
+              "id": "credit-ok",
+              "kind": "xml",
+              "pointer": "/definitions/process[@id=\"order-process\"]//exclusiveGateway[@id=\"credit-ok\"]",
+              "process": "order-process"
+            },
+            "order": 3,
+            "raw": {
+              "attributes": {
+                "default": "f4"
+              },
+              "category": "gateway",
+              "documentation": "",
+              "event_definitions": [],
+              "id": "credit-ok",
+              "incoming": [
+                "f2"
+              ],
+              "lanes": [],
+              "name": "信用通过？",
+              "outgoing": [
+                "f3",
+                "f4"
+              ],
+              "process_id": "order-process",
+              "type": "exclusiveGateway"
+            },
+            "render": "BPMN gateway 信用通过？（exclusiveGateway，id=credit-ok）；流程=订单履约；incoming=f2；outgoing=f3、f4",
+            "tags": [
+              "bpmn",
+              "gateway",
+              "exclusiveGateway"
+            ]
+          },
+          {
+            "chunk_id": "f-bpmn-order:bpmn:order-process:ship",
+            "context": "",
+            "file_id": "f-bpmn-order",
+            "file_name": "order.bpmn",
+            "locator": {
+              "element": "serviceTask",
+              "id": "ship",
+              "kind": "xml",
+              "pointer": "/definitions/process[@id=\"order-process\"]//serviceTask[@id=\"ship\"]",
+              "process": "order-process"
+            },
+            "order": 4,
+            "raw": {
+              "attributes": {},
+              "category": "task",
+              "documentation": "",
+              "event_definitions": [],
+              "id": "ship",
+              "incoming": [],
+              "lanes": [],
+              "name": "创建交货单",
+              "outgoing": [],
+              "process_id": "order-process",
+              "type": "serviceTask"
+            },
+            "render": "BPMN task 创建交货单（serviceTask，id=ship）；流程=订单履约",
+            "tags": [
+              "bpmn",
+              "task",
+              "serviceTask"
+            ]
+          },
+          {
+            "chunk_id": "f-bpmn-order:bpmn:order-process:done",
+            "context": "",
+            "file_id": "f-bpmn-order",
+            "file_name": "order.bpmn",
+            "locator": {
+              "element": "endEvent",
+              "id": "done",
+              "kind": "xml",
+              "pointer": "/definitions/process[@id=\"order-process\"]//endEvent[@id=\"done\"]",
+              "process": "order-process"
+            },
+            "order": 5,
+            "raw": {
+              "attributes": {},
+              "category": "event",
+              "documentation": "",
+              "event_definitions": [],
+              "id": "done",
+              "incoming": [],
+              "lanes": [],
+              "name": "结束",
+              "outgoing": [],
+              "process_id": "order-process",
+              "type": "endEvent"
+            },
+            "render": "BPMN event 结束（endEvent，id=done）；流程=订单履约",
+            "tags": [
+              "bpmn",
+              "event",
+              "endEvent"
+            ]
+          },
+          {
+            "chunk_id": "f-bpmn-order:bpmn:order-process:f1",
+            "context": "",
+            "file_id": "f-bpmn-order",
+            "file_name": "order.bpmn",
+            "locator": {
+              "element": "sequenceFlow",
+              "id": "f1",
+              "kind": "xml",
+              "pointer": "/definitions/process[@id=\"order-process\"]//sequenceFlow[@id=\"f1\"]",
+              "process": "order-process"
+            },
+            "order": 6,
+            "raw": {
+              "attributes": {},
+              "condition": "",
+              "documentation": "",
+              "id": "f1",
+              "name": "f1",
+              "process_id": "order-process",
+              "sourceRef": "start",
+              "targetRef": "check-credit",
+              "type": "sequenceFlow"
+            },
+            "render": "BPMN sequenceFlow f1：收到订单（start） → 信用检查（check-credit）",
+            "tags": [
+              "bpmn",
+              "sequenceFlow",
+              "relation"
+            ]
+          },
+          {
+            "chunk_id": "f-bpmn-order:bpmn:order-process:f2",
+            "context": "",
+            "file_id": "f-bpmn-order",
+            "file_name": "order.bpmn",
+            "locator": {
+              "element": "sequenceFlow",
+              "id": "f2",
+              "kind": "xml",
+              "pointer": "/definitions/process[@id=\"order-process\"]//sequenceFlow[@id=\"f2\"]",
+              "process": "order-process"
+            },
+            "order": 7,
+            "raw": {
+              "attributes": {},
+              "condition": "",
+              "documentation": "",
+              "id": "f2",
+              "name": "f2",
+              "process_id": "order-process",
+              "sourceRef": "check-credit",
+              "targetRef": "credit-ok",
+              "type": "sequenceFlow"
+            },
+            "render": "BPMN sequenceFlow f2：信用检查（check-credit） → 信用通过？（credit-ok）",
+            "tags": [
+              "bpmn",
+              "sequenceFlow",
+              "relation"
+            ]
+          },
+          {
+            "chunk_id": "f-bpmn-order:bpmn:order-process:f3",
+            "context": "",
+            "file_id": "f-bpmn-order",
+            "file_name": "order.bpmn",
+            "locator": {
+              "element": "sequenceFlow",
+              "id": "f3",
+              "kind": "xml",
+              "pointer": "/definitions/process[@id=\"order-process\"]//sequenceFlow[@id=\"f3\"]",
+              "process": "order-process"
+            },
+            "order": 8,
+            "raw": {
+              "attributes": {},
+              "condition": "${creditStatus == 'PASS'}",
+              "documentation": "",
+              "id": "f3",
+              "name": "通过",
+              "process_id": "order-process",
+              "sourceRef": "credit-ok",
+              "targetRef": "ship",
+              "type": "sequenceFlow"
+            },
+            "render": "BPMN sequenceFlow f3：信用通过？（credit-ok） → 创建交货单（ship）；名称=通过；条件=${creditStatus == 'PASS'}",
+            "tags": [
+              "bpmn",
+              "sequenceFlow",
+              "relation",
+              "rule"
+            ]
+          },
+          {
+            "chunk_id": "f-bpmn-order:bpmn:order-process:f4",
+            "context": "",
+            "file_id": "f-bpmn-order",
+            "file_name": "order.bpmn",
+            "locator": {
+              "element": "sequenceFlow",
+              "id": "f4",
+              "kind": "xml",
+              "pointer": "/definitions/process[@id=\"order-process\"]//sequenceFlow[@id=\"f4\"]",
+              "process": "order-process"
+            },
+            "order": 9,
+            "raw": {
+              "attributes": {},
+              "condition": "",
+              "documentation": "",
+              "id": "f4",
+              "name": "拒绝",
+              "process_id": "order-process",
+              "sourceRef": "credit-ok",
+              "targetRef": "done",
+              "type": "sequenceFlow"
+            },
+            "render": "BPMN sequenceFlow f4：信用通过？（credit-ok） → 结束（done）；名称=拒绝",
+            "tags": [
+              "bpmn",
+              "sequenceFlow",
+              "relation"
+            ]
+          }
+        ],
+        "file_id": "f-bpmn-order",
+        "file_name": "order.bpmn",
+        "findings": [],
+        "kind": "bpmn",
+        "meta": {
+          "definitions_id": "defs-order",
+          "namespace": "http://www.omg.org/spec/BPMN/20100524/MODEL",
+          "target_namespace": "urn:test:order"
+        },
+        "stats": {
+          "chunks": 10,
+          "file": "order.bpmn",
+          "findings": 0,
+          "kind": "bpmn",
+          "nodes": 5,
+          "processes": 1,
+          "sequenceFlows": 4
+        },
+        "structured": {
+          "nodes": [
+            {
+              "attributes": {},
+              "category": "event",
+              "documentation": "",
+              "event_definitions": [
+                {
+                  "attributes": {
+                    "messageRef": "order-message"
+                  },
+                  "text": "",
+                  "type": "messageEventDefinition"
+                }
+              ],
+              "id": "start",
+              "incoming": [],
+              "lanes": [],
+              "name": "收到订单",
+              "outgoing": [
+                "f1"
+              ],
+              "process_id": "order-process",
+              "type": "startEvent"
+            },
+            {
+              "attributes": {},
+              "category": "task",
+              "documentation": "",
+              "event_definitions": [],
+              "id": "check-credit",
+              "incoming": [
+                "f1"
+              ],
+              "lanes": [
+                {
+                  "id": "finance",
+                  "name": "财务"
+                }
+              ],
+              "name": "信用检查",
+              "outgoing": [
+                "f2"
+              ],
+              "process_id": "order-process",
+              "type": "userTask"
+            },
+            {
+              "attributes": {
+                "default": "f4"
+              },
+              "category": "gateway",
+              "documentation": "",
+              "event_definitions": [],
+              "id": "credit-ok",
+              "incoming": [
+                "f2"
+              ],
+              "lanes": [],
+              "name": "信用通过？",
+              "outgoing": [
+                "f3",
+                "f4"
+              ],
+              "process_id": "order-process",
+              "type": "exclusiveGateway"
+            },
+            {
+              "attributes": {},
+              "category": "task",
+              "documentation": "",
+              "event_definitions": [],
+              "id": "ship",
+              "incoming": [],
+              "lanes": [],
+              "name": "创建交货单",
+              "outgoing": [],
+              "process_id": "order-process",
+              "type": "serviceTask"
+            },
+            {
+              "attributes": {},
+              "category": "event",
+              "documentation": "",
+              "event_definitions": [],
+              "id": "done",
+              "incoming": [],
+              "lanes": [],
+              "name": "结束",
+              "outgoing": [],
+              "process_id": "order-process",
+              "type": "endEvent"
+            }
+          ],
+          "processes": [
+            {
+              "documentation": "从订单接收到完成发货",
+              "id": "order-process",
+              "isExecutable": true,
+              "name": "订单履约",
+              "nodes": [
+                {
+                  "attributes": {},
+                  "category": "event",
+                  "documentation": "",
+                  "event_definitions": [
+                    {
+                      "attributes": {
+                        "messageRef": "order-message"
+                      },
+                      "text": "",
+                      "type": "messageEventDefinition"
+                    }
+                  ],
+                  "id": "start",
+                  "incoming": [],
+                  "lanes": [],
+                  "name": "收到订单",
+                  "outgoing": [
+                    "f1"
+                  ],
+                  "process_id": "order-process",
+                  "type": "startEvent"
+                },
+                {
+                  "attributes": {},
+                  "category": "task",
+                  "documentation": "",
+                  "event_definitions": [],
+                  "id": "check-credit",
+                  "incoming": [
+                    "f1"
+                  ],
+                  "lanes": [
+                    {
+                      "id": "finance",
+                      "name": "财务"
+                    }
+                  ],
+                  "name": "信用检查",
+                  "outgoing": [
+                    "f2"
+                  ],
+                  "process_id": "order-process",
+                  "type": "userTask"
+                },
+                {
+                  "attributes": {
+                    "default": "f4"
+                  },
+                  "category": "gateway",
+                  "documentation": "",
+                  "event_definitions": [],
+                  "id": "credit-ok",
+                  "incoming": [
+                    "f2"
+                  ],
+                  "lanes": [],
+                  "name": "信用通过？",
+                  "outgoing": [
+                    "f3",
+                    "f4"
+                  ],
+                  "process_id": "order-process",
+                  "type": "exclusiveGateway"
+                },
+                {
+                  "attributes": {},
+                  "category": "task",
+                  "documentation": "",
+                  "event_definitions": [],
+                  "id": "ship",
+                  "incoming": [],
+                  "lanes": [],
+                  "name": "创建交货单",
+                  "outgoing": [],
+                  "process_id": "order-process",
+                  "type": "serviceTask"
+                },
+                {
+                  "attributes": {},
+                  "category": "event",
+                  "documentation": "",
+                  "event_definitions": [],
+                  "id": "done",
+                  "incoming": [],
+                  "lanes": [],
+                  "name": "结束",
+                  "outgoing": [],
+                  "process_id": "order-process",
+                  "type": "endEvent"
+                }
+              ],
+              "sequenceFlows": [
+                {
+                  "attributes": {},
+                  "condition": "",
+                  "documentation": "",
+                  "id": "f1",
+                  "name": "f1",
+                  "process_id": "order-process",
+                  "sourceRef": "start",
+                  "targetRef": "check-credit",
+                  "type": "sequenceFlow"
+                },
+                {
+                  "attributes": {},
+                  "condition": "",
+                  "documentation": "",
+                  "id": "f2",
+                  "name": "f2",
+                  "process_id": "order-process",
+                  "sourceRef": "check-credit",
+                  "targetRef": "credit-ok",
+                  "type": "sequenceFlow"
+                },
+                {
+                  "attributes": {},
+                  "condition": "${creditStatus == 'PASS'}",
+                  "documentation": "",
+                  "id": "f3",
+                  "name": "通过",
+                  "process_id": "order-process",
+                  "sourceRef": "credit-ok",
+                  "targetRef": "ship",
+                  "type": "sequenceFlow"
+                },
+                {
+                  "attributes": {},
+                  "condition": "",
+                  "documentation": "",
+                  "id": "f4",
+                  "name": "拒绝",
+                  "process_id": "order-process",
+                  "sourceRef": "credit-ok",
+                  "targetRef": "done",
+                  "type": "sequenceFlow"
+                }
+              ]
+            }
+          ],
+          "sequenceFlows": [
+            {
+              "attributes": {},
+              "condition": "",
+              "documentation": "",
+              "id": "f1",
+              "name": "f1",
+              "process_id": "order-process",
+              "sourceRef": "start",
+              "targetRef": "check-credit",
+              "type": "sequenceFlow"
+            },
+            {
+              "attributes": {},
+              "condition": "",
+              "documentation": "",
+              "id": "f2",
+              "name": "f2",
+              "process_id": "order-process",
+              "sourceRef": "check-credit",
+              "targetRef": "credit-ok",
+              "type": "sequenceFlow"
+            },
+            {
+              "attributes": {},
+              "condition": "${creditStatus == 'PASS'}",
+              "documentation": "",
+              "id": "f3",
+              "name": "通过",
+              "process_id": "order-process",
+              "sourceRef": "credit-ok",
+              "targetRef": "ship",
+              "type": "sequenceFlow"
+            },
+            {
+              "attributes": {},
+              "condition": "",
+              "documentation": "",
+              "id": "f4",
+              "name": "拒绝",
+              "process_id": "order-process",
+              "sourceRef": "credit-ok",
+              "targetRef": "done",
+              "type": "sequenceFlow"
+            }
+          ]
+        }
+      },
+      "file": "order.bpmn",
+      "xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<bpmn:definitions xmlns:bpmn=\"http://www.omg.org/spec/BPMN/20100524/MODEL\"\n id=\"defs-order\" targetNamespace=\"urn:test:order\">\n <bpmn:process id=\"order-process\" name=\"订单履约\" isExecutable=\"true\">\n  <bpmn:documentation>从订单接收到完成发货</bpmn:documentation>\n  <bpmn:laneSet id=\"lanes\"><bpmn:lane id=\"finance\" name=\"财务\">\n   <bpmn:flowNodeRef>check-credit</bpmn:flowNodeRef>\n  </bpmn:lane></bpmn:laneSet>\n  <bpmn:startEvent id=\"start\" name=\"收到订单\"><bpmn:outgoing>f1</bpmn:outgoing>\n   <bpmn:messageEventDefinition messageRef=\"order-message\"/>\n  </bpmn:startEvent>\n  <bpmn:userTask id=\"check-credit\" name=\"信用检查\">\n   <bpmn:incoming>f1</bpmn:incoming><bpmn:outgoing>f2</bpmn:outgoing>\n  </bpmn:userTask>\n  <bpmn:exclusiveGateway id=\"credit-ok\" name=\"信用通过？\" default=\"f4\">\n   <bpmn:incoming>f2</bpmn:incoming><bpmn:outgoing>f3</bpmn:outgoing>\n   <bpmn:outgoing>f4</bpmn:outgoing>\n  </bpmn:exclusiveGateway>\n  <bpmn:serviceTask id=\"ship\" name=\"创建交货单\"/>\n  <bpmn:endEvent id=\"done\" name=\"结束\"/>\n  <bpmn:sequenceFlow id=\"f1\" sourceRef=\"start\" targetRef=\"check-credit\"/>\n  <bpmn:sequenceFlow id=\"f2\" sourceRef=\"check-credit\" targetRef=\"credit-ok\"/>\n  <bpmn:sequenceFlow id=\"f3\" name=\"通过\" sourceRef=\"credit-ok\" targetRef=\"ship\">\n   <bpmn:conditionExpression>${creditStatus == 'PASS'}</bpmn:conditionExpression>\n  </bpmn:sequenceFlow>\n  <bpmn:sequenceFlow id=\"f4\" name=\"拒绝\" sourceRef=\"credit-ok\" targetRef=\"done\"/>\n </bpmn:process>\n</bpmn:definitions>"
+    },
+    "unsafe": {
+      "accepts": true,
+      "doc": {
+        "chunks": [],
+        "file_id": "f-bpmn-unsafe",
+        "file_name": "unsafe.bpmn",
+        "findings": [
+          {
+            "kind": "unsafe_xml",
+            "locator": {
+              "kind": "xml",
+              "pointer": "/"
+            },
+            "message": "BPMN 含 DTD/ENTITY 声明，已为避免实体展开攻击而拒绝解析",
+            "severity": "warn"
+          }
+        ],
+        "kind": "bpmn",
+        "meta": {},
+        "stats": {
+          "chunks": 0,
+          "file": "unsafe.bpmn",
+          "findings": 1,
+          "kind": "bpmn"
+        },
+        "structured": {}
+      },
+      "file": "unsafe.bpmn",
+      "xml": "<?xml version=\"1.0\"?>\n<!DOCTYPE definitions [<!ENTITY secret SYSTEM \"file:///etc/passwd\">]>\n<definitions xmlns=\"http://www.omg.org/spec/BPMN/20100524/MODEL\">\n <process id=\"p\"><task id=\"t\" name=\"&secret;\"/></process>\n</definitions>"
+    },
+    "wrong_root": {
+      "accepts": true,
+      "doc": {
+        "chunks": [
+          {
+            "chunk_id": "f-bpmn-wrong_root:bpmn:p9",
+            "context": "",
+            "file_id": "f-bpmn-wrong_root",
+            "file_name": "wrongroot.bpmn",
+            "locator": {
+              "element": "process",
+              "id": "p9",
+              "kind": "xml",
+              "pointer": "/definitions/process[@id=\"p9\"]",
+              "process": "p9"
+            },
+            "order": 0,
+            "raw": {
+              "documentation": "",
+              "id": "p9",
+              "isExecutable": null,
+              "name": "p9",
+              "nodes": [
+                {
+                  "attributes": {},
+                  "category": "task",
+                  "documentation": "",
+                  "event_definitions": [],
+                  "id": "t9",
+                  "incoming": [],
+                  "lanes": [],
+                  "name": "唯一的任务",
+                  "outgoing": [],
+                  "process_id": "p9",
+                  "type": "task"
+                }
+              ],
+              "sequenceFlows": []
+            },
+            "render": "BPMN 流程 p9（id=p9）：1 个节点，0 条 sequenceFlow",
+            "tags": [
+              "bpmn",
+              "process"
+            ]
+          },
+          {
+            "chunk_id": "f-bpmn-wrong_root:bpmn:p9:t9",
+            "context": "",
+            "file_id": "f-bpmn-wrong_root",
+            "file_name": "wrongroot.bpmn",
+            "locator": {
+              "element": "task",
+              "id": "t9",
+              "kind": "xml",
+              "pointer": "/definitions/process[@id=\"p9\"]//task[@id=\"t9\"]",
+              "process": "p9"
+            },
+            "order": 1,
+            "raw": {
+              "attributes": {},
+              "category": "task",
+              "documentation": "",
+              "event_definitions": [],
+              "id": "t9",
+              "incoming": [],
+              "lanes": [],
+              "name": "唯一的任务",
+              "outgoing": [],
+              "process_id": "p9",
+              "type": "task"
+            },
+            "render": "BPMN task 唯一的任务（task，id=t9）；流程=p9",
+            "tags": [
+              "bpmn",
+              "task",
+              "task"
+            ]
+          }
+        ],
+        "file_id": "f-bpmn-wrong_root",
+        "file_name": "wrongroot.bpmn",
+        "findings": [
+          {
+            "kind": "unexpected_root",
+            "locator": {
+              "kind": "xml",
+              "pointer": "/process"
+            },
+            "message": "BPMN 根节点应为 definitions，实际为 'process'",
+            "severity": "warn"
+          }
+        ],
+        "kind": "bpmn",
+        "meta": {
+          "definitions_id": "p9",
+          "namespace": "http://www.omg.org/spec/BPMN/20100524/MODEL",
+          "target_namespace": ""
+        },
+        "stats": {
+          "chunks": 2,
+          "file": "wrongroot.bpmn",
+          "findings": 1,
+          "kind": "bpmn",
+          "nodes": 1,
+          "processes": 1,
+          "sequenceFlows": 0
+        },
+        "structured": {
+          "nodes": [
+            {
+              "attributes": {},
+              "category": "task",
+              "documentation": "",
+              "event_definitions": [],
+              "id": "t9",
+              "incoming": [],
+              "lanes": [],
+              "name": "唯一的任务",
+              "outgoing": [],
+              "process_id": "p9",
+              "type": "task"
+            }
+          ],
+          "processes": [
+            {
+              "documentation": "",
+              "id": "p9",
+              "isExecutable": null,
+              "name": "p9",
+              "nodes": [
+                {
+                  "attributes": {},
+                  "category": "task",
+                  "documentation": "",
+                  "event_definitions": [],
+                  "id": "t9",
+                  "incoming": [],
+                  "lanes": [],
+                  "name": "唯一的任务",
+                  "outgoing": [],
+                  "process_id": "p9",
+                  "type": "task"
+                }
+              ],
+              "sequenceFlows": []
+            }
+          ],
+          "sequenceFlows": []
+        }
+      },
+      "file": "wrongroot.bpmn",
+      "xml": "<process xmlns=\"http://www.omg.org/spec/BPMN/20100524/MODEL\" id=\"p9\">\n <task id=\"t9\" name=\"唯一的任务\"/></process>"
+    }
+  },
+  "pptx": {
+    "minimal": {
+      "file": "parse.pptx.minimal.pptx",
+      "ooxml": {
+        "chunks": [
+          {
+            "chunk_id": "f-pptx-minimal:slide:1:shape:2",
+            "context": "",
+            "file_id": "f-pptx-minimal",
+            "file_name": "parse.pptx.minimal.pptx",
+            "locator": {
+              "bbox": [
+                10,
+                20,
+                300,
+                50
+              ],
+              "kind": "page",
+              "page": 1,
+              "shape": "Title 1",
+              "shape_id": "2"
+            },
+            "order": 0,
+            "raw": {
+              "bbox": [
+                10,
+                20,
+                300,
+                50
+              ],
+              "id": "2",
+              "name": "Title 1",
+              "text": "订单履约流程"
+            },
+            "render": "PPT 第 1 页\n订单履约流程",
+            "tags": [
+              "pptx",
+              "slide_text"
+            ]
+          },
+          {
+            "chunk_id": "f-pptx-minimal:slide:1:shape:3",
+            "context": "",
+            "file_id": "f-pptx-minimal",
+            "file_name": "parse.pptx.minimal.pptx",
+            "locator": {
+              "bbox": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "kind": "page",
+              "page": 1,
+              "shape": "Content 2",
+              "shape_id": "3"
+            },
+            "order": 1,
+            "raw": {
+              "bbox": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "id": "3",
+              "name": "Content 2",
+              "text": "每个订单必须通过信用检查后才能发货"
+            },
+            "render": "PPT 第 1 页\n〔订单履约流程〕\n每个订单必须通过信用检查后才能发货",
+            "tags": [
+              "pptx",
+              "slide_text",
+              "rule"
+            ]
+          },
+          {
+            "chunk_id": "f-pptx-minimal:slide:1:table:1:schema",
+            "context": "",
+            "file_id": "f-pptx-minimal",
+            "file_name": "parse.pptx.minimal.pptx",
+            "locator": {
+              "bbox": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "kind": "page",
+              "page": 1,
+              "row": 1,
+              "shape_id": "table-1",
+              "table": 1
+            },
+            "order": 2,
+            "raw": {
+              "columns": [
+                "步骤",
+                "责任人"
+              ]
+            },
+            "render": "PPT 第 1 页表格 1 列：步骤、责任人",
+            "tags": [
+              "pptx",
+              "table",
+              "schema"
+            ]
+          },
+          {
+            "chunk_id": "f-pptx-minimal:slide:1:table:1:row:2",
+            "context": "",
+            "file_id": "f-pptx-minimal",
+            "file_name": "parse.pptx.minimal.pptx",
+            "locator": {
+              "bbox": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "kind": "page",
+              "page": 1,
+              "row": 2,
+              "shape_id": "table-1",
+              "table": 1
+            },
+            "order": 3,
+            "raw": {
+              "columns": [
+                "步骤",
+                "责任人"
+              ],
+              "row": [
+                "信用检查",
+                "财务"
+              ]
+            },
+            "render": "PPT 第 1 页表格 1 第 2 行：步骤=信用检查 | 责任人=财务",
+            "tags": [
+              "pptx",
+              "table"
+            ]
+          },
+          {
+            "chunk_id": "f-pptx-minimal:slide:1:notes",
+            "context": "",
+            "file_id": "f-pptx-minimal",
+            "file_name": "parse.pptx.minimal.pptx",
+            "locator": {
+              "bbox": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "kind": "page",
+              "notes": true,
+              "page": 1,
+              "part": "ppt/notesSlides/notesSlide1.xml"
+            },
+            "order": 4,
+            "raw": {
+              "notes": "ERP 顾问确认：冻结客户不得发货"
+            },
+            "render": "PPT 第 1 页演讲者备注：ERP 顾问确认：冻结客户不得发货",
+            "tags": [
+              "pptx",
+              "speaker_notes",
+              "rule"
+            ]
+          }
+        ],
+        "file_id": "f-pptx-minimal",
+        "file_name": "parse.pptx.minimal.pptx",
+        "findings": [
+          {
+            "kind": "metadata_leak",
+            "locator": {
+              "field": "docProps/core.xml",
+              "kind": "meta"
+            },
+            "message": "演示文稿元数据里带着作者信息（creator=Customer A；last_modified_by=FDE B），对外发布前建议清理。",
+            "severity": "warn"
+          }
+        ],
+        "kind": "pptx",
+        "meta": {
+          "creator": "Customer A",
+          "last_modified_by": "FDE B",
+          "title": "Order Process"
+        },
+        "stats": {
+          "chunks": 5,
+          "file": "parse.pptx.minimal.pptx",
+          "findings": 1,
+          "kind": "pptx",
+          "slide_count": 1,
+          "slides": 1
+        },
+        "structured": {
+          "slide_count": 1,
+          "slides": [
+            {
+              "notes": "ERP 顾问确认：冻结客户不得发货",
+              "number": 1,
+              "tables": [
+                {
+                  "columns": [
+                    "步骤",
+                    "责任人"
+                  ],
+                  "data": [
+                    [
+                      "信用检查",
+                      "财务"
+                    ]
+                  ],
+                  "index": 1,
+                  "rows": 1
+                }
+              ],
+              "texts": [
+                {
+                  "bbox": [
+                    10,
+                    20,
+                    300,
+                    50
+                  ],
+                  "id": "2",
+                  "name": "Title 1",
+                  "text": "订单履约流程"
+                },
+                {
+                  "bbox": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  "id": "3",
+                  "name": "Content 2",
+                  "text": "每个订单必须通过信用检查后才能发货"
+                }
+              ],
+              "title": "订单履约流程"
+            }
+          ]
+        }
+      },
+      "parse": {
+        "chunks": [
+          {
+            "chunk_id": "f-pptx-minimal:slide:1:shape:2",
+            "context": "",
+            "file_id": "f-pptx-minimal",
+            "file_name": "parse.pptx.minimal.pptx",
+            "locator": {
+              "bbox": [
+                10,
+                20,
+                300,
+                50
+              ],
+              "kind": "page",
+              "page": 1,
+              "shape": "Title 1",
+              "shape_id": "2"
+            },
+            "order": 0,
+            "raw": {
+              "bbox": [
+                10,
+                20,
+                300,
+                50
+              ],
+              "id": "2",
+              "name": "Title 1",
+              "text": "订单履约流程"
+            },
+            "render": "PPT 第 1 页\n订单履约流程",
+            "tags": [
+              "pptx",
+              "slide_text"
+            ]
+          },
+          {
+            "chunk_id": "f-pptx-minimal:slide:1:shape:3",
+            "context": "",
+            "file_id": "f-pptx-minimal",
+            "file_name": "parse.pptx.minimal.pptx",
+            "locator": {
+              "bbox": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "kind": "page",
+              "page": 1,
+              "shape": "Content 2",
+              "shape_id": "3"
+            },
+            "order": 1,
+            "raw": {
+              "bbox": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "id": "3",
+              "name": "Content 2",
+              "text": "每个订单必须通过信用检查后才能发货"
+            },
+            "render": "PPT 第 1 页\n〔订单履约流程〕\n每个订单必须通过信用检查后才能发货",
+            "tags": [
+              "pptx",
+              "slide_text",
+              "rule"
+            ]
+          },
+          {
+            "chunk_id": "f-pptx-minimal:slide:1:table:1:schema",
+            "context": "",
+            "file_id": "f-pptx-minimal",
+            "file_name": "parse.pptx.minimal.pptx",
+            "locator": {
+              "bbox": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "kind": "page",
+              "page": 1,
+              "row": 1,
+              "shape_id": "table-1",
+              "table": 1
+            },
+            "order": 2,
+            "raw": {
+              "columns": [
+                "步骤",
+                "责任人"
+              ]
+            },
+            "render": "PPT 第 1 页表格 1 列：步骤、责任人",
+            "tags": [
+              "pptx",
+              "table",
+              "schema"
+            ]
+          },
+          {
+            "chunk_id": "f-pptx-minimal:slide:1:table:1:row:2",
+            "context": "",
+            "file_id": "f-pptx-minimal",
+            "file_name": "parse.pptx.minimal.pptx",
+            "locator": {
+              "bbox": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "kind": "page",
+              "page": 1,
+              "row": 2,
+              "shape_id": "table-1",
+              "table": 1
+            },
+            "order": 3,
+            "raw": {
+              "columns": [
+                "步骤",
+                "责任人"
+              ],
+              "row": [
+                "信用检查",
+                "财务"
+              ]
+            },
+            "render": "PPT 第 1 页表格 1 第 2 行：步骤=信用检查 | 责任人=财务",
+            "tags": [
+              "pptx",
+              "table"
+            ]
+          },
+          {
+            "chunk_id": "f-pptx-minimal:slide:1:notes",
+            "context": "",
+            "file_id": "f-pptx-minimal",
+            "file_name": "parse.pptx.minimal.pptx",
+            "locator": {
+              "bbox": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "kind": "page",
+              "notes": true,
+              "page": 1,
+              "part": "ppt/notesSlides/notesSlide1.xml"
+            },
+            "order": 4,
+            "raw": {
+              "notes": "ERP 顾问确认：冻结客户不得发货"
+            },
+            "render": "PPT 第 1 页演讲者备注：ERP 顾问确认：冻结客户不得发货",
+            "tags": [
+              "pptx",
+              "speaker_notes",
+              "rule"
+            ]
+          }
+        ],
+        "file_id": "f-pptx-minimal",
+        "file_name": "parse.pptx.minimal.pptx",
+        "findings": [
+          {
+            "kind": "parser_fallback",
+            "locator": {
+              "kind": "package",
+              "path": "/"
+            },
+            "message": "未安装 python-pptx，已使用内置 OOXML 兜底解析正文、表格和备注；复杂 SmartArt/图表不会被当作已解析内容。",
+            "severity": "info"
+          },
+          {
+            "kind": "metadata_leak",
+            "locator": {
+              "field": "docProps/core.xml",
+              "kind": "meta"
+            },
+            "message": "演示文稿元数据里带着作者信息（creator=Customer A；last_modified_by=FDE B），对外发布前建议清理。",
+            "severity": "warn"
+          }
+        ],
+        "kind": "pptx",
+        "meta": {
+          "creator": "Customer A",
+          "last_modified_by": "FDE B",
+          "title": "Order Process"
+        },
+        "stats": {
+          "chunks": 5,
+          "file": "parse.pptx.minimal.pptx",
+          "findings": 2,
+          "kind": "pptx",
+          "slide_count": 1,
+          "slides": 1
+        },
+        "structured": {
+          "slide_count": 1,
+          "slides": [
+            {
+              "notes": "ERP 顾问确认：冻结客户不得发货",
+              "number": 1,
+              "tables": [
+                {
+                  "columns": [
+                    "步骤",
+                    "责任人"
+                  ],
+                  "data": [
+                    [
+                      "信用检查",
+                      "财务"
+                    ]
+                  ],
+                  "index": 1,
+                  "rows": 1
+                }
+              ],
+              "texts": [
+                {
+                  "bbox": [
+                    10,
+                    20,
+                    300,
+                    50
+                  ],
+                  "id": "2",
+                  "name": "Title 1",
+                  "text": "订单履约流程"
+                },
+                {
+                  "bbox": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  "id": "3",
+                  "name": "Content 2",
+                  "text": "每个订单必须通过信用检查后才能发货"
+                }
+              ],
+              "title": "订单履约流程"
+            }
+          ]
+        }
+      }
+    },
+    "noslides": {
+      "file": "parse.pptx.noslides.pptx",
+      "ooxml": {
+        "chunks": [],
+        "file_id": "f-pptx-noslides",
+        "file_name": "parse.pptx.noslides.pptx",
+        "findings": [
+          {
+            "kind": "metadata_leak",
+            "locator": {
+              "field": "docProps/core.xml",
+              "kind": "meta"
+            },
+            "message": "演示文稿元数据里带着作者信息（creator=Customer A；last_modified_by=FDE B），对外发布前建议清理。",
+            "severity": "warn"
+          },
+          {
+            "kind": "empty_presentation",
+            "locator": {
+              "kind": "package",
+              "path": "/ppt/slides"
+            },
+            "message": "PPTX 包中没有 slide part",
+            "severity": "warn"
+          }
+        ],
+        "kind": "pptx",
+        "meta": {
+          "creator": "Customer A",
+          "last_modified_by": "FDE B",
+          "title": "Order Process"
+        },
+        "stats": {
+          "chunks": 0,
+          "file": "parse.pptx.noslides.pptx",
+          "findings": 2,
+          "kind": "pptx",
+          "slide_count": 0,
+          "slides": 0
+        },
+        "structured": {
+          "slide_count": 0,
+          "slides": []
+        }
+      },
+      "parse": {
+        "chunks": [],
+        "file_id": "f-pptx-noslides",
+        "file_name": "parse.pptx.noslides.pptx",
+        "findings": [
+          {
+            "kind": "parser_fallback",
+            "locator": {
+              "kind": "package",
+              "path": "/"
+            },
+            "message": "未安装 python-pptx，已使用内置 OOXML 兜底解析正文、表格和备注；复杂 SmartArt/图表不会被当作已解析内容。",
+            "severity": "info"
+          },
+          {
+            "kind": "metadata_leak",
+            "locator": {
+              "field": "docProps/core.xml",
+              "kind": "meta"
+            },
+            "message": "演示文稿元数据里带着作者信息（creator=Customer A；last_modified_by=FDE B），对外发布前建议清理。",
+            "severity": "warn"
+          },
+          {
+            "kind": "empty_presentation",
+            "locator": {
+              "kind": "package",
+              "path": "/ppt/slides"
+            },
+            "message": "PPTX 包中没有 slide part",
+            "severity": "warn"
+          }
+        ],
+        "kind": "pptx",
+        "meta": {
+          "creator": "Customer A",
+          "last_modified_by": "FDE B",
+          "title": "Order Process"
+        },
+        "stats": {
+          "chunks": 0,
+          "file": "parse.pptx.noslides.pptx",
+          "findings": 3,
+          "kind": "pptx",
+          "slide_count": 0,
+          "slides": 0
+        },
+        "structured": {
+          "slide_count": 0,
+          "slides": []
+        }
+      }
+    },
+    "notes_by_number": {
+      "file": "parse.pptx.notes-by-number.pptx",
+      "ooxml": {
+        "chunks": [
+          {
+            "chunk_id": "f-pptx-notes_by_number:slide:1:shape:11",
+            "context": "",
+            "file_id": "f-pptx-notes_by_number",
+            "file_name": "parse.pptx.notes-by-number.pptx",
+            "locator": {
+              "bbox": [
+                7,
+                8,
+                9,
+                10
+              ],
+              "kind": "page",
+              "page": 1,
+              "shape": "Body",
+              "shape_id": "11"
+            },
+            "order": 0,
+            "raw": {
+              "bbox": [
+                7,
+                8,
+                9,
+                10
+              ],
+              "id": "11",
+              "name": "Body",
+              "text": "一个客户 最多 持有一个主账户\n第二段"
+            },
+            "render": "PPT 第 1 页\n〔账户主数据〕\n一个客户 最多 持有一个主账户\n第二段",
+            "tags": [
+              "pptx",
+              "slide_text",
+              "rule"
+            ]
+          },
+          {
+            "chunk_id": "f-pptx-notes_by_number:slide:1:shape:13",
+            "context": "",
+            "file_id": "f-pptx-notes_by_number",
+            "file_name": "parse.pptx.notes-by-number.pptx",
+            "locator": {
+              "bbox": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "kind": "page",
+              "page": 1,
+              "shape": "Center Title",
+              "shape_id": "13"
+            },
+            "order": 1,
+            "raw": {
+              "bbox": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "id": "13",
+              "name": "Center Title",
+              "text": "账户主数据"
+            },
+            "render": "PPT 第 1 页\n账户主数据",
+            "tags": [
+              "pptx",
+              "slide_text"
+            ]
+          },
+          {
+            "chunk_id": "f-pptx-notes_by_number:slide:1:table:1:schema",
+            "context": "",
+            "file_id": "f-pptx-notes_by_number",
+            "file_name": "parse.pptx.notes-by-number.pptx",
+            "locator": {
+              "bbox": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "kind": "page",
+              "page": 1,
+              "row": 1,
+              "shape_id": "table-1",
+              "table": 1
+            },
+            "order": 2,
+            "raw": {
+              "columns": [
+                "字段",
+                ""
+              ]
+            },
+            "render": "PPT 第 1 页表格 1 列：字段",
+            "tags": [
+              "pptx",
+              "table",
+              "schema"
+            ]
+          },
+          {
+            "chunk_id": "f-pptx-notes_by_number:slide:1:table:1:row:2",
+            "context": "",
+            "file_id": "f-pptx-notes_by_number",
+            "file_name": "parse.pptx.notes-by-number.pptx",
+            "locator": {
+              "bbox": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "kind": "page",
+              "page": 1,
+              "row": 2,
+              "shape_id": "table-1",
+              "table": 1
+            },
+            "order": 3,
+            "raw": {
+              "columns": [
+                "字段",
+                ""
+              ],
+              "row": [
+                "客户号",
+                "主键"
+              ]
+            },
+            "render": "PPT 第 1 页表格 1 第 2 行：字段=客户号 | C2=主键",
+            "tags": [
+              "pptx",
+              "table",
+              "rule"
+            ]
+          },
+          {
+            "chunk_id": "f-pptx-notes_by_number:slide:1:notes",
+            "context": "",
+            "file_id": "f-pptx-notes_by_number",
+            "file_name": "parse.pptx.notes-by-number.pptx",
+            "locator": {
+              "bbox": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "kind": "page",
+              "notes": true,
+              "page": 1,
+              "part": "ppt/notesSlides/notesSlide1.xml"
+            },
+            "order": 4,
+            "raw": {
+              "notes": "口径以财务台账为准"
+            },
+            "render": "PPT 第 1 页演讲者备注：口径以财务台账为准",
+            "tags": [
+              "pptx",
+              "speaker_notes",
+              "rule"
+            ]
+          }
+        ],
+        "file_id": "f-pptx-notes_by_number",
+        "file_name": "parse.pptx.notes-by-number.pptx",
+        "findings": [],
+        "kind": "pptx",
+        "meta": {},
+        "stats": {
+          "chunks": 5,
+          "file": "parse.pptx.notes-by-number.pptx",
+          "findings": 0,
+          "kind": "pptx",
+          "slide_count": 1,
+          "slides": 1
+        },
+        "structured": {
+          "slide_count": 1,
+          "slides": [
+            {
+              "notes": "口径以财务台账为准",
+              "number": 1,
+              "tables": [
+                {
+                  "columns": [
+                    "字段",
+                    ""
+                  ],
+                  "data": [
+                    [
+                      "客户号",
+                      "主键"
+                    ]
+                  ],
+                  "index": 1,
+                  "rows": 1
+                }
+              ],
+              "texts": [
+                {
+                  "bbox": [
+                    7,
+                    8,
+                    9,
+                    10
+                  ],
+                  "id": "11",
+                  "name": "Body",
+                  "text": "一个客户 最多 持有一个主账户\n第二段"
+                },
+                {
+                  "bbox": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  "id": "13",
+                  "name": "Center Title",
+                  "text": "账户主数据"
+                }
+              ],
+              "title": "账户主数据"
+            }
+          ]
+        }
+      },
+      "parse": {
+        "chunks": [
+          {
+            "chunk_id": "f-pptx-notes_by_number:slide:1:shape:11",
+            "context": "",
+            "file_id": "f-pptx-notes_by_number",
+            "file_name": "parse.pptx.notes-by-number.pptx",
+            "locator": {
+              "bbox": [
+                7,
+                8,
+                9,
+                10
+              ],
+              "kind": "page",
+              "page": 1,
+              "shape": "Body",
+              "shape_id": "11"
+            },
+            "order": 0,
+            "raw": {
+              "bbox": [
+                7,
+                8,
+                9,
+                10
+              ],
+              "id": "11",
+              "name": "Body",
+              "text": "一个客户 最多 持有一个主账户\n第二段"
+            },
+            "render": "PPT 第 1 页\n〔账户主数据〕\n一个客户 最多 持有一个主账户\n第二段",
+            "tags": [
+              "pptx",
+              "slide_text",
+              "rule"
+            ]
+          },
+          {
+            "chunk_id": "f-pptx-notes_by_number:slide:1:shape:13",
+            "context": "",
+            "file_id": "f-pptx-notes_by_number",
+            "file_name": "parse.pptx.notes-by-number.pptx",
+            "locator": {
+              "bbox": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "kind": "page",
+              "page": 1,
+              "shape": "Center Title",
+              "shape_id": "13"
+            },
+            "order": 1,
+            "raw": {
+              "bbox": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "id": "13",
+              "name": "Center Title",
+              "text": "账户主数据"
+            },
+            "render": "PPT 第 1 页\n账户主数据",
+            "tags": [
+              "pptx",
+              "slide_text"
+            ]
+          },
+          {
+            "chunk_id": "f-pptx-notes_by_number:slide:1:table:1:schema",
+            "context": "",
+            "file_id": "f-pptx-notes_by_number",
+            "file_name": "parse.pptx.notes-by-number.pptx",
+            "locator": {
+              "bbox": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "kind": "page",
+              "page": 1,
+              "row": 1,
+              "shape_id": "table-1",
+              "table": 1
+            },
+            "order": 2,
+            "raw": {
+              "columns": [
+                "字段",
+                ""
+              ]
+            },
+            "render": "PPT 第 1 页表格 1 列：字段",
+            "tags": [
+              "pptx",
+              "table",
+              "schema"
+            ]
+          },
+          {
+            "chunk_id": "f-pptx-notes_by_number:slide:1:table:1:row:2",
+            "context": "",
+            "file_id": "f-pptx-notes_by_number",
+            "file_name": "parse.pptx.notes-by-number.pptx",
+            "locator": {
+              "bbox": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "kind": "page",
+              "page": 1,
+              "row": 2,
+              "shape_id": "table-1",
+              "table": 1
+            },
+            "order": 3,
+            "raw": {
+              "columns": [
+                "字段",
+                ""
+              ],
+              "row": [
+                "客户号",
+                "主键"
+              ]
+            },
+            "render": "PPT 第 1 页表格 1 第 2 行：字段=客户号 | C2=主键",
+            "tags": [
+              "pptx",
+              "table",
+              "rule"
+            ]
+          },
+          {
+            "chunk_id": "f-pptx-notes_by_number:slide:1:notes",
+            "context": "",
+            "file_id": "f-pptx-notes_by_number",
+            "file_name": "parse.pptx.notes-by-number.pptx",
+            "locator": {
+              "bbox": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "kind": "page",
+              "notes": true,
+              "page": 1,
+              "part": "ppt/notesSlides/notesSlide1.xml"
+            },
+            "order": 4,
+            "raw": {
+              "notes": "口径以财务台账为准"
+            },
+            "render": "PPT 第 1 页演讲者备注：口径以财务台账为准",
+            "tags": [
+              "pptx",
+              "speaker_notes",
+              "rule"
+            ]
+          }
+        ],
+        "file_id": "f-pptx-notes_by_number",
+        "file_name": "parse.pptx.notes-by-number.pptx",
+        "findings": [
+          {
+            "kind": "parser_fallback",
+            "locator": {
+              "kind": "package",
+              "path": "/"
+            },
+            "message": "未安装 python-pptx，已使用内置 OOXML 兜底解析正文、表格和备注；复杂 SmartArt/图表不会被当作已解析内容。",
+            "severity": "info"
+          }
+        ],
+        "kind": "pptx",
+        "meta": {},
+        "stats": {
+          "chunks": 5,
+          "file": "parse.pptx.notes-by-number.pptx",
+          "findings": 1,
+          "kind": "pptx",
+          "slide_count": 1,
+          "slides": 1
+        },
+        "structured": {
+          "slide_count": 1,
+          "slides": [
+            {
+              "notes": "口径以财务台账为准",
+              "number": 1,
+              "tables": [
+                {
+                  "columns": [
+                    "字段",
+                    ""
+                  ],
+                  "data": [
+                    [
+                      "客户号",
+                      "主键"
+                    ]
+                  ],
+                  "index": 1,
+                  "rows": 1
+                }
+              ],
+              "texts": [
+                {
+                  "bbox": [
+                    7,
+                    8,
+                    9,
+                    10
+                  ],
+                  "id": "11",
+                  "name": "Body",
+                  "text": "一个客户 最多 持有一个主账户\n第二段"
+                },
+                {
+                  "bbox": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  "id": "13",
+                  "name": "Center Title",
+                  "text": "账户主数据"
+                }
+              ],
+              "title": "账户主数据"
+            }
+          ]
+        }
+      }
+    },
+    "notzip": {
+      "file": "parse.pptx.notzip.pptx",
+      "ooxml": {
+        "chunks": [],
+        "file_id": "f-pptx-notzip",
+        "file_name": "parse.pptx.notzip.pptx",
+        "findings": [
+          {
+            "kind": "parse_failed",
+            "locator": {
+              "kind": "package",
+              "path": "/"
+            },
+            "message": "不是可读取的 PPTX OOXML 包：File is not a zip file",
+            "severity": "warn"
+          }
+        ],
+        "kind": "pptx",
+        "meta": {},
+        "stats": {
+          "chunks": 0,
+          "file": "parse.pptx.notzip.pptx",
+          "findings": 1,
+          "kind": "pptx"
+        },
+        "structured": {}
+      },
+      "parse": {
+        "chunks": [],
+        "file_id": "f-pptx-notzip",
+        "file_name": "parse.pptx.notzip.pptx",
+        "findings": [
+          {
+            "kind": "parser_fallback",
+            "locator": {
+              "kind": "package",
+              "path": "/"
+            },
+            "message": "未安装 python-pptx，已使用内置 OOXML 兜底解析正文、表格和备注；复杂 SmartArt/图表不会被当作已解析内容。",
+            "severity": "info"
+          },
+          {
+            "kind": "parse_failed",
+            "locator": {
+              "kind": "package",
+              "path": "/"
+            },
+            "message": "不是可读取的 PPTX OOXML 包：File is not a zip file",
+            "severity": "warn"
+          }
+        ],
+        "kind": "pptx",
+        "meta": {},
+        "stats": {
+          "chunks": 0,
+          "file": "parse.pptx.notzip.pptx",
+          "findings": 2,
+          "kind": "pptx"
+        },
+        "structured": {}
+      }
+    },
+    "reordered": {
+      "file": "parse.pptx.reordered.pptx",
+      "ooxml": {
+        "chunks": [
+          {
+            "chunk_id": "f-pptx-reordered:slide:1:shape:2",
+            "context": "",
+            "file_id": "f-pptx-reordered",
+            "file_name": "parse.pptx.reordered.pptx",
+            "locator": {
+              "bbox": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "kind": "page",
+              "page": 1,
+              "shape": "Title",
+              "shape_id": "2"
+            },
+            "order": 0,
+            "raw": {
+              "bbox": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "id": "2",
+              "name": "Title",
+              "text": "业务第一页"
+            },
+            "render": "PPT 第 1 页\n业务第一页",
+            "tags": [
+              "pptx",
+              "slide_text"
+            ]
+          },
+          {
+            "chunk_id": "f-pptx-reordered:slide:2:shape:2",
+            "context": "",
+            "file_id": "f-pptx-reordered",
+            "file_name": "parse.pptx.reordered.pptx",
+            "locator": {
+              "bbox": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "kind": "page",
+              "page": 2,
+              "shape": "Title",
+              "shape_id": "2"
+            },
+            "order": 1,
+            "raw": {
+              "bbox": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "id": "2",
+              "name": "Title",
+              "text": "物理 part 一"
+            },
+            "render": "PPT 第 2 页\n物理 part 一",
+            "tags": [
+              "pptx",
+              "slide_text"
+            ]
+          }
+        ],
+        "file_id": "f-pptx-reordered",
+        "file_name": "parse.pptx.reordered.pptx",
+        "findings": [],
+        "kind": "pptx",
+        "meta": {},
+        "stats": {
+          "chunks": 2,
+          "file": "parse.pptx.reordered.pptx",
+          "findings": 0,
+          "kind": "pptx",
+          "slide_count": 2,
+          "slides": 2
+        },
+        "structured": {
+          "slide_count": 2,
+          "slides": [
+            {
+              "notes": "",
+              "number": 1,
+              "tables": [],
+              "texts": [
+                {
+                  "bbox": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  "id": "2",
+                  "name": "Title",
+                  "text": "业务第一页"
+                }
+              ],
+              "title": "业务第一页"
+            },
+            {
+              "notes": "",
+              "number": 2,
+              "tables": [],
+              "texts": [
+                {
+                  "bbox": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  "id": "2",
+                  "name": "Title",
+                  "text": "物理 part 一"
+                }
+              ],
+              "title": "物理 part 一"
+            }
+          ]
+        }
+      },
+      "parse": {
+        "chunks": [
+          {
+            "chunk_id": "f-pptx-reordered:slide:1:shape:2",
+            "context": "",
+            "file_id": "f-pptx-reordered",
+            "file_name": "parse.pptx.reordered.pptx",
+            "locator": {
+              "bbox": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "kind": "page",
+              "page": 1,
+              "shape": "Title",
+              "shape_id": "2"
+            },
+            "order": 0,
+            "raw": {
+              "bbox": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "id": "2",
+              "name": "Title",
+              "text": "业务第一页"
+            },
+            "render": "PPT 第 1 页\n业务第一页",
+            "tags": [
+              "pptx",
+              "slide_text"
+            ]
+          },
+          {
+            "chunk_id": "f-pptx-reordered:slide:2:shape:2",
+            "context": "",
+            "file_id": "f-pptx-reordered",
+            "file_name": "parse.pptx.reordered.pptx",
+            "locator": {
+              "bbox": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "kind": "page",
+              "page": 2,
+              "shape": "Title",
+              "shape_id": "2"
+            },
+            "order": 1,
+            "raw": {
+              "bbox": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "id": "2",
+              "name": "Title",
+              "text": "物理 part 一"
+            },
+            "render": "PPT 第 2 页\n物理 part 一",
+            "tags": [
+              "pptx",
+              "slide_text"
+            ]
+          }
+        ],
+        "file_id": "f-pptx-reordered",
+        "file_name": "parse.pptx.reordered.pptx",
+        "findings": [
+          {
+            "kind": "parser_fallback",
+            "locator": {
+              "kind": "package",
+              "path": "/"
+            },
+            "message": "未安装 python-pptx，已使用内置 OOXML 兜底解析正文、表格和备注；复杂 SmartArt/图表不会被当作已解析内容。",
+            "severity": "info"
+          }
+        ],
+        "kind": "pptx",
+        "meta": {},
+        "stats": {
+          "chunks": 2,
+          "file": "parse.pptx.reordered.pptx",
+          "findings": 1,
+          "kind": "pptx",
+          "slide_count": 2,
+          "slides": 2
+        },
+        "structured": {
+          "slide_count": 2,
+          "slides": [
+            {
+              "notes": "",
+              "number": 1,
+              "tables": [],
+              "texts": [
+                {
+                  "bbox": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  "id": "2",
+                  "name": "Title",
+                  "text": "业务第一页"
+                }
+              ],
+              "title": "业务第一页"
+            },
+            {
+              "notes": "",
+              "number": 2,
+              "tables": [],
+              "texts": [
+                {
+                  "bbox": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  "id": "2",
+                  "name": "Title",
+                  "text": "物理 part 一"
+                }
+              ],
+              "title": "物理 part 一"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "python_pptx_available": false,
+  "vision": {
+    "empty": {
+      "chunks": [],
+      "file_id": "f-vision",
+      "file_name": "parse.vision.page.png",
+      "findings": [
+        {
+          "kind": "empty_ocr",
+          "locator": {},
+          "message": "视觉模型没有从这份材料里读出任何内容",
+          "severity": "warn"
+        }
+      ],
+      "gateway_calls": [
+        {
+          "images": 1,
+          "key": "ocr:p1",
+          "max_tokens": 24000,
+          "needs": [
+            "structured",
+            "vision"
+          ],
+          "node_id": "PARSE.scan",
+          "prefer": "quality",
+          "prefer_models": [
+            "google/gemini-3.5-flash",
+            "google/gemini-3.6-flash",
+            "google/gemini-3-flash-preview",
+            "google/gemini-3.1-pro-preview"
+          ],
+          "prompt": "识别第 1 页的全部内容。"
+        }
+      ],
+      "kind": "scan",
+      "meta": {},
+      "progress": [
+        "开始识别 parse.vision.page.png（1 页）。密集的图一页可能要 2–5 分钟，请等它跑完。",
+        "正在识别第 1/1 页…",
+        "第 1 页识别完成（<秒>）：0 个文本块、0 张表、0 条连线"
+      ],
+      "stats": {
+        "blocks": 0,
+        "chunks": 0,
+        "file": "parse.vision.page.png",
+        "findings": 1,
+        "kind": "scan",
+        "pages": 1,
+        "relations": 0
+      },
+      "structured": {
+        "blocks": 0,
+        "pages": 1,
+        "relations": []
+      }
+    },
+    "lookup_error": {
+      "chunks": [],
+      "file_id": "f-vision",
+      "file_name": "parse.vision.page.png",
+      "findings": [
+        {
+          "kind": "vision_failed",
+          "locator": {},
+          "message": "扫描件第 1 页网关上没有可用的视觉模型。请在网关上确认有带视觉的模型（gemini-* / gpt-4o / claude-3 等），这份材料的内容没有进入产物。",
+          "severity": "warn"
+        },
+        {
+          "kind": "empty_ocr",
+          "locator": {},
+          "message": "视觉模型没有从这份材料里读出任何内容",
+          "severity": "warn"
+        }
+      ],
+      "gateway_calls": [
+        {
+          "images": 1,
+          "key": "ocr:p1",
+          "max_tokens": 24000,
+          "needs": [
+            "structured",
+            "vision"
+          ],
+          "node_id": "PARSE.scan",
+          "prefer": "quality",
+          "prefer_models": [
+            "google/gemini-3.5-flash",
+            "google/gemini-3.6-flash",
+            "google/gemini-3-flash-preview",
+            "google/gemini-3.1-pro-preview"
+          ],
+          "prompt": "识别第 1 页的全部内容。"
+        }
+      ],
+      "kind": "scan",
+      "meta": {},
+      "progress": [
+        "开始识别 parse.vision.page.png（1 页）。密集的图一页可能要 2–5 分钟，请等它跑完。",
+        "正在识别第 1/1 页…"
+      ],
+      "stats": {
+        "blocks": 0,
+        "chunks": 0,
+        "file": "parse.vision.page.png",
+        "findings": 2,
+        "kind": "scan",
+        "pages": 1,
+        "relations": 0
+      },
+      "structured": {
+        "blocks": 0,
+        "pages": 1,
+        "relations": []
+      }
+    },
+    "no_gateway": {
+      "chunks": [],
+      "file_id": "f-vision",
+      "file_name": "parse.vision.page.png",
+      "findings": [
+        {
+          "kind": "vision_pending",
+          "locator": {},
+          "message": "parse.vision.page.png 是图片/扫描件，要用视觉模型识别。**点「开始梳理」时才会识别**（识别要调模型），现在只登记了文件、还没读内容。",
+          "severity": "info"
+        }
+      ],
+      "gateway_calls": [],
+      "kind": "scan",
+      "meta": {},
+      "progress": [],
+      "stats": {
+        "chunks": 0,
+        "file": "parse.vision.page.png",
+        "findings": 1,
+        "kind": "scan"
+      },
+      "structured": {}
+    },
+    "none_data": {
+      "chunks": [],
+      "file_id": "f-vision",
+      "file_name": "parse.vision.page.png",
+      "findings": [
+        {
+          "kind": "empty_ocr",
+          "locator": {},
+          "message": "视觉模型没有从这份材料里读出任何内容",
+          "severity": "warn"
+        }
+      ],
+      "gateway_calls": [
+        {
+          "images": 1,
+          "key": "ocr:p1",
+          "max_tokens": 24000,
+          "needs": [
+            "structured",
+            "vision"
+          ],
+          "node_id": "PARSE.scan",
+          "prefer": "quality",
+          "prefer_models": [
+            "google/gemini-3.5-flash",
+            "google/gemini-3.6-flash",
+            "google/gemini-3-flash-preview",
+            "google/gemini-3.1-pro-preview"
+          ],
+          "prompt": "识别第 1 页的全部内容。"
+        }
+      ],
+      "kind": "scan",
+      "meta": {},
+      "progress": [
+        "开始识别 parse.vision.page.png（1 页）。密集的图一页可能要 2–5 分钟，请等它跑完。",
+        "正在识别第 1/1 页…",
+        "第 1 页识别完成（<秒>）：0 个文本块、0 张表、0 条连线"
+      ],
+      "stats": {
+        "blocks": 0,
+        "chunks": 0,
+        "file": "parse.vision.page.png",
+        "findings": 1,
+        "kind": "scan",
+        "pages": 1,
+        "relations": 0
+      },
+      "structured": {
+        "blocks": 0,
+        "pages": 1,
+        "relations": []
+      }
+    },
+    "ok": {
+      "chunks": [
+        {
+          "chunk_id": "f-vision:p1b0",
+          "context": "",
+          "file_id": "f-vision",
+          "file_name": "parse.vision.page.png",
+          "locator": {
+            "bbox": [
+              0.1,
+              0.05,
+              0.9,
+              0.12
+            ],
+            "kind": "page",
+            "page": 1,
+            "role": "title"
+          },
+          "order": 0,
+          "raw": {
+            "bbox": [
+              0.1,
+              0.05,
+              0.9,
+              0.12
+            ],
+            "kind": "title",
+            "text": "客户主数据"
+          },
+          "render": "〔title〕客户主数据",
+          "tags": [
+            "ocr",
+            "title"
+          ]
+        },
+        {
+          "chunk_id": "f-vision:p1b1",
+          "context": "",
+          "file_id": "f-vision",
+          "file_name": "parse.vision.page.png",
+          "locator": {
+            "bbox": [
+              0.2,
+              0.3,
+              1.0,
+              0.0
+            ],
+            "kind": "page",
+            "page": 1,
+            "role": "field"
+          },
+          "order": 1,
+          "raw": {
+            "bbox": [
+              "0.2",
+              0.3,
+              2.0,
+              -0.5
+            ],
+            "kind": "field",
+            "text": "客户号"
+          },
+          "render": "〔field〕客户号",
+          "tags": [
+            "ocr",
+            "field"
+          ]
+        },
+        {
+          "chunk_id": "f-vision:p1b2",
+          "context": "",
+          "file_id": "f-vision",
+          "file_name": "parse.vision.page.png",
+          "locator": {
+            "bbox": [
+              0.0,
+              0.0,
+              1.0,
+              1.0
+            ],
+            "kind": "page",
+            "page": 1,
+            "role": "paragraph"
+          },
+          "order": 2,
+          "raw": {
+            "kind": "paragraph",
+            "text": "每个客户至多一个主账户"
+          },
+          "render": "〔paragraph〕每个客户至多一个主账户",
+          "tags": [
+            "ocr",
+            "paragraph"
+          ]
+        },
+        {
+          "chunk_id": "f-vision:p1t0r0",
+          "context": "",
+          "file_id": "f-vision",
+          "file_name": "parse.vision.page.png",
+          "locator": {
+            "bbox": [
+              0.1,
+              0.4,
+              0.9,
+              0.8
+            ],
+            "kind": "page",
+            "page": 1,
+            "row": 1,
+            "table": 0
+          },
+          "order": 3,
+          "raw": {
+            "header": [
+              "字段",
+              "类型",
+              "说明"
+            ],
+            "row": [
+              "cust_no",
+              "string",
+              "主键"
+            ]
+          },
+          "render": "字段=cust_no | 类型=string | 说明=主键",
+          "tags": [
+            "ocr",
+            "table"
+          ]
+        },
+        {
+          "chunk_id": "f-vision:p1t0r1",
+          "context": "",
+          "file_id": "f-vision",
+          "file_name": "parse.vision.page.png",
+          "locator": {
+            "bbox": [
+              0.1,
+              0.4,
+              0.9,
+              0.8
+            ],
+            "kind": "page",
+            "page": 1,
+            "row": 2,
+            "table": 0
+          },
+          "order": 4,
+          "raw": {
+            "header": [
+              "字段",
+              "类型",
+              "说明"
+            ],
+            "row": [
+              "name",
+              "string",
+              ""
+            ]
+          },
+          "render": "字段=name | 类型=string",
+          "tags": [
+            "ocr",
+            "table"
+          ]
+        },
+        {
+          "chunk_id": "f-vision:p1rel5",
+          "context": "",
+          "file_id": "f-vision",
+          "file_name": "parse.vision.page.png",
+          "locator": {
+            "bbox": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "kind": "page",
+            "page": 1
+          },
+          "order": 5,
+          "raw": {
+            "from_entity": "客户",
+            "label": "1:N",
+            "to_entity": "账户"
+          },
+          "render": "〔关系〕客户 —1:N— 账户　（图中标注的基数，可作 LinkType 依据）",
+          "tags": [
+            "ocr",
+            "relation",
+            "rule"
+          ]
+        },
+        {
+          "chunk_id": "f-vision:p1rel6",
+          "context": "",
+          "file_id": "f-vision",
+          "file_name": "parse.vision.page.png",
+          "locator": {
+            "bbox": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "kind": "page",
+            "page": 1
+          },
+          "order": 6,
+          "raw": {
+            "from_entity": "账户",
+            "to_entity": "流水"
+          },
+          "render": "〔关系〕账户 —— 流水",
+          "tags": [
+            "ocr",
+            "relation",
+            "rule"
+          ]
+        }
+      ],
+      "file_id": "f-vision",
+      "file_name": "parse.vision.page.png",
+      "findings": [
+        {
+          "kind": "vision_ok",
+          "locator": {},
+          "message": "已识别 parse.vision.page.png：1 页、7 段内容、2 条连线关系",
+          "severity": "info"
+        }
+      ],
+      "gateway_calls": [
+        {
+          "images": 1,
+          "key": "ocr:p1",
+          "max_tokens": 24000,
+          "needs": [
+            "structured",
+            "vision"
+          ],
+          "node_id": "PARSE.scan",
+          "prefer": "quality",
+          "prefer_models": [
+            "google/gemini-3.5-flash",
+            "google/gemini-3.6-flash",
+            "google/gemini-3-flash-preview",
+            "google/gemini-3.1-pro-preview"
+          ],
+          "prompt": "识别第 1 页的全部内容。"
+        }
+      ],
+      "kind": "scan",
+      "meta": {},
+      "progress": [
+        "开始识别 parse.vision.page.png（1 页）。密集的图一页可能要 2–5 分钟，请等它跑完。",
+        "正在识别第 1/1 页…",
+        "第 1 页识别完成（<秒>）：4 个文本块、3 张表、2 条连线"
+      ],
+      "stats": {
+        "blocks": 7,
+        "chunks": 7,
+        "file": "parse.vision.page.png",
+        "findings": 1,
+        "kind": "scan",
+        "pages": 1,
+        "relations": 2
+      },
+      "structured": {
+        "blocks": 7,
+        "pages": 1,
+        "relations": [
+          {
+            "from_entity": "客户",
+            "label": "1:N",
+            "page": 1,
+            "to_entity": "账户"
+          },
+          {
+            "from_entity": "账户",
+            "page": 1,
+            "to_entity": "流水"
+          }
+        ]
+      }
+    },
+    "other_error": {
+      "chunks": [],
+      "file_id": "f-vision",
+      "file_name": "parse.vision.page.png",
+      "findings": [
+        {
+          "kind": "vision_failed",
+          "locator": {},
+          "message": "扫描件第 1 页视觉识别失败（ValueError）。请在网关上确认有带视觉的模型（gemini-* / gpt-4o / claude-3 等），这份材料的内容没有进入产物。",
+          "severity": "warn"
+        },
+        {
+          "kind": "empty_ocr",
+          "locator": {},
+          "message": "视觉模型没有从这份材料里读出任何内容",
+          "severity": "warn"
+        }
+      ],
+      "gateway_calls": [
+        {
+          "images": 1,
+          "key": "ocr:p1",
+          "max_tokens": 24000,
+          "needs": [
+            "structured",
+            "vision"
+          ],
+          "node_id": "PARSE.scan",
+          "prefer": "quality",
+          "prefer_models": [
+            "google/gemini-3.5-flash",
+            "google/gemini-3.6-flash",
+            "google/gemini-3-flash-preview",
+            "google/gemini-3.1-pro-preview"
+          ],
+          "prompt": "识别第 1 页的全部内容。"
+        }
+      ],
+      "kind": "scan",
+      "meta": {},
+      "progress": [
+        "开始识别 parse.vision.page.png（1 页）。密集的图一页可能要 2–5 分钟，请等它跑完。",
+        "正在识别第 1/1 页…"
+      ],
+      "stats": {
+        "blocks": 0,
+        "chunks": 0,
+        "file": "parse.vision.page.png",
+        "findings": 2,
+        "kind": "scan",
+        "pages": 1,
+        "relations": 0
+      },
+      "structured": {
+        "blocks": 0,
+        "pages": 1,
+        "relations": []
+      }
+    },
+    "page_limit": {
+      "chunks": [
+        {
+          "chunk_id": "f-vision:p1b0",
+          "context": "",
+          "file_id": "f-vision",
+          "file_name": "parse.vision.page.png",
+          "locator": {
+            "bbox": [
+              0.1,
+              0.05,
+              0.9,
+              0.12
+            ],
+            "kind": "page",
+            "page": 1,
+            "role": "title"
+          },
+          "order": 0,
+          "raw": {
+            "bbox": [
+              0.1,
+              0.05,
+              0.9,
+              0.12
+            ],
+            "kind": "title",
+            "text": "客户主数据"
+          },
+          "render": "〔title〕客户主数据",
+          "tags": [
+            "ocr",
+            "title"
+          ]
+        },
+        {
+          "chunk_id": "f-vision:p1b1",
+          "context": "",
+          "file_id": "f-vision",
+          "file_name": "parse.vision.page.png",
+          "locator": {
+            "bbox": [
+              0.2,
+              0.3,
+              1.0,
+              0.0
+            ],
+            "kind": "page",
+            "page": 1,
+            "role": "field"
+          },
+          "order": 1,
+          "raw": {
+            "bbox": [
+              "0.2",
+              0.3,
+              2.0,
+              -0.5
+            ],
+            "kind": "field",
+            "text": "客户号"
+          },
+          "render": "〔field〕客户号",
+          "tags": [
+            "ocr",
+            "field"
+          ]
+        },
+        {
+          "chunk_id": "f-vision:p1b2",
+          "context": "",
+          "file_id": "f-vision",
+          "file_name": "parse.vision.page.png",
+          "locator": {
+            "bbox": [
+              0.0,
+              0.0,
+              1.0,
+              1.0
+            ],
+            "kind": "page",
+            "page": 1,
+            "role": "paragraph"
+          },
+          "order": 2,
+          "raw": {
+            "kind": "paragraph",
+            "text": "每个客户至多一个主账户"
+          },
+          "render": "〔paragraph〕每个客户至多一个主账户",
+          "tags": [
+            "ocr",
+            "paragraph"
+          ]
+        },
+        {
+          "chunk_id": "f-vision:p1t0r0",
+          "context": "",
+          "file_id": "f-vision",
+          "file_name": "parse.vision.page.png",
+          "locator": {
+            "bbox": [
+              0.1,
+              0.4,
+              0.9,
+              0.8
+            ],
+            "kind": "page",
+            "page": 1,
+            "row": 1,
+            "table": 0
+          },
+          "order": 3,
+          "raw": {
+            "header": [
+              "字段",
+              "类型",
+              "说明"
+            ],
+            "row": [
+              "cust_no",
+              "string",
+              "主键"
+            ]
+          },
+          "render": "字段=cust_no | 类型=string | 说明=主键",
+          "tags": [
+            "ocr",
+            "table"
+          ]
+        },
+        {
+          "chunk_id": "f-vision:p1t0r1",
+          "context": "",
+          "file_id": "f-vision",
+          "file_name": "parse.vision.page.png",
+          "locator": {
+            "bbox": [
+              0.1,
+              0.4,
+              0.9,
+              0.8
+            ],
+            "kind": "page",
+            "page": 1,
+            "row": 2,
+            "table": 0
+          },
+          "order": 4,
+          "raw": {
+            "header": [
+              "字段",
+              "类型",
+              "说明"
+            ],
+            "row": [
+              "name",
+              "string",
+              ""
+            ]
+          },
+          "render": "字段=name | 类型=string",
+          "tags": [
+            "ocr",
+            "table"
+          ]
+        },
+        {
+          "chunk_id": "f-vision:p1rel5",
+          "context": "",
+          "file_id": "f-vision",
+          "file_name": "parse.vision.page.png",
+          "locator": {
+            "bbox": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "kind": "page",
+            "page": 1
+          },
+          "order": 5,
+          "raw": {
+            "from_entity": "客户",
+            "label": "1:N",
+            "to_entity": "账户"
+          },
+          "render": "〔关系〕客户 —1:N— 账户　（图中标注的基数，可作 LinkType 依据）",
+          "tags": [
+            "ocr",
+            "relation",
+            "rule"
+          ]
+        },
+        {
+          "chunk_id": "f-vision:p1rel6",
+          "context": "",
+          "file_id": "f-vision",
+          "file_name": "parse.vision.page.png",
+          "locator": {
+            "bbox": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "kind": "page",
+            "page": 1
+          },
+          "order": 6,
+          "raw": {
+            "from_entity": "账户",
+            "to_entity": "流水"
+          },
+          "render": "〔关系〕账户 —— 流水",
+          "tags": [
+            "ocr",
+            "relation",
+            "rule"
+          ]
+        }
+      ],
+      "file_id": "f-vision",
+      "file_name": "parse.vision.page.png",
+      "findings": [
+        {
+          "kind": "page_limit",
+          "locator": {},
+          "message": "只识别了前 1 页，其余未处理",
+          "severity": "warn"
+        },
+        {
+          "kind": "vision_ok",
+          "locator": {},
+          "message": "已识别 parse.vision.page.png：1 页、7 段内容、2 条连线关系",
+          "severity": "info"
+        }
+      ],
+      "gateway_calls": [
+        {
+          "images": 1,
+          "key": "ocr:p1",
+          "max_tokens": 24000,
+          "needs": [
+            "structured",
+            "vision"
+          ],
+          "node_id": "PARSE.scan",
+          "prefer": "quality",
+          "prefer_models": [
+            "google/gemini-3.5-flash",
+            "google/gemini-3.6-flash",
+            "google/gemini-3-flash-preview",
+            "google/gemini-3.1-pro-preview"
+          ],
+          "prompt": "识别第 1 页的全部内容。"
+        }
+      ],
+      "kind": "scan",
+      "meta": {},
+      "progress": [
+        "开始识别 parse.vision.page.png（1 页）。密集的图一页可能要 2–5 分钟，请等它跑完。",
+        "正在识别第 1/1 页…",
+        "第 1 页识别完成（<秒>）：4 个文本块、3 张表、2 条连线"
+      ],
+      "stats": {
+        "blocks": 7,
+        "chunks": 7,
+        "file": "parse.vision.page.png",
+        "findings": 2,
+        "kind": "scan",
+        "pages": 1,
+        "relations": 2
+      },
+      "structured": {
+        "blocks": 7,
+        "pages": 1,
+        "relations": [
+          {
+            "from_entity": "客户",
+            "label": "1:N",
+            "page": 1,
+            "to_entity": "账户"
+          },
+          {
+            "from_entity": "账户",
+            "page": 1,
+            "to_entity": "流水"
+          }
+        ]
+      }
+    },
+    "timeout": {
+      "chunks": [],
+      "file_id": "f-vision",
+      "file_name": "parse.vision.page.png",
+      "findings": [
+        {
+          "kind": "vision_failed",
+          "locator": {},
+          "message": "扫描件第 1 页视觉识别超时。请在网关上确认有带视觉的模型（gemini-* / gpt-4o / claude-3 等），这份材料的内容没有进入产物。",
+          "severity": "warn"
+        },
+        {
+          "kind": "empty_ocr",
+          "locator": {},
+          "message": "视觉模型没有从这份材料里读出任何内容",
+          "severity": "warn"
+        }
+      ],
+      "gateway_calls": [
+        {
+          "images": 1,
+          "key": "ocr:p1",
+          "max_tokens": 24000,
+          "needs": [
+            "structured",
+            "vision"
+          ],
+          "node_id": "PARSE.scan",
+          "prefer": "quality",
+          "prefer_models": [
+            "google/gemini-3.5-flash",
+            "google/gemini-3.6-flash",
+            "google/gemini-3-flash-preview",
+            "google/gemini-3.1-pro-preview"
+          ],
+          "prompt": "识别第 1 页的全部内容。"
+        }
+      ],
+      "kind": "scan",
+      "meta": {},
+      "progress": [
+        "开始识别 parse.vision.page.png（1 页）。密集的图一页可能要 2–5 分钟，请等它跑完。",
+        "正在识别第 1/1 页…"
+      ],
+      "stats": {
+        "blocks": 0,
+        "chunks": 0,
+        "file": "parse.vision.page.png",
+        "findings": 2,
+        "kind": "scan",
+        "pages": 1,
+        "relations": 0
+      },
+      "structured": {
+        "blocks": 0,
+        "pages": 1,
+        "relations": []
+      }
+    }
+  }
+}
