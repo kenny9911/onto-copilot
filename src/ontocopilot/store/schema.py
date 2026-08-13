@@ -11,10 +11,16 @@ dataclass，每个值都包在 ``Assertion`` 里、带 ``evidence: list[Provenan
 SQLite（``sqlite+aiosqlite``）与 Postgres（``postgresql+asyncpg``）两套方言
 共用同一份表定义，才不会出现"仓储代码写了两遍、其中一遍没人测"。
 
-这份定义与 ``migrations/0001_init.sql`` 是**两份来源**。SQLite 侧靠
-``metadata.create_all()``，Postgres 侧靠迁移文件。漂移由
-``tests/test_store.py::test_ddl_matches_metadata``（``@pytest.mark.postgres``）
-兜住 —— 它在真 PG 上跑一遍迁移、再 reflect 回来和这份 metadata 比对。
+这份定义与 ``migrations/*.sql`` 是**两份来源**。SQLite 侧靠
+``metadata.create_all()``，Postgres 侧靠迁移文件。**列**的漂移由
+``tests/test_store.py::test_migrations_and_metadata_declare_the_same_columns``
+兜住 —— 它读迁移文本、把每张表的列名和这份 metadata 比对（列漂移的症状是运行时
+``no such column`` / ``relation does not exist``，是最该先钉死的一类）。
+
+索引、CHECK、触发器**不在**那个测试的管辖范围内，而且它们**已经漂移了**：
+0001 给 session 建的 ``session_created_idx`` 等索引、``touch_updated_at`` 这类
+plpgsql 触发器，在这份文件里一个都没有。所以别指望 ``updated_at`` 会自动刷新 ——
+SQLite 上没有触发器，该由代码显式写。
 """
 
 from __future__ import annotations
@@ -41,6 +47,63 @@ schema_migration = sa.Table(
               server_default=sa.func.now()),
 )
 
+#: 项目文件夹。**只是分组，不是交付物上的项目名** —— 后者是 ``session.project``
+#: （一列文本，会印进导出的 xlsx 与包名），两者语义不同，不要互相顶替。
+#:
+#: 不设 owner 外键，理由与 ``session.owner`` 相同（见 0004）：删账号不连带删项目。
+project = sa.Table(
+    "project", metadata,
+    sa.Column("id", sa.Text, primary_key=True),
+    sa.Column("name", sa.Text, nullable=False),
+    #: app_user.id；NULL/'' = 无归属。与 session.owner 同源、同样不设外键。
+    sa.Column("owner", sa.Text),
+    #: 项目级偏好（命名规范/受众/问多少）。这轮恒为 {}，先把位置留出来。
+    #: **不给 server_default** —— 跨方言的默认值不一致，由代码总是显式写 {}。
+    _json("prefs", nullable=False),
+    sa.Column("sort_order", sa.Integer, nullable=False, server_default="0"),
+    sa.Column("created_at", sa.DateTime(timezone=True), nullable=False,
+              server_default=sa.func.now()),
+    sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False,
+              server_default=sa.func.now()),
+)
+sa.Index("project_owner_idx", project.c.owner)
+
+#: 项目记忆：同一项目下的会话共享的结论。**跨会话，所以不能挂在 session_state 上**
+#: —— 那张表主键含 session_id 且随会话 CASCADE，删掉任意一个会话就把记忆一起删了。
+#:
+#: ``tier`` 是这张表存在的理由：``authoritative`` 是人拍板的约定，跨会话直接生效；
+#: ``reference`` 是模型推断的教训，只作提示、永不晋升、不许进交付物的 provenance。
+#: 两者混在一起存但**必须能分开查**，所以是一列受 CHECK 约束的枚举而不是布尔或标签。
+#:
+#: 不设到 project 的外键（同 0010 的理由）：删项目时由仓储显式删这些行，别把清理
+#: 交给 CASCADE —— SQLite 侧的 PRAGMA foreign_keys 未必在每条路径上都开着。
+project_memory = sa.Table(
+    "project_memory", metadata,
+    sa.Column("project_id", sa.Text, primary_key=True),
+    #: MemoryItem.key，形如 "{kind}:{slug}"。**不含 project** —— 隔离靠这里的
+    #: 复合主键，不靠 key 本身，所以同名主题在不同项目下互不干扰。
+    sa.Column("key", sa.Text, primary_key=True),
+    sa.Column("tier", sa.Text, nullable=False),
+    sa.Column("kind", sa.Text, nullable=False),
+    sa.Column("content", sa.Text, nullable=False),
+    sa.Column("confidence", sa.Float, nullable=False),
+    _json("support", nullable=False),
+    _json("tags", nullable=False),
+    #: 这条记忆是在哪个会话里形成的。reference 档进 prompt 时要逐行标出来源。
+    sa.Column("origin_session", sa.Text, nullable=False, server_default=""),
+    #: 这条记忆来自哪几份材料。换会话换材料时据此再降一档权重。
+    _json("origin_files", nullable=False),
+    _json("contested_by", nullable=False),
+    _json("hit_runs", nullable=False),
+    sa.Column("use_count", sa.Integer, nullable=False, server_default="0"),
+    sa.Column("created_run", sa.Text, nullable=False, server_default=""),
+    sa.Column("last_used_run", sa.Text, nullable=False, server_default=""),
+    sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False,
+              server_default=sa.func.now()),
+    sa.CheckConstraint("tier IN ('authoritative','reference')",
+                       name="project_memory_tier_ck"),
+)
+
 session = sa.Table(
     "session", metadata,
     sa.Column("id", sa.Text, primary_key=True),
@@ -60,10 +123,14 @@ session = sa.Table(
     #  模式创建的会话都是这种，在强制鉴权下对所有人隐藏。不设外键：删账号不连带
     #  删会话（归属改判交给上层），也避免与 app_user 的生命周期耦合。
     sa.Column("owner", sa.Text),
+    #: 所属项目文件夹（project.id）。NULL/'' = 未归类。聊天模式的会话恒为空。
+    #  不设外键：删项目时由仓储显式把成员会话置空（同 owner 的先例）。
+    sa.Column("project_id", sa.Text),
     sa.CheckConstraint(
         "status IN ('idle','queued','parsing','extracting','awaiting_answer','done','failed','stopped')",
         name="session_status_ck"),
 )
+sa.Index("session_project_idx", session.c.project_id)
 
 # A build task itself lives in one ASGI worker, but its ownership must not.  A
 # lease prevents another worker (or a newly started replica) from treating a
@@ -488,6 +555,8 @@ __all__ = [
     "kernel_event",
     "llm_usage",
     "metadata",
+    "project",
+    "project_memory",
     "question_item",
     "revision_record",
     "run",

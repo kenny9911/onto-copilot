@@ -20,7 +20,15 @@ from typing import Any
 
 import httpx
 
-from .llm import LLMBackend, ModelError, ModelRefusal, ModelSpec, ModelTruncated, Usage
+from .llm import (
+    LLMBackend,
+    ModelError,
+    ModelRefusal,
+    ModelSpec,
+    ModelTruncated,
+    QuotaExhausted,
+    Usage,
+)
 
 #: 超过这个 max_tokens 必须走流式，否则会撞 HTTP 超时。
 STREAM_THRESHOLD = 16_000
@@ -30,6 +38,66 @@ FALLBACK_BETA = "server-side-fallback-2026-07-01"
 
 #: 值得重试的瞬时故障。4xx（除 429）是请求本身的问题，重试没意义。
 RETRYABLE_STATUS = frozenset({408, 409, 429, 500, 502, 503, 504, 529})
+
+#: 配额耗尽的标志词，大小写不敏感、命中任一即可。前六个是各家网关的机器可读
+#: 字段值（``error.type`` / ``error.code``），后几个是中文网关的人类文案。
+_QUOTA_MARKERS: tuple[str, ...] = (
+    "insufficient_quota",
+    "insufficient_user_quota",
+    "exceeded_current_quota",
+    "quota_exceeded",
+    "billing_hard_limit_reached",
+    "credit",
+    "余额",
+    "额度",
+    "欠费",
+)
+
+
+def looks_like_quota_exhausted(status: int, body: str) -> bool:
+    """这个响应是不是"网关账户真的没钱了"（S1 硬信号）。
+
+    纯函数，没有 IO，好单测 —— 这个判断错了两边都很贵：判宽了会把一次真限流
+    说成欠费、让用户去给一个没欠费的账户充值；判窄了就退回"白等几轮退避"。
+
+    两条规则：
+
+      * ``402 Payment Required`` —— 语义就是这个，不看 body。
+      * ``429`` **且** body 里有配额标志词。429 是欠费与限流共用的状态码，
+        只能靠 body 分。
+
+    **整个 body 都扫，不只扫 ``message``**：真实网关（New-API 系）的欠费 429
+    长这样 ——
+    ``{"error":{"message":"当前分组上游负载已饱和，请稍后再试",
+    "type":"insufficient_quota","code":"insufficient_user_quota"}}``。
+    ``message`` 写得跟限流一模一样，只有 ``type`` / ``code`` 说了实话。
+
+    其余状态码一律 False：body 里出现"额度"二字不代表这次 500 是欠费。
+    """
+    if status == 402:
+        return True
+    if status != 429:
+        return False
+    low = (body or "").lower()
+    return any(marker in low for marker in _QUOTA_MARKERS)
+
+
+def _raise_if_quota(model: str, exc: Exception) -> None:
+    """SDK 抛出来的 HTTP 异常若是欠费信号，换成 :class:`QuotaExhausted`。
+
+    刻意用鸭子类型取 ``status_code`` / 响应体，**不 import anthropic 的异常类**：
+    离线 demo 与测试都跑在没装 SDK / 用假 client 的环境里，为了认一个状态码把
+    整个模块变成硬依赖不划算。
+
+    不是欠费就原样返回，由调用方把原异常抛回去 —— 这里只做分流，不吞异常。
+    """
+    status = int(getattr(exc, "status_code", 0) or 0)
+    body = getattr(exc, "body", None)
+    text = json.dumps(body, ensure_ascii=False) if body is not None else ""
+    if not text:
+        text = getattr(getattr(exc, "response", None), "text", "") or str(exc)
+    if looks_like_quota_exhausted(status, text):
+        raise QuotaExhausted(model, text, status=status) from exc
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -108,11 +176,18 @@ class AnthropicBackend(LLMBackend):
         else:
             api = self.client.messages
 
-        if max_tokens > STREAM_THRESHOLD:
-            async with api.stream(**kwargs) as stream:
-                msg = await stream.get_final_message()
-        else:
-            msg = await api.create(**kwargs)
+        try:
+            if max_tokens > STREAM_THRESHOLD:
+                async with api.stream(**kwargs) as stream:
+                    msg = await stream.get_final_message()
+            else:
+                msg = await api.create(**kwargs)
+        except Exception as exc:
+            # 只分流欠费信号，其余原样抛。
+            # Anthropic 直连也会 402（账户余额耗尽），SDK 把它抛成一个普通的
+            # APIStatusError，上层只看得到"调用失败"。分流出来才有人话可说。
+            _raise_if_quota(model.name, exc)
+            raise
 
         if msg.stop_reason == "refusal":
             raise ModelRefusal(
@@ -233,6 +308,12 @@ class OpenAICompatBackend(LLMBackend):
                 drop.add(field)
                 last = ModelError(f"{model.name} 不支持 {field}，已降级重发：{resp.text[:200]}")
                 continue
+
+            # **必须排在 RETRYABLE_STATUS 之前。** 欠费与限流共用 429，落进重试
+            # 分支就是纯浪费：退避多少轮账户也不会自己有钱，用户白等一遍才收到
+            # 一句 `HTTP 429`。这里立刻抛、一次都不重试。
+            if looks_like_quota_exhausted(resp.status_code, resp.text):
+                raise QuotaExhausted(model.name, resp.text, status=resp.status_code)
 
             if resp.status_code in RETRYABLE_STATUS:
                 last = ModelError(f"{model.name} HTTP {resp.status_code}: {resp.text[:200]}")

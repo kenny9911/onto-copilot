@@ -10,6 +10,7 @@
 
 from __future__ import annotations
 
+import difflib
 import re
 from collections.abc import Iterable
 from dataclasses import dataclass, field
@@ -435,14 +436,31 @@ def detect_semantic_divergence(oir: OIR) -> list[Conflict]:
         for p in group:
             key = canonical_axes(p.definition.value or "")
             variants.setdefault(key, []).append(p)
-        if len(variants) < 2:
-            continue
 
+        # **轴认得出来是加分项，不是前置条件。**
+        #
+        # 以前这里有两道 `continue`：轴签名只有一种就跳过、说不出差在哪一维也跳过。
+        # 于是"两段口径写得明显不同，但一条已知轴都没命中"被表达成了「没问题」——
+        # 系统不是没查，是主动判定了这两条口径相同。轴表只有四条采购财务轴
+        # （见 _AXES），换个行业（工艺、条款、诊疗）几乎条条落在这里，整条口径
+        # 检测静默归零。这正好违反「查不到就说查不到」。
+        #
+        # 现在：轴认得出就报轴；认不出就报**差在哪几个字**，并明说这一维判不出来。
+        # 报冲突 ≠ 裁决 —— 选项里照旧不给推荐，仍然是人拍板。
         reps = [ps[0] for ps in variants.values()]
-        diff = axis_diff(reps[0].definition.value or "", reps[1].definition.value or "")
-        if not diff:
-            continue
-        axes = "、".join(f"{k}（{va} vs {vb}）" for k, (va, vb) in diff.items())
+        diff = (axis_diff(reps[0].definition.value or "", reps[1].definition.value or "")
+                if len(reps) >= 2 else {})
+        if diff:
+            axes = "、".join(f"{k}（{va} vs {vb}）" for k, (va, vb) in diff.items())
+        else:
+            # 同名属性里字面最不一样的两条 —— 轴分不开它们，字面分得开。
+            a, b = _widest_pair(group)
+            if a is None or b is None:
+                continue                      # 字面上真的一模一样，这才是"没问题"
+            reps = [a, b]
+            frags = undescribed_diff(a.definition.value or "", b.definition.value or "")
+            axes = f"差在这几处：{'、'.join(frags)}（我判不出是哪一维）"
+            variants = variants if len(variants) >= 2 else {"a": [a], "b": [b]}
         where = f"{len(variants)} 种口径、涉及 {len(group)} 处"
         out.append(Conflict(
             rid=_cid(ConflictKind.SEMANTIC_DIVERGENCE, *sorted(p.rid for p in group)),
@@ -460,6 +478,52 @@ def canonical_axes(text: str) -> str:
     """口径的规范化签名。轴取值相同即视为同一种口径，无论文字怎么写。"""
     ax = parse_axes(text)
     return "|".join(f"{k}={ax[k]}" for k in sorted(ax)) or "∅"
+
+
+def _widest_pair(group: list[PropertyType]
+                 ) -> tuple[PropertyType | None, PropertyType | None]:
+    """同名属性里字面差得最远的两条。全都一字不差时返回 (None, None)。
+
+    只在轴分不开它们时才用 —— 报冲突要举得出**具体两处**，"这 5 处口径不一致"
+    而不指出是哪两处，FDE 没法拿去问客户。
+    """
+    best: tuple[float, PropertyType | None, PropertyType | None] = (1.0, None, None)
+    for i, a in enumerate(group):
+        for b in group[i + 1:]:
+            na, nb = _norm_text(a.definition.value), _norm_text(b.definition.value)
+            if not na and not nb:
+                continue
+            ratio = difflib.SequenceMatcher(None, na, nb, autojunk=False).ratio()
+            if ratio < best[0]:
+                best = (ratio, a, b)
+    return best[1], best[2]
+
+
+def _norm_text(text: str) -> str:
+    """比字面时先去掉空白与标点 —— 多一个顿号不是口径差异。"""
+    return re.sub(r"[\s，。；;、,.:：（）()【】\[\]「」\"']+", "", str(text or ""))
+
+
+def undescribed_diff(a: str, b: str, limit: int = 6) -> list[str]:
+    """两段口径**差在哪几个片段**上。确定性切分，不解释含义。
+
+    用途是回答"我判不出差在哪一维，但我看得出差在哪几个字" —— 轴表只有四条
+    采购财务轴，换个行业（工艺、条款、诊疗）几乎条条认不出，而认不出不该等于
+    "没问题"。中文没有词边界，所以按字符做最长公共子序列取差异片段，
+    不做分词、不猜语义。
+    """
+    na, nb = _norm_text(a), _norm_text(b)
+    if na == nb:
+        return []
+    out: list[str] = []
+    for tag, i1, i2, j1, j2 in difflib.SequenceMatcher(
+            None, na, nb, autojunk=False).get_opcodes():
+        if tag == "equal":
+            continue
+        for frag in (na[i1:i2], nb[j1:j2]):
+            if frag and frag not in out:
+                out.append(frag)
+    return out[:limit]
 
 
 def _divergence_options(

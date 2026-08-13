@@ -187,9 +187,13 @@ async def test_sqlite_schema_version_usage_constraints_and_healthcheck() -> None
             columns = {row[1] for row in (await conn.exec_driver_sql(
                 'PRAGMA table_info("llm_usage")',
             )).all()}
-        assert version == SQLITE_SCHEMA_VERSION == 12
+        # 全仓**唯一**一处故意写死版本号的地方：它同时校验「库与常量一致」和
+        # 「常量是我们以为的那个数」，每加一次迁移都必须有人来这儿确认一次。
+        # 别改成引常量 —— 那样这条绊线就废了。其余两处（test_sqlite_upgrade /
+        # test_store_lifespan）引常量，不再各自抄一份字面量。
+        assert version == SQLITE_SCHEMA_VERSION == 13
         assert {"owner", "run_id", "attempts", "usd_source", "status"} <= columns
-        assert (await store.healthcheck())["schema_version"] == 12
+        assert (await store.healthcheck())["schema_version"] == 13
 
         repo = build_repo(store)
         with pytest.raises(ValueError, match="attempts"):
@@ -202,6 +206,8 @@ async def test_sqlite_schema_version_usage_constraints_and_healthcheck() -> None
 
 def test_migration_catalog_keeps_usage_ledger_at_version_10() -> None:
     migrations = discover()
-    assert [item.version for item in migrations] == list(range(1, 13))
+    # 编号连续（discover 自己也查），但用 len 而不是写死上界 —— 这条断言要活过
+    # 每一次追加迁移，它想钉住的是"用量流水就是第 10 号"，不是"目录一共几个"。
+    assert [item.version for item in migrations] == list(range(1, len(migrations) + 1))
     assert migrations[9].name == "llm_usage"
-    assert migrations[-1].name == "user_display_name"
+    assert migrations[11].name == "user_display_name"

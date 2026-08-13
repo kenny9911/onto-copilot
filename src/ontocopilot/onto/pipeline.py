@@ -36,6 +36,7 @@ from ..kernel.memory.evidence import Chunk, EvidenceIndex
 from .align import align_and_apply
 from .clarify import ClarificationEngine
 from .conflict import auto_repair, detect_all
+from .gaps import alignment_gaps
 from .oir import (
     OIR,
     ActionType,
@@ -183,7 +184,12 @@ def _window_shape(sheet_shape: SegmentShape, part_rows: list[dict[str, Any]]) ->
 # ══════════════════════════════════════════════════════════════════
 #: 会被 critic 判缺失的产出类型。任务描述必须逐条点名要，否则模型不知道要抽，
 #: critic 却照判 —— 两边不闭合就会空转、并在修订环里把已抽的东西冲掉。
-CHECKED_YIELDS: tuple[Yield, ...] = (Yield.OBJECTS, Yield.PROPERTIES, Yield.ACTIONS)
+#:
+#: LINKS **必须在这里面**。原来它不在，于是"一条关系都没抽到"这件事在整条链路上
+#: 不产生任何 finding：``outstanding()`` 只遍历这个元组，CoverageCritic 也就永远
+#: 不会为零关系报警。交付物里一条关系都没有，而系统从头到尾一句话都没说。
+CHECKED_YIELDS: tuple[Yield, ...] = (Yield.OBJECTS, Yield.PROPERTIES,
+                                     Yield.LINKS, Yield.ACTIONS)
 
 #: 每类产出对应的要求文案。
 _ASK: dict[Yield, str] = {
@@ -191,6 +197,12 @@ _ASK: dict[Yield, str] = {
                    "一个对象出现多次只抽一次",
     Yield.PROPERTIES: "**每一行字段抽成一个 PropertyType**，"
                       "口径（税/时间粒度/口径主体/币种）写进 definition",
+    #: 这一条以前是缺的，而 LINKS 又不在 CHECKED_YIELDS 里，两个缺口正好互相
+    #: 掩盖：模型没被要求抽关系，critic 也不检查关系 —— 于是"零关系"从来不是
+    #: 一个问题。现在两边一起补上；只补一边会让模型空转（被判缺却没人告诉它要）。
+    Yield.LINKS: "对象之间的**关系**（头—行、主—从、引用）。"
+                 "两端写 apiName、基数写 ONE_TO_ONE / ONE_TO_MANY / MANY_TO_MANY；"
+                 "**两端必须是你在本段抽出来的对象**，名字对不上的关系会被丢掉",
     Yield.ACTIONS: "对象上的**行动**（谁在什么条件下能改这条数据）",
 }
 
@@ -202,8 +214,25 @@ def outstanding(shape: SegmentShape, have: dict[str, Any]) -> list[Yield]:
         shape: 段形状，决定"本该有什么"。
         have: 已经拿到的产出（规则抽的 / 最终产物），按 :class:`Yield` 的值分桶。
     """
-    return [y for y in CHECKED_YIELDS
-            if shape.expects(y) and not (have.get(y.value) or [])]
+    owed: list[Yield] = []
+    for y in CHECKED_YIELDS:
+        if not shape.expects(y):
+            continue
+        got = [x for x in (have.get(y.value) or []) if isinstance(x, dict)]
+        if not got:
+            owed.append(y)
+            continue
+        # **属性例外：行搬到了不等于口径读到了。**
+        #
+        # 规则能把字段表逐行搬成 PropertyType（名字、类型、必填都写在格子里），
+        # 这保证一行不丢。但一个字段最值钱的是**口径** —— 「金额」含不含税、
+        # 「日期」按自然月还是按账期 —— 那要读散文、要跨行对照，是模型的活。
+        # 全靠规则等于把最难问出来的那部分丢掉；全靠模型则是零属性时无人察觉。
+        # 所以规则搬完之后**仍然向模型索要**，由 finalize() 合并（规则侧权威）。
+        if y is Yield.PROPERTIES and all(x.get("_origin") == "rule" for x in got) \
+                and any(not str(x.get("definition") or "").strip() for x in got):
+            owed.append(y)
+    return owed
 
 
 def _host_names(pre: dict[str, list[dict[str, Any]]]) -> list[str]:
@@ -255,7 +284,19 @@ class ExtractSegment(NodeHandler):
         pre = self.prefilled()
         n_obj, n_act = len(pre["objects"]), len(pre["actions"])
 
+        n_prop = len(pre["properties"])
         lines = [f"这一段材料的形状已经由规则判定过了：\n{shape.describe()}\n"]
+        if n_prop:
+            # 行已经搬好了，模型要补的是**口径**，不是再抄一遍字段名
+            blank = [p for p in pre["properties"]
+                     if not str(p.get("definition") or "").strip()]
+            lines.append(
+                f"其中 {n_prop} 个字段**已经由规则逐行搬好了**（名字、类型、必填都齐），"
+                "你不要重复抽、不要改名字、不要改类型。\n"
+                + (f"**还缺口径的有 {len(blank)} 个** —— 你要做的是回到原文，"
+                   "为这些字段补 definition（含不含税、什么时间粒度、口径主体是谁、"
+                   "币种）。读不出来就留空，**不要编**。\n"
+                   f"缺口径的字段：{_preview_names(blank)}\n" if blank else ""))
         if n_obj or n_act:
             # 规则抽出来的东西**不要**让模型复述一遍。让它复述 168 行既会丢行
             # （模型一定会截断），又要为零信息量的复制付 Opus 的钱。
@@ -430,13 +471,26 @@ class MergeSegments(NodeHandler):
 # ══════════════════════════════════════════════════════════════════
 #  OIR 组装
 # ══════════════════════════════════════════════════════════════════
-def build_oir(data: dict[str, Any], index: EvidenceIndex | None = None) -> OIR:
+def build_oir(data: dict[str, Any], index: EvidenceIndex | None = None,
+              dropped: dict[str, Any] | None = None) -> OIR:
     """抽取结果 → OIR。
 
     这一步全是确定性代码：查重、挂父子、推主键。让模型做这些只会引入随机性，
     而结构错了后面所有环节都跟着错。
+
+    Args:
+        dropped: 给了就把**丢弃统计**写进去。属性挂不上父对象、关系两端对不上名字
+            时这里只能 ``continue`` —— 那是对的（挂错父亲比不挂更糟）。但原来丢得
+            **完全无声**：模型在推理面板里说抽了 40 个字段，最后 OIR 里 3 个，
+            FDE 只会归因成"模型不行"，而真实原因是名字对不齐、是能修的。
+            丢失量必须可观测。
     """
     oir = OIR()
+    lost: dict[str, Any] = dropped if dropped is not None else {}
+    lost.setdefault("properties", 0)
+    lost.setdefault("links", 0)
+    lost.setdefault("property_parents", [])
+    lost.setdefault("link_endpoints", [])
     by_api: dict[str, str] = {}
     #: 分组列（「业务对象」那一列）的取值 → 该组**第一行**实体的 rid。
     #:
@@ -481,6 +535,12 @@ def build_oir(data: dict[str, Any], index: EvidenceIndex | None = None) -> OIR:
         parent = by_api.get(str(p.get("parent_api_name") or "").lower())
         api = str(p.get("api_name") or "").strip()
         if parent is None or not api:
+            # 挂不上父对象就丢 —— 但**要记下来**。名字对不齐是能修的，
+            # 静默丢弃会让人以为是模型没抽到。
+            lost["properties"] += 1
+            miss = str(p.get("parent_api_name") or "").strip()
+            if miss and miss not in lost["property_parents"]:
+                lost["property_parents"].append(miss)
             continue
         rid = make_rid("pt", f"{p['parent_api_name']}_{api}_{i}")
         if rid in oir.properties:
@@ -504,6 +564,11 @@ def build_oir(data: dict[str, Any], index: EvidenceIndex | None = None) -> OIR:
         tgt = by_api.get(str(l.get("to_api_name") or "").lower())
         api = str(l.get("api_name") or "").strip()
         if not src or not tgt or not api:
+            lost["links"] += 1
+            for side, got in (("from", l.get("from_api_name")), ("to", l.get("to_api_name"))):
+                nm = str(got or "").strip()
+                if nm and not by_api.get(nm.lower()) and nm not in lost["link_endpoints"]:
+                    lost["link_endpoints"].append(nm)
             continue
         rid = make_rid("lt", api)
         if rid in oir.links:
@@ -884,9 +949,13 @@ def finish(oir: OIR, *, endpoints: list[dict] | None = None,
     cs = ClarificationEngine(max_questions=max_questions).rank(conflicts, oir)
     spec = compile_template(oir, conflicts)
     # 建议在冲突之后算 —— 自动修补完的东西不该再拿出来建议一遍。
+    #
+    # align 拿不准的那些对要**带着出口**回去（见 gaps.alignment_gaps）：
+    # 以前 uncertain 只进了摘要和一条事件载荷，等于系统看出来了却没告诉任何人。
     return {
         "align": align.summary(), "merged": merge_log,
         "uncertain": [x.to_dict() for x in align.uncertain[:8]],
+        "align_gaps": alignment_gaps(oir, align.uncertain),
         "conflicts": conflicts, "auto_repaired": repaired,
         "clarify": cs, "suggestions": suggest(oir), "template_spec": spec,
     }

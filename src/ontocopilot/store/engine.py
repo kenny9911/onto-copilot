@@ -25,7 +25,7 @@ from typing import Any
 
 DEFAULT_POOL_SIZE = 5
 DEFAULT_MAX_OVERFLOW = 5
-SQLITE_SCHEMA_VERSION = 12
+SQLITE_SCHEMA_VERSION = 13
 
 
 def database_url(env: dict[str, str] | None = None) -> str:
@@ -197,6 +197,12 @@ async def _upgrade_sqlite_compat(conn: Any) -> None:
         await conn.exec_driver_sql('ALTER TABLE "session" ADD COLUMN owner TEXT')
         session_columns.add("owner")
 
+    # 0013 同样是可空无约束的列，就地 ADD 即可。补在重建分支**之前**，所以下面那个
+    # required 集合必须一起认它 —— 少一个名字，老库走到重建时就是 RuntimeError。
+    if "project_id" not in session_columns:
+        await conn.exec_driver_sql('ALTER TABLE "session" ADD COLUMN project_id TEXT')
+        session_columns.add("project_id")
+
     # 0006: SQLite cannot ALTER a named CHECK constraint.  Rebuild only when the stored
     # CREATE SQL still lacks queued/stopped; preserve every existing session column/data.
     session_sql = str((await conn.exec_driver_sql(
@@ -209,7 +215,7 @@ async def _upgrade_sqlite_compat(conn: Any) -> None:
         required = {
             "id", "title", "project", "status", "error", "state_version",
             "next_event_seq", "next_run_ordinal", "next_decision_ordinal",
-            "created_at", "updated_at", "owner",
+            "created_at", "updated_at", "owner", "project_id",
         }
         # Only rebuild the known production shape.  An unknown/custom schema must fail
         # visibly instead of silently dropping columns during a best-effort copy.
@@ -231,6 +237,7 @@ async def _upgrade_sqlite_compat(conn: Any) -> None:
                     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                     owner TEXT,
+                    project_id TEXT,
                     CONSTRAINT session_status_ck CHECK (status IN (
                         'idle','queued','parsing','extracting','awaiting_answer',
                         'done','failed','stopped'))
@@ -267,4 +274,6 @@ async def _upgrade_sqlite_compat(conn: Any) -> None:
                 "DEFAULT ''")
 
     # create_all immediately after this function supplies the append-only tables/indexes
-    # introduced in 0008–0011. Running this first lets us distinguish old DBs.
+    # introduced in 0008–0013 (含 0013 的 project / project_memory —— 它们是**新表**，
+    # create_all 建得出来；只有加到既有表上的列才需要上面那些补丁).
+    # Running this first lets us distinguish old DBs.

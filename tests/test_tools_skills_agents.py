@@ -550,3 +550,95 @@ def test_the_extract_scope_can_reach_it():
                              {"container": "API梳理", "from_row": 3, "to_row": 5},
                              _Ctx(), scope="extract"))
     assert r["count"] == 3
+
+
+# ══════════════════════════════════════════════════════════════════
+#  impact.trace —— 改这个会牵动什么
+# ══════════════════════════════════════════════════════════════════
+def _impact_oir():
+    from ontocopilot.onto.oir import (
+        ActionType,
+        Cardinality,
+        LinkType,
+        ObjectType,
+        PropertyType,
+        Provenance,
+        extracted,
+        inferred,
+    )
+
+    p = Provenance("f1", "梳理表.xlsx", {"kind": "cell"}, extractor="rule")
+    from ontocopilot.onto.oir import OIR
+
+    oir = OIR()
+    head = ObjectType(rid="ot_head", api_name=extracted("pbpHeader", p),
+                      display_name=extracted("采购业务计划头", p))
+    line = ObjectType(rid="ot_line", api_name=extracted("pbpLine", p),
+                      display_name=extracted("计划行", p))
+    oir.objects.update({head.rid: head, line.rid: line})
+    amt = PropertyType(rid="pt_amt", parent="ot_head",
+                       api_name=extracted("planAmount", p),
+                       display_name=extracted("计划金额", p),
+                       base_type=extracted("DECIMAL", p))
+    oir.properties[amt.rid] = amt
+    head.properties.append(amt.rid)
+    oir.links["lt_1"] = LinkType(rid="lt_1", api_name=extracted("headerToLine", p),
+                                 source="ot_head", target="ot_line",
+                                 cardinality=inferred(Cardinality.ONE_TO_MANY))
+    oir.actions["at_1"] = ActionType(rid="at_1", api_name=extracted("submitPlan", p),
+                                     applies_to=["ot_head"])
+    return oir
+
+
+class _ImpactCtx:
+    approved = False
+    rec = None
+    node_id = "N"
+
+
+async def test_impact_trace_answers_what_else_moves():
+    """FDE 一天问很多次「这个能不能改」。以前产品只能说不知道 ——
+    图就在 OIR 里，但没有任何遍历出口。"""
+    reg = builtin_registry(oir=_impact_oir())
+    out = await reg.call("impact.trace", {"target": "采购业务计划头"}, _ImpactCtx())
+
+    assert out["target"]["rid"] == "ot_head"
+    assert out["total"] == 3
+    assert out["counts"] == {"property": 1, "link": 1, "action": 1}
+    # 每一条都要说清「凭什么算受影响」—— 路径就是理由
+    assert all(a["path"][0] == "ot_head" for a in out["affected"])
+
+
+async def test_impact_trace_accepts_the_names_a_human_would_type():
+    """模型手上只有材料里的中文名/apiName。逼它先查 rid 是白多一轮往返，
+    而且它会开始猜 rid 的构造规则。"""
+    reg = builtin_registry(oir=_impact_oir())
+    for name in ("ot_head", "pbpHeader", "采购业务计划头"):
+        out = await reg.call("impact.trace", {"target": name}, _ImpactCtx())
+        assert out["target"]["rid"] == "ot_head", name
+
+
+async def test_impact_trace_walks_up_from_a_property():
+    """从字段出发要能走到它的宿主，再走到动它的东西。"""
+    reg = builtin_registry(oir=_impact_oir())
+    out = await reg.call("impact.trace", {"target": "planAmount", "depth": 3},
+                         _ImpactCtx())
+    kinds = {a["kind"] for a in out["affected"]}
+    assert kinds == {"object", "link", "action"}
+
+
+async def test_impact_trace_never_invents_an_entity():
+    """纯图遍历、零模型：返回的每个 rid 必须是 OIR 里已有的。"""
+    oir = _impact_oir()
+    reg = builtin_registry(oir=oir)
+    known = {*oir.objects, *oir.properties, *oir.links, *oir.actions, *oir.rules}
+    out = await reg.call("impact.trace", {"target": "ot_head", "depth": 4}, _ImpactCtx())
+    assert {a["rid"] for a in out["affected"]} <= known
+
+
+async def test_impact_trace_says_so_when_it_cannot_find_the_target():
+    """查不到就说查不到 —— 不许拿个空影响面冒充「改它没影响」。"""
+    reg = builtin_registry(oir=_impact_oir())
+    out = await reg.call("impact.trace", {"target": "根本没有这个对象"}, _ImpactCtx())
+    assert "error" in out and "找不到" in out["error"]
+    assert "total" not in out

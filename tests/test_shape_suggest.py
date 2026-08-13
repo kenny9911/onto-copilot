@@ -119,11 +119,19 @@ def test_registry_shape_has_no_properties():
 
 
 def test_field_sheet_shape_expects_properties():
+    """字段表：**行由规则搬，口径仍然要过模型**。
+
+    原来这里断言的是「属性完全不许规则抽」，理由是"字段的语义不是规则能定的"。
+    前半句站不住：字段名、类型、必填都白纸黑字写在格子里，逐行搬是确定的，而
+    "只有模型这一条通道"的代价是 —— 模型没抽、名字对不上、或形状被误判，最终
+    都是零属性，且零属性会被 critic 判成正确结果（不可证伪的失败）。
+    后半句是对的，所以它由 `outstanding()` 单独保住：见
+    ``test_rule_extracted_properties_still_go_to_the_model_for_semantics``。
+    """
     shape = infer_shape(FIELDS)
     assert shape.row_unit == "property"
     assert Yield.PROPERTIES in shape.yields
-    # 字段的语义（口径）不是规则能定的，必须过模型
-    assert Yield.PROPERTIES not in shape.rule_decidable
+    assert Yield.PROPERTIES in shape.rule_decidable
 
 
 def test_action_shape_does_not_rule_extract_objects():
@@ -168,12 +176,33 @@ def test_action_rows_carry_forward_filled_host():
     assert all(a["object_display"] == "采购需求计划" for a in out["actions"])
 
 
-def test_field_sheet_is_left_to_the_model():
+def test_field_sheet_rows_are_all_carried_over_by_rule():
+    """字段表逐行搬成属性，**一行不丢** —— 这正是"零属性"再也不会静默发生的原因。"""
     shape = infer_shape(FIELDS)
     out = structural_extract(FIELDS, _cites(FIELDS), shape)
-    # 断言的是"规则一条都不抽"，不是"字典恰好有四个键" —— 后者会在每次新增
-    # 产出类型时假报回归
-    assert all(not v for v in out.values()), out
+    assert len(out["properties"]) == len(FIELDS), out["properties"]
+    assert all(p["parent_api_name"] for p in out["properties"]), "每个属性都要有宿主"
+    assert all(p["_origin"] == "rule" for p in out["properties"])
+    # 宿主一并登记成对象：挂不上父对象的属性会在装配时被丢掉
+    assert out["objects"], "宿主没登记成对象，属性装配时会全部丢失"
+
+
+def test_rule_extracted_properties_still_go_to_the_model_for_semantics():
+    """**行搬到了不等于口径读到了。**
+
+    一个字段最值钱的是口径（金额含不含税、日期按自然月还是账期）—— 那要读散文、
+    要跨行对照，是模型的活。规则搬完就不再问模型，等于把最难问出来的那部分丢掉。
+    """
+    from ontocopilot.onto.pipeline import outstanding
+
+    shape = infer_shape(FIELDS)
+    pre = structural_extract(FIELDS, _cites(FIELDS), shape)
+    assert Yield.PROPERTIES in outstanding(shape, pre), "规则搬完就不问模型要口径了"
+
+    # 口径都齐了就不必再花钱问一遍
+    done = {**pre, "properties": [{**p, "definition": "含税口径"}
+                                  for p in pre["properties"]]}
+    assert Yield.PROPERTIES not in outstanding(shape, done)
 
 
 

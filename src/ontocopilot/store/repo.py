@@ -53,11 +53,14 @@ class SessionRow:
     state_version: int = 0
     #: 归属账号 id。"" = 无归属（旧会话/开放模式），强制鉴权下对所有人隐藏。
     owner: str = ""
+    #: 所属项目文件夹（project.id）。"" = 未归类。**和上面的 project 不是一回事**：
+    #  project 是印在交付物上的客户项目名，这里是侧栏分组。
+    project_id: str = ""
 
     def brief(self, *, files: int = 0) -> dict[str, Any]:
         return {"id": self.id, "title": self.title, "project": self.project,
                 "status": self.status, "files": files, "created": self.created,
-                "error": self.error}
+                "error": self.error, "project_id": self.project_id}
 
 
 @dataclass(slots=True)
@@ -307,6 +310,48 @@ class SettingRow:
     updated: float = 0.0
 
 
+@dataclass(slots=True)
+class ProjectRow:
+    """一个项目文件夹。``owner`` 为 "" = 无归属（开放模式建的）。
+
+    ``prefs`` 是项目级偏好的预留位（命名规范/受众/问多少），这轮恒为 ``{}``。
+    """
+
+    id: str
+    name: str
+    owner: str = ""
+    prefs: dict[str, Any] = field(default_factory=dict)
+    sort_order: int = 0
+
+
+@dataclass(slots=True)
+class ProjectMemoryRow:
+    """一条项目记忆。字段与 ``project_memory`` 的列一一对应。
+
+    ``tier`` 只有两种取值，库里有 CHECK 兜着：``authoritative`` 是人拍板的约定，
+    ``reference`` 是模型推断的教训。这一层只负责**如实存取**这个标记 —— 「参考档
+    永不晋升」是记忆内核的判据，不在仓储里执行，但仓储绝不能把它弄丢或改写。
+    """
+
+    project_id: str
+    key: str
+    tier: str
+    kind: str
+    content: str
+    confidence: float = 0.5
+    support: list[str] = field(default_factory=list)
+    tags: list[str] = field(default_factory=list)
+    #: 这条记忆是在哪个会话里形成的（reference 档进 prompt 时要逐行标出来）
+    origin_session: str = ""
+    #: 这条记忆读的是哪几份材料（换会话换材料时据此再降一档权重）
+    origin_files: list[str] = field(default_factory=list)
+    contested_by: list[str] = field(default_factory=list)
+    hit_runs: list[str] = field(default_factory=list)
+    use_count: int = 0
+    created_run: str = ""
+    last_used_run: str = ""
+
+
 class DuplicateUsername(ValueError):
     """用户名（或 id）已存在。两个实现都抛它，路由层统一映射成 409。"""
 
@@ -324,6 +369,8 @@ class Repo(Protocol):
     async def get_session(self, sid: str) -> SessionRow | None: ...
     async def list_sessions(self, limit: int = 100, *,
                             owner: str | None = None) -> list[SessionRow]: ...
+    #: 只写 title 这一列，**不动 state_version** —— 见 :meth:`PgRepo.rename_session`。
+    async def rename_session(self, sid: str, title: str) -> bool: ...
     async def set_status(self, sid: str, status: str, *, error: str = "") -> None: ...
     async def claim_session_status(
         self, sid: str, *, from_statuses: Sequence[str], to_status: str,
@@ -361,6 +408,7 @@ class Repo(Protocol):
     async def release_mutation_lease(self, sid: str, *, owner: str) -> bool: ...
     async def delete_session(self, sid: str) -> bool: ...
     async def reassign_sessions(self, frm: str, to: str) -> int: ...
+    async def reassign_projects(self, frm: str, to: str) -> int: ...
 
     async def add_files(self, sid: str, files: Sequence[FileRow]) -> list[FileRow]: ...
     async def list_files(self, sid: str) -> list[FileRow]: ...
@@ -455,6 +503,20 @@ class Repo(Protocol):
     async def delete_user_auth_sessions(self, uid: str) -> int: ...
     async def prune_auth_sessions(self, *, now: float) -> int: ...
 
+    # 项目文件夹与项目记忆（顶层，不随会话级联 —— 会话删了，项目和它的记忆还在）。
+    async def list_projects(self, *, owner: str | None = None) -> list[ProjectRow]: ...
+    async def create_project(self, row: ProjectRow) -> ProjectRow: ...
+    async def get_project(self, pid: str) -> ProjectRow | None: ...
+    async def rename_project(self, pid: str, name: str) -> bool: ...
+    #: 返回被释放（掉回未归类）的会话数 —— 删项目**不删会话**。
+    async def delete_project(self, pid: str) -> int: ...
+    #: project_id 传 None 或 "" 都是「移出项目」。
+    async def assign_session(self, sid: str, project_id: str | None) -> bool: ...
+    async def list_project_memory(self, pid: str) -> list[ProjectMemoryRow]: ...
+    async def upsert_project_memory(self, rows: list[ProjectMemoryRow]) -> int: ...
+    async def delete_project_memory(self, pid: str,
+                                    keys: list[str] | None = None) -> int: ...
+
     # 全局应用设置（顶层，不随会话级联）。
     async def get_setting(self, key: str) -> Any | None: ...
     async def set_setting(self, key: str, value: Any) -> None: ...
@@ -493,6 +555,11 @@ class MemoryRepo:
         self._users: dict[str, UserRow] = {}
         self._auth: dict[str, AuthSessionRow] = {}
         self._settings: dict[str, Any] = {}
+        #: 项目文件夹与项目记忆。也是**顶层**的 —— 项目记忆的全部意义就是比单个会话
+        #  活得久，所以同样不进 delete_session 的清理元组（它按会话 id 逐个 pop，
+        #  而这两个容器是按 project id 存的，扫进去只会误删同名的项目）。
+        self._projects: dict[str, ProjectRow] = {}
+        self._project_memory: dict[str, dict[str, ProjectMemoryRow]] = {}
         #: 模型用量流水。同样是顶层的 —— 会话删了，账还得在。
         self._usage: list[UsageRow] = []
         self._session_locks: dict[str, asyncio.Lock] = {}
@@ -527,11 +594,26 @@ class MemoryRepo:
             rows = [s for s in rows if s.owner == owner]
         return sorted(rows, key=lambda s: -s.created)[:limit]
 
+    async def rename_session(self, sid: str, title: str) -> bool:
+        s = self._sessions.get(sid)
+        if s is None:
+            return False
+        s.title = title
+        return True
+
     async def reassign_sessions(self, frm: str, to: str) -> int:
         n = 0
         for s in self._sessions.values():
             if (s.owner or "") == frm:
                 s.owner = to
+                n += 1
+        return n
+
+    async def reassign_projects(self, frm: str, to: str) -> int:
+        n = 0
+        for p in self._projects.values():
+            if (p.owner or "") == frm:
+                p.owner = to
                 n += 1
         return n
 
@@ -1224,6 +1306,73 @@ class MemoryRepo:
             self._auth.pop(t, None)
         return len(gone)
 
+    # ── 项目 ─────────────────────────────────────────────────────
+    async def list_projects(self, *, owner: str | None = None) -> list[ProjectRow]:
+        rows = list(self._projects.values())
+        if owner is not None:                      # 只看归属自己的；无归属("")天然被排除
+            rows = [p for p in rows if p.owner == owner]
+        # sorted 是稳定的：sort_order 相同时保持插入（= 创建）顺序，与 PG 那边
+        # 「sort_order, created_at」的次序一致。
+        return sorted(rows, key=lambda p: p.sort_order)
+
+    async def create_project(self, row: ProjectRow) -> ProjectRow:
+        if row.id in self._projects:
+            raise KeyError(f"项目已存在: {row.id}")
+        self._projects[row.id] = row
+        self._project_memory.setdefault(row.id, {})
+        return row
+
+    async def get_project(self, pid: str) -> ProjectRow | None:
+        return self._projects.get(pid)
+
+    async def rename_project(self, pid: str, name: str) -> bool:
+        p = self._projects.get(pid)
+        if p is None:
+            return False
+        p.name = name
+        return True
+
+    async def delete_project(self, pid: str) -> int:
+        """删项目：成员会话掉回未归类，项目记忆一起删掉。返回释放了几个会话。
+
+        顺序是刻意的 —— 先松开会话，再删记忆，最后删项目本身。反过来的话，中途
+        出错会留下指向已不存在项目的会话（内存模式没有事务，见 :meth:`atomic`）。
+        """
+        released = 0
+        for s in self._sessions.values():
+            if s.project_id == pid:
+                s.project_id = ""
+                released += 1
+        self._project_memory.pop(pid, None)
+        self._projects.pop(pid, None)
+        return released
+
+    async def assign_session(self, sid: str, project_id: str | None) -> bool:
+        s = self._sessions.get(sid)
+        if s is None:
+            return False
+        s.project_id = project_id or ""            # None/"" 都是「移出项目」
+        return True
+
+    async def list_project_memory(self, pid: str) -> list[ProjectMemoryRow]:
+        return sorted(self._project_memory.get(pid, {}).values(), key=lambda m: m.key)
+
+    async def upsert_project_memory(self, rows: list[ProjectMemoryRow]) -> int:
+        for row in rows:
+            self._project_memory.setdefault(row.project_id, {})[row.key] = row
+        return len(rows)
+
+    async def delete_project_memory(self, pid: str,
+                                    keys: list[str] | None = None) -> int:
+        bag = self._project_memory.get(pid)
+        if not bag:
+            return 0
+        if keys is None:                           # None = 整个项目的记忆全清
+            n = len(bag)
+            bag.clear()
+            return n
+        return sum(bag.pop(k, None) is not None for k in keys)
+
     # ── 设置 ─────────────────────────────────────────────────────
     async def get_setting(self, key: str) -> Any | None:
         return self._settings.get(key)
@@ -1302,6 +1451,7 @@ class PgRepo:
                 status=row.status, error=row.error, state_version=0,
                 next_event_seq=0, next_run_ordinal=0,
                 owner=row.owner or None,           # "" → NULL（无归属）
+                project_id=row.project_id or None,  # "" → NULL（未归类）
                 created_at=datetime.fromtimestamp(row.created, tz=UTC),
                 updated_at=datetime.fromtimestamp(row.created, tz=UTC)))
         return row
@@ -1328,6 +1478,28 @@ class PgRepo:
                                      .limit(limit))).mappings().all()
         return [_session_row(r) for r in rs]
 
+    async def rename_session(self, sid: str, title: str) -> bool:
+        """只写 title。**故意不碰 state_version。**
+
+        state_version 是状态文档（oir/flow/dialogue…）的 CAS 令牌：正在跑的 build
+        和 chat 都拿着自己那份期望值去提交。改个名字和那些文档毫无关系，跟着 +1
+        的话，用户在侧栏上改个标题就会让另一台 worker 正在收尾的梳理提交 409，
+        几分钟的活白干。跨 worker 的标题同步因此单独走一步读 row（见 server.py
+        的 ``_refresh_chat_projection``），不搭这条 CAS 的车。
+
+        updated_at 显式写：touch_updated_at 触发器只有 Postgres 有，和
+        :meth:`rename_project` 同一个理由。
+        """
+        from datetime import UTC, datetime
+
+        from . import schema as t
+        async with self._engine.begin() as conn:
+            r = await conn.execute(t.session.update()
+                                   .where(t.session.c.id == sid)
+                                   .values(title=title,
+                                           updated_at=datetime.now(tz=UTC)))
+        return bool(r.rowcount)
+
     async def reassign_sessions(self, frm: str, to: str) -> int:
         import sqlalchemy as sa
 
@@ -1340,6 +1512,20 @@ class PgRepo:
             cond = sa.or_(cond, t.session.c.owner == "")
         async with self._engine.begin() as conn:
             r = await conn.execute(t.session.update().where(cond).values(owner=to))
+        return int(r.rowcount or 0)
+
+    async def reassign_projects(self, frm: str, to: str) -> int:
+        import sqlalchemy as sa
+
+        from . import schema as t
+        # 与 reassign_sessions 同一套 NULL/"" 双认判据 —— 项目和会话必须一起被认领，
+        # 只认领会话的后果是会话还在、分组名没了，全掉回「未归类」。
+        cond = (t.project.c.owner.is_(None) if not frm
+                else t.project.c.owner == frm)
+        if not frm:
+            cond = sa.or_(cond, t.project.c.owner == "")
+        async with self._engine.begin() as conn:
+            r = await conn.execute(t.project.update().where(cond).values(owner=to))
         return int(r.rowcount or 0)
 
     async def set_status(self, sid: str, status: str, *, error: str = "") -> None:
@@ -2745,6 +2931,133 @@ class PgRepo:
                 t.auth_session.c.expires_at <= datetime.fromtimestamp(now, tz=UTC)))
         return int(r.rowcount or 0)
 
+    # ── 项目 ─────────────────────────────────────────────────────
+    async def list_projects(self, *, owner: str | None = None) -> list[ProjectRow]:
+        import sqlalchemy as sa
+
+        from . import schema as t
+        q = sa.select(t.project)
+        if owner is not None:                      # 只看归属自己的；NULL(无归属)被排除
+            q = q.where(t.project.c.owner == owner)
+        async with self._engine.connect() as conn:
+            rs = (await conn.execute(q.order_by(t.project.c.sort_order,
+                                                t.project.c.created_at))).mappings().all()
+        return [_project_row(r) for r in rs]
+
+    async def create_project(self, row: ProjectRow) -> ProjectRow:
+        from datetime import UTC, datetime
+
+        from . import schema as t
+        now = datetime.now(tz=UTC)
+        async with self._engine.begin() as conn:
+            await conn.execute(t.project.insert().values(
+                id=row.id, name=row.name,
+                owner=row.owner or None,           # "" → NULL（无归属）
+                prefs=row.prefs or {},             # 无 server_default，总是显式写
+                sort_order=row.sort_order,
+                created_at=now, updated_at=now))
+        return row
+
+    async def get_project(self, pid: str) -> ProjectRow | None:
+        import sqlalchemy as sa
+
+        from . import schema as t
+        async with self._engine.connect() as conn:
+            r = (await conn.execute(sa.select(t.project).where(
+                t.project.c.id == pid))).mappings().first()
+        return _project_row(r) if r else None
+
+    async def rename_project(self, pid: str, name: str) -> bool:
+        from datetime import UTC, datetime
+
+        from . import schema as t
+        # updated_at 显式写：touch_updated_at 触发器只有 Postgres 有，SQLite 上
+        # 指望它就等于这一列永远停在创建时刻。
+        async with self._engine.begin() as conn:
+            r = await conn.execute(t.project.update()
+                                   .where(t.project.c.id == pid)
+                                   .values(name=name,
+                                           updated_at=datetime.now(tz=UTC)))
+        return bool(r.rowcount)
+
+    async def delete_project(self, pid: str) -> int:
+        """删项目：成员会话掉回未归类，项目记忆一起删掉。返回释放了几个会话。
+
+        一个事务三步，且**不靠外键级联** —— project 上根本没有指过来的外键（见 0013
+        的说明）。次序是先松开会话再删记忆最后删项目：同一个事务里其实无所谓，但读
+        起来是「先把还要用的东西摘出来，再扔容器」，和内存实现一致。
+        """
+        import sqlalchemy as sa
+
+        from . import schema as t
+        async with self._engine.begin() as conn:
+            released = (await conn.execute(
+                t.session.update().where(t.session.c.project_id == pid)
+                .values(project_id=None))).rowcount
+            await conn.execute(sa.delete(t.project_memory)
+                               .where(t.project_memory.c.project_id == pid))
+            await conn.execute(sa.delete(t.project).where(t.project.c.id == pid))
+        return int(released or 0)
+
+    async def assign_session(self, sid: str, project_id: str | None) -> bool:
+        from . import schema as t
+        async with self._engine.begin() as conn:
+            r = await conn.execute(
+                t.session.update().where(t.session.c.id == sid)
+                .values(project_id=project_id or None))   # None/"" → NULL（移出项目）
+        return bool(r.rowcount)
+
+    async def list_project_memory(self, pid: str) -> list[ProjectMemoryRow]:
+        import sqlalchemy as sa
+
+        from . import schema as t
+        async with self._engine.connect() as conn:
+            rs = (await conn.execute(
+                sa.select(t.project_memory)
+                .where(t.project_memory.c.project_id == pid)
+                .order_by(t.project_memory.c.key))).mappings().all()
+        return [_project_memory_row(r) for r in rs]
+
+    async def upsert_project_memory(self, rows: list[ProjectMemoryRow]) -> int:
+        from datetime import UTC, datetime
+
+        from . import schema as t
+        if not rows:
+            return 0
+        now = datetime.now(tz=UTC)
+        mutable = ["tier", "kind", "content", "confidence", "support", "tags",
+                   "origin_session", "origin_files", "contested_by", "hit_runs",
+                   "use_count", "created_run", "last_used_run", "updated_at"]
+        async with self._engine.begin() as conn:
+            for row in rows:
+                await conn.execute(self._upsert(
+                    t.project_memory,
+                    {"project_id": row.project_id, "key": row.key, "tier": row.tier,
+                     "kind": row.kind, "content": row.content,
+                     "confidence": row.confidence, "support": list(row.support),
+                     "tags": list(row.tags), "origin_session": row.origin_session,
+                     "origin_files": list(row.origin_files),
+                     "contested_by": list(row.contested_by),
+                     "hit_runs": list(row.hit_runs), "use_count": row.use_count,
+                     "created_run": row.created_run,
+                     "last_used_run": row.last_used_run, "updated_at": now},
+                    index_elements=["project_id", "key"], update=mutable))
+        return len(rows)
+
+    async def delete_project_memory(self, pid: str,
+                                    keys: list[str] | None = None) -> int:
+        import sqlalchemy as sa
+
+        from . import schema as t
+        q = sa.delete(t.project_memory).where(t.project_memory.c.project_id == pid)
+        if keys is not None:                       # None = 整个项目的记忆全清
+            if not keys:
+                return 0
+            q = q.where(t.project_memory.c.key.in_(keys))
+        async with self._engine.begin() as conn:
+            r = await conn.execute(q)
+        return int(r.rowcount or 0)
+
     # ── 设置 ─────────────────────────────────────────────────────
     async def get_setting(self, key: str) -> Any | None:
         import sqlalchemy as sa
@@ -2784,7 +3097,26 @@ def _session_row(r: Any) -> SessionRow:
     return SessionRow(
         id=r["id"], title=r["title"], project=r["project"], status=r["status"],
         error=r["error"], created=r["created_at"].timestamp(),
-        state_version=r["state_version"], owner=r["owner"] or "")
+        state_version=r["state_version"], owner=r["owner"] or "",
+        project_id=r["project_id"] or "")          # NULL ↔ ""（未归类）
+
+
+def _project_row(r: Any) -> ProjectRow:
+    return ProjectRow(
+        id=r["id"], name=r["name"], owner=r["owner"] or "",   # NULL ↔ ""
+        prefs=r["prefs"] or {}, sort_order=int(r["sort_order"] or 0))
+
+
+def _project_memory_row(r: Any) -> ProjectMemoryRow:
+    return ProjectMemoryRow(
+        project_id=r["project_id"], key=r["key"], tier=r["tier"], kind=r["kind"],
+        content=r["content"], confidence=float(r["confidence"]),
+        support=list(r["support"] or []), tags=list(r["tags"] or []),
+        origin_session=r["origin_session"] or "",
+        origin_files=list(r["origin_files"] or []),
+        contested_by=list(r["contested_by"] or []),
+        hit_runs=list(r["hit_runs"] or []), use_count=int(r["use_count"] or 0),
+        created_run=r["created_run"] or "", last_used_run=r["last_used_run"] or "")
 
 
 def _active_decision_v1(rows: Sequence[DecisionRecordRow],

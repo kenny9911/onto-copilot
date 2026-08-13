@@ -193,3 +193,73 @@ def test_the_question_sheet_keeps_the_columns_that_do_have_content():
         group="（1）编制集采计划", code="3", asked_by="customer"))
     sheet = next(s for s in compile_template(oir).sheets if "待澄清" in s.name)
     assert {"编号", "参考选项", "所属部分"} <= set(sheet.columns)
+
+
+# ══════════════════════════════════════════════════════════════════
+#  6. 名额：客户自带的问题不能把我们自己挖的挤掉
+# ══════════════════════════════════════════════════════════════════
+def test_customer_questions_do_not_starve_the_mined_gaps():
+    """回归：`limit` 只该约束**我们挖的**那部分。
+
+    以前 extra 也占名额，而 extra 在生产里是客户问卷 + 流程图缺口 —— 随便一份
+    材料就顶满 60。后果是"系统发现材料里缺什么"这件事一条都进不来，且悄无声息：
+    空表、未定槽位、枚举缺失全被饿死。产品最该主动说话的地方彻底哑掉。
+    """
+    from ontocopilot.onto.oir import OpenQuestion, inferred
+
+    extra = [OpenQuestion(rid=f"q_c{i}", text=inferred(f"客户问卷第 {i} 条"))
+             for i in range(150)]
+    doc = _Doc([_Finding("empty_sheet", f"空表{i}", {"sheet": f"待梳理{i}"})
+                for i in range(5)])
+
+    out = mine_questions(OIR(), docs=[doc], chunks=[], extra=extra, limit=60)
+    mined = [q for q in out if q.asked_by == "system"]
+    assert len(mined) == 5, f"系统自挖的缺口被挤掉了：只剩 {len(mined)} 条"
+    assert len(out) == 155                      # 客户那 150 条一条不少
+
+
+def test_the_limit_still_caps_what_we_mine_ourselves():
+    """兜底反向断言：名额没了 —— 挖出一百条空表也只出 limit 条。"""
+    doc = _Doc([_Finding("empty_sheet", f"空表{i}", {"sheet": f"待梳理{i}"})
+                for i in range(100)])
+    out = mine_questions(OIR(), docs=[doc], chunks=[], limit=8)
+    assert len(out) == 8
+
+
+# ══════════════════════════════════════════════════════════════════
+#  7. 对齐拿不准的那些对，要有出口
+# ══════════════════════════════════════════════════════════════════
+def test_uncertain_alignment_pairs_become_questions():
+    """「这俩是不是一个东西」是 FDE 每天问上百次的问题。
+
+    对齐引擎的保守是对的（合并不可逆），但 uncertain 以前没有任何消费者 ——
+    只进了一条事件载荷和 CLI 打印。系统比对了上千对、看出来了，然后什么也没说。
+    """
+    from ontocopilot.onto.align import PairScore
+    from ontocopilot.onto.gaps import alignment_gaps
+    from ontocopilot.onto.oir import ObjectType, Provenance, extracted
+
+    p = Provenance("f1", "梳理表.xlsx", {"kind": "cell"}, extractor="rule")
+    oir = OIR()
+    for rid, api, cn in (("ot_a", "spProjectTeamMember", "项目团队成员信息"),
+                         ("ot_b", "clmProjectTeamMember", "项目团队成员信息")):
+        oir.objects[rid] = ObjectType(rid=rid, api_name=extracted(api, p),
+                                      display_name=extracted(cn, p))
+    score = PairScore(a="ot_a", b="ot_b", name=0.83, structure=0.0, alias=True,
+                      reasons=["别名重合 ['项目团队成员信息']", "至少一边没有属性，无结构证据"])
+
+    gaps = alignment_gaps(oir, [score])
+    assert len(gaps) == 1
+    q = gaps[0].to_question()
+    assert "项目团队成员信息" in q.text.value
+    assert "别名重合" in q.text.value          # 凭什么问，要说清楚
+    assert q.applies_to == ["ot_a", "ot_b"]    # 点得回两边
+    assert q.options                            # 是/否/回头问客户，不替他决定
+    # 别名完全重合的那档最像真阳性，要排在别的缺口前面
+    assert gaps[0].weight > 4.0
+
+
+def test_alignment_gaps_are_silent_when_there_is_nothing_uncertain():
+    from ontocopilot.onto.gaps import alignment_gaps
+
+    assert alignment_gaps(OIR(), []) == []

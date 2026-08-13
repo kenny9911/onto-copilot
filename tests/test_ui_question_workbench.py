@@ -422,3 +422,65 @@ def test_a_hostile_username_cannot_escape_an_inline_handler() -> None:
         [node, "-e", defs + "\n" + probe], text=True, capture_output=True, check=False)
     assert result.returncode == 0, f"{result.stdout}{result.stderr}"
     assert "OK" in result.stdout
+
+
+# ══════════════════════════════════════════════════════════════════
+#  操作记录：右栏「推理」要记下发生过的每一件事
+# ══════════════════════════════════════════════════════════════════
+def test_the_hidden_quota_bar_is_actually_hidden() -> None:
+    """`hidden` 属性靠浏览器默认样式 `[hidden]{display:none}` 生效，
+    而它的优先级**低于**类选择器。
+
+    只写 `.qbar{display:flex}` 的话，paintQuotaBar 把 hidden 设回 true 也关不掉 ——
+    界面顶上永远挂着一条 21px 高、没有任何文字的警告色横条。实测复现过。
+    """
+    html = _html()
+    assert ".qbar[hidden]{display:none}" in html
+
+
+def test_every_event_kind_the_server_emits_has_a_chinese_label() -> None:
+    """标签表漏一条，界面上就直接冒出 `materials.registered` 这种原始 key ——
+    而那恰恰是用户最想知道"系统刚才干了什么"的时刻。
+
+    这条按服务端**实际会发的**事件类型扫，不是照着前端那张表自说自话。
+    """
+    import re
+    from pathlib import Path
+
+    src = Path(__file__).resolve().parents[1] / "src" / "ontocopilot"
+    emitted: set[str] = set()
+    for py in src.rglob("*.py"):
+        text = py.read_text(encoding="utf-8")
+        emitted |= set(re.findall(r'\.emit(?:_durable)?\(\s*"([a-z][a-z_.]+)"', text))
+    # 对话本身不进操作记录（它在聊天窗口里，抄一遍是噪声）
+    emitted -= {"chat.turn", "chat.step"}
+    assert emitted, "没扫到任何事件类型，说明这条测试的正则失效了"
+
+    labels = _script(_html())
+    labels = labels[labels.index("const EV_LABEL = {"):]
+    labels = labels[:labels.index("\n};")]
+    missing = sorted(k for k in emitted if f'"{k}"' not in labels)
+    assert not missing, f"这些事件在界面上会露出原始 key：{missing}"
+
+
+def test_recommended_questions_are_not_called_decisions() -> None:
+    """`prompts.ready`（聊天框上方的推荐提示）和 `clarify.request`（必须人拍板的
+    建模决策）是两件完全不同的事。以前前者被显示成"2 个决策"。"""
+    script = _script(_html())
+    detail = script[script.index("function evDetail("):]
+    detail = detail[:detail.index("\n}")]
+    assert '"prompts.ready"' in detail and '"clarify.request"' in detail
+    assert "个待拍板" in detail
+    # 旧写法：任何带 questions 的事件都算决策。只看代码行 —— 注释里讲的正是
+    # 这个旧写法为什么错，别把它算成违规。
+    code = [ln for ln in script.splitlines() if not ln.strip().startswith("//")]
+    assert not [ln for ln in code if "个决策" in ln]
+
+
+def test_the_operation_log_records_everything_but_the_conversation() -> None:
+    """用户要的是"任何操作都能在推理里查到"。"""
+    script = _script(_html())
+    assert "function opsLog()" in script
+    assert 'if (!["chat.turn", "chat.step"].includes(ev.kind))' in script
+    assert "OPS = []" in script          # 切会话要清，否则串台账
+    assert "OPS_CAP" in script           # 长会话不许把内存吃光

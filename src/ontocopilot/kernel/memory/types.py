@@ -35,6 +35,19 @@ class Scope(StrEnum):
     TENANT = "tenant"  # 跨项目（命名规范、通用术语）
 
 
+class MemoryTier(StrEnum):
+    """这条记忆是谁说的 —— 决定它能不能被当真。
+
+    ``scope`` 管的是活多久，``kind`` 管的是长什么样，这里管的是**凭什么信**。
+    人的判断可以跨会话传递，机器的猜测只能提示：所以参考档永不晋升
+    （见 :class:`~.long_term.PromotionGate`）、进 prompt 必须带来源标注
+    （见 :meth:`MemoryItem.render`）、也不许成为产物的出处。
+    """
+
+    AUTHORITATIVE = "authoritative"  # 人拍板：跨会话直接生效
+    REFERENCE = "reference"  # 模型推断：只作参考
+
+
 class MemoryKind(StrEnum):
     """记忆类型 —— 决定检索时怎么打分、晋升时走哪条闸。"""
 
@@ -73,6 +86,12 @@ class MemoryItem:
     # 冲突：与已有记忆矛盾时不静默覆盖
     contested_by: list[str] = field(default_factory=list)
 
+    # 出身。默认是权威档 —— 既有调用点全是"人拍板"或"从规范导入"这条线，
+    # 默认改成参考会让它们连带降级。新写入的模型推断必须显式标 REFERENCE。
+    tier: MemoryTier = MemoryTier.AUTHORITATIVE
+    origin_session: str = ""  # 哪个会话得出的，参考档要在 prompt 里报出来
+    origin_files: list[str] = field(default_factory=list)  # 当时看的是哪几份材料
+
     @property
     def tokens(self) -> int:
         return est_tokens(self.content)
@@ -81,9 +100,30 @@ class MemoryItem:
     def contested(self) -> bool:
         return bool(self.contested_by)
 
-    def render(self) -> str:
+    def from_other_material(self, current_files: set[str] | None) -> bool:
+        """这条参考记忆是不是在**另一批**材料上得出的。
+
+        同一项目下不同会话上传的材料可能毫无关系，隔着材料得出的结论要再降一档。
+        ``origin_files`` 为空 = 不知道来源，不算另一批 —— 不能凭"没记来源"就判它无关。
+        """
+        if self.tier is not MemoryTier.REFERENCE or not current_files or not self.origin_files:
+            return False
+        return not (set(self.origin_files) & set(current_files))
+
+    def render(self, *, foreign_material: bool = False) -> str:
         mark = " ⚠争议" if self.contested else ""
-        return f"[{self.kind}]{mark} {self.content}"
+        head = f"[{self.kind}]{mark}"
+        if self.tier is not MemoryTier.REFERENCE:
+            return f"{head} {self.content}"
+        # 标注必须挤在**内容前面**：这些行会被拼成一段再按预算整体硬截断
+        # （context.py 的 L3），写在条目末尾的免责说明会被切掉，只剩断言本身。
+        parts = ["参考"]
+        if self.origin_session:
+            parts.append(f"来自会话《{self.origin_session}》")
+        if foreign_material:
+            parts.append("另一份材料")
+        parts.append("未确认")
+        return f"{head} {'·'.join(parts)}：{self.content}"
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -100,6 +140,9 @@ class MemoryItem:
             "use_count": self.use_count,
             "hit_runs": sorted(self.hit_runs),
             "contested_by": self.contested_by,
+            "tier": str(self.tier),
+            "origin_session": self.origin_session,
+            "origin_files": self.origin_files,
         }
 
     @classmethod
@@ -118,6 +161,11 @@ class MemoryItem:
             use_count=d.get("use_count", 0),
             hit_runs=set(d.get("hit_runs", ())),
             contested_by=list(d.get("contested_by", ())),
+            # 落盘过的 mem.json 里没有这三个字段，且 LongTermStore.load 对
+            # from_dict 没有异常兜底 —— 少一个默认值就是老库一读就崩。
+            tier=MemoryTier(d.get("tier", MemoryTier.AUTHORITATIVE)),
+            origin_session=d.get("origin_session", ""),
+            origin_files=list(d.get("origin_files", ())),
         )
 
 

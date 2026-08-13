@@ -38,19 +38,30 @@ from .kernel.bus.bus import AgentBus
 from .kernel.catalog import ModelCatalog, SmartGateway
 from .kernel.critic import CriticPanel
 from .kernel.dag import Difficulty
+from .kernel.errors import BudgetExhausted
 from .kernel.events import EventKind
+from .kernel.gateway_balance import (
+    budget_capped_text,
+    cached_balance,
+    is_low,
+    quota_exhausted_text,
+    quota_low_text,
+)
 from .kernel.ids import fingerprint, sha256_hex
 from .kernel.intent import Intent, RuleIntentParser
 from .kernel.journal import FileBlobStore, FileJournal
-from .kernel.llm import ModelGateway, gateway_routing
+from .kernel.llm import ModelGateway, QuotaExhausted, gateway_routing
 from .kernel.loop import AgentLoop
 from .kernel.memory.context import ContextManager
 from .kernel.memory.dialogue import (
+    PROMOTABLE,
     Decision,
     DecisionKind,
     DialogueMemory,
     Speaker,
 )
+from .kernel.memory.project import ProjectMemory
+from .kernel.memory.types import MemoryTier
 from .kernel.recorder import Recorder
 from .kernel.sandbox import default_sandbox
 from .kernel.scheduler import RunStatus, Scheduler
@@ -101,6 +112,8 @@ from .store.deps import lifespan as store_lifespan
 from .store.repo import (
     DecisionRecordRow,
     FileRow,
+    ProjectMemoryRow,
+    ProjectRow,
     QuestionRow,
     RevisionRow,
     SessionRow,
@@ -162,6 +175,10 @@ class Session:
     id: str
     title: str = "新建会话"
     project: str = ""
+    #: 侧栏项目文件夹（project.id）。""=未归类。**和上面的 project 不是一回事**：
+    #  project 是印在 xlsx/交付包文件名上的客户项目名，改它会改产物；这一列只管
+    #  分组和「同项目的会话共享哪份记忆」。两者并存，谁也不顶替谁。
+    project_id: str = ""
     created: float = field(default_factory=time.time)
     files: list[dict[str, Any]] = field(default_factory=list)
     status: str = "idle"  # idle | parsing | extracting | awaiting_answer | done | failed | stopped
@@ -238,6 +255,7 @@ class Session:
 
     def brief(self) -> dict[str, Any]:
         return {"id": self.id, "title": self.title, "project": self.project,
+                "project_id": self.project_id,
                 "status": self.status, "files": len(self.files),
                 "mode": self.state.get("mode", "work"),
                 "created": self.created, "error": self.error}
@@ -730,6 +748,60 @@ def _gateways(out: Path, run_id: str, *, resume: bool = False,
 
 
 # ══════════════════════════════════════════════════════════════════
+#  钱不够的三种信号（契约 C 第 2 节）
+#
+#  S1 网关欠费、S2 余额偏低、S3 本地上限用满 —— **文案绝不能混**。把"你自己设的
+#  上限用完了"说成"余额不足"，用户会去给一个根本没欠费的账户充值。
+# ══════════════════════════════════════════════════════════════════
+#: 开跑前那次余额探测的秒数上限。见 :func:`_warn_low_balance`。
+_BALANCE_TIMEOUT = 3.0
+
+
+async def _warn_low_balance(s: Session) -> None:
+    """跑之前探一次网关余额，查得到且偏低就提醒一句。**只提醒，不阻断。**
+
+    查不到（网关没这类接口是常态）就什么都不说 —— 沉默比一句"余额未知"有用，
+    更比一句猜出来的"余额不足"安全。整段被 try 包住：探测失败不许影响梳理。
+    """
+    try:
+        cfg = appconfig.resolved_llm_config()
+        # 超时压到 3s：这一步挡在解析前面，用户盯着的是"开始跑了没有"。余额只是
+        # 一句提醒，宁可不提，也不该让每次开跑先空等五秒。
+        bal = await cached_balance(cfg.base_url, cfg.api_key, timeout=_BALANCE_TIMEOUT)
+    except Exception:  # noqa: BLE001 — 铁律 C5：探测挂了也只是"未知"
+        return
+    if is_low(bal):
+        s.emit("quota.low", message=quota_low_text(bal), balance=bal.to_dict())
+
+
+def _money_failure(exc: BaseException) -> tuple[str, str]:
+    """把一次失败认成 ``"quota"``（网关欠费）/ ``"cap"``（本地上限）/ ``""``（都不是）。
+
+    返回 ``(信号, 网关原文)``。
+
+    为什么还要看字符串：节点里抛的异常被调度器统一转成 ``NodeFailure`` 的**文本**
+    （``kernel/scheduler.py`` 里 ``f"{type(last).__name__}: {last}"``），到这一层
+    早就不是原来的类型了。所以类型优先、文本兜底 —— 只靠 isinstance 的话，最常见
+    的那条路（抽取节点里欠费）恰好一条都认不出来。
+    """
+    cur: BaseException | None = exc
+    for _ in range(6):                       # 异常链理论上无环，仍设个上限
+        if cur is None:
+            break
+        if isinstance(cur, QuotaExhausted):
+            return "quota", cur.detail
+        if isinstance(cur, BudgetExhausted) and cur.dimension == "usd":
+            return "cap", ""
+        cur = cur.__cause__ or cur.__context__
+    text = str(exc)
+    if QuotaExhausted.__name__ in text:
+        return "quota", text
+    if "usd 预算耗尽" in text:                # BudgetExhausted 的消息形态
+        return "cap", ""
+    return "", ""
+
+
+# ══════════════════════════════════════════════════════════════════
 #  会话与文件
 # ══════════════════════════════════════════════════════════════════
 @app.get("/api/health")
@@ -782,6 +854,123 @@ def _isolate(request: Request) -> bool:
     return u is not None and u.id != authgate.SYNTHETIC_ADMIN.id
 
 
+async def _cold_brief(r: SessionRow) -> dict[str, Any]:
+    """库里有、但内存里没活着的会话的公共投影。
+
+    字段与 :meth:`Session.brief` **逐个对齐**，只多一个 ``hydrated: False``。抽成
+    一个函数是因为它原来在列表路由里手抄了一遍：加字段时漏抄一处，表现就是"某些
+    会话没有项目"，而且只在会话冷着的时候才复现。
+    """
+    files = await get_repo().list_files(r.id)
+    st = await get_repo().load_state(r.id, keys=["mode"])
+    return {"id": r.id, "title": r.title, "project": r.project,
+            "project_id": r.project_id, "status": r.status, "files": len(files),
+            "mode": st.get("mode", "work"), "created": r.created, "error": r.error,
+            "hydrated": False}
+
+
+# ── 会话标题 ─────────────────────────────────────────────────────
+#: 侧栏一行放得下的长度。Text 列本身不限长，挡在这里是因为超长标题只会把侧栏
+#: 撑坏 —— 而且没人会**故意**取一个 200 字的名字，那多半是误粘了一整段。
+_TITLE_MAX = 120
+#: 自动命名的截断长度（第二档规则：用第一句话）。
+_TITLE_FROM_TEXT_MAX = 20
+
+#: 「这个会话还没有名字」的判据 —— 也就是自动命名唯一允许覆盖的一组值。
+#:
+#: **为什么用一组默认值，而不是另存一个 `title_source` 标记：** 那个标记要么进
+#: session_state（于是改名就得走 `_persist`，占租约、推 state_version，让侧栏上
+#: 一次改名有可能撞掉正在跑的梳理），要么另加一列（一次迁移）。而标题本身已经
+#: 携带了这个信息：默认名 = 没人起过名。用户手动改过之后标题必然不在这个集合里，
+#: 自动命名于是**永远**碰不到它 —— 这正是"改过的名字不许被盖回去"要的性质。
+#: 代价是一个可以接受的边角：用户手动把标题改回「新会话」这四个字，下一次自动
+#: 命名会再次接管。
+#:
+#: 含 zh/en 两套（前端 `session.newChat` / `session.newWork`）和两个服务端默认值
+#: （`Session.title` 的 dataclass 默认、`POST /api/sessions` 不带 title 时的默认）。
+_DEFAULT_TITLES = frozenset({
+    "新会话", "新对话", "新建会话", "新的本体梳理", "新任务",
+    "New chat", "New session", "New work",
+})
+
+#: 切「第一个短句」的分隔符：标点 + 换行/制表。**空格不算** —— 中文里它本来就
+#: 不分句，而英文里按空格切会把 "How do we model POs" 切成 "How"。
+_TITLE_BREAK = re.compile(r"[。．.！!？?；;，,、：:\n\r\t…]+")
+
+
+def _norm_title(raw: Any) -> str:
+    """标题的规范形：折叠所有空白、去首尾。
+
+    换行留在标题里会把侧栏那一行撑成两行，而它在标题里没有任何意义。
+    """
+    return re.sub(r"\s+", " ", str(raw if raw is not None else "")).strip()
+
+
+def _title_from_files(files: list[dict[str, Any]]) -> str:
+    """一档规则：用第一份材料的文件名（去扩展名）。
+
+    工作会话本来就是围着材料转的，「采购计划管理实体及业务规则梳理-v2」比任何
+    模型总结都准，而且免费、瞬时、可复现。
+    """
+    if not files:
+        return ""
+    stem = _norm_title(Path(str(files[0].get("name") or "")).stem)
+    if not stem:
+        return ""
+    return stem if len(files) == 1 else f"{stem} 等 {len(files)} 份"
+
+
+def _title_from_text(text: str) -> str:
+    """二档规则：用用户第一句话的第一个短句，截到 20 字。"""
+    first = _norm_title(_TITLE_BREAK.split(_norm_title(text), 1)[0])
+    if not first:
+        return ""
+    return first if len(first) <= _TITLE_FROM_TEXT_MAX else (
+        first[:_TITLE_FROM_TEXT_MAX] + "…")
+
+
+async def _emit_session_renamed(sid: str, title: str) -> None:
+    """把新标题推给正在看的人。侧栏和顶栏要**立刻**变，不能等下次刷新。
+
+    冷会话不为了发一条事件就整个恢复一遍（那要重解析全部材料）：直接 append
+    到事件表即可 —— `/stream` 的游标以仓储为准，别的 worker 上的订阅者最多
+    250ms 后也能读到同一条。
+
+    活会话用 ``emit_durable``：改名接口一返回，前端多半立刻就要重连/刷新列表，
+    这条事件必须已经在事件表里，否则重放会漏掉它、侧栏又变回旧名字。
+    """
+    live = SESSIONS.get(sid)
+    if live is not None:
+        await live.emit_durable("session.renamed", id=sid, title=title)
+        return
+    await get_repo().append_event(sid, "session.renamed", {"id": sid, "title": title})
+
+
+async def _auto_title(s: Session, *, first_text: str = "") -> None:
+    """会话还叫默认名时，按确定性规则给它起一个。**不调模型。**
+
+    跑一次梳理已经要几分钟几美元；给会话起个名不该再花钱，也不该让用户等一次
+    往返。优先级：材料名 > 第一句话 > 保持默认。
+
+    起名失败**不能**把调用方那次操作也拖垮：材料早已装好、这一轮回复早已落库，
+    为一个装饰性的列丢掉整个 HTTP 响应，用户看到的是"上传失败/回复没了"。所以
+    这里吞掉异常，但留一条事件说明为什么侧栏上还挂着「新会话」。
+    """
+    if _norm_title(s.title) not in _DEFAULT_TITLES:
+        return                                  # 已经有名字了（自动起的或人改的）
+    title = _norm_title(_title_from_files(s.files) or _title_from_text(first_text))
+    title = title[:_TITLE_MAX]
+    if not title or title == s.title:
+        return
+    try:
+        if not await get_repo().rename_session(s.id, title):
+            return                              # 会话已被删掉，没什么可命名的
+        s.title = title
+        await _emit_session_renamed(s.id, title)
+    except Exception as exc:                    # noqa: BLE001 — 见上：不许拖垮调用方
+        s.emit("session.rename_failed", error=str(exc), title=title)
+
+
 @app.get("/api/sessions")
 async def list_sessions(request: Request) -> list[dict[str, Any]]:
     """会话列表**以库为准**。强制鉴权下只列归属自己的；开放模式保持原行为
@@ -794,12 +983,7 @@ async def list_sessions(request: Request) -> list[dict[str, Any]]:
         if live is not None:
             out.append(live.brief())
             continue
-        files = await get_repo().list_files(r.id)
-        st = await get_repo().load_state(r.id, keys=["mode"])
-        out.append({"id": r.id, "title": r.title, "project": r.project,
-                    "status": r.status, "files": len(files), "created": r.created,
-                    "error": r.error, "mode": st.get("mode", "work"),
-                    "hydrated": False})
+        out.append(await _cold_brief(r))
     if isolate:
         # 隔离模式到此为止：只列库里归属自己的会话（每次创建都已落库带 owner）。
         # 不合并"内存里活着但不在结果集"的会话，也不扫孤儿目录 —— 那些会泄露他人
@@ -821,6 +1005,9 @@ async def list_sessions(request: Request) -> list[dict[str, Any]]:
             mats = d / "materials"
             out.append({
                 "id": d.name, "title": d.name, "project": "",
+                # 孤儿目录没有库行，也就没有归属项目 —— 空串即「未归类」。这一条
+                # 分支漏了字段的话，前端拿到 undefined 会把它排到"某些会话没有项目"。
+                "project_id": "",
                 # 有产物就是跑完过的。目录里的事实比一个丢掉的状态字段可信。
                 "status": "done" if "oir.json" in arts else "idle",
                 "files": len(list(mats.iterdir())) if mats.exists() else 0,
@@ -907,11 +1094,315 @@ async def _delete_session_once(sid: str, *, purge: bool) -> dict[str, Any]:
     return {"deleted": sid, "purged": removed}
 
 
+@app.patch("/api/sessions/{sid}")
+async def patch_session(sid: str, request: Request,
+                        body: dict[str, Any] | None = None) -> dict[str, Any]:
+    """改会话的标题、或它的归属项目（移入 / 移出）。
+
+    ``project_id`` 落的是 ``session.project_id`` 这一列，不是 ``session.project``
+    （那是印在 xlsx 和交付包文件名上的客户项目名，改它会改产物内容）。
+    传 ``null`` 或空串都是移出项目。
+
+    走的是仓储的 ``rename_session`` / ``assign_session`` 而不是 ``_persist`` ——
+    后者只写 session_state 文档，从来不写会话表的元数据列。也因此这里不占
+    mutation 租约：改的列与梳理管线写的东西完全不相干，不存在要串行的冲突。
+    """
+    body = body or {}
+    if "title" not in body and "project_id" not in body:
+        raise HTTPException(400, "没有可改的字段")
+    row = await get_repo().get_session(sid)
+    if row is None:
+        raise HTTPException(404, f"没有会话 {sid}")
+    # **故意不 _sess_async**：那会把冷会话整个恢复一遍（重解析全部材料、发一条
+    # session.restored）。在侧栏里改个名字、把会话拖进一个文件夹都不该付这个
+    # 代价，而这里要改的列也不需要任何领域状态。
+    live = SESSIONS.get(sid)
+
+    if "title" in body:
+        title = _norm_title(body.get("title"))
+        if not title:
+            # 空标题会让侧栏出现一行看不见的会话 —— 比留着「新会话」更难认。
+            raise HTTPException(400, "标题不能为空")
+        if len(title) > _TITLE_MAX:
+            raise HTTPException(400, f"标题不能超过 {_TITLE_MAX} 个字符")
+        if not await get_repo().rename_session(sid, title):
+            raise HTTPException(404, f"没有会话 {sid}")
+        row.title = title
+        if live is not None:
+            live.title = title
+        await _emit_session_renamed(sid, title)
+
+    if "project_id" in body:
+        raw = body.get("project_id")
+        pid = "" if raw is None else str(raw).strip()
+        mode = (live.state.get("mode") if live is not None
+                else (await get_repo().load_state(sid, keys=["mode"])).get("mode")) or "work"
+        if pid and mode == "chat":
+            # R5：聊天会话不进项目。聊天里没有梳理、没有产物，把它塞进项目只会让
+            # 项目记忆混进一堆闲聊得来的"教训"。
+            raise HTTPException(400, "聊天会话不能归入项目")
+        if pid:
+            # 归属校验：中间件只认路径里的 sid/pid，请求**体**里的项目 id 它管不着。
+            # 不查的话，甲可以把自己的会话塞进乙的项目，从而读到乙的项目记忆。
+            proj = await get_repo().get_project(pid)
+            if proj is None or (_isolate(request) and (proj.owner or "") != _owner_id(request)):
+                raise HTTPException(404, f"没有项目 {pid}")
+        if not await get_repo().assign_session(sid, pid or None):
+            raise HTTPException(404, f"没有会话 {sid}")
+        row.project_id = pid
+        if live is not None:
+            live.project_id = pid
+
+    return live.brief() if live is not None else await _cold_brief(row)
+
+
+# ══════════════════════════════════════════════════════════════════
+#  项目文件夹
+# ══════════════════════════════════════════════════════════════════
+#  归属校验在 authgate 的中间件里（``/api/projects/<pid>``），和会话同一道门。
+#  这里的列表/创建路由没有 pid，所以归属由 owner 过滤与写入自己保证。
+@app.get("/api/projects")
+async def list_projects(request: Request) -> dict[str, Any]:
+    isolate = _isolate(request)
+    owner = _owner_id(request) if isolate else None
+    projects = await get_repo().list_projects(owner=owner)
+    # 会话数在这里自己聚合 —— 仓储没有"按项目计数"的方法。用的是**和会话列表
+    # 完全相同**的一次 list_sessions（同样的 owner 规则、同样的条数上限），
+    # 否则项目上写着 3 个、展开只看得到 1 个。
+    counts: dict[str, int] = {}
+    for r in await get_repo().list_sessions(owner=owner):
+        if r.project_id:
+            counts[r.project_id] = counts.get(r.project_id, 0) + 1
+    return {"projects": [{"id": p.id, "name": p.name, "sort_order": p.sort_order,
+                          "sessions": counts.get(p.id, 0)} for p in projects]}
+
+
+def _project_view(p: ProjectRow) -> dict[str, Any]:
+    return {"id": p.id, "name": p.name, "sort_order": p.sort_order}
+
+
+@app.post("/api/projects")
+async def create_project(request: Request,
+                         body: dict[str, Any] | None = None) -> dict[str, Any]:
+    from sqlalchemy.exc import IntegrityError
+
+    name = str((body or {}).get("name") or "").strip()
+    if not name:
+        raise HTTPException(400, "项目名不能为空")
+    row = ProjectRow(id=uuid.uuid4().hex[:12], name=name,
+                     owner=_owner_id(request),
+                     # prefs 列 NOT NULL 且**故意没有默认值**（跨方言的默认值不一致），
+                     # 所以每次创建都显式写一个空 dict。
+                     prefs={})
+    try:
+        await get_repo().create_project(row)
+    except (KeyError, IntegrityError) as exc:
+        # 两个实现抛的类型不同：内存 KeyError、PG IntegrityError。只接一种的话，
+        # 换个后端同样的冲突就变成 500。
+        raise HTTPException(409, "项目已存在，请重试") from exc
+    return _project_view(row)
+
+
+@app.patch("/api/projects/{pid}")
+async def patch_project(pid: str, body: dict[str, Any] | None = None) -> dict[str, Any]:
+    body = body or {}
+    if "sort_order" in body:
+        # 仓储只有 rename_project，没有写 sort_order 的方法。同样宁可当场说不支持。
+        raise HTTPException(400, "调整排序还没接上：仓储没有写 sort_order 的方法")
+    name = str(body.get("name") or "").strip()
+    if not name:
+        raise HTTPException(400, "项目名不能为空")
+    if not await get_repo().rename_project(pid, name):
+        raise HTTPException(404, f"没有项目 {pid}")
+    p = await get_repo().get_project(pid)
+    return _project_view(p) if p is not None else {"id": pid, "name": name,
+                                                   "sort_order": 0}
+
+
+@app.delete("/api/projects/{pid}")
+async def delete_project(pid: str) -> dict[str, Any]:
+    """删项目：成员会话掉回未归类（**不删会话**），项目记忆一起删掉。"""
+    if await get_repo().get_project(pid) is None:
+        raise HTTPException(404, f"没有项目 {pid}")
+    released = await get_repo().delete_project(pid)
+    # 内存里活着的会话也要跟着松开。不然它的 brief() 还挂着一个已经不存在的项目
+    # id，侧栏会把它归到一个刚被删掉的分组里，直到进程重启才消失。
+    for live in SESSIONS.values():
+        if live.project_id == pid:
+            live.project_id = ""
+    return {"ok": True, "released": released}
+
+
+# ══════════════════════════════════════════════════════════════════
+#  项目记忆
+# ══════════════════════════════════════════════════════════════════
+async def _project_memory(pid: str) -> ProjectMemory:
+    """装载一个项目的记忆。
+
+    **一个项目一个实例**：``Scope`` 在检索里根本不参与过滤，``mem_key`` 也不含
+    项目 —— 共用一个 store 的话，两个项目里同名主题会直接撞进合并/覆盖逻辑。
+    边界只能是这个对象本身，所以每次用都现装一份。
+    """
+    rows = await get_repo().list_project_memory(pid)
+    return ProjectMemory.from_rows(pid, rows)
+
+
+async def _save_project_memory(pm: ProjectMemory, keys: set[str]) -> int:
+    """只回写这次真正动过的那几条。
+
+    ``to_rows()`` 是整库快照。整库写回会把**另一个会话**刚写进去的同 key 版本，
+    按我们手里这份（可能已经过期的）覆盖掉。代价是召回带来的 use_count/hit_runs
+    不落库 —— 那只是排序统计，丢了影响排序；覆盖掉别人写的内容则是丢数据。
+    """
+    rows = [ProjectMemoryRow(**r) for r in pm.to_rows() if r["key"] in keys]
+    if not rows:
+        return 0
+    return await get_repo().upsert_project_memory(rows)
+
+
+def _user_said(dm: Any, quote: str) -> str:
+    """``quote`` 是不是用户**真的说过**的话。是就返回命中的那句原文，否则空串。
+
+    这道校验是「参考档洗成权威档」那条路的堵点。红队复现过：第一个会话里模型自己
+    猜出来的口径进了参考档（带「参考·未确认」标注），第二个会话把它渲染进 L3，
+    模型逐字读到之后调 ``decision.record`` 把这句话当成用户拍的板记下来 —— 于是
+    一条推断变成了同项目所有后续会话的「人已拍板」，置信度 1.0、不带任何标注、
+    还能进交付给客户的包。
+
+    晋升闸门拦不住它，因为闸门检查的是**传进去的那个对象**，而这条路造的是一条
+    全新的、tier 默认为 AUTHORITATIVE 的条目。真正缺的东西是：**没有任何代码
+    验证过这句话出自人**。原来的 support 是 ``dialogue:{run}:turn{idx}``，而
+    ``turn_index`` 只是 ``len(turns)-1`` —— 指向"碰巧是最后一轮"的那句话。
+    复现里它指向的原话是「你好，这份材料能看吗」。那不是出处，是一个长得像出处
+    的字符串。
+
+    比对做了归一化（去空白与常见标点），因为模型转述时标点几乎一定会变。
+    """
+    q = _norm_quote(quote)
+    if len(q) < 2:
+        return ""
+    for u in reversed(list(getattr(dm, "turns", ()) or ())):
+        if str(getattr(u, "speaker", "")) != "user":
+            continue
+        if q in _norm_quote(u.text):
+            return u.text
+    return ""
+
+
+#: 归一化：只留下能承载意思的字符。模型复述用户的话时标点和空白几乎一定会变，
+#: 按原样比对等于这道校验永远不通过。
+_QUOTE_NOISE = re.compile(r"[\s，,。.、；;：:！!？?「」『』\"'（）()【】\[\]—\-…]+")
+
+
+def _norm_quote(text: str) -> str:
+    return _QUOTE_NOISE.sub("", str(text or ""))
+
+
+async def _remember_decision(s: Session, d: Decision, *, quote: str = "") -> None:
+    """人拍板 → 项目权威档。跨会话直接生效的只有这一档。
+
+    ``decision.record`` 只改内存 DialogueMemory，落库靠这一轮 chat 收尾时的
+    ``_persist``，而那条路只写**本会话**。项目记忆不在它的白名单里，所以这里
+    显式落一次，否则"同一项目下的会话共享约定"从第二个会话看就是假的。
+
+    只收 :data:`PROMOTABLE`（口径/命名/范围）。纠正、采纳、回答某个问题都是就事
+    论事的，绑在这份材料的具体条目上；固化成项目约束会让同项目的下一个会话继承
+    一堆和它无关的结论。
+
+    **必须拿得出用户原话才升项目档。**跨项目生效的约定之所以权威，唯一的理由是
+    人说过；拿不出他说的是哪句，这条就只能留在本会话里。拿不出原话不是错误 ——
+    决定照样记进 DialogueMemory、照样进本会话后续节点的上下文，只是不跨会话。
+
+    写失败**不抛**：板已经拍在本会话里了，跨会话共享失败是降级，不是这轮对话失败。
+    """
+    if not s.project_id or d.kind not in PROMOTABLE:
+        return
+    said = _user_said(_dialogue(s), quote)
+    if not said:
+        s.emit("memory.not_shared", scope="project", statement=d.statement[:80],
+               why="拿不出用户原话，只在本会话生效")
+        return
+    run_id = str(s.state.get("engagement_run_id") or "")
+    item = d.to_memory(run_id=run_id)
+    # 出处换成**用户真的说过的那句话**。原来那条 `dialogue:{run}:turn{idx}` 指向的是
+    # "碰巧是最后一轮"，审计时看着像人证、其实指不到任何东西（见 _user_said）。
+    item.support = [f"用户原话：{said.strip()[:120]}", *item.support]
+    # origin_session 记的是**会话的名字**而不是 id：参考档进 prompt 时这个字段
+    # 会被逐行印出来（"参考·来自会话《…》"），印一串 12 位十六进制没人看得懂。
+    item.origin_session = s.title or s.id
+    item.origin_files = [f["name"] for f in s.files]
+    try:
+        pm = await _project_memory(s.project_id)
+        ok, _why = pm.remember_decision(item, run_id=run_id)
+        if ok:
+            await _save_project_memory(pm, {item.key})
+    except Exception as exc:  # noqa: BLE001 — 记忆写不进去不该让工具调用失败
+        s.emit("memory.failed", scope="project", op="decision",
+               error=f"{type(exc).__name__}: {exc}")
+
+
+#: 一轮最多往项目记忆里塞多少条参考档。critic 一轮能报几十条 findings，
+#: 全塞进去会让下一个会话的召回被本轮的噪声占满。
+_LESSON_CAP = 8
+
+
+async def _remember_run_lessons(s: Session, lessons: list[str], *, run_id: str,
+                                pm: ProjectMemory | None = None) -> None:
+    """run 收尾 → 项目参考档。
+
+    收的是本轮**被 critic 逼出来的**教训：那是模型自己的推断，不是人拍的板。所以
+    进参考档 —— 带来源标注、置信度打折、永不晋升、绝不进产物 provenance。
+
+    run 有三个出口（正常收尾 / 免费预览档 / HITL 挂起），三个都要调；漏一个的表现
+    是"这个项目的记忆只有跑完整档才长"，而这种漏很难从界面上看出来。
+
+    和 :func:`_remember_decision` 一样，写失败不抛：这里已经在收尾路径上，
+    再往上抛只会把一次成功的梳理变成失败。
+    """
+    if not s.project_id or not lessons:
+        return
+    files = [f["name"] for f in s.files]
+    try:
+        pm = pm if pm is not None else await _project_memory(s.project_id)
+        keys = set()
+        for text in lessons[:_LESSON_CAP]:
+            item = pm.observe(text, run_id=run_id, session_id=s.title or s.id,
+                              files=files, support=[f"run:{run_id}"])
+            keys.add(item.key)
+        await _save_project_memory(pm, keys)
+    except Exception as exc:  # noqa: BLE001 — 收尾路径不能被记忆写入拖垮
+        s.emit("memory.failed", scope="project", op="lesson",
+               error=f"{type(exc).__name__}: {exc}")
+
+
+def _drop_reference_memory(entries: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """R2 的执行点：参考档记忆绝不许出现在交付物的 decisions 里。
+
+    正路上参考档根本进不了 ``DialogueMemory``（只有 ``decision.record`` 能往里写，
+    而它写的是人拍的板）。这道过滤是为了**将来**：``dm.decisions`` 会全量、不过滤
+    地进 ``OntologyPackage.decisions``，哪天有人图省事把一条推断塞进对话记忆，
+    它就会以"已拍板"的身份印在交付给客户的包里，而且没有任何东西会报错。
+    """
+    kept: list[dict[str, Any]] = []
+    for e in entries:
+        # 两个来源到这儿都是 dict；万一将来有人传别的形状，判不了就放行 ——
+        # 这道过滤是**额外**的一层保险，不该自己变成一个能挂掉发布闸门的东西。
+        d = e if isinstance(e, dict) else {}
+        if (str(d.get("tier") or "") == str(MemoryTier.REFERENCE)
+                or "observed" in (d.get("tags") or [])):
+            continue
+        kept.append(e)
+    return kept
+
+
 @app.post("/api/sessions/{sid}/files")
 async def upload(sid: str, files: list[UploadFile]) -> dict[str, Any]:
     s = await _sess_async(sid)
     async with _session_mutation(s, "materials.upload"):
         result = await _upload_once(s, files)
+    # 第一份材料落定就有名字可用了。放在租约**外**：改的是会话表的 title 列，
+    # 和刚提交的那份 projection 不相干，没有要串行的东西。
+    await _auto_title(s)
     # Start the optional recommendation only after releasing the mutation lease; its
     # own chat lease is then guaranteed not to race this upload's projection commit.
     asyncio.create_task(_emit_ai_prompts(s, slot="opening"))
@@ -1139,9 +1630,15 @@ async def _to_work_once(src: Session, request: Request) -> dict[str, Any]:
                         "path": str(dst), "sha256": sha256_hex(dst.read_bytes()),
                     })
         SESSIONS[ws.id] = ws
+        # project 硬写空串是原样保留的老行为（那是印在产物上的客户项目名，聊天
+        # 会话上本来就没有）。project_id 则跟着源会话走 —— 聊天会话按 R5 恒为空，
+        # 所以今天它总是 ""；写成常量的话，哪天聊天真的能归项目，这里会静默把它
+        # 丢掉，而表现只是"转工作后会话跑到未归类去了"。
+        ws.project_id = src.project_id
         await get_repo().create_session(SessionRow(
             id=ws.id, title=ws.title, project="", status=ws.status,
-            error="", created=ws.created, state_version=0, owner=ws.owner))
+            error="", created=ws.created, state_version=0, owner=ws.owner,
+            project_id=ws.project_id))
         created_row = True
         if ws.files:
             await get_repo().add_files(ws.id, [
@@ -1304,6 +1801,7 @@ async def _hydrate_once(sid: str) -> Session:
     s = Session(id=sid,
                 title=row.title if row else sid,
                 project=row.project if row else "",
+                project_id=row.project_id if row else "",
                 created=row.created if row else d.stat().st_mtime,
                 # 有 oir.json 就是跑完过的 —— 目录里的事实比一个丢掉的状态字段可信
                 status=(row.status if row else
@@ -1697,6 +2195,9 @@ async def _run_pipeline(s: Session, *, tier: str = "full") -> None:
         repo_run_id = await get_repo().next_run(s.id, f"build:{tier}")
         s.status = "parsing"
         s.emit("node.entered", node="PARSE", title="解析材料")
+        # 余额偏低要在开跑的第一秒说，不是在跑了三分钟、花了两美元之后说。放在
+        # 解析前面是因为这时候还什么都没花，用户看到提醒可以直接停下来去充值。
+        await _warn_low_balance(s)
         await _ensure_catalog()          # 按网关可用模型过滤目录（视觉网关/OCR 靠它）
         # resume=True：这条 Run 的日志还在盘上就接着用。上次跑到一半崩了/被停了，
         # 已完成的模型调用直接从日志读回，不重花钱；语料变了 run_id 就变了，
@@ -1756,6 +2257,10 @@ async def _run_pipeline(s: Session, *, tier: str = "full") -> None:
             await _persist(s, lease_owner=lease_owner)
             fstats = (s.state.get("flow") or {}).get("stats") or {}
             s.emit("run.completed", stats={"tier": "flow_preview", **fstats})
+            # 免费档不跑 critic，本轮没有扛过评审的教训可留，所以传空。但这个出口
+            # 和另外两个一样要走同一条收尾路径：哪天这一档也开始产教训，要改的是
+            # lessons 的取值，而不是"记得在这儿补一次写入"。
+            await _remember_run_lessons(s, [], run_id=run_id)
             await get_repo().finish_run(repo_run_id, status="done")
             asyncio.create_task(_emit_ai_prompts(s, slot="opening"))
             return
@@ -1804,7 +2309,12 @@ async def _run_pipeline(s: Session, *, tier: str = "full") -> None:
         tools = builtin_registry(evidence=index, profiles=profiles, sandbox=sandbox)
         bus.board.write("_tools", tools, by="bootstrap")
 
-        cm = ContextManager(system=system, evidence=index, budget_tokens=90_000)
+        # 项目记忆挂上 L3：同项目别的会话攒下的约定与教训，在这里才真的能被召回。
+        # 两档都挂 —— 参考档的降权与来源标注在 MemoryItem.render / recall 里做，
+        # 不靠调用方自觉，所以这里不需要（也不应该）先把它筛掉。
+        pmem = await _project_memory(s.project_id) if s.project_id else None
+        cm = ContextManager(system=system, evidence=index, budget_tokens=90_000,
+                            long_term=pmem.store if pmem is not None else None)
         # 对话里拍下的板要真的作用到每个抽取节点上。ContextManager 是 Run 作用域
         # 的局部对象，HTTP 层碰不到它 —— 所以必须在这里、Run 起来的时候灌进去。
         # 不灌的话，"我记下了你的口径约定"就是一句空话：它躺在会话状态里，
@@ -1816,6 +2326,16 @@ async def _run_pipeline(s: Session, *, tier: str = "full") -> None:
         # 和 L3 是两条独立通路，任何一条断了另一条还在。
         for i, d in enumerate(dm.active_decisions() if dm else ()):
             bus.post(f"decision.{d.kind}.{i}", d.render(), by="user", confidence=1.0)
+        # 项目权威档和本会话拍的板同等对待，走同样两条通路。**只喂权威档** ——
+        # 黑板这条路硬编码 by="user"、confidence=1.0，参考档从这里进去就成了
+        # "用户拍板、满置信"，而它其实只是上一个会话里模型的推断。
+        for i, it in enumerate(pmem.authoritative() if pmem else ()):
+            cm.reflect(f"项目已拍板：{it.content}")
+            bus.post(f"project.decision.{i}", it.content, by="user", confidence=1.0)
+        # 上面这些 reflect 全是**人的**判断。收尾时只把这之后新增的（critic 逼出来
+        # 的）写进参考档，否则人拍的板会被复制成一条"参考·未确认"，下一个会话读
+        # 起来就成了模型的猜测。
+        seeded_reflections = set(cm.reflections)
         panel = CriticPanel({"coverage": CoverageCritic(segments, index),
                              "provenance": provenance_critic()}, gw.rec)
         loop = AgentLoop(gateway=gw, ctx_manager=cm, panel=panel, bus=bus,
@@ -1838,7 +2358,18 @@ async def _run_pipeline(s: Session, *, tier: str = "full") -> None:
             raise RuntimeError(f"抽取失败：{outcome.error}")
 
         merged = outcome.outputs.get("MERGE") or {}
-        oir = build_oir(merged, index)
+        dropped: dict[str, Any] = {}
+        oir = build_oir(merged, index, dropped)
+        # **模型抽到了、装配时挂不上，这件事必须说出来。** 属性挂不上父对象、
+        # 关系两端对不上名字时只能丢（挂错父亲比不挂更糟），但丢得无声无息的话，
+        # FDE 看见推理面板里模型说抽了 40 个字段、产物里只有 3 个，会归因成
+        # "模型不行" —— 而真实原因是名字对不齐，是能修的。
+        if dropped.get("properties") or dropped.get("links"):
+            s.emit("extract.dropped",
+                   properties=dropped.get("properties", 0),
+                   links=dropped.get("links", 0),
+                   unknown_parents=dropped.get("property_parents", [])[:12],
+                   unknown_endpoints=dropped.get("link_endpoints", [])[:12])
         stale_oir = _replay_oir_patches(s, oir)
         if stale_oir:
             s.emit("oir.stale_edits", count=len(stale_oir),
@@ -1883,6 +2414,18 @@ async def _run_pipeline(s: Session, *, tier: str = "full") -> None:
                conflicts=[c.to_dict() for c in conflicts])
 
         cs = res["clarify"]
+        # 对齐拿不准的那几对进问题清单。**必须在 to_dict 之前加** —— 晚一行就
+        # 只存在于内存里，落库的那份没有它们。
+        #
+        # 这些是「这俩是不是一个东西」，FDE 一天问上百次的那类问题。以前 align
+        # 把它们压进 uncertain 就到此为止：只进了一条事件载荷，没有任何界面消费。
+        # 系统比对了上千对、看出来了，然后一句话没说。
+        align_qs = [g.to_question() for g in (res.get("align_gaps") or ())]
+        for q in align_qs:
+            if q.rid not in oir.questions:
+                oir.add_question(q)
+        if align_qs:
+            s.emit("gaps.mined", count=len(align_qs), groups=["同义对象"])
         s.state["oir"] = oir.to_dict()
         s.state["conflicts"] = [c.to_dict() for c in conflicts]
         s.state["questions"] = [q.to_dict() for q in cs.questions]
@@ -1970,6 +2513,13 @@ async def _run_pipeline(s: Session, *, tier: str = "full") -> None:
             # OIR、冲突与问题在等待人回答前必须是同一个持久检查点。以前持久化发生
             # 在这些字段赋值之前，主 HITL 路径一重启就只剩旧版本。
             await _persist(s, lease_owner=lease_owner)
+            # 挂起等人回答也是一次 run 的结束。放在 _persist **之后**：这里写的是
+            # 项目记忆表，和会话检查点不是一回事，不共用租约，也就不会因为写它而
+            # 触发 _persist 那条"租约没了就 CancelledError"的路（那会被上面当成
+            # 用户点了停止）。
+            await _remember_run_lessons(
+                s, [r for r in cm.reflections if r not in seeded_reflections],
+                run_id=run_id, pm=pmem)
             await get_repo().finish_run(
                 repo_run_id, status="suspended",
                 budget=budget.snapshot() if budget is not None else {})
@@ -1990,6 +2540,10 @@ async def _run_pipeline(s: Session, *, tier: str = "full") -> None:
         )
         # 只有 REVIEW/EXPORT gate 已提交，现有原子 release 边界才真正写盘。
         await _compile(s, lease_owner=lease_owner)
+        # 正常收尾这一个出口。同样在 _compile 的 _persist 之后、finish_run 之前。
+        await _remember_run_lessons(
+            s, [r for r in cm.reflections if r not in seeded_reflections],
+            run_id=run_id, pm=pmem)
         await get_repo().finish_run(
             repo_run_id, status="done",
             budget=budget.snapshot() if budget is not None else {})
@@ -2010,6 +2564,19 @@ async def _run_pipeline(s: Session, *, tier: str = "full") -> None:
     except Exception as exc:  # noqa: BLE001 — 服务边界，错误要送到前端而不是吞掉
         s.status = "failed"
         s.error = f"{type(exc).__name__}: {exc}"
+        # 钱的问题要说人话，而且**两种"钱不够"要分开说**（契约第 2 节）：
+        # 网关欠费该去充值，本地上限用满只该去设置里调 —— 说反了，用户会给一个
+        # 一分钱没少的账户充钱。默认分支保持原样：不是钱的问题就别扯到钱上。
+        signal, detail = _money_failure(exc)
+        if signal == "quota":
+            s.error = quota_exhausted_text(detail)
+            s.emit("quota.exhausted", message=s.error, detail=detail)
+        elif signal == "cap":
+            usd_cap = budget.limit("usd") if budget is not None else appconfig.usd_cap()
+            spent = budget.spent("usd") if budget is not None else usd_cap
+            s.error = budget_capped_text(spent=spent, cap=usd_cap, scope="build")
+            s.emit("budget.capped", message=s.error, spent=spent, cap=usd_cap,
+                   scope="build")
         s.emit("run.failed", error=s.error)
         try:
             await _persist(s, lease_owner=lease_owner)
@@ -2932,10 +3499,14 @@ async def _resume_engagement_release(
             sandbox=None,
         )
         bus.board.write("_tools", tools, by="bootstrap")
+        # 这条恢复路径也要能看见项目记忆：它跑的是同一批 engagement 节点，
+        # 少挂一处的表现是"回答完问题重跑一遍，项目里攒的约定就不见了"。
+        pmem = await _project_memory(s.project_id) if s.project_id else None
         cm = ContextManager(
             system="FDE Engagement deterministic resume",
             evidence=index,
             budget_tokens=90_000,
+            long_term=pmem.store if pmem is not None else None,
         )
         from datetime import datetime
 
@@ -3313,6 +3884,9 @@ def _write_canonical_artifacts(s: Session, *, write: bool = True,
     # Question Decision Ledger 是 FDE 回答的权威历史。仓储读取是 async，编译函数
     # 保持同步，因此调用方在 state 中维护一份耐久投影；缺省仍兼容 legacy dialogue。
     decisions += list(s.state.get("decision_ledger") or [])
+    # R2：交付物的 provenance 里只准有人拍的板。上面两个来源都是**全量、不过滤**
+    # 地拼进来的，所以在进包之前显式滤一道 —— 见 :func:`_drop_reference_memory`。
+    decisions = _drop_reference_memory(decisions)
     if prepared is None:
         package = build_package(
             oir, s.state.get("_flow"), package_id=f"pkg.{s.id}", revision=revision,
@@ -4599,21 +5173,37 @@ def _converse_tools(s: Session) -> Any:
     @reg.fn("decision.record",
             "记下用户拍板的一条约定（口径、命名、范围）。它会进后续每个抽取节点的上下文。"
             "**只在用户明确表态时调**——他在问「口径是什么」不是在定口径。",
-            {"type": "object", "required": ["kind", "statement"],
+            {"type": "object", "required": ["kind", "statement", "quote"],
              "properties": {
                  "kind": {"type": "string", "enum": ["caliber", "naming", "scope",
                                                      "correction"]},
                  "statement": {"type": "string", "description": "用他的原话，不要改写"},
+                 "quote": {"type": "string",
+                           "description": "用户**这次真的说过**的一小段原话（照抄，"
+                                          "标点可以不一致）。它会作为这条约定的出处存下来。"
+                                          "你自己推出来的、或从上下文里读到的结论**不算**"
+                                          "用户说过 —— 那种情况下这条只在本会话生效。"},
                  "scope_refs": {"type": "array", "items": {"type": "string"},
                                 "description": "限定作用的对象 rid；全局约定留空"}}},
             danger=Danger.WRITE_LOCAL, scopes=RW)
-    def _decide(ctx: Any, kind: str, statement: str,
-                scope_refs: list[str] | None = None) -> dict[str, Any]:
+    async def _decide(ctx: Any, kind: str, statement: str, quote: str = "",
+                      scope_refs: list[str] | None = None) -> dict[str, Any]:
         d = _dialogue(s).decide(DecisionKind(kind), statement,
                                 scope_refs=scope_refs or [])
-        return {"已记下": d.render(), "类型": kind,
-                "生效范围": "后续每个抽取节点；已抽好的部分要重跑才应用",
-                "当前生效的约定数": len(_dialogue(s).active_decisions())}
+        # 会话级落库靠这一轮收尾时的 _persist；项目记忆不在那条路上，显式写一次。
+        # quote 校验不过就只写本会话 —— 见 _remember_decision 与 _user_said。
+        await _remember_decision(s, d, quote=quote)
+        grounded = bool(_user_said(_dialogue(s), quote))
+        shared = bool(s.project_id) and d.kind in PROMOTABLE and grounded
+        out = {"已记下": d.render(), "类型": kind,
+               "生效范围": ("后续每个抽取节点；已抽好的部分要重跑才应用"
+                        + ("；同项目的其它会话也会看到" if shared else "")),
+               "当前生效的约定数": len(_dialogue(s).active_decisions())}
+        if s.project_id and d.kind in PROMOTABLE and not grounded:
+            out["只在本会话生效"] = ("没能在用户说过的话里找到 quote。跨项目生效的约定"
+                               "必须指得出他说的是哪句 —— 他确实表过态的话，"
+                               "照抄那一小段重调一次。")
+        return out
 
     @reg.fn("suggestion.apply",
             "采纳或否决一条建议。采纳会**真的改产物**（补关系、标记排除等）。"
@@ -5084,8 +5674,12 @@ async def _reason(s: Session, text: str, *, hint: str = "",
     spent = float(s.state.get("_chat_usd") or 0.0)
     cap = appconfig.chat_usd_cap()
     if spent >= cap:
-        raise HTTPException(429, f"这个会话的对话花费已达上限 ${cap}（已花 ${spent:.2f}）。"
-                                 f"调 ONTOCOPILOT_CHAT_USD_CAP 或新建会话。")
+        # S3：**我们自己设的闸**，网关账户跟这件事无关。走和梳理侧同一份文案，
+        # 因为它是唯一一处保证不出现"充值/余额"字样的（铁律 C4）。事件也一起发：
+        # 429 的响应体只有发起那一轮的人看得到，常驻提醒条要靠这条事件才亮得起来。
+        text = budget_capped_text(spent=spent, cap=cap, scope="chat")
+        s.emit("budget.capped", message=text, spent=spent, cap=cap, scope="chat")
+        raise HTTPException(429, text)
     semantic_input = {
         "text": text,
         "hint": hint,
@@ -5230,6 +5824,11 @@ async def _refresh_chat_projection(s: Session) -> Session:
     if row is None:
         raise HTTPException(404, f"没有会话 {s.id}")
     if row.state_version == s.state_version:
+        # 改名**不推进** state_version（它是状态文档的 CAS，见 repo.rename_session），
+        # 所以这条快路上要单独把标题接过来。不接的话：另一个 worker 上改的名字在
+        # 这里永远看不见，而且 _auto_title 会拿一个陈旧的「新会话」当判据，把用户
+        # 刚起的名字覆盖掉 —— 正是最惹人烦的那类 bug。
+        s.title = row.title
         await _refresh_files_projection(s)
         return s
 
@@ -5262,6 +5861,7 @@ async def _refresh_chat_projection(s: Session) -> Session:
         s.state.pop("_flow", None)
 
     s.title, s.project = row.title, row.project
+    s.project_id = row.project_id            # 另一个 worker 把会话移进/移出了项目
     s.status, s.error = row.status, row.error
     s.owner = row.owner
     s.state_version = row.state_version
@@ -5381,8 +5981,14 @@ async def chat(sid: str, body: dict[str, Any]) -> dict[str, Any]:
             # call before its first file/OIR side effect.  Pure chat mode never gets
             # those tools and therefore remains lease-free.
             async with _session_mutation(s, "chat.structural", chat_owner=lease_owner):
-                return await _chat_claimed(s, body, chat_owner=lease_owner)
-        return await _chat_claimed(s, body, chat_owner=lease_owner)
+                result = await _chat_claimed(s, body, chat_owner=lease_owner)
+        else:
+            result = await _chat_claimed(s, body, chat_owner=lease_owner)
+        # 一轮说完了才起名 —— 用的是用户这句话，跑不跑得通不影响它，但要等这轮
+        # 真的成立（异常路径下会话可能压根没留下这句话）。守卫在 _auto_title 里：
+        # 只有还叫默认名的会话会被改，所以这一行实际只在第一轮生效。
+        await _auto_title(s, first_text=str(body.get("text") or ""))
+        return result
     except asyncio.CancelledError:
         # Remote /stop reaches the route task through the durable lease heartbeat.
         # The cancel intent already fenced this owner; do not append a stale stopped

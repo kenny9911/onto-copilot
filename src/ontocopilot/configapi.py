@@ -17,6 +17,7 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from . import appconfig
 from .authgate import require_admin
+from .kernel import gateway_balance
 from .kernel.catalog import ModelCatalog
 from .kernel.dag import Difficulty
 from .kernel.llm import gateway_routing
@@ -78,6 +79,31 @@ def _env_view() -> list[dict[str, Any]]:
     return out
 
 
+def _gateway_creds() -> tuple[str, str]:
+    """当前生效的网关 base / 密钥（设置 → 环境，与 appconfig 同一优先级）。"""
+    base = str(appconfig.get(appconfig.GATEWAY_BASE_URL)
+               or os.getenv("CUSTOM_LLM_BASE_URL", "")).rstrip("/")
+    key = str(appconfig.get(appconfig.GATEWAY_API_KEY)
+              or os.getenv("CUSTOM_LLM_API_KEY", ""))
+    return base, key
+
+
+#: 设置页那次探测的秒数上限。比默认的 5s 短：这是一次点击的等待时间，而余额只是
+#: 页面上的一行字 —— 宁可显示"未知"，也不要让设置页转圈。
+_PROBE_TIMEOUT = 3.0
+
+
+async def _balance_view() -> dict[str, Any]:
+    """余额一行。**任何失败都渲染成「未知」**（铁律 C1 / C5）：网关没有余额接口
+    是常态，绝不能让设置页因此报错，更不能把"查不到"说成"余额不足"。"""
+    base, key = _gateway_creds()
+    try:
+        bal = await gateway_balance.cached_balance(base, key, timeout=_PROBE_TIMEOUT)
+    except Exception:  # noqa: BLE001 — 探测不是设置页的必要条件
+        return gateway_balance.Balance().to_dict()
+    return bal.to_dict()
+
+
 def _snapshot(repo_unused: Any = None) -> dict[str, Any]:
     cat = ModelCatalog()
     overrides = appconfig.model_overrides()
@@ -89,10 +115,7 @@ def _snapshot(repo_unused: Any = None) -> dict[str, Any]:
         tiers[key] = {"model": spec.name, "effort": spec.effort,
                       "overridden": key in overrides,
                       "default": defaults.model_for(diff).name}
-    base = str(appconfig.get(appconfig.GATEWAY_BASE_URL)
-               or os.getenv("CUSTOM_LLM_BASE_URL", "")).rstrip("/")
-    raw_key = str(appconfig.get(appconfig.GATEWAY_API_KEY)
-                  or os.getenv("CUSTOM_LLM_API_KEY", ""))
+    base, raw_key = _gateway_creds()
     return {
         "gateway": {"base_url": base, "api_key": _redact_secret(raw_key),
                     "key_set": bool(raw_key), "insecure": base.startswith("http://")},
@@ -106,7 +129,8 @@ def _snapshot(repo_unused: Any = None) -> dict[str, Any]:
 
 @router.get("")
 async def get_config():
-    return _snapshot()
+    # 按需查，**不在 lifespan 里查**：启动依赖外部网络就成了"网关不通 → 服务起不来"。
+    return {**_snapshot(), "balance": await _balance_view()}
 
 
 @router.put("")
@@ -152,7 +176,9 @@ async def put_config(body: dict, repo: Annotated[Repo, Depends(get_repo)]):
             updates[skey] = v
 
     await appconfig.apply(repo, updates)
-    return _snapshot()
+    # 换了 base/密钥还显示上一个账户的余额是纯误导 —— 存完就把缓存清掉再探一次。
+    gateway_balance.invalidate_cache()
+    return {**_snapshot(), "balance": await _balance_view()}
 
 
 __all__ = ["router"]

@@ -22,6 +22,8 @@ from ontocopilot.store.repo import (
     DuplicateUsername,
     FileRow,
     MemoryRepo,
+    ProjectMemoryRow,
+    ProjectRow,
     SessionRow,
     UserRow,
     build_repo,
@@ -93,6 +95,27 @@ async def test_sessions_list_newest_first(repo):
         await repo.create_session(_sess(f"s{i}", created=ts))
     ids = [s.id for s in await repo.list_sessions()]
     assert ids[:3] == ["s1", "s2", "s0"]
+
+
+async def test_rename_session_reports_whether_it_hit_anything(repo):
+    await repo.create_session(_sess())
+    assert await repo.rename_session("s1", "采购计划梳理") is True
+    assert (await repo.get_session("s1")).title == "采购计划梳理"
+    assert await repo.rename_session("不存在", "x") is False
+
+
+async def test_renaming_a_session_does_not_disturb_the_state_cas(repo):
+    """改名不许推进 state_version。
+
+    它是状态文档的 CAS 令牌：正在跑的 build/chat 都拿着自己那份期望值提交。
+    跟着 +1 的话，用户在侧栏改个标题就能让另一台 worker 几分钟的梳理提交 409。
+    """
+    await repo.create_session(_sess())
+    version = await repo.save_state("s1", {"mode": "work"})
+    assert await repo.rename_session("s1", "改个名") is True
+    assert (await repo.get_session("s1")).state_version == version
+    # 而且不碰状态文档本身
+    assert (await repo.load_state("s1", keys=["mode"])) == {"mode": "work"}
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -499,3 +522,257 @@ async def test_update_user_can_change_only_the_display_name(repo):
     assert (got.username, got.role, got.active) == ("alice", "user", True)
     assert got.password_hash == "scrypt$x"
     assert (await repo.get_user("u1")).display_name == "新名字"
+
+
+# ══════════════════════════════════════════════════════════════════
+#  migrations 与 schema.py 的对齐
+# ══════════════════════════════════════════════════════════════════
+def _columns_declared_by_migrations() -> dict[str, list[str]]:
+    """从 migrations/*.sql 的文本里读出每张表的列名。
+
+    只认 CREATE TABLE 的列定义与 ALTER TABLE ... ADD COLUMN；索引、CHECK、触发器、
+    plpgsql 函数一概不管 —— 那些确实已经漂移（schema.py 里一个 sa.Index 都没给
+    session 建过），把它们一起管起来会让这个测试从第一天就是红的，于是被 skip 掉。
+    列是**运行时会崩**的那一类漂移（"no such column"），先把这一类钉死。
+    """
+    import re
+    from pathlib import Path
+
+    from ontocopilot.store.migrate import MIGRATIONS
+
+    create = re.compile(r"CREATE TABLE (?:IF NOT EXISTS )?(\w+)\s*\((.*?)\n\);", re.DOTALL)
+    alter = re.compile(r"ALTER TABLE (\w+)\s+ADD COLUMN (\w+)", re.IGNORECASE)
+    # \b 是必须的：没有它，"checksum text NOT NULL" 会被 CHECK 前缀吃掉。
+    not_a_column = re.compile(r"^(PRIMARY\s+KEY|FOREIGN\s+KEY|CONSTRAINT|UNIQUE|CHECK)\b",
+                              re.IGNORECASE)
+    out: dict[str, list[str]] = {}
+    for path in sorted(Path(MIGRATIONS).glob("*.sql")):
+        sql = path.read_text(encoding="utf-8")
+        for table, body in create.findall(sql):
+            cols = []
+            for raw in body.splitlines():
+                line = raw.strip()
+                if not line or line.startswith("--") or not_a_column.match(line):
+                    continue
+                m = re.match(r"^(\w+)\s+\w", line)
+                if m:
+                    cols.append(m.group(1))
+            out[table] = cols
+        for table, col in alter.findall(sql):
+            out.setdefault(table, []).append(col)
+    return out
+
+
+def test_migrations_and_metadata_declare_the_same_columns():
+    """两份真相必须逐列对齐 —— 而**没有任何机制强制**，只能靠这个测试。
+
+    SQLite 只吃 schema.py 的 create_all，Postgres 只吃 migrations/。少写一份的症状
+    是"本地一切正常、线上第一次读就 relation does not exist / no such column"，
+    而且要等到那条路径真被走到才暴露。
+    """
+    from ontocopilot.store.schema import metadata
+
+    declared = _columns_declared_by_migrations()
+    # 每张 metadata 里的表都得有迁移，否则 Postgres 上它根本不存在
+    assert set(metadata.tables) == set(declared)
+    for name, table in sorted(metadata.tables.items()):
+        assert set(declared[name]) == set(table.c.keys()), f"{name} 的列对不上"
+        assert len(declared[name]) == len(set(declared[name])), f"{name} 有重复列"
+
+
+# ══════════════════════════════════════════════════════════════════
+#  项目文件夹
+# ══════════════════════════════════════════════════════════════════
+def _proj(pid: str = "p1", **kw) -> ProjectRow:
+    return ProjectRow(**{"id": pid, "name": "采购域", **kw})
+
+
+def _mem(key: str = "term:采购包", **kw) -> ProjectMemoryRow:
+    base = {"project_id": "p1", "key": key, "tier": "authoritative",
+            "kind": "decision", "content": "采购包 = 一次招标里打包的若干标的"}
+    return ProjectMemoryRow(**{**base, **kw})
+
+
+async def test_project_round_trips_and_lists_in_sort_order(repo):
+    await repo.create_project(_proj("p1", name="采购域", sort_order=1))
+    await repo.create_project(_proj("p2", name="财务域", sort_order=0))
+    got = await repo.get_project("p1")
+    assert got is not None and (got.name, got.prefs, got.sort_order) == ("采购域", {}, 1)
+    assert [p.id for p in await repo.list_projects()] == ["p2", "p1"]
+    assert await repo.get_project("没有这个") is None
+
+
+async def test_rename_project_reports_whether_it_hit_anything(repo):
+    await repo.create_project(_proj())
+    assert await repo.rename_project("p1", "采购与招标") is True
+    assert (await repo.get_project("p1")).name == "采购与招标"
+    assert await repo.rename_project("不存在", "x") is False
+
+
+async def test_project_listing_is_isolated_by_owner(repo):
+    """和会话一样：无归属的项目对任何具体用户都不可见（NULL ↔ ""）。"""
+    await repo.create_project(_proj("a", owner="u1"))
+    await repo.create_project(_proj("b", owner="u2"))
+    await repo.create_project(_proj("c"))                  # 无归属（owner=""）
+    assert [p.id for p in await repo.list_projects(owner="u1")] == ["a"]
+    assert {p.id for p in await repo.list_projects()} == {"a", "b", "c"}
+    assert (await repo.get_project("c")).owner == ""
+
+
+async def test_session_project_id_round_trips_as_empty_when_unfiled(repo):
+    """库里是 NULL、内存里是 ""，两个实现必须给出同一种空值 —— 前端只判一种。"""
+    await repo.create_session(_sess("s1", project_id="p1"))
+    await repo.create_session(_sess("s2"))                  # 未归类
+    assert (await repo.get_session("s1")).project_id == "p1"
+    assert (await repo.get_session("s2")).project_id == ""
+    assert (await repo.get_session("s2")).brief()["project_id"] == ""
+    by_id = {s.id: s.project_id for s in await repo.list_sessions()}
+    assert by_id == {"s1": "p1", "s2": ""}
+
+
+async def test_assign_session_moves_it_in_and_back_out(repo):
+    await repo.create_session(_sess("s1"))
+    assert await repo.assign_session("s1", "p1") is True
+    assert (await repo.get_session("s1")).project_id == "p1"
+    # None 与 "" 都是「移出项目」，不能一个生效一个静默无视
+    assert await repo.assign_session("s1", None) is True
+    assert (await repo.get_session("s1")).project_id == ""
+    await repo.assign_session("s1", "p1")
+    await repo.assign_session("s1", "")
+    assert (await repo.get_session("s1")).project_id == ""
+    assert await repo.assign_session("没有这个会话", "p1") is False
+
+
+async def test_deleting_a_project_releases_sessions_and_drops_its_memory(repo):
+    """删项目**不删会话** —— 会话掉回未归类，项目记忆一起没。
+
+    这正是确认框里向用户承诺的那两件事；只做一半（比如把会话也删了）是数据丢失。
+    """
+    await repo.create_project(_proj("p1"))
+    await repo.create_project(_proj("p2"))
+    await repo.create_session(_sess("s1", project_id="p1"))
+    await repo.create_session(_sess("s2", project_id="p1"))
+    await repo.create_session(_sess("s3", project_id="p2"))
+    await repo.upsert_project_memory([_mem(), _mem(project_id="p2")])
+
+    assert await repo.delete_project("p1") == 2            # 释放了两个会话
+    assert await repo.get_project("p1") is None
+    assert (await repo.get_session("s1")).project_id == ""
+    assert (await repo.get_session("s2")) is not None      # 会话还在
+    assert await repo.list_project_memory("p1") == []
+    # 别的项目一根汗毛都不能动
+    assert (await repo.get_session("s3")).project_id == "p2"
+    assert len(await repo.list_project_memory("p2")) == 1
+
+
+async def test_project_memory_keeps_both_tiers_exactly_as_written(repo):
+    """tier 是整个功能的地基：人拍板的和模型猜的必须能分开查。
+
+    仓储不判断谁能晋升（那是记忆内核的事），但绝不能把这个标记弄丢或改写。
+    """
+    await repo.upsert_project_memory([
+        _mem("term:采购包", tier="authoritative", confidence=0.95,
+             support=["招标文件.pdf#p3"], tags=["术语"], created_run="r1"),
+        _mem("lesson:字段口径", tier="reference", kind="fact", confidence=0.4,
+             origin_session="s9", origin_files=["旧清单.xlsx"], hit_runs=["r1"],
+             use_count=2, last_used_run="r2"),
+    ])
+    rows = {m.key: m for m in await repo.list_project_memory("p1")}
+    assert rows["term:采购包"].tier == "authoritative"
+    assert rows["term:采购包"].support == ["招标文件.pdf#p3"]
+    assert rows["term:采购包"].confidence == 0.95
+    ref = rows["lesson:字段口径"]
+    assert (ref.tier, ref.kind) == ("reference", "fact")
+    # 来源标注是 reference 档进 prompt 时逐行要打的前缀，落库丢了就补不回来
+    assert (ref.origin_session, ref.origin_files) == ("s9", ["旧清单.xlsx"])
+    assert (ref.hit_runs, ref.use_count, ref.last_used_run) == (["r1"], 2, "r2")
+
+
+async def test_upsert_project_memory_overwrites_by_key(repo):
+    await repo.upsert_project_memory([_mem(content="旧口径", confidence=0.6)])
+    assert await repo.upsert_project_memory([_mem(content="新口径", confidence=0.9)]) == 1
+    rows = await repo.list_project_memory("p1")
+    assert len(rows) == 1
+    assert (rows[0].content, rows[0].confidence) == ("新口径", 0.9)
+
+
+async def test_the_same_memory_key_in_two_projects_stays_separate(repo):
+    """mem_key 是 "{kind}:{slug}"，**不含 project** —— 隔离全靠复合主键。
+
+    少了 project_id 这半个主键，两个项目里同名的术语会互相覆盖。
+    """
+    await repo.upsert_project_memory([
+        _mem(content="采购域的口径"),
+        _mem(project_id="p2", content="财务域的口径"),
+    ])
+    assert (await repo.list_project_memory("p1"))[0].content == "采购域的口径"
+    assert (await repo.list_project_memory("p2"))[0].content == "财务域的口径"
+
+
+async def test_delete_project_memory_by_keys_or_wholesale(repo):
+    await repo.upsert_project_memory([_mem("a"), _mem("b"), _mem("c")])
+    assert await repo.delete_project_memory("p1", ["a", "没有这条"]) == 1
+    assert [m.key for m in await repo.list_project_memory("p1")] == ["b", "c"]
+    assert await repo.delete_project_memory("p1", []) == 0      # 空列表 = 什么都不删
+    assert await repo.delete_project_memory("p1") == 2          # None = 整个项目清空
+    assert await repo.list_project_memory("p1") == []
+
+
+async def test_delete_session_leaves_projects_and_their_memory_untouched(repo):
+    """项目记忆的全部意义就是比单个会话活得久。
+
+    内存实现的 delete_session 是白名单式 pop，把按 project 存的容器扫进去就等于
+    「删了一个会话，同名项目跟着没了」；Pg 侧同理不能靠任何级联。
+    """
+    await repo.create_project(_proj("p1"))
+    await repo.create_session(_sess("s1", project_id="p1"))
+    await repo.upsert_project_memory([_mem(origin_session="s1")])
+    await repo.delete_session("s1")
+    assert await repo.get_project("p1") is not None
+    assert len(await repo.list_project_memory("p1")) == 1
+
+
+async def test_existing_sqlite_database_grows_the_project_id_column(tmp_path):
+    """`create_all` 只建缺表、**从不加列**：老库不补 project_id，每次读会话都
+    `no such column`。这条路径与重建分支那个 required 白名单是连着的 ——
+    补了列却不更新白名单，老库升级会直接 RuntimeError。
+    """
+    import sqlite3
+
+    path = tmp_path / "pre-0013.db"
+    db = sqlite3.connect(path)
+    try:
+        db.executescript("""
+            CREATE TABLE session (
+                id TEXT PRIMARY KEY,
+                title TEXT NOT NULL DEFAULT '新建会话',
+                project TEXT NOT NULL DEFAULT '',
+                status TEXT NOT NULL DEFAULT 'idle',
+                error TEXT NOT NULL DEFAULT '',
+                state_version BIGINT NOT NULL DEFAULT 0,
+                next_event_seq BIGINT NOT NULL DEFAULT 0,
+                next_run_ordinal INTEGER NOT NULL DEFAULT 0,
+                next_decision_ordinal INTEGER NOT NULL DEFAULT 0,
+                owner TEXT,
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                CONSTRAINT session_status_ck CHECK (status IN (
+                    'idle','queued','parsing','extracting','awaiting_answer',
+                    'done','failed','stopped'))
+            );
+            INSERT INTO session (id,title,project) VALUES ('old','历史会话','P-1');
+        """)
+        db.commit()
+    finally:
+        db.close()
+
+    store = await Store.open(f"sqlite+aiosqlite:///{path}", create_all=True)
+    repo = build_repo(store)
+    try:
+        old = await repo.get_session("old")
+        assert old is not None and old.project_id == ""     # 老会话是未归类
+        await repo.create_project(ProjectRow(id="p1", name="采购域"))
+        assert await repo.assign_session("old", "p1") is True
+        assert (await repo.get_session("old")).project_id == "p1"
+    finally:
+        await store.close()

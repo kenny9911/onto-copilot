@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import sqlite3
 
-from ontocopilot.store.engine import Store
+from ontocopilot.store.engine import SQLITE_SCHEMA_VERSION, Store
 from ontocopilot.store.repo import build_repo
 
 
@@ -82,7 +82,8 @@ async def test_existing_sqlite_is_upgraded_and_data_remains_usable(tmp_path):
             )).all()}
             assert "event_id" in columns
             assert (await conn.exec_driver_sql("PRAGMA foreign_keys")).scalar_one() == 1
-            assert (await conn.exec_driver_sql("PRAGMA user_version")).scalar_one() == 12
+            assert ((await conn.exec_driver_sql("PRAGMA user_version")).scalar_one()
+                    == SQLITE_SCHEMA_VERSION)
     finally:
         await store.close()
 

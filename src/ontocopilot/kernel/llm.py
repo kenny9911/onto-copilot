@@ -51,6 +51,25 @@ class ModelTruncated(ModelError):
     """
 
 
+class QuotaExhausted(ModelError):
+    """网关账户余额/配额耗尽。**不可重试** —— 退避多少次都一样。
+
+    与限流刻意分成两类异常，因为二者共用 429 却要走完全相反的处理：限流退避
+    几秒就好，欠费退避到天亮也一样。以前统一当瞬时故障重试，用户先白等三轮
+    退避、再收到一句 ``HTTP 429`` —— 既看不出是没钱，也不知道该去哪充。
+
+    Attributes:
+        detail: 网关原文（截断到 300 字），给人看的第一手证据。
+        status: 触发的 HTTP 状态码（402 / 429），0 表示不是 HTTP 层拿到的。
+    """
+
+    def __init__(self, model: str, detail: str, *, status: int = 0) -> None:
+        self.detail = (detail or "").strip()[:300]
+        self.status = status
+        where = f"HTTP {status}" if status else "网关响应"
+        super().__init__(f"{model} 网关账户余额/配额已耗尽（{where}）：{self.detail}")
+
+
 class ModelRefusal(ModelError):
     """安全分类器拒绝了请求。
 
@@ -501,6 +520,9 @@ class ModelGateway:
                         max_tokens=budget, images=images,
                     )
                 except ModelTruncated as exc:
+                    # **只有截断值得重发。** 这个 except 千万别放宽成 ModelError：
+                    # QuotaExhausted 也是 ModelError 的子类，一旦落进这里，欠费就
+                    # 又变成"白等几轮再报一句看不懂的错"。
                     # 截断也是打过一次、也计费了；exc 带不带 usage 都要留个痕
                     bill(getattr(exc, "usage", None) or Usage())
                     if attempt >= self.max_schema_retries:

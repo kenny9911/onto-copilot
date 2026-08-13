@@ -23,6 +23,7 @@ from .critic import Decision, Gate, GateResult, metrics_from
 from .dag import Dag, GateSpec
 from .errors import BudgetExhausted, HumanInputRequired, NodeFailure
 from .events import EventKind
+from .llm import QuotaExhausted
 from .loop import AgentLoop, NodeResult
 from .memory.short_term import WorkingSet
 from .recorder import Recorder
@@ -202,6 +203,16 @@ class Scheduler:
                     break
                 except HumanInputRequired:
                     raise  # 不是失败，是等人 —— 直接上抛让 Run 挂起
+                except QuotaExhausted as exc:
+                    # 网关账户没钱了。这不是"这次不巧"，重跑多少遍都一样，所以
+                    # **一次都不重试**就定案。代价不是几秒退避：EXTRACT 是按
+                    # segment 扇出的贵活（onto/pipeline.py 里 retries=1），走到
+                    # 下面那条 `except Exception` 的话，每个分片都要再白跑一整次
+                    # 节点执行 —— 用户为一个必然失败的结果多等好几分钟。
+                    # 不能像 HumanInputRequired 那样裸 raise：外层只接
+                    # NodeFailure / BudgetExhausted，裸抛会直接穿透 RunOutcome 契约。
+                    last = exc
+                    break
                 except NodeFailure as exc:
                     last = exc
                     if not exc.retryable or attempt >= spec.retries:
@@ -216,7 +227,11 @@ class Scheduler:
                              "will_retry": attempt < spec.retries},
                 )
 
-        raise NodeFailure(nid, f"{type(last).__name__}: {last}", retryable=False)
+        # `from last` 把真异常挂进异常链。**上层判"是不是欠费"要靠它** ——
+        # 光看这条消息文本是靠不住的（异常类型名会被 str 掉，见 server 侧的
+        # `_signal_of`：类型优先、文本兜底，而文本兜底之所以还必须留着，是因为
+        # RunOutcome.error 到最后只剩一个字符串，链在那儿就断了）。
+        raise NodeFailure(nid, f"{type(last).__name__}: {last}", retryable=False) from last
 
     def _account_wallclock(self) -> None:
         """Charge real elapsed run time once, regardless of node concurrency."""

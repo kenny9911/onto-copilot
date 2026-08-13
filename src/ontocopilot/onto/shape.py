@@ -73,8 +73,37 @@ _TYPE_WORDS = {
     "decimal", "double", "float", "money", "date", "datetime", "timestamp",
     "time", "bool", "boolean", "bit", "json", "uuid", "long", "short",
     "字符", "字符串", "整数", "整型", "数值", "数字", "日期", "时间", "布尔", "金额",
+    # 中文数据字典里极常见的写法。少了这些，客户按国标格式给的字段表整张作废 ——
+    # 见 _norm_type：「字符型」会先被削成「字符」，所以这里补的是**词干不同**的。
+    "文本", "长文本", "大文本", "备注", "小数", "浮点", "单精度", "双精度",
+    "货币", "百分比", "枚举", "字典", "主键", "外键", "时间戳", "年月日",
+    "逻辑", "二进制", "图片", "附件",
+    # 各家数据库/建模工具的写法
+    "varchar2", "nvarchar2", "int2", "int4", "int8", "serial",
+    "real", "bytea", "jsonb", "uniqueidentifier", "datetime2",
 }
-_TYPE_RE = re.compile(r"^\s*([A-Za-z一-鿿]+)\s*(\(\s*\d+(\s*,\s*\d+)?\s*\))?\s*$")
+_TYPE_RE = re.compile(r"^\s*([A-Za-z0-9_一-鿿]+)\s*(\(\s*\d+(\s*,\s*\d+)?\s*\))?\s*$")
+
+#: 中文类型词的后缀。「字符型」「数值类型」「日期类」都是同一个东西，
+#: 逐个往词表里塞是塞不完的，削掉后缀再比才对。
+_TYPE_SUFFIX = ("类型", "型", "类")
+
+#: 列名里出现这些词，说明它**自称**是类型列。只作为取值判据的**辅助**：
+#: 客户会用自己的一套类型词（「短文本」「长整数」「自定义编码」），
+#: 词表永远追不全，但"列名说是类型 + 取值又短又高度重复"这个组合很难误判。
+_TYPE_NAME_RE = re.compile(r"(数据类型|字段类型|类型|type|datatype|data_type)", re.IGNORECASE)
+
+
+def _norm_type(v: str) -> str:
+    """把一个取值削成可比的类型词干：去长度括号、去中文后缀、转小写。"""
+    m = _TYPE_RE.match(v)
+    if not m:
+        return ""
+    stem = m.group(1).strip().lower()
+    for suf in _TYPE_SUFFIX:
+        if len(stem) > len(suf) and stem.endswith(suf):
+            return stem[: -len(suf)]
+    return stem
 
 #: 布尔取值。同样只看取值。
 _BOOL_WORDS = {"是", "否", "y", "n", "yes", "no", "true", "false", "1", "0",
@@ -128,11 +157,23 @@ def _role_of(name: str, values: list[str]) -> tuple[ColumnRole, float, float, fl
     if frac(lambda v: bool(_URLISH_RE.match(v))) >= 0.6:
         return ColumnRole.ENDPOINT, fill, dratio, mean_len
 
-    # 数据类型：取值落在类型词表里（允许 varchar(32) 这种带长度的写法）
+    # 数据类型。**这一列判丢了，整张字段表就报废** —— row_unit 从 property 翻成
+    # object，prompt 转而告诉模型"这一段没有字段列，因此没有属性可抽"，critic 还把
+    # 零属性判成正确答案。所以这里放宽三处，但每一处都要求"取值确实像类型"：
+    #
+    #   1. 词干比对（_norm_type 削掉「型/类型/类」）—— 「字符型」当「字符」；
+    #   2. 阈值 0.6 → 0.5 —— 中英混填（一半 varchar(32) 一半「字符型」）是常态，
+    #      原来两种写法各占一半时**两边都不过 0.6**，整列直接落空；
+    #   3. 列名自称是类型列时降到 0.3 —— 客户有自己的类型词（「短文本」
+    #      「自定义编码」），词表永远追不全；但"列名说是类型 + 取值又短又高度
+    #      重复"这个组合很难误判成别的角色。
     def _is_type(v: str) -> bool:
-        m = _TYPE_RE.match(v)
-        return bool(m) and m.group(1) in _TYPE_WORDS
-    if frac(_is_type) >= 0.6:
+        return _norm_type(v) in _TYPE_WORDS
+
+    type_frac = frac(_is_type)
+    named_type = bool(_TYPE_NAME_RE.search(name or ""))
+    looks_typeish = mean_len <= 12 and dratio <= 0.5      # 短、且高度重复
+    if type_frac >= 0.5 or (named_type and looks_typeish and type_frac >= 0.3):
         return ColumnRole.DATATYPE, fill, dratio, mean_len
 
     # 布尔
@@ -408,6 +449,17 @@ def infer_shape(rows: list[dict[str, Any]]) -> SegmentShape:
         shape.row_unit = "property"
         shape.yields |= {Yield.PROPERTIES, Yield.OBJECTS}
         shape.note = "有数据类型列 —— 每一行都是一个字段，必须抽成 PropertyType。"
+        # **属性也能由规则定** —— 只要宿主列在。
+        #
+        # 以前这一支没有 rule_decidable，于是属性只有"模型"这一条通道：模型没抽、
+        # 抽了名字对不上、或者形状被误判成实体表，最终都是零属性，而零属性又会被
+        # critic 判成正确结果。一张列全了（字段名/类型/宿主）的表，每一行映射成
+        # 哪个属性是完全确定的 —— 和实体表一样确定，没有理由花钱让模型再猜一遍。
+        # 没有宿主列时不设：那时"这个字段挂在谁身上"确实要判断，交给模型。
+        # 判据必须和 _extract_properties 用的是**同一个** —— 两处各判一次，
+        # 迟早会出现"开关开了但抽取选不出列"（或反过来）的静默空转。
+        if all(_property_columns(shape)):
+            shape.rule_decidable |= {Yield.PROPERTIES}
     elif has_endpoint and (ident or label):
         shape.row_unit = "action"
         shape.yields |= {Yield.ACTIONS, Yield.OBJECTS}
@@ -468,6 +520,10 @@ def structural_extract(rows: list[dict[str, Any]], cites: list[str],
         _extract_questions(rows, cites, shape, out, carry_in)
         return out
 
+    if Yield.PROPERTIES in shape.rule_decidable:
+        _extract_properties(rows, cites, shape, out, carry_in)
+        return out
+
     if not (shape.rule_decidable & {Yield.OBJECTS, Yield.ACTIONS}):
         return out
 
@@ -525,6 +581,132 @@ def structural_extract(rows: list[dict[str, Any]], cites: list[str],
                 "object_display": owner, "module": mod_carry, "endpoint": url,
                 "source_locator": cite, "_origin": "rule"})
     return out
+
+
+#: 类型词干 → OIR 的 BaseType。词干由 :func:`_norm_type` 削好（「字符型」→「字符」）。
+_BASE_TYPE: dict[str, str] = {
+    "varchar": "STRING", "nvarchar": "STRING", "varchar2": "STRING",
+    "nvarchar2": "STRING", "char": "STRING", "text": "STRING", "clob": "STRING",
+    "string": "STRING", "str": "STRING", "uuid": "STRING", "json": "STRING",
+    "jsonb": "STRING", "字符": "STRING", "字符串": "STRING", "文本": "STRING",
+    "长文本": "STRING", "大文本": "STRING", "备注": "STRING",
+    "int": "INTEGER", "integer": "INTEGER", "bigint": "INTEGER",
+    "smallint": "INTEGER", "tinyint": "INTEGER", "long": "INTEGER",
+    "short": "INTEGER", "serial": "INTEGER", "int2": "INTEGER",
+    "int4": "INTEGER", "int8": "INTEGER", "整数": "INTEGER", "整型": "INTEGER",
+    "decimal": "DECIMAL", "numeric": "DECIMAL", "number": "DECIMAL",
+    "double": "DECIMAL", "float": "DECIMAL", "real": "DECIMAL",
+    "money": "DECIMAL", "数值": "DECIMAL", "数字": "DECIMAL", "小数": "DECIMAL",
+    "浮点": "DECIMAL", "货币": "DECIMAL", "金额": "DECIMAL", "百分比": "DECIMAL",
+    "单精度": "DECIMAL", "双精度": "DECIMAL",
+    "date": "DATE", "日期": "DATE", "年月日": "DATE",
+    "datetime": "TIMESTAMP", "datetime2": "TIMESTAMP", "timestamp": "TIMESTAMP",
+    "time": "TIMESTAMP", "时间": "TIMESTAMP", "时间戳": "TIMESTAMP",
+    "bool": "BOOLEAN", "boolean": "BOOLEAN", "bit": "BOOLEAN",
+    "布尔": "BOOLEAN", "逻辑": "BOOLEAN",
+    "枚举": "ENUM", "字典": "ENUM",
+}
+
+
+def base_type_of(raw: str) -> str:
+    """材料里写的类型 → BaseType 名。认不出就 STRING（保守，不猜）。"""
+    return _BASE_TYPE.get(_norm_type(str(raw or "")), "STRING")
+
+
+#: 宿主列的取值是对象名，不会很长。超过这个长度的列是口径/说明，不是宿主。
+_HOST_MAX_LEN = 24
+
+
+def _property_columns(shape: SegmentShape) -> tuple[ColumnView | None, ColumnView | None]:
+    """字段表里哪一列是**字段名**、哪一列是**宿主对象**。
+
+    通用的 ``shape.col(IDENTIFIER)`` / :func:`_host_column` 在这里都会挑错：
+
+    * 合并单元格的字段表里，「所属对象」只在组首写一次，稀疏得像个标识符列 ——
+      ``col(IDENTIFIER)`` 取**第一个**，于是把宿主当成了字段名；
+    * ``_host_column`` 在分组列里按 distinct **最多**的挑，而字段表里那个"分组列"
+      往往是稀疏的「口径说明」（几条长文本），比真正的宿主列 distinct 还多。
+
+    这里的判据直接来自字段表的形状：**字段名几乎不重复，宿主大量重复**。
+    """
+    cand = [c for c in shape.columns
+            if c.role in (ColumnRole.IDENTIFIER, ColumnRole.ENUM, ColumnRole.GROUP)
+            and c.distinct >= 1]
+    if not cand:
+        return None, None
+    # 字段名：去重率最高的那列（一行一个字段，几乎不重样）
+    field = max(cand, key=lambda c: (c.distinct_ratio, c.fill))
+    # 宿主：**重复**的那列 —— distinct 少、取值短、且不是字段名本身
+    hosts = [c for c in cand
+             if c is not field and c.mean_len <= _HOST_MAX_LEN
+             and 1 <= c.distinct < max(2, field.distinct)]
+    if not hosts:
+        return field, None
+    # 同样重复度时优先组首就填了的（合并单元格的分组列一定从第一行开始）
+    host = min(hosts, key=lambda c: (c.distinct, not c.first_filled))
+    return field, host
+
+
+def _extract_properties(rows: list[dict[str, Any]], cites: list[str],
+                        shape: SegmentShape, out: dict[str, list[dict[str, Any]]],
+                        carry_in: dict[str, str]) -> None:
+    """字段表逐行抽成属性，一行不丢。
+
+    宿主从分组列继承（合并单元格只在组首写一次），所以要带 carry_in —— 一张表
+    被切成多段时，后面几段的组名在上一段里。宿主一并登记成对象：属性挂不上父
+    对象就会在装配时被丢掉，而那正是"模型抽到了、产物里却没有"的由来。
+    """
+    ident, host = _property_columns(shape)
+    dtype = shape.col(ColumnRole.DATATYPE)
+    req = shape.col(ColumnRole.REQUIRED)
+    labels = [c for c in shape.cols(ColumnRole.LABEL) if c.fill >= 0.5]
+    label = max(labels, key=lambda c: c.fill) if labels else None
+    if ident is None or host is None:
+        return
+    # 口径列：**不能只认 PROSE**。稀疏的口径列（只有几行写了"含税口径"）取值一少
+    # 就会被判成 GROUP —— 而口径是字段表里最值钱的东西（"金额含不含税""按自然月
+    # 还是按账期"），漏掉它等于把这张表最难问出来的部分丢了。凡是没被占用、
+    # 又比标签长的列都算候选。
+    used = {id(x) for x in (ident, host, dtype, req, label) if x is not None}
+    notes = sorted(
+        (c for c in shape.columns
+         if id(c) not in used and c.role is not ColumnRole.EMPTY and c.mean_len >= 2),
+        key=lambda c: -c.mean_len)      # 最长的那列最可能是口径，短的当兜底
+
+    carry = carry_in.get(host.name, "")
+    seen_obj: set[str] = set()
+    seen_prop: set[tuple[str, str]] = set()
+    for row, cite in zip(rows, cites, strict=False):
+        if not isinstance(row, dict):
+            continue
+        carry = str(row.get(host.name, "")).strip() or carry
+        api = str(row.get(ident.name, "")).strip()
+        if not api or not carry:
+            continue
+        if carry not in seen_obj:
+            seen_obj.add(carry)
+            out["objects"].append({"api_name": carry, "display_name": carry,
+                                   "source_locator": cite, "_origin": "rule"})
+        key = (carry, api)
+        if key in seen_prop:
+            continue
+        seen_prop.add(key)
+        disp = str(row.get(label.name, "")).strip() if label else ""
+        # 口径写在散文列里（"含税口径""按自然月"）—— 那是这个字段最值钱的部分
+        definition = next((str(row.get(c.name, "")).strip() for c in notes
+                           if str(row.get(c.name, "")).strip()), "")
+        out["properties"].append({
+            "parent_api_name": carry,
+            "api_name": api,
+            "display_name": disp or api,
+            "base_type": base_type_of(row.get(dtype.name)) if dtype else "STRING",
+            "definition": definition,
+            "required": (str(row.get(req.name, "")).strip() in _TRUE_WORDS) if req else False,
+            "source_locator": cite, "_origin": "rule"})
+
+
+#: 「是否必填」里算真的取值。
+_TRUE_WORDS = {"是", "y", "Y", "yes", "YES", "true", "TRUE", "1", "必填", "√", "✓"}
 
 
 def _host_column(shape: SegmentShape) -> ColumnView | None:

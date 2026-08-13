@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import json
+
 from ontocopilot.kernel.memory.context import ContextManager
 from ontocopilot.kernel.memory.evidence import Chunk, EvidenceIndex, tokenize
 from ontocopilot.kernel.memory.long_term import (
@@ -10,8 +12,15 @@ from ontocopilot.kernel.memory.long_term import (
     PromotionGate,
     PromotionReason,
 )
+from ontocopilot.kernel.memory.project import ROW_FIELDS, ProjectMemory
 from ontocopilot.kernel.memory.short_term import Scratchpad, WorkingSet, extract_locators
-from ontocopilot.kernel.memory.types import MemoryItem, MemoryKind, Scope, mem_key
+from ontocopilot.kernel.memory.types import (
+    MemoryItem,
+    MemoryKind,
+    MemoryTier,
+    Scope,
+    mem_key,
+)
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -320,6 +329,182 @@ def test_store_roundtrips_through_disk(tmp_path):
 
 
 # ══════════════════════════════════════════════════════════════════
+#  两档记忆：人的判断可以传递，机器的猜测只能提示
+# ══════════════════════════════════════════════════════════════════
+def _ref(content: str, kind=MemoryKind.LESSON, **kw) -> MemoryItem:
+    """一条参考档记忆 —— 模型自己推断出来的。"""
+    return MemoryItem(
+        key=kw.pop("key", mem_key(kind, content[:20])), kind=kind, scope=Scope.PROJECT,
+        content=content, support=list(kw.pop("support", ["ev:1"])),
+        tier=MemoryTier.REFERENCE, **kw,
+    )
+
+
+def test_reference_memory_can_never_be_promoted():
+    """R1：模型的推断不许自己变成"跨会话直接生效的约定"。四条晋升理由全堵死 ——
+    闸门里的无条件前置检查，不是调用方自觉。"""
+    store = LongTermStore("proj")
+    for reason in PromotionReason:
+        it = _ref("计划金额大概是含税的")
+        it.hit_runs |= {"r1", "r2", "r3"}  # REPEATED 的判据凑满
+        ok, why = store.promote(it, reason, run_id="r9", critic_rounds=9)
+        assert not ok, f"{reason} 竟然放行了参考档"
+        assert "参考档" in why
+    assert len(store) == 0
+
+
+def test_recall_never_accumulates_promotion_evidence_for_reference():
+    """纵深防御：recall 给命中项攒 hit_runs，而 len(hit_runs) 正是 REPEATED 的判据。
+    参考档拿不到晋升，就不该为一场永远不会发生的晋升攒证据。"""
+    store = LongTermStore("proj")
+    ref = _ref("采购包和计划八成是一对多")
+    store.note(ref, run_id="r1")
+    fact = _item("采购包与计划一对多", MemoryKind.FACT)
+    store.promote(fact, PromotionReason.IMPORTED, run_id="r1")
+
+    for run in ("r2", "r3", "r4"):
+        store.recall("采购包 计划", run_id=run, limit=10)
+
+    assert store.get(ref.key).hit_runs == set(), "参考档不该攒晋升证据"
+    assert store.get(ref.key).use_count == 3, "使用次数照记 —— 衰减要靠它"
+    assert len(store.get(fact.key).hit_runs) >= 3, "权威档的统计不该被这条改动波及"
+
+
+def test_reference_can_never_supersede_a_human_decision():
+    """R4：覆盖判据原本只是 `confidence >= 0.95` 这个裸数字。参考档一旦借到这个数字，
+    就能把人拍板的条目打成 superseded —— 而 superseded 会被 recall 直接排除，
+    人的约定就这么静默消失了。"""
+    store = LongTermStore("proj")
+    decided = _item("计划金额一律按含税年度累计", MemoryKind.FACT)
+    store.promote(decided, PromotionReason.HUMAN_CONFIRMED, run_id="r1")
+    assert store.get(decided.key).confidence >= 0.95
+
+    guess = _ref("计划金额一律按不含税单次", key=decided.key, support=["llm:r2"])
+    guess.confidence = 0.99  # 就算它自称笃定
+    ok, why = store.note(guess, run_id="r2")
+
+    kept = store.get(decided.key)
+    assert ok and "权威" in why
+    assert "含税年度累计" in kept.content, "人拍板的内容必须原样还在"
+    assert kept.tier is MemoryTier.AUTHORITATIVE
+    assert not [i for i in store.all() if "superseded" in i.tags], "不许把人的约定打进坟场"
+    assert kept.confidence >= 0.95, "也不许从排名侧变相覆盖"
+    assert [i.key for i in store.recall("计划金额", run_id="r3")] == [decided.key]
+
+
+def test_human_decision_still_supersedes_a_model_guess():
+    """反向必须通：人在会话里重新拍板，就该顶掉模型先前的猜测，旧值降级留档。"""
+    store = LongTermStore("proj")
+    guess = _ref("采购包与计划是一对多")
+    store.note(guess, run_id="r1")
+    decided = MemoryItem(key=guess.key, kind=MemoryKind.FACT, scope=Scope.RUN,
+                         content="采购包与计划是多对多", support=["human:q2"])
+    ok, _ = store.promote(decided, PromotionReason.HUMAN_CONFIRMED, run_id="r2")
+
+    assert ok and "多对多" in store.get(guess.key).content
+    assert store.get(guess.key).tier is MemoryTier.AUTHORITATIVE
+    superseded = [i for i in store.all() if "superseded" in i.tags]
+    assert len(superseded) == 1 and "一对多" in superseded[0].content
+
+
+def test_reference_may_not_borrow_the_decision_kind():
+    """DECISION 在检索里吃 1.3 prior、在衰减里完全豁免。推断借它表达，就成了
+    既排名靠前又永不过期 —— 正好是这套分层的反面。"""
+    store = LongTermStore("proj")
+    bad = _ref("金额口径以财务表为准", MemoryKind.DECISION)
+    ok, why = store.promote(bad, PromotionReason.HUMAN_CONFIRMED, run_id="r1")
+    assert not ok and "decision" in why
+    ok, why = store.note(bad, run_id="r1")
+    assert not ok and "decision" in why
+    assert len(store) == 0
+
+    pm = ProjectMemory("p1")
+    it = pm.observe("金额口径以财务表为准", kind=MemoryKind.DECISION, run_id="r1")
+    assert it.kind is MemoryKind.LESSON, "要么拒绝，要么改记成教训，不能放它进 DECISION"
+
+
+def test_reference_support_never_leaks_into_a_human_decision():
+    """support 是这条记忆的依据，会被人当出处看。让参考档的依据并进权威档，
+    等于参考记忆从后门进了交付物的溯源。"""
+    store = LongTermStore("proj")
+    decided = _item("金额含税", MemoryKind.FACT, support=["human:q1"])
+    store.promote(decided, PromotionReason.HUMAN_CONFIRMED, run_id="r1")
+    store.note(_ref("金额不含税", key=decided.key, support=["llm:猜的"]), run_id="r2")
+    assert store.get(decided.key).support == ["human:q1"]
+
+
+def test_old_memory_json_without_tier_still_loads(tmp_path):
+    """已经落过盘的 mem.json 里没有 tier / origin_* 三个字段，而 load 对 from_dict
+    没有异常兜底 —— 少一个默认值就是老库一读就崩。"""
+    legacy = {
+        "key": "convention:x", "kind": "convention", "scope": "project",
+        "content": "apiName 用 lowerCamelCase", "confidence": 0.9,
+        "support": ["ev:1"], "tags": [], "meta": {},
+        "created_run": "r1", "last_used_run": "r1", "use_count": 2,
+        "hit_runs": ["r1"], "contested_by": [],
+    }
+    it = MemoryItem.from_dict(legacy)
+    assert it.tier is MemoryTier.AUTHORITATIVE, "老数据全是人拍板/规范导入那条线"
+    assert it.origin_session == "" and it.origin_files == []
+
+    p = tmp_path / "mem.json"
+    p.write_text(
+        json.dumps({"project": "proj", "runs": ["r1"], "items": [legacy]}), encoding="utf-8"
+    )
+    again = LongTermStore.load(p)
+    assert len(again) == 1 and again.all()[0].tier is MemoryTier.AUTHORITATIVE
+
+
+# ══════════════════════════════════════════════════════════════════
+#  项目记忆门面
+# ══════════════════════════════════════════════════════════════════
+def test_project_memory_rows_roundtrip_without_touching_the_store_layer():
+    """跨会话活下来只能靠行进行出：store 自己不会落盘。行必须是纯 dict，
+    键与 project_memory 表的列名对齐。"""
+    pm = ProjectMemory("p1")
+    pm.remember_decision(
+        _item("计划金额拆成含税/不含税两个属性", MemoryKind.DECISION), run_id="r1"
+    )
+    pm.observe("采购包名在 DDL 里叫 pkg_no", run_id="r1", session_id="s7",
+               files=["schema.ddl"], support=["ev:2"])
+
+    rows = pm.to_rows()
+    assert len(rows) == 2
+    assert all(isinstance(r, dict) and set(r) == set(ROW_FIELDS) for r in rows)
+    assert all(r["project_id"] == "p1" for r in rows)
+
+    again = ProjectMemory.from_rows("p1", rows)
+    assert len(again) == 2
+    ref = [i for i in again.store.all() if i.tier is MemoryTier.REFERENCE]
+    assert len(ref) == 1
+    assert ref[0].origin_session == "s7" and ref[0].origin_files == ["schema.ddl"]
+    # 装回来之后那条参考档还是参考档 —— 落盘一圈不该把它洗白
+    ok, _ = again.store.promote(ref[0], PromotionReason.HUMAN_CONFIRMED, run_id="r2")
+    assert not ok
+
+
+def test_project_memory_drops_rows_from_other_projects():
+    """隔离靠实例：mem_key 不含 project，混进别的项目的行就会撞 key 走合并。"""
+    pm = ProjectMemory.from_rows("p1", [
+        {"project_id": "p1", "key": "fact:a", "tier": "authoritative", "kind": "fact",
+         "content": "本项目金额含税", "confidence": 0.95},
+        {"project_id": "p2", "key": "fact:a", "tier": "authoritative", "kind": "fact",
+         "content": "另一个项目金额不含税", "confidence": 0.95},
+    ])
+    assert len(pm) == 1
+    assert "本项目" in pm.store.get("fact:a").content
+
+
+def test_remember_decision_refuses_to_relabel_a_reference_item():
+    """R1 的另一半：升权威的唯一路径是人在本会话里重新拍板，不是把旧条目改个标。"""
+    pm = ProjectMemory("p1")
+    stale = _ref("我猜金额是含税的")
+    ok, why = pm.remember_decision(stale, run_id="r1")
+    assert not ok and "重新构造" in why
+    assert len(pm) == 0
+
+
+# ══════════════════════════════════════════════════════════════════
 #  四层装配
 # ══════════════════════════════════════════════════════════════════
 def _cm(budget=2000) -> ContextManager:
@@ -363,6 +548,51 @@ def test_reflection_from_this_run_reaches_later_nodes():
     cm.reflect("provenance critic 驳回过无证据断言，本轮所有 baseType 必须带 evidence")
     ctx = cm.assemble(task="抽取属性", run_id="r1")
     assert "本轮教训" in ctx.text and "baseType" in ctx.text
+
+
+def test_reference_annotation_survives_l3_clipping():
+    """R3：L3 把长期召回和本轮教训拼成一段再按预算硬截断。免责标注写在条目末尾
+    会被切掉，只剩一句看着像事实的断言 —— 所以必须在每条的**前缀**里。"""
+    lt = LongTermStore("proj")
+    for i in range(10):
+        lt.note(_ref(f"计划金额口径说明{i}", key=f"lesson:{i}",
+                     origin_session="上一个会话"), run_id="r0")
+    cm = ContextManager(long_term=lt, budget_tokens=1000)
+    ctx = cm.assemble(task="抽取属性", query="计划金额口径", run_id="r1")
+
+    l3 = ctx.layers["L3_reflection"]
+    assert "…[已截断]" in l3, "预算没卡住就没测到东西"
+    assert "上一个会话" in l3
+    # 活下来的每一条只要还带着断言，就必须同时带着"这是参考、未确认"的标注
+    carrying = [ln for ln in l3.splitlines() if "计划金额" in ln]
+    assert carrying
+    for ln in carrying:
+        assert "参考" in ln and "未确认" in ln, ln
+
+
+def test_reference_from_another_material_is_marked_and_ranked_lower():
+    """同一项目下不同会话的材料可能毫不相干。隔着材料得出的推断要再降一档，
+    并且在 prompt 里说清楚它来自另一份材料。"""
+    lt = LongTermStore("proj")
+    near = _ref("计划金额取自本表", key="lesson:near", origin_session="s1")
+    far = _ref("计划金额取自本表", key="lesson:far", origin_session="s2",
+               origin_files=["别的项目.xlsx"])
+    lt.note(near, run_id="r0")
+    lt.note(far, run_id="r0")
+
+    cm = ContextManager(long_term=lt, budget_tokens=4000)
+    ctx = cm.assemble(task="抽取", query="计划金额", run_id="r1",
+                      current_files={"实体梳理.xlsx"})
+
+    assert [m.key for m in ctx.recalled] == ["lesson:near", "lesson:far"], "跨材料的要排后面"
+    assert "另一份材料" in ctx.text
+    assert ctx.text.count("另一份材料") == 1, "只有跨材料那条该被标"
+
+
+def test_authoritative_memory_renders_exactly_as_before():
+    """加分层不能顺手改人拍板那条的样子 —— 它是既有行为，改了会连带影响所有节点。"""
+    it = _item("apiName 用 lowerCamelCase")
+    assert it.render() == f"[{MemoryKind.CONVENTION}] apiName 用 lowerCamelCase"
 
 
 def test_scratchpad_is_compacted_during_assembly_when_over_budget():

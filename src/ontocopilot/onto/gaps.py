@@ -328,6 +328,40 @@ def _first_prov(assertion: Any) -> Provenance | None:
     return ev[0] if ev else None
 
 
+def alignment_gaps(oir: OIR, uncertain: list[Any] | None = None,
+                   limit: int = _PER_KIND) -> list[Gap]:
+    """对齐拿不准的那些对 —— **"这俩是不是一个东西"是 FDE 每天问上百次的问题。**
+
+    对齐引擎跑上千次比对，把"名字很像但没有结构证据"的一律压进 ``uncertain``
+    —— 这个保守是对的（合并不可逆，假阳性是最贵的错），但 ``uncertain``
+    以前没有任何消费者：只进了一条 SSE 事件载荷和 CLI 的调试打印。
+    系统看出来了、然后什么也没说。
+
+    尤其是登记表段产出的对象**天生零属性**（代码明说"零属性是正确结果"），
+    于是这类对象之间的相似永远拿不到结构证据、永远落进 uncertain、永远沉默。
+    别名字面完全相同的两个对象也是这个下场。
+
+    转成问题而不是自动合并 —— 出口是"问一句"，不是"替他决定"。
+    """
+    out: list[Gap] = []
+    for s in sorted(uncertain or (), key=lambda x: -getattr(x, "total", 0.0))[:limit]:
+        a, b = oir.objects.get(getattr(s, "a", "")), oir.objects.get(getattr(s, "b", ""))
+        if a is None or b is None:
+            continue
+        why = "；".join(getattr(s, "reasons", []) or []) or "名称相近"
+        out.append(Gap(
+            text=f"「{a.display_name.value or a.api_name.value}」和"
+                 f"「{b.display_name.value or b.api_name.value}」是同一个业务对象吗？"
+                 f"（{why}）合并不可逆，所以我没有自己动手。",
+            group="同义对象", kind="alignment_uncertain",
+            prov=_first_prov(a.display_name) or _first_prov(a.api_name),
+            options=["是同一个，合并", "不是，各自保留", "先放着，回头问客户"],
+            applies_to=[a.rid, b.rid],
+            # 别名完全重合还拿不准的，排在最前 —— 那是最像真阳性的一档
+            weight=4.5 if getattr(s, "alias", False) else 3.2))
+    return out
+
+
 # ══════════════════════════════════════════════════════════════════
 #  汇总
 # ══════════════════════════════════════════════════════════════════
@@ -363,12 +397,21 @@ def mine_questions(oir: OIR, *, docs: list[Any] | None = None,
     # 材料里本来就有的问题（客户自己写的问卷）永远排在最前 —— 那是他自己
     # 提的疑问，比我们发现的任何缺口都更该先答。
     out.extend(q for q in (extra or ()))
+
+    # **limit 只约束我们自己挖出来的那部分。**
+    #
+    # 以前 `len(out) >= limit` 把 extra 也算进名额：extra 在生产里是客户自带问卷
+    # ＋流程图缺口（server 那边就是这么传的），随便一份材料就能顶满 60，于是
+    # 「系统发现材料里缺什么」这件事**一条都进不来、且悄无声息**。
+    # 空容器、未定槽位、枚举缺失全被饿死 —— 产品最该主动说话的地方彻底哑掉。
+    mined = 0
     for g in gaps:
         q = g.to_question()
         if q.rid in seen:
             continue
         seen.add(q.rid)
         out.append(q)
-        if len(out) >= limit:
+        mined += 1
+        if mined >= limit:
             break
     return out

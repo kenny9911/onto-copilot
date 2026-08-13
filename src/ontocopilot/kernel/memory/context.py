@@ -117,6 +117,7 @@ class ContextManager:
         evidence_top_k: int = 24,
         budget_tokens: int | None = None,
         recall_kinds: tuple[MemoryKind, ...] | None = None,
+        current_files: set[str] | None = None,
     ) -> RenderedContext:
         """装配上下文。
 
@@ -124,6 +125,8 @@ class ContextManager:
             task: 本节点的任务描述，进 L0 尾部。
             query: 证据检索与长期记忆召回的查询串，默认用 task。
             deps: 上游节点 id，支持 ``PARSE.*`` 通配。
+            current_files: 本轮在看的材料名。只影响参考档记忆：跨材料的那些会被
+                降权并在 prompt 里标出来。不传 = 不做这层判断。
         """
         q = query or task
         # 节点可以给更紧的预算。抽取类节点的正文已经很长，再按全局预算灌证据
@@ -147,8 +150,14 @@ class ContextManager:
                 kinds=recall_kinds,
                 limit=10,
                 budget_tokens=int(refl_budget * 0.6),
+                current_files=current_files,
             )
-        lines = [f"· {m.render()}" for m in recalled]
+        # 参考档的来源标注由 render 放在**内容前面** —— 下面这段会被整体 _clip，
+        # 写在条目末尾的标注会被切掉，只剩一句看着像事实的断言。
+        lines = [
+            f"· {m.render(foreign_material=m.from_other_material(current_files))}"
+            for m in recalled
+        ]
         lines += [f"· 本轮教训：{r}" for r in self._reflections]
         refl_text = _clip("\n".join(lines), refl_budget)
         ctx.layers["L3_reflection"] = refl_text

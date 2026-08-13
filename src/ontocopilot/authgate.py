@@ -89,10 +89,15 @@ async def adopt_local_sessions(repo: Repo, user: UserRow) -> int:
 
     两条建号路径都要走这里：``POST /api/register`` 和 ``ontocopilot useradd``。
     只在其中一条上做，另一条就成了"照文档操作，然后数据全丢"。
+
+    **项目要和会话一起认领。** 只认领会话的话，会话都还在，但项目按 owner 过滤后
+    一个都列不出来，于是它们全部掉回「未归类」—— 用户看到的是"文件夹没了、会话
+    散了一屏"。这和上面那个失败模式是同一件事，只是少丢一层。
     """
     n = 0
     for old in (SYNTHETIC_ADMIN.id, ""):
         n += await repo.reassign_sessions(old, user.id)
+        await repo.reassign_projects(old, user.id)
     return n
 
 
@@ -136,6 +141,14 @@ def _session_sid(path: str) -> str | None:
     return path[len(prefix):].split("/", 1)[0] or None
 
 
+def _project_pid(path: str) -> str | None:
+    """从 ``/api/projects/<pid>[/...]`` 里取出 pid；列表/创建路由（无 pid）返回 None。"""
+    prefix = "/api/projects/"
+    if not path.startswith(prefix):
+        return None
+    return path[len(prefix):].split("/", 1)[0] or None
+
+
 async def auth_middleware(request: Request, call_next):
     """一道 fail-closed 门。解析用户挂到 ``request.state.user``，并按账号隔离会话。"""
     repo = get_repo()
@@ -158,6 +171,16 @@ async def auth_middleware(request: Request, call_next):
         row = await repo.get_session(sid)
         if row is None or row.owner != request.state.user.id:
             return JSONResponse({"error": "会话不存在", "code": "session.not_found"},
+                                status_code=404)
+
+    # 项目同理，而且**必须在这里做**：``/api/projects/...`` 不在上面那个前缀下，
+    # 光靠会话那条判断的话，任何登录用户都能改名/删掉别人的项目文件夹（连带删掉
+    # 别人的项目记忆）。列表/创建路由没有 pid，归属在路由里按 owner 过滤/写入。
+    pid = _project_pid(request.url.path)
+    if pid is not None:
+        proj = await repo.get_project(pid)
+        if proj is None or (proj.owner or "") != request.state.user.id:
+            return JSONResponse({"error": "项目不存在", "code": "project.not_found"},
                                 status_code=404)
     return await call_next(request)
 

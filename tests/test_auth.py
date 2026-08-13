@@ -640,3 +640,32 @@ async def test_profile_sends_exactly_what_the_endpoint_reads(monkeypatch):
     body = re.search(r'/api/me/profile[\s\S]{0,400}?JSON\.stringify\((\{[^}]*\})',
                      ui).group(1)
     assert set(re.findall(r'(\w+)\s*:', body)) == {"display_name"}
+
+
+async def test_first_registration_also_adopts_the_projects_made_in_open_mode(
+    monkeypatch, tmp_path,
+):
+    """会话被认领、项目没有 —— 用户看到的是「文件夹没了、会话散了一屏」。
+
+    这和上面那条「建号那一秒数据全丢」是同一个失败模式，只是少丢一层：会话还在，
+    但项目按 owner 过滤后一个都列不出来，归属它们的会话全部掉回「未归类」。
+    """
+    from ontocopilot.authgate import adopt_local_sessions
+    from ontocopilot.store.repo import ProjectRow
+
+    monkeypatch.delenv("ONTOCOPILOT_AUTH", raising=False)
+    monkeypatch.setattr(server, "ROOT", tmp_path)
+    monkeypatch.setattr(server, "SESSIONS", {})
+    repo = MemoryRepo()
+    async with _client(repo) as c:
+        sid = (await c.post("/api/sessions", json={"title": "开放模式建的"})).json()["id"]
+        # 开放模式下建的项目，归属是空的
+        await repo.create_project(ProjectRow(id="p1", name="中广核112项目", owner=""))
+        await repo.assign_session(sid, "p1")
+
+        admin = await _mk_user(repo, "carol", "pw-carol-11", role="admin")
+        assert await adopt_local_sessions(repo, admin) == 1
+
+        assert [p.name for p in await repo.list_projects(owner=admin.id)] == ["中广核112项目"]
+        # 会话仍然待在那个项目里，没有掉回「未归类」
+        assert (await repo.get_session(sid)).project_id == "p1"

@@ -542,6 +542,56 @@ def builtin_registry(
                      or name_contains.lower() in str(e.api_name.value).lower()]
             return {"count": len(items), "items": items[:60]}
 
+    if oir is not None:
+        @reg.fn("impact.trace",
+                "改这一个东西会牵动哪些别的东西。给一个对象/属性/关系/行动的名字或 rid，"
+                "返回顺着依赖走出去的全部受影响项、各自的路径和为什么受影响。"
+                "**回答「这个能不能改」「改了影响多大」之前先调它** —— "
+                "凭印象说「影响不大」是这个岗位最贵的错误之一。",
+                {"type": "object", "required": ["target"],
+                 "properties": {
+                     "target": {"type": "string",
+                                "description": "rid，或对象/属性的 apiName、中文名"},
+                     "depth": {"type": "integer",
+                               "description": "顺着依赖走几层，默认 2，最大 4"}}},
+                danger=Danger.READ)
+        def _impact(ctx: Any, target: str, depth: int = 2) -> Any:
+            rid = _resolve_rid(oir, target)
+            if rid is None:
+                return {"error": f"OIR 里找不到「{target}」",
+                        "note": "先用 oir.query 看现有的名字，别照着材料里的写法猜 rid"}
+            depth = max(1, min(int(depth or 2), 4))
+            # 广度优先，逐层记路径。纯图遍历、零模型 —— 这条链路上不存在编造，
+            # 返回的每个 rid 都必然是 OIR 里已有的实体。
+            seen: dict[str, list[str]] = {rid: [rid]}
+            frontier = [rid]
+            for _ in range(depth):
+                nxt: list[str] = []
+                for cur in frontier:
+                    for dep in oir.dependents(cur):
+                        if dep in seen:
+                            continue
+                        seen[dep] = [*seen[cur], dep]
+                        nxt.append(dep)
+                frontier = nxt
+                if not frontier:
+                    break
+            items = [{"rid": r, "kind": _rid_kind(oir, r),
+                      "name": _rid_name(oir, r), "path": p,
+                      "hops": len(p) - 1}
+                     for r, p in seen.items() if r != rid]
+            counts: dict[str, int] = {}
+            for it in items:
+                counts[it["kind"]] = counts.get(it["kind"], 0) + 1
+            return {"target": {"rid": rid, "kind": _rid_kind(oir, rid),
+                               "name": _rid_name(oir, rid)},
+                    "total": len(items), "counts": counts,
+                    "affected": sorted(items, key=lambda x: (x["hops"], x["kind"]))[:60],
+                    "note": ("这是**结构**上的影响面，不含「业务上谁会不高兴」。"
+                             "口径类的影响要另外看冲突清单。" if items else
+                             "顺着依赖走不到任何东西 —— 要么它确实是叶子，"
+                             "要么关系还没抽出来。")}
+
     if profiles:
         @reg.fn("profile.column",
                 "查某一列的确定性统计（唯一率、空值率、推断类型、样本值）。"
@@ -576,3 +626,56 @@ def builtin_registry(
             return res.to_dict()
 
     return reg
+
+
+# ══════════════════════════════════════════════════════════════════
+#  impact.trace 的小工具
+# ══════════════════════════════════════════════════════════════════
+#: OIR 的实体桶 → 单数名。顺序即查找优先级：对象 → 属性 → 关系 → 行动 → 规则。
+#: 单数名写死而不是 ``bucket[:-1]`` —— 后者把 properties 削成 "propertie"。
+_OIR_BUCKETS: dict[str, str] = {
+    "objects": "object", "properties": "property", "links": "link",
+    "actions": "action", "rules": "rule",
+}
+
+
+def _rid_kind(oir: Any, rid: str) -> str:
+    for bucket, singular in _OIR_BUCKETS.items():
+        if rid in (getattr(oir, bucket, None) or {}):
+            return singular
+    return "unknown"
+
+
+def _rid_name(oir: Any, rid: str) -> str:
+    """人看的名字。取不到就退回 rid —— 空字符串会让影响面清单变成一列空白。"""
+    for bucket in _OIR_BUCKETS:
+        item = (getattr(oir, bucket, None) or {}).get(rid)
+        if item is None:
+            continue
+        for attr in ("display_name", "api_name", "statement"):
+            val = getattr(getattr(item, attr, None), "value", None)
+            if val:
+                return str(val)[:80]
+    return rid
+
+
+def _resolve_rid(oir: Any, target: str) -> str | None:
+    """把用户/模型给的东西解析成 rid。
+
+    **接受名字而不只是 rid**：模型手上多半只有材料里的中文名或 apiName，
+    要求它先查一次 rid 是白白多一轮往返，而且它会开始猜 rid 的构造规则。
+    """
+    t = str(target or "").strip()
+    if not t:
+        return None
+    for bucket in _OIR_BUCKETS:
+        if t in (getattr(oir, bucket, None) or {}):
+            return t
+    low = t.lower()
+    for bucket in _OIR_BUCKETS:
+        for rid, item in (getattr(oir, bucket, None) or {}).items():
+            for attr in ("api_name", "display_name"):
+                val = getattr(getattr(item, attr, None), "value", None)
+                if val and str(val).lower() == low:
+                    return rid
+    return None

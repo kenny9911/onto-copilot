@@ -435,3 +435,62 @@ def test_ambiguous_axis_gets_no_value_rather_than_a_guess():
     text = "计划金额，含税/不含税两种口径都在用"
     assert "税" not in parse_axes(text)
     assert "税" in axis_ambiguities(text)
+
+
+# ══════════════════════════════════════════════════════════════════
+#  口径：认不出维度 ≠ 没问题
+# ══════════════════════════════════════════════════════════════════
+def _prop(rid: str, defn: str) -> PropertyType:
+    p = _xlsx(9, defn)
+    return PropertyType(rid=rid, parent="ot_x",
+                        api_name=extracted("planAmount", p),
+                        display_name=extracted("计划金额", p),
+                        base_type=extracted(BaseType.DECIMAL, p),
+                        definition=extracted(defn, p))
+
+
+def _two(a: str, b: str) -> OIR:
+    o = OIR()
+    o.properties["p1"] = _prop("p1", a)
+    o.properties["p2"] = _prop("p2", b)
+    return o
+
+
+def test_a_caliber_clash_is_reported_even_when_no_known_axis_matches():
+    """**这条是全仓库唯一一处"系统主动把两个不同判断当成同一个"。**
+
+    轴表只有四条采购财务轴。换个行业（工艺、条款、诊疗）一条都命中不了，于是
+    两段内容完全不同的口径拿到同一个签名、被判成同一种，直接跳过 ——
+    不是"没查出来"，是沉默地把分歧抹平。同时踩了「查不到就说查不到」和
+    「口径不自行统一」两条纪律，而且换个行业整条功能归零、零告警。
+    """
+    cs = detect_semantic_divergence(
+        _two("计划金额取工艺路线上首道工序的产能上限",
+             "计划金额取末道工序的产能下限"))
+    assert len(cs) == 1, "认不出轴就当没问题 —— 这正是要修的"
+    assert cs[0].handling is Handling.ASK_USER
+    assert "判不出是哪一维" in cs[0].summary, "判不出就要明说，不能装作判出来了"
+    assert "首" in cs[0].summary and "末" in cs[0].summary, "至少说得出差在哪几个字"
+
+
+def test_identical_calibers_stay_quiet():
+    """反向断言：字面一模一样时不许报 —— 否则这个改动只是把静默换成了噪声。"""
+    assert detect_semantic_divergence(_two("含税总价", "含税总价")) == []
+
+
+def test_a_known_axis_still_reports_the_axis_not_the_fragments():
+    """认得出维度时，输出不该退化成"差在这几个字"。"""
+    cs = detect_semantic_divergence(
+        _two("本次采购的计划金额，指含税总价", "计划金额按不含税口径统计"))
+    assert len(cs) == 1
+    assert "税（含税 vs 不含税）" in cs[0].summary
+    assert "判不出" not in cs[0].summary
+
+
+def test_reporting_a_clash_is_not_deciding_it():
+    """报冲突 ≠ 裁决。选项里不许出现"推荐"这种字段。"""
+    cs = detect_semantic_divergence(
+        _two("计划金额取首道工序产能上限", "计划金额取末道工序产能下限"))
+    opts = cs[0].options
+    assert opts, "要给人选项"
+    assert all("recommended" not in o.to_dict() for o in opts)
