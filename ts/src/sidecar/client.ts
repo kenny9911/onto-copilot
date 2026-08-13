@@ -69,9 +69,16 @@ export interface ParsedDoc {
  * 与业务错误分开的理由见文件头 2：这条对应的动作是「去起进程」，不是「改材料」。
  */
 export class SidecarUnavailable extends Error {
-  constructor(message: string, readonly cause?: unknown) {
+  // `override` 是必须的：ES2022 起 Error 自己就有 cause。不写的话 tsc 报 TS4115，
+  // 而更糟的是**悄悄遮蔽**掉基类那个会被各种日志工具读取的字段。
+  override readonly cause?: unknown;
+
+  constructor(message: string, cause?: unknown) {
     super(message);
     this.name = "SidecarUnavailable";
+    // exactOptionalPropertyTypes 下不能直接赋 undefined —— 那会让 "存在但为
+    // undefined" 和 "不存在" 两种状态混淆，`"cause" in err` 的判断就废了。
+    if (cause !== undefined) this.cause = cause;
     Object.setPrototypeOf(this, SidecarUnavailable.prototype);
   }
 }

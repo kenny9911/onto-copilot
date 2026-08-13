@@ -33,9 +33,11 @@ afterEach(() => {
 });
 
 /** 用一个假的 fetch 顶掉真的，返回它收到的请求供断言。 */
+type FetchInput = Parameters<typeof fetch>[0];
+
 function stubFetch(handler: (url: string, init?: RequestInit) => Response | Promise<Response>) {
   const seen: { url: string; init?: RequestInit }[] = [];
-  globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+  globalThis.fetch = (async (input: FetchInput, init?: RequestInit) => {
     const url = String(input);
     seen.push(init === undefined ? { url } : { url, init });
     return handler(url, init);
@@ -110,14 +112,20 @@ describe("错误分类：部署问题 vs 业务失败", () => {
 describe("token 不泄露", () => {
   it("token 走请求头，且不出现在任何错误消息里", async () => {
     const seen = stubFetch(() => json({ detail: "nope" }, 401));
-    const err = await new SidecarClient(CFG).exec("x").catch((e: unknown) => e as Error);
+    let err: Error | undefined;
+    try {
+      await new SidecarClient(CFG).exec("x");
+    } catch (e) {
+      err = e as Error;
+    }
+    expect(err).toBeInstanceOf(SidecarUnavailable); // 没抛的话下面全是空断言
 
     // 确实发出去了
     const headers = seen[0]!.init!.headers as Record<string, string>;
     expect(headers["x-sidecar-token"]).toBe(CFG.token);
     // 但不出现在错误里 —— 错误消息会进日志、进 journal、可能进用户界面
-    expect(err.message).not.toContain(CFG.token);
-    expect(String(err.stack ?? "")).not.toContain(CFG.token);
+    expect(err!.message).not.toContain(CFG.token);
+    expect(String(err!.stack ?? "")).not.toContain(CFG.token);
   });
 });
 
