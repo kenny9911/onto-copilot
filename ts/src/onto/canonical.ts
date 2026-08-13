@@ -112,15 +112,10 @@ export const ONTOLOGY_PACKAGE_JSON_SCHEMA: Dict = {
 //  Python 异常的对等物
 // ══════════════════════════════════════════════════════════════════
 
-/** Python 的 `ValueError`。JS 没有对等类型，而上层（server 层）是拿 message
- * 做子串匹配来分辨"输入非法"与"内部炸了"的，所以 message 必须逐字节对齐。 */
-export class ValueError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "ValueError";
-    Object.setPrototypeOf(this, ValueError.prototype); // 保住 instanceof
-  }
-}
+// ValueError 收在 kernel/errors.ts —— 两份同名类就是两个类身份，
+// `instanceof` 会漏掉其中一份且不报错。这里只 re-export，保住本模块的公开 API。
+import { ValueError } from "../kernel/errors.js";
+export { ValueError };
 
 /** Python 的 `KeyError`。`str(KeyError("x"))` 是 `"'x'"`（带引号的 repr），
  * 不是裸 key —— 消息进日志，形态不能漂。 */

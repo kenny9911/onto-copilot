@@ -255,3 +255,29 @@ describe("pyRepr == Python repr(str)", () => {
     expect(pyRepr("a\nb")).toBe("'a\\nb'");
   });
 });
+
+describe("ValueError 只有一份类身份", () => {
+  // onto/canonical.ts 与 onto/questions.ts 一度各定义了一份同名类。两份同名类
+  // 就是两个类身份：`instanceof ValueError` 会漏掉其中一份，而且**不报错** ——
+  // 上层按类型分派「输入非法」与「内部炸了」，漏判的后果是把用户的输入错误
+  // 当成系统故障报出去。
+  it("三个模块导出的是同一个类（不是三个长得一样的类）", async () => {
+    const [k, c, q] = await Promise.all([
+      import("../src/kernel/errors.js"),
+      import("../src/onto/canonical.js"),
+      import("../src/onto/questions.js"),
+    ]);
+    expect(c.ValueError).toBe(k.ValueError);
+    expect(q.ValueError).toBe(k.ValueError);
+  });
+
+  it("validateUsageRow 抛的是 ValueError —— Python 的 UsageRow.validate 就抛这个", async () => {
+    const { validateUsageRow, makeUsageRow } = await import("../src/store/types.js");
+    const { ValueError } = await import("../src/kernel/errors.js");
+    // kind 不在 {build, chat, aux} 里
+    const bad = makeUsageRow({ id: "u1", model: "opus", kind: "nope" });
+    expect(() => validateUsageRow(bad)).toThrow(ValueError);
+    // 消息与 Python 逐字节一致（server 层拿 message 做子串匹配）
+    expect(() => validateUsageRow(bad)).toThrow("usage kind 不支持: nope");
+  });
+});

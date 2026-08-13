@@ -241,20 +241,10 @@ export type RevisionStatus = (typeof RevisionStatus)[keyof typeof RevisionStatus
 //  异常
 // ══════════════════════════════════════════════════════════════════
 
-/**
- * Python `ValueError` 的替身。
- *
- * 四个领域异常在 Python 侧都继承 ValueError，而 `_as_status` 里的
- * `except ValueError` 靠的正是这层祖先 —— 没有它，枚举解析抛出来的错误
- * 会漏出去，而调用方一个 `catch (e) {}` 就能把两类完全不同的失败混为一谈。
- */
-export class ValueError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "ValueError";
-    Object.setPrototypeOf(this, ValueError.prototype);
-  }
-}
+// ValueError 收在 kernel/errors.ts —— 两份同名类就是两个类身份，
+// `instanceof` 会漏掉其中一份且不报错。这里只 re-export，保住本模块的公开 API。
+import { ValueError } from "../kernel/errors.js";
+export { ValueError };
 
 /**
  * Python `KeyError` 的替身。

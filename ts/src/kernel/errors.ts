@@ -106,6 +106,24 @@ export function pyRepr(s: string): string {
 }
 
 // ── 异常类 ─────────────────────────────────────────────────────────
+/**
+ * Python 的 `ValueError`。
+ *
+ * 收在这里而不是各模块自己定义：**两份同名类就是两个类身份**，
+ * `instanceof ValueError` 会漏掉其中一份，而且不报错 —— onto/canonical.ts 与
+ * onto/questions.ts 一度各有一份，正是这个形状。
+ *
+ * message 必须与 Python 逐字节对齐：server 层是拿 message 做子串匹配来分辨
+ * 「输入非法」与「内部炸了」的。
+ */
+export class ValueError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ValueError";
+    Object.setPrototypeOf(this, ValueError.prototype); // 保住 instanceof
+  }
+}
+
 
 /** 内核层错误基类。 */
 export class HarnessError extends Error {

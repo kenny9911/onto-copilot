@@ -19,6 +19,9 @@
  */
 
 import { TABLE_SPECS } from "./schema.js";
+// Python 的 UsageRow.validate() 抛 ValueError，不是裸 Error。上层按类型分派，
+// 抛错类不对会让「输入非法」被当成「内部炸了」。
+import { ValueError } from "../kernel/errors.js";
 
 // ══════════════════════════════════════════════════════════════════
 //  JSON 值
@@ -537,17 +540,17 @@ export function usageTotal(r: UsageRow): number {
 /** 两个仓储实现落库**之前**都要过这一关 —— 库里的 CHECK 只在 Postgres 上兜底，
  * MemoryRepo 那条路没有任何 CHECK，靠这个函数把契约拉平。 */
 export function validateUsageRow(r: UsageRow): void {
-  if (!r.id || !r.model) throw new Error("usage id/model 不能为空");
-  if (!["build", "chat", "aux"].includes(r.kind)) throw new Error(`usage kind 不支持: ${r.kind}`);
+  if (!r.id || !r.model) throw new ValueError("usage id/model 不能为空");
+  if (!["build", "chat", "aux"].includes(r.kind)) throw new ValueError(`usage kind 不支持: ${r.kind}`);
   if (Math.min(r.tok_in, r.tok_out, r.cache_read, r.cache_write) < 0) {
-    throw new Error("usage token 不能为负数");
+    throw new ValueError("usage token 不能为负数");
   }
-  if (r.usd < 0) throw new Error("usage usd 不能为负数");
+  if (r.usd < 0) throw new ValueError("usage usd 不能为负数");
   if (!["gateway", "estimated"].includes(r.usd_source)) {
-    throw new Error(`usage usd_source 不支持: ${r.usd_source}`);
+    throw new ValueError(`usage usd_source 不支持: ${r.usd_source}`);
   }
-  if (r.attempts < 1) throw new Error("usage attempts 必须至少为 1");
-  if (!["ok", "failed"].includes(r.status)) throw new Error(`usage status 不支持: ${r.status}`);
+  if (r.attempts < 1) throw new ValueError("usage attempts 必须至少为 1");
+  if (!["ok", "failed"].includes(r.status)) throw new ValueError(`usage status 不支持: ${r.status}`);
 }
 
 // ══════════════════════════════════════════════════════════════════
