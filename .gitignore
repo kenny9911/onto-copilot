@@ -19,6 +19,8 @@ artifacts/
 # OS cruft
 .DS_Store
 
-# TS 迁移：依赖与构建产物不进版本库
-ts/node_modules/
-ts/dist/
+# TS 迁移：依赖与构建产物不进版本库。
+# 不写死 ts/ 前缀 —— 在仓库根误跑一次 npx 就会在根上刨出一个 node_modules，
+# 而它一旦被 add 进来就是十万个文件的提交（这事已经发生过一次）。
+node_modules/
+dist/
