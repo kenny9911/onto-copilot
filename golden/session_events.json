@@ -1,0 +1,1513 @@
+{
+ "backoff": [
+  {
+   "attempt": 0,
+   "delay": 0.05
+  },
+  {
+   "attempt": 1,
+   "delay": 0.1
+  },
+  {
+   "attempt": 2,
+   "delay": 0.2
+  },
+  {
+   "attempt": 3,
+   "delay": 0.4
+  },
+  {
+   "attempt": 4,
+   "delay": 0.5
+  },
+  {
+   "attempt": 5,
+   "delay": 0.5
+  },
+  {
+   "attempt": 6,
+   "delay": 0.5
+  },
+  {
+   "attempt": 7,
+   "delay": 0.5
+  }
+ ],
+ "commit_flow": {
+  "delivered": [
+   {
+    "event": {
+     "eventId": "00000000000000000000000000000001",
+     "kind": "step.0",
+     "n": 0,
+     "seq": 0,
+     "ts": 1700000005.0
+    },
+    "keys": [
+     "seq",
+     "ts",
+     "n",
+     "kind",
+     "eventId"
+    ]
+   },
+   {
+    "event": {
+     "eventId": "00000000000000000000000000000002",
+     "kind": "step.1",
+     "n": 1,
+     "seq": 1,
+     "ts": 1700000006.0
+    },
+    "keys": [
+     "seq",
+     "ts",
+     "n",
+     "kind",
+     "eventId"
+    ]
+   },
+   {
+    "event": {
+     "eventId": "00000000000000000000000000000003",
+     "kind": "step.2",
+     "n": 2,
+     "seq": 2,
+     "ts": 1700000007.0
+    },
+    "keys": [
+     "seq",
+     "ts",
+     "n",
+     "kind",
+     "eventId"
+    ]
+   },
+   {
+    "event": {
+     "eventId": "00000000000000000000000000000004",
+     "kind": "step.3",
+     "n": 3,
+     "seq": 3,
+     "ts": 1700000008.0
+    },
+    "keys": [
+     "seq",
+     "ts",
+     "n",
+     "kind",
+     "eventId"
+    ]
+   }
+  ],
+  "pending": [
+   {
+    "event": {
+     "eventId": "00000000000000000000000000000001",
+     "kind": "step.0",
+     "n": 0,
+     "seq": -1,
+     "ts": 1700000001.0
+    },
+    "keys": [
+     "seq",
+     "ts",
+     "n",
+     "kind",
+     "eventId"
+    ]
+   },
+   {
+    "event": {
+     "eventId": "00000000000000000000000000000002",
+     "kind": "step.1",
+     "n": 1,
+     "seq": -2,
+     "ts": 1700000002.0
+    },
+    "keys": [
+     "seq",
+     "ts",
+     "n",
+     "kind",
+     "eventId"
+    ]
+   },
+   {
+    "event": {
+     "eventId": "00000000000000000000000000000003",
+     "kind": "step.2",
+     "n": 2,
+     "seq": -3,
+     "ts": 1700000003.0
+    },
+    "keys": [
+     "seq",
+     "ts",
+     "n",
+     "kind",
+     "eventId"
+    ]
+   },
+   {
+    "event": {
+     "eventId": "00000000000000000000000000000004",
+     "kind": "step.3",
+     "n": 3,
+     "seq": -4,
+     "ts": 1700000004.0
+    },
+    "keys": [
+     "seq",
+     "ts",
+     "n",
+     "kind",
+     "eventId"
+    ]
+   }
+  ],
+  "projections": [
+   {
+    "event": {
+     "eventId": "00000000000000000000000000000001",
+     "kind": "step.0",
+     "n": 0,
+     "seq": 0,
+     "ts": 1700000005.0
+    },
+    "keys": [
+     "seq",
+     "ts",
+     "n",
+     "kind",
+     "eventId"
+    ]
+   },
+   {
+    "event": {
+     "eventId": "00000000000000000000000000000002",
+     "kind": "step.1",
+     "n": 1,
+     "seq": 1,
+     "ts": 1700000006.0
+    },
+    "keys": [
+     "seq",
+     "ts",
+     "n",
+     "kind",
+     "eventId"
+    ]
+   },
+   {
+    "event": {
+     "eventId": "00000000000000000000000000000003",
+     "kind": "step.2",
+     "n": 2,
+     "seq": 2,
+     "ts": 1700000007.0
+    },
+    "keys": [
+     "seq",
+     "ts",
+     "n",
+     "kind",
+     "eventId"
+    ]
+   },
+   {
+    "event": {
+     "eventId": "00000000000000000000000000000004",
+     "kind": "step.3",
+     "n": 3,
+     "seq": 3,
+     "ts": 1700000008.0
+    },
+    "keys": [
+     "seq",
+     "ts",
+     "n",
+     "kind",
+     "eventId"
+    ]
+   }
+  ],
+  "receipt_after_commit_is_none": true,
+  "rows": [
+   {
+    "event_id": "00000000000000000000000000000001",
+    "kind": "step.0",
+    "payload": {
+     "n": 0
+    },
+    "seq": 0
+   },
+   {
+    "event_id": "00000000000000000000000000000002",
+    "kind": "step.1",
+    "payload": {
+     "n": 1
+    },
+    "seq": 1
+   },
+   {
+    "event_id": "00000000000000000000000000000003",
+    "kind": "step.2",
+    "payload": {
+     "n": 2
+    },
+    "seq": 2
+   },
+   {
+    "event_id": "00000000000000000000000000000004",
+    "kind": "step.3",
+    "payload": {
+     "n": 3
+    },
+    "seq": 3
+   }
+  ],
+  "session_events": [
+   {
+    "event": {
+     "eventId": "00000000000000000000000000000001",
+     "kind": "step.0",
+     "n": 0,
+     "seq": 0,
+     "ts": 1700000005.0
+    },
+    "keys": [
+     "seq",
+     "ts",
+     "n",
+     "kind",
+     "eventId"
+    ]
+   },
+   {
+    "event": {
+     "eventId": "00000000000000000000000000000002",
+     "kind": "step.1",
+     "n": 1,
+     "seq": 1,
+     "ts": 1700000006.0
+    },
+    "keys": [
+     "seq",
+     "ts",
+     "n",
+     "kind",
+     "eventId"
+    ]
+   },
+   {
+    "event": {
+     "eventId": "00000000000000000000000000000003",
+     "kind": "step.2",
+     "n": 2,
+     "seq": 2,
+     "ts": 1700000007.0
+    },
+    "keys": [
+     "seq",
+     "ts",
+     "n",
+     "kind",
+     "eventId"
+    ]
+   },
+   {
+    "event": {
+     "eventId": "00000000000000000000000000000004",
+     "kind": "step.3",
+     "n": 3,
+     "seq": 3,
+     "ts": 1700000008.0
+    },
+    "keys": [
+     "seq",
+     "ts",
+     "n",
+     "kind",
+     "eventId"
+    ]
+   }
+  ],
+  "wait_seq_after_commit": [
+   0,
+   1,
+   2,
+   3
+  ]
+ },
+ "detached_session": {
+  "after_commit": {
+   "event": {
+    "kind": "step.0",
+    "n": 0,
+    "seq": 8,
+    "ts": 1700000002.0
+   },
+   "keys": [
+    "seq",
+    "ts",
+    "n",
+    "kind"
+   ]
+  },
+  "before_commit": {
+   "event": {
+    "eventId": "00000000000000000000000000000001",
+    "kind": "step.0",
+    "n": 0,
+    "seq": -1,
+    "ts": 1700000001.0
+   },
+   "keys": [
+    "seq",
+    "ts",
+    "n",
+    "kind",
+    "eventId"
+   ]
+  },
+  "delivered": [
+   {
+    "event": {
+     "kind": "step.0",
+     "n": 0,
+     "seq": 8,
+     "ts": 1700000002.0
+    },
+    "keys": [
+     "seq",
+     "ts",
+     "n",
+     "kind"
+    ]
+   }
+  ],
+  "session_events": [
+   {
+    "event": {
+     "kind": "旧事件",
+     "seq": 7
+    },
+    "keys": [
+     "seq",
+     "kind"
+    ]
+   },
+   {
+    "event": {
+     "kind": "step.0",
+     "n": 0,
+     "seq": 8,
+     "ts": 1700000002.0
+    },
+    "keys": [
+     "seq",
+     "ts",
+     "n",
+     "kind"
+    ]
+   }
+  ],
+  "wait_seq": 8
+ },
+ "ephemeral": [
+  {
+   "delivered": [
+    {
+     "kind": "ui.note",
+     "seq": 0,
+     "text": "本地",
+     "ts": 1700000001.0
+    }
+   ],
+   "event": {
+    "kind": "ui.note",
+    "seq": 0,
+    "text": "本地",
+    "ts": 1700000001.0
+   },
+   "keys": [
+    "seq",
+    "ts",
+    "text",
+    "kind"
+   ],
+   "seed": [],
+   "session_events_len": 1
+  },
+  {
+   "delivered": [
+    {
+     "kind": "ui.note",
+     "seq": 2,
+     "text": "本地",
+     "ts": 1700000001.0
+    }
+   ],
+   "event": {
+    "kind": "ui.note",
+    "seq": 2,
+    "text": "本地",
+    "ts": 1700000001.0
+   },
+   "keys": [
+    "seq",
+    "ts",
+    "text",
+    "kind"
+   ],
+   "seed": [
+    {
+     "kind": "a",
+     "seq": 0
+    },
+    {
+     "kind": "b",
+     "seq": 1
+    }
+   ],
+   "session_events_len": 3
+  },
+  {
+   "delivered": [
+    {
+     "kind": "ui.note",
+     "seq": 0,
+     "text": "本地",
+     "ts": 1700000001.0
+    }
+   ],
+   "event": {
+    "kind": "ui.note",
+    "seq": 0,
+    "text": "本地",
+    "ts": 1700000001.0
+   },
+   "keys": [
+    "seq",
+    "ts",
+    "text",
+    "kind"
+   ],
+   "seed": [
+    {
+     "kind": "a",
+     "seq": -1
+    },
+    {
+     "kind": "b",
+     "seq": -2
+    }
+   ],
+   "session_events_len": 3
+  },
+  {
+   "delivered": [
+    {
+     "kind": "ui.note",
+     "seq": 6,
+     "text": "本地",
+     "ts": 1700000001.0
+    }
+   ],
+   "event": {
+    "kind": "ui.note",
+    "seq": 6,
+    "text": "本地",
+    "ts": 1700000001.0
+   },
+   "keys": [
+    "seq",
+    "ts",
+    "text",
+    "kind"
+   ],
+   "seed": [
+    {
+     "kind": "a",
+     "seq": 5
+    },
+    {
+     "kind": "b",
+     "seq": 2
+    }
+   ],
+   "session_events_len": 3
+  },
+  {
+   "delivered": [
+    {
+     "kind": "ui.note",
+     "seq": 0,
+     "text": "本地",
+     "ts": 1700000001.0
+    }
+   ],
+   "event": {
+    "kind": "ui.note",
+    "seq": 0,
+    "text": "本地",
+    "ts": 1700000001.0
+   },
+   "keys": [
+    "seq",
+    "ts",
+    "text",
+    "kind"
+   ],
+   "seed": [
+    {
+     "kind": "无 seq 字段"
+    }
+   ],
+   "session_events_len": 2
+  },
+  {
+   "delivered": [
+    {
+     "kind": "ui.note",
+     "seq": 4,
+     "text": "本地",
+     "ts": 1700000001.0
+    }
+   ],
+   "event": {
+    "kind": "ui.note",
+    "seq": 4,
+    "text": "本地",
+    "ts": 1700000001.0
+   },
+   "keys": [
+    "seq",
+    "ts",
+    "text",
+    "kind"
+   ],
+   "seed": [
+    {
+     "kind": "字符串 seq",
+     "seq": "3"
+    }
+   ],
+   "session_events_len": 2
+  },
+  {
+   "delivered": [
+    {
+     "kind": "ui.note",
+     "seq": 3,
+     "text": "本地",
+     "ts": 1700000001.0
+    }
+   ],
+   "event": {
+    "kind": "ui.note",
+    "seq": 3,
+    "text": "本地",
+    "ts": 1700000001.0
+   },
+   "keys": [
+    "seq",
+    "ts",
+    "text",
+    "kind"
+   ],
+   "seed": [
+    {
+     "kind": "浮点 seq",
+     "seq": 2.9
+    }
+   ],
+   "session_events_len": 2
+  },
+  {
+   "delivered": [
+    {
+     "kind": "ui.note",
+     "seq": 2,
+     "text": "本地",
+     "ts": 1700000001.0
+    }
+   ],
+   "event": {
+    "kind": "ui.note",
+    "seq": 2,
+    "text": "本地",
+    "ts": 1700000001.0
+   },
+   "keys": [
+    "seq",
+    "ts",
+    "text",
+    "kind"
+   ],
+   "seed": [
+    {
+     "kind": "bool seq",
+     "seq": true
+    }
+   ],
+   "session_events_len": 2
+  }
+ ],
+ "no_event_id_echo": {
+  "event": {
+   "kind": "step.0",
+   "n": 0,
+   "seq": 0,
+   "ts": 1700000002.0
+  },
+  "had_event_id_before_commit": true,
+  "keys": [
+   "seq",
+   "ts",
+   "n",
+   "kind"
+  ]
+ },
+ "payload_frozen": {
+  "caller_rows": [
+   [
+    "after"
+   ]
+  ],
+  "projection": {
+   "eventId": "00000000000000000000000000000001",
+   "kind": "ui.table",
+   "rows": [
+    [
+     "before"
+    ]
+   ],
+   "seq": 0,
+   "ts": 1700000002.0
+  },
+  "row_payload": {
+   "rows": [
+    [
+     "before"
+    ]
+   ]
+  }
+ },
+ "pending_seq_counter": {
+  "fresh_hub_first": -1,
+  "seqs": [
+   -1,
+   -2,
+   -3
+  ]
+ },
+ "persist_failed": [
+  {
+   "delivered": [
+    {
+     "event": {
+      "error": "RuntimeError: 库炸了",
+      "eventKind": "chat.turn",
+      "kind": "event.persist_failed",
+      "seq": 5,
+      "ts": 1700000002.0
+     },
+     "keys": [
+      "seq",
+      "ts",
+      "kind",
+      "eventKind",
+      "error"
+     ]
+    }
+   ],
+   "exc": "RuntimeError: 库炸了",
+   "log_messages": [
+    "session-event 落库失败，已丢弃：session=s1 kind=chat.turn error=库炸了"
+   ],
+   "max_attempts": 1,
+   "projection": {
+    "event": {
+     "eventId": "00000000000000000000000000000001",
+     "kind": "chat.turn",
+     "seq": -1,
+     "ts": 1700000001.0,
+     "turn": {
+      "text": "hi"
+     }
+    },
+    "keys": [
+     "seq",
+     "ts",
+     "turn",
+     "kind",
+     "eventId"
+    ]
+   },
+   "session_events": [
+    {
+     "event": {
+      "kind": "旧事件",
+      "seq": 4
+     },
+     "keys": [
+      "seq",
+      "kind"
+     ]
+    },
+    {
+     "event": {
+      "eventId": "00000000000000000000000000000001",
+      "kind": "chat.turn",
+      "seq": -1,
+      "ts": 1700000001.0,
+      "turn": {
+       "text": "hi"
+      }
+     },
+     "keys": [
+      "seq",
+      "ts",
+      "turn",
+      "kind",
+      "eventId"
+     ]
+    },
+    {
+     "event": {
+      "error": "RuntimeError: 库炸了",
+      "eventKind": "chat.turn",
+      "kind": "event.persist_failed",
+      "seq": 5,
+      "ts": 1700000002.0
+     },
+     "keys": [
+      "seq",
+      "ts",
+      "kind",
+      "eventKind",
+      "error"
+     ]
+    }
+   ],
+   "sleeps": [],
+   "wait_seq_early": {
+    "error": null,
+    "result": -1
+   },
+   "wait_seq_late": {
+    "error": null,
+    "result": -1
+   }
+  },
+  {
+   "delivered": [
+    {
+     "event": {
+      "error": "OSError: temporary",
+      "eventKind": "chat.turn",
+      "kind": "event.persist_failed",
+      "seq": 5,
+      "ts": 1700000002.0
+     },
+     "keys": [
+      "seq",
+      "ts",
+      "kind",
+      "eventKind",
+      "error"
+     ]
+    }
+   ],
+   "exc": "OSError: temporary",
+   "log_messages": [
+    "session-event 落库失败，已丢弃：session=s1 kind=chat.turn error=temporary"
+   ],
+   "max_attempts": 3,
+   "projection": {
+    "event": {
+     "eventId": "00000000000000000000000000000001",
+     "kind": "chat.turn",
+     "seq": -1,
+     "ts": 1700000001.0,
+     "turn": {
+      "text": "hi"
+     }
+    },
+    "keys": [
+     "seq",
+     "ts",
+     "turn",
+     "kind",
+     "eventId"
+    ]
+   },
+   "session_events": [
+    {
+     "event": {
+      "kind": "旧事件",
+      "seq": 4
+     },
+     "keys": [
+      "seq",
+      "kind"
+     ]
+    },
+    {
+     "event": {
+      "eventId": "00000000000000000000000000000001",
+      "kind": "chat.turn",
+      "seq": -1,
+      "ts": 1700000001.0,
+      "turn": {
+       "text": "hi"
+      }
+     },
+     "keys": [
+      "seq",
+      "ts",
+      "turn",
+      "kind",
+      "eventId"
+     ]
+    },
+    {
+     "event": {
+      "error": "OSError: temporary",
+      "eventKind": "chat.turn",
+      "kind": "event.persist_failed",
+      "seq": 5,
+      "ts": 1700000002.0
+     },
+     "keys": [
+      "seq",
+      "ts",
+      "kind",
+      "eventKind",
+      "error"
+     ]
+    }
+   ],
+   "sleeps": [
+    0.05,
+    0.1
+   ],
+   "wait_seq_early": {
+    "error": "OSError: temporary",
+    "result": null
+   },
+   "wait_seq_late": {
+    "error": null,
+    "result": -1
+   }
+  },
+  {
+   "delivered": [
+    {
+     "event": {
+      "error": "ValueError: payload 太大",
+      "eventKind": "chat.turn",
+      "kind": "event.persist_failed",
+      "seq": 5,
+      "ts": 1700000002.0
+     },
+     "keys": [
+      "seq",
+      "ts",
+      "kind",
+      "eventKind",
+      "error"
+     ]
+    }
+   ],
+   "exc": "ValueError: payload 太大",
+   "log_messages": [
+    "session-event 落库失败，已丢弃：session=s1 kind=chat.turn error=payload 太大"
+   ],
+   "max_attempts": 2,
+   "projection": {
+    "event": {
+     "eventId": "00000000000000000000000000000001",
+     "kind": "chat.turn",
+     "seq": -1,
+     "ts": 1700000001.0,
+     "turn": {
+      "text": "hi"
+     }
+    },
+    "keys": [
+     "seq",
+     "ts",
+     "turn",
+     "kind",
+     "eventId"
+    ]
+   },
+   "session_events": [
+    {
+     "event": {
+      "kind": "旧事件",
+      "seq": 4
+     },
+     "keys": [
+      "seq",
+      "kind"
+     ]
+    },
+    {
+     "event": {
+      "eventId": "00000000000000000000000000000001",
+      "kind": "chat.turn",
+      "seq": -1,
+      "ts": 1700000001.0,
+      "turn": {
+       "text": "hi"
+      }
+     },
+     "keys": [
+      "seq",
+      "ts",
+      "turn",
+      "kind",
+      "eventId"
+     ]
+    },
+    {
+     "event": {
+      "error": "ValueError: payload 太大",
+      "eventKind": "chat.turn",
+      "kind": "event.persist_failed",
+      "seq": 5,
+      "ts": 1700000002.0
+     },
+     "keys": [
+      "seq",
+      "ts",
+      "kind",
+      "eventKind",
+      "error"
+     ]
+    }
+   ],
+   "sleeps": [
+    0.05
+   ],
+   "wait_seq_early": {
+    "error": "ValueError: payload 太大",
+    "result": null
+   },
+   "wait_seq_late": {
+    "error": null,
+    "result": -1
+   }
+  }
+ ],
+ "projection_shapes": [
+  {
+   "delivered_before_commit": [],
+   "event": {
+    "eventId": "00000000000000000000000000000001",
+    "kind": "step.0",
+    "seq": -1,
+    "ts": 1700000001.0
+   },
+   "keys": [
+    "seq",
+    "ts",
+    "kind",
+    "eventId"
+   ],
+   "kind": "step.0",
+   "payload": {},
+   "session_events_is_projection": true
+  },
+  {
+   "delivered_before_commit": [],
+   "event": {
+    "eventId": "00000000000000000000000000000001",
+    "kind": "chat.turn",
+    "seq": -1,
+    "ts": 1700000001.0,
+    "turn": {
+     "text": "已确认"
+    }
+   },
+   "keys": [
+    "seq",
+    "ts",
+    "turn",
+    "kind",
+    "eventId"
+   ],
+   "kind": "chat.turn",
+   "payload": {
+    "turn": {
+     "text": "已确认"
+    }
+   },
+   "session_events_is_projection": true
+  },
+  {
+   "delivered_before_commit": [],
+   "event": {
+    "detail": "两处口径不一致",
+    "eventId": "00000000000000000000000000000001",
+    "kind": "ui.conflict",
+    "seq": -1,
+    "ts": 1700000001.0
+   },
+   "keys": [
+    "seq",
+    "ts",
+    "kind",
+    "detail",
+    "eventId"
+   ],
+   "kind": "ui.conflict",
+   "payload": {
+    "detail": "两处口径不一致",
+    "kind": "命名冲突"
+   },
+   "session_events_is_projection": true
+  },
+  {
+   "delivered_before_commit": [],
+   "event": {
+    "eventId": "00000000000000000000000000000001",
+    "kind": "ui.table",
+    "seq": 99,
+    "title": "缺口",
+    "ts": 5.0
+   },
+   "keys": [
+    "seq",
+    "ts",
+    "title",
+    "kind",
+    "eventId"
+   ],
+   "kind": "ui.table",
+   "payload": {
+    "seq": 99,
+    "title": "缺口",
+    "ts": 5.0
+   },
+   "session_events_is_projection": true
+  },
+  {
+   "delivered_before_commit": [],
+   "event": {
+    "eventId": "00000000000000000000000000000001",
+    "kind": "legacy.echo",
+    "n": 1,
+    "seq": -1,
+    "ts": 1700000001.0
+   },
+   "keys": [
+    "seq",
+    "ts",
+    "eventId",
+    "n",
+    "kind"
+   ],
+   "kind": "legacy.echo",
+   "payload": {
+    "eventId": "caller-supplied",
+    "n": 1
+   },
+   "session_events_is_projection": true
+  },
+  {
+   "delivered_before_commit": [],
+   "event": {
+    "0": "第一行",
+    "eventId": "00000000000000000000000000000001",
+    "kind": "legacy.indexed",
+    "n": 1,
+    "seq": -1,
+    "ts": 1700000001.0
+   },
+   "keys": [
+    "seq",
+    "ts",
+    "0",
+    "n",
+    "kind",
+    "eventId"
+   ],
+   "kind": "legacy.indexed",
+   "payload": {
+    "0": "第一行",
+    "n": 1
+   },
+   "session_events_is_projection": true
+  },
+  {
+   "delivered_before_commit": [],
+   "event": {
+    "columns": [
+     "问题",
+     "业务回答"
+    ],
+    "eventId": "00000000000000000000000000000001",
+    "kind": "ui.table",
+    "rows": [
+     [
+      "金额阈值",
+      "审批口径"
+     ]
+    ],
+    "seq": -1,
+    "title": "缺口",
+    "ts": 1700000001.0
+   },
+   "keys": [
+    "seq",
+    "ts",
+    "title",
+    "columns",
+    "rows",
+    "kind",
+    "eventId"
+   ],
+   "kind": "ui.table",
+   "payload": {
+    "columns": [
+     "问题",
+     "业务回答"
+    ],
+    "rows": [
+     [
+      "金额阈值",
+      "审批口径"
+     ]
+    ],
+    "title": "缺口"
+   },
+   "session_events_is_projection": true
+  }
+ ],
+ "receipt_and_wait_seq": {
+  "receipt_pending_is_none": false,
+  "receipt_unknown_is_none": true,
+  "wait_seq_already_committed": 12,
+  "wait_seq_no_seq_key": -1,
+  "wait_seq_pending": 0,
+  "wait_seq_unknown_negative": -7
+ },
+ "retry_transient": {
+  "calls": 2,
+  "event": {
+   "eventId": "00000000000000000000000000000001",
+   "kind": "once",
+   "n": 1,
+   "seq": 0,
+   "ts": 1700000002.0
+  },
+  "keys": [
+   "seq",
+   "ts",
+   "n",
+   "kind",
+   "eventId"
+  ],
+  "rows": 1,
+  "sleeps": [
+   0.05
+  ]
+ },
+ "seq_coercion": [
+  {
+   "in": 0,
+   "out": 0
+  },
+  {
+   "in": 5,
+   "out": 5
+  },
+  {
+   "in": -1,
+   "out": -1
+  },
+  {
+   "in": -3,
+   "out": -3
+  },
+  {
+   "in": 2.9,
+   "out": 2
+  },
+  {
+   "in": -2.9,
+   "out": -2
+  },
+  {
+   "in": "3",
+   "out": 3
+  },
+  {
+   "in": "-4",
+   "out": -4
+  },
+  {
+   "in": true,
+   "out": 1
+  },
+  {
+   "in": false,
+   "out": 0
+  },
+  {
+   "error": "ValueError",
+   "in": "3.5"
+  },
+  {
+   "error": "ValueError",
+   "in": ""
+  },
+  {
+   "error": "ValueError",
+   "in": "abc"
+  }
+ ],
+ "shutdown_drains": {
+  "after_shutdown_seq": 8,
+  "rows": [
+   0,
+   1,
+   2,
+   3,
+   4,
+   5,
+   6,
+   7
+  ],
+  "seqs": [
+   0,
+   1,
+   2,
+   3,
+   4,
+   5,
+   6,
+   7
+  ]
+ },
+ "sort_and_dedupe": [
+  {
+   "label": "乱序的历史",
+   "projection_index": 3,
+   "row_seq": 4,
+   "seed": [
+    {
+     "kind": "c",
+     "seq": 3
+    },
+    {
+     "kind": "a",
+     "seq": 1
+    },
+    {
+     "kind": "b",
+     "seq": 2
+    }
+   ],
+   "session_events": [
+    {
+     "event": {
+      "kind": "a",
+      "seq": 1
+     },
+     "keys": [
+      "seq",
+      "kind"
+     ]
+    },
+    {
+     "event": {
+      "kind": "b",
+      "seq": 2
+     },
+     "keys": [
+      "seq",
+      "kind"
+     ]
+    },
+    {
+     "event": {
+      "kind": "c",
+      "seq": 3
+     },
+     "keys": [
+      "seq",
+      "kind"
+     ]
+    },
+    {
+     "event": {
+      "eventId": "00000000000000000000000000000001",
+      "kind": "committed",
+      "n": 0,
+      "seq": 4,
+      "ts": 1700000002.0
+     },
+     "keys": [
+      "seq",
+      "ts",
+      "n",
+      "kind",
+      "eventId"
+     ]
+    }
+   ]
+  },
+  {
+   "label": "混入未落库的负 seq",
+   "projection_index": 2,
+   "row_seq": 5,
+   "seed": [
+    {
+     "kind": "b",
+     "seq": 2
+    },
+    {
+     "kind": "p3",
+     "seq": -3
+    },
+    {
+     "kind": "p1",
+     "seq": -1
+    },
+    {
+     "kind": "a",
+     "seq": 0
+    }
+   ],
+   "session_events": [
+    {
+     "event": {
+      "kind": "a",
+      "seq": 0
+     },
+     "keys": [
+      "seq",
+      "kind"
+     ]
+    },
+    {
+     "event": {
+      "kind": "b",
+      "seq": 2
+     },
+     "keys": [
+      "seq",
+      "kind"
+     ]
+    },
+    {
+     "event": {
+      "eventId": "00000000000000000000000000000001",
+      "kind": "committed",
+      "n": 0,
+      "seq": 5,
+      "ts": 1700000002.0
+     },
+     "keys": [
+      "seq",
+      "ts",
+      "n",
+      "kind",
+      "eventId"
+     ]
+    },
+    {
+     "event": {
+      "kind": "p1",
+      "seq": -1
+     },
+     "keys": [
+      "seq",
+      "kind"
+     ]
+    },
+    {
+     "event": {
+      "kind": "p3",
+      "seq": -3
+     },
+     "keys": [
+      "seq",
+      "kind"
+     ]
+    }
+   ]
+  },
+  {
+   "label": "重复 seq（在前）",
+   "projection_index": 0,
+   "row_seq": 0,
+   "seed": [
+    {
+     "kind": "dup",
+     "n": 0,
+     "seq": 0
+    }
+   ],
+   "session_events": [
+    {
+     "event": {
+      "eventId": "00000000000000000000000000000001",
+      "kind": "committed",
+      "n": 0,
+      "seq": 0,
+      "ts": 1700000002.0
+     },
+     "keys": [
+      "seq",
+      "ts",
+      "n",
+      "kind",
+      "eventId"
+     ]
+    }
+   ]
+  },
+  {
+   "label": "重复 seq（两份）",
+   "projection_index": 0,
+   "row_seq": 0,
+   "seed": [
+    {
+     "kind": "dup",
+     "n": 0,
+     "seq": 0
+    },
+    {
+     "kind": "dup",
+     "n": 0,
+     "seq": 0
+    }
+   ],
+   "session_events": [
+    {
+     "event": {
+      "eventId": "00000000000000000000000000000001",
+      "kind": "committed",
+      "n": 0,
+      "seq": 0,
+      "ts": 1700000002.0
+     },
+     "keys": [
+      "seq",
+      "ts",
+      "n",
+      "kind",
+      "eventId"
+     ]
+    }
+   ]
+  }
+ ]
+}

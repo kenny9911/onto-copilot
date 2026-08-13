@@ -122,3 +122,49 @@ describe("Python 侧没覆盖到、但 TS 侧必须钉住的行为", () => {
     expect(() => canonicalJson({ f: () => 1 })).toThrow();
   });
 });
+
+// ══════════════════════════════════════════════════════════════════
+//  指数记号的浮点 —— 原来的 ids.json 一条都没覆盖到
+// ══════════════════════════════════════════════════════════════════
+//
+// `numToJson` 曾对非整数直接 `String(n)`，注释写着"与 Python repr(float) 字节
+// 一致"。有效数字确实同源，但**转指数记号的阈值**和**指数补零**两边规则不同。
+// golden 里没有带指数的向量，所以这个错误声明一直没被测到 —— 而 usd 成本
+// （一次调用 1.2e-5 美元）正好落在这个区间，会进 effect 指纹。
+
+interface GoldenExtra {
+  floats: { in: string; out: string; fp: string }[];
+  nested: { in: unknown; out: string; fp: string }[];
+}
+
+const GX: GoldenExtra = JSON.parse(
+  readFileSync(join(__dirname, "../../golden/ids.extra.json"), "utf8"),
+) as GoldenExtra;
+
+describe("指数记号的浮点与 Python 逐字节一致", () => {
+  for (const v of GX.floats) {
+    it(v.in, () => {
+      // `in` 是 Python 的 repr()，JS 的 Number() 认得（1e-05 / 1.5e-08 都合法）
+      const x = Number(v.in);
+      expect(canonicalJson(x)).toBe(v.out);
+      expect(fingerprint(x)).toBe(v.fp);
+    });
+  }
+
+  for (const [i, v] of GX.nested.entries()) {
+    it(`嵌套 ${i}：${JSON.stringify(v.in).slice(0, 40)}`, () => {
+      // 指纹是对整个请求对象算的，不是对裸浮点算的 —— 嵌套路径也得对
+      expect(canonicalJson(v.in)).toBe(v.out);
+      expect(fingerprint(v.in)).toBe(v.fp);
+    });
+  }
+
+  it("String(n) 在这些点上确实是错的（防止以后被『简化』回去）", () => {
+    // 反例测试：没有它，有人把 pyFloatRepr 换回 String() 时上面那些用例会红，
+    // 但红的原因看起来像"golden 过时了"。这条把原因钉死。
+    expect(String(1e-5)).toBe("0.00001");
+    expect(canonicalJson(1e-5)).toBe("1e-05");
+    expect(String(1e-7)).toBe("1e-7"); // 指数不补零
+    expect(canonicalJson(1e-7)).toBe("1e-07");
+  });
+});

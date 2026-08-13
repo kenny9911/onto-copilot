@@ -25,6 +25,9 @@
 
 import { createHash } from "node:crypto";
 
+// CPython 的浮点记号。与 journal.ts 共用同一份 —— 各写一份就是给分叉留门。
+import { pyFloatRepr } from "./pyfmt.js";
+
 export function sha256Hex(data: string | Uint8Array): string {
   const h = createHash("sha256");
   h.update(typeof data === "string" ? Buffer.from(data, "utf8") : data);
@@ -43,9 +46,12 @@ function numToJson(n: number): string {
     throw new Error(`canonical_json: 不接受非有限数 ${n}`);
   }
   if (Number.isInteger(n)) return Object.is(n, -0) ? "-0.0" : String(n);
-  // 非整数：JS 的 String(number) 与 Python repr(float) 同为 shortest
-  // round-trip，字节一致（golden 钉着 10.25 / 0.13 / 1.5 这些）。
-  return String(n);
+  // 非整数**不能**用 String(n)。这里原先写着「JS 的 String(number) 与 Python
+  // repr(float) 同为 shortest round-trip，字节一致」—— 前半句对，后半句错：
+  // 有效数字确实同源，但转指数记号的阈值和指数补零两边不同（1e-5 → Python
+  // "1e-05" / JS "0.00001"；1e-7 → "1e-07" / "1e-7"）。golden 里一条带指数的
+  // 向量都没有，所以这个错误声明一直没被测到 —— 而 usd 成本正好落在这个区间。
+  return pyFloatRepr(n);
 }
 
 function strToJson(s: string): string {

@@ -1,0 +1,464 @@
+{
+ "events": [
+  {
+   "dict": {
+    "run_id": "r1",
+    "seq": 0,
+    "kind": "run.started",
+    "ts_ms": 1723000000000
+   },
+   "line": "{\"run_id\": \"r1\", \"seq\": 0, \"kind\": \"run.started\", \"ts_ms\": 1723000000000}"
+  },
+  {
+   "dict": {
+    "run_id": "r1",
+    "seq": 1,
+    "kind": "node.entered",
+    "ts_ms": 1723000000012,
+    "node_id": "EXTRACT",
+    "payload": {
+     "mode": "plan_execute",
+     "attempt": 1
+    }
+   },
+   "line": "{\"run_id\": \"r1\", \"seq\": 1, \"kind\": \"node.entered\", \"ts_ms\": 1723000000012, \"node_id\": \"EXTRACT\", \"payload\": {\"mode\": \"plan_execute\", \"attempt\": 1}}"
+  },
+  {
+   "dict": {
+    "run_id": "r1",
+    "seq": 2,
+    "kind": "node.skipped",
+    "ts_ms": 1723000000020,
+    "node_id": "",
+    "ref": ""
+   },
+   "line": "{\"run_id\": \"r1\", \"seq\": 2, \"kind\": \"node.skipped\", \"ts_ms\": 1723000000020, \"node_id\": \"\", \"ref\": \"\"}"
+  },
+  {
+   "dict": {
+    "run_id": "r1",
+    "seq": 3,
+    "kind": "trace.thought",
+    "ts_ms": 1723000000031,
+    "node_id": "抽取#1",
+    "payload": {
+     "text": "他说\"好\"\n换行\t制表\\反斜杠",
+     "emoji": "🐍",
+     "nested": {
+      "z": [
+       1,
+       "二",
+       null,
+       true,
+       false
+      ],
+      "empty_d": {},
+      "empty_l": []
+     },
+     "cost_usd": 1.2e-05,
+     "ratio": 0.13,
+     "neg": -7
+    }
+   },
+   "line": "{\"run_id\": \"r1\", \"seq\": 3, \"kind\": \"trace.thought\", \"ts_ms\": 1723000000031, \"node_id\": \"抽取#1\", \"payload\": {\"text\": \"他说\\\"好\\\"\\n换行\\t制表\\\\反斜杠\", \"emoji\": \"🐍\", \"nested\": {\"z\": [1, \"二\", null, true, false], \"empty_d\": {}, \"empty_l\": []}, \"cost_usd\": 1.2e-05, \"ratio\": 0.13, \"neg\": -7}}"
+  },
+  {
+   "dict": {
+    "run_id": "r1",
+    "seq": 4,
+    "kind": "effect.completed",
+    "ts_ms": 1723000000044,
+    "node_id": "EXTRACT",
+    "payload": {
+     "key": "EXTRACT#0",
+     "kind": "llm.call",
+     "fp": "a1b2c3d4e5f60718"
+    },
+    "ref": "blob:3f2a1c0d5e6b7a8940123456789abcde"
+   },
+   "line": "{\"run_id\": \"r1\", \"seq\": 4, \"kind\": \"effect.completed\", \"ts_ms\": 1723000000044, \"node_id\": \"EXTRACT\", \"payload\": {\"key\": \"EXTRACT#0\", \"kind\": \"llm.call\", \"fp\": \"a1b2c3d4e5f60718\"}, \"ref\": \"blob:3f2a1c0d5e6b7a8940123456789abcde\"}"
+  },
+  {
+   "dict": {
+    "run_id": "r1",
+    "seq": 5,
+    "kind": "run.completed",
+    "ts_ms": 1723000000050
+   },
+   "line": "{\"run_id\": \"r1\", \"seq\": 5, \"kind\": \"run.completed\", \"ts_ms\": 1723000000050}"
+  }
+ ],
+ "jsonl": {
+  "run_id": "r1",
+  "file": "{\"run_id\": \"r1\", \"seq\": 0, \"kind\": \"run.started\", \"ts_ms\": 1723000000000}\n{\"run_id\": \"r1\", \"seq\": 1, \"kind\": \"node.entered\", \"ts_ms\": 1723000000012, \"node_id\": \"EXTRACT\", \"payload\": {\"mode\": \"plan_execute\", \"attempt\": 1}}\n{\"run_id\": \"r1\", \"seq\": 2, \"kind\": \"node.skipped\", \"ts_ms\": 1723000000020, \"node_id\": \"\", \"ref\": \"\"}\n{\"run_id\": \"r1\", \"seq\": 3, \"kind\": \"trace.thought\", \"ts_ms\": 1723000000031, \"node_id\": \"抽取#1\", \"payload\": {\"text\": \"他说\\\"好\\\"\\n换行\\t制表\\\\反斜杠\", \"emoji\": \"🐍\", \"nested\": {\"z\": [1, \"二\", null, true, false], \"empty_d\": {}, \"empty_l\": []}, \"cost_usd\": 1.2e-05, \"ratio\": 0.13, \"neg\": -7}}\n{\"run_id\": \"r1\", \"seq\": 4, \"kind\": \"effect.completed\", \"ts_ms\": 1723000000044, \"node_id\": \"EXTRACT\", \"payload\": {\"key\": \"EXTRACT#0\", \"kind\": \"llm.call\", \"fp\": \"a1b2c3d4e5f60718\"}, \"ref\": \"blob:3f2a1c0d5e6b7a8940123456789abcde\"}\n{\"run_id\": \"r1\", \"seq\": 5, \"kind\": \"run.completed\", \"ts_ms\": 1723000000050}\n",
+  "last_seq": 5,
+  "unordered": {
+   "file": "{\"run_id\": \"r2\", \"seq\": 5, \"kind\": \"run.started\", \"ts_ms\": 1723000000000}\n{\"run_id\": \"r2\", \"seq\": 2, \"kind\": \"run.failed\", \"ts_ms\": 1723000000001}\n",
+   "last_seq": 2,
+   "dicts": [
+    {
+     "run_id": "r2",
+     "seq": 5,
+     "kind": "run.started",
+     "ts_ms": 1723000000000
+    },
+    {
+     "run_id": "r2",
+     "seq": 2,
+     "kind": "run.failed",
+     "ts_ms": 1723000000001
+    }
+   ]
+  },
+  "missing_run_last_seq": -1,
+  "filename": "r1.jsonl"
+ },
+ "dumps": [
+  {
+   "value": {},
+   "out": "{}"
+  },
+  {
+   "value": [],
+   "out": "[]"
+  },
+  {
+   "value": {
+    "a": 1,
+    "b": [
+     1,
+     2,
+     3
+    ]
+   },
+   "out": "{\"a\": 1, \"b\": [1, 2, 3]}"
+  },
+  {
+   "value": {
+    "中": "值",
+    "列表": [
+     {
+      "x": null
+     },
+     true
+    ]
+   },
+   "out": "{\"中\": \"值\", \"列表\": [{\"x\": null}, true]}"
+  },
+  {
+   "value": {
+    "nested": {
+     "deep": {
+      "deeper": [
+       1,
+       {
+        "k": "v"
+       }
+      ]
+     }
+    }
+   },
+   "out": "{\"nested\": {\"deep\": {\"deeper\": [1, {\"k\": \"v\"}]}}}"
+  },
+  {
+   "value": "裸字符串",
+   "out": "\"裸字符串\""
+  },
+  {
+   "value": [
+    1,
+    "二",
+    null,
+    true
+   ],
+   "out": "[1, \"二\", null, true]"
+  },
+  {
+   "value": {
+    "cost": 1.2e-05,
+    "ratio": 0.13
+   },
+   "out": "{\"cost\": 1.2e-05, \"ratio\": 0.13}"
+  }
+ ],
+ "float_repr": [
+  {
+   "lit": "0.13",
+   "out": "0.13"
+  },
+  {
+   "lit": "1.5",
+   "out": "1.5"
+  },
+  {
+   "lit": "1234.5",
+   "out": "1234.5"
+  },
+  {
+   "lit": "0.1",
+   "out": "0.1"
+  },
+  {
+   "lit": "0.0001",
+   "out": "0.0001"
+  },
+  {
+   "lit": "1e-4",
+   "out": "0.0001"
+  },
+  {
+   "lit": "1e-5",
+   "out": "1e-05"
+  },
+  {
+   "lit": "1e-6",
+   "out": "1e-06"
+  },
+  {
+   "lit": "1e-7",
+   "out": "1e-07"
+  },
+  {
+   "lit": "1.5e-7",
+   "out": "1.5e-07"
+  },
+  {
+   "lit": "2.5e-10",
+   "out": "2.5e-10"
+  },
+  {
+   "lit": "5e-324",
+   "out": "5e-324"
+  },
+  {
+   "lit": "-0.5",
+   "out": "-0.5"
+  },
+  {
+   "lit": "3.141592653589793",
+   "out": "3.141592653589793"
+  },
+  {
+   "lit": "0.30000000000000004",
+   "out": "0.30000000000000004"
+  }
+ ],
+ "known_divergence": {
+  "int_valued_float": [
+   {
+    "lit": "1e15",
+    "python": "1000000000000000.0"
+   },
+   {
+    "lit": "9999999999999998.0",
+    "python": "9999999999999998.0"
+   },
+   {
+    "lit": "1e16",
+    "python": "1e+16"
+   },
+   {
+    "lit": "1e21",
+    "python": "1e+21"
+   },
+   {
+    "lit": "1e22",
+    "python": "1e+22"
+   },
+   {
+    "lit": "1.7976931348623157e308",
+    "python": "1.7976931348623157e+308"
+   },
+   {
+    "lit": "1.2345678901234568e20",
+    "python": "1.2345678901234568e+20"
+   },
+   {
+    "lit": "1.0",
+    "python": "1.0"
+   },
+   {
+    "lit": "0.0",
+    "python": "0.0"
+   },
+   {
+    "lit": "-0.0",
+    "python": "-0.0"
+   },
+   {
+    "lit": "100.0",
+    "python": "100.0"
+   }
+  ],
+  "big_int": [
+   {
+    "lit": "9007199254740993",
+    "python": "9007199254740993"
+   },
+   {
+    "lit": "9223372036854775807",
+    "python": "9223372036854775807"
+   },
+   {
+    "lit": "10000000000000000000000000000000",
+    "python": "10000000000000000000000000000000"
+   }
+  ],
+  "non_finite": {
+   "nan": "NaN",
+   "inf": "Infinity",
+   "-inf": "-Infinity"
+  }
+ },
+ "blobs": {
+  "strings": [
+   {
+    "in": "",
+    "ref": "blob:e3b0c44298fc1c149afbf4c8996fb924",
+    "path": "e3/e3b0c44298fc1c149afbf4c8996fb924"
+   },
+   {
+    "in": "hello",
+    "ref": "blob:2cf24dba5fb0a30e26e83b2ac5b9e29e",
+    "path": "2c/2cf24dba5fb0a30e26e83b2ac5b9e29e"
+   },
+   {
+    "in": "中文内容",
+    "ref": "blob:082516888f2d11c0affc46ead329ad83",
+    "path": "08/082516888f2d11c0affc46ead329ad83"
+   },
+   {
+    "in": "🐍🐍🐍",
+    "ref": "blob:8e2ff95fca82096aea825baf5160f75d",
+    "path": "8e/8e2ff95fca82096aea825baf5160f75d"
+   },
+   {
+    "in": "line1\nline2\n",
+    "ref": "blob:2751a3a2f303ad21752038085e2b8c5f",
+    "path": "27/2751a3a2f303ad21752038085e2b8c5f"
+   },
+   {
+    "in": " 前后空格 ",
+    "ref": "blob:c670b3c6995c2309103769a0f50e971c",
+    "path": "c6/c670b3c6995c2309103769a0f50e971c"
+   }
+  ],
+  "bytes": [
+   {
+    "b64": "",
+    "ref": "blob:e3b0c44298fc1c149afbf4c8996fb924",
+    "path": "e3/e3b0c44298fc1c149afbf4c8996fb924"
+   },
+   {
+    "b64": "AAEC",
+    "ref": "blob:ae4b3280e56e2faf83f414a6e3dabe9d",
+    "path": "ae/ae4b3280e56e2faf83f414a6e3dabe9d"
+   },
+   {
+    "b64": "//79",
+    "ref": "blob:8ca9f8c269c0a4b1d8bf0efc67d97df8",
+    "path": "8c/8ca9f8c269c0a4b1d8bf0efc67d97df8"
+   },
+   {
+    "b64": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8gISIjJCUmJygpKissLS4vMDEyMzQ1Njc4OTo7PD0+P0BBQkNERUZHSElKS0xNTk9QUVJTVFVWV1hZWltcXV5fYGFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6e3x9fn+AgYKDhIWGh4iJiouMjY6PkJGSk5SVlpeYmZqbnJ2en6ChoqOkpaanqKmqq6ytrq+wsbKztLW2t7i5uru8vb6/wMHCw8TFxsfIycrLzM3Oz9DR0tPU1dbX2Nna29zd3t/g4eLj5OXm5+jp6uvs7e7v8PHy8/T19vf4+fr7/P3+/w==",
+    "ref": "blob:40aff2e9d2d8922e47afd4648e696749",
+    "path": "40/40aff2e9d2d8922e47afd4648e696749"
+   }
+  ],
+  "put_json": [
+   {
+    "value": {},
+    "bytes": "{}",
+    "ref": "blob:44136fa355b3678a1146ad16f7e8649e"
+   },
+   {
+    "value": [],
+    "bytes": "[]",
+    "ref": "blob:4f53cda18c2baa0c0354bb5f9a3ecbe5"
+   },
+   {
+    "value": {
+     "a": 1,
+     "b": [
+      1,
+      2,
+      3
+     ]
+    },
+    "bytes": "{\"a\": 1, \"b\": [1, 2, 3]}",
+    "ref": "blob:a2c35a8a1e57b6d0f2a4453153a37aeb"
+   },
+   {
+    "value": {
+     "中": "值",
+     "列表": [
+      {
+       "x": null
+      },
+      true
+     ]
+    },
+    "bytes": "{\"中\": \"值\", \"列表\": [{\"x\": null}, true]}",
+    "ref": "blob:568551f617d8ba6a616d8f516579cfa1"
+   },
+   {
+    "value": {
+     "nested": {
+      "deep": {
+       "deeper": [
+        1,
+        {
+         "k": "v"
+        }
+       ]
+      }
+     }
+    },
+    "bytes": "{\"nested\": {\"deep\": {\"deeper\": [1, {\"k\": \"v\"}]}}}",
+    "ref": "blob:9724aee6d92f96ff77fb1cf1cd798602"
+   },
+   {
+    "value": "裸字符串",
+    "bytes": "\"裸字符串\"",
+    "ref": "blob:9616652ee416abe2f57af8028be74c01"
+   },
+   {
+    "value": [
+     1,
+     "二",
+     null,
+     true
+    ],
+    "bytes": "[1, \"二\", null, true]",
+    "ref": "blob:797c56f92243325aba8ccb90f4259b5f"
+   },
+   {
+    "value": {
+     "cost": 1.2e-05,
+     "ratio": 0.13
+    },
+    "bytes": "{\"cost\": 1.2e-05, \"ratio\": 0.13}",
+    "ref": "blob:bb6f1722e904138151798af951cccea8"
+   }
+  ],
+  "path_edge": [
+   {
+    "ref": "blob:abcdef0123",
+    "path": "ab/abcdef0123"
+   },
+   {
+    "ref": "abcdef0123",
+    "path": "ab/abcdef0123"
+   },
+   {
+    "ref": "sha256:aa:bb",
+    "path": "aa/aa:bb"
+   },
+   {
+    "ref": "blob:ab",
+    "path": "ab/ab"
+   }
+  ],
+  "missing_message": "blob 不存在: blob:deadbeef"
+ }
+}

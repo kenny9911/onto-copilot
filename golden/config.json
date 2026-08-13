@@ -1,0 +1,1403 @@
+{
+ "load_dotenv": [
+  {
+   "name": "basic",
+   "content_hex": "413d310a423d320a",
+   "exists": true,
+   "pre_env": {},
+   "override": false,
+   "loaded": [
+    [
+     "A",
+     "1"
+    ],
+    [
+     "B",
+     "2"
+    ]
+   ],
+   "env_after": {
+    "A": "1",
+    "B": "2"
+   }
+  },
+  {
+   "name": "no_file",
+   "content_hex": "",
+   "exists": false,
+   "pre_env": {},
+   "override": false,
+   "loaded": [],
+   "env_after": {}
+  },
+  {
+   "name": "empty_file",
+   "content_hex": "",
+   "exists": true,
+   "pre_env": {},
+   "override": false,
+   "loaded": [],
+   "env_after": {}
+  },
+  {
+   "name": "skips",
+   "content_hex": "2320e6b3a8e9878a0a0a20200a4e4f50450a23413d390a413d310a",
+   "exists": true,
+   "pre_env": {},
+   "override": false,
+   "loaded": [
+    [
+     "A",
+     "1"
+    ]
+   ],
+   "env_after": {
+    "A": "1"
+   }
+  },
+  {
+   "name": "spaces_around",
+   "content_hex": "20204120203d20203120200a",
+   "exists": true,
+   "pre_env": {},
+   "override": false,
+   "loaded": [
+    [
+     "A",
+     "1"
+    ]
+   ],
+   "env_after": {
+    "A": "1"
+   }
+  },
+  {
+   "name": "quotes",
+   "content_hex": "413d222020782020220a423d2779270a433d227a0a443d2222220a453d27226d697822270a463d2227220a473d27270a",
+   "exists": true,
+   "pre_env": {},
+   "override": false,
+   "loaded": [
+    [
+     "A",
+     "  x  "
+    ],
+    [
+     "B",
+     "y"
+    ],
+    [
+     "C",
+     "z"
+    ],
+    [
+     "D",
+     ""
+    ],
+    [
+     "E",
+     "mix"
+    ],
+    [
+     "F",
+     ""
+    ],
+    [
+     "G",
+     ""
+    ]
+   ],
+   "env_after": {
+    "A": "  x  ",
+    "B": "y",
+    "C": "z",
+    "D": "",
+    "E": "mix",
+    "F": "",
+    "G": ""
+   }
+  },
+  {
+   "name": "first_eq_wins",
+   "content_hex": "413d423d430a55524c3d687474703a2f2f682f76313f613d620a",
+   "exists": true,
+   "pre_env": {},
+   "override": false,
+   "loaded": [
+    [
+     "A",
+     "B=C"
+    ],
+    [
+     "URL",
+     "http://h/v1?a=b"
+    ]
+   ],
+   "env_after": {
+    "A": "B=C",
+    "URL": "http://h/v1?a=b"
+   }
+  },
+  {
+   "name": "hash_in_value",
+   "content_hex": "413d31202320e8bf99e4b88de698afe6b3a8e9878a0a",
+   "exists": true,
+   "pre_env": {},
+   "override": false,
+   "loaded": [
+    [
+     "A",
+     "1 # 这不是注释"
+    ]
+   ],
+   "env_after": {
+    "A": "1 # 这不是注释"
+   }
+  },
+  {
+   "name": "empty_value",
+   "content_hex": "413d0a423d20200a433d22220a",
+   "exists": true,
+   "pre_env": {},
+   "override": false,
+   "loaded": [
+    [
+     "A",
+     ""
+    ],
+    [
+     "B",
+     ""
+    ],
+    [
+     "C",
+     ""
+    ]
+   ],
+   "env_after": {
+    "A": "",
+    "B": "",
+    "C": ""
+   }
+  },
+  {
+   "name": "dup_key",
+   "content_hex": "413d310a413d320a",
+   "exists": true,
+   "pre_env": {},
+   "override": false,
+   "loaded": [
+    [
+     "A",
+     "2"
+    ]
+   ],
+   "env_after": {
+    "A": "1"
+   }
+  },
+  {
+   "name": "dup_key_override",
+   "content_hex": "413d310a413d320a",
+   "exists": true,
+   "pre_env": {},
+   "override": true,
+   "loaded": [
+    [
+     "A",
+     "2"
+    ]
+   ],
+   "env_after": {
+    "A": "2"
+   }
+  },
+  {
+   "name": "preexisting",
+   "content_hex": "413d66696c650a",
+   "exists": true,
+   "pre_env": {
+    "A": "env"
+   },
+   "override": false,
+   "loaded": [
+    [
+     "A",
+     "file"
+    ]
+   ],
+   "env_after": {
+    "A": "env"
+   }
+  },
+  {
+   "name": "preexisting_override",
+   "content_hex": "413d66696c650a",
+   "exists": true,
+   "pre_env": {
+    "A": "env"
+   },
+   "override": true,
+   "loaded": [
+    [
+     "A",
+     "file"
+    ]
+   ],
+   "env_after": {
+    "A": "file"
+   }
+  },
+  {
+   "name": "preexisting_empty",
+   "content_hex": "413d66696c650a",
+   "exists": true,
+   "pre_env": {
+    "A": ""
+   },
+   "override": false,
+   "loaded": [
+    [
+     "A",
+     "file"
+    ]
+   ],
+   "env_after": {
+    "A": ""
+   }
+  },
+  {
+   "name": "bom",
+   "content_hex": "efbbbf413d310a423d320a",
+   "exists": true,
+   "pre_env": {},
+   "override": false,
+   "loaded": [
+    [
+     "﻿A",
+     "1"
+    ],
+    [
+     "B",
+     "2"
+    ]
+   ],
+   "env_after": {
+    "B": "2",
+    "﻿A": "1"
+   }
+  },
+  {
+   "name": "crlf",
+   "content_hex": "413d310d0a423d320d0a",
+   "exists": true,
+   "pre_env": {},
+   "override": false,
+   "loaded": [
+    [
+     "A",
+     "1"
+    ],
+    [
+     "B",
+     "2"
+    ]
+   ],
+   "env_after": {
+    "A": "1",
+    "B": "2"
+   }
+  },
+  {
+   "name": "cr_only",
+   "content_hex": "413d310d423d320d",
+   "exists": true,
+   "pre_env": {},
+   "override": false,
+   "loaded": [
+    [
+     "A",
+     "1"
+    ],
+    [
+     "B",
+     "2"
+    ]
+   ],
+   "env_after": {
+    "A": "1",
+    "B": "2"
+   }
+  },
+  {
+   "name": "no_trailing_newline",
+   "content_hex": "413d310a423d32",
+   "exists": true,
+   "pre_env": {},
+   "override": false,
+   "loaded": [
+    [
+     "A",
+     "1"
+    ],
+    [
+     "B",
+     "2"
+    ]
+   ],
+   "env_after": {
+    "A": "1",
+    "B": "2"
+   }
+  },
+  {
+   "name": "vt_ff_splits",
+   "content_hex": "413d310b423d320c433d330a",
+   "exists": true,
+   "pre_env": {},
+   "override": false,
+   "loaded": [
+    [
+     "A",
+     "1"
+    ],
+    [
+     "B",
+     "2"
+    ],
+    [
+     "C",
+     "3"
+    ]
+   ],
+   "env_after": {
+    "A": "1",
+    "B": "2",
+    "C": "3"
+   }
+  },
+  {
+   "name": "fs_gs_rs_splits",
+   "content_hex": "413d311c423d321d433d331e443d340a",
+   "exists": true,
+   "pre_env": {},
+   "override": false,
+   "loaded": [
+    [
+     "A",
+     "1"
+    ],
+    [
+     "B",
+     "2"
+    ],
+    [
+     "C",
+     "3"
+    ],
+    [
+     "D",
+     "4"
+    ]
+   ],
+   "env_after": {
+    "A": "1",
+    "B": "2",
+    "C": "3",
+    "D": "4"
+   }
+  },
+  {
+   "name": "nel_splits",
+   "content_hex": "413d31c285423d320a",
+   "exists": true,
+   "pre_env": {},
+   "override": false,
+   "loaded": [
+    [
+     "A",
+     "1"
+    ],
+    [
+     "B",
+     "2"
+    ]
+   ],
+   "env_after": {
+    "A": "1",
+    "B": "2"
+   }
+  },
+  {
+   "name": "line_sep_splits",
+   "content_hex": "413d31e280a8423d32e280a9433d330a",
+   "exists": true,
+   "pre_env": {},
+   "override": false,
+   "loaded": [
+    [
+     "A",
+     "1"
+    ],
+    [
+     "B",
+     "2"
+    ],
+    [
+     "C",
+     "3"
+    ]
+   ],
+   "env_after": {
+    "A": "1",
+    "B": "2",
+    "C": "3"
+   }
+  },
+  {
+   "name": "us_is_space_not_sep",
+   "content_hex": "1f413d311f0a423d320a",
+   "exists": true,
+   "pre_env": {},
+   "override": false,
+   "loaded": [
+    [
+     "A",
+     "1"
+    ],
+    [
+     "B",
+     "2"
+    ]
+   ],
+   "env_after": {
+    "A": "1",
+    "B": "2"
+   }
+  },
+  {
+   "name": "nbsp_ideographic",
+   "content_hex": "c2a0413d31c2a00ae38080423d32e380800a",
+   "exists": true,
+   "pre_env": {},
+   "override": false,
+   "loaded": [
+    [
+     "A",
+     "1"
+    ],
+    [
+     "B",
+     "2"
+    ]
+   ],
+   "env_after": {
+    "A": "1",
+    "B": "2"
+   }
+  },
+  {
+   "name": "proto_keys",
+   "content_hex": "746f537472696e673d310a636f6e7374727563746f723d320a5f5f70726f746f5f5f3d330a6861734f776e50726f70657274793d340a",
+   "exists": true,
+   "pre_env": {},
+   "override": false,
+   "loaded": [
+    [
+     "toString",
+     "1"
+    ],
+    [
+     "constructor",
+     "2"
+    ],
+    [
+     "__proto__",
+     "3"
+    ],
+    [
+     "hasOwnProperty",
+     "4"
+    ]
+   ],
+   "env_after": {
+    "__proto__": "3",
+    "constructor": "2",
+    "hasOwnProperty": "4",
+    "toString": "1"
+   }
+  },
+  {
+   "name": "key_with_space",
+   "content_hex": "4120423d630a",
+   "exists": true,
+   "pre_env": {},
+   "override": false,
+   "loaded": [
+    [
+     "A B",
+     "c"
+    ]
+   ],
+   "env_after": {
+    "A B": "c"
+   }
+  },
+  {
+   "name": "empty_key",
+   "content_hex": "3d760a",
+   "exists": true,
+   "pre_env": {},
+   "override": false,
+   "raises": {
+    "type": "OSError",
+    "message": "[Errno 22] Invalid argument"
+   },
+   "env_after": {}
+  },
+  {
+   "name": "empty_key_after_good_line",
+   "content_hex": "413d310a3d760a423d320a",
+   "exists": true,
+   "pre_env": {},
+   "override": false,
+   "raises": {
+    "type": "OSError",
+    "message": "[Errno 22] Invalid argument"
+   },
+   "env_after": {
+    "A": "1"
+   }
+  },
+  {
+   "name": "nul_in_key",
+   "content_hex": "4100423d310a",
+   "exists": true,
+   "pre_env": {},
+   "override": false,
+   "raises": {
+    "type": "ValueError",
+    "message": "embedded null byte"
+   },
+   "env_after": {}
+  },
+  {
+   "name": "invalid_utf8",
+   "content_hex": "413dfffe0a",
+   "exists": true,
+   "pre_env": {},
+   "override": false,
+   "raises": {
+    "type": "UnicodeDecodeError",
+    "message": "'utf-8' codec can't decode byte 0xff in position 2: invalid start byte"
+   },
+   "env_after": {}
+  },
+  {
+   "name": "cjk_value",
+   "content_hex": "4e414d453de98787e8b4ade8aea2e58d95e5a4b40a454d4f4a493df09f94910a",
+   "exists": true,
+   "pre_env": {},
+   "override": false,
+   "loaded": [
+    [
+     "NAME",
+     "采购订单头"
+    ],
+    [
+     "EMOJI",
+     "🔑"
+    ]
+   ],
+   "env_after": {
+    "EMOJI": "🔑",
+    "NAME": "采购订单头"
+   }
+  }
+ ],
+ "redacted_key": [
+  {
+   "api_key": "",
+   "len": 0,
+   "out": "…"
+  },
+  {
+   "api_key": "…",
+   "len": 1,
+   "out": "…"
+  },
+  {
+   "api_key": "sk-1",
+   "len": 4,
+   "out": "…"
+  },
+  {
+   "api_key": "sk-abcdef12",
+   "len": 11,
+   "out": "…"
+  },
+  {
+   "api_key": "sk-abcdef123",
+   "len": 12,
+   "out": "…"
+  },
+  {
+   "api_key": "sk-abcdef1234",
+   "len": 13,
+   "out": "sk-abc…1234"
+  },
+  {
+   "api_key": "sk-proj-AbCdEf0123456789xyz",
+   "len": 27,
+   "out": "sk-pro…9xyz"
+  },
+  {
+   "api_key": "0123456789012",
+   "len": 13,
+   "out": "012345…9012"
+  },
+  {
+   "api_key": "密钥密钥密钥密钥密钥密钥密",
+   "len": 13,
+   "out": "密钥密钥密钥…钥密钥密"
+  },
+  {
+   "api_key": "🔑🔑🔑🔑🔑🔑🔑🔑🔑🔑🔑🔑🔑",
+   "len": 13,
+   "out": "🔑🔑🔑🔑🔑🔑…🔑🔑🔑🔑"
+  },
+  {
+   "api_key": "🔑🔑🔑🔑🔑🔑🔑🔑🔑🔑🔑🔑",
+   "len": 12,
+   "out": "…"
+  },
+  {
+   "api_key": "sk-abcdefgh🔑🔑🔑🔑",
+   "len": 15,
+   "out": "sk-abc…🔑🔑🔑🔑"
+  },
+  {
+   "api_key": "ééééééé",
+   "len": 14,
+   "out": "ééé…éé"
+  }
+ ],
+ "insecure_transport": [
+  {
+   "base_url": "http://a:3010/v1",
+   "out": true
+  },
+  {
+   "base_url": "https://a/v1",
+   "out": false
+  },
+  {
+   "base_url": "HTTP://a/v1",
+   "out": false
+  },
+  {
+   "base_url": "Http://a/v1",
+   "out": false
+  },
+  {
+   "base_url": "",
+   "out": false
+  },
+  {
+   "base_url": " http://a/v1",
+   "out": false
+  },
+  {
+   "base_url": "http:/a",
+   "out": false
+  },
+  {
+   "base_url": "httpx://a",
+   "out": false
+  },
+  {
+   "base_url": "http://",
+   "out": true
+  }
+ ],
+ "llm_config": [
+  {
+   "name": "ok",
+   "pre_env": {
+    "CUSTOM_LLM_API_KEY": "sk-live",
+    "CUSTOM_LLM_BASE_URL": "http://gw:3010/v1"
+   },
+   "dotenv_hex": null,
+   "use_dotenv": false,
+   "out": {
+    "base_url": "http://gw:3010/v1",
+    "api_key": "sk-live"
+   },
+   "env_after": {
+    "CUSTOM_LLM_API_KEY": "sk-live",
+    "CUSTOM_LLM_BASE_URL": "http://gw:3010/v1"
+   }
+  },
+  {
+   "name": "strips_all_slashes",
+   "pre_env": {
+    "CUSTOM_LLM_API_KEY": "sk",
+    "CUSTOM_LLM_BASE_URL": "http://gw:3010/v1///"
+   },
+   "dotenv_hex": null,
+   "use_dotenv": false,
+   "out": {
+    "base_url": "http://gw:3010/v1",
+    "api_key": "sk"
+   },
+   "env_after": {
+    "CUSTOM_LLM_API_KEY": "sk",
+    "CUSTOM_LLM_BASE_URL": "http://gw:3010/v1///"
+   }
+  },
+  {
+   "name": "keeps_inner_slashes",
+   "pre_env": {
+    "CUSTOM_LLM_API_KEY": "sk",
+    "CUSTOM_LLM_BASE_URL": "http://gw//v1/"
+   },
+   "dotenv_hex": null,
+   "use_dotenv": false,
+   "out": {
+    "base_url": "http://gw//v1",
+    "api_key": "sk"
+   },
+   "env_after": {
+    "CUSTOM_LLM_API_KEY": "sk",
+    "CUSTOM_LLM_BASE_URL": "http://gw//v1/"
+   }
+  },
+  {
+   "name": "all_slashes_becomes_missing",
+   "pre_env": {
+    "CUSTOM_LLM_API_KEY": "sk",
+    "CUSTOM_LLM_BASE_URL": "///"
+   },
+   "dotenv_hex": null,
+   "use_dotenv": false,
+   "raises": {
+    "type": "RuntimeError",
+    "message": "缺少环境变量 ['CUSTOM_LLM_BASE_URL']。把它们写进 .env（见 .env.example）或直接导出。"
+   },
+   "env_after": {
+    "CUSTOM_LLM_API_KEY": "sk",
+    "CUSTOM_LLM_BASE_URL": "///"
+   }
+  },
+  {
+   "name": "blank_is_truthy",
+   "pre_env": {
+    "CUSTOM_LLM_API_KEY": "sk",
+    "CUSTOM_LLM_BASE_URL": "   "
+   },
+   "dotenv_hex": null,
+   "use_dotenv": false,
+   "out": {
+    "base_url": "   ",
+    "api_key": "sk"
+   },
+   "env_after": {
+    "CUSTOM_LLM_API_KEY": "sk",
+    "CUSTOM_LLM_BASE_URL": "   "
+   }
+  },
+  {
+   "name": "missing_both",
+   "pre_env": {},
+   "dotenv_hex": null,
+   "use_dotenv": false,
+   "raises": {
+    "type": "RuntimeError",
+    "message": "缺少环境变量 ['CUSTOM_LLM_BASE_URL', 'CUSTOM_LLM_API_KEY']。把它们写进 .env（见 .env.example）或直接导出。"
+   },
+   "env_after": {}
+  },
+  {
+   "name": "missing_key",
+   "pre_env": {
+    "CUSTOM_LLM_BASE_URL": "http://gw/v1"
+   },
+   "dotenv_hex": null,
+   "use_dotenv": false,
+   "raises": {
+    "type": "RuntimeError",
+    "message": "缺少环境变量 ['CUSTOM_LLM_API_KEY']。把它们写进 .env（见 .env.example）或直接导出。"
+   },
+   "env_after": {
+    "CUSTOM_LLM_BASE_URL": "http://gw/v1"
+   }
+  },
+  {
+   "name": "missing_base",
+   "pre_env": {
+    "CUSTOM_LLM_API_KEY": "sk"
+   },
+   "dotenv_hex": null,
+   "use_dotenv": false,
+   "raises": {
+    "type": "RuntimeError",
+    "message": "缺少环境变量 ['CUSTOM_LLM_BASE_URL']。把它们写进 .env（见 .env.example）或直接导出。"
+   },
+   "env_after": {
+    "CUSTOM_LLM_API_KEY": "sk"
+   }
+  },
+  {
+   "name": "empty_strings",
+   "pre_env": {
+    "CUSTOM_LLM_API_KEY": "",
+    "CUSTOM_LLM_BASE_URL": ""
+   },
+   "dotenv_hex": null,
+   "use_dotenv": false,
+   "raises": {
+    "type": "RuntimeError",
+    "message": "缺少环境变量 ['CUSTOM_LLM_BASE_URL', 'CUSTOM_LLM_API_KEY']。把它们写进 .env（见 .env.example）或直接导出。"
+   },
+   "env_after": {
+    "CUSTOM_LLM_API_KEY": "",
+    "CUSTOM_LLM_BASE_URL": ""
+   }
+  },
+  {
+   "name": "dotenv_none_skips_file",
+   "pre_env": {},
+   "dotenv_hex": "435553544f4d5f4c4c4d5f424153455f55524c3d687474703a2f2f662f76310a435553544f4d5f4c4c4d5f4150495f4b45593d736b2d660a",
+   "use_dotenv": false,
+   "raises": {
+    "type": "RuntimeError",
+    "message": "缺少环境变量 ['CUSTOM_LLM_BASE_URL', 'CUSTOM_LLM_API_KEY']。把它们写进 .env（见 .env.example）或直接导出。"
+   },
+   "env_after": {}
+  },
+  {
+   "name": "from_dotenv",
+   "pre_env": {},
+   "dotenv_hex": "435553544f4d5f4c4c4d5f424153455f55524c3d687474703a2f2f662f76312f0a435553544f4d5f4c4c4d5f4150495f4b45593d736b2d660a",
+   "use_dotenv": true,
+   "out": {
+    "base_url": "http://f/v1",
+    "api_key": "sk-f"
+   },
+   "env_after": {
+    "CUSTOM_LLM_API_KEY": "sk-f",
+    "CUSTOM_LLM_BASE_URL": "http://f/v1/"
+   }
+  },
+  {
+   "name": "env_wins_over_dotenv",
+   "pre_env": {
+    "CUSTOM_LLM_API_KEY": "sk-env",
+    "CUSTOM_LLM_BASE_URL": "http://env/v1"
+   },
+   "dotenv_hex": "435553544f4d5f4c4c4d5f424153455f55524c3d687474703a2f2f662f76310a435553544f4d5f4c4c4d5f4150495f4b45593d736b2d660a",
+   "use_dotenv": true,
+   "out": {
+    "base_url": "http://env/v1",
+    "api_key": "sk-env"
+   },
+   "env_after": {
+    "CUSTOM_LLM_API_KEY": "sk-env",
+    "CUSTOM_LLM_BASE_URL": "http://env/v1"
+   }
+  },
+  {
+   "name": "dotenv_absent",
+   "pre_env": {
+    "CUSTOM_LLM_API_KEY": "sk",
+    "CUSTOM_LLM_BASE_URL": "http://gw/v1"
+   },
+   "dotenv_hex": null,
+   "use_dotenv": true,
+   "out": {
+    "base_url": "http://gw/v1",
+    "api_key": "sk"
+   },
+   "env_after": {
+    "CUSTOM_LLM_API_KEY": "sk",
+    "CUSTOM_LLM_BASE_URL": "http://gw/v1"
+   }
+  },
+  {
+   "name": "bom_dotenv_still_missing",
+   "pre_env": {},
+   "dotenv_hex": "efbbbf435553544f4d5f4c4c4d5f424153455f55524c3d687474703a2f2f662f76310a435553544f4d5f4c4c4d5f4150495f4b45593d736b2d660a",
+   "use_dotenv": true,
+   "raises": {
+    "type": "RuntimeError",
+    "message": "缺少环境变量 ['CUSTOM_LLM_BASE_URL']。把它们写进 .env（见 .env.example）或直接导出。"
+   },
+   "env_after": {
+    "CUSTOM_LLM_API_KEY": "sk-f",
+    "﻿CUSTOM_LLM_BASE_URL": "http://f/v1"
+   }
+  }
+ ],
+ "primitives": {
+  "isspace_codepoints": [
+   9,
+   10,
+   11,
+   12,
+   13,
+   28,
+   29,
+   30,
+   31,
+   32,
+   133,
+   160,
+   5760,
+   8192,
+   8193,
+   8194,
+   8195,
+   8196,
+   8197,
+   8198,
+   8199,
+   8200,
+   8201,
+   8202,
+   8232,
+   8233,
+   8239,
+   8287,
+   12288
+  ],
+  "splitlines_separator_codepoints": [
+   10,
+   11,
+   12,
+   13,
+   28,
+   29,
+   30,
+   133,
+   8232,
+   8233
+  ],
+  "strip": [
+   {
+    "in": "",
+    "out": ""
+   },
+   {
+    "in": "  x  ",
+    "out": "x"
+   },
+   {
+    "in": "\tx\n",
+    "out": "x"
+   },
+   {
+    "in": "\u001cx\u001d",
+    "out": "x"
+   },
+   {
+    "in": "\u001fx\u001f",
+    "out": "x"
+   },
+   {
+    "in": "x",
+    "out": "x"
+   },
+   {
+    "in": "﻿x﻿",
+    "out": "﻿x﻿"
+   },
+   {
+    "in": " x ",
+    "out": "x"
+   },
+   {
+    "in": "　x　",
+    "out": "x"
+   },
+   {
+    "in": " x ",
+    "out": "x"
+   },
+   {
+    "in": "​x​",
+    "out": "​x​"
+   },
+   {
+    "in": "᠎x᠎",
+    "out": "᠎x᠎"
+   },
+   {
+    "in": "   ",
+    "out": ""
+   },
+   {
+    "in": "\u000bx\f",
+    "out": "x"
+   },
+   {
+    "in": "x",
+    "out": "x"
+   },
+   {
+    "in": "﻿",
+    "out": "﻿"
+   }
+  ],
+  "strip_quotes": [
+   {
+    "in": "",
+    "out": ""
+   },
+   {
+    "in": "'y'",
+    "out": "y"
+   },
+   {
+    "in": "\"y\"",
+    "out": "y"
+   },
+   {
+    "in": "\"\"\"",
+    "out": ""
+   },
+   {
+    "in": "'''",
+    "out": ""
+   },
+   {
+    "in": "\"'x'\"",
+    "out": "x"
+   },
+   {
+    "in": "\"z",
+    "out": "z"
+   },
+   {
+    "in": "z'",
+    "out": "z"
+   },
+   {
+    "in": "'\"mix\"'",
+    "out": "mix"
+   },
+   {
+    "in": "''",
+    "out": ""
+   },
+   {
+    "in": "\"\"",
+    "out": ""
+   },
+   {
+    "in": "'",
+    "out": ""
+   },
+   {
+    "in": "\"",
+    "out": ""
+   },
+   {
+    "in": "  x  ",
+    "out": "  x  "
+   },
+   {
+    "in": "\"  x  \"",
+    "out": "  x  "
+   },
+   {
+    "in": "a'b",
+    "out": "a'b"
+   },
+   {
+    "in": "x\"",
+    "out": "x"
+   },
+   {
+    "in": "\"'\"",
+    "out": ""
+   }
+  ],
+  "strip_then_quotes": [
+   {
+    "in": "",
+    "out": ""
+   },
+   {
+    "in": "'y'",
+    "out": "y"
+   },
+   {
+    "in": "\"y\"",
+    "out": "y"
+   },
+   {
+    "in": "\"\"\"",
+    "out": ""
+   },
+   {
+    "in": "'''",
+    "out": ""
+   },
+   {
+    "in": "\"'x'\"",
+    "out": "x"
+   },
+   {
+    "in": "\"z",
+    "out": "z"
+   },
+   {
+    "in": "z'",
+    "out": "z"
+   },
+   {
+    "in": "'\"mix\"'",
+    "out": "mix"
+   },
+   {
+    "in": "''",
+    "out": ""
+   },
+   {
+    "in": "\"\"",
+    "out": ""
+   },
+   {
+    "in": "'",
+    "out": ""
+   },
+   {
+    "in": "\"",
+    "out": ""
+   },
+   {
+    "in": "  x  ",
+    "out": "x"
+   },
+   {
+    "in": "\"  x  \"",
+    "out": "  x  "
+   },
+   {
+    "in": "a'b",
+    "out": "a'b"
+   },
+   {
+    "in": "x\"",
+    "out": "x"
+   },
+   {
+    "in": "\"'\"",
+    "out": ""
+   }
+  ],
+  "splitlines": [
+   {
+    "in": "",
+    "out": []
+   },
+   {
+    "in": "a",
+    "out": [
+     "a"
+    ]
+   },
+   {
+    "in": "a\n",
+    "out": [
+     "a"
+    ]
+   },
+   {
+    "in": "a\nb",
+    "out": [
+     "a",
+     "b"
+    ]
+   },
+   {
+    "in": "a\r\nb",
+    "out": [
+     "a",
+     "b"
+    ]
+   },
+   {
+    "in": "a\rb",
+    "out": [
+     "a",
+     "b"
+    ]
+   },
+   {
+    "in": "a\r\r\nb",
+    "out": [
+     "a",
+     "",
+     "b"
+    ]
+   },
+   {
+    "in": "a\n\nb",
+    "out": [
+     "a",
+     "",
+     "b"
+    ]
+   },
+   {
+    "in": "a\u000bb",
+    "out": [
+     "a",
+     "b"
+    ]
+   },
+   {
+    "in": "a\fb",
+    "out": [
+     "a",
+     "b"
+    ]
+   },
+   {
+    "in": "a\u001cb",
+    "out": [
+     "a",
+     "b"
+    ]
+   },
+   {
+    "in": "a\u001db",
+    "out": [
+     "a",
+     "b"
+    ]
+   },
+   {
+    "in": "a\u001eb",
+    "out": [
+     "a",
+     "b"
+    ]
+   },
+   {
+    "in": "a\u001fb",
+    "out": [
+     "a\u001fb"
+    ]
+   },
+   {
+    "in": "ab",
+    "out": [
+     "a",
+     "b"
+    ]
+   },
+   {
+    "in": "a b",
+    "out": [
+     "a",
+     "b"
+    ]
+   },
+   {
+    "in": "a b",
+    "out": [
+     "a",
+     "b"
+    ]
+   },
+   {
+    "in": "\n",
+    "out": [
+     ""
+    ]
+   },
+   {
+    "in": "\n\n",
+    "out": [
+     "",
+     ""
+    ]
+   },
+   {
+    "in": "a\r\n",
+    "out": [
+     "a"
+    ]
+   }
+  ],
+  "rstrip_slash": [
+   {
+    "in": "",
+    "out": ""
+   },
+   {
+    "in": "/",
+    "out": ""
+   },
+   {
+    "in": "///",
+    "out": ""
+   },
+   {
+    "in": "http://a",
+    "out": "http://a"
+   },
+   {
+    "in": "http://a/",
+    "out": "http://a"
+   },
+   {
+    "in": "http://a///",
+    "out": "http://a"
+   },
+   {
+    "in": "http://a//b//",
+    "out": "http://a//b"
+   },
+   {
+    "in": "a/b",
+    "out": "a/b"
+   },
+   {
+    "in": "//",
+    "out": ""
+   },
+   {
+    "in": "http://",
+    "out": "http:"
+   }
+  ],
+  "missing_list_repr": [
+   {
+    "in": [],
+    "out": "[]"
+   },
+   {
+    "in": [
+     "CUSTOM_LLM_BASE_URL"
+    ],
+    "out": "['CUSTOM_LLM_BASE_URL']"
+   },
+   {
+    "in": [
+     "CUSTOM_LLM_API_KEY"
+    ],
+    "out": "['CUSTOM_LLM_API_KEY']"
+   },
+   {
+    "in": [
+     "CUSTOM_LLM_BASE_URL",
+     "CUSTOM_LLM_API_KEY"
+    ],
+    "out": "['CUSTOM_LLM_BASE_URL', 'CUSTOM_LLM_API_KEY']"
+   }
+  ]
+ }
+}

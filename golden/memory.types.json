@@ -1,0 +1,1590 @@
+{
+ "enums": {
+  "scope": [
+   "node",
+   "run",
+   "project",
+   "tenant"
+  ],
+  "kind": [
+   "lesson",
+   "term",
+   "convention",
+   "decision",
+   "fact",
+   "artifact"
+  ],
+  "tier": [
+   "authoritative",
+   "reference"
+  ]
+ },
+ "est_tokens": [
+  {
+   "in": "",
+   "cp_len": 0,
+   "out": 0
+  },
+  {
+   "in": " ",
+   "cp_len": 1,
+   "out": 1
+  },
+  {
+   "in": "a",
+   "cp_len": 1,
+   "out": 1
+  },
+  {
+   "in": "ab",
+   "cp_len": 2,
+   "out": 1
+  },
+  {
+   "in": "abc",
+   "cp_len": 3,
+   "out": 1
+  },
+  {
+   "in": "abcd",
+   "cp_len": 4,
+   "out": 1
+  },
+  {
+   "in": "abcde",
+   "cp_len": 5,
+   "out": 1
+  },
+  {
+   "in": "abcdefgh",
+   "cp_len": 8,
+   "out": 2
+  },
+  {
+   "in": "hello world",
+   "cp_len": 11,
+   "out": 2
+  },
+  {
+   "in": "你好",
+   "cp_len": 2,
+   "out": 3
+  },
+  {
+   "in": "你好世界，这是一段中文",
+   "cp_len": 11,
+   "out": 12
+  },
+  {
+   "in": "你好 world",
+   "cp_len": 8,
+   "out": 3
+  },
+  {
+   "in": "订单 order_no 字段",
+   "cp_len": 14,
+   "out": 6
+  },
+  {
+   "in": "㏿",
+   "cp_len": 1,
+   "out": 1
+  },
+  {
+   "in": "㐀",
+   "cp_len": 1,
+   "out": 2
+  },
+  {
+   "in": "鿿",
+   "cp_len": 1,
+   "out": 2
+  },
+  {
+   "in": "ꀀ",
+   "cp_len": 1,
+   "out": 1
+  },
+  {
+   "in": "",
+   "cp_len": 1,
+   "out": 1
+  },
+  {
+   "in": "豈",
+   "cp_len": 1,
+   "out": 2
+  },
+  {
+   "in": "﫿",
+   "cp_len": 1,
+   "out": 2
+  },
+  {
+   "in": "ﬀ",
+   "cp_len": 1,
+   "out": 1
+  },
+  {
+   "in": "⿿",
+   "cp_len": 1,
+   "out": 1
+  },
+  {
+   "in": "　",
+   "cp_len": 1,
+   "out": 2
+  },
+  {
+   "in": "〿",
+   "cp_len": 1,
+   "out": 2
+  },
+  {
+   "in": "぀",
+   "cp_len": 1,
+   "out": 1
+  },
+  {
+   "in": "﻿",
+   "cp_len": 1,
+   "out": 1
+  },
+  {
+   "in": "Ａ",
+   "cp_len": 1,
+   "out": 2
+  },
+  {
+   "in": "￯",
+   "cp_len": 1,
+   "out": 2
+  },
+  {
+   "in": "￰",
+   "cp_len": 1,
+   "out": 1
+  },
+  {
+   "in": "⺀",
+   "cp_len": 1,
+   "out": 1
+  },
+  {
+   "in": "𠀀",
+   "cp_len": 1,
+   "out": 1
+  },
+  {
+   "in": "𠀀𠀁𠀂𠀃",
+   "cp_len": 4,
+   "out": 1
+  },
+  {
+   "in": "😀",
+   "cp_len": 1,
+   "out": 1
+  },
+  {
+   "in": "😀😀😀😀",
+   "cp_len": 4,
+   "out": 1
+  },
+  {
+   "in": "😀😀abcd",
+   "cp_len": 6,
+   "out": 1
+  },
+  {
+   "in": "中😀中😀",
+   "cp_len": 4,
+   "out": 3
+  },
+  {
+   "in": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "cp_len": 100,
+   "out": 25
+  },
+  {
+   "in": "中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中",
+   "cp_len": 100,
+   "out": 101
+  },
+  {
+   "in": "\n\t  ",
+   "cp_len": 4,
+   "out": 1
+  }
+ ],
+ "to_dict": [
+  {
+   "init": {
+    "key": "k1",
+    "kind": "lesson",
+    "scope": "run",
+    "content": "内容"
+   },
+   "out": {
+    "key": "k1",
+    "kind": "lesson",
+    "scope": "run",
+    "content": "内容",
+    "confidence": 0.5,
+    "support": [],
+    "tags": [],
+    "meta": {},
+    "created_run": "",
+    "last_used_run": "",
+    "use_count": 0,
+    "hit_runs": [],
+    "contested_by": [],
+    "tier": "authoritative",
+    "origin_session": "",
+    "origin_files": []
+   },
+   "key_order": [
+    "key",
+    "kind",
+    "scope",
+    "content",
+    "confidence",
+    "support",
+    "tags",
+    "meta",
+    "created_run",
+    "last_used_run",
+    "use_count",
+    "hit_runs",
+    "contested_by",
+    "tier",
+    "origin_session",
+    "origin_files"
+   ],
+   "tokens": 3,
+   "contested": false
+  },
+  {
+   "init": {
+    "key": "term:采购订单",
+    "kind": "term",
+    "scope": "project",
+    "content": "PO = 采购订单",
+    "confidence": 0.875,
+    "support": [
+     "ev:1",
+     "ev:2"
+    ],
+    "tags": [
+     "a",
+     "b"
+    ],
+    "meta": {
+     "z": 1,
+     "a": {
+      "n": null
+     },
+     "m": [
+      1,
+      2
+     ]
+    },
+    "created_run": "r1",
+    "last_used_run": "r9",
+    "use_count": 3,
+    "hit_runs": [
+     "r1",
+     "r9",
+     "r2"
+    ],
+    "contested_by": [
+     "k1~superseded#0"
+    ],
+    "tier": "reference",
+    "origin_session": "会话 A",
+    "origin_files": [
+     "f1.xlsx",
+     "f2.docx"
+    ]
+   },
+   "out": {
+    "key": "term:采购订单",
+    "kind": "term",
+    "scope": "project",
+    "content": "PO = 采购订单",
+    "confidence": 0.875,
+    "support": [
+     "ev:1",
+     "ev:2"
+    ],
+    "tags": [
+     "a",
+     "b"
+    ],
+    "meta": {
+     "z": 1,
+     "a": {
+      "n": null
+     },
+     "m": [
+      1,
+      2
+     ]
+    },
+    "created_run": "r1",
+    "last_used_run": "r9",
+    "use_count": 3,
+    "hit_runs": [
+     "r1",
+     "r2",
+     "r9"
+    ],
+    "contested_by": [
+     "k1~superseded#0"
+    ],
+    "tier": "reference",
+    "origin_session": "会话 A",
+    "origin_files": [
+     "f1.xlsx",
+     "f2.docx"
+    ]
+   },
+   "key_order": [
+    "key",
+    "kind",
+    "scope",
+    "content",
+    "confidence",
+    "support",
+    "tags",
+    "meta",
+    "created_run",
+    "last_used_run",
+    "use_count",
+    "hit_runs",
+    "contested_by",
+    "tier",
+    "origin_session",
+    "origin_files"
+   ],
+   "tokens": 5,
+   "contested": true
+  },
+  {
+   "init": {
+    "key": "k1",
+    "kind": "lesson",
+    "scope": "run",
+    "content": "内容",
+    "confidence": 0.0625
+   },
+   "out": {
+    "key": "k1",
+    "kind": "lesson",
+    "scope": "run",
+    "content": "内容",
+    "confidence": 0.062,
+    "support": [],
+    "tags": [],
+    "meta": {},
+    "created_run": "",
+    "last_used_run": "",
+    "use_count": 0,
+    "hit_runs": [],
+    "contested_by": [],
+    "tier": "authoritative",
+    "origin_session": "",
+    "origin_files": []
+   },
+   "key_order": [
+    "key",
+    "kind",
+    "scope",
+    "content",
+    "confidence",
+    "support",
+    "tags",
+    "meta",
+    "created_run",
+    "last_used_run",
+    "use_count",
+    "hit_runs",
+    "contested_by",
+    "tier",
+    "origin_session",
+    "origin_files"
+   ],
+   "tokens": 3,
+   "contested": false
+  },
+  {
+   "init": {
+    "key": "k1",
+    "kind": "lesson",
+    "scope": "run",
+    "content": "内容",
+    "confidence": 0.1875
+   },
+   "out": {
+    "key": "k1",
+    "kind": "lesson",
+    "scope": "run",
+    "content": "内容",
+    "confidence": 0.188,
+    "support": [],
+    "tags": [],
+    "meta": {},
+    "created_run": "",
+    "last_used_run": "",
+    "use_count": 0,
+    "hit_runs": [],
+    "contested_by": [],
+    "tier": "authoritative",
+    "origin_session": "",
+    "origin_files": []
+   },
+   "key_order": [
+    "key",
+    "kind",
+    "scope",
+    "content",
+    "confidence",
+    "support",
+    "tags",
+    "meta",
+    "created_run",
+    "last_used_run",
+    "use_count",
+    "hit_runs",
+    "contested_by",
+    "tier",
+    "origin_session",
+    "origin_files"
+   ],
+   "tokens": 3,
+   "contested": false
+  },
+  {
+   "init": {
+    "key": "k1",
+    "kind": "lesson",
+    "scope": "run",
+    "content": "内容",
+    "confidence": 0.3125
+   },
+   "out": {
+    "key": "k1",
+    "kind": "lesson",
+    "scope": "run",
+    "content": "内容",
+    "confidence": 0.312,
+    "support": [],
+    "tags": [],
+    "meta": {},
+    "created_run": "",
+    "last_used_run": "",
+    "use_count": 0,
+    "hit_runs": [],
+    "contested_by": [],
+    "tier": "authoritative",
+    "origin_session": "",
+    "origin_files": []
+   },
+   "key_order": [
+    "key",
+    "kind",
+    "scope",
+    "content",
+    "confidence",
+    "support",
+    "tags",
+    "meta",
+    "created_run",
+    "last_used_run",
+    "use_count",
+    "hit_runs",
+    "contested_by",
+    "tier",
+    "origin_session",
+    "origin_files"
+   ],
+   "tokens": 3,
+   "contested": false
+  },
+  {
+   "init": {
+    "key": "k1",
+    "kind": "lesson",
+    "scope": "run",
+    "content": "内容",
+    "confidence": 0.30000000000000004
+   },
+   "out": {
+    "key": "k1",
+    "kind": "lesson",
+    "scope": "run",
+    "content": "内容",
+    "confidence": 0.3,
+    "support": [],
+    "tags": [],
+    "meta": {},
+    "created_run": "",
+    "last_used_run": "",
+    "use_count": 0,
+    "hit_runs": [],
+    "contested_by": [],
+    "tier": "authoritative",
+    "origin_session": "",
+    "origin_files": []
+   },
+   "key_order": [
+    "key",
+    "kind",
+    "scope",
+    "content",
+    "confidence",
+    "support",
+    "tags",
+    "meta",
+    "created_run",
+    "last_used_run",
+    "use_count",
+    "hit_runs",
+    "contested_by",
+    "tier",
+    "origin_session",
+    "origin_files"
+   ],
+   "tokens": 3,
+   "contested": false
+  },
+  {
+   "init": {
+    "key": "k1",
+    "kind": "lesson",
+    "scope": "run",
+    "content": "内容",
+    "confidence": 1.0
+   },
+   "out": {
+    "key": "k1",
+    "kind": "lesson",
+    "scope": "run",
+    "content": "内容",
+    "confidence": 1.0,
+    "support": [],
+    "tags": [],
+    "meta": {},
+    "created_run": "",
+    "last_used_run": "",
+    "use_count": 0,
+    "hit_runs": [],
+    "contested_by": [],
+    "tier": "authoritative",
+    "origin_session": "",
+    "origin_files": []
+   },
+   "key_order": [
+    "key",
+    "kind",
+    "scope",
+    "content",
+    "confidence",
+    "support",
+    "tags",
+    "meta",
+    "created_run",
+    "last_used_run",
+    "use_count",
+    "hit_runs",
+    "contested_by",
+    "tier",
+    "origin_session",
+    "origin_files"
+   ],
+   "tokens": 3,
+   "contested": false
+  },
+  {
+   "init": {
+    "key": "k1",
+    "kind": "lesson",
+    "scope": "run",
+    "content": "内容",
+    "confidence": 0.0
+   },
+   "out": {
+    "key": "k1",
+    "kind": "lesson",
+    "scope": "run",
+    "content": "内容",
+    "confidence": 0.0,
+    "support": [],
+    "tags": [],
+    "meta": {},
+    "created_run": "",
+    "last_used_run": "",
+    "use_count": 0,
+    "hit_runs": [],
+    "contested_by": [],
+    "tier": "authoritative",
+    "origin_session": "",
+    "origin_files": []
+   },
+   "key_order": [
+    "key",
+    "kind",
+    "scope",
+    "content",
+    "confidence",
+    "support",
+    "tags",
+    "meta",
+    "created_run",
+    "last_used_run",
+    "use_count",
+    "hit_runs",
+    "contested_by",
+    "tier",
+    "origin_session",
+    "origin_files"
+   ],
+   "tokens": 3,
+   "contested": false
+  },
+  {
+   "init": {
+    "key": "k1",
+    "kind": "lesson",
+    "scope": "run",
+    "content": "内容",
+    "confidence": -0.5
+   },
+   "out": {
+    "key": "k1",
+    "kind": "lesson",
+    "scope": "run",
+    "content": "内容",
+    "confidence": -0.5,
+    "support": [],
+    "tags": [],
+    "meta": {},
+    "created_run": "",
+    "last_used_run": "",
+    "use_count": 0,
+    "hit_runs": [],
+    "contested_by": [],
+    "tier": "authoritative",
+    "origin_session": "",
+    "origin_files": []
+   },
+   "key_order": [
+    "key",
+    "kind",
+    "scope",
+    "content",
+    "confidence",
+    "support",
+    "tags",
+    "meta",
+    "created_run",
+    "last_used_run",
+    "use_count",
+    "hit_runs",
+    "contested_by",
+    "tier",
+    "origin_session",
+    "origin_files"
+   ],
+   "tokens": 3,
+   "contested": false
+  },
+  {
+   "init": {
+    "key": "k1",
+    "kind": "lesson",
+    "scope": "run",
+    "content": "内容",
+    "confidence": 0.9995
+   },
+   "out": {
+    "key": "k1",
+    "kind": "lesson",
+    "scope": "run",
+    "content": "内容",
+    "confidence": 1.0,
+    "support": [],
+    "tags": [],
+    "meta": {},
+    "created_run": "",
+    "last_used_run": "",
+    "use_count": 0,
+    "hit_runs": [],
+    "contested_by": [],
+    "tier": "authoritative",
+    "origin_session": "",
+    "origin_files": []
+   },
+   "key_order": [
+    "key",
+    "kind",
+    "scope",
+    "content",
+    "confidence",
+    "support",
+    "tags",
+    "meta",
+    "created_run",
+    "last_used_run",
+    "use_count",
+    "hit_runs",
+    "contested_by",
+    "tier",
+    "origin_session",
+    "origin_files"
+   ],
+   "tokens": 3,
+   "contested": false
+  },
+  {
+   "init": {
+    "key": "k1",
+    "kind": "lesson",
+    "scope": "run",
+    "content": "内容",
+    "confidence": 0.0005
+   },
+   "out": {
+    "key": "k1",
+    "kind": "lesson",
+    "scope": "run",
+    "content": "内容",
+    "confidence": 0.001,
+    "support": [],
+    "tags": [],
+    "meta": {},
+    "created_run": "",
+    "last_used_run": "",
+    "use_count": 0,
+    "hit_runs": [],
+    "contested_by": [],
+    "tier": "authoritative",
+    "origin_session": "",
+    "origin_files": []
+   },
+   "key_order": [
+    "key",
+    "kind",
+    "scope",
+    "content",
+    "confidence",
+    "support",
+    "tags",
+    "meta",
+    "created_run",
+    "last_used_run",
+    "use_count",
+    "hit_runs",
+    "contested_by",
+    "tier",
+    "origin_session",
+    "origin_files"
+   ],
+   "tokens": 3,
+   "contested": false
+  },
+  {
+   "init": {
+    "key": "k1",
+    "kind": "lesson",
+    "scope": "run",
+    "content": "内容",
+    "confidence": 1e-09
+   },
+   "out": {
+    "key": "k1",
+    "kind": "lesson",
+    "scope": "run",
+    "content": "内容",
+    "confidence": 0.0,
+    "support": [],
+    "tags": [],
+    "meta": {},
+    "created_run": "",
+    "last_used_run": "",
+    "use_count": 0,
+    "hit_runs": [],
+    "contested_by": [],
+    "tier": "authoritative",
+    "origin_session": "",
+    "origin_files": []
+   },
+   "key_order": [
+    "key",
+    "kind",
+    "scope",
+    "content",
+    "confidence",
+    "support",
+    "tags",
+    "meta",
+    "created_run",
+    "last_used_run",
+    "use_count",
+    "hit_runs",
+    "contested_by",
+    "tier",
+    "origin_session",
+    "origin_files"
+   ],
+   "tokens": 3,
+   "contested": false
+  },
+  {
+   "init": {
+    "key": "k1",
+    "kind": "lesson",
+    "scope": "run",
+    "content": "内容",
+    "confidence": 0.6666666666666666
+   },
+   "out": {
+    "key": "k1",
+    "kind": "lesson",
+    "scope": "run",
+    "content": "内容",
+    "confidence": 0.667,
+    "support": [],
+    "tags": [],
+    "meta": {},
+    "created_run": "",
+    "last_used_run": "",
+    "use_count": 0,
+    "hit_runs": [],
+    "contested_by": [],
+    "tier": "authoritative",
+    "origin_session": "",
+    "origin_files": []
+   },
+   "key_order": [
+    "key",
+    "kind",
+    "scope",
+    "content",
+    "confidence",
+    "support",
+    "tags",
+    "meta",
+    "created_run",
+    "last_used_run",
+    "use_count",
+    "hit_runs",
+    "contested_by",
+    "tier",
+    "origin_session",
+    "origin_files"
+   ],
+   "tokens": 3,
+   "contested": false
+  },
+  {
+   "init": {
+    "key": "k1",
+    "kind": "lesson",
+    "scope": "run",
+    "content": "内容",
+    "hit_runs": [
+     "b",
+     "a",
+     "B",
+     "A",
+     "_",
+     "中",
+     "￿",
+     "𐀀",
+     "😀"
+    ]
+   },
+   "out": {
+    "key": "k1",
+    "kind": "lesson",
+    "scope": "run",
+    "content": "内容",
+    "confidence": 0.5,
+    "support": [],
+    "tags": [],
+    "meta": {},
+    "created_run": "",
+    "last_used_run": "",
+    "use_count": 0,
+    "hit_runs": [
+     "A",
+     "B",
+     "_",
+     "a",
+     "b",
+     "中",
+     "￿",
+     "𐀀",
+     "😀"
+    ],
+    "contested_by": [],
+    "tier": "authoritative",
+    "origin_session": "",
+    "origin_files": []
+   },
+   "key_order": [
+    "key",
+    "kind",
+    "scope",
+    "content",
+    "confidence",
+    "support",
+    "tags",
+    "meta",
+    "created_run",
+    "last_used_run",
+    "use_count",
+    "hit_runs",
+    "contested_by",
+    "tier",
+    "origin_session",
+    "origin_files"
+   ],
+   "tokens": 3,
+   "contested": false
+  },
+  {
+   "init": {
+    "key": "k1",
+    "kind": "lesson",
+    "scope": "run",
+    "content": "内容",
+    "hit_runs": []
+   },
+   "out": {
+    "key": "k1",
+    "kind": "lesson",
+    "scope": "run",
+    "content": "内容",
+    "confidence": 0.5,
+    "support": [],
+    "tags": [],
+    "meta": {},
+    "created_run": "",
+    "last_used_run": "",
+    "use_count": 0,
+    "hit_runs": [],
+    "contested_by": [],
+    "tier": "authoritative",
+    "origin_session": "",
+    "origin_files": []
+   },
+   "key_order": [
+    "key",
+    "kind",
+    "scope",
+    "content",
+    "confidence",
+    "support",
+    "tags",
+    "meta",
+    "created_run",
+    "last_used_run",
+    "use_count",
+    "hit_runs",
+    "contested_by",
+    "tier",
+    "origin_session",
+    "origin_files"
+   ],
+   "tokens": 3,
+   "contested": false
+  },
+  {
+   "init": {
+    "key": "k1",
+    "kind": "lesson",
+    "scope": "run",
+    "content": "内容",
+    "meta": {},
+    "support": [],
+    "tags": []
+   },
+   "out": {
+    "key": "k1",
+    "kind": "lesson",
+    "scope": "run",
+    "content": "内容",
+    "confidence": 0.5,
+    "support": [],
+    "tags": [],
+    "meta": {},
+    "created_run": "",
+    "last_used_run": "",
+    "use_count": 0,
+    "hit_runs": [],
+    "contested_by": [],
+    "tier": "authoritative",
+    "origin_session": "",
+    "origin_files": []
+   },
+   "key_order": [
+    "key",
+    "kind",
+    "scope",
+    "content",
+    "confidence",
+    "support",
+    "tags",
+    "meta",
+    "created_run",
+    "last_used_run",
+    "use_count",
+    "hit_runs",
+    "contested_by",
+    "tier",
+    "origin_session",
+    "origin_files"
+   ],
+   "tokens": 3,
+   "contested": false
+  }
+ ],
+ "from_dict": [
+  {
+   "in": {
+    "key": "k",
+    "kind": "fact",
+    "scope": "tenant",
+    "content": "c"
+   },
+   "out": {
+    "key": "k",
+    "kind": "fact",
+    "scope": "tenant",
+    "content": "c",
+    "confidence": 0.5,
+    "support": [],
+    "tags": [],
+    "meta": {},
+    "created_run": "",
+    "last_used_run": "",
+    "use_count": 0,
+    "hit_runs": [],
+    "contested_by": [],
+    "tier": "authoritative",
+    "origin_session": "",
+    "origin_files": []
+   }
+  },
+  {
+   "in": {
+    "key": "k",
+    "kind": "decision",
+    "scope": "project",
+    "content": "c",
+    "confidence": 0.9,
+    "support": [
+     "s"
+    ],
+    "tags": [
+     "t"
+    ],
+    "meta": {
+     "x": 1
+    },
+    "created_run": "r1",
+    "last_used_run": "r2",
+    "use_count": 5,
+    "hit_runs": [
+     "r2",
+     "r1"
+    ],
+    "contested_by": [
+     "c1"
+    ]
+   },
+   "out": {
+    "key": "k",
+    "kind": "decision",
+    "scope": "project",
+    "content": "c",
+    "confidence": 0.9,
+    "support": [
+     "s"
+    ],
+    "tags": [
+     "t"
+    ],
+    "meta": {
+     "x": 1
+    },
+    "created_run": "r1",
+    "last_used_run": "r2",
+    "use_count": 5,
+    "hit_runs": [
+     "r1",
+     "r2"
+    ],
+    "contested_by": [
+     "c1"
+    ],
+    "tier": "authoritative",
+    "origin_session": "",
+    "origin_files": []
+   }
+  },
+  {
+   "in": {
+    "key": "k",
+    "kind": "artifact",
+    "scope": "node",
+    "content": "c",
+    "confidence": 0.5,
+    "support": [],
+    "tags": [],
+    "meta": {},
+    "created_run": "",
+    "last_used_run": "",
+    "use_count": 0,
+    "hit_runs": [],
+    "contested_by": [],
+    "tier": "reference",
+    "origin_session": "s",
+    "origin_files": [
+     "f"
+    ]
+   },
+   "out": {
+    "key": "k",
+    "kind": "artifact",
+    "scope": "node",
+    "content": "c",
+    "confidence": 0.5,
+    "support": [],
+    "tags": [],
+    "meta": {},
+    "created_run": "",
+    "last_used_run": "",
+    "use_count": 0,
+    "hit_runs": [],
+    "contested_by": [],
+    "tier": "reference",
+    "origin_session": "s",
+    "origin_files": [
+     "f"
+    ]
+   }
+  },
+  {
+   "in": {
+    "key": "k",
+    "kind": "convention",
+    "scope": "run",
+    "content": "c",
+    "hit_runs": [
+     "r1",
+     "r1",
+     "r2"
+    ]
+   },
+   "out": {
+    "key": "k",
+    "kind": "convention",
+    "scope": "run",
+    "content": "c",
+    "confidence": 0.5,
+    "support": [],
+    "tags": [],
+    "meta": {},
+    "created_run": "",
+    "last_used_run": "",
+    "use_count": 0,
+    "hit_runs": [
+     "r1",
+     "r2"
+    ],
+    "contested_by": [],
+    "tier": "authoritative",
+    "origin_session": "",
+    "origin_files": []
+   }
+  },
+  {
+   "in": {
+    "key": "k",
+    "kind": "lesson",
+    "scope": "run",
+    "content": "c",
+    "未知字段": 1
+   },
+   "out": {
+    "key": "k",
+    "kind": "lesson",
+    "scope": "run",
+    "content": "c",
+    "confidence": 0.5,
+    "support": [],
+    "tags": [],
+    "meta": {},
+    "created_run": "",
+    "last_used_run": "",
+    "use_count": 0,
+    "hit_runs": [],
+    "contested_by": [],
+    "tier": "authoritative",
+    "origin_session": "",
+    "origin_files": []
+   }
+  }
+ ],
+ "render": [
+  {
+   "init": {
+    "key": "k1",
+    "kind": "lesson",
+    "scope": "run",
+    "content": "内容"
+   },
+   "foreign_material": false,
+   "out": "[lesson] 内容"
+  },
+  {
+   "init": {
+    "key": "k1",
+    "kind": "lesson",
+    "scope": "run",
+    "content": "内容"
+   },
+   "foreign_material": true,
+   "out": "[lesson] 内容"
+  },
+  {
+   "init": {
+    "key": "k1",
+    "kind": "lesson",
+    "scope": "run",
+    "content": "内容",
+    "contested_by": [
+     "x"
+    ]
+   },
+   "foreign_material": false,
+   "out": "[lesson] ⚠争议 内容"
+  },
+  {
+   "init": {
+    "key": "k1",
+    "kind": "lesson",
+    "scope": "run",
+    "content": "内容",
+    "tier": "reference"
+   },
+   "foreign_material": false,
+   "out": "[lesson] 参考·未确认：内容"
+  },
+  {
+   "init": {
+    "key": "k1",
+    "kind": "lesson",
+    "scope": "run",
+    "content": "内容",
+    "tier": "reference"
+   },
+   "foreign_material": true,
+   "out": "[lesson] 参考·另一份材料·未确认：内容"
+  },
+  {
+   "init": {
+    "key": "k1",
+    "kind": "lesson",
+    "scope": "run",
+    "content": "内容",
+    "tier": "reference",
+    "origin_session": "需求澄清"
+   },
+   "foreign_material": false,
+   "out": "[lesson] 参考·来自会话《需求澄清》·未确认：内容"
+  },
+  {
+   "init": {
+    "key": "k1",
+    "kind": "lesson",
+    "scope": "run",
+    "content": "内容",
+    "tier": "reference",
+    "origin_session": "需求澄清"
+   },
+   "foreign_material": true,
+   "out": "[lesson] 参考·来自会话《需求澄清》·另一份材料·未确认：内容"
+  },
+  {
+   "init": {
+    "key": "k1",
+    "kind": "lesson",
+    "scope": "run",
+    "content": "内容",
+    "tier": "reference",
+    "origin_session": "需求澄清",
+    "contested_by": [
+     "x"
+    ]
+   },
+   "foreign_material": true,
+   "out": "[lesson] ⚠争议 参考·来自会话《需求澄清》·另一份材料·未确认：内容"
+  },
+  {
+   "init": {
+    "key": "k1",
+    "kind": "lesson",
+    "scope": "run",
+    "content": "内容",
+    "tier": "reference",
+    "contested_by": [
+     "x",
+     "y"
+    ]
+   },
+   "foreign_material": true,
+   "out": "[lesson] ⚠争议 参考·另一份材料·未确认：内容"
+  },
+  {
+   "init": {
+    "key": "k1",
+    "kind": "lesson",
+    "scope": "run",
+    "content": "内容",
+    "tier": "authoritative",
+    "contested_by": [
+     "x"
+    ]
+   },
+   "foreign_material": true,
+   "out": "[lesson] ⚠争议 内容"
+  },
+  {
+   "init": {
+    "key": "k1",
+    "kind": "decision",
+    "scope": "run",
+    "content": "",
+    "tier": "reference",
+    "origin_session": ""
+   },
+   "foreign_material": true,
+   "out": "[decision] 参考·另一份材料·未确认："
+  }
+ ],
+ "from_other_material": [
+  {
+   "init": {
+    "key": "k1",
+    "kind": "lesson",
+    "scope": "run",
+    "content": "内容"
+   },
+   "current": [
+    "f1"
+   ],
+   "out": false
+  },
+  {
+   "init": {
+    "key": "k1",
+    "kind": "lesson",
+    "scope": "run",
+    "content": "内容",
+    "tier": "reference",
+    "origin_files": [
+     "f1"
+    ]
+   },
+   "current": null,
+   "out": false
+  },
+  {
+   "init": {
+    "key": "k1",
+    "kind": "lesson",
+    "scope": "run",
+    "content": "内容",
+    "tier": "reference",
+    "origin_files": [
+     "f1"
+    ]
+   },
+   "current": [],
+   "out": false
+  },
+  {
+   "init": {
+    "key": "k1",
+    "kind": "lesson",
+    "scope": "run",
+    "content": "内容",
+    "tier": "reference",
+    "origin_files": []
+   },
+   "current": [
+    "f1"
+   ],
+   "out": false
+  },
+  {
+   "init": {
+    "key": "k1",
+    "kind": "lesson",
+    "scope": "run",
+    "content": "内容",
+    "tier": "reference",
+    "origin_files": [
+     "f1"
+    ]
+   },
+   "current": [
+    "f1"
+   ],
+   "out": false
+  },
+  {
+   "init": {
+    "key": "k1",
+    "kind": "lesson",
+    "scope": "run",
+    "content": "内容",
+    "tier": "reference",
+    "origin_files": [
+     "f1",
+     "f2"
+    ]
+   },
+   "current": [
+    "f2",
+    "f3"
+   ],
+   "out": false
+  },
+  {
+   "init": {
+    "key": "k1",
+    "kind": "lesson",
+    "scope": "run",
+    "content": "内容",
+    "tier": "reference",
+    "origin_files": [
+     "f1"
+    ]
+   },
+   "current": [
+    "f2"
+   ],
+   "out": true
+  },
+  {
+   "init": {
+    "key": "k1",
+    "kind": "lesson",
+    "scope": "run",
+    "content": "内容",
+    "tier": "reference",
+    "origin_files": [
+     "f1",
+     "f1"
+    ]
+   },
+   "current": [
+    "f1"
+   ],
+   "out": false
+  }
+ ],
+ "mem_key": [
+  {
+   "kind": "term",
+   "subject": "采购订单",
+   "out": "term:采购订单"
+  },
+  {
+   "kind": "term",
+   "subject": "Purchase Order Header",
+   "out": "term:purchase_order_header"
+  },
+  {
+   "kind": "lesson",
+   "subject": "  Trim Me  ",
+   "out": "lesson:trim_me"
+  },
+  {
+   "kind": "fact",
+   "subject": "",
+   "out": "fact:xe3b0c442"
+  },
+  {
+   "kind": "fact",
+   "subject": "---",
+   "out": "fact:xcb3f91d5"
+  },
+  {
+   "kind": "fact",
+   "subject": "x",
+   "out": "fact:2d711642b726"
+  },
+  {
+   "kind": "fact",
+   "subject": "X",
+   "out": "fact:4b68ab3847fe"
+  },
+  {
+   "kind": "fact",
+   "subject": " x ",
+   "out": "fact:fc191eafd9c5"
+  },
+  {
+   "kind": "fact",
+   "subject": "x!!!",
+   "out": "fact:bd4152cf79dc"
+  },
+  {
+   "kind": "convention",
+   "subject": "xx",
+   "out": "convention:xx"
+  },
+  {
+   "kind": "decision",
+   "subject": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "out": "decision:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  {
+   "kind": "decision",
+   "subject": "字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字",
+   "out": "decision:字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字"
+  },
+  {
+   "kind": "artifact",
+   "subject": "😀",
+   "out": "artifact:xf0443a34"
+  },
+  {
+   "kind": "artifact",
+   "subject": "混合 Mixed 名称 2024",
+   "out": "artifact:混合_mixed_名称_2024"
+  }
+ ],
+ "parse_rejects": [
+  {
+   "enum": "Scope",
+   "value": "nope",
+   "message": "'nope' is not a valid Scope"
+  },
+  {
+   "enum": "MemoryKind",
+   "value": "LESSON",
+   "message": "'LESSON' is not a valid MemoryKind"
+  },
+  {
+   "enum": "MemoryTier",
+   "value": "Authoritative",
+   "message": "'Authoritative' is not a valid MemoryTier"
+  }
+ ]
+}
