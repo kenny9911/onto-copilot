@@ -81,8 +81,8 @@ function norm(v: unknown): unknown {
 /** Python 的异常类型在 TS 侧没有对等物的那几步 —— **逐条列出来，不许静默放过**。
  *
  * `KeyError` 没有 JS 对等物（`str(KeyError("x"))` 还带一层 repr 引号），
- * `validateUsageRow` 抛的是 types.ts 里的 `Error` 而不是 `ValueError`
- * （那是别人的文件，本轮不改）。下面同时钉住 **Python 侧原本的形状**，
+ * （`validateUsageRow` 那条分叉已经修掉了 —— types.ts 现在抛 ValueError，
+ * 与 Python 一致，所以它不在这张表里。）下面同时钉住 **Python 侧原本的形状**，
  * 哪天 Python 改了消息，这个测试照样红。 */
 const ERROR_OVERRIDES: Record<
   string,
@@ -95,10 +95,6 @@ const ERROR_OVERRIDES: Record<
   "finalize_revision/missing": {
     python: { error: "KeyError", message: "'没有 Revision rev.99'" },
     ts: { error: "Error", message: "没有 Revision rev.99" },
-  },
-  "add_usage/bad": {
-    python: { error: "ValueError", message: "usage attempts 必须至少为 1" },
-    ts: { error: "Error", message: "usage attempts 必须至少为 1" },
   },
 };
 

@@ -644,8 +644,9 @@ describe("Postgres 分支", () => {
     expect(store.enabled).toBe(true);
     const health = await store.healthcheck();
     expect(health.ok).toBe(false);
-    // 报错必须说清楚是"驱动没接线"，不能让人以为是网络问题。
-    expect("error" in health ? health.error : "").toContain("Postgres 驱动未安装");
+    // 驱动接上之后（store/pg_driver.ts），这里报的是**真的连不上**，
+    // 而不是从前那句"驱动未安装"。原样把驱动的错带出来，别加工。
+    expect("error" in health ? health.error : "").toMatch(/ECONNREFUSED|ENOTFOUND|timeout/i);
     await store.close();
   });
 

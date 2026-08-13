@@ -48,11 +48,13 @@
  *
  * ── 已知分叉（对 Python 侧） ───────────────────────────────────────────────
  *
- *   1. **Postgres 连不上**：`pg` / `postgres` 驱动本轮没进依赖，PG 分支返回一个
- *      "一用就报错"的引擎。`Store.open()` 仍然成功（与 Python 一样不在 open 时连库），
- *      `healthcheck()` 因此回 `ok:false`，deps 的 lifespan 于是照 Python 的老路
- *      抛 "DATABASE_URL 已配置但连不上：…"。选路、URL 规范化、pool 参数全都在，
- *      只差最后一段接线。
+ *   1. **PG 分支已接上真驱动**（`store/pg_driver.ts`，`pg` + drizzle 的 sqlite-proxy；
+ *      为什么不是 `drizzle-orm/node-postgres` 见那个文件的文件头）。仍然**不在
+ *      `Store.open()` 时连库** —— 与 Python 的 `create_async_engine` 一样惰性，
+ *      失败点是 `healthcheck()`，deps 的 lifespan 照旧抛
+ *      "DATABASE_URL 已配置但连不上：…"。剩下的分叉：PG 上 `createAll` 不支持
+ *      （schema 只有 migrations/ 一个来源），以及 `SELECT … FOR UPDATE` 仍缺
+ *      （那要改 `repo/pg.ts`，见 pg_driver.ts 的分叉 1）。
  *   2. `run()` 拿不到 `changes` / `lastInsertRowid`（sqlite-proxy 的结果类型里没有
  *      这两个字段）。要影响行数就用 `.returning()`。
  *   3. `node:sqlite` 是**同步**的，查询期间事件循环是停的；Python 侧 aiosqlite 走线程池。
@@ -344,39 +346,16 @@ class SqliteEngine implements Engine {
   }
 }
 
-/** PG 驱动没进依赖时的占位引擎：**建得出来、一用就报错**。
+/** 建一个真的 PG 引擎。**动态 import**：没配 `DATABASE_URL` 的部署（零配置本地
+ * SQLite、纯内存测试）不该为 `pg` 付导入代价 —— 与 `store/const.ts`、
+ * `store/migrate.ts` 文件头写的是同一条纪律。
  *
- * 这是刻意的：Python 侧 `create_async_engine` 也不在 open 时连库，失败点在
- * `healthcheck()`。保持同一个失败点，deps 的"显式配了 DATABASE_URL 却连不上就直接
- * 失败、绝不偷偷回落到内存"那条纪律才照样成立。 */
-class PgUnavailableEngine implements Engine {
-  readonly dialect = "postgresql" as const;
-
-  constructor(
-    readonly url: string,
-    readonly pool: PgPoolOptions,
-  ) {}
-
-  unavailable(): never {
-    throw new Error(
-      "Postgres 驱动未安装：TS 侧本轮只有 drizzle-orm 一个运行时依赖，" +
-        "PG 分支（drizzle-orm/node-postgres + pg）尚未接线。" +
-        `URL 已规范化为 ${pgConnectionString(this.url)}，pool_size=${this.pool.poolSize}、` +
-        `max_overflow=${this.pool.maxOverflow}、pool_recycle=${this.pool.poolRecycle}。`,
-    );
-  }
-
-  async connect<T>(_fn: (conn: Conn) => Promise<T>): Promise<T> {
-    this.unavailable();
-  }
-
-  async begin<T>(_fn: (conn: Conn) => Promise<T>): Promise<T> {
-    this.unavailable();
-  }
-
-  async dispose(): Promise<void> {
-    return Promise.resolve();
-  }
+ * 与 Python 一样**不在这里连库**：`new Pool()` 是惰性的，第一次借连接才拨号。
+ * 失败点因此仍然是 `healthcheck()`，deps 的"显式配了 DATABASE_URL 却连不上就直接
+ * 失败、绝不偷偷回落到内存"那条纪律照样成立。 */
+async function makePgEngine(url: string, pool: PgPoolOptions): Promise<Engine> {
+  const { PgEngine } = await import("./pg_driver.js");
+  return new PgEngine(pgConnectionString(url), pool);
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -648,11 +627,17 @@ export class Store {
     if (isPostgresUrl(resolved)) {
       // pool 参数在这里就算出来：配错了（DB_POOL_SIZE=abc）要在启动时炸，
       // 与 Python 侧 int() 的失败时机一致。
-      const engine = new PgUnavailableEngine(resolved, pgPoolOptions());
-      // createAll 在 PG 上只有 Python 侧的测试会用（线上一律走 migrations/）。这里没有
-      // 驱动就建不了表，直接把驱动那条错抛出来 —— 假装建过了才是真正危险的。
-      if (opts.createAll === true) engine.unavailable();
-      return new Store("postgres", engine, resolved);
+      const pool = pgPoolOptions();
+      // createAll 在 PG 上只有 Python 侧的测试会用（线上一律走 migrations/）。
+      // TS 侧**不给第二个 PG schema 来源** —— 那会让"线上表结构从哪来"有两个答案，
+      // 而两个答案迟早不一致。显式报错，并说清该用什么。
+      if (opts.createAll === true) {
+        throw new Error(
+          "Postgres 上不支持 create_all：schema 的唯一来源是 migrations/。" +
+            "请用 store/migrate.ts 的 upgrade(engine) 跑迁移（PgEngine 已实现 MigrationEngine）。",
+        );
+      }
+      return new Store("postgres", await makePgEngine(resolved, pool), resolved);
     }
 
     const engine = new SqliteEngine(sqliteFilename(resolved), isMemoryUrl(resolved));

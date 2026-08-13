@@ -275,7 +275,7 @@ describe("ValueError 只有一份类身份", () => {
     const { validateUsageRow, makeUsageRow } = await import("../src/store/types.js");
     const { ValueError } = await import("../src/kernel/errors.js");
     // kind 不在 {build, chat, aux} 里
-    const bad = makeUsageRow({ id: "u1", model: "opus", kind: "nope" });
+    const bad = makeUsageRow({ id: "u1", model: "opus", kind: "nope", ts: 0, day: "2026-01-01" });
     expect(() => validateUsageRow(bad)).toThrow(ValueError);
     // 消息与 Python 逐字节一致（server 层拿 message 做子串匹配）
     expect(() => validateUsageRow(bad)).toThrow("usage kind 不支持: nope");

@@ -1,0 +1,606 @@
+{
+  "content_disposition": [
+    {
+      "ascii_fallback": "",
+      "name": "oir.json",
+      "out": "attachment; filename=\"download.json\"; filename*=UTF-8''oir.json"
+    },
+    {
+      "ascii_fallback": "download.zip",
+      "name": "oir.json",
+      "out": "attachment; filename=\"download.zip\"; filename*=UTF-8''oir.json"
+    },
+    {
+      "ascii_fallback": "bundle.zip",
+      "name": "oir.json",
+      "out": "attachment; filename=\"bundle.zip\"; filename*=UTF-8''oir.json"
+    },
+    {
+      "ascii_fallback": "",
+      "name": "flow.json",
+      "out": "attachment; filename=\"download.json\"; filename*=UTF-8''flow.json"
+    },
+    {
+      "ascii_fallback": "download.zip",
+      "name": "flow.json",
+      "out": "attachment; filename=\"download.zip\"; filename*=UTF-8''flow.json"
+    },
+    {
+      "ascii_fallback": "bundle.zip",
+      "name": "flow.json",
+      "out": "attachment; filename=\"bundle.zip\"; filename*=UTF-8''flow.json"
+    },
+    {
+      "ascii_fallback": "",
+      "name": "ontology.package.json",
+      "out": "attachment; filename=\"download.json\"; filename*=UTF-8''ontology.package.json"
+    },
+    {
+      "ascii_fallback": "download.zip",
+      "name": "ontology.package.json",
+      "out": "attachment; filename=\"download.zip\"; filename*=UTF-8''ontology.package.json"
+    },
+    {
+      "ascii_fallback": "bundle.zip",
+      "name": "ontology.package.json",
+      "out": "attachment; filename=\"bundle.zip\"; filename*=UTF-8''ontology.package.json"
+    },
+    {
+      "ascii_fallback": "",
+      "name": "template.spec.json",
+      "out": "attachment; filename=\"download.json\"; filename*=UTF-8''template.spec.json"
+    },
+    {
+      "ascii_fallback": "download.zip",
+      "name": "template.spec.json",
+      "out": "attachment; filename=\"download.zip\"; filename*=UTF-8''template.spec.json"
+    },
+    {
+      "ascii_fallback": "bundle.zip",
+      "name": "template.spec.json",
+      "out": "attachment; filename=\"bundle.zip\"; filename*=UTF-8''template.spec.json"
+    },
+    {
+      "ascii_fallback": "",
+      "name": "流程图.svg",
+      "out": "attachment; filename=\"download.svg\"; filename*=UTF-8''%E6%B5%81%E7%A8%8B%E5%9B%BE.svg"
+    },
+    {
+      "ascii_fallback": "download.zip",
+      "name": "流程图.svg",
+      "out": "attachment; filename=\"download.zip\"; filename*=UTF-8''%E6%B5%81%E7%A8%8B%E5%9B%BE.svg"
+    },
+    {
+      "ascii_fallback": "bundle.zip",
+      "name": "流程图.svg",
+      "out": "attachment; filename=\"bundle.zip\"; filename*=UTF-8''%E6%B5%81%E7%A8%8B%E5%9B%BE.svg"
+    },
+    {
+      "ascii_fallback": "",
+      "name": "流程图_主干.svg",
+      "out": "attachment; filename=\"download.svg\"; filename*=UTF-8''%E6%B5%81%E7%A8%8B%E5%9B%BE_%E4%B8%BB%E5%B9%B2.svg"
+    },
+    {
+      "ascii_fallback": "download.zip",
+      "name": "流程图_主干.svg",
+      "out": "attachment; filename=\"download.zip\"; filename*=UTF-8''%E6%B5%81%E7%A8%8B%E5%9B%BE_%E4%B8%BB%E5%B9%B2.svg"
+    },
+    {
+      "ascii_fallback": "bundle.zip",
+      "name": "流程图_主干.svg",
+      "out": "attachment; filename=\"bundle.zip\"; filename*=UTF-8''%E6%B5%81%E7%A8%8B%E5%9B%BE_%E4%B8%BB%E5%B9%B2.svg"
+    },
+    {
+      "ascii_fallback": "",
+      "name": "流程图.mmd",
+      "out": "attachment; filename=\"download.mmd\"; filename*=UTF-8''%E6%B5%81%E7%A8%8B%E5%9B%BE.mmd"
+    },
+    {
+      "ascii_fallback": "download.zip",
+      "name": "流程图.mmd",
+      "out": "attachment; filename=\"download.zip\"; filename*=UTF-8''%E6%B5%81%E7%A8%8B%E5%9B%BE.mmd"
+    },
+    {
+      "ascii_fallback": "bundle.zip",
+      "name": "流程图.mmd",
+      "out": "attachment; filename=\"bundle.zip\"; filename*=UTF-8''%E6%B5%81%E7%A8%8B%E5%9B%BE.mmd"
+    },
+    {
+      "ascii_fallback": "",
+      "name": "模板_v1.xlsx",
+      "out": "attachment; filename=\"download.xlsx\"; filename*=UTF-8''%E6%A8%A1%E6%9D%BF_v1.xlsx"
+    },
+    {
+      "ascii_fallback": "download.zip",
+      "name": "模板_v1.xlsx",
+      "out": "attachment; filename=\"download.zip\"; filename*=UTF-8''%E6%A8%A1%E6%9D%BF_v1.xlsx"
+    },
+    {
+      "ascii_fallback": "bundle.zip",
+      "name": "模板_v1.xlsx",
+      "out": "attachment; filename=\"bundle.zip\"; filename*=UTF-8''%E6%A8%A1%E6%9D%BF_v1.xlsx"
+    },
+    {
+      "ascii_fallback": "",
+      "name": "问题清单.xlsx",
+      "out": "attachment; filename=\"download.xlsx\"; filename*=UTF-8''%E9%97%AE%E9%A2%98%E6%B8%85%E5%8D%95.xlsx"
+    },
+    {
+      "ascii_fallback": "download.zip",
+      "name": "问题清单.xlsx",
+      "out": "attachment; filename=\"download.zip\"; filename*=UTF-8''%E9%97%AE%E9%A2%98%E6%B8%85%E5%8D%95.xlsx"
+    },
+    {
+      "ascii_fallback": "bundle.zip",
+      "name": "问题清单.xlsx",
+      "out": "attachment; filename=\"bundle.zip\"; filename*=UTF-8''%E9%97%AE%E9%A2%98%E6%B8%85%E5%8D%95.xlsx"
+    },
+    {
+      "ascii_fallback": "",
+      "name": "交付说明.md",
+      "out": "attachment; filename=\"download.md\"; filename*=UTF-8''%E4%BA%A4%E4%BB%98%E8%AF%B4%E6%98%8E.md"
+    },
+    {
+      "ascii_fallback": "download.zip",
+      "name": "交付说明.md",
+      "out": "attachment; filename=\"download.zip\"; filename*=UTF-8''%E4%BA%A4%E4%BB%98%E8%AF%B4%E6%98%8E.md"
+    },
+    {
+      "ascii_fallback": "bundle.zip",
+      "name": "交付说明.md",
+      "out": "attachment; filename=\"bundle.zip\"; filename*=UTF-8''%E4%BA%A4%E4%BB%98%E8%AF%B4%E6%98%8E.md"
+    },
+    {
+      "ascii_fallback": "",
+      "name": "交付包_测试 项目_s1.zip",
+      "out": "attachment; filename=\"download.zip\"; filename*=UTF-8''%E4%BA%A4%E4%BB%98%E5%8C%85_%E6%B5%8B%E8%AF%95%20%E9%A1%B9%E7%9B%AE_s1.zip"
+    },
+    {
+      "ascii_fallback": "download.zip",
+      "name": "交付包_测试 项目_s1.zip",
+      "out": "attachment; filename=\"download.zip\"; filename*=UTF-8''%E4%BA%A4%E4%BB%98%E5%8C%85_%E6%B5%8B%E8%AF%95%20%E9%A1%B9%E7%9B%AE_s1.zip"
+    },
+    {
+      "ascii_fallback": "bundle.zip",
+      "name": "交付包_测试 项目_s1.zip",
+      "out": "attachment; filename=\"bundle.zip\"; filename*=UTF-8''%E4%BA%A4%E4%BB%98%E5%8C%85_%E6%B5%8B%E8%AF%95%20%E9%A1%B9%E7%9B%AE_s1.zip"
+    },
+    {
+      "ascii_fallback": "",
+      "name": "回传_x.xlsx",
+      "out": "attachment; filename=\"download.xlsx\"; filename*=UTF-8''%E5%9B%9E%E4%BC%A0_x.xlsx"
+    },
+    {
+      "ascii_fallback": "download.zip",
+      "name": "回传_x.xlsx",
+      "out": "attachment; filename=\"download.zip\"; filename*=UTF-8''%E5%9B%9E%E4%BC%A0_x.xlsx"
+    },
+    {
+      "ascii_fallback": "bundle.zip",
+      "name": "回传_x.xlsx",
+      "out": "attachment; filename=\"bundle.zip\"; filename*=UTF-8''%E5%9B%9E%E4%BC%A0_x.xlsx"
+    },
+    {
+      "ascii_fallback": "",
+      "name": "data-objects.json",
+      "out": "attachment; filename=\"download.json\"; filename*=UTF-8''data-objects.json"
+    },
+    {
+      "ascii_fallback": "download.zip",
+      "name": "data-objects.json",
+      "out": "attachment; filename=\"download.zip\"; filename*=UTF-8''data-objects.json"
+    },
+    {
+      "ascii_fallback": "bundle.zip",
+      "name": "data-objects.json",
+      "out": "attachment; filename=\"bundle.zip\"; filename*=UTF-8''data-objects.json"
+    },
+    {
+      "ascii_fallback": "",
+      "name": "README",
+      "out": "attachment; filename=\"download.bin\"; filename*=UTF-8''README"
+    },
+    {
+      "ascii_fallback": "download.zip",
+      "name": "README",
+      "out": "attachment; filename=\"download.zip\"; filename*=UTF-8''README"
+    },
+    {
+      "ascii_fallback": "bundle.zip",
+      "name": "README",
+      "out": "attachment; filename=\"bundle.zip\"; filename*=UTF-8''README"
+    },
+    {
+      "ascii_fallback": "",
+      "name": "a b.txt",
+      "out": "attachment; filename=\"download.txt\"; filename*=UTF-8''a%20b.txt"
+    },
+    {
+      "ascii_fallback": "download.zip",
+      "name": "a b.txt",
+      "out": "attachment; filename=\"download.zip\"; filename*=UTF-8''a%20b.txt"
+    },
+    {
+      "ascii_fallback": "bundle.zip",
+      "name": "a b.txt",
+      "out": "attachment; filename=\"bundle.zip\"; filename*=UTF-8''a%20b.txt"
+    },
+    {
+      "ascii_fallback": "",
+      "name": "报告.pdf",
+      "out": "attachment; filename=\"download.pdf\"; filename*=UTF-8''%E6%8A%A5%E5%91%8A.pdf"
+    },
+    {
+      "ascii_fallback": "download.zip",
+      "name": "报告.pdf",
+      "out": "attachment; filename=\"download.zip\"; filename*=UTF-8''%E6%8A%A5%E5%91%8A.pdf"
+    },
+    {
+      "ascii_fallback": "bundle.zip",
+      "name": "报告.pdf",
+      "out": "attachment; filename=\"bundle.zip\"; filename*=UTF-8''%E6%8A%A5%E5%91%8A.pdf"
+    },
+    {
+      "ascii_fallback": "",
+      "name": "x.csv",
+      "out": "attachment; filename=\"download.csv\"; filename*=UTF-8''x.csv"
+    },
+    {
+      "ascii_fallback": "download.zip",
+      "name": "x.csv",
+      "out": "attachment; filename=\"download.zip\"; filename*=UTF-8''x.csv"
+    },
+    {
+      "ascii_fallback": "bundle.zip",
+      "name": "x.csv",
+      "out": "attachment; filename=\"bundle.zip\"; filename*=UTF-8''x.csv"
+    },
+    {
+      "ascii_fallback": "",
+      "name": "x.docx",
+      "out": "attachment; filename=\"download.docx\"; filename*=UTF-8''x.docx"
+    },
+    {
+      "ascii_fallback": "download.zip",
+      "name": "x.docx",
+      "out": "attachment; filename=\"download.zip\"; filename*=UTF-8''x.docx"
+    },
+    {
+      "ascii_fallback": "bundle.zip",
+      "name": "x.docx",
+      "out": "attachment; filename=\"bundle.zip\"; filename*=UTF-8''x.docx"
+    },
+    {
+      "ascii_fallback": "",
+      "name": "x.bpmn",
+      "out": "attachment; filename=\"download.bpmn\"; filename*=UTF-8''x.bpmn"
+    },
+    {
+      "ascii_fallback": "download.zip",
+      "name": "x.bpmn",
+      "out": "attachment; filename=\"download.zip\"; filename*=UTF-8''x.bpmn"
+    },
+    {
+      "ascii_fallback": "bundle.zip",
+      "name": "x.bpmn",
+      "out": "attachment; filename=\"bundle.zip\"; filename*=UTF-8''x.bpmn"
+    },
+    {
+      "ascii_fallback": "",
+      "name": "x.jsonl",
+      "out": "attachment; filename=\"download.jsonl\"; filename*=UTF-8''x.jsonl"
+    },
+    {
+      "ascii_fallback": "download.zip",
+      "name": "x.jsonl",
+      "out": "attachment; filename=\"download.zip\"; filename*=UTF-8''x.jsonl"
+    },
+    {
+      "ascii_fallback": "bundle.zip",
+      "name": "x.jsonl",
+      "out": "attachment; filename=\"bundle.zip\"; filename*=UTF-8''x.jsonl"
+    }
+  ],
+  "file_response": [
+    {
+      "content_disposition": "attachment; filename=\"oir.json\"",
+      "media_type": "application/json",
+      "name": "oir.json"
+    },
+    {
+      "content_disposition": "attachment; filename=\"flow.json\"",
+      "media_type": "application/json",
+      "name": "flow.json"
+    },
+    {
+      "content_disposition": "attachment; filename=\"ontology.package.json\"",
+      "media_type": "application/json",
+      "name": "ontology.package.json"
+    },
+    {
+      "content_disposition": "attachment; filename=\"template.spec.json\"",
+      "media_type": "application/json",
+      "name": "template.spec.json"
+    },
+    {
+      "content_disposition": "attachment; filename*=utf-8''%E6%B5%81%E7%A8%8B%E5%9B%BE.svg",
+      "media_type": "image/svg+xml",
+      "name": "流程图.svg"
+    },
+    {
+      "content_disposition": "attachment; filename*=utf-8''%E6%B5%81%E7%A8%8B%E5%9B%BE_%E4%B8%BB%E5%B9%B2.svg",
+      "media_type": "image/svg+xml",
+      "name": "流程图_主干.svg"
+    },
+    {
+      "content_disposition": "attachment; filename*=utf-8''%E6%B5%81%E7%A8%8B%E5%9B%BE.mmd",
+      "media_type": "application/vnd.chipnuts.karaoke-mmd",
+      "name": "流程图.mmd"
+    },
+    {
+      "content_disposition": "attachment; filename*=utf-8''%E6%A8%A1%E6%9D%BF_v1.xlsx",
+      "media_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "name": "模板_v1.xlsx"
+    },
+    {
+      "content_disposition": "attachment; filename*=utf-8''%E9%97%AE%E9%A2%98%E6%B8%85%E5%8D%95.xlsx",
+      "media_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "name": "问题清单.xlsx"
+    },
+    {
+      "content_disposition": "attachment; filename*=utf-8''%E4%BA%A4%E4%BB%98%E8%AF%B4%E6%98%8E.md",
+      "media_type": "text/markdown",
+      "name": "交付说明.md"
+    },
+    {
+      "content_disposition": "attachment; filename*=utf-8''%E4%BA%A4%E4%BB%98%E5%8C%85_%E6%B5%8B%E8%AF%95%20%E9%A1%B9%E7%9B%AE_s1.zip",
+      "media_type": "application/zip",
+      "name": "交付包_测试 项目_s1.zip"
+    },
+    {
+      "content_disposition": "attachment; filename*=utf-8''%E5%9B%9E%E4%BC%A0_x.xlsx",
+      "media_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "name": "回传_x.xlsx"
+    },
+    {
+      "content_disposition": "attachment; filename=\"data-objects.json\"",
+      "media_type": "application/json",
+      "name": "data-objects.json"
+    },
+    {
+      "content_disposition": "attachment; filename=\"README\"",
+      "media_type": "application/octet-stream",
+      "name": "README"
+    },
+    {
+      "content_disposition": "attachment; filename*=utf-8''a%20b.txt",
+      "media_type": "text/plain",
+      "name": "a b.txt"
+    },
+    {
+      "content_disposition": "attachment; filename*=utf-8''%E6%8A%A5%E5%91%8A.pdf",
+      "media_type": "application/pdf",
+      "name": "报告.pdf"
+    },
+    {
+      "content_disposition": "attachment; filename=\"x.csv\"",
+      "media_type": "text/csv",
+      "name": "x.csv"
+    },
+    {
+      "content_disposition": "attachment; filename=\"x.docx\"",
+      "media_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "name": "x.docx"
+    },
+    {
+      "content_disposition": "attachment; filename=\"x.bpmn\"",
+      "media_type": "application/octet-stream",
+      "name": "x.bpmn"
+    },
+    {
+      "content_disposition": "attachment; filename=\"x.jsonl\"",
+      "media_type": "application/octet-stream",
+      "name": "x.jsonl"
+    }
+  ],
+  "formats": [
+    "md",
+    "csv",
+    "xlsx",
+    "docx",
+    "pdf"
+  ],
+  "resolve_format": [
+    {
+      "fmt": "xlsx",
+      "out": "xlsx"
+    },
+    {
+      "fmt": "XLSX",
+      "out": "xlsx"
+    },
+    {
+      "fmt": " .csv",
+      "out": "csv"
+    },
+    {
+      "fmt": "excel",
+      "out": "xlsx"
+    },
+    {
+      "fmt": "表格",
+      "out": "xlsx"
+    },
+    {
+      "fmt": "word",
+      "out": "docx"
+    },
+    {
+      "fmt": "文档",
+      "out": "docx"
+    },
+    {
+      "fmt": "md",
+      "out": "md"
+    },
+    {
+      "fmt": "markdown",
+      "out": "md"
+    },
+    {
+      "fmt": "文本",
+      "out": "md"
+    },
+    {
+      "fmt": "txt",
+      "out": "md"
+    },
+    {
+      "fmt": "pdf",
+      "out": "pdf"
+    },
+    {
+      "fmt": "docx",
+      "out": "docx"
+    },
+    {
+      "fmt": "zip",
+      "out": ""
+    },
+    {
+      "fmt": "",
+      "out": ""
+    },
+    {
+      "fmt": "xls",
+      "out": "xlsx"
+    },
+    {
+      "fmt": "spreadsheet",
+      "out": "xlsx"
+    },
+    {
+      "fmt": "doc",
+      "out": "docx"
+    }
+  ],
+  "safe_name": [
+    {
+      "ext": "xlsx",
+      "out": "清单.xlsx",
+      "title": "清单"
+    },
+    {
+      "ext": "md",
+      "out": "清单.md",
+      "title": "清单"
+    },
+    {
+      "ext": "xlsx",
+      "out": "对象_属性 一览.xlsx",
+      "title": "对象/属性 一览"
+    },
+    {
+      "ext": "md",
+      "out": "对象_属性 一览.md",
+      "title": "对象/属性 一览"
+    },
+    {
+      "ext": "xlsx",
+      "out": "前后空格.xlsx",
+      "title": "  前后空格  "
+    },
+    {
+      "ext": "md",
+      "out": "前后空格.md",
+      "title": "  前后空格  "
+    },
+    {
+      "ext": "xlsx",
+      "out": "导出.xlsx",
+      "title": ""
+    },
+    {
+      "ext": "md",
+      "out": "导出.md",
+      "title": ""
+    },
+    {
+      "ext": "xlsx",
+      "out": "导出.xlsx",
+      "title": ".."
+    },
+    {
+      "ext": "md",
+      "out": "导出.md",
+      "title": ".."
+    },
+    {
+      "ext": "xlsx",
+      "out": "导出.xlsx",
+      "title": "."
+    },
+    {
+      "ext": "md",
+      "out": "导出.md",
+      "title": "."
+    },
+    {
+      "ext": "xlsx",
+      "out": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.xlsx",
+      "title": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "ext": "md",
+      "out": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.md",
+      "title": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "ext": "xlsx",
+      "out": "含_斜杠_冒号_星号_问号_引号___竖线.xlsx",
+      "title": "含\\斜杠:冒号*星号?问号\"引号<>|竖线"
+    },
+    {
+      "ext": "md",
+      "out": "含_斜杠_冒号_星号_问号_引号___竖线.md",
+      "title": "含\\斜杠:冒号*星号?问号\"引号<>|竖线"
+    },
+    {
+      "ext": "xlsx",
+      "out": "多 个 空格.xlsx",
+      "title": "多   个   空格"
+    },
+    {
+      "ext": "md",
+      "out": "多 个 空格.md",
+      "title": "多   个   空格"
+    }
+  ],
+  "spec": {
+    "csv": {
+      "ext": "csv",
+      "label": "CSV",
+      "media_type": "text/csv; charset=utf-8"
+    },
+    "docx": {
+      "ext": "docx",
+      "label": "Word",
+      "media_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    },
+    "md": {
+      "ext": "md",
+      "label": "Markdown",
+      "media_type": "text/markdown; charset=utf-8"
+    },
+    "pdf": {
+      "ext": "pdf",
+      "label": "PDF",
+      "media_type": "application/pdf"
+    },
+    "xlsx": {
+      "ext": "xlsx",
+      "label": "Excel",
+      "media_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    }
+  }
+}
