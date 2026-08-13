@@ -509,17 +509,15 @@ llm_usage = sa.Table(
     sa.Column("status", sa.Text, nullable=False, server_default="ok"),
     sa.Column("created_at", sa.DateTime(timezone=True), nullable=False,
               server_default=sa.func.now()),
+    # 这四条曾经各写了两遍（复制粘贴留下的）。SQLAlchemy **不按名字去重** ——
+    # 两个方言编出来的 CREATE TABLE 里每条都出现两次。SQLite 不校验约束名唯一性
+    # 所以一直没人发现；换成 Postgres 跑 create_all 就会直接建表失败。
+    # 目前 PG 走 migrate.py 不走 create_all，所以这是颗还没踩到的雷，不是活故障。
     sa.CheckConstraint("kind IN ('build','chat','aux')", name="llm_usage_kind_ck"),
     sa.CheckConstraint(
         "tok_in >= 0 AND tok_out >= 0 AND cache_read >= 0 AND cache_write >= 0",
         name="llm_usage_tokens_ck",
     ),
-    sa.CheckConstraint("usd >= 0", name="llm_usage_usd_ck"),
-    sa.CheckConstraint("attempts >= 1", name="llm_usage_attempts_ck"),
-    sa.CheckConstraint("kind IN ('build','chat','aux')", name="llm_usage_kind_ck"),
-    sa.CheckConstraint(
-        "tok_in >= 0 AND tok_out >= 0 AND cache_read >= 0 AND cache_write >= 0",
-        name="llm_usage_tokens_ck"),
     sa.CheckConstraint("usd >= 0", name="llm_usage_usd_ck"),
     sa.CheckConstraint("attempts >= 1", name="llm_usage_attempts_ck"),
     sa.CheckConstraint("usd_source IN ('gateway','estimated')",

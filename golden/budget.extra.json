@@ -1,0 +1,798 @@
+{
+ "snapshot": [
+  {
+   "limits": {},
+   "spends": [],
+   "out": {
+    "spent": {
+     "tokens": 0.0,
+     "wallclock_s": 0.0,
+     "tool_calls": 0.0,
+     "usd": 0.0
+    },
+    "limits": {
+     "tokens": 2000000.0,
+     "wallclock_s": 3600.0,
+     "tool_calls": 500.0,
+     "usd": 50.0
+    },
+    "tightest": "tokens",
+    "remaining_ratio": 1.0,
+    "level": 0,
+    "level_label": "正常"
+   }
+  },
+  {
+   "limits": {
+    "tokens": 1000,
+    "usd": 10.0
+   },
+   "spends": [
+    {
+     "tokens": 968.75
+    }
+   ],
+   "out": {
+    "spent": {
+     "tokens": 968.75,
+     "wallclock_s": 0.0,
+     "tool_calls": 0.0,
+     "usd": 0.0
+    },
+    "limits": {
+     "tokens": 1000.0,
+     "wallclock_s": 3600.0,
+     "tool_calls": 500.0,
+     "usd": 10.0
+    },
+    "tightest": "tokens",
+    "remaining_ratio": 0.0312,
+    "level": 4,
+    "level_label": "暂停并保存 checkpoint"
+   }
+  },
+  {
+   "limits": {
+    "tokens": 1000,
+    "usd": 10.0
+   },
+   "spends": [
+    {
+     "tokens": 843.75
+    }
+   ],
+   "out": {
+    "spent": {
+     "tokens": 843.75,
+     "wallclock_s": 0.0,
+     "tool_calls": 0.0,
+     "usd": 0.0
+    },
+    "limits": {
+     "tokens": 1000.0,
+     "wallclock_s": 3600.0,
+     "tool_calls": 500.0,
+     "usd": 10.0
+    },
+    "tightest": "tokens",
+    "remaining_ratio": 0.1562,
+    "level": 2,
+    "level_label": "critic 轮数降至 1"
+   }
+  },
+  {
+   "limits": {
+    "tokens": 1000,
+    "usd": 10.0
+   },
+   "spends": [
+    {
+     "tokens": 100,
+     "usd": 4.0
+    },
+    {
+     "usd": 5.0
+    }
+   ],
+   "out": {
+    "spent": {
+     "tokens": 100.0,
+     "wallclock_s": 0.0,
+     "tool_calls": 0.0,
+     "usd": 9.0
+    },
+    "limits": {
+     "tokens": 1000.0,
+     "wallclock_s": 3600.0,
+     "tool_calls": 500.0,
+     "usd": 10.0
+    },
+    "tightest": "usd",
+    "remaining_ratio": 0.1,
+    "level": 3,
+    "level_label": "仅规则评审（产物标记未经语义审核）"
+   }
+  },
+  {
+   "limits": {
+    "tokens": 1000
+   },
+   "spends": [
+    {
+     "tokens": 2000
+    }
+   ],
+   "out": {
+    "spent": {
+     "tokens": 2000.0,
+     "wallclock_s": 0.0,
+     "tool_calls": 0.0,
+     "usd": 0.0
+    },
+    "limits": {
+     "tokens": 1000.0,
+     "wallclock_s": 3600.0,
+     "tool_calls": 500.0,
+     "usd": 50.0
+    },
+    "tightest": "tokens",
+    "remaining_ratio": 0.0,
+    "level": 4,
+    "level_label": "暂停并保存 checkpoint"
+   }
+  },
+  {
+   "limits": {
+    "tokens": 0
+   },
+   "spends": [],
+   "out": {
+    "spent": {
+     "tokens": 0.0,
+     "wallclock_s": 0.0,
+     "tool_calls": 0.0,
+     "usd": 0.0
+    },
+    "limits": {
+     "tokens": 0.0,
+     "wallclock_s": 3600.0,
+     "tool_calls": 500.0,
+     "usd": 50.0
+    },
+    "tightest": "tokens",
+    "remaining_ratio": 1.0,
+    "level": 0,
+    "level_label": "正常"
+   }
+  },
+  {
+   "limits": {
+    "tokens": -5
+   },
+   "spends": [],
+   "out": {
+    "spent": {
+     "tokens": 0.0,
+     "wallclock_s": 0.0,
+     "tool_calls": 0.0,
+     "usd": 0.0
+    },
+    "limits": {
+     "tokens": -5.0,
+     "wallclock_s": 3600.0,
+     "tool_calls": 500.0,
+     "usd": 50.0
+    },
+    "tightest": "tokens",
+    "remaining_ratio": 1.0,
+    "level": 0,
+    "level_label": "正常"
+   }
+  },
+  {
+   "limits": {
+    "tokens": 1000,
+    "wallclock_s": 100,
+    "tool_calls": 10,
+    "usd": 1.0
+   },
+   "spends": [
+    {
+     "wallclock_s": 50,
+     "tool_calls": 9,
+     "usd": 0.5
+    }
+   ],
+   "out": {
+    "spent": {
+     "tokens": 0.0,
+     "wallclock_s": 50.0,
+     "tool_calls": 9.0,
+     "usd": 0.5
+    },
+    "limits": {
+     "tokens": 1000.0,
+     "wallclock_s": 100.0,
+     "tool_calls": 10.0,
+     "usd": 1.0
+    },
+    "tightest": "tool_calls",
+    "remaining_ratio": 0.1,
+    "level": 3,
+    "level_label": "仅规则评审（产物标记未经语义审核）"
+   }
+  }
+ ],
+ "accessors": [
+  {
+   "limits": {},
+   "spends": [],
+   "dims": [
+    {
+     "dim": "tokens",
+     "limit": 2000000.0,
+     "spent": 0.0,
+     "remaining": 2000000.0,
+     "ratio": 1.0
+    },
+    {
+     "dim": "wallclock_s",
+     "limit": 3600.0,
+     "spent": 0.0,
+     "remaining": 3600.0,
+     "ratio": 1.0
+    },
+    {
+     "dim": "tool_calls",
+     "limit": 500.0,
+     "spent": 0.0,
+     "remaining": 500.0,
+     "ratio": 1.0
+    },
+    {
+     "dim": "usd",
+     "limit": 50.0,
+     "spent": 0.0,
+     "remaining": 50.0,
+     "ratio": 1.0
+    }
+   ],
+   "tightest": [
+    "tokens",
+    1.0
+   ]
+  },
+  {
+   "limits": {
+    "tokens": 1000,
+    "usd": 10.0
+   },
+   "spends": [
+    {
+     "tokens": 300,
+     "usd": 3.0
+    }
+   ],
+   "dims": [
+    {
+     "dim": "tokens",
+     "limit": 1000.0,
+     "spent": 300.0,
+     "remaining": 700.0,
+     "ratio": 0.7
+    },
+    {
+     "dim": "wallclock_s",
+     "limit": 3600.0,
+     "spent": 0.0,
+     "remaining": 3600.0,
+     "ratio": 1.0
+    },
+    {
+     "dim": "tool_calls",
+     "limit": 500.0,
+     "spent": 0.0,
+     "remaining": 500.0,
+     "ratio": 1.0
+    },
+    {
+     "dim": "usd",
+     "limit": 10.0,
+     "spent": 3.0,
+     "remaining": 7.0,
+     "ratio": 0.7
+    }
+   ],
+   "tightest": [
+    "tokens",
+    0.7
+   ]
+  },
+  {
+   "limits": {
+    "tokens": 1000,
+    "wallclock_s": 100,
+    "tool_calls": 10,
+    "usd": 10.0
+   },
+   "spends": [
+    {
+     "wallclock_s": 80,
+     "tool_calls": 8
+    }
+   ],
+   "dims": [
+    {
+     "dim": "tokens",
+     "limit": 1000.0,
+     "spent": 0.0,
+     "remaining": 1000.0,
+     "ratio": 1.0
+    },
+    {
+     "dim": "wallclock_s",
+     "limit": 100.0,
+     "spent": 80.0,
+     "remaining": 20.0,
+     "ratio": 0.19999999999999996
+    },
+    {
+     "dim": "tool_calls",
+     "limit": 10.0,
+     "spent": 8.0,
+     "remaining": 2.0,
+     "ratio": 0.19999999999999996
+    },
+    {
+     "dim": "usd",
+     "limit": 10.0,
+     "spent": 0.0,
+     "remaining": 10.0,
+     "ratio": 1.0
+    }
+   ],
+   "tightest": [
+    "wallclock_s",
+    0.19999999999999996
+   ]
+  },
+  {
+   "limits": {
+    "tokens": 1000
+   },
+   "spends": [
+    {
+     "tokens": 2000
+    }
+   ],
+   "dims": [
+    {
+     "dim": "tokens",
+     "limit": 1000.0,
+     "spent": 2000.0,
+     "remaining": 0.0,
+     "ratio": 0.0
+    },
+    {
+     "dim": "wallclock_s",
+     "limit": 3600.0,
+     "spent": 0.0,
+     "remaining": 3600.0,
+     "ratio": 1.0
+    },
+    {
+     "dim": "tool_calls",
+     "limit": 500.0,
+     "spent": 0.0,
+     "remaining": 500.0,
+     "ratio": 1.0
+    },
+    {
+     "dim": "usd",
+     "limit": 50.0,
+     "spent": 0.0,
+     "remaining": 50.0,
+     "ratio": 1.0
+    }
+   ],
+   "tightest": [
+    "tokens",
+    0.0
+   ]
+  },
+  {
+   "limits": {
+    "tokens": 0
+   },
+   "spends": [],
+   "dims": [
+    {
+     "dim": "tokens",
+     "limit": 0.0,
+     "spent": 0.0,
+     "remaining": 0.0,
+     "ratio": 1.0
+    },
+    {
+     "dim": "wallclock_s",
+     "limit": 3600.0,
+     "spent": 0.0,
+     "remaining": 3600.0,
+     "ratio": 1.0
+    },
+    {
+     "dim": "tool_calls",
+     "limit": 500.0,
+     "spent": 0.0,
+     "remaining": 500.0,
+     "ratio": 1.0
+    },
+    {
+     "dim": "usd",
+     "limit": 50.0,
+     "spent": 0.0,
+     "remaining": 50.0,
+     "ratio": 1.0
+    }
+   ],
+   "tightest": [
+    "tokens",
+    1.0
+   ]
+  }
+ ],
+ "check": [
+  {
+   "limits": {
+    "tokens": 1000
+   },
+   "spends": [
+    {
+     "tokens": 300
+    }
+   ],
+   "dim": null,
+   "raises": false
+  },
+  {
+   "limits": {
+    "tokens": 1000
+   },
+   "spends": [
+    {
+     "tokens": 1000
+    }
+   ],
+   "dim": null,
+   "raises": true,
+   "message": "tokens 预算耗尽: 1000 / 1000",
+   "dimension": "tokens",
+   "limit": 1000.0,
+   "spent": 1000.0
+  },
+  {
+   "limits": {
+    "tokens": 1000
+   },
+   "spends": [
+    {
+     "tokens": 1200
+    }
+   ],
+   "dim": "tokens",
+   "raises": true,
+   "message": "tokens 预算耗尽: 1200 / 1000",
+   "dimension": "tokens",
+   "limit": 1000.0,
+   "spent": 1200.0
+  },
+  {
+   "limits": {
+    "tokens": 2.5
+   },
+   "spends": [
+    {
+     "tokens": 2.5
+    }
+   ],
+   "dim": "tokens",
+   "raises": true,
+   "message": "tokens 预算耗尽: 2 / 2",
+   "dimension": "tokens",
+   "limit": 2.5,
+   "spent": 2.5
+  },
+  {
+   "limits": {
+    "usd": 10.0
+   },
+   "spends": [
+    {
+     "usd": 10.5
+    }
+   ],
+   "dim": "usd",
+   "raises": true,
+   "message": "usd 预算耗尽: 10 / 10",
+   "dimension": "usd",
+   "limit": 10.0,
+   "spent": 10.5
+  },
+  {
+   "limits": {
+    "tokens": 0
+   },
+   "spends": [],
+   "dim": "tokens",
+   "raises": true,
+   "message": "tokens 预算耗尽: 0 / 0",
+   "dimension": "tokens",
+   "limit": 0.0,
+   "spent": 0.0
+  },
+  {
+   "limits": {
+    "tokens": -5
+   },
+   "spends": [],
+   "dim": "tokens",
+   "raises": true,
+   "message": "tokens 预算耗尽: 0 / -5",
+   "dimension": "tokens",
+   "limit": -5.0,
+   "spent": 0.0
+  }
+ ],
+ "spend_unknown_dim": {
+  "key": "nope",
+  "arg0": "未知预算维度: nope",
+  "spent_after": {
+   "tokens": 0.0,
+   "wallclock_s": 0.0,
+   "tool_calls": 0.0,
+   "usd": 0.0
+  }
+ },
+ "spend_partial_before_throw": {
+  "tokens": 10.0,
+  "wallclock_s": 0.0,
+  "tool_calls": 0.0,
+  "usd": 0.0
+ },
+ "labels": [
+  {
+   "level": 0,
+   "name": "NONE",
+   "label": "正常"
+  },
+  {
+   "level": 1,
+   "name": "NO_SELF_CONSISTENCY",
+   "label": "关闭多采样自洽"
+  },
+  {
+   "level": 2,
+   "name": "FEWER_CRITIC_ROUNDS",
+   "label": "critic 轮数降至 1"
+  },
+  {
+   "level": 3,
+   "name": "RULES_ONLY",
+   "label": "仅规则评审（产物标记未经语义审核）"
+  },
+  {
+   "level": 4,
+   "name": "HALT",
+   "label": "暂停并保存 checkpoint"
+  }
+ ],
+ "pinned": [
+  {
+   "pinned": 0,
+   "level": 0,
+   "critic_rounds": [
+    {
+     "requested": 0,
+     "out": 0
+    },
+    {
+     "requested": 1,
+     "out": 1
+    },
+    {
+     "requested": 2,
+     "out": 2
+    },
+    {
+     "requested": 3,
+     "out": 3
+    },
+    {
+     "requested": 5,
+     "out": 5
+    }
+   ],
+   "allow_self_consistency": true,
+   "allow_llm_critic": true,
+   "must_halt": false
+  },
+  {
+   "pinned": 1,
+   "level": 1,
+   "critic_rounds": [
+    {
+     "requested": 0,
+     "out": 0
+    },
+    {
+     "requested": 1,
+     "out": 1
+    },
+    {
+     "requested": 2,
+     "out": 2
+    },
+    {
+     "requested": 3,
+     "out": 3
+    },
+    {
+     "requested": 5,
+     "out": 5
+    }
+   ],
+   "allow_self_consistency": false,
+   "allow_llm_critic": true,
+   "must_halt": false
+  },
+  {
+   "pinned": 2,
+   "level": 2,
+   "critic_rounds": [
+    {
+     "requested": 0,
+     "out": 0
+    },
+    {
+     "requested": 1,
+     "out": 1
+    },
+    {
+     "requested": 2,
+     "out": 1
+    },
+    {
+     "requested": 3,
+     "out": 1
+    },
+    {
+     "requested": 5,
+     "out": 1
+    }
+   ],
+   "allow_self_consistency": false,
+   "allow_llm_critic": true,
+   "must_halt": false
+  },
+  {
+   "pinned": 3,
+   "level": 3,
+   "critic_rounds": [
+    {
+     "requested": 0,
+     "out": 0
+    },
+    {
+     "requested": 1,
+     "out": 0
+    },
+    {
+     "requested": 2,
+     "out": 0
+    },
+    {
+     "requested": 3,
+     "out": 0
+    },
+    {
+     "requested": 5,
+     "out": 0
+    }
+   ],
+   "allow_self_consistency": false,
+   "allow_llm_critic": false,
+   "must_halt": false
+  },
+  {
+   "pinned": 4,
+   "level": 4,
+   "critic_rounds": [
+    {
+     "requested": 0,
+     "out": 0
+    },
+    {
+     "requested": 1,
+     "out": 0
+    },
+    {
+     "requested": 2,
+     "out": 0
+    },
+    {
+     "requested": 3,
+     "out": 0
+    },
+    {
+     "requested": 5,
+     "out": 0
+    }
+   ],
+   "allow_self_consistency": false,
+   "allow_llm_critic": false,
+   "must_halt": true
+  }
+ ],
+ "pin_monotonic": {
+  "after_pin_3": 3,
+  "after_pin_1": 3
+ },
+ "round4": [
+  {
+   "in": 0.03125,
+   "out": 0.0312
+  },
+  {
+   "in": 0.15625,
+   "out": 0.1562
+  },
+  {
+   "in": 0.09375,
+   "out": 0.0938
+  },
+  {
+   "in": 0.21875,
+   "out": 0.2188
+  },
+  {
+   "in": 0.12345,
+   "out": 0.1235
+  },
+  {
+   "in": 5e-05,
+   "out": 0.0001
+  },
+  {
+   "in": 0.99995,
+   "out": 1.0
+  },
+  {
+   "in": 0.0,
+   "out": 0.0
+  },
+  {
+   "in": 1.0,
+   "out": 1.0
+  },
+  {
+   "in": 0.5,
+   "out": 0.5
+  },
+  {
+   "in": 0.3333333333333333,
+   "out": 0.3333
+  },
+  {
+   "in": 0.6666666666666666,
+   "out": 0.6667
+  },
+  {
+   "in": 0.30000000000000004,
+   "out": 0.3
+  },
+  {
+   "in": 0.1234500000000001,
+   "out": 0.1235
+  }
+ ]
+}

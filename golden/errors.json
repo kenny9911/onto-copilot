@@ -1,0 +1,834 @@
+{
+ "budget_exhausted": [
+  {
+   "dimension": "usd",
+   "limit_lit": "0",
+   "message": "usd 预算耗尽: 0 / 0",
+   "spent_lit": "0"
+  },
+  {
+   "dimension": "usd",
+   "limit_lit": "1",
+   "message": "usd 预算耗尽: 1 / 1",
+   "spent_lit": "1"
+  },
+  {
+   "dimension": "usd",
+   "limit_lit": "0.4",
+   "message": "usd 预算耗尽: 0 / 0",
+   "spent_lit": "0.4"
+  },
+  {
+   "dimension": "usd",
+   "limit_lit": "0.5",
+   "message": "usd 预算耗尽: 0 / 0",
+   "spent_lit": "0.5"
+  },
+  {
+   "dimension": "usd",
+   "limit_lit": "1.5",
+   "message": "usd 预算耗尽: 2 / 2",
+   "spent_lit": "1.5"
+  },
+  {
+   "dimension": "usd",
+   "limit_lit": "2.5",
+   "message": "usd 预算耗尽: 2 / 2",
+   "spent_lit": "2.5"
+  },
+  {
+   "dimension": "usd",
+   "limit_lit": "3.5",
+   "message": "usd 预算耗尽: 4 / 4",
+   "spent_lit": "3.5"
+  },
+  {
+   "dimension": "usd",
+   "limit_lit": "-0.0",
+   "message": "usd 预算耗尽: -0 / -0",
+   "spent_lit": "-0.0"
+  },
+  {
+   "dimension": "usd",
+   "limit_lit": "-0.4",
+   "message": "usd 预算耗尽: -0 / -0",
+   "spent_lit": "-0.4"
+  },
+  {
+   "dimension": "usd",
+   "limit_lit": "-0.5",
+   "message": "usd 预算耗尽: -0 / -0",
+   "spent_lit": "-0.5"
+  },
+  {
+   "dimension": "usd",
+   "limit_lit": "-2.5",
+   "message": "usd 预算耗尽: -2 / -2",
+   "spent_lit": "-2.5"
+  },
+  {
+   "dimension": "usd",
+   "limit_lit": "0.05",
+   "message": "usd 预算耗尽: 0 / 0",
+   "spent_lit": "0.05"
+  },
+  {
+   "dimension": "usd",
+   "limit_lit": "1e-9",
+   "message": "usd 预算耗尽: 0 / 0",
+   "spent_lit": "1e-9"
+  },
+  {
+   "dimension": "usd",
+   "limit_lit": "9.99",
+   "message": "usd 预算耗尽: 10 / 10",
+   "spent_lit": "9.99"
+  },
+  {
+   "dimension": "usd",
+   "limit_lit": "10.0",
+   "message": "usd 预算耗尽: 10 / 10",
+   "spent_lit": "9.99"
+  },
+  {
+   "dimension": "usd",
+   "limit_lit": "10.0",
+   "message": "usd 预算耗尽: 10 / 10",
+   "spent_lit": "10.0"
+  },
+  {
+   "dimension": "usd",
+   "limit_lit": "10.0",
+   "message": "usd 预算耗尽: 1000000000000000000000 / 10",
+   "spent_lit": "1e21"
+  },
+  {
+   "dimension": "usd",
+   "limit_lit": "1234.567",
+   "message": "usd 预算耗尽: 1235 / 1235",
+   "spent_lit": "1234.567"
+  },
+  {
+   "dimension": "usd",
+   "limit_lit": "1e15",
+   "message": "usd 预算耗尽: 1000000000000000 / 1000000000000000",
+   "spent_lit": "1e15"
+  },
+  {
+   "dimension": "usd",
+   "limit_lit": "9007199254740993",
+   "message": "usd 预算耗尽: 9007199254740992 / 9007199254740992",
+   "spent_lit": "9007199254740993"
+  },
+  {
+   "dimension": "usd",
+   "limit_lit": "1.2345678901234568e20",
+   "message": "usd 预算耗尽: 123456789012345683968 / 123456789012345683968",
+   "spent_lit": "1.2345678901234568e20"
+  },
+  {
+   "dimension": "usd",
+   "limit_lit": "1e21",
+   "message": "usd 预算耗尽: 1000000000000000000000 / 1000000000000000000000",
+   "spent_lit": "1e21"
+  },
+  {
+   "dimension": "usd",
+   "limit_lit": "1e22",
+   "message": "usd 预算耗尽: 10000000000000000000000 / 10000000000000000000000",
+   "spent_lit": "1e22"
+  },
+  {
+   "dimension": "usd",
+   "limit_lit": "Infinity",
+   "message": "usd 预算耗尽: inf / inf",
+   "spent_lit": "Infinity"
+  },
+  {
+   "dimension": "usd",
+   "limit_lit": "-Infinity",
+   "message": "usd 预算耗尽: -inf / -inf",
+   "spent_lit": "-Infinity"
+  },
+  {
+   "dimension": "usd",
+   "limit_lit": "NaN",
+   "message": "usd 预算耗尽: nan / nan",
+   "spent_lit": "NaN"
+  },
+  {
+   "dimension": "tokens",
+   "limit_lit": "0",
+   "message": "tokens 预算耗尽: 0 / 0",
+   "spent_lit": "0"
+  },
+  {
+   "dimension": "tokens",
+   "limit_lit": "1",
+   "message": "tokens 预算耗尽: 1 / 1",
+   "spent_lit": "1"
+  },
+  {
+   "dimension": "tokens",
+   "limit_lit": "0.4",
+   "message": "tokens 预算耗尽: 0 / 0",
+   "spent_lit": "0.4"
+  },
+  {
+   "dimension": "tokens",
+   "limit_lit": "0.5",
+   "message": "tokens 预算耗尽: 0 / 0",
+   "spent_lit": "0.5"
+  },
+  {
+   "dimension": "tokens",
+   "limit_lit": "1.5",
+   "message": "tokens 预算耗尽: 2 / 2",
+   "spent_lit": "1.5"
+  },
+  {
+   "dimension": "tokens",
+   "limit_lit": "2.5",
+   "message": "tokens 预算耗尽: 2 / 2",
+   "spent_lit": "2.5"
+  },
+  {
+   "dimension": "tokens",
+   "limit_lit": "3.5",
+   "message": "tokens 预算耗尽: 4 / 4",
+   "spent_lit": "3.5"
+  },
+  {
+   "dimension": "tokens",
+   "limit_lit": "-0.0",
+   "message": "tokens 预算耗尽: -0 / -0",
+   "spent_lit": "-0.0"
+  },
+  {
+   "dimension": "tokens",
+   "limit_lit": "-0.4",
+   "message": "tokens 预算耗尽: -0 / -0",
+   "spent_lit": "-0.4"
+  },
+  {
+   "dimension": "tokens",
+   "limit_lit": "-0.5",
+   "message": "tokens 预算耗尽: -0 / -0",
+   "spent_lit": "-0.5"
+  },
+  {
+   "dimension": "tokens",
+   "limit_lit": "-2.5",
+   "message": "tokens 预算耗尽: -2 / -2",
+   "spent_lit": "-2.5"
+  },
+  {
+   "dimension": "tokens",
+   "limit_lit": "0.05",
+   "message": "tokens 预算耗尽: 0 / 0",
+   "spent_lit": "0.05"
+  },
+  {
+   "dimension": "tokens",
+   "limit_lit": "1e-9",
+   "message": "tokens 预算耗尽: 0 / 0",
+   "spent_lit": "1e-9"
+  },
+  {
+   "dimension": "tokens",
+   "limit_lit": "9.99",
+   "message": "tokens 预算耗尽: 10 / 10",
+   "spent_lit": "9.99"
+  },
+  {
+   "dimension": "tokens",
+   "limit_lit": "10.0",
+   "message": "tokens 预算耗尽: 10 / 10",
+   "spent_lit": "9.99"
+  },
+  {
+   "dimension": "tokens",
+   "limit_lit": "10.0",
+   "message": "tokens 预算耗尽: 10 / 10",
+   "spent_lit": "10.0"
+  },
+  {
+   "dimension": "tokens",
+   "limit_lit": "10.0",
+   "message": "tokens 预算耗尽: 1000000000000000000000 / 10",
+   "spent_lit": "1e21"
+  },
+  {
+   "dimension": "tokens",
+   "limit_lit": "1234.567",
+   "message": "tokens 预算耗尽: 1235 / 1235",
+   "spent_lit": "1234.567"
+  },
+  {
+   "dimension": "tokens",
+   "limit_lit": "1e15",
+   "message": "tokens 预算耗尽: 1000000000000000 / 1000000000000000",
+   "spent_lit": "1e15"
+  },
+  {
+   "dimension": "tokens",
+   "limit_lit": "9007199254740993",
+   "message": "tokens 预算耗尽: 9007199254740992 / 9007199254740992",
+   "spent_lit": "9007199254740993"
+  },
+  {
+   "dimension": "tokens",
+   "limit_lit": "1.2345678901234568e20",
+   "message": "tokens 预算耗尽: 123456789012345683968 / 123456789012345683968",
+   "spent_lit": "1.2345678901234568e20"
+  },
+  {
+   "dimension": "tokens",
+   "limit_lit": "1e21",
+   "message": "tokens 预算耗尽: 1000000000000000000000 / 1000000000000000000000",
+   "spent_lit": "1e21"
+  },
+  {
+   "dimension": "tokens",
+   "limit_lit": "1e22",
+   "message": "tokens 预算耗尽: 10000000000000000000000 / 10000000000000000000000",
+   "spent_lit": "1e22"
+  },
+  {
+   "dimension": "tokens",
+   "limit_lit": "Infinity",
+   "message": "tokens 预算耗尽: inf / inf",
+   "spent_lit": "Infinity"
+  },
+  {
+   "dimension": "tokens",
+   "limit_lit": "-Infinity",
+   "message": "tokens 预算耗尽: -inf / -inf",
+   "spent_lit": "-Infinity"
+  },
+  {
+   "dimension": "tokens",
+   "limit_lit": "NaN",
+   "message": "tokens 预算耗尽: nan / nan",
+   "spent_lit": "NaN"
+  },
+  {
+   "dimension": "wall_s",
+   "limit_lit": "0",
+   "message": "wall_s 预算耗尽: 0 / 0",
+   "spent_lit": "0"
+  },
+  {
+   "dimension": "wall_s",
+   "limit_lit": "1",
+   "message": "wall_s 预算耗尽: 1 / 1",
+   "spent_lit": "1"
+  },
+  {
+   "dimension": "wall_s",
+   "limit_lit": "0.4",
+   "message": "wall_s 预算耗尽: 0 / 0",
+   "spent_lit": "0.4"
+  },
+  {
+   "dimension": "wall_s",
+   "limit_lit": "0.5",
+   "message": "wall_s 预算耗尽: 0 / 0",
+   "spent_lit": "0.5"
+  },
+  {
+   "dimension": "wall_s",
+   "limit_lit": "1.5",
+   "message": "wall_s 预算耗尽: 2 / 2",
+   "spent_lit": "1.5"
+  },
+  {
+   "dimension": "wall_s",
+   "limit_lit": "2.5",
+   "message": "wall_s 预算耗尽: 2 / 2",
+   "spent_lit": "2.5"
+  },
+  {
+   "dimension": "wall_s",
+   "limit_lit": "3.5",
+   "message": "wall_s 预算耗尽: 4 / 4",
+   "spent_lit": "3.5"
+  },
+  {
+   "dimension": "wall_s",
+   "limit_lit": "-0.0",
+   "message": "wall_s 预算耗尽: -0 / -0",
+   "spent_lit": "-0.0"
+  },
+  {
+   "dimension": "wall_s",
+   "limit_lit": "-0.4",
+   "message": "wall_s 预算耗尽: -0 / -0",
+   "spent_lit": "-0.4"
+  },
+  {
+   "dimension": "wall_s",
+   "limit_lit": "-0.5",
+   "message": "wall_s 预算耗尽: -0 / -0",
+   "spent_lit": "-0.5"
+  },
+  {
+   "dimension": "wall_s",
+   "limit_lit": "-2.5",
+   "message": "wall_s 预算耗尽: -2 / -2",
+   "spent_lit": "-2.5"
+  },
+  {
+   "dimension": "wall_s",
+   "limit_lit": "0.05",
+   "message": "wall_s 预算耗尽: 0 / 0",
+   "spent_lit": "0.05"
+  },
+  {
+   "dimension": "wall_s",
+   "limit_lit": "1e-9",
+   "message": "wall_s 预算耗尽: 0 / 0",
+   "spent_lit": "1e-9"
+  },
+  {
+   "dimension": "wall_s",
+   "limit_lit": "9.99",
+   "message": "wall_s 预算耗尽: 10 / 10",
+   "spent_lit": "9.99"
+  },
+  {
+   "dimension": "wall_s",
+   "limit_lit": "10.0",
+   "message": "wall_s 预算耗尽: 10 / 10",
+   "spent_lit": "9.99"
+  },
+  {
+   "dimension": "wall_s",
+   "limit_lit": "10.0",
+   "message": "wall_s 预算耗尽: 10 / 10",
+   "spent_lit": "10.0"
+  },
+  {
+   "dimension": "wall_s",
+   "limit_lit": "10.0",
+   "message": "wall_s 预算耗尽: 1000000000000000000000 / 10",
+   "spent_lit": "1e21"
+  },
+  {
+   "dimension": "wall_s",
+   "limit_lit": "1234.567",
+   "message": "wall_s 预算耗尽: 1235 / 1235",
+   "spent_lit": "1234.567"
+  },
+  {
+   "dimension": "wall_s",
+   "limit_lit": "1e15",
+   "message": "wall_s 预算耗尽: 1000000000000000 / 1000000000000000",
+   "spent_lit": "1e15"
+  },
+  {
+   "dimension": "wall_s",
+   "limit_lit": "9007199254740993",
+   "message": "wall_s 预算耗尽: 9007199254740992 / 9007199254740992",
+   "spent_lit": "9007199254740993"
+  },
+  {
+   "dimension": "wall_s",
+   "limit_lit": "1.2345678901234568e20",
+   "message": "wall_s 预算耗尽: 123456789012345683968 / 123456789012345683968",
+   "spent_lit": "1.2345678901234568e20"
+  },
+  {
+   "dimension": "wall_s",
+   "limit_lit": "1e21",
+   "message": "wall_s 预算耗尽: 1000000000000000000000 / 1000000000000000000000",
+   "spent_lit": "1e21"
+  },
+  {
+   "dimension": "wall_s",
+   "limit_lit": "1e22",
+   "message": "wall_s 预算耗尽: 10000000000000000000000 / 10000000000000000000000",
+   "spent_lit": "1e22"
+  },
+  {
+   "dimension": "wall_s",
+   "limit_lit": "Infinity",
+   "message": "wall_s 预算耗尽: inf / inf",
+   "spent_lit": "Infinity"
+  },
+  {
+   "dimension": "wall_s",
+   "limit_lit": "-Infinity",
+   "message": "wall_s 预算耗尽: -inf / -inf",
+   "spent_lit": "-Infinity"
+  },
+  {
+   "dimension": "wall_s",
+   "limit_lit": "NaN",
+   "message": "wall_s 预算耗尽: nan / nan",
+   "spent_lit": "NaN"
+  }
+ ],
+ "defaults": {
+  "node_failure_retryable": true
+ },
+ "determinism_violation": [
+  {
+   "key": "EXTRACT#0",
+   "message": "effect 'EXTRACT#0' 重放不一致\n  已记录: a1b2c3d4e5f60718\n  重算出: 0f1e2d3c4b5a6978",
+   "recorded": "a1b2c3d4e5f60718",
+   "replayed": "0f1e2d3c4b5a6978"
+  },
+  {
+   "key": "抽取节点#3",
+   "message": "effect '抽取节点#3' 重放不一致\n  已记录: a1b2c3d4e5f60718\n  重算出: 0f1e2d3c4b5a6978",
+   "recorded": "a1b2c3d4e5f60718",
+   "replayed": "0f1e2d3c4b5a6978"
+  },
+  {
+   "key": "llm.call#retry",
+   "message": "effect 'llm.call#retry' 重放不一致\n  已记录: a1b2c3d4e5f60718\n  重算出: 0f1e2d3c4b5a6978",
+   "recorded": "a1b2c3d4e5f60718",
+   "replayed": "0f1e2d3c4b5a6978"
+  },
+  {
+   "key": "",
+   "message": "effect '' 重放不一致\n  已记录: a1b2c3d4e5f60718\n  重算出: 0f1e2d3c4b5a6978",
+   "recorded": "a1b2c3d4e5f60718",
+   "replayed": "0f1e2d3c4b5a6978"
+  },
+  {
+   "key": "a'b",
+   "message": "effect \"a'b\" 重放不一致\n  已记录: a1b2c3d4e5f60718\n  重算出: 0f1e2d3c4b5a6978",
+   "recorded": "a1b2c3d4e5f60718",
+   "replayed": "0f1e2d3c4b5a6978"
+  },
+  {
+   "key": "a\"b",
+   "message": "effect 'a\"b' 重放不一致\n  已记录: a1b2c3d4e5f60718\n  重算出: 0f1e2d3c4b5a6978",
+   "recorded": "a1b2c3d4e5f60718",
+   "replayed": "0f1e2d3c4b5a6978"
+  },
+  {
+   "key": "a'\"b",
+   "message": "effect 'a\\'\"b' 重放不一致\n  已记录: a1b2c3d4e5f60718\n  重算出: 0f1e2d3c4b5a6978",
+   "recorded": "a1b2c3d4e5f60718",
+   "replayed": "0f1e2d3c4b5a6978"
+  },
+  {
+   "key": "a\\b",
+   "message": "effect 'a\\\\b' 重放不一致\n  已记录: a1b2c3d4e5f60718\n  重算出: 0f1e2d3c4b5a6978",
+   "recorded": "a1b2c3d4e5f60718",
+   "replayed": "0f1e2d3c4b5a6978"
+  },
+  {
+   "key": "a\nb",
+   "message": "effect 'a\\nb' 重放不一致\n  已记录: a1b2c3d4e5f60718\n  重算出: 0f1e2d3c4b5a6978",
+   "recorded": "a1b2c3d4e5f60718",
+   "replayed": "0f1e2d3c4b5a6978"
+  },
+  {
+   "key": "a\tb",
+   "message": "effect 'a\\tb' 重放不一致\n  已记录: a1b2c3d4e5f60718\n  重算出: 0f1e2d3c4b5a6978",
+   "recorded": "a1b2c3d4e5f60718",
+   "replayed": "0f1e2d3c4b5a6978"
+  },
+  {
+   "key": "a\rb",
+   "message": "effect 'a\\rb' 重放不一致\n  已记录: a1b2c3d4e5f60718\n  重算出: 0f1e2d3c4b5a6978",
+   "recorded": "a1b2c3d4e5f60718",
+   "replayed": "0f1e2d3c4b5a6978"
+  },
+  {
+   "key": "\u0000",
+   "message": "effect '\\x00' 重放不一致\n  已记录: a1b2c3d4e5f60718\n  重算出: 0f1e2d3c4b5a6978",
+   "recorded": "a1b2c3d4e5f60718",
+   "replayed": "0f1e2d3c4b5a6978"
+  },
+  {
+   "key": "\u001f",
+   "message": "effect '\\x1f' 重放不一致\n  已记录: a1b2c3d4e5f60718\n  重算出: 0f1e2d3c4b5a6978",
+   "recorded": "a1b2c3d4e5f60718",
+   "replayed": "0f1e2d3c4b5a6978"
+  },
+  {
+   "key": "",
+   "message": "effect '\\x7f' 重放不一致\n  已记录: a1b2c3d4e5f60718\n  重算出: 0f1e2d3c4b5a6978",
+   "recorded": "a1b2c3d4e5f60718",
+   "replayed": "0f1e2d3c4b5a6978"
+  },
+  {
+   "key": " ",
+   "message": "effect '\\xa0' 重放不一致\n  已记录: a1b2c3d4e5f60718\n  重算出: 0f1e2d3c4b5a6978",
+   "recorded": "a1b2c3d4e5f60718",
+   "replayed": "0f1e2d3c4b5a6978"
+  },
+  {
+   "key": "​",
+   "message": "effect '\\u200b' 重放不一致\n  已记录: a1b2c3d4e5f60718\n  重算出: 0f1e2d3c4b5a6978",
+   "recorded": "a1b2c3d4e5f60718",
+   "replayed": "0f1e2d3c4b5a6978"
+  },
+  {
+   "key": "🐍#1",
+   "message": "effect '🐍#1' 重放不一致\n  已记录: a1b2c3d4e5f60718\n  重算出: 0f1e2d3c4b5a6978",
+   "recorded": "a1b2c3d4e5f60718",
+   "replayed": "0f1e2d3c4b5a6978"
+  }
+ ],
+ "format_fixed0": [
+  {
+   "lit": "0",
+   "out": "0"
+  },
+  {
+   "lit": "1",
+   "out": "1"
+  },
+  {
+   "lit": "0.4",
+   "out": "0"
+  },
+  {
+   "lit": "0.5",
+   "out": "0"
+  },
+  {
+   "lit": "1.5",
+   "out": "2"
+  },
+  {
+   "lit": "2.5",
+   "out": "2"
+  },
+  {
+   "lit": "3.5",
+   "out": "4"
+  },
+  {
+   "lit": "-0.0",
+   "out": "-0"
+  },
+  {
+   "lit": "-0.4",
+   "out": "-0"
+  },
+  {
+   "lit": "-0.5",
+   "out": "-0"
+  },
+  {
+   "lit": "-2.5",
+   "out": "-2"
+  },
+  {
+   "lit": "0.05",
+   "out": "0"
+  },
+  {
+   "lit": "1e-9",
+   "out": "0"
+  },
+  {
+   "lit": "9.99",
+   "out": "10"
+  },
+  {
+   "lit": "10.0",
+   "out": "10"
+  },
+  {
+   "lit": "1234.567",
+   "out": "1235"
+  },
+  {
+   "lit": "1e15",
+   "out": "1000000000000000"
+  },
+  {
+   "lit": "9007199254740993",
+   "out": "9007199254740992"
+  },
+  {
+   "lit": "1.2345678901234568e20",
+   "out": "123456789012345683968"
+  },
+  {
+   "lit": "1e21",
+   "out": "1000000000000000000000"
+  },
+  {
+   "lit": "1e22",
+   "out": "10000000000000000000000"
+  },
+  {
+   "lit": "Infinity",
+   "out": "inf"
+  },
+  {
+   "lit": "-Infinity",
+   "out": "-inf"
+  },
+  {
+   "lit": "NaN",
+   "out": "nan"
+  }
+ ],
+ "hierarchy": {
+  "BudgetExhausted": [
+   "BudgetExhausted",
+   "HarnessError",
+   "Exception"
+  ],
+  "DagError": [
+   "DagError",
+   "HarnessError",
+   "Exception"
+  ],
+  "DeterminismViolation": [
+   "DeterminismViolation",
+   "HarnessError",
+   "Exception"
+  ],
+  "FrozenPlanViolation": [
+   "FrozenPlanViolation",
+   "HarnessError",
+   "Exception"
+  ],
+  "HarnessError": [
+   "HarnessError",
+   "Exception"
+  ],
+  "HumanInputRequired": [
+   "HumanInputRequired",
+   "Exception"
+  ],
+  "NodeFailure": [
+   "NodeFailure",
+   "Exception"
+  ],
+  "SandboxError": [
+   "SandboxError",
+   "HarnessError",
+   "Exception"
+  ],
+  "ToolDenied": [
+   "ToolDenied",
+   "HarnessError",
+   "Exception"
+  ]
+ },
+ "human_input_required": [
+  {
+   "message": "[INTERVIEW] 等待人工决策 req_7f3a",
+   "node_id": "INTERVIEW",
+   "request_id": "req_7f3a"
+  },
+  {
+   "message": "[] 等待人工决策 ",
+   "node_id": "",
+   "request_id": ""
+  },
+  {
+   "message": "[面谈#2] 等待人工决策 req_中文",
+   "node_id": "面谈#2",
+   "request_id": "req_中文"
+  }
+ ],
+ "node_failure": [
+  {
+   "message": "[EXTRACT] 工具返回空结果",
+   "node_id": "EXTRACT",
+   "reason": "工具返回空结果",
+   "retryable": true
+  },
+  {
+   "message": "[EXTRACT] 预算耗尽，已保存 checkpoint",
+   "node_id": "EXTRACT",
+   "reason": "预算耗尽，已保存 checkpoint",
+   "retryable": false
+  },
+  {
+   "message": "[] ",
+   "node_id": "",
+   "reason": "",
+   "retryable": true
+  },
+  {
+   "message": "[节点#1] 上游 400",
+   "node_id": "节点#1",
+   "reason": "上游 400",
+   "retryable": false
+  }
+ ],
+ "repr_str": [
+  {
+   "in": "EXTRACT#0",
+   "out": "'EXTRACT#0'"
+  },
+  {
+   "in": "抽取节点#3",
+   "out": "'抽取节点#3'"
+  },
+  {
+   "in": "llm.call#retry",
+   "out": "'llm.call#retry'"
+  },
+  {
+   "in": "",
+   "out": "''"
+  },
+  {
+   "in": "a'b",
+   "out": "\"a'b\""
+  },
+  {
+   "in": "a\"b",
+   "out": "'a\"b'"
+  },
+  {
+   "in": "a'\"b",
+   "out": "'a\\'\"b'"
+  },
+  {
+   "in": "a\\b",
+   "out": "'a\\\\b'"
+  },
+  {
+   "in": "a\nb",
+   "out": "'a\\nb'"
+  },
+  {
+   "in": "a\tb",
+   "out": "'a\\tb'"
+  },
+  {
+   "in": "a\rb",
+   "out": "'a\\rb'"
+  },
+  {
+   "in": "\u0000",
+   "out": "'\\x00'"
+  },
+  {
+   "in": "\u001f",
+   "out": "'\\x1f'"
+  },
+  {
+   "in": "",
+   "out": "'\\x7f'"
+  },
+  {
+   "in": " ",
+   "out": "'\\xa0'"
+  },
+  {
+   "in": "​",
+   "out": "'\\u200b'"
+  },
+  {
+   "in": "🐍#1",
+   "out": "'🐍#1'"
+  }
+ ]
+}
