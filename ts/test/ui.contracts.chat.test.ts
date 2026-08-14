@@ -198,12 +198,14 @@ describe("操作记录", () => {
 
 describe("事件在界面上都要有中文说法", () => {
   it("服务端**实际会发的**每一种事件都有标签，不冒原始 key", () => {
-    const re = /\.emit(?:_durable)?\(\s*"([a-z][a-z_.]+)"/g;
-    const emitted = new Set<string>();
-    for (const f of walk(resolve(ROOT, "src", "ontocopilot"), ".py")) {
-      const src = readFileSync(f, "utf8");
-      for (const m of src.matchAll(re)) emitted.add(m[1]!);
-    }
+    // 期望值原来是**扫 Python 原件**的 `.emit("…")` 得到的（服务端实际会发什么，
+    // 由服务端代码说了算，不由这份标签表说了算）。全量 TS 化之后
+    // `src/ontocopilot/` 已删，改读 `golden/python.frozen.json` —— 那 54 种事件
+    // 是删除前一次性冻下来的，判据一个字没变：**服务端会发的，界面上必须有中文说法**。
+    const frozen = JSON.parse(
+      readFileSync(resolve(ROOT, "golden", "python.frozen.json"), "utf8"),
+    ) as { server_emits: string[] };
+    const emitted = new Set<string>(frozen.server_emits);
     // 对话本身不进操作记录（它在聊天窗口里，抄一遍是噪声）
     emitted.delete("chat.turn"); emitted.delete("chat.step");
     expect(emitted.size).toBeGreaterThan(0);   // 正则失效的话这条测试等于没跑

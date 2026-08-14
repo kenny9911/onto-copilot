@@ -4,12 +4,20 @@
  * 接口在运行时被擦除，所以"少写了一个方法"不会有任何东西变红 —— 而这份接口有
  * **79 个方法**、两份实现照它写，漏一个的代价是等到某条路由真被走到才炸。
  *
- * 这里的做法是把 Python 原件当权威：解析 `store/repo.py` 里 `class Repo(Protocol)`
- * 的方法名，snake_case → camelCase 之后与 `REPO_METHOD_NAMES` 逐个比对。
- * Python 侧加了方法而 TS 侧没跟，测试立刻红；TS 侧凭空多出一个，同样红。
+ * ── 期望值从哪来 ────────────────────────────────────────────────
+ *
+ * 原来是**解析 Python 原件** `store/repo.py` 的 `class Repo(Protocol)`：
+ * 「Python 是权威，不是手抄的期望值」。全量 TypeScript 化之后 `src/ontocopilot/`
+ * 已经删掉，解析不到了 —— 但**契约本身一个字没变**，所以改读
+ * `golden/python.frozen.json`：那份 golden 是删除前从 Python 原件一次性冻下来的
+ * （含来源提交 `_frozen_at`，随时 `git show <sha>:src/ontocopilot/store/repo.py` 复核）。
+ *
+ * 换来源不换判据：TS 侧凭空多一个方法、少一个方法，照样红。
+ * 代价写明白：Python 侧不会再变了（它不存在了），所以这份清单从"跟着上游走"
+ * 变成了"钉住历史那一刻"——这正是删掉参照物的真实后果，不粉饰。
  *
  * `REPO_METHOD_NAMES` 与 `keyof Repo` 的一致性由 protocol.ts 里那两个类型别名在
- * **编译期**保证，所以这里只需要钉住「清单 ↔ Python 原件」这一段。
+ * **编译期**保证，所以这里只需要钉住「清单 ↔ 冻结的事实」这一段。
  */
 
 import { readFileSync } from "node:fs";
@@ -19,34 +27,17 @@ import { describe, expect, it } from "vitest";
 
 import { DuplicateUsername, REPO_METHOD_NAMES } from "../src/store/repo/protocol.js";
 
-const REPO_PY = join(dirname(fileURLToPath(import.meta.url)), "../../src/ontocopilot/store/repo.py");
-
-/** 从 repo.py 里切出 `class Repo(Protocol):` 的类体。
- *
- * 按缩进切而不是按行号切：行号会随 Python 侧任何改动漂移，缩进不会。
- * 终止条件是第一行"顶格且非空非注释"的代码 —— 也就是下一个顶层定义。 */
-function repoProtocolBody(): string[] {
-  const lines = readFileSync(REPO_PY, "utf8").split("\n");
-  const start = lines.findIndex((l) => l.startsWith("class Repo(Protocol):"));
-  expect(start, "repo.py 里找不到 class Repo(Protocol)").toBeGreaterThanOrEqual(0);
-  const body: string[] = [];
-  for (const line of lines.slice(start + 1)) {
-    if (line.trim() !== "" && !line.startsWith(" ") && !line.startsWith("#")) break;
-    body.push(line);
-  }
-  return body;
+interface Frozen {
+  _frozen_at: string;
+  repo_protocol: { methods: string[]; count: number; properties: string[] };
 }
 
-/** 只认类体第一层（正好四个空格）的 `def` / `async def`。
- * 嵌套函数（更深缩进）不属于协议表面，`mode: str` 那种注解也不是方法。 */
-function pythonMethodNames(): string[] {
-  const out: string[] = [];
-  for (const line of repoProtocolBody()) {
-    const m = /^ {4}(?:async )?def ([A-Za-z_]\w*)\(/.exec(line);
-    if (m) out.push(m[1]!);
-  }
-  return out;
-}
+const FROZEN: Frozen = JSON.parse(
+  readFileSync(
+    join(dirname(fileURLToPath(import.meta.url)), "../../golden/python.frozen.json"),
+    "utf8",
+  ),
+) as Frozen;
 
 /** `record_decision_v1` → `recordDecisionV1`。下划线后一律大写首字母，
  * 数字段（`v1`）因此变成 `V1` —— 与 protocol.ts 里手写的名字对齐。 */
@@ -55,14 +46,16 @@ function toCamel(name: string): string {
 }
 
 describe("Repo 协议接口", () => {
-  it("方法名清单与 Python 原件逐个对齐", () => {
-    expect([...REPO_METHOD_NAMES]).toEqual(pythonMethodNames().map(toCamel));
+  it("方法名清单与冻结下来的 Python 原件逐个对齐", () => {
+    expect([...REPO_METHOD_NAMES].sort()).toEqual(
+      FROZEN.repo_protocol.methods.map(toCamel).sort(),
+    );
   });
 
   it("方法数就是 Python 那边的 79 个", () => {
     // 写死这个数字是故意的：上一条断言只保证两边"一样"，两边同时被删掉一个方法
     // 它照样绿。这一条把绝对规模也钉住。
-    expect(pythonMethodNames()).toHaveLength(79);
+    expect(FROZEN.repo_protocol.count).toBe(79);
     expect(REPO_METHOD_NAMES).toHaveLength(79);
   });
 
@@ -71,7 +64,8 @@ describe("Repo 协议接口", () => {
   });
 
   it("Python 侧的 mode 属性不会被当成方法", () => {
-    expect(repoProtocolBody().some((l) => l.trim() === "mode: str")).toBe(true);
+    // 它在 Python 里是 `mode: str` 注解，不是 def —— 冻结时按属性归类。
+    expect(FROZEN.repo_protocol.properties).toContain("mode");
     expect([...REPO_METHOD_NAMES]).not.toContain("mode");
   });
 
