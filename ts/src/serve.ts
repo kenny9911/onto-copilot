@@ -809,6 +809,22 @@ export async function startServer(
         const s = serve({ fetch: app.fetch, hostname: host, port: opts.port ?? 8000 }, (info) =>
           resolve({ server: s, port: info.port }),
         );
+        // **关掉 Node 的 5 分钟请求超时。** uvicorn 没有这个限制，所以 Python 时代
+        // 一次跑很久的请求只会慢，不会断；Node 默认 `requestTimeout = 300_000`，
+        // 超过就把连接掐了 —— 前端看到的是一句 `TypeError: Failed to fetch`，
+        // 而**服务端那一轮还在继续跑并通过 SSE 交付结果**，于是「报错了但结果又出来了」，
+        // 没有任何日志说明发生过什么。
+        //
+        // 这不是假想：实测一次「读一张图 + 回答」的对话轮就要 54 秒，而一次完整梳理
+        // 重材料远不止。
+        //
+        // 只关**整条请求**的总时长，`headersTimeout`（60s，防慢速头攻击）保持不变：
+        // 慢的是我们自己的处理，不是对端发头。
+        //
+        // `serve()` 的返回类型是个联合（HTTP/1 与 HTTP/2 两种 server），后者没有
+        // `requestTimeout`。这里按属性在不在来判，而不是 `as` 硬转 —— 硬转的话
+        // 哪天真跑在 HTTP/2 上，这行会静默什么都不做。
+        if ("requestTimeout" in s) s.requestTimeout = 0;
         s.on("error", reject);
       },
     ));
