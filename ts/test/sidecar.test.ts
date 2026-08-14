@@ -254,15 +254,20 @@ describe.skipIf(!LIVE_TOKEN)("端到端（需要 sidecar 在跑）", () => {
     expect(JSON.stringify(doc)).toContain("归口部门");
   });
 
-  it("已知缺口：列与 CREATE TABLE 挤在同一行时，注释会丢", async () => {
-    // Python 侧 _column_comments 是按行扫描的，命中 `create table` 那行就 continue，
-    // 于是同一行上的列注释被跳过（sql.py:174-180）。sqlglot 自己其实**没丢** ——
-    // 那条注释好好挂在 ColumnDef.comments 上，是提取逻辑没去拿。
-    //
-    // 这里钉住现状而不是绕过：这是 Python 原件的既有行为，迁移期不动它（两个宿主
-    // 共用同一份解析代码，改了要一起改）。真实导出的 DDL 都是一列一行，所以影响面
-    // 很窄 —— 但它静默丢的正是这个模块唯一要保的东西，所以必须留个记号。
+  it("列与 CREATE TABLE 挤在同一行时，注释同样保住", async () => {
+    // 这条曾经钉的是一个**缺口**：`_column_comments` 按行扫描，命中 `create table`
+    // 那行就 continue，同一行上的列注释于是被静默丢掉。sqlglot 根本没丢 ——
+    // 注释好好挂在 `ColumnDef.comments` 上，只是提取逻辑没去拿。
+    // 现在 `_ast_comment` 作为第三个来源兜住了它（sql.py 的 `_columns`）。
     const doc = await live.parseSql("CREATE TABLE t (a DECIMAL(18,2) -- 含税·年度累计\n);");
-    expect(JSON.stringify(doc)).not.toContain("含税·年度累计");
+    expect(JSON.stringify(doc)).toContain("含税·年度累计");
+  });
+
+  it("两张只差注释的表必须还能区分开", async () => {
+    // 这是整条 DDL 路径存在的理由：列声明逐字节相同，区别全在口径上。
+    const a = await live.parseSql("CREATE TABLE plan_a (plan_amount DECIMAL(18,2) -- 含税·年度累计\n);");
+    const b = await live.parseSql("CREATE TABLE plan_b (plan_amount DECIMAL(18,2) -- 不含税·单次\n);");
+    expect(JSON.stringify(a)).toContain("含税·年度累计");
+    expect(JSON.stringify(b)).toContain("不含税·单次");
   });
 });

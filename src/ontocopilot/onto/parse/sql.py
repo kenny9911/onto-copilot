@@ -122,8 +122,10 @@ def _columns(stmt: Any, comments: dict[str, str]) -> tuple[list[dict], list[str]
                 "name": name,
                 "type": e.args.get("kind").sql() if e.args.get("kind") else "UNKNOWN",
                 "nullable": "NotNullColumnConstraint" not in constraints,
-                # 口径可能在 `-- 行注释`（行扫描）里，也可能在行内 `COMMENT '...'`（AST）里
-                "comment": comments.get(name.lower(), "") or _inline_comment(e),
+                # 口径可能在 `-- 行注释`（行扫描）、行内 `COMMENT '...'`（AST 约束）、
+                # 或 sqlglot 挂在 ColumnDef 上的 `--`（AST 注释）里，三处依次兜底。
+                "comment": (comments.get(name.lower(), "")
+                            or _inline_comment(e) or _ast_comment(e)),
             })
         elif isinstance(e, exp.PrimaryKey):
             pks.extend(c.name for c in e.expressions if hasattr(c, "name"))
@@ -136,6 +138,31 @@ def _columns(stmt: Any, comments: dict[str, str]) -> tuple[list[dict], list[str]
                 elif isinstance(inner, exp.PrimaryKey):
                     pks.extend(c.name for c in inner.expressions if hasattr(c, "name"))
     return cols, list(dict.fromkeys(pks)), fks
+
+
+def _ast_comment(coldef: Any) -> str:
+    """sqlglot 挂在 ColumnDef 上的 ``--`` 注释。
+
+    这是**行扫描的兜底**，不是替代：行扫描能认的形态（跨行、注释在下一行）AST 未必
+    保留，反过来也一样。少了这一条的具体后果是 ——
+
+        CREATE TABLE t (a DECIMAL(18,2) -- 含税·年度累计
+        );
+
+    列和 ``CREATE TABLE`` 挤在同一行时注释被**静默丢掉**：``_column_comments``
+    是按行扫的，命中 ``create table`` 那行就 ``continue``，于是同一行上的列
+    从来没有机会被关联到。而 sqlglot 根本没丢，注释好好挂在 ColumnDef 上。
+
+    丢注释在这个解析器里是最贵的一类失败：两张表都写 ``plan_amount DECIMAL(18,2)``，
+    区别全在 ``-- 含税·年度累计`` 与 ``-- 不含税·单次`` 上，注释没了口径冲突就
+    再也检不出来 —— 而且没有任何报错。
+
+    取值与行扫描对齐：``_LINE_COMMENT`` 捕获的是 ``--`` 之后 strip 过的文本，
+    这里同样 strip（sqlglot 给的串带一个前导空格）。一列挂多条时用空格接起来，
+    实测常见写法下只会有一条。
+    """
+    parts = [str(c).strip() for c in (coldef.comments or []) if str(c).strip()]
+    return " ".join(parts)
 
 
 def _inline_comment(coldef: Any) -> str:
