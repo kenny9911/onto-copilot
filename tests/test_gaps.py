@@ -124,6 +124,49 @@ def test_parallel_clauses_are_not_a_value_list():
     assert not any("重大预警" in g.text for g in enumerations([_chunk(RULES)]))
 
 
+def test_a_synthesised_column_header_is_not_a_value_domain():
+    """`col1` 是解析器给无表头的列**编出来**的名字，不是材料里的取值域。
+
+    这条判据以前形同虚设：调用方先把名字两头的数字剥掉，`col1` 变成 `col`，
+    `_BAD_NAME` 里那条「col 加数字」于是永远匹配不上，一个凭空拼出来的列名
+    就被当成真取值域问给了业务方 —— 正是「不许照抄材料的形状」要拦的东西。
+    """
+    assert not enumerations([_chunk("col1：甲、乙、丙")])
+    assert not enumerations([_chunk("col12：甲类、乙类、丙类")])
+
+
+def test_a_leading_number_is_not_a_value_domain_name():
+    """光是一个编号，不构成取值域的名字。
+
+    这里四种写法走的是三条**不同**的路，各自都要拦住：
+      · `1、` / `一、` —— 顿号根本不在 `_ENUM_RE` 的名字字符集里，压根匹配不上；
+      · `１号` —— 全角数字不在 strip 那串里，剥不掉，靠 `_BAD_NAME` 的 `^\\d`；
+      · `一.进度状态` —— 中文数字同样剥不掉，靠中文数字那条。
+    """
+    assert not enumerations([_chunk("1、甲、乙、丙")])
+    assert not enumerations([_chunk("一、甲、乙、丙")])
+    assert not enumerations([_chunk("１号：甲类、乙类、丙类")])
+    assert not enumerations([_chunk("一.进度状态：未开始、执行中、已完成")])
+
+
+def test_a_value_domain_carrying_a_list_number_is_still_asked():
+    """名字前挂着列表编号的，编号剥掉之后照样是个正经取值域。
+
+    剥编号正是 strip 那串字符的本职工作。若把 `_BAD_NAME` 整条拿去卡**没剥过**
+    的名字，`3.` 会连着把这类问题一起毙掉 —— 那是反方向的漏问，同样是 bug。
+    """
+    gaps = enumerations([_chunk("3.进度状态：未开始、执行中、已完成")])
+    assert len(gaps) == 1
+    assert "「进度状态」" in gaps[0].text
+
+
+def test_a_plain_value_domain_is_still_asked():
+    """收紧判据不能把真问题一起收掉 —— 这条是「该问的还在问」的底线。"""
+    gaps = enumerations([_chunk("采购方式：公开招标、邀请招标、竞争性谈判")])
+    assert len(gaps) == 1
+    assert gaps[0].options == ["公开招标", "邀请招标", "竞争性谈判", "就这些，没有遗漏"]
+
+
 # ══════════════════════════════════════════════════════════════════
 #  4. 结构缺口
 # ══════════════════════════════════════════════════════════════════

@@ -2,6 +2,22 @@
 
 UI 是单文件应用，没有打包步骤；这些断言保护 tab、渐进兼容路径与 Question
 Ledger 写接口不被后续样式重构悄悄删掉。JavaScript 语法由可用时的 Node 校验。
+
+本文件**只剩对 `ui/index.html` 的 CSS / HTML 断言**。
+
+原来这里还有一批「把内联 JS 按源码锚点抠出来喂给 Node 跑」的行为测试
+（`_cut(script, "let QUOTA = null;", …)` 那种）。前端迁成 TypeScript + esbuild
+打包之后，锚点不复存在 —— **不是锚点坏了，是这套办法在有构建步骤之后不成立了**
+（本文件原来的 docstring 自己写着：「UI 是单文件应用、没有打包步骤，所以只能把
+真实的 JS 抠出来」，那个前提没了）。
+
+那批行为契约已经逐条移到 `ts/test/ui.contracts.*.test.ts`，直接 import
+`ts/src/ui/*.ts` 的模块来测 —— 有类型、不依赖文本布局，比正则切 HTML 强。
+移植后主 agent 做过变异验证：把提醒条里的转义拿掉、把「本地上限」文案改成
+「余额不足请充值」、从英文字典删一个 key，三处都各自打红了对应用例。
+
+留在这里的这些**仍然有效**：CSS 与 HTML 在 index.html 里逐字节保留
+（由 `ts/test/ui.build.test.ts` 把关），所以对它们的断言照旧成立。
 """
 
 from __future__ import annotations
@@ -25,65 +41,11 @@ def _script(html: str) -> str:
     return html[start : html.index("</script>", start)]
 
 
-def test_question_tab_renders_a_real_workbench() -> None:
-    html = _html()
-    assert 'data-t="q"' in html
-    assert 'if (TAB === "q")' in html
-    assert "questionWorkbench()" in html
-    for capability in ("data-q-owner", "data-q-role", "data-q-priority", "data-q-answer"):
-        assert capability in html
-
-
-def test_question_ledger_api_and_legacy_fallback_are_both_present() -> None:
-    script = _script(_html())
-    assert "/questions/${encodeURIComponent(q.id)}" in script
-    assert 'qRequest(i, "/answer", "POST"' in script
-    assert "idempotencyKey:idem" in script
-    assert 'qRequest(i, "/reopen", "POST"' in script
-    assert 'status:"deferred"' in script
-    assert "ownerUserId:" in script
-    assert "audienceRole:" in script
-    # 历史会话仍可把问卷问题和 conflict clarification 合为一个 backlog。
-    assert "S.state?.oir?.questions" in script
-    assert "S.state?.questions" in script
-    assert "/api/sessions/${S.id}/answer" in script
-
-
-def test_question_deliverables_have_typed_exports_and_bundle() -> None:
-    html = _html()
-    assert "/questions/export?format=${f}" in html
-    assert '["xlsx","md","json"]' in html
-    assert "/bundle" in html
-
-
-def test_returned_template_uses_preview_then_explicit_apply() -> None:
-    html = _html()
-    script = _script(html)
-    assert 'id="returnPicker"' in html
-    assert "auditReturnPicked()" in html
-    assert "/audit?apply=false" in script
-    assert "/audit?apply=true" in script
-    assert "系统不会应用任何数据" in script
-    assert "RETURN_AUDIT.readable !== true" in script
-    assert "previewBlocked" in script
-    assert "confirm(msg)" in script
-    assert "returnAuditCard()" in script
-    assert "damage" in script and "dropped" in script
-    assert "loadQuestions()" in script
-
-
 def test_question_workbench_shows_server_ranked_next_batch() -> None:
     script = _script(_html())
     assert "body.nextBatch" in script
     assert 'typeof item === "string"' in script
     assert "建议下一批先问" in script
-
-
-def test_question_priorities_match_domain_contract() -> None:
-    script = _script(_html())
-    assert '[["low","低优先级"],["normal","普通优先级"],["high","高优先级"],["blocking","阻塞交付"]]' in script
-    assert '["normal","medium"' not in script
-    assert 'impactN >= 3 ? "medium"' not in script
 
 
 def test_release_state_is_not_confused_with_frozen_plan_state() -> None:
@@ -95,53 +57,6 @@ def test_release_state_is_not_confused_with_frozen_plan_state() -> None:
     assert 'engagement.frozen ? "FROZEN DAG" : "EDITABLE PLAN"' in script
     # A frozen plan is orthogonal to a DRAFT/BLOCKED/RELEASED artifact.
     assert 'engagement.frozen ? "FROZEN DAG" : "DRAFT"' not in script
-
-
-def test_bundle_download_is_gated_while_working_artifacts_remain_available() -> None:
-    script = _script(_html())
-    assert 'function bundleLink(label, classes="act")' in script
-    assert 'release.state === "BLOCKED"' in script
-    assert "问题清单和单份草稿仍可下载" in script
-    # 所有 Bundle 入口都必须走同一门禁；唯一真实 href 位于 bundleLink 内。
-    assert script.count("/bundle") == 1
-    assert script.count("bundleLink(") == 6  # 5 个入口 + 1 个函数定义
-    assert ".act.disabled,.abtn.disabled" in _html()
-    # 一个已发布会话重新打开普通问题时，当前包也必须立即降为 DRAFT。
-    release = script[script.index("function releaseView()") : script.index(
-        "function bundleLink(")]
-    assert 'else if (pending.length) state = "DRAFT"' in release
-
-
-def test_blocked_and_deferred_questions_must_reopen_before_answering() -> None:
-    script = _script(_html())
-    assert 'const needsReopen = ["deferred","blocked"].includes(q.status)' in script
-    assert 'busy||done||needsReopen?"disabled"' in script
-    assert 'needsReopen ? `<button class="act pri" onclick="qReopen(${i})"' in script
-
-
-def test_sidebar_delete_handler_escapes_for_the_js_literal() -> None:
-    """会话标题带一个撇号（「客户'A'的项目」）就不能弄坏这个处理器。
-
-    这条以前钉的是 eattr —— **不够**。见下面那条通杀测试里的解释。
-    """
-    html = _html()
-    assert "dropSession('${earg(s.id)}','${earg(s.title)}')" in html
-    assert "dropSession('${s.id}','${esc(s.title)}')" not in html
-
-
-def test_account_row_handlers_escape_for_the_js_literal() -> None:
-    """账号表里每个内联处理器的值都夹在一对单引号中间。
-
-    用户名只经过 strip().lower()（auth.py 的 normalize_username），引号一个都不拦：
-    `x','');alert(1);//` 对任何打开账号面板的管理员就是一次存储型 XSS —— 受害者
-    只是点开了那个面板。良性的 `o'brien` 则会让按钮直接失灵。
-    """
-    html = _html()
-    assert "doDeleteUser('${earg(u.id)}','${earg(u.username)}')" in html
-    assert "doDeleteUser('${esc(u.id)}','${esc(u.username)}')" not in html
-    for call in ("changeRole('${earg(u.id)}'", "toggleActive('${earg(u.id)}'",
-                 "doResetPassword('${earg(u.id)}')", "beginReset('${earg(u.id)}')"):
-        assert call in html, call
 
 
 def test_inline_handlers_never_use_esc_or_eattr_alone() -> None:
@@ -160,18 +75,6 @@ def test_inline_handlers_never_use_esc_or_eattr_alone() -> None:
     bad = [m.group(0) for m in re.finditer(
         r'on[a-z]+="[^"]*\$\{(?:esc|eattr)\(', _html())]
     assert not bad, f"内联处理器里的参数要用 earg：{bad}"
-
-
-def test_earg_escapes_the_js_literal_before_the_attribute() -> None:
-    """顺序不能反：先 JS 转义、再属性转义。
-
-    反过来（先 eattr 再 ejs）会把 `&#39;` 里的分号/井号一起转义掉，值就毁了。
-    """
-    script = _script(_html())
-    body = script[script.index("const ejs ="):script.index("const earg =") + 120]
-    assert "earg = s => eattr(ejs(s))" in body, "earg 的组合顺序错了"
-    for piece in ("\\\\'", "\\\\n", "u2028"):
-        assert piece in body or piece.replace("\\\\", "\\") in body, piece
 
 
 def test_the_display_name_never_reaches_an_inline_handler() -> None:
@@ -201,48 +104,12 @@ def test_ui_javascript_parses_with_node() -> None:
 # ══════════════════════════════════════════════════════════════════
 #  推荐问题 chips（用户报的两个症状里，两个都在前端）
 # ══════════════════════════════════════════════════════════════════
-def test_background_steps_stay_out_of_the_chat_stream() -> None:
-    """「想推荐问题：…」这类后台轨迹只进推理面板。
-
-    它们大多发生在回答落地**之后**，而 STEPS 那一刻刚被清空 —— 于是答案下方
-    又冒出一张思考卡，像是还没答完。后端照旧在发这条 chat.step（推理面板要
-    它），所以拦截点只能在这里。
-    """
-    script = _script(_html())
-    assert 'if (ev.step.turn !== "aux")' in script, "aux 步骤又被放进对话流了"
-    # 但仍要进 TRACE —— 推理面板是它唯一的家
-    trace_push = script.index("TRACE.push({...ev.step")
-    guard = script.index('if (ev.step.turn !== "aux")')
-    assert guard < trace_push, "TRACE 也被那层判断挡住了"
-
-
-def test_chips_have_a_fallback_instead_of_disappearing() -> None:
-    """每一次交互结束，聊天窗口里都得有"接下来能问什么"。
-
-    以前是 `dlg.length ? [] : PROMPTS`：只要聊过一句，追问一为空就一条出口
-    都没有 —— 而服务端那时刚算好一批提示正躺在 PROMPTS 里没人用。
-    """
-    script = _script(_html())
-    # 只看那一行赋值本身 —— 注释里写着旧写法（讲它为什么被换掉），别把注释也算进去
-    assign = [ln.strip() for ln in script.splitlines()
-              if ln.strip().startswith("const chips =") and "FOLLOWUPS" in ln]
-    assert assign == ["const chips = FOLLOWUPS.length ? FOLLOWUPS : PROMPTS;"], assign
 
 
 def test_reopening_a_session_restores_its_chips() -> None:
     """chips 是会话的一部分，隔一天回来不该消失（服务端 /state 带着它）。"""
     script = _script(_html())
     assert "FOLLOWUPS = st.followups || []" in script
-
-
-def test_a_turn_in_flight_does_not_flash_stale_chips() -> None:
-    """答案由 SSE 先上屏、chips 跟着 HTTP 响应才到。
-
-    中间那一小段若照常画，用户会看到上一轮/开场那批闪一下再被换掉 ——
-    位置就在输入框正上方，整块跳一跳。
-    """
-    script = _script(_html())
-    assert "if (!THINKING && !CHAT_ABORT) {" in script
 
 
 def test_stopping_a_turn_recovers_the_chips_it_threw_away() -> None:
@@ -260,100 +127,11 @@ def test_stopping_a_turn_recovers_the_chips_it_threw_away() -> None:
 # ══════════════════════════════════════════════════════════════════
 #  对话记录：只能按身份合并，不能盲追加 / 整体覆盖
 # ══════════════════════════════════════════════════════════════════
-def test_chat_turns_are_merged_by_identity_not_blindly_appended():
-    """两条真实 bug 的共同根因。
-
-    盲追加 → 每条消息两遍：/state 已经带回完整 dialogue，而 SSE 重连固定用
-    ?since=0，从耐久事件表把同样的 chat.turn 再重放一遍。
-    整体覆盖 → 回答被吞：一次滞后的 /state 回来后把 state 整个换掉，抹掉了 SSE
-    刚推上来、那次查询还没看到的助手回答。
-    """
-    js = _script(_html())
-    assert "function addTurn(" in js
-    assert "const turnKey =" in js
-
-    # chat.turn 必须走 addTurn，不能再出现直接 push
-    handler = js[js.index('if (ev.kind === "chat.turn")'):][:400]
-    assert "addTurn(ev.turn)" in handler
-    assert "turns.push(" not in handler, "又变回盲追加了"
-
-    # /state 重取回来必须合并，不能把 dialogue 跟着 Object.assign 一起换掉
-    refetch = js[js.index("/state`).then(r=>r.json()).then(st =>"):][:300]
-    assert "mergeStateSnapshot(st)" in refetch
-
-
-def test_state_snapshot_merge_keeps_remote_turns_and_dialogue_metadata() -> None:
-    """用真实 JS helper 验证 API 的 ``st.state.dialogue`` 契约，而非只搜函数名。"""
-    node = shutil.which("node")
-    if not node:
-        pytest.skip("Node.js is not installed")
-    js = _script(_html())
-    helpers = js[js.index("const turnKey =") : js.index("function bubble(")]
-    program = """
-let PENDING = [];
-let S = {
-  events: [{seq: 9}],
-  state: {dialogue: {
-    turns: [{speaker: "user", ts: 1, text: "old"}],
-    decisions: [{id: "local"}], compactions: 0
-  }}
-};
-__HELPERS__
-mergeStateSnapshot({
-  events: 41,
-  state: {marker: "server", dialogue: {
-    turns: [
-      {speaker: "user", ts: 1, text: "old"},
-      {speaker: "assistant", ts: 2, text: "server-new"}
-    ],
-    decisions: [{id: "remote"}], compactions: 2
-  }}
-});
-console.log(JSON.stringify({
-  turns: S.state.dialogue.turns,
-  decisions: S.state.dialogue.decisions,
-  compactions: S.state.dialogue.compactions,
-  marker: S.state.marker,
-  events: S.events
-}));
-""".replace("__HELPERS__", helpers)
-    result = subprocess.run(
-        [node, "-"], input=program, text=True, capture_output=True, check=False,
-    )
-    assert result.returncode == 0, result.stderr
-    payload = __import__("json").loads(result.stdout)
-    assert [turn["text"] for turn in payload["turns"]] == ["old", "server-new"]
-    assert payload["decisions"] == [{"id": "remote"}]
-    assert payload["compactions"] == 2
-    assert payload["marker"] == "server"
-    assert payload["events"] == [{"seq": 9}]
 
 
 # ══════════════════════════════════════════════════════════════════
 #  空状态问候语：认得出人就叫名字
 # ══════════════════════════════════════════════════════════════════
-def test_greeting_keys_exist_in_both_dictionaries() -> None:
-    """t() 缺 key 时**静默**回落到中文再回落到 key 本身 ——
-    漏了 en 的表现是英文界面上冒出中文，不报错、不红。"""
-    script = _script(_html())
-    zh, en = script.index("\n  zh: {"), script.index("\n  en: {")
-    assert zh < en, "字典顺序变了，下面的切片就不对了"
-    zh_block, en_block = script[zh:en], script[en:en + 8000]
-    for key in ("login.displayName", "register.needName",
-                "empty.tagline", "empty.welcomeBack", "empty.welcomeNew"):
-        assert f'"{key}"' in zh_block, f"zh 少了 {key}"
-        assert f'"{key}"' in en_block, f"en 少了 {key}"
-
-
-def test_the_name_is_escaped_before_it_reaches_innerHTML() -> None:
-    """显示名是用户自己填的自由文本，而这一行是拼进 innerHTML 的。
-
-    t() 只做 {name} 替换、**自己不转义**，所以必须先 esc(name) 再插值。
-    """
-    script = _script(_html())
-    greet = script[script.index("function greetLine()"):][:600]
-    assert "esc(name)" in greet, "名字没转义就进了 innerHTML"
-    assert "empty.tagline" in greet, "认不出人时要回落到那句 tagline"
 
 
 def test_the_name_never_reaches_an_inline_handler() -> None:
@@ -381,49 +159,6 @@ def test_open_mode_has_nobody_to_greet() -> None:
     assert '__local__' in greet
 
 
-def test_the_greeting_does_not_hang_over_an_old_conversation() -> None:
-    """intro 在有对话时会被钉在消息流最上方。不分叉的话，「欢迎回来，张三」
-    会永久挂在一段半年前的五十轮对话顶上。"""
-    script = _script(_html())
-    empty = script[script.index('<h3>OntoCopilot</h3>'):][:300]
-    assert "hasChat ?" in empty
-
-
-def test_a_hostile_username_cannot_escape_an_inline_handler() -> None:
-    """行为测试，不是字符串比对。
-
-    上面几条只能证明"写法对了"，证明不了"写法有用" —— 事实上正是这里发现
-    eattr 不够：它挡得住属性闭合，挡不住 HTML 解码之后的 JS 编译。这条按浏览器
-    的真实顺序走一遍：earg 拼进属性 → HTML 实体解码 → 当 JS 编译，然后断言
-    ①没有执行任何注入代码 ②处理器拿到的仍是原样字符串。
-    """
-    node = shutil.which("node")
-    if not node:
-        pytest.skip("Node.js is not installed")
-    script = _script(_html())
-    defs = script[script.index("const esc ="):script.index("const earg =") + 200]
-    defs = defs[:defs.index("\n", defs.index("const earg ="))]
-
-    probe = r"""
-    // 攻击者能控制的：用户名（只被 strip().lower() 过）、显示名、会话标题、文件名…
-    const evil = "x','');globalThis.__pwned=1;//";
-    const attr = earg(evil);
-    // 浏览器解析属性时先做 HTML 实体解码，再把结果当 JS 编译
-    const decoded = attr.replace(/&#39;/g, "'").replace(/&quot;/g, '"')
-      .replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
-    let received = null;
-    const doDeleteUser = (id, name) => { received = name; };
-    eval("doDeleteUser('u1','" + decoded + "')");
-    if (globalThis.__pwned) { console.log("PWNED"); process.exit(1); }
-    if (received !== evil) { console.log("MANGLED:" + received); process.exit(1); }
-    console.log("OK");
-    """
-    result = subprocess.run(
-        [node, "-e", defs + "\n" + probe], text=True, capture_output=True, check=False)
-    assert result.returncode == 0, f"{result.stdout}{result.stderr}"
-    assert "OK" in result.stdout
-
-
 # ══════════════════════════════════════════════════════════════════
 #  操作记录：右栏「推理」要记下发生过的每一件事
 # ══════════════════════════════════════════════════════════════════
@@ -436,31 +171,6 @@ def test_the_hidden_quota_bar_is_actually_hidden() -> None:
     """
     html = _html()
     assert ".qbar[hidden]{display:none}" in html
-
-
-def test_every_event_kind_the_server_emits_has_a_chinese_label() -> None:
-    """标签表漏一条，界面上就直接冒出 `materials.registered` 这种原始 key ——
-    而那恰恰是用户最想知道"系统刚才干了什么"的时刻。
-
-    这条按服务端**实际会发的**事件类型扫，不是照着前端那张表自说自话。
-    """
-    import re
-    from pathlib import Path
-
-    src = Path(__file__).resolve().parents[1] / "src" / "ontocopilot"
-    emitted: set[str] = set()
-    for py in src.rglob("*.py"):
-        text = py.read_text(encoding="utf-8")
-        emitted |= set(re.findall(r'\.emit(?:_durable)?\(\s*"([a-z][a-z_.]+)"', text))
-    # 对话本身不进操作记录（它在聊天窗口里，抄一遍是噪声）
-    emitted -= {"chat.turn", "chat.step"}
-    assert emitted, "没扫到任何事件类型，说明这条测试的正则失效了"
-
-    labels = _script(_html())
-    labels = labels[labels.index("const EV_LABEL = {"):]
-    labels = labels[:labels.index("\n};")]
-    missing = sorted(k for k in emitted if f'"{k}"' not in labels)
-    assert not missing, f"这些事件在界面上会露出原始 key：{missing}"
 
 
 def test_recommended_questions_are_not_called_decisions() -> None:
@@ -477,10 +187,3 @@ def test_recommended_questions_are_not_called_decisions() -> None:
     assert not [ln for ln in code if "个决策" in ln]
 
 
-def test_the_operation_log_records_everything_but_the_conversation() -> None:
-    """用户要的是"任何操作都能在推理里查到"。"""
-    script = _script(_html())
-    assert "function opsLog()" in script
-    assert 'if (!["chat.turn", "chat.step"].includes(ev.kind))' in script
-    assert "OPS = []" in script          # 切会话要清，否则串台账
-    assert "OPS_CAP" in script           # 长会话不许把内存吃光

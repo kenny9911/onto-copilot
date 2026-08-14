@@ -219,6 +219,17 @@ interface Ctx {
   readonly headers: Record<string, string>;
   /** performance.now() 口径的截止时刻。 */
   readonly deadline: number;
+  /**
+   * **整段探测共用的一个信号**（Python 那边是 `asyncio.timeout` 从外面掐整块）。
+   *
+   * 原来每个请求各自 `AbortSignal.timeout(remaining)`，而"还剩多少预算"是另一次
+   * 独立读表 —— 两个时钟差零点几毫秒，abort 早触发一点，`remaining` 就还是正数，
+   * 于是第一个端点被掐掉之后**第二个照样发出去**，整段探测最长要 2×timeout。
+   * 这个竞态在机器空闲时看不见，套件并发跑起来就现形（真的红过）。
+   *
+   * 用同一个信号之后，"超时了没有"只有一个答案。
+   */
+  readonly signal: AbortSignal;
 }
 
 /** 一个端点探测器：拿到上下文，返回 Balance（拿不到就是未知）。 */
@@ -263,10 +274,10 @@ async function getJson(
   url: string,
   params?: Record<string, string>,
 ): Promise<Record<string, unknown> | null> {
-  const remaining = ctx.deadline - monoNow();
-  // 整段预算已经花完就别再发新请求。Python 侧这一层是 `asyncio.timeout` 从外面
-  // 掐的；这里没有真取消，只能在每次发请求前自己看表（契约 §2.2：不假装有取消）。
-  if (remaining <= 0) return null;
+  // 整段预算花完就别再发新请求。**判据是那个共享信号本身**，不是再读一次表 ——
+  // 读表会和 abort 的触发时刻差出一条缝，第二个端点就从那条缝里溜出去了。
+  if (ctx.signal.aborted) return null;
+  if (ctx.deadline - monoNow() <= 0) return null;
 
   const full = params ? `${url}?${new URLSearchParams(params).toString()}` : url;
   const res = await ctx.fetchImpl(full, {
@@ -274,7 +285,7 @@ async function getJson(
     // httpx 那边是 follow_redirects=True；fetch 默认就是 follow，写出来是为了
     // 别人改这行时知道它是**契约**：网关把 /api/user/self 302 到别处很常见。
     redirect: "follow",
-    signal: AbortSignal.timeout(clampDelay(remaining)),
+    signal: ctx.signal,
   });
 
   if (res.status !== 200) {
@@ -418,6 +429,7 @@ export async function probeBalance(
     base,
     headers: authHeaders(apiKey),
     deadline: monoNow() + (opts.timeoutMs ?? DEFAULT_TIMEOUT_MS),
+    signal: AbortSignal.timeout(clampDelay(opts.timeoutMs ?? DEFAULT_TIMEOUT_MS)),
   };
 
   try {

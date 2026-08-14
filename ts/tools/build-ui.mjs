@@ -24,6 +24,12 @@ const MARKER = "//__OC_UI_BUNDLE__";
 
 const result = await build({
   entryPoints: [resolve(ROOT, "ts/src/ui/main.ts")],
+  // **必须钉死**：esbuild 把每个模块的路径以注释形式打进 bundle，而那些路径是
+  // 相对 absWorkingDir 算的，默认取 process.cwd()。不写这行的话，同一份源码从
+  // 仓库根构建和从 ts/ 构建会产出**不同的字节**（注释里一个是 ts/node_modules/…、
+  // 另一个是 node_modules/…），于是 `--check` 的漂移检查会随「你在哪个目录跑」
+  // 而间歇性报警 —— 而它报的是假警，真正的漂移反而被淹掉。
+  absWorkingDir: ROOT,
   bundle: true,
   format: "iife",
   // React 组件写在 .tsx 里。"automatic" = 走 react/jsx-runtime，源码里不用再
