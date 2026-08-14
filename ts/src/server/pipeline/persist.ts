@@ -12,6 +12,7 @@ import type { JsonObject, JsonValue } from "../../store/types.js";
 import type { Repo } from "../../store/repo/protocol.js";
 import { RunCancelled, isCancelled } from "./types.js";
 import type { SessionLike } from "./types.js";
+import { conflictToDict, type Conflict } from "../../onto/conflict.js";
 
 // ══════════════════════════════════════════════════════════════════
 //  白名单
@@ -178,8 +179,12 @@ export async function persist(
     if (docsOnly !== null) {
       docs = Object.fromEntries(Object.entries(docs).filter(([k]) => docsOnly.has(k)));
     }
-    const conflicts = ((s.state["_conflicts"] as HasToDict[] | undefined) ?? []).map((c) =>
-      c.toDict(),
+    // `s.state["_conflicts"]` 存的是 `onto/conflict.ts` 的 `Conflict` —— **纯数据，
+    // 没有 toDict() 方法**（约定 §1）。这里原本按 `HasToDict` 读再调 `.toDict()`，
+    // 与 run.ts 那两处是同一个 bug：类型上说得通、真跑就是
+    // `TypeError: c.toDict is not a function`。
+    const conflicts = ((s.state["_conflicts"] as Conflict[] | undefined) ?? []).map((c) =>
+      conflictToDict(c),
     ) as JsonObject[];
     const persistConflicts =
       docsOnly === null ||

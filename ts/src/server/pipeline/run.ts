@@ -50,6 +50,9 @@ import type {
 import { access, constants as FS } from "node:fs/promises";
 import { join } from "node:path";
 import { existsSync } from "node:fs";
+import { conflictToDict, type Conflict } from "../../onto/conflict.js";
+import { clarificationSummary, type ClarificationSet } from "../../onto/clarify.js";
+import { gapToQuestion, type Gap } from "../../onto/gaps.js";
 
 // ══════════════════════════════════════════════════════════════════
 //  Python 小工具
@@ -454,7 +457,7 @@ export async function runPipeline(
     // HTTP 服务绝不把宿主 LocalSubprocessSandbox 暴露给不可信材料。确需
     // CodeAct 的部署必须显式开启，并且 production=true 会 fail-closed
     // 地选择 gVisor；运行时缺失时执行失败，不会退回本机子进程。
-    const tools = deps.harness.buildTools({ evidence: index, profiles });
+    const tools = await deps.harness.buildTools({ evidence: index, profiles });
     bus.board.write("_tools", tools, { by: "bootstrap" });
 
     // 项目记忆挂上 L3：同项目别的会话攒下的约定与教训，在这里才真的能被召回。
@@ -603,7 +606,7 @@ export async function runPipeline(
       node: "CONFLICT",
       kinds,
       auto_repaired: res.auto_repaired,
-      conflicts: conflicts.map((c) => c.toDict()),
+      conflicts: conflicts.map((c) => conflictToDict(c as Conflict)),
     });
 
     const cs = res.clarify;
@@ -613,7 +616,7 @@ export async function runPipeline(
     // 这些是「这俩是不是一个东西」，FDE 一天问上百次的那类问题。以前 align
     // 把它们压进 uncertain 就到此为止：只进了一条事件载荷，没有任何界面消费。
     // 系统比对了上千对、看出来了，然后一句话没说。
-    const alignQs = (res.align_gaps ?? []).map((g) => g.toQuestion());
+    const alignQs = (res.align_gaps ?? []).map((g) => gapToQuestion(g as Gap));
     for (const q of alignQs) {
       if (!hasQuestion(oir.questions, q.rid)) oir.addQuestion(q);
     }
@@ -621,9 +624,9 @@ export async function runPipeline(
       s.emit("gaps.mined", { count: alignQs.length, groups: ["同义对象"] });
     }
     s.state["oir"] = oir.toDict();
-    s.state["conflicts"] = conflicts.map((c) => c.toDict());
+    s.state["conflicts"] = conflicts.map((c) => conflictToDict(c as Conflict));
     s.state["questions"] = cs.questions.map((q) => (q as { toDict(): unknown }).toDict());
-    s.state["routing"] = cs.summary();
+    s.state["routing"] = clarificationSummary(cs as ClarificationSet);
     s.state["budget"] = snapshotOf(gws.budget);
     s.state["_oir"] = oir;
     s.state["_conflicts"] = conflicts;
@@ -633,7 +636,7 @@ export async function runPipeline(
       clarification: cs.questions,
       conflicts,
     });
-    s.emit("clarify.request", { questions: s.state["questions"], routing: cs.summary() });
+    s.emit("clarify.request", { questions: s.state["questions"], routing: clarificationSummary(cs as ClarificationSet) });
     // 梳理挂起等 FDE 拍板 —— 这正是他下一步要问的时候，出一版结合全量产物的开场。
     fireAndForget(deps.emitAiPrompts(s, { slot: "opening" }));
     if (truthy(s.state["suggestions"])) {

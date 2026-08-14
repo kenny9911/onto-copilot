@@ -61,6 +61,8 @@ import type {
   TraceRecorder,
 } from "../src/server/pipeline.js";
 import type { SessionEvent } from "../src/session_events.js";
+import { ConflictKind, makeConflict } from "../src/onto/conflict.js";
+import { makeClarificationSet } from "../src/onto/clarify.js";
 
 // ══════════════════════════════════════════════════════════════════
 //  golden
@@ -818,7 +820,10 @@ describe("persist", () => {
       state: {
         oir: {},
         followups: ["f"],
-        _conflicts: [{ toDict: () => ({ rid: "cf_1" }) }],
+        // 真的 Conflict（纯数据）。这里原本放的是一个带 toDict() 的桩 ——
+        // 那是照着**错误的端口声明**造的形状，真跑起来会炸
+        // `TypeError: c.toDict is not a function`。
+        _conflicts: [makeConflict("cf_1", ConflictKind.DUPLICATE, ["ot_a"], "重复对象")],
         questions: [{ conflict_rid: "cf_1" }],
       },
     });
@@ -829,7 +834,7 @@ describe("persist", () => {
     repo.calls.length = 0;
     await persist(s, deps(repo), { docsOnly: new Set(["oir"]) });
     [, arg] = repo.calls.find(([n]) => n === "saveState")!;
-    expect((arg as { o: { conflicts: unknown } }).o.conflicts).toEqual([{ rid: "cf_1" }]);
+    expect((arg as { o: { conflicts: { rid: string }[] } }).o.conflicts?.[0]?.rid).toBe("cf_1");
   });
 
   it("asked_rids 的顺序就是 _ask_rank，缺 conflict_rid 直接炸（数据损坏不静默）", async () => {
@@ -1219,7 +1224,10 @@ function rig(over: Partial<PipelineDeps> = {}, outcomes: Record<string, unknown>
       merged: 0,
       uncertain: 0,
       auto_repaired: 0,
-      clarify: { questions: [], summary: () => ({}) },
+      // 真的 ClarificationSet（纯数据）。原本这里是 `{ questions: [], summary: () => ({}) }`，
+      // 照的是**错误的端口声明** —— 真身没有 summary() 方法，摘要走
+      // `clarificationSummary(cs)`。夹具形状错了，真跑就炸。
+      clarify: makeClarificationSet(),
       suggestions: [],
     }),
     mineQuestions: () => [],
@@ -1234,7 +1242,7 @@ function rig(over: Partial<PipelineDeps> = {}, outcomes: Record<string, unknown>
     pendingQuestions: () => [],
     compile: () => Promise.resolve(),
     harness: {
-      buildTools: () => ({}),
+      buildTools: () => Promise.resolve({}),
       extractorSystem: () => "SYS",
       makeContext: () => {
         const reflections: string[] = [];

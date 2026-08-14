@@ -226,15 +226,27 @@ export interface FinishResult {
   readonly merged: unknown;
   readonly uncertain: unknown;
   readonly auto_repaired: unknown;
-  readonly clarify: { readonly questions: unknown[]; summary(): Record<string, unknown> };
-  readonly align_gaps?: readonly { toQuestion(): QuestionLike }[];
+  /** `onto/clarify.ts` 的 `ClarificationSet`。**纯数据** —— 摘要走
+   *  `clarificationSummary(cs)`，不是 `cs.summary()`。 */
+  readonly clarify: { readonly questions: unknown[] };
+  /** `onto/gaps.ts` 的 `Gap`。**纯数据** —— 转问题走 `gapToQuestion(g)`。 */
+  readonly align_gaps?: readonly unknown[];
   readonly suggestions?: unknown[];
 }
 
+/**
+ * `onto/conflict.ts` 的 `Conflict`。**纯数据，没有 `toDict()` 方法** ——
+ * 按约定 §1 纯数据 dataclass 移植成 interface + 自由函数，序列化走
+ * `conflictToDict(c)`。
+ *
+ * 这里原本声明了 `toDict(): …`，与真身对不上。`serve.ts` 接线时用 `seam()`
+ * 把类型强转过去，于是 tsc 一路放行，直到真跑流水线才炸
+ * `TypeError: c.toDict is not a function` —— 5700 个单测全绿也发现不了，
+ * 因为两边各自都自洽，错的是接缝。
+ */
 export interface ConflictLike {
   readonly rid: string;
   readonly kind: unknown;
-  toDict(): Record<string, unknown>;
 }
 
 export interface QuestionLike {
@@ -395,8 +407,13 @@ export interface PipelineDeps {
 /** `_run_pipeline` 装配 Harness 那一段的整块端口。 */
 export interface HarnessPort {
   /** `ONTOCOPILOT_ENABLE_CODEACT` + `default_sandbox(production=True)` +
-   *  `builtin_registry(...)`，返回写进黑板 `_tools` 的那个对象。 */
-  buildTools(opts: { evidence: EvidenceIndexLike; profiles: unknown }): unknown;
+   *  `builtin_registry(...)`，返回写进黑板 `_tools` 的那个对象。
+   *
+   *  **async，而 Python 那行是同步的**：`default_sandbox` 只是挑一个本机运行时，
+   *  而 TS 侧沙箱住在 Python sidecar（约定 §2.3），要探一次它的 `/health` 才知道
+   *  有没有。探测发生在装配工具之前，探不到就等于没有沙箱 —— 于是 `code.exec`
+   *  **不进动作空间**，而不是进了之后每次调用都失败。 */
+  buildTools(opts: { evidence: EvidenceIndexLike; profiles: unknown }): Promise<unknown>;
   /** `default_agents()["extractor"].render_system(skills) + "\n\n" + skills.load(...)`。 */
   extractorSystem(): string;
   /** `ContextManager(system=…, evidence=…, budget_tokens=90_000, long_term=…)`。 */

@@ -469,6 +469,51 @@ export function revisionToDict(r: Revision): Record<string, unknown> {
 }
 
 /** 一个 key 的完整历史。 */
+/**
+ * 黑板上一个值的**身份**（用于判分歧、归并同值版本）。
+ *
+ * 纯数据走 `canonicalJson` —— 结构相同即同一个值，跨进程稳定。
+ *
+ * **非纯数据（函数、类实例）回落到对象身份**，而不是把它序列化成字符串。
+ * 这里有一条 Python 侧的潜伏 bug 不能跟着抄：`canonical_json` 带 `default=str`
+ * 兜底，一个函数会被序列化成 `"<function f at 0x1043062a0>"` —— **里面是内存
+ * 地址**。同一个逻辑值在两个进程里因此算出两个不同的指纹，而 `ids.py` 自己的
+ * 文件头写着「重放要求 ID 可复现，内核里不允许 uuid4 / random」。它不崩，
+ * 所以一直没人发现。
+ *
+ * 黑板上确实存活对象：`_tools` 写的就是工具注册表本身（`pipeline.ts` 从这里取）。
+ * 对这类值，「同一个句柄 = 同一个值」正是 `contested` 想问的问题，而对象身份
+ * 恰好回答它，且**不假装**自己跨进程可复现。
+ */
+const IDENTITY = new WeakMap<object, string>();
+let identitySeq = 0;
+
+function valueKey(value: unknown): string {
+  try {
+    return canonicalJson(value);
+  } catch {
+    // canonicalJson 只对非纯数据抛（函数 / symbol / 类实例）。
+    if (typeof value === "object" && value !== null) {
+      let id = IDENTITY.get(value);
+      if (id === undefined) {
+        id = `\u0000opaque#${++identitySeq}`;
+        IDENTITY.set(value, id);
+      }
+      return id;
+    }
+    // 函数本身不是 object 的 typeof，但可以做 WeakMap 的键
+    if (typeof value === "function") {
+      let id = IDENTITY.get(value as unknown as object);
+      if (id === undefined) {
+        id = `\u0000opaque#${++identitySeq}`;
+        IDENTITY.set(value as unknown as object, id);
+      }
+      return id;
+    }
+    return `\u0000opaque:${String(typeof value)}`;
+  }
+}
+
 export class Entry {
   readonly key: string;
   readonly revisions: Revision[];
@@ -496,11 +541,12 @@ export class Entry {
     return best;
   }
 
+
   /** 是否存在实质分歧（值不同，而非同值被重复确认）。 */
   get contested(): boolean {
     const seen = new Set<string>();
     for (const r of this.revisions) {
-      seen.add(canonicalJson(r.value));
+      seen.add(valueKey(r.value));
       if (seen.size > 1) return true;
     }
     return false;
@@ -512,7 +558,7 @@ export class Entry {
     // 整数形字符串，普通对象会把它们重排到最前面（V8 对整数键特殊对待）。
     const best = new Map<string, Revision>();
     for (const r of this.revisions) {
-      const k = canonicalJson(r.value);
+      const k = valueKey(r.value);
       const cur = best.get(k);
       if (cur === undefined || r.confidence > cur.confidence ||
         (r.confidence === cur.confidence && r.rev > cur.rev)) {
@@ -743,6 +789,19 @@ function optSupport(d: Record<string, unknown>): readonly string[] {
  * 一个 emoji 算成两格，长度恰好在边界上的值就会被切成不同的样子。
  */
 export function fmtValue(value: unknown, limit = 90): string {
-  const s = typeof value === "string" ? value : canonicalJson(value);
+  let s: string;
+  if (typeof value === "string") {
+    s = value;
+  } else {
+    try {
+      s = canonicalJson(value);
+    } catch {
+      // 黑板上存得下活对象（`_tools` 就是工具注册表本身）。渲染进 prompt 时
+      // 不能因此整条链路崩掉，但**也不能**学 Python 用 `default=str` 打印出
+      // `<function f at 0x1043062a0>` —— 那个内存地址会进模型上下文、进事件
+      // 日志，既没有信息量又让同一份内容在两次运行里长得不一样。
+      s = `<${typeof value}>`;
+    }
+  }
   return cpLength(s) <= limit ? s : cpSlice(s, limit) + "…";
 }
