@@ -211,6 +211,19 @@ export interface PdfPages {
   readonly truncated: boolean;
 }
 
+/** PDF 文本层的一页。扫描页的 `text` 为空，调用方据此决定是否走视觉 OCR。 */
+export interface PdfTextPage {
+  readonly page: number;
+  readonly text: string;
+}
+
+export interface PdfTextPages {
+  readonly pages: readonly PdfTextPage[];
+  readonly totalPages: number;
+  /** 还有没读取的页 —— 与图片渲染一样，绝不静默截断。 */
+  readonly truncated: boolean;
+}
+
 export const PDF_DEFAULT_MAX_PAGES = 20;
 export const PDF_DEFAULT_ZOOM = 2.0;
 
@@ -224,31 +237,7 @@ export async function pdfToPngs(
 ): Promise<PdfPages> {
   const maxPages = opts.maxPages ?? PDF_DEFAULT_MAX_PAGES;
   const zoom = opts.zoom ?? PDF_DEFAULT_ZOOM;
-  const pdfjs = await loadPdfjs();
-  const assets = pdfjsAssetRoot();
-
-  const task = pdfjs.getDocument({
-    // pdfjs 会**就地改写**这块内存（它把 buffer transfer 给 worker）。传调用方
-    // 的原 buffer 进去，调用方手里那份 PDF 字节就废了 —— 上传那条路后面还要
-    // 拿它算哈希。拷一份的成本是一次 memcpy，比这个坑便宜得多。
-    data: data.slice(),
-    // 这两个 URL 不配的话：标准 14 字体（Helvetica/Times…）没有字形数据，
-    // 页面上的文字**整段渲染不出来**（只打一条 warning）；CJK 的 CID 编码
-    // 没有 cmap 表则连字符映射都做不了。
-    standardFontDataUrl: `${assets}standard_fonts/`,
-    cMapUrl: `${assets}cmaps/`,
-    cMapPacked: true,
-    // pdfjs 在 Node 上每份文档都会打一条 "Setting up fake worker"。
-    // 那不是我们的日志，也不是用户能处理的信息。
-    verbosity: 0,
-  });
-
-  let doc: Awaited<typeof task.promise>;
-  try {
-    doc = await task.promise;
-  } catch (e) {
-    throw new RenderError(`PDF 打不开: ${errText(e)}`, { cause: e });
-  }
+  const { task, doc } = await openPdf(data);
 
   try {
     const pages: string[] = [];
@@ -269,6 +258,37 @@ export async function pdfToPngs(
       }
     }
     return { pages, truncated: pages.length < total };
+  } finally {
+    await task.destroy();
+  }
+}
+
+/**
+ * 直接读取 born-digital PDF 的文本层。
+ *
+ * 这条路不调模型：合同、制度、电子发票等本来就带可检索文字的 PDF 应该先走它；
+ * 只有返回空文本的页才需要栅格化后交给视觉 OCR。过去把所有 PDF 都当扫描件，既慢、
+ * 又贵，还会把本来精确的字符重新识别错。
+ */
+export async function pdfToTextPages(
+  data: Uint8Array,
+  opts: { maxPages?: number } = {},
+): Promise<PdfTextPages> {
+  const maxPages = opts.maxPages ?? PDF_DEFAULT_MAX_PAGES;
+  const { task, doc } = await openPdf(data);
+  try {
+    const pages: PdfTextPage[] = [];
+    const totalPages = doc.numPages;
+    for (let pno = 1; pno <= Math.min(totalPages, maxPages); pno += 1) {
+      const page = await doc.getPage(pno);
+      try {
+        const content = await page.getTextContent();
+        pages.push({ page: pno, text: joinPdfText(content.items) });
+      } finally {
+        page.cleanup();
+      }
+    }
+    return { pages, totalPages, truncated: pages.length < totalPages };
   } finally {
     await task.destroy();
   }
@@ -296,6 +316,8 @@ interface CanvasFactoryLike {
 type CanvasModule = typeof import("@napi-rs/canvas");
 type ResvgModule = typeof import("@resvg/resvg-js");
 type PdfjsModule = typeof import("pdfjs-dist/legacy/build/pdf.mjs");
+type PdfLoadingTask = ReturnType<PdfjsModule["getDocument"]>;
+type PdfDocument = Awaited<PdfLoadingTask["promise"]>;
 
 function requireCanvas(): CanvasModule {
   return nodeRequire("@napi-rs/canvas") as CanvasModule;
@@ -319,6 +341,61 @@ let pdfjsCache: Promise<PdfjsModule> | undefined;
 function loadPdfjs(): Promise<PdfjsModule> {
   pdfjsCache ??= import("pdfjs-dist/legacy/build/pdf.mjs");
   return pdfjsCache;
+}
+
+/** 打开 PDF 的唯一边界：统一二进制形态、资源 URL与错误类型。 */
+async function openPdf(data: Uint8Array): Promise<{
+  task: PdfLoadingTask;
+  doc: PdfDocument;
+}> {
+  const pdfjs = await loadPdfjs();
+  const assets = pdfjsAssetRoot();
+  let task: PdfLoadingTask | undefined;
+  try {
+    task = pdfjs.getDocument({
+      // 必须显式造一份**原生 Uint8Array**，不能只写 `data.slice()`：
+      // `fs.readFile()` 返回的 Buffer 虽然在类型上继承 Uint8Array，但它的 slice()
+      // 仍然是 Buffer，而 pdfjs 6 会在运行时拒绝 Buffer。真实上传路径因此会报
+      // "Please provide binary data as Uint8Array"，只有单测里手造的 Uint8Array 能过。
+      // 同时这也是一份拷贝：pdfjs 会 transfer/改写传入内存，不能毁掉调用方字节。
+      data: new Uint8Array(data),
+      // 标准字体与 CMap 同时服务于渲染和文本层字符映射。
+      standardFontDataUrl: `${assets}standard_fonts/`,
+      cMapUrl: `${assets}cmaps/`,
+      cMapPacked: true,
+      verbosity: 0,
+    });
+    return { task, doc: await task.promise };
+  } catch (e) {
+    // getDocument 的参数校验是同步抛，文档读取是 task.promise 异步拒绝；两条都要
+    // 收成同一种业务错误，否则前端会时而看到中文、时而看到 pdfjs 的内部英文。
+    if (task !== undefined) {
+      try {
+        await task.destroy();
+      } catch {
+        // 打开都失败了，清理失败不能盖掉真正原因。
+      }
+    }
+    throw new RenderError(`PDF 打不开: ${errText(e)}`, { cause: e });
+  }
+}
+
+/** pdfjs 的 TextItem 流 → 保留显式换行的可检索文本。 */
+function joinPdfText(items: readonly unknown[]): string {
+  let out = "";
+  for (const raw of items) {
+    if (raw === null || typeof raw !== "object") continue;
+    const item = raw as { str?: unknown; hasEOL?: unknown };
+    if (typeof item.str !== "string") continue; // TextMarkedContent 没有 str
+    const text = item.str;
+    if (text !== "" && out !== "" && !/[\s]$/u.test(out) && !/^[\s]/u.test(text)) out += " ";
+    out += text;
+    if (item.hasEOL === true && !out.endsWith("\n")) out += "\n";
+  }
+  return out
+    .replace(/[ \t]+\n/gu, "\n")
+    .replace(/[ \t]{2,}/gu, " ")
+    .trim();
 }
 
 /** 装好的 pdfjs 包目录（末尾带 `/`）—— 字体与 cmap 都在它下面。 */

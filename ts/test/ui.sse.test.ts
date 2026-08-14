@@ -10,7 +10,7 @@
 import "./ui.env.js";
 import { FakeEventSource } from "./ui.env.js";
 
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { G, OPS_CAP, TBL_OPEN } from "../src/ui/state.js";
 import { connect } from "../src/ui/sse.js";
@@ -71,6 +71,28 @@ describe("connect() 的事件分派", () => {
     expect(G.OPS[0].label).toBe("读完材料");
     expect(G.OPS[0].tag).toBe("ok");
     expect(G.OPS[0].detail).toBe("文件 1 · 切片 3");
+  });
+
+  it("material.parse 发出 corpus.ready 后刷新 state，材料 chip 不停在旧状态", async () => {
+    const oldFetch = globalThis.fetch;
+    const fetcher = vi.fn(async () => ({
+      json: async () => ({
+        id: "s1", title: "T", mode: "work", status: "done", files: 1,
+        filelist: [{ name: "规则.txt", chunks: 1, state: "parsed" }],
+        state: {}, followups: [],
+      }),
+    }));
+    globalThis.fetch = fetcher as unknown as typeof fetch;
+    try {
+      const es = open();
+      es.send(ev({ seq: 2, kind: "corpus.ready", stats: { files: 1, chunks: 1 } }));
+      await vi.waitFor(() => {
+        expect(G.S.filelist).toEqual([{ name: "规则.txt", chunks: 1, state: "parsed" }]);
+      });
+      expect(fetcher).toHaveBeenCalledWith("/api/sessions/s1/state");
+    } finally {
+      globalThis.fetch = oldFetch;
+    }
   });
 
   it("操作记录封顶，长会话不会把内存吃光", () => {

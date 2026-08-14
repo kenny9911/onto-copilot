@@ -434,7 +434,7 @@ describe("接线：artifacts 段的两条 422", () => {
       render: () => [new Uint8Array(), { ext: "xlsx", media_type: "x", label: "x" }] as never,
       safeName: () => "x.xlsx",
     },
-    parseRegistry: { parse: async () => ({ chunks: [] }) },
+    preparse: async () => undefined,
     persist: async () => {},
     recompile: async () => {},
     sessionMutation: async (_s: unknown, _k: string, body: () => unknown) => body(),

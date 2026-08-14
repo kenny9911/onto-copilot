@@ -337,15 +337,16 @@ export async function runPipeline(
       if (!("path" in f)) throw new Error("KeyError: 'path'");
       return String(f["path"]);
     });
-    // 扫描件/图片要过视觉模型，一页可能几十秒。不预告的话界面上就是"解析中"
-    // 一动不动，用户分不清在识别还是卡死了。先说清有几份要识别、用什么识别。
+    // 图片和 PDF 的无文本页要过视觉模型，一页可能几十秒。不预告的话界面上就是
+    // "解析中"一动不动。电子 PDF 会先直接读文本层，不能再把它说成必然整本 OCR。
     const scans = paths.filter((p) => SCAN_EXT.includes(suffixLower(p)));
     if (scans.length > 0) {
       const vis = deps.catalog().byCapability()["vision"] ?? [];
       s.emit("flow.step", {
         cite: "",
         found:
-          `${scans.length} 份图片/扫描件要用视觉模型识别（` +
+          `${scans.length} 份图片/PDF 将先读取原生内容；只有图片和 PDF 的无文本页` +
+          `才用视觉模型识别（` +
           (vis.length > 0
             ? `可用：${vis.slice(0, 3).join("、")}`
             : "⚠ 网关上没有带视觉的模型，识别会失败") +
@@ -361,7 +362,7 @@ export async function runPipeline(
           s.emit("flow.step", { cite: "", found: msg });
         },
       })
-      .parseAll(paths);
+      .parseAll(paths, { continueOnError: true });
     checkCancelled(signal);
     const index = deps.buildIndex(docs);
     const endpoints = deps.collectEndpoints(docs);
@@ -437,7 +438,9 @@ export async function runPipeline(
         docs.map((d) => `${d.file_name} 读出 ${d.chunks.length} 段`).join("；") || "没有材料";
       const warns = docs.flatMap((d) =>
         d.findings
-          .filter((f) => ["vision_failed", "empty_ocr", "no_vision_model"].includes(f.kind))
+          .filter((f) => [
+            "vision_failed", "empty_ocr", "no_vision_model", "parse_failed", "unsupported",
+          ].includes(f.kind))
           .map((f) => f.message),
       );
       throw new Error(

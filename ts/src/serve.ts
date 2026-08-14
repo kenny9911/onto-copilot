@@ -765,9 +765,9 @@ export function wireServer(): void {
       render: (doc, fmt) => exportApi.render(doc as never, fmt) as never,
       safeName: (title, ext) => exportApi.safeName(title, ext),
     },
-    // `/source` 要 `onto.parse.default_registry()` —— 那个装配层还没迁。
-    // `/source` 用的解析器。现建，理由同 `materialTable`。
-    parseRegistry: { parse: (path) => seam(parseRegistry.defaultRegistry().parse(path)) },
+    // `/source` 与 material.parse / build 共用同一条解析状态写入路径，不能只写
+    // `_chunks` 而漏掉索引和 findings。
+    preparse: (s) => env.preparse(seam(s)),
     persist: (s) => PARTS.persist(s),
     recompile: (s) => glueRecompile(seam(s), glueDeps()),
     sessionMutation: (s, kind, body) => PARTS.sessionMutation(s, kind, body),

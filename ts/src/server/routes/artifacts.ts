@@ -63,8 +63,8 @@ import {
 } from "../../onto/questions.js";
 import { TemplateSpec } from "../../onto/template.js";
 import { eventRowAsSse, revisionRowFromDomain, type JsonObject } from "../../store/types.js";
+import { materialFindings } from "../material_status.js";
 import { cmpCodePoint } from "../../onto/difflib.js";
-import { cpSlice } from "../../onto/parse/base.js";
 import { currentRepo, sessAsync, type Session } from "../session.js";
 import {
   collectBoolQuery,
@@ -118,24 +118,11 @@ export interface ExportModule {
   safeName(title: string, ext: string): string;
 }
 
-/** `source` 路由要的解析器。`default_registry()` 归解析那一段。 */
-export interface SourceChunk {
-  cite(): string;
-  readonly render: string;
-  readonly tags: readonly string[];
-  readonly locator: Readonly<Record<string, unknown>>;
-}
-export interface SourceDoc {
-  readonly chunks: readonly SourceChunk[];
-}
-export interface ParseRegistry {
-  parse(path: string): Promise<SourceDoc>;
-}
-
 /** 这一段用到的、住在别的段落里的服务端零件。 */
 export interface ArtifactDeps {
   readonly exportModule: ExportModule;
-  readonly parseRegistry: ParseRegistry;
+  /** 与 material.parse / build 共用的解析入口，负责同时更新 chunks、index 与 corpus。 */
+  readonly preparse: (s: Session) => Promise<void>;
   /** `_persist(s)`。 */
   readonly persist: (s: Session) => Promise<void>;
   /** `_recompile(s)`：确定性重算（对齐→冲突→自动修→澄清→编译），零模型调用。 */
@@ -492,7 +479,9 @@ export function registerArtifactRoutes(app: Hono, deps: ArtifactDeps): void {
    *
    * 这是 ADR-3 的兑现：任何结论都要能点回原文的确切位置。
    *
-   * **一律从构建时的缓存读，不重新解析。** 两个原因，第二个更要命：
+   * **一律从统一解析缓存读。** 缓存尚未建立时调用同一个 preparse 入口；它会读取
+   * 文本材料，但不会为扫描件偷偷发起付费 OCR。这样预览、检索和状态共用一份结果。
+   * 已有缓存绝不重新 OCR，两个原因，第二个更要命：
    *
    * 1. 扫描件重新解析要再调一次视觉模型，看一眼预览就付一次钱；
    * 2. 重跑 OCR 可能给出与抽取时**不同**的文本 —— 那样"点回原文"看到的
@@ -504,38 +493,36 @@ export function registerArtifactRoutes(app: Hono, deps: ArtifactDeps): void {
     const q = c.req.query("q") ?? "";
     const s = await sessAsync(sid);
     const name = pyPathName(file);
-    const cache = asRecord(s.state["_chunks"]);
+    let cache = asRecord(s.state["_chunks"]);
 
     let pool: Record<string, unknown>[];
-    if (Object.hasOwn(cache, name)) {
-      pool = asArray(cache[name]).map((x) => asRecord(x));
-    } else {
+    if (!Object.hasOwn(cache, name)) {
       const path = join(s.dir, "materials", name);
       if (!existsSync(path)) throw new HTTPException(404, { message: file });
-      if (SCAN_SUFFIXES.has(pySuffix(name).toLowerCase())) {
+      // 不在 GET 路由里另造一套“只写 chunks、不建索引、不留 findings”的解析。
+      // 统一入口对文本零成本解析；图片/PDF 无文本页只登记 vision_pending，不会
+      // 因为看一次预览就偷偷付费 OCR。
+      await deps.preparse(s);
+      cache = asRecord(s.state["_chunks"]);
+      if (!Object.hasOwn(cache, name)) {
+        const findings = materialFindings(s, name);
         return c.json({
           file: name,
-          kind: "scan",
+          kind: "unavailable",
           chunks: [],
-          findings: [
-            {
-              kind: "not_parsed_yet",
-              message:
-                "扫描件要走视觉模型识别，先点「开始梳理」。" + "预览不会单独再跑一次 OCR。",
-            },
-          ],
+          findings: findings.length > 0
+            ? findings
+            : [{
+                file: name,
+                kind: "parse_failed",
+                severity: "warn",
+                message: "材料解析没有产出状态，请重试；若仍失败请检查服务端解析事件。",
+                locator: {},
+              }],
         });
       }
-      const doc = await deps.parseRegistry.parse(path);
-      pool = doc.chunks.map((ch) => ({
-        cite: ch.cite(),
-        text: cpSlice(ch.render, 0, 1500),
-        tags: ch.tags,
-        locator: ch.locator,
-      }));
-      cache[name] = pool;
-      s.state["_chunks"] = cache;
     }
+    pool = asArray(cache[name]).map((x) => asRecord(x));
 
     const needle = q.toLowerCase();
     const hits = pool.filter(
@@ -551,9 +538,7 @@ export function registerArtifactRoutes(app: Hono, deps: ArtifactDeps): void {
       file: name,
       kind: "cached",
       chunks: hits.slice(0, limit),
-      findings: asArray(asRecord(s.state["corpus"])["findings"]).filter(
-        (f) => asRecord(f)["file"] === name,
-      ),
+      findings: materialFindings(s, name),
     });
   });
 
@@ -917,9 +902,6 @@ function pushVersion(s: Session, key: string, snap: Record<string, unknown>): un
   if (list.length > VERSION_STACK_CAP) list.splice(0, list.length - VERSION_STACK_CAP);
   return list;
 }
-
-/** 走视觉模型才读得动的后缀。 */
-const SCAN_SUFFIXES = new Set([".png", ".jpg", ".jpeg", ".pdf", ".webp", ".tif", ".tiff"]);
 
 /** `x.get("value") if isinstance(x, dict) else x` → `str(v or "").strip()`。 */
 function aval(x: unknown): string {

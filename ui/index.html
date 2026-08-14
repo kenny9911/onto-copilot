@@ -14985,13 +14985,14 @@ body.dragging .preview{transition:none}
       }
       if (ev.kind === "prompts.ready" && ev.slot === "opening") G.PROMPTS = ev.questions || [];
       if (ev.kind === "node.completed" && ev.node === "CONFLICT") G.S.state.conflicts = ev.conflicts;
-      if (["run.completed", "run.failed", "run.suspended", "run.cancelled", "artifact.ready", "human.recorded", "question.updated", "question.answered", "audit.applied"].includes(ev.kind))
-        fetch(`${API}/api/sessions/${G.S.id}/state`).then((r) => r.json()).then((st) => {
+      if (["corpus.ready", "corpus.restored", "parse.failed", "run.completed", "run.failed", "run.suspended", "run.cancelled", "artifact.ready", "human.recorded", "question.updated", "question.answered", "audit.applied"].includes(ev.kind))
+        void fetch(`${API}/api/sessions/${G.S.id}/state`).then((r) => r.json()).then((st) => {
           mergeStateSnapshot(st);
           G.S.files = (st.filelist || []).length;
           loadQuestions();
           render();
           paint();
+        }).catch(() => {
         });
       render();
     };
@@ -15422,12 +15423,18 @@ body.dragging .preview{transition:none}
       "preview.title": "预览",
       "model.auto": "自动选模型",
       "mat.parsed": "已读入 {n} 段",
+      "mat.partial": "部分读入 {n} 段",
+      "mat.failed": "解析失败",
+      "mat.unsupported": "格式不支持",
+      "mat.pending": "待识别",
       "mat.scanPending": "待识别 · 图片",
       "mat.unread": "未读入",
       "mat.remove": "移除这份材料",
       "mat.allRead": "材料都已读入，可以开始梳理或直接提问",
       "mat.pendingScan": "有 {n} 份还没读入；图片/扫描件要点「开始梳理」才会用视觉模型识别",
       "mat.pendingText": "有 {n} 份还没读入；问它内容时助手会自动读，或直接「开始梳理」",
+      "mat.hasProblems": "有 {n} 份材料解析失败或格式不支持；点开材料查看具体原因",
+      "mat.hasPartial": "有 {n} 份材料只读入了一部分；点开查看待识别页面或解析告警",
       "mat.count": "{n} 份材料",
       "table.expand": "展开全部 {n} 条",
       "table.collapse": "收起",
@@ -15641,12 +15648,18 @@ body.dragging .preview{transition:none}
       "preview.title": "Preview",
       "model.auto": "Auto-select model",
       "mat.parsed": "{n} segments read",
+      "mat.partial": "Partially read · {n} segments",
+      "mat.failed": "Parse failed",
+      "mat.unsupported": "Unsupported format",
+      "mat.pending": "Pending recognition",
       "mat.scanPending": "Pending OCR · image",
       "mat.unread": "Not read",
       "mat.remove": "Remove this material",
       "mat.allRead": "All materials read — start the run, or just ask",
       "mat.pendingScan": "{n} not read yet; images need “Start run” to be recognised",
       "mat.pendingText": "{n} not read yet; the assistant reads them when you ask, or start the run",
+      "mat.hasProblems": "{n} materials failed to parse or use an unsupported format; open them for details",
+      "mat.hasPartial": "{n} materials were only partially read; open them for pending pages or warnings",
       "mat.count": "{n} materials",
       "table.expand": "Show all {n}",
       "table.collapse": "Collapse",
@@ -17781,7 +17794,12 @@ body.dragging .preview{transition:none}
   }
   var MST = {
     parsed: (f) => ({ t: t("mat.parsed", "", { n: f.chunks }), c: "var(--accent)" }),
-    scan_pending: () => ({ t: t("mat.scanPending"), c: "var(--warn, #9a7a12)" }),
+    partial: (f) => ({ t: t("mat.partial", "", { n: f.chunks }), c: "var(--warn, #9a7a12)" }),
+    failed: () => ({ t: t("mat.failed"), c: "var(--danger, #b42318)" }),
+    unsupported: () => ({ t: t("mat.unsupported"), c: "var(--danger, #b42318)" }),
+    pending: () => ({ t: t("mat.pending"), c: "var(--warn, #9a7a12)" }),
+    // 兼容旧服务端快照；新 wire shape 统一叫 pending。
+    scan_pending: () => ({ t: t("mat.pending"), c: "var(--warn, #9a7a12)" }),
     unread: () => ({ t: t("mat.unread"), c: "var(--ink-3)" })
   };
   function FileChip({ f }) {
@@ -17791,6 +17809,7 @@ body.dragging .preview{transition:none}
       "span",
       {
         className: "f " + (f.name === G3.FILE ? "on" : ""),
+        title: f.issue || "",
         onClick: () => {
           setUi({ FILE: f.name });
           void loadSource(f.name);
@@ -17882,7 +17901,9 @@ body.dragging .preview{transition:none}
       ] });
     }
     const nPend = fl.filter((f) => f.state !== "parsed").length;
-    const hint = /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("div", { className: "cap", children: !nPend ? t("mat.allRead") : fl.some((f) => f.state === "scan_pending") ? t("mat.pendingScan", "", { n: nPend }) : t("mat.pendingText", "", { n: nPend }) });
+    const nProblem = fl.filter((f) => f.state === "failed" || f.state === "unsupported").length;
+    const nPartial = fl.filter((f) => f.state === "partial").length;
+    const hint = /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("div", { className: "cap", children: !nPend ? t("mat.allRead") : nProblem ? t("mat.hasProblems", "", { n: nProblem }) : nPartial ? t("mat.hasPartial", "", { n: nPartial }) : fl.some((f) => f.state === "pending" || f.state === "scan_pending") ? t("mat.pendingScan", "", { n: nPend }) : t("mat.pendingText", "", { n: nPend }) });
     const doc = G3.FILE ? G3.SRC[G3.FILE] : null;
     let body;
     if (!G3.FILE) body = hint;

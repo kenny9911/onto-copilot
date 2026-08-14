@@ -41,6 +41,7 @@ import type { FileRow, JsonObject, JsonValue, SessionRow } from "../../store/typ
 import { makeFileRow, makeSessionRow } from "../../store/types.js";
 import type { AppEnv } from "../app.js";
 import { isolate, ownerId } from "../app.js";
+import { materialFileList } from "../material_status.js";
 import {
   SESSIONS,
   Session,
@@ -677,23 +678,9 @@ export function registerSessionRoutes(app: Hono<AppEnv>, env: ServerEnv): void {
     // 每份材料的**解析状态**要跟着回去。只给名字和大小的话，界面上没有任何地方
     // 能回答"这份读进来了没有" —— 用户只能去问助手，而助手（在工具回执含糊时）
     // 会猜。状态是事实，应该看得见，不该靠问。
-    const chunks = (s.state["_chunks"] ?? {}) as Record<string, unknown[] | undefined>;
     return c.json({
       ...s.brief(),
-      filelist: s.files.map((f) => {
-        const cs = chunks[f.name];
-        return {
-          name: f.name,
-          size: f.size,
-          chunks: (cs ?? []).length,
-          state:
-            cs !== undefined && cs.length > 0
-              ? "parsed"
-              : SCAN_EXT.some((e) => f.name.toLowerCase().endsWith(e))
-                ? "scan_pending"
-                : "unread",
-        };
-      }),
+      filelist: materialFileList(s),
       state: pub,
       events: s.events.length,
       // 一个空白输入框对新用户是最不友好的界面 —— 他知道这工具能分析
@@ -705,9 +692,6 @@ export function registerSessionRoutes(app: Hono<AppEnv>, env: ServerEnv): void {
     });
   });
 }
-
-/** `/state` 里判"这是扫描件"的后缀表。 */
-const SCAN_EXT = [".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tif", ".tiff", ".pdf"];
 
 /** `/state` 只读 `_dialogue` 的这两个方法。 */
 interface DialogueLike {

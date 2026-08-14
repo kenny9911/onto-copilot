@@ -51,7 +51,12 @@ export function Placeholder({ ic, children }: { ic: string; children?: ReactNode
 /** 一份材料的解析状态。「这份读进来了没有」是个事实，应该看得见，而不是去问助手。 */
 const MST: Record<string, (f?: any) => { t: string; c: string }> = {
   parsed:       (f: any) => ({ t: t("mat.parsed", "", { n: f.chunks }), c: "var(--accent)" }),
-  scan_pending: () => ({ t: t("mat.scanPending"), c: "var(--warn, #9a7a12)" }),
+  partial:      (f: any) => ({ t: t("mat.partial", "", { n: f.chunks }), c: "var(--warn, #9a7a12)" }),
+  failed:       () => ({ t: t("mat.failed"), c: "var(--danger, #b42318)" }),
+  unsupported:  () => ({ t: t("mat.unsupported"), c: "var(--danger, #b42318)" }),
+  pending:      () => ({ t: t("mat.pending"), c: "var(--warn, #9a7a12)" }),
+  // 兼容旧服务端快照；新 wire shape 统一叫 pending。
+  scan_pending: () => ({ t: t("mat.pending"), c: "var(--warn, #9a7a12)" }),
   unread:       () => ({ t: t("mat.unread"),      c: "var(--ink-3)" }),
 };
 
@@ -68,6 +73,7 @@ export function FileChip({ f }: { f: any }): ReactElement {
   return (
     <span
       className={"f " + (f.name === G.FILE ? "on" : "")}
+      title={f.issue || ""}
       onClick={() => { setUi({ FILE: f.name }); void loadSource(f.name); }}
     >{f.name}{" "}
       <i style={{ fontStyle: "normal", fontSize: "0.778rem", color: st.c, marginLeft: "5px" }}>{st.t}</i><b
@@ -155,9 +161,14 @@ export function MaterialsTab(): ReactElement {
   }
   // 一眼能看出还有没有没读进来的，以及该做什么
   const nPend = fl.filter((f: any) => f.state !== "parsed").length;
+  const nProblem = fl.filter((f: any) => f.state === "failed" || f.state === "unsupported").length;
+  const nPartial = fl.filter((f: any) => f.state === "partial").length;
   const hint = (
     <div className="cap">{!nPend ? t("mat.allRead")
-      : fl.some((f: any) => f.state === "scan_pending") ? t("mat.pendingScan", "", { n: nPend })
+      : nProblem ? t("mat.hasProblems", "", { n: nProblem })
+      : nPartial ? t("mat.hasPartial", "", { n: nPartial })
+      : fl.some((f: any) => f.state === "pending" || f.state === "scan_pending")
+        ? t("mat.pendingScan", "", { n: nPend })
       : t("mat.pendingText", "", { n: nPend })}</div>
   );
   const doc = G.FILE ? G.SRC[G.FILE] : null;

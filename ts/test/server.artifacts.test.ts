@@ -34,7 +34,6 @@ import {
   registerArtifactRoutes,
   type ArtifactDeps,
   type ExportModule,
-  type ParseRegistry,
   type Upload,
   auditOnce,
 } from "../src/server/routes/artifacts.js";
@@ -99,8 +98,8 @@ const FAKE_EXPORT: ExportModule = {
   },
 };
 
-const FAKE_REGISTRY: ParseRegistry = {
-  parse: async (path) => ({
+const FAKE_REGISTRY = {
+  parse: async (path: string) => ({
     chunks: [
       {
         cite: () => `${path.split("/").pop()}!Sheet1!R2-9`,
@@ -144,7 +143,31 @@ let persisted = 0;
 function makeDeps(over: Partial<ArtifactDeps> = {}): ArtifactDeps {
   return {
     exportModule: FAKE_EXPORT,
-    parseRegistry: FAKE_REGISTRY,
+    preparse: async (s) => {
+      const chunks: Record<string, unknown[]> = {};
+      const files: Record<string, unknown>[] = [];
+      const findings: Record<string, unknown>[] = [];
+      for (const f of s.files) {
+        if (f.name.toLowerCase().endsWith(".pdf")) {
+          chunks[f.name] = [];
+          files.push({ file: f.name, kind: "scan", chunks: 0, findings: 1 });
+          findings.push({
+            file: f.name, kind: "vision_pending", severity: "info",
+            message: "扫描页待视觉识别", locator: {},
+          });
+          continue;
+        }
+        const doc = await FAKE_REGISTRY.parse(f.path);
+        chunks[f.name] = doc.chunks.map((ch) => ({
+          cite: ch.cite(), text: [...ch.render].slice(0, 1500).join(""),
+          tags: [...ch.tags], locator: { ...ch.locator },
+        }));
+        files.push({ file: f.name, kind: "xlsx", chunks: doc.chunks.length, findings: 0 });
+      }
+      s.state["_chunks"] = chunks;
+      s.state["_index"] = { built: true };
+      s.state["corpus"] = { files, chunks: Object.values(chunks).flat().length, findings };
+    },
     persist: async () => {
       persisted += 1;
     },
@@ -830,28 +853,63 @@ describe("GET /api/sessions/:sid/source", () => {
     expect(byCite.chunks).toHaveLength(1);
   });
 
-  it("没缓存过就现解析一次，并把结果写回缓存（正文截到 1500 code point）", async () => {
+  it("没缓存过就走统一 preparse，同时建立缓存、索引与 corpus", async () => {
     const s = makeSession("src3");
     mkdirSync(join(s.dir, "materials"), { recursive: true });
-    writeFileSync(join(s.dir, "materials", "订单.xlsx"), "x", "utf8");
+    const path = join(s.dir, "materials", "订单.xlsx");
+    writeFileSync(path, "x", "utf8");
+    s.files = [{ name: "订单.xlsx", path, size: 1, sha256: "" }];
     const res = await makeApp().request("/api/sessions/src3/source?file=%E8%AE%A2%E5%8D%95.xlsx");
     const body = (await res.json()) as { chunks: { cite: string; text: string }[] };
     expect(body.chunks).toHaveLength(2);
     expect(body.chunks[0]!.cite).toBe("订单.xlsx!Sheet1!R2-9");
     expect([...body.chunks[0]!.text].length).toBe(1500);
     expect(Object.keys(s.state["_chunks"] as object)).toEqual(["订单.xlsx"]);
+    expect(s.state["_index"]).toEqual({ built: true });
+    expect((s.state["corpus"] as { files: unknown[] }).files).toHaveLength(1);
   });
 
-  it("扫描件不偷偷再跑一次 OCR —— 明说要先点开始梳理", async () => {
+  it("扫描件不偷偷跑 OCR，并返回统一 preparse 留下的 vision_pending", async () => {
     const s = makeSession("src4");
     mkdirSync(join(s.dir, "materials"), { recursive: true });
-    writeFileSync(join(s.dir, "materials", "合同.pdf"), "%PDF", "utf8");
+    const path = join(s.dir, "materials", "合同.pdf");
+    writeFileSync(path, "%PDF", "utf8");
+    s.files = [{ name: "合同.pdf", path, size: 4, sha256: "" }];
     const body = (await (
       await makeApp().request("/api/sessions/src4/source?file=%E5%90%88%E5%90%8C.pdf")
     ).json()) as { kind: string; chunks: unknown[]; findings: { kind: string }[] };
-    expect(body.kind).toBe("scan");
+    expect(body.kind).toBe("cached");
     expect(body.chunks).toEqual([]);
-    expect(body.findings[0]!.kind).toBe("not_parsed_yet");
+    expect(body.findings[0]!.kind).toBe("vision_pending");
+  });
+
+  it("统一 preparse 的 unsupported finding 不会被 source 吞掉", async () => {
+    const s = makeSession("src-unsupported");
+    mkdirSync(join(s.dir, "materials"), { recursive: true });
+    const path = join(s.dir, "materials", "旧表.xls");
+    writeFileSync(path, "binary", "utf8");
+    s.files = [{ name: "旧表.xls", path, size: 6, sha256: "" }];
+    const app = makeApp({
+      preparse: async (session) => {
+        session.state["_chunks"] = { "旧表.xls": [] };
+        session.state["_index"] = { built: true };
+        session.state["corpus"] = {
+          files: [{ file: "旧表.xls", kind: "unsupported", chunks: 0, findings: 1 }],
+          chunks: 0,
+          findings: [{
+            file: "旧表.xls", kind: "unsupported", severity: "warn",
+            message: "旧版二进制格式不支持", locator: {},
+          }],
+        };
+      },
+    });
+    const body = (await (
+      await app.request("/api/sessions/src-unsupported/source?file=%E6%97%A7%E8%A1%A8.xls")
+    ).json()) as { chunks: unknown[]; findings: Array<{ kind: string; message: string }> };
+    expect(body.chunks).toEqual([]);
+    expect(body.findings).toEqual([
+      expect.objectContaining({ kind: "unsupported", message: "旧版二进制格式不支持" }),
+    ]);
   });
 
   it("材料不存在 → 404", async () => {

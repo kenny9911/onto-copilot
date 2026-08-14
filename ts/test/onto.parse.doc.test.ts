@@ -416,6 +416,63 @@ describe("VisionParser", () => {
     await runVision("other_error", new ScriptedGateway([new ValueError("boom")]));
   });
 
+  it("电子 PDF 有文本层时零模型调用，按页切片并保留 locator", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "ontoparse-pdf-text-"));
+    try {
+      const path = join(dir, "制度.pdf");
+      await writeFile(path, "%PDF fixture");
+      const parser = new VisionParser(null, {
+        extractPdfText: () => Promise.resolve({
+          pages: [{ page: 1, text: "采购制度\n每个申请必须关联一个成本中心。" }],
+          totalPages: 1,
+          truncated: false,
+        }),
+        renderPdf: () => Promise.reject(new Error("有文本层时不该栅格化")),
+      });
+      const doc = await parser.parse(path, { fileId: "f-pdf-text" });
+      expect(doc.chunks).toHaveLength(1);
+      expect(doc.chunks[0]?.render).toContain("每个申请必须关联一个成本中心");
+      expect(doc.chunks[0]?.locator).toMatchObject({ kind: "page", page: 1 });
+      expect(doc.chunks[0]?.tags).toEqual(["pdf", "text", "rule"]);
+      expect(doc.findings.map((f) => f.kind)).toEqual(["pdf_text_ok"]);
+      expect(doc.structured).toMatchObject({ text_pages: 1, ocr_pages: 0, blocks: 1 });
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("混合 PDF 只 OCR 没有文本层的页，不重复识别已有文字", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "ontoparse-pdf-mixed-"));
+    try {
+      const path = join(dir, "混合材料.pdf");
+      await writeFile(path, "%PDF fixture");
+      const gateway = new ScriptedGateway([{
+        blocks: [{ text: "扫描页正文", kind: "paragraph", bbox: [0, 0, 1, 1] }],
+        tables: [],
+        relations: [],
+      }]);
+      const parser = new VisionParser(gateway, {
+        extractPdfText: () => Promise.resolve({
+          pages: [{ page: 1, text: "第一页电子正文" }, { page: 2, text: "" }],
+          totalPages: 2,
+          truncated: false,
+        }),
+        renderPdf: () => Promise.resolve({ pages: ["UE5HMQ==", "UE5HMg=="], truncated: false }),
+      });
+      const doc = await parser.parse(path, { fileId: "f-pdf-mixed" });
+      expect(gateway.seen).toHaveLength(1);
+      expect(gateway.seen[0]?.["key"]).toBe("ocr:p2");
+      expect(doc.chunks.map((c) => c.render)).toEqual([
+        "第一页电子正文",
+        "〔paragraph〕扫描页正文",
+      ]);
+      expect(doc.chunks.map((c) => c.locator["page"])).toEqual([1, 2]);
+      expect(doc.structured).toMatchObject({ text_pages: 1, ocr_pages: 1, blocks: 2 });
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
   it("bbox 归一化逐例与 Python 相等（含 NaN —— JS 的 min/max 在这里是反的）", () => {
     for (const { raw, out } of golden.bbox) {
       expect(normalizeBbox(raw)).toEqual(out);
@@ -424,6 +481,21 @@ describe("VisionParser", () => {
 });
 
 describe("renderPages", () => {
+  it("落盘后的 PDF 走默认渲染器也能读成 PNG —— 覆盖 fs.readFile 的 Buffer 入口", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "ontoparse-pdf-real-"));
+    try {
+      const path = join(dir, "minimal.pdf");
+      await writeFile(path, minimalPdf());
+      const pages = await renderPages(path, { maxPages: 1 });
+      expect(pages).toHaveLength(1);
+      expect(pages[0]?.startsWith("data:image/png;base64,")).toBe(true);
+      const png = Buffer.from(pages[0]!.split(",", 2)[1]!, "base64");
+      expect(png.subarray(1, 4).toString("latin1")).toBe("PNG");
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
   it("PDF 按 PDF_ZOOM 逐页渲染成 PNG（栅格化在本进程内，见 onto/render.ts）", async () => {
     const calls: Array<{ bytes: number; opts: unknown }> = [];
     const renderPdf = (pdf: Uint8Array, opts: { maxPages?: number; zoom?: number }) => {
@@ -460,6 +532,29 @@ describe("renderPages", () => {
     }
   });
 });
+
+/** 一页、空白的有效 PDF；所有字符都是 ASCII，所以字符偏移就是字节偏移。 */
+function minimalPdf(): Uint8Array {
+  const content = "q\nQ\n";
+  const objects = [
+    "<</Type/Catalog/Pages 2 0 R>>",
+    "<</Type/Pages/Kids[3 0 R]/Count 1>>",
+    "<</Type/Page/Parent 2 0 R/MediaBox[0 0 100 100]/Contents 4 0 R>>",
+    `<</Length ${content.length}>>\nstream\n${content}endstream`,
+  ];
+  let pdf = "%PDF-1.4\n";
+  const offsets: number[] = [];
+  objects.forEach((body, i) => {
+    offsets.push(pdf.length);
+    pdf += `${i + 1} 0 obj\n${body}\nendobj\n`;
+  });
+  const xref = pdf.length;
+  pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`;
+  for (const offset of offsets) pdf += `${String(offset).padStart(10, "0")} 00000 n \n`;
+  pdf += `trailer\n<</Size ${objects.length + 1}/Root 1 0 R>>\n`;
+  pdf += `startxref\n${xref}\n%%EOF\n`;
+  return new TextEncoder().encode(pdf);
+}
 
 /** golden 的 `ok` 用例喂给桩网关的那一页。与 `tools/golden/parse_doc.py` 的
  *  `OCR_PAGE` 逐字相同 —— 输入抄错的话，是在拿错的输入比对的输出。 */

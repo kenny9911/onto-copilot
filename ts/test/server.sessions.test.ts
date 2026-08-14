@@ -709,9 +709,10 @@ describe("材料", () => {
       ["b.md", "# x"],
     ]);
     expect(res.status).toBe(200);
-    const d = (await res.json()) as { files: { name: string; sha256: string }[] };
+    const d = (await res.json()) as { files: { name: string; sha256: string; state: string }[] };
     expect(d.files.map((f) => f.name)).toEqual(["a.csv", "b.md"]);
     expect(d.files[0]!.sha256).toHaveLength(64);
+    expect(d.files.map((f) => f.state)).toEqual(["unread", "unread"]);
     expect(readdirSync(join(workspace, sid, "materials")).sort()).toEqual(["a.csv", "b.md"]);
     expect((await repo.listFiles(sid)).map((f) => f.name)).toEqual(["a.csv", "b.md"]);
     // 库里存的必须是**相对路径** —— 绝对路径换个部署环境就失效
@@ -739,6 +740,48 @@ describe("材料", () => {
     expect(d.files).toHaveLength(1);
     expect(d.files[0]!.size).toBe("new-content".length);
     expect(await repo.listFiles(sid)).toHaveLength(1);
+  });
+
+  it("同名替换立即失效旧正文，但保留未变化材料的缓存与检索", async () => {
+    wireHydrator();
+    const sid = String((await createSession())["id"]);
+    await upload(sid, [["a.csv", "old"], ["b.md", "stable"]]);
+    const s = SESSIONS.get(sid)!;
+    s.state["_chunks"] = {
+      "a.csv": [{ cite: "a.csv!1", text: "旧版机密正文", tags: ["rule"], locator: {} }],
+      "b.md": [{ cite: "b.md!1", text: "保留的稳定正文", tags: ["body"], locator: {} }],
+    };
+    s.state["_index"] = { stale: true };
+    s.state["corpus"] = {
+      files: [
+        { file: "a.csv", kind: "csv", chunks: 1, findings: 0 },
+        { file: "b.md", kind: "text", chunks: 1, findings: 1 },
+      ],
+      chunks: 2,
+      findings: [{
+        file: "b.md", kind: "encoding_guess", severity: "info",
+        message: "保留这份材料的状态", locator: {},
+      }],
+    };
+    s.state["_profiles"] = { stale: true };
+
+    await upload(sid, [["a.csv", "new-content"]]);
+
+    const chunks = s.state["_chunks"] as Record<string, unknown[]>;
+    expect(chunks["a.csv"]).toBeUndefined();
+    expect(chunks["b.md"]).toHaveLength(1);
+    const index = s.state["_index"] as { allChunks(): Array<{ render: string; tags: string[] }> };
+    expect(index.allChunks().map((c) => c.render)).toEqual(["保留的稳定正文"]);
+    expect(index.allChunks()[0]?.tags).toEqual(["body"]);
+    expect(s.state["corpus"]).toEqual({
+      files: [{ file: "b.md", kind: "text", chunks: 1, findings: 1 }],
+      chunks: 1,
+      findings: [{
+        file: "b.md", kind: "encoding_guess", severity: "info",
+        message: "保留这份材料的状态", locator: {},
+      }],
+    });
+    expect(s.state["_profiles"]).toBeUndefined();
   });
 
   it("同一 multipart 里名字重复以最后一份为准，前一份不落盘也不计配额", async () => {
@@ -890,13 +933,44 @@ describe("state / to_work", () => {
     };
     expect(d.filelist).toEqual([
       { name: "a.csv", size: 3, chunks: 1, state: "parsed" },
-      { name: "scan.png", size: 3, chunks: 0, state: "scan_pending" },
+      { name: "scan.png", size: 3, chunks: 0, state: "pending" },
       { name: "note.md", size: 1, chunks: 0, state: "unread" },
     ]);
     // 私有键（下划线打头）绝不出网
     expect(Object.keys(d.state).some((k) => k.startsWith("_"))).toBe(false);
     expect((d.state["engagement"] as Record<string, unknown>)["current"]).toBe("INTAKE");
     expect(d.followups).toEqual([]);
+  });
+
+  it("state 用 findings 区分失败、不支持、部分完成与待识别", async () => {
+    wireHydrator();
+    const sid = String((await createSession())["id"]);
+    const fd = new FormData();
+    for (const name of ["坏文档.docx", "旧表.xls", "混合.pdf", "扫描.png", "规则.txt"]) {
+      fd.append("files", new File(["x"], name));
+    }
+    await app.request(`/api/sessions/${sid}/files`, { method: "POST", body: fd });
+    const s = SESSIONS.get(sid)!;
+    s.state["_chunks"] = {
+      "坏文档.docx": [], "旧表.xls": [], "混合.pdf": [{ cite: "mixed!p1" }],
+      "扫描.png": [], "规则.txt": [{ cite: "rules!1" }],
+    };
+    s.state["corpus"] = { findings: [
+      { file: "坏文档.docx", kind: "parse_failed", severity: "warn", message: "损坏" },
+      { file: "旧表.xls", kind: "unsupported", severity: "warn", message: "旧格式" },
+      { file: "混合.pdf", kind: "vision_pending", severity: "info", message: "第 2 页待识别" },
+      { file: "扫描.png", kind: "vision_pending", severity: "info", message: "待识别" },
+    ] };
+
+    const body = (await (await app.request(`/api/sessions/${sid}/state`)).json()) as {
+      filelist: Array<{ state: string; issue?: string }>;
+    };
+    expect(body.filelist.map((f) => f.state)).toEqual([
+      "failed", "unsupported", "partial", "pending", "parsed",
+    ]);
+    expect(body.filelist.slice(0, 4).map((f) => f.issue)).toEqual([
+      "损坏", "旧格式", "第 2 页待识别", "待识别",
+    ]);
   });
 
   it("engagement 的阶段按 status 走", async () => {

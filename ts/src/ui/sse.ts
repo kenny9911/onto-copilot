@@ -88,11 +88,11 @@ export function connect(){
     // 所以这里不再需要对轮次。
     if (ev.kind === "prompts.ready" && ev.slot === "opening") G.PROMPTS = ev.questions || [];
     if (ev.kind === "node.completed" && ev.node === "CONFLICT") G.S.state.conflicts = ev.conflicts;
-    if (["run.completed","run.failed","run.suspended","run.cancelled","artifact.ready","human.recorded","question.updated","question.answered","audit.applied"].includes(ev.kind))
-      fetch(`${API}/api/sessions/${G.S.id}/state`).then(r=>r.json()).then((st: any) => {
+    if (["corpus.ready","corpus.restored","parse.failed","run.completed","run.failed","run.suspended","run.cancelled","artifact.ready","human.recorded","question.updated","question.answered","audit.applied"].includes(ev.kind))
+      void fetch(`${API}/api/sessions/${G.S.id}/state`).then(r=>r.json()).then((st: any) => {
         mergeStateSnapshot(st);
         G.S.files = (st.filelist || []).length; loadQuestions(); render(); paint();
-      });
+      }).catch(() => { /* 状态刷新失败不应打断 SSE 归约；下一个事件或手动刷新会重试。 */ });
     render();
   };
 }

@@ -1319,7 +1319,10 @@ describe("runPipeline · flow_preview（免费档）", () => {
     });
     await runPipeline(s, r.deps, { tier: "flow_preview", controller: new AbortController() });
     const step = s.events.find((e) => e["kind"] === "flow.step");
-    expect(step!["found"]).toBe("1 份图片/扫描件要用视觉模型识别（可用：v1、v2、v3），单页可能要几十秒。");
+    expect(step!["found"]).toBe(
+      "1 份图片/PDF 将先读取原生内容；只有图片和 PDF 的无文本页才用视觉模型识别" +
+      "（可用：v1、v2、v3），单页可能要几十秒。",
+    );
   });
 
   it("网关上没有视觉模型时，预告里直接说识别会失败", async () => {

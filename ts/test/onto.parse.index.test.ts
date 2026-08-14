@@ -49,6 +49,7 @@ import { TextParser } from "../src/onto/parse/text.js";
 import type { VisionGateway, VisionParser } from "../src/onto/parse/vision.js";
 
 const GOLDEN = fileURLToPath(new URL("../../golden/", import.meta.url));
+const MATERIALS = fileURLToPath(new URL("../../materials/", import.meta.url));
 
 interface DocDump {
   file_id: string;
@@ -189,6 +190,24 @@ describe("defaultRegistry", () => {
     }
   });
 
+  it("未知扩展名只在内容真是文本时兜底；明显二进制明确报 unsupported", async () => {
+    const tmp = mkdtempSync(join(tmpdir(), "parse-idx-fallback-"));
+    try {
+      const text = join(tmp, "rules.conf");
+      const binary = join(tmp, "facts.parquet");
+      writeFileSync(text, "每个订单必须关联客户。", "utf8");
+      writeFileSync(binary, Buffer.from([0x50, 0x41, 0x52, 0x31, 0, 1, 2, 3]));
+      const [textDoc, binaryDoc] = await defaultRegistry().parseAll([text, binary]);
+      expect(textDoc?.kind).toBe("text");
+      expect(textDoc?.chunks).toHaveLength(1);
+      expect(binaryDoc?.kind).toBe("unsupported");
+      expect(binaryDoc?.chunks).toEqual([]);
+      expect(binaryDoc?.findings[0]).toMatchObject({ kind: "unsupported", severity: "warn" });
+    } finally {
+      rmSync(tmp, { recursive: true, force: true });
+    }
+  });
+
   it("没有兜底时才抛，消息里的扩展名走 pyRepr", () => {
     // 注册了 TextParser 但**没标 fallback** —— 与 defaultRegistry 的唯一差别。
     const bare = new ParserRegistry().register(new TextParser());
@@ -240,13 +259,107 @@ describe("defaultRegistry", () => {
     expect(notes).toEqual([]);
   });
 
-  it("没配 docx 抽取器时**抛**，不返回一份空文档", async () => {
-    const reg = defaultRegistry();
+  it("默认 DOCX 抽取器能读真实段落、表格与 core metadata", async () => {
+    const tmp = mkdtempSync(join(tmpdir(), "parse-idx-"));
+    try {
+      const p = join(tmp, "流程说明.docx");
+      copyFileSync(join(MATERIALS, "流程说明.docx"), p);
+      const doc = await defaultRegistry().parse(p, { fileId: "f_docx_default" });
+      expect(doc.kind).toBe("docx");
+      expect(doc.chunks.some((chunk) =>
+        chunk.render.includes("一个执行计划可拆入多个采购包"))).toBe(true);
+      expect(doc.chunks.some((chunk) =>
+        chunk.render.includes("所属对象=pbpHeader"))).toBe(true);
+      expect(doc.meta).toMatchObject({
+        creator: "wubin",
+        modified: "2013-12-23 23:15:00+00:00",
+      });
+      expect(doc.findings).toContainEqual(expect.objectContaining({ kind: "metadata_leak" }));
+    } finally {
+      rmSync(tmp, { recursive: true, force: true });
+    }
+  });
+
+  it("显式 docxExtract 仍可替换默认实现，且失败不被伪装成空文档", async () => {
+    const reg = defaultRegistry({
+      docxExtract: () => Promise.reject(new Error("定制 DOCX 抽取失败")),
+    });
     const tmp = mkdtempSync(join(tmpdir(), "parse-idx-"));
     try {
       const p = join(tmp, "口径说明.docx");
-      writeFileSync(p, "PK");
-      await expect(reg.parse(p, { fileId: "f_x" })).rejects.toThrow(/没有配置 docx 抽取器/);
+      writeFileSync(p, "PK\u0003\u0004");
+      await expect(reg.parse(p, { fileId: "f_x" })).rejects.toThrow("定制 DOCX 抽取失败");
+    } finally {
+      rmSync(tmp, { recursive: true, force: true });
+    }
+  });
+
+  it("默认 YAML loader 能解析带 anchor/alias 的 OpenAPI", async () => {
+    const tmp = mkdtempSync(join(tmpdir(), "parse-idx-yaml-"));
+    try {
+      const p = join(tmp, "openapi.yaml");
+      writeFileSync(p, [
+        "openapi: 3.1.0",
+        "info: &api_info",
+        "  title: YAML 默认接线锚点",
+        "  version: 1.0.0",
+        "x-info-copy: *api_info",
+        "paths:",
+        "  /orders:",
+        "    post:",
+        "      operationId: createOrderFromYaml",
+        "      summary: YAML 锚点接口",
+        "      responses:",
+        "        '200':",
+        "          description: ok",
+      ].join("\n"), "utf8");
+      const doc = await defaultRegistry().parse(p, { fileId: "f_yaml_default" });
+      expect(doc.kind).toBe("openapi");
+      expect(doc.structured["title"]).toBe("YAML 默认接线锚点");
+      expect(doc.chunks.some((chunk) =>
+        chunk.render.includes("createOrderFromYaml")
+          && chunk.render.includes("YAML 锚点接口"))).toBe(true);
+      expect(doc.findings.some((finding) => finding.kind === "parse_failed")).toBe(false);
+    } finally {
+      rmSync(tmp, { recursive: true, force: true });
+    }
+  });
+
+  it("YAML alias 过度展开被资源上限拦下，并形成文件级 finding", async () => {
+    const tmp = mkdtempSync(join(tmpdir(), "parse-idx-yaml-limit-"));
+    try {
+      const p = join(tmp, "alias-bomb.yaml");
+      writeFileSync(p, [
+        "a: &a [x,x,x,x,x,x,x,x,x,x]",
+        "b: &b [*a,*a,*a,*a,*a,*a,*a,*a,*a,*a]",
+        "c: [*b,*b,*b,*b,*b,*b,*b,*b,*b,*b]",
+      ].join("\n"), "utf8");
+      const doc = await defaultRegistry().parse(p, { fileId: "f_yaml_alias_limit" });
+      expect(doc.chunks).toEqual([]);
+      expect(doc.findings).toEqual([
+        expect.objectContaining({
+          kind: "parse_failed",
+          message: expect.stringContaining("resource exhaustion attack"),
+        }),
+      ]);
+    } finally {
+      rmSync(tmp, { recursive: true, force: true });
+    }
+  });
+
+  it("批量服务入口可隔离单文件失败：坏 DOCX 不拖垮同批有效文本", async () => {
+    const tmp = mkdtempSync(join(tmpdir(), "parse-idx-safe-"));
+    try {
+      const good = join(tmp, "规则.txt");
+      const bad = join(tmp, "损坏.docx");
+      writeFileSync(good, "每个采购申请必须关联一个申请人。", "utf8");
+      writeFileSync(bad, "PK\u0003\u0004");
+      const docs = await defaultRegistry().parseAll([good, bad], { continueOnError: true });
+      expect(docs).toHaveLength(2);
+      expect(docs[0]?.chunks[0]?.render).toContain("采购申请");
+      expect(docs[1]?.chunks).toEqual([]);
+      expect(docs[1]?.findings[0]).toMatchObject({ kind: "parse_failed", severity: "warn" });
+      expect(docs[1]?.findings[0]?.message).toContain("不是可读取的 DOCX OOXML 包");
     } finally {
       rmSync(tmp, { recursive: true, force: true });
     }

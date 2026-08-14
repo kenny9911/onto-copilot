@@ -125,6 +125,12 @@ describe("<FileChip>", () => {
     const pend = render(<FileChip f={f({ state: "scan_pending" })} />);
     expect(pend.container.querySelector("i")!.textContent).toBeTruthy();
     cleanup();
+    for (const state of ["partial", "failed", "unsupported", "pending"]) {
+      const view = render(<FileChip f={f({ state, issue: "具体原因" })} />);
+      expect(view.container.querySelector("i")!.textContent).toBeTruthy();
+      expect(view.container.querySelector(".f")!.getAttribute("title")).toBe("具体原因");
+      cleanup();
+    }
     // 认不出的状态退回 unread，而不是空白或崩掉
     const weird = render(<FileChip f={f({ state: "从没见过的状态" })} />);
     expect(weird.container.querySelector("i")!.textContent).toBeTruthy();
@@ -247,6 +253,19 @@ describe("<MaterialsTab>", () => {
     const { container } = render(<MaterialsTab />);
     expect(container.querySelectorAll(".files > .f")).toHaveLength(2);
     expect(container.querySelector(".cap")!.textContent).toBeTruthy();
+  });
+
+  it("失败/不支持与部分完成不会被提示成普通待读取", () => {
+    G.S.filelist = [
+      { name: "bad.docx", state: "failed", chunks: 0 },
+      { name: "old.xls", state: "unsupported", chunks: 0 },
+    ];
+    const failed = render(<MaterialsTab />);
+    expect(failed.container.querySelector(".cap")!.textContent).toContain("失败");
+    cleanup();
+    G.S.filelist = [{ name: "mixed.pdf", state: "partial", chunks: 2 }];
+    const partial = render(<MaterialsTab />);
+    expect(partial.container.querySelector(".cap")!.textContent).toContain("一部分");
   });
 
   it("选中但还没取回来：读取中", () => {

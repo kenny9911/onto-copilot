@@ -22,6 +22,8 @@
 
 import { basename } from "node:path";
 
+import { parse as parseYaml } from "yaml";
+
 import { pyStripChars } from "../../kernel/config.js";
 import { pyRepr } from "../../kernel/errors.js";
 import type { ParsedDoc } from "./base.js";
@@ -115,9 +117,14 @@ export function pyJsonDumps(v: unknown): string {
 //  解析器
 // ══════════════════════════════════════════════════════════════════
 
-/** YAML 版 spec 很常见，但 JS 侧不为它引依赖：与 Python 的"可选依赖 `import yaml`"
- *  一样，装了就用、没装就在 findings 里说清楚。装配处注入即可。 */
+/** YAML 加载 seam：测试/嵌入方仍可替换，生产默认由 defaultRegistry 注入。 */
 export type YamlLoader = (text: string) => unknown;
+
+/**
+ * 生产 YAML loader。`yaml` 的 core schema 不执行用户标签；别名展开也有硬上限，
+ * 避免一份 alias bomb 在转成 JS 对象时无限放大。
+ */
+export const defaultYamlLoader: YamlLoader = (text) => parseYaml(text, { maxAliasCount: 100 });
 
 export class OpenApiParser extends Parser {
   override readonly kind = "openapi";
@@ -144,16 +151,28 @@ export class OpenApiParser extends Parser {
       // "Expecting value: line 1 column 1 (char 0)"，JS 给的是 V8 的措辞。
       // 这一句无法逐字对齐（要对齐得手写一个 CPython 兼容的 JSON 解析器），
       // 是**已记录的分叉**：kind / severity / 前半句都一致，只有异常文本不同。
-      const msg = e instanceof Error ? e.message : String(e);
-      const fail = makeFinding("parse_failed", `既不是合法 JSON 也读不成 YAML：${msg}`, {}, "warn");
+      const jsonMessage = e instanceof Error ? e.message : String(e);
       if (this.yamlLoad === null) {
-        doc.findings.push(fail);
+        doc.findings.push(makeFinding(
+          "parse_failed",
+          `既不是合法 JSON 也读不成 YAML：${jsonMessage}`,
+          {},
+          "warn",
+        ));
         return doc;
       }
       try {
         spec = this.yamlLoad(text);
-      } catch {
-        doc.findings.push(fail);
+      } catch (yamlError) {
+        // 默认注册表已经带 YAML 解析器。此时真正有用的是 YAML 的行列号与语法
+        // 错误，而不是前一步 JSON.parse 那句几乎恒定的 "Unexpected token"。
+        const yamlMessage = yamlError instanceof Error ? yamlError.message : String(yamlError);
+        doc.findings.push(makeFinding(
+          "parse_failed",
+          `既不是合法 JSON 也读不成 YAML：${yamlMessage}`,
+          {},
+          "warn",
+        ));
         return doc;
       }
     }

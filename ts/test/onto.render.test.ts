@@ -21,6 +21,7 @@ import {
   cjkFallbackFamily,
   installCjkFallback,
   pdfToPngs,
+  pdfToTextPages,
   substituteFamily,
   svgToPng,
 } from "../src/onto/render.js";
@@ -109,8 +110,41 @@ describe("pdfToPngs", () => {
     expect(Buffer.from(bytes).toString("base64")).toBe(before);
   });
 
+  it("接受 fs.readFile 返回的 Buffer —— 真实上传路径不能只在类型层伪装成 Uint8Array", async () => {
+    // Node 的 Buffer 在类型上继承 Uint8Array，但 pdfjs 6 会在运行时明确拒绝它。
+    // renderPages() 正是把 fs.readFile() 的结果传到这里，所以这不是边角输入，
+    // 而是每一份落盘 PDF 的真实形态。
+    const bytes = Buffer.from(makePdf([[300, 200]]));
+    const { pages, truncated } = await pdfToPngs(bytes);
+    expect(pages).toHaveLength(1);
+    expect(truncated).toBe(false);
+    expect(pngSize(pages[0]!)).toEqual({ width: 600, height: 400 });
+  });
+
   it("不是 PDF 就抛 RenderError（业务错误，不是渲染器崩了）", async () => {
     await expect(pdfToPngs(new TextEncoder().encode("这根本不是 PDF"))).rejects.toThrow(RenderError);
+  });
+});
+
+describe("pdfToTextPages", () => {
+  it("直接读取 PDF 文本层并保留页码，电子文档不必重新走 OCR", async () => {
+    const result = await pdfToTextPages(makePdf([[300, 200], [300, 200]]));
+    expect(result.pages.map((p) => ({ page: p.page, text: p.text }))).toEqual([
+      { page: 1, text: "Page 1" },
+      { page: 2, text: "Page 2" },
+    ]);
+    expect(result.totalPages).toBe(2);
+    expect(result.truncated).toBe(false);
+  });
+
+  it("文本层入口同样接受 fs.readFile 的 Buffer，并显式报告页数截断", async () => {
+    const result = await pdfToTextPages(
+      Buffer.from(makePdf([[300, 200], [300, 200]])),
+      { maxPages: 1 },
+    );
+    expect(result.pages).toEqual([{ page: 1, text: "Page 1" }]);
+    expect(result.totalPages).toBe(2);
+    expect(result.truncated).toBe(true);
   });
 });
 

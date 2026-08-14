@@ -13,11 +13,9 @@
  * ── 与 Python 的三处差异（都是被下层的既成设计逼出来的，不是我的发挥）──────
  *
  * 1. **`DocxParser` 要注入依赖。** Python 侧它直接 import `python-docx`，而
- *    `DocxParser` 按 `text.ts` 的设计**不给默认抽取器**。所以这里默认给一个
- *    **会抛的** —— 与其让一份 .docx 落到兜底的 TextParser 里被当二进制读成乱码
- *    （那是"内容悄悄没了"的另一种形态），不如在解析当场把缺的那根线说出来。
- *    （`DdlParser` 曾经也在这一条里：它以前要注入一个跨进程的 DDL 解析客户端。
- *    sqlglot 换成 node-sql-parser 之后 DDL 解析全在本地，只剩一个方言参数。）
+ *    `DocxParser` 按 `text.ts` 的设计只吃 `DocxContent`。这里给它接上内置 OOXML
+ *    抽取器：直接保留段落样式、合并单元格和 core properties，不经过会丢结构
+ *    的 HTML 中转。注入 seam 仍保留，便于嵌入方替换实现。
  * 2. **`buildIndex` 要转一次形状。** Python 侧 `parse/base.py` 的 `Chunk` 就是
  *    `kernel/memory/evidence.py` 的那一个类；TS 侧两边分成了两种形状
  *    （解析层是 snake_case 的 interface，索引层是 camelCase 的 class），所以这里
@@ -31,16 +29,17 @@ import { basename } from "node:path";
 
 import { KeyError } from "../../kernel/errors.js";
 import { Chunk as EvidenceChunk, EvidenceIndex } from "../../kernel/memory/evidence.js";
-import { OpenApiParser } from "./api.js";
+import { defaultYamlLoader, OpenApiParser } from "./api.js";
 import type { YamlLoader } from "./api.js";
 import { ParserRegistry } from "./base.js";
 import type { Chunk, ParsedDoc } from "./base.js";
 import { docStats } from "./base.js";
 import { BpmnParser } from "./bpmn.js";
+import { extractDocxContent } from "./docx.js";
 import { PptxParser } from "./presentation.js";
 import { DdlParser } from "./sql.js";
 import { CsvParser, XlsxParser } from "./tabular.js";
-import { DocxParser, TextParser } from "./text.js";
+import { DocxParser, FallbackTextParser, TextParser } from "./text.js";
 import type { DocxExtractor } from "./text.js";
 import { VisionParser } from "./vision.js";
 import type { PdfPageRenderer, VisionGateway } from "./vision.js";
@@ -52,6 +51,7 @@ export {
   CsvParser,
   DdlParser,
   DocxParser,
+  FallbackTextParser,
   OpenApiParser,
   ParserRegistry,
   PptxParser,
@@ -80,9 +80,9 @@ export interface DefaultRegistryOptions {
   visionPrefer?: string;
   /** 每页开始/结束回调一次。一页要几分钟，不报进度界面上就是几分钟死寂。 */
   visionProgress?: ((message: string) => void) | null;
-  /** docx 抽取器。不传时给一个会抛的 —— 见文件头 1。 */
+  /** docx 抽取器。不传时使用内置 OOXML 抽取器。 */
   docxExtract?: DocxExtractor;
-  /** YAML 版 spec 的加载器。不传就只吃 JSON，并在 findings 里说清楚。 */
+  /** YAML 版 spec 的加载器。不传用内置安全 loader；显式 `null` 可禁用。 */
   yamlLoad?: YamlLoader | null;
   /** PDF→图的执行者。不传就用 `onto/render.ts` 那一个（本进程内栅格化）。 */
   renderPdf?: PdfPageRenderer;
@@ -99,14 +99,16 @@ export interface DefaultRegistryOptions {
 export function defaultRegistry(opts: DefaultRegistryOptions = {}): ParserRegistry {
   const prefer = opts.visionPrefer ?? "quality";
   const progress = opts.visionProgress ?? undefined;
+  // `null` 是嵌入方的显式禁用开关；只有真正没传时才给生产默认。
+  const yamlLoad = opts.yamlLoad === undefined ? defaultYamlLoader : opts.yamlLoad;
   return new ParserRegistry()
     .register(new XlsxParser())
     .register(new CsvParser())
     .register(new DdlParser(opts.sqlDialect ?? null))
-    .register(new OpenApiParser(opts.yamlLoad ?? null))
+    .register(new OpenApiParser(yamlLoad))
     .register(new BpmnParser())
     .register(new PptxParser())
-    .register(new DocxParser(opts.docxExtract ?? missingDocxExtractor))
+    .register(new DocxParser(opts.docxExtract ?? extractDocxContent))
     .register(
       new VisionParser(opts.visionGateway ?? null, {
         prefer,
@@ -115,24 +117,8 @@ export function defaultRegistry(opts: DefaultRegistryOptions = {}): ParserRegist
         ...(opts.renderPdf === undefined ? {} : { renderPdf: opts.renderPdf }),
       }),
     )
-    .register(new TextParser(), { fallback: true });
+    .register(new FallbackTextParser(), { fallback: true });
 }
-
-/**
- * 没配 docx 抽取器时的占位。**抛**，不返回空文档。
- *
- * 返回一个空 `ParsedDoc` 的话，用户会看到"这份 .docx 里什么都没有"——而材料里
- * 明明写满了口径。这正是这一层反复在防的那种失败：产物看起来正常，只是少了
- * 一整个来源。
- */
-const missingDocxExtractor: DocxExtractor = (path: string) => {
-  return Promise.reject(
-    new Error(
-      `没有配置 docx 抽取器，${basename(path)} 的内容一个字都读不出来。`
-      + `装配时传 docxExtract。`,
-    ),
-  );
-};
 
 // ══════════════════════════════════════════════════════════════════
 //  2. build_index

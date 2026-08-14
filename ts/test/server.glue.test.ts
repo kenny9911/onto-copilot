@@ -424,6 +424,52 @@ describe("chunkCache / preparse", () => {
     expect(s.events.some((e) => e["kind"] === "corpus.restored")).toBe(true);
   });
 
+  it("混合 PDF 重开会话：重建文本页时合回已付费 OCR 的扫描页，并沿用原状态", async () => {
+    const s = makeSession("prep-mixed-pdf");
+    const dir = join(s.dir, "materials");
+    mkdirSync(dir, { recursive: true });
+    const path = join(dir, "混合.pdf");
+    writeFileSync(path, mixedTextAndScanPdf());
+    s.files = [{ name: "混合.pdf", size: 1, path, sha256: "same-content" }];
+    s.state["_chunks"] = {
+      "混合.pdf": [{
+        cite: "混合.pdf#p2",
+        text: "〔paragraph〕第二页扫描正文",
+        tags: ["ocr", "paragraph"],
+        locator: { kind: "page", page: 2, bbox: [0, 0, 1, 1] },
+      }],
+    };
+    s.state["corpus"] = {
+      files: [{ file: "混合.pdf", kind: "scan", chunks: 2, findings: 1 }],
+      chunks: 2,
+      findings: [{
+        file: "混合.pdf", kind: "vision_ok", severity: "info",
+        message: "此前已完整识别", locator: {},
+      }],
+    };
+
+    await preparse(s);
+
+    const cache = (s.state["_chunks"] as Record<string, Array<{ text: string; tags: string[] }>>)
+      ["混合.pdf"]!;
+    expect(cache.map((chunk) => chunk.text)).toEqual([
+      "Native page",
+      "〔paragraph〕第二页扫描正文",
+    ]);
+    expect(cache[1]?.tags).toContain("ocr");
+    const ix = s.state["_index"] as InstanceType<typeof EvidenceIndex>;
+    expect(ix.allChunks().map((chunk) => chunk.render)).toContain("〔paragraph〕第二页扫描正文");
+    const corpus = s.state["corpus"] as {
+      chunks: number;
+      findings: Array<{ kind: string; message: string }>;
+    };
+    expect(corpus.chunks).toBe(2);
+    expect(corpus.findings).toEqual([
+      expect.objectContaining({ kind: "vision_ok", message: "此前已完整识别" }),
+    ]);
+    expect(s.events.some((e) => e["kind"] === "corpus.restored")).toBe(true);
+  });
+
   it("解析炸了只发 parse.failed，不把上传带下去", async () => {
     const s = makeSession("prep-3");
     s.files = [{ name: "没有.xlsx", size: 0, path: join(s.dir, "没有.xlsx"), sha256: "" }];
@@ -432,6 +478,32 @@ describe("chunkCache / preparse", () => {
     expect(s.state["_index"]).toBeUndefined();
   });
 });
+
+/** 两页有效 PDF：第一页有文本层，第二页只有空内容流，模拟电子页 + 扫描页。 */
+function mixedTextAndScanPdf(): Uint8Array {
+  const native = "BT /F1 12 Tf 10 50 Td (Native page) Tj ET\n";
+  const blank = "q\nQ\n";
+  const objects = [
+    "<</Type/Catalog/Pages 2 0 R>>",
+    "<</Type/Pages/Kids[3 0 R 5 0 R]/Count 2>>",
+    "<</Type/Page/Parent 2 0 R/MediaBox[0 0 100 100]/Resources<</Font<</F1 7 0 R>>>>/Contents 4 0 R>>",
+    `<</Length ${native.length}>>\nstream\n${native}endstream`,
+    "<</Type/Page/Parent 2 0 R/MediaBox[0 0 100 100]/Contents 6 0 R>>",
+    `<</Length ${blank.length}>>\nstream\n${blank}endstream`,
+    "<</Type/Font/Subtype/Type1/BaseFont/Helvetica>>",
+  ];
+  let pdf = "%PDF-1.4\n";
+  const offsets: number[] = [];
+  objects.forEach((body, index) => {
+    offsets.push(pdf.length);
+    pdf += `${index + 1} 0 obj\n${body}\nendobj\n`;
+  });
+  const xref = pdf.length;
+  pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`;
+  for (const offset of offsets) pdf += `${String(offset).padStart(10, "0")} 00000 n \n`;
+  pdf += `trailer\n<</Size ${objects.length + 1}/Root 1 0 R>>\nstartxref\n${xref}\n%%EOF\n`;
+  return new TextEncoder().encode(pdf);
+}
 
 // ══════════════════════════════════════════════════════════════════
 //  _question_backlog / _sync_question_backlog

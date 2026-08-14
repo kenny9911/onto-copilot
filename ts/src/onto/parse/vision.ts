@@ -31,10 +31,16 @@ import { basename, extname } from "node:path";
 
 import { Capability, LookupError as NoCapableModel } from "../../kernel/catalog.js";
 import { formatFixed0 } from "../../kernel/errors.js";
-import { type PdfPages, pdfToPngs } from "../render.js";
+import {
+  type PdfPages,
+  type PdfTextPages,
+  pdfToPngs,
+  pdfToTextPages,
+} from "../render.js";
 import type { ParsedDoc } from "./base.js";
 import { Parser, makeChunk, makeFinding, makeParsedDoc } from "./base.js";
 import { pyFloat, pyMax, pyMin, pyStrip } from "./doc/pycompat.js";
+import { RULE_HINTS, headingOf, splitSections } from "./text.js";
 
 /**
  * 送进模型前的长边上限。再大不会更准，只会更贵 —— 当前一代视觉模型的
@@ -212,6 +218,8 @@ export interface VisionParserOptions {
   /** PDF→图的执行者。不传就用本进程的 {@link pdfToPngs}。留这个口子是为了
    *  让测试不必造一份真 PDF —— 不是为了再挂一个远端渲染服务。 */
   renderPdf?: PdfPageRenderer;
+  /** PDF 文本层读取器。电子 PDF 先走它，只有空白页才回退视觉 OCR。 */
+  extractPdfText?: PdfTextExtractor;
 }
 
 /** `pdfToPngs` 的形状。== `render.ts` 那一个，写成端口只为可注入。 */
@@ -219,6 +227,11 @@ export type PdfPageRenderer = (
   data: Uint8Array,
   opts: { maxPages?: number; zoom?: number },
 ) => Promise<PdfPages>;
+
+export type PdfTextExtractor = (
+  data: Uint8Array,
+  opts: { maxPages?: number },
+) => Promise<PdfTextPages>;
 
 /** 扫描件 / 图片 / PDF。 */
 export class VisionParser extends Parser {
@@ -232,6 +245,7 @@ export class VisionParser extends Parser {
   readonly nodeId: string;
   private readonly onProgress: ((message: string) => void) | undefined;
   private readonly renderPdf: PdfPageRenderer | undefined;
+  private readonly extractPdfText: PdfTextExtractor | undefined;
 
   constructor(
     readonly gateway: VisionGateway | null = null,
@@ -243,6 +257,7 @@ export class VisionParser extends Parser {
     this.nodeId = opts.nodeId ?? "PARSE.scan";
     this.onProgress = opts.onProgress;
     this.renderPdf = opts.renderPdf;
+    this.extractPdfText = opts.extractPdfText;
   }
 
   private note(message: string): void {
@@ -259,6 +274,79 @@ export class VisionParser extends Parser {
     const fileId = opts.fileId;
     const fileName = basename(path);
     const doc = makeParsedDoc({ fileId, fileName, kind: this.kind });
+    const isPdf = extname(path).toLowerCase() === ".pdf";
+    let order = 0;
+    let pdfText: PdfTextPages | null = null;
+    const nativeTextPages = new Set<number>();
+
+    // 电子 PDF 先读它本来就有的文本层。合同、制度、电子发票不需要先画成图片再
+    // 让模型猜一遍字符；那样既多花钱，也会把精确文字重新 OCR 错。混合 PDF 则只
+    // 把没有文本层的页留给下面的视觉回退。
+    if (isPdf) {
+      try {
+        const extract = this.extractPdfText ?? pdfToTextPages;
+        pdfText = await extract(await readFile(path), { maxPages: this.maxPages });
+      } catch (e) {
+        doc.findings.push(makeFinding(
+          "parse_failed",
+          `${fileName} 无法读取：${errorText(e)}`,
+          {},
+          "warn",
+        ));
+        return doc;
+      }
+
+      for (const page of pdfText.pages) {
+        const text = pyStrip(page.text);
+        if (text === "") continue;
+        nativeTextPages.add(page.page);
+        for (const block of splitSections(text)) {
+          const heading = headingOf(block);
+          doc.chunks.push(makeChunk({
+            docId: `p${page.page}text${order}`,
+            fileId,
+            fileName,
+            locator: {
+              kind: "page",
+              page: page.page,
+              bbox: [0, 0, 1, 1],
+              section: heading || `§${order + 1}`,
+            },
+            render: (heading ? `〔${heading}〕\n` : "") + block,
+            raw: { source: "pdf_text_layer", text: block },
+            order,
+            tags: RULE_HINTS.test(block) ? ["pdf", "text", "rule"] : ["pdf", "text"],
+          }));
+          order += 1;
+        }
+      }
+
+      if (nativeTextPages.size > 0) {
+        doc.findings.push(makeFinding(
+          "pdf_text_ok",
+          `已直接读取 ${fileName} 的 ${nativeTextPages.size} 页文本层，无需重复 OCR`,
+          {},
+          "info",
+        ));
+      }
+      if (pdfText.truncated) {
+        doc.findings.push(makeFinding(
+          "page_limit", `只读取了前 ${this.maxPages} 页，其余未处理`, {}, "warn"));
+      }
+
+      // 本次允许处理的页都有文本层：零模型调用即可完成。
+      if (pdfText.pages.length > 0 && nativeTextPages.size === pdfText.pages.length) {
+        doc.structured = {
+          pages: pdfText.pages.length,
+          total_pages: pdfText.totalPages,
+          text_pages: nativeTextPages.size,
+          ocr_pages: 0,
+          relations: [],
+          blocks: doc.chunks.length,
+        };
+        return doc;
+      }
+    }
 
     if (this.gateway === null) {
       // 上传时这条路是**故意**不带视觉网关的：识别要调模型、要花钱，不该由
@@ -266,30 +354,45 @@ export class VisionParser extends Parser {
       // 读起来像配置坏了 —— 用户会去查网关，而其实什么都没坏，只是还没到时候。
       doc.findings.push(makeFinding(
         "vision_pending",
-        `${fileName} 是图片/扫描件，要用视觉模型识别。**点「开始梳理」时`
-        + `才会识别**（识别要调模型），现在只登记了文件、还没读内容。`,
+        isPdf
+          ? `${fileName} 有 ${Math.max(0, (pdfText?.pages.length ?? 0) - nativeTextPages.size)}`
+            + " 页没有可读文本层，要用视觉模型识别。**点「开始梳理」时才会识别**。"
+          : `${fileName} 是图片/扫描件，要用视觉模型识别。**点「开始梳理」时`
+            + `才会识别**（识别要调模型），现在只登记了文件、还没读内容。`,
         {}, "info"));
+      if (isPdf) {
+        doc.structured = {
+          pages: pdfText?.pages.length ?? 0,
+          total_pages: pdfText?.totalPages ?? 0,
+          text_pages: nativeTextPages.size,
+          ocr_pages: 0,
+          relations: [],
+          blocks: doc.chunks.length,
+        };
+      }
       return doc;
     }
 
-    const pages = await renderPages(path, {
+    const renderedPages = await renderPages(path, {
       maxPages: this.maxPages,
       ...(this.renderPdf === undefined ? {} : { renderPdf: this.renderPdf }),
     });
-    if (pages.length === this.maxPages) {
+    if (!isPdf && renderedPages.length === this.maxPages) {
       doc.findings.push(makeFinding(
         "page_limit", `只识别了前 ${this.maxPages} 页，其余未处理`, {}, "warn"));
     }
 
-    let order = 0;
+    const pages = renderedPages
+      .map((dataUri, pageIndex) => ({ pno: pageIndex + 1, dataUri }))
+      .filter((page) => !nativeTextPages.has(page.pno));
     const allRelations: Array<Record<string, unknown>> = [];
+    let ocrCompletedPages = 0;
     this.note(`开始识别 ${fileName}（${pages.length} 页）。`
       + `密集的图一页可能要 2–5 分钟，请等它跑完。`);
 
-    for (const [pageIndex, dataUri] of pages.entries()) {
-      const pno = pageIndex + 1;
+    for (const { pno, dataUri } of pages) {
       const t0 = performance.now();
-      this.note(`正在识别第 ${pno}/${pages.length} 页…`);
+      this.note(`正在识别第 ${pno}/${renderedPages.length} 页…`);
       // 视觉调用必须**有超时、且失败不炸整条 build**。否则网关上没有可用视觉模型
       // （require 抛错）或调用卡住时，PARSE 会一直挂在这里 —— 界面上就是「一直
       // 正在梳理」，而根因（没有视觉模型）被埋在一个永不返回的 await 里。
@@ -325,6 +428,7 @@ export class VisionParser extends Parser {
       const blocks = asArray(page["blocks"]);
       const tables = asArray(page["tables"]);
       const relations = asArray(page["relations"]);
+      ocrCompletedPages += 1;
       this.note(
         `第 ${pno} 页识别完成（${formatFixed0((performance.now() - t0) / 1000)} 秒）：`
         + `${blocks.length} 个文本块、${tables.length} 张表、${relations.length} 条连线`);
@@ -392,20 +496,29 @@ export class VisionParser extends Parser {
       }
     }
 
-    doc.structured = {
-      pages: pages.length,
-      relations: allRelations,
-      blocks: doc.chunks.filter((c) => c.tags.includes("ocr")).length,
-    };
+    doc.structured = isPdf
+      ? {
+          pages: pdfText?.pages.length ?? renderedPages.length,
+          total_pages: pdfText?.totalPages ?? renderedPages.length,
+          text_pages: nativeTextPages.size,
+          ocr_pages: ocrCompletedPages,
+          relations: allRelations,
+          blocks: doc.chunks.length,
+        }
+      : {
+          pages: renderedPages.length,
+          relations: allRelations,
+          blocks: doc.chunks.filter((c) => c.tags.includes("ocr")).length,
+        };
     if (doc.chunks.length === 0) {
       doc.findings.push(makeFinding(
         "empty_ocr", "视觉模型没有从这份材料里读出任何内容", {}, "warn"));
-    } else {
+    } else if (ocrCompletedPages > 0) {
       // **识别成功也要明说。** 只在失败时说话，用户看到的是一片沉默 ——
       // 分不清"读出来了"和"又卡住了"。
       doc.findings.push(makeFinding(
         "vision_ok",
-        `已识别 ${fileName}：${pages.length} 页、${doc.chunks.length} 段内容`
+        `已识别 ${fileName}：${ocrCompletedPages} 页、${doc.chunks.length} 段内容`
         + (allRelations.length > 0 ? `、${allRelations.length} 条连线关系` : ""),
         {}, "info"));
     }
@@ -470,6 +583,10 @@ async function withTimeout<T>(work: Promise<T>, ms: number): Promise<T> {
 function typeName(e: unknown): string {
   if (e instanceof Error) return e.constructor.name;
   return typeof e;
+}
+
+function errorText(e: unknown): string {
+  return e instanceof Error ? e.message : String(e);
 }
 
 function asRecord(value: unknown): Record<string, unknown> {

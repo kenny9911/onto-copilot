@@ -24,7 +24,8 @@
  * 不该跟着 docx 抽取一起搬走。
  */
 
-import { basename } from "node:path";
+import { readFile } from "node:fs/promises";
+import { basename, extname } from "node:path";
 
 import { pySplitlines, pyStrip } from "../../kernel/config.js";
 import type { Chunk, ParsedDoc } from "./base.js";
@@ -148,6 +149,57 @@ export class TextParser extends Parser {
     doc.structured = { sections: blocks.length, chars: cpLen(text) };
     return doc;
   }
+}
+
+/**
+ * 未知扩展名的安全兜底。
+ *
+ * 真文本即使叫 `.log/.conf/.parquet` 也照常读取；明显二进制则明确报 unsupported。
+ * 以前 latin-1 对任意字节都能“解码成功”，ZIP、旧 Office、真正的 Parquet 因此会
+ * 变成一堆乱码 chunks，系统还把它当解析成功 —— 比直接失败更危险。
+ */
+export class FallbackTextParser extends TextParser {
+  override async parse(path: string, opts: { fileId: string }): Promise<ParsedDoc> {
+    const raw = await readFile(path);
+    if (!looksBinary(raw)) return await super.parse(path, opts);
+
+    const fileName = basename(path);
+    const doc = makeParsedDoc({ fileId: opts.fileId, fileName, kind: "unsupported" });
+    const ext = extname(fileName).toLowerCase() || "（无扩展名）";
+    doc.findings.push(makeFinding(
+      "unsupported",
+      `${fileName} 是未识别的二进制格式 ${ext}，没有把乱码伪装成已解析内容。`
+      + "请转换为 PDF、DOCX、PPTX、XLSX、CSV、图片或纯文本后重试。",
+      {},
+      "warn",
+    ));
+    doc.structured = { bytes: raw.byteLength };
+    return doc;
+  }
+}
+
+/** 头部魔数 + 控制字符比例；只用于“未知扩展名”，已知格式仍由专用解析器判断。 */
+function looksBinary(raw: Uint8Array): boolean {
+  const head = raw.subarray(0, Math.min(raw.byteLength, 8192));
+  if (head.length === 0) return false;
+  const starts = (...bytes: number[]): boolean =>
+    bytes.every((value, index) => head[index] === value);
+  if (
+    starts(0x50, 0x4b, 0x03, 0x04) // ZIP / OOXML / ODF
+    || starts(0x25, 0x50, 0x44, 0x46) // PDF
+    || starts(0xd0, 0xcf, 0x11, 0xe0) // OLE：旧版 Office
+    || starts(0x89, 0x50, 0x4e, 0x47) // PNG
+    || starts(0xff, 0xd8, 0xff) // JPEG
+    || starts(0x50, 0x41, 0x52, 0x31) // Parquet
+  ) return true;
+
+  let controls = 0;
+  for (const byte of head) {
+    if ((byte < 0x20 && ![0x09, 0x0a, 0x0c, 0x0d].includes(byte)) || byte === 0x7f) {
+      controls += 1;
+    }
+  }
+  return controls / head.length > 0.02;
 }
 
 /** python-docx 抽出来的一个段落。`style` 是**解析后的显示名**（"Heading 2" / "标题 2"）。 */

@@ -255,12 +255,34 @@ export class ParserRegistry {
    */
   async parseAll(
     paths: readonly string[],
-    opts: { fileIds?: ReadonlyMap<string, string> } = {},
+    opts: {
+      fileIds?: ReadonlyMap<string, string>;
+      /** 一份坏材料是否只记 finding、继续解析其余文件。服务端批量入口应开启。 */
+      continueOnError?: boolean;
+    } = {},
   ): Promise<ParsedDoc[]> {
     const out: ParsedDoc[] = [];
     for (const p of paths) {
       const fid = opts.fileIds?.get(basename(p));
-      out.push(await this.parse(p, fid === undefined ? {} : { fileId: fid }));
+      try {
+        out.push(await this.parse(p, fid === undefined ? {} : { fileId: fid }));
+      } catch (e) {
+        // 文件清单指向一个不存在的路径是存储/竞态错误，不是某种格式读不懂；继续
+        // 下去会把“材料丢了”伪装成一条普通 finding，所以仍然 fail-fast。
+        if (opts.continueOnError !== true || e instanceof FileNotFound) throw e;
+        const parser = this.forPath(p);
+        const fileId = fid ?? (await contentFileId(p));
+        const doc = makeParsedDoc({ fileId, fileName: basename(p), kind: parser.kind });
+        const name = e instanceof Error ? e.name : typeof e;
+        const message = e instanceof Error ? e.message : String(e);
+        doc.findings.push(makeFinding(
+          "parse_failed",
+          `${basename(p)} 解析失败（${name}）：${message}`,
+          {},
+          "warn",
+        ));
+        out.push(doc);
+      }
     }
     return out;
   }

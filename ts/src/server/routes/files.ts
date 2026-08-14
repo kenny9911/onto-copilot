@@ -17,6 +17,8 @@ import { sha256Hex } from "../../kernel/ids.js";
 import { openingPrompts } from "../../onto/prompts.js";
 import { makeFileRow } from "../../store/types.js";
 import type { AppEnv } from "../app.js";
+import { invalidateMaterialCaches } from "../glue/preparse.js";
+import { materialFileList } from "../material_status.js";
 import { currentRepo, sessAsync } from "../session.js";
 import type { Session, SessionFile } from "../session.js";
 import {
@@ -215,6 +217,9 @@ export async function uploadOnce(
     s.files = s.files.filter((old) => old.name !== item.name);
     s.files.push(item);
   }
+  // 同名重传后旧 `_chunks/_index` 仍按文件名命中，会让 UI 显示“已读入”，检索却
+  // 返回上一版正文。以本批文件名精确失效；没变化的材料缓存与索引继续可用。
+  invalidateMaterialCaches(s, new Set(added.map((item) => item.name)));
   s.emit("files.attached", { files: s.files.map((f) => f.name) });
   // **上传只登记，不解析。** 解析是不是现在做、做哪几份，交给 AI 判断（它有
   // material.list 看清单、material.parse 去读）。上传即解析看着"贴心"，实际是
@@ -227,7 +232,7 @@ export async function uploadOnce(
   const pub = publicState(s);
   pub["engagement"] = engagementView(env, s);
   return {
-    files: s.files,
+    files: responseFiles(s),
     corpus: s.state["corpus"] ?? null,
     prompts: openingPrompts({
       state: pub,
@@ -294,7 +299,7 @@ export async function removeMaterialOnce(
   if (backup !== null) rmSync(backup, { force: true });
   const pub = publicState(s);
   return {
-    files: s.files,
+    files: responseFiles(s),
     corpus: s.state["corpus"] ?? null,
     prompts: openingPrompts({
       state: pub,
@@ -302,6 +307,12 @@ export async function removeMaterialOnce(
       status: s.status,
     }),
   };
+}
+
+/** 上传/删除响应保留旧有的 sha/path 字段，同时带上与 `/state` 相同的解析状态。 */
+function responseFiles(s: Session): Array<Record<string, unknown>> {
+  const status = new Map(materialFileList(s).map((f) => [f.name, f]));
+  return s.files.map((f) => ({ ...f, ...(status.get(f.name) ?? {}) }));
 }
 
 /** `uuid.uuid4().hex` —— 临时/备份文件名用。 */
