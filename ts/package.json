@@ -6,7 +6,10 @@
   "description": "OntoCopilot 的 TypeScript 侧。迁移期间与 src/ontocopilot 并存，golden/ 是两边共同的真相。",
   "scripts": {
     "test": "vitest run",
-    "check": "tsc --noEmit && eslint src test"
+    "check": "tsc --noEmit && eslint src test",
+    "start": "tsx src/main.ts",
+    "dev": "tsx watch src/main.ts",
+    "build:ui": "node tools/build-ui.mjs"
   },
   "devDependencies": {
     "@testing-library/dom": "^10.4.1",
