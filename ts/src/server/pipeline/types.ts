@@ -409,10 +409,10 @@ export interface HarnessPort {
   /** `ONTOCOPILOT_ENABLE_CODEACT` + `default_sandbox(production=True)` +
    *  `builtin_registry(...)`，返回写进黑板 `_tools` 的那个对象。
    *
-   *  **async，而 Python 那行是同步的**：`default_sandbox` 只是挑一个本机运行时，
-   *  而 TS 侧沙箱住在 Python sidecar（约定 §2.3），要探一次它的 `/health` 才知道
-   *  有没有。探测发生在装配工具之前，探不到就等于没有沙箱 —— 于是 `code.exec`
-   *  **不进动作空间**，而不是进了之后每次调用都失败。 */
+   *  **async，而 Python 那行是同步的**：TS 侧要先探一次容器运行时在不在，
+   *  才知道这台机器上到底有没有沙箱。探测发生在装配工具之前，探不到就等于
+   *  没有沙箱 —— 于是 `code.exec` **不进动作空间**，而不是进了之后每次调用
+   *  都失败。 */
   buildTools(opts: { evidence: EvidenceIndexLike; profiles: unknown }): Promise<unknown>;
   /** `default_agents()["extractor"].render_system(skills) + "\n\n" + skills.load(...)`。 */
   extractorSystem(): string;

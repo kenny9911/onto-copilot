@@ -26,6 +26,21 @@ import { fingerprint } from "../../kernel/ids.js";
 import { DecisionKind, PROMOTABLE, parseDecisionKind, userSaid } from "../../kernel/memory/dialogue.js";
 import { cite, oirFromDict, type OIR } from "../../onto/oir.js";
 import { FlowGraph, flowFromDict, nodeGrounded } from "../../onto/flow.js";
+import { toMermaid, toSvg } from "../../onto/diagram.js";
+import {
+  SKETCH_CAVEAT,
+  SKETCH_MARK,
+  SKETCH_SCHEMA,
+  SKETCH_SYSTEM,
+  SKETCH_DETAILS,
+  SketchError,
+  graphFromSketch,
+  parseSketchDetail,
+  sketchCaveats,
+  sketchFileName,
+  sketchPrompt,
+  sketchTitle,
+} from "../../onto/flow_sketch.js";
 import { applySuggestion } from "../../onto/suggest.js";
 import { OIREditError, applyOirEdit } from "../../onto/oir_edit.js";
 import { TemplateSpec, writeXlsx } from "../../onto/template.js";
@@ -1430,6 +1445,184 @@ export function converseTools(s: SessionLike, deps: DialogueDeps): ToolRegistry 
         已启动: "免费流程预览",
         说明: "只解析 + 出流程图，跳过付费抽取；过程在推理轨迹里显示。",
       };
+    },
+  );
+
+  // ── flow.sketch ─────────────────────────────────────────────
+  //
+  // `flow.preview` 的**前一步**：那条要先有材料，这条一份材料都不要。
+  //
+  // 为什么要显式区分两者、而不是让 flow.preview "没材料时就凭通识画一张"：
+  // 那样两张图会共用同一个产物位、同一个 flow 会话状态，于是「这张图是从客户材料
+  // 里读出来的现状，还是模型编的行业通识」变成一个要靠时间线去猜的问题。这个产品
+  // 的硬要求是问题清单/流程图/模板列都要从证据推出来 —— 一张来自模型知识的图
+  // 混进证据链，冲突检测会拿它去和客户材料对撞、缺口挖掘会为一个客户根本没有的
+  // 环节生成问题，而到那时已经分不清哪些结论有依据。所以这条：
+  //
+  //   · 产物落 `exports/`，**不进**会话根目录（根目录下的文件会被算成产物、
+  //     进产物 tab、进交付包 zip）；
+  //   · **一个字都不写** `_flow` / `flow` / `_oir` / `oir` / `artifacts`；
+  //   · 标题、文件名、聊天卡片三处都带 SKETCH_MARK。
+  //
+  // 详细的理由见 `onto/flow_sketch.ts` 的文件头。
+  reg.fn(
+    {
+      name: "flow.sketch",
+      description:
+        "**还没有材料**的时候，凭领域通识画一张参考流程图。用户说「一般采购流程" +
+        "是什么，画出来」「先给我看看报销流程长什么样」时用它 —— 这时候 " +
+        "flow.preview 走不动（那条要先有材料）。\n" +
+        "产出的是**通用参考图，不是从客户材料抽的**，图上、文件名上都标着。" +
+        "你转述时也必须说明这一点，并且建议拿它去跟业务方对、再上传材料跑真流程。\n" +
+        "domain 写领域/主题（采购、报销、入职、门诊、放款…都行）。" +
+        "**材料已经上传过、用户问的是「我们的流程」时不要用它** —— 那种情况用 " +
+        "flow.preview 或 flow.query。",
+      schema: {
+        type: "object",
+        required: ["domain"],
+        properties: {
+          domain: {
+            type: "string",
+            description: "领域/主题，如「采购」「医疗门诊」「设备维修」。用用户自己的说法",
+          },
+          // 这两个**故意不写 enum**（照 export.file 的 format 那条）：契约层的 enum
+          // 会在处理器有机会说人话之前就把调用整个拒掉，而模型看到的是一句
+          // ToolDenied、不是"只能是 brief/standard/detailed，不给就是 standard"。
+          // 后者它能据此改对，前者只会让它换个工具再试一遍。
+          detail: {
+            type: "string",
+            description: `详细程度：${SKETCH_DETAILS.join(" / ")}（默认 standard）。` +
+              "brief 6–10 个环节 / standard 12–20 / detailed 22–34",
+          },
+          format: {
+            type: "string",
+            description: "svg（默认，能缩放、能改）或 png（要贴进 PPT 的位图）",
+          },
+        },
+      },
+      // 只写本地文件、不碰 OIR —— 与 flow.preview 同一档。
+      danger: Danger.WRITE_LOCAL,
+      // RW（只给工作模式）：它要花一次模型调用。聊天模式那条路是"就已上传的材料
+      // 对话"，不该能从那儿发起付费生成。
+      scopes: RW,
+    },
+    async (args) => {
+      const domain = str(args["domain"]).trim();
+      if (!domain) {
+        return { error: "要画哪个领域的流程？给一个主题，比如「采购」「报销」「门诊」。" };
+      }
+      const format = (str(args["format"]).trim() || "svg").toLowerCase();
+      if (format !== "svg" && format !== "png") {
+        return { error: `format 只能是 svg 或 png，收到「${format}」。` };
+      }
+      let detail;
+      try {
+        detail = parseSketchDetail(args["detail"]);
+      } catch (exc) {
+        if (!(exc instanceof SketchError)) throw exc;
+        return { error: excText(exc) };
+      }
+      // **故意不看 isBusy**：这条不碰任何会话产物，梳理跑着的时候画一张参考图
+      // 既不冲突也不会被覆盖。挡住它只会让用户在最想讨论流程的那几分钟里没图可看。
+
+      // ── 让模型出结构（不是出 SVG）──────────────────────────
+      let data: unknown;
+      try {
+        data = await deps.chatRun(
+          s,
+          { kind: "flow_sketch", semanticInput: { domain, detail } },
+          async (run) => {
+            const comp = await run.gw.call("FLOW_SKETCH", sketchPrompt({ domain, detail }), {
+              system: SKETCH_SYSTEM,
+              schema: SKETCH_SCHEMA,
+              maxTokens: 8000,
+            });
+            return comp.data ?? null;
+          },
+        );
+      } catch (exc) {
+        // 模型没调通（配额、网络、连撞 schema）。和"结构不合用"分开报 ——
+        // 前者等一会儿再试，后者是让模型重出一遍，两条下一步完全不同。
+        return { error: `参考图没画成：${excName(exc)}: ${excText(exc)}` };
+      }
+
+      let g: FlowGraph;
+      try {
+        g = graphFromSketch(data, { domain });
+      } catch (exc) {
+        // 畸形结构给**可读的**错误，不是崩。这句话模型看得懂（它能据此重出一版），
+        // 用户也看得懂（他至少知道是模型没写对，不是系统坏了）。
+        if (!(exc instanceof SketchError)) throw exc;
+        return { error: `模型给的流程结构不合用：${excText(exc)}` };
+      }
+
+      // ── 出图（第一处标注：SVG 标题）────────────────────────
+      const title = sketchTitle(domain);
+      const svg = toSvg(g, { title });
+
+      // ── 落盘（第二处标注：文件名）──────────────────────────
+      // `exports/` 而不是会话根目录 —— 理由见上面那段。
+      const outdir = join(s.dir, "exports");
+      mkdirSync(outdir, { recursive: true });
+      const svgName = sketchFileName(domain, "svg");
+      writeFileSync(join(outdir, svgName), svg, { flag: "w" });
+      // mermaid 一起落：`diagram.ts` 文件头那条 —— 能被人接手改的草稿才是草稿。
+      // 参考图尤其如此，FDE 拿它去开会，回来第一件事就是照业务方的话改。
+      const mmdName = sketchFileName(domain, "mmd");
+      writeFileSync(join(outdir, mmdName), toMermaid(g), { flag: "w" });
+
+      let pngName = "";
+      let pngNote = "";
+      if (format === "png") {
+        try {
+          const out = await deps.renderSvgPng(svg);
+          pngName = sketchFileName(domain, "png");
+          writeFileSync(join(outdir, pngName), out.png, { flag: "w" });
+        } catch (exc) {
+          // **不静默降级。** SVG 照样给（它是好的），但必须有一句话说清 PNG 没出来、
+          // 为什么、以及模型要把这件事转述给用户 —— 一个以为自己拿到了 PNG 的人，
+          // 会在打开 PPT 准备贴图的时候才发现，那时候他已经在会议室里了。
+          pngNote =
+            `PNG 没生成（${excName(exc)}: ${excText(exc)}）。` +
+            "SVG→PNG 在本进程内渲染，这一张没渲染成。" +
+            "**下面给的是 SVG，不是 PNG** —— 回答里必须说这一句。";
+        }
+      }
+
+      // ── 聊天卡片（第三处标注：source_note）─────────────────
+      // 事件类型和 `export.ready` 分开：那张卡是"他随口要的一份拷贝"，这张是
+      // 一张带着"非证据"标记的参考图，两者混成一种卡片，标记就没地方挂。
+      const stats = g.stats();
+      s.emit("sketch.ready", {
+        name: svgName,
+        mermaid: mmdName,
+        png: pngName,
+        domain,
+        title,
+        detail,
+        size: Buffer.byteLength(svg, "utf8"),
+        stats,
+        source_note: SKETCH_MARK,
+        caveat: SKETCH_CAVEAT,
+      });
+
+      const caveats = sketchCaveats(data);
+      const out: Record<string, unknown> = {
+        已生成: svgName,
+        来源: SKETCH_MARK,
+        领域: domain,
+        规模: `${stats["actions"] ?? 0} 个 Action ｜ ${stats["events"] ?? 0} 个 Event ｜ ${stats["stages"] ?? 0} 个阶段`,
+        说明:
+          `卡片和下载按钮已经显示给用户了。**转述时必须说清这是通用参考、不是从他的` +
+          `材料里抽的**（${SKETCH_CAVEAT}）。不要贴链接、不要说存在哪个目录。`,
+        没写进产物: "这张图不进产物列表、不进交付包、不影响后续抽取 —— 它是参考图，不是交付物。",
+      };
+      if (caveats.length > 0) {
+        out["要跟业务方确认的差异点"] = caveats.slice(0, 5);
+      }
+      if (pngName) out["PNG"] = pngName;
+      if (pngNote) out["PNG不可用"] = pngNote;
+      return out;
     },
   );
 

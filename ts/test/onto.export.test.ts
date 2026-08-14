@@ -436,7 +436,7 @@ describe("docx", () => {
 describe("pdf", () => {
   afterEach(() => registerPdfRenderer(null));
 
-  it("没接 sidecar 时抛 ExportDependencyMissing —— 对话工具据此回「这台机器上导不出 pdf」", () => {
+  it("没接排版器时抛 ExportDependencyMissing —— 对话工具据此回「这台机器上导不出 pdf」", () => {
     const doc = docFromDump(GOLDEN.docs["table_doc"]!);
     expect(() => render(doc, "pdf")).toThrow(ExportDependencyMissing);
   });

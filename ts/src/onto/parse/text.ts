@@ -18,10 +18,10 @@
  * 拿它顶上等于**静默改变切片边界**，正是这一层最该避免的失败。
  *
  * 所以 DocxParser 只吃**已经抽好的原料**（`DocxContent`），抽取过程由调用方注入。
- * 生产上的实现走 sidecar（python-docx 就在那边），需要的端点写在 README/notes 里：
- * `POST /docx/extract` → `{paragraphs, tables, core}`，客户端方法
- * `SidecarClient.extractDocx(bytes)`。切段策略（软上限、规则线索、面包屑）留在
- * 这里 —— 它是与 TextParser 共用的、属于解析层的判断，不该跟着 docx 跑去 Python。
+ * 抽取器要交出的形状就是 `DocxContent`：`{paragraphs, tables, core}` —— 三样都不能
+ * 少（少了 core 就没有 metadata_leak，少了样式名分段就错）。切段策略（软上限、
+ * 规则线索、面包屑）留在这里 —— 它是与 TextParser 共用的、属于解析层的判断，
+ * 不该跟着 docx 抽取一起搬走。
  */
 
 import { basename } from "node:path";
@@ -174,7 +174,7 @@ export interface DocxContent {
   readonly core: DocxCoreProps;
 }
 
-/** 抽取器：路径 → 原料。生产实现走 sidecar，测试实现喂 golden。 */
+/** 抽取器：路径 → 原料。测试实现喂 golden。 */
 export type DocxExtractor = (path: string) => Promise<DocxContent>;
 
 export class DocxParser extends Parser {

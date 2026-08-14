@@ -157,6 +157,13 @@ export interface ExportApi {
 import { FlowEditError } from "../../onto/flow_edit.js";
 export { FlowEditError };
 
+// 同理：SVG→PNG 的失败要能与别的异常分开（它对应的动作是「改输入」，
+// 不是「重试」）。**不在这里另写一个同名类** —— 两份同名 Error 就是两个类
+// 身份，`instanceof` 假阴性的症状是一次渲染失败被报成一句泛泛的错误，
+// 排查方向整个跑偏。
+import { RenderError } from "../../onto/render.js";
+export { RenderError };
+
 /** `_material_table` 的返回：`(文件名, 表名, 列, **全部**行, 附注)`。 */
 export type MaterialTable = readonly [string, string, string[], string[][], Record<string, unknown>];
 
@@ -263,6 +270,17 @@ export interface DialogueDeps {
     tableName: string,
   ): Promise<[ExportDocLike | null, Record<string, unknown>]>;
   readonly exportApi: ExportApi;
+  /**
+   * SVG → PNG（`onto/render.ts` 的 resvg，本进程内）。
+   *
+   * **渲染不出来就抛 {@link RenderError}**，不给一个"渲染不出来就当没要过 PNG"
+   * 的静默回退：用户要 PNG 是因为他要把图贴进 PPT，给他一个 .svg 而不说，
+   * 他会在会议室里打开文件的时候才发现。这一层只负责抛得清楚，措辞由工具那边写。
+   */
+  renderSvgPng(
+    svg: string,
+    opts?: { zoom?: number },
+  ): Promise<{ png: Uint8Array; width: number; height: number }>;
   applyFlowEdit(g: unknown, op: string, args: Record<string, unknown>): string;
   /** `_tables_in_text`：`pipeline/tables.ts` 那个还要一个 markdown 解析器，
    *  由接线方绑好再传进来。 */

@@ -37,6 +37,7 @@ import type { ParsedDoc } from "../src/onto/parse/base.js";
 import { docStats, makeChunk, makeFinding, makeParsedDoc } from "../src/onto/parse/base.js";
 import { ParserRegistry } from "../src/onto/parse/base.js";
 import {
+  DdlParser,
   buildIndex,
   collectEndpoints,
   collectProfiles,
@@ -45,7 +46,6 @@ import {
   pyStem,
 } from "../src/onto/parse/index.js";
 import { TextParser } from "../src/onto/parse/text.js";
-import type { SqlParseClient } from "../src/onto/parse/sql.js";
 import type { VisionGateway, VisionParser } from "../src/onto/parse/vision.js";
 
 const GOLDEN = fileURLToPath(new URL("../../golden/", import.meta.url));
@@ -197,34 +197,18 @@ describe("defaultRegistry", () => {
     }
   });
 
-  it("sqlDialect 落到 DdlParser 身上", async () => {
-    const seen: (string | undefined)[] = [];
-    const client: SqlParseClient = {
-      parseSql(_sql, opts) {
-        seen.push(opts.dialect);
-        return Promise.resolve({
-          file_id: "sidecar", file_name: "x.ddl", kind: "ddl",
-          structured: {}, chunks: [], findings: [], meta: {},
-        });
-      },
-    };
-    const tmp = mkdtempSync(join(tmpdir(), "parse-idx-"));
-    const p = join(tmp, "schema.ddl");
-    writeFileSync(p, "CREATE TABLE t (id INT);");
-    try {
-      for (const c of g.registry.sql_dialect) {
-        const reg = defaultRegistry({
-          ...(c.arg === null ? {} : { sqlDialect: c.arg }), sqlClient: client,
-        });
-        await reg.parse(p, { fileId: "f_x" });
-      }
-    } finally {
-      rmSync(tmp, { recursive: true, force: true });
+  it("sqlDialect 落到 DdlParser 身上", () => {
+    // DDL 解析已经全在本地（node-sql-parser），没有"发给别人的方言"这个
+    // 可观测点了 —— 直接看注册表里那个 DdlParser 记住的方言。
+    const seen: (string | null)[] = [];
+    for (const c of g.registry.sql_dialect) {
+      const reg = defaultRegistry(c.arg === null ? {} : { sqlDialect: c.arg });
+      const parser = reg.forPath("/m/schema.ddl");
+      expect(parser).toBeInstanceOf(DdlParser);
+      seen.push((parser as DdlParser).dialect);
     }
-    // Python 的 `dialect=None` 在 TS 侧到线上形态是空串（`dialect ?? ""`，
-    // sidecar 那边 `dialect: str = ""`）—— 这是**已知的表示差异**，不是行为差异：
-    // 两边都表示"没有指定方言"。
-    expect(seen).toEqual(g.registry.sql_dialect.map((c) => c.dialect ?? ""));
+    // Python 的 `dialect=None` 在 TS 侧就是 `null`（golden 里导的是 None）。
+    expect(seen).toEqual(g.registry.sql_dialect.map((c) => c.dialect ?? null));
   });
 
   it("visionPrefer / visionGateway 落到 VisionParser 身上", () => {
@@ -268,16 +252,10 @@ describe("defaultRegistry", () => {
     }
   });
 
-  it("装配本身不碰网络：没有 sidecar token 也能建注册表", () => {
-    const saved = process.env["ONTOCOPILOT_SIDECAR_TOKEN"];
-    delete process.env["ONTOCOPILOT_SIDECAR_TOKEN"];
-    try {
-      // sidecarFromEnv 缺 token 会抛。上传一份 xlsx 的路径根本用不到 sidecar，
-      // 所以装配阶段一定不能去装配它。
-      expect(defaultRegistry().forPath("/m/材料.xlsx").kind).toBe("xlsx");
-    } finally {
-      if (saved !== undefined) process.env["ONTOCOPILOT_SIDECAR_TOKEN"] = saved;
-    }
+  it("装配本身不碰 IO、不装载原生模块：一次 forPath 不该把 pdfjs 拉进内存", () => {
+    // 上传一份 xlsx 的路径根本走不到 PDF 渲染器（几 MB 的 pdfjs + 一次 dlopen），
+    // 所以装配阶段一定不能去装载它。
+    expect(defaultRegistry().forPath("/m/材料.xlsx").kind).toBe("xlsx");
   });
 });
 

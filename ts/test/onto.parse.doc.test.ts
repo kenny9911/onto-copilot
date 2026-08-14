@@ -32,7 +32,6 @@ import { BpmnParser } from "../src/onto/parse/bpmn.js";
 import { pyFloat, pySplitlines, pySplitWhitespace } from "../src/onto/parse/doc/pycompat.js";
 import { fromString, itertext, localName, namespaceOf } from "../src/onto/parse/doc/xmlet.js";
 import { PptxParser, parseOoxml } from "../src/onto/parse/presentation.js";
-import type { SidecarClient } from "../src/sidecar/client.js";
 import type { VisionCompletion, VisionGateway } from "../src/onto/parse/vision.js";
 import {
   NoCapableModel,
@@ -425,20 +424,18 @@ describe("VisionParser", () => {
 });
 
 describe("renderPages", () => {
-  it("PDF 走 sidecar 的 renderPdf —— pymupdf 是不迁的钉子，不找 JS 库替代", async () => {
+  it("PDF 按 PDF_ZOOM 逐页渲染成 PNG（栅格化在本进程内，见 onto/render.ts）", async () => {
     const calls: Array<{ bytes: number; opts: unknown }> = [];
-    const sidecar = {
-      renderPdf(pdf: Uint8Array, opts: { maxPages?: number; zoom?: number }) {
-        calls.push({ bytes: pdf.byteLength, opts });
-        return Promise.resolve({ pages: ["QUJD", "REVG"], truncated: true });
-      },
-    } as unknown as SidecarClient;
+    const renderPdf = (pdf: Uint8Array, opts: { maxPages?: number; zoom?: number }) => {
+      calls.push({ bytes: pdf.byteLength, opts });
+      return Promise.resolve({ pages: ["QUJD", "REVG"], truncated: true });
+    };
 
     const dir = await mkdtemp(join(tmpdir(), "ontoparse-pdf-"));
     try {
       const path = join(dir, "scan.pdf");
       await writeFile(path, Buffer.from("%PDF-1.4 fake"));
-      const pages = await renderPages(path, { maxPages: 3, sidecar });
+      const pages = await renderPages(path, { maxPages: 3, renderPdf });
       expect(pages).toEqual([
         "data:image/png;base64,QUJD", "data:image/png;base64,REVG",
       ]);
@@ -448,7 +445,7 @@ describe("renderPages", () => {
     }
   });
 
-  it("图片不碰 sidecar，且 media type 按真实扩展名给（TS 侧不重编码成 PNG）", async () => {
+  it("图片不进渲染器，且 media type 按真实扩展名给（TS 侧不重编码成 PNG）", async () => {
     const dir = await mkdtemp(join(tmpdir(), "ontoparse-img-"));
     try {
       const jpg = join(dir, "台账.jpg");

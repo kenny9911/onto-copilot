@@ -8,7 +8,7 @@
 
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
-import { mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -154,7 +154,7 @@ describe("builtinRegistry", () => {
     expect(reg.forScope("*").map((t) => t.spec.name)).toEqual([]);
   });
 
-  it("sidecar 没起（sandbox=null）时 code.exec **不出现在动作空间里**", () => {
+  it("拿不到沙箱（sandbox=null）时 code.exec **不出现在动作空间里**", () => {
     const reg = builtinRegistry({ evidence: index(), sandbox: null });
     expect(reg.forScope("*").map((t) => t.spec.name)).not.toContain("code.exec");
     // 而且是"没有这个工具"，不是"调了会失败" —— 后者会让模型反复重试。
@@ -251,6 +251,25 @@ describe("builtinRegistry", () => {
   it("sandboxForTools：开关没开就是 null（连探测都不做）", async () => {
     expect(await sandboxForTools({} as NodeJS.ProcessEnv)).toBeNull();
     expect(await sandboxForTools({ ONTOCOPILOT_ENABLE_CODEACT: "no" } as never)).toBeNull();
+  });
+
+  it("sandboxForTools：开关开了但容器运行时不在 → 还是 null（**不注册**一个必然失败的工具）", async () => {
+    // 注册了才失败的话，模型会把失败回执读成"参数写错了"，反复重试到预算烧光。
+    expect(await sandboxForTools(
+      { ONTOCOPILOT_ENABLE_CODEACT: "1", PATH: "" } as NodeJS.ProcessEnv)).toBeNull();
+  });
+
+  it("sandboxForTools：运行时在就给一个能调的沙箱", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "glue-docker-"));
+    try {
+      writeFileSync(join(dir, "docker"), "#!/bin/sh\nexit 0\n", { mode: 0o755 });
+      const sbx = await sandboxForTools(
+        { ONTOCOPILOT_ENABLE_CODEACT: "true", PATH: dir } as NodeJS.ProcessEnv);
+      expect(sbx).not.toBeNull();
+      expect(typeof sbx?.exec).toBe("function");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 });
 

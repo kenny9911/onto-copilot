@@ -12,13 +12,12 @@
  *
  * ── 与 Python 的三处差异（都是被下层的既成设计逼出来的，不是我的发挥）──────
  *
- * 1. **`DdlParser` 与 `DocxParser` 要注入依赖。** Python 侧它们各自直接 import
- *    `sqlglot` / `python-docx`；TS 侧 sqlglot 是契约 §2.3 三个不迁的钉子之一，
- *    真身在 sidecar，而 `DocxParser` 按 `text.ts` 的设计**不给默认抽取器**。
- *    所以这里给：DDL 默认懒建 sidecar 客户端（`/sql/parse` 是现成的），
- *    docx 默认给一个**会抛的**抽取器 —— sidecar 目前没有 docx 端点，与其让
- *    一份 .docx 落到兜底的 TextParser 里被当二进制读成乱码（那是"内容悄悄没了"
- *    的另一种形态），不如在解析当场把缺的那根线说出来。
+ * 1. **`DocxParser` 要注入依赖。** Python 侧它直接 import `python-docx`，而
+ *    `DocxParser` 按 `text.ts` 的设计**不给默认抽取器**。所以这里默认给一个
+ *    **会抛的** —— 与其让一份 .docx 落到兜底的 TextParser 里被当二进制读成乱码
+ *    （那是"内容悄悄没了"的另一种形态），不如在解析当场把缺的那根线说出来。
+ *    （`DdlParser` 曾经也在这一条里：它以前要注入一个跨进程的 DDL 解析客户端。
+ *    sqlglot 换成 node-sql-parser 之后 DDL 解析全在本地，只剩一个方言参数。）
  * 2. **`buildIndex` 要转一次形状。** Python 侧 `parse/base.py` 的 `Chunk` 就是
  *    `kernel/memory/evidence.py` 的那一个类；TS 侧两边分成了两种形状
  *    （解析层是 snake_case 的 interface，索引层是 camelCase 的 class），所以这里
@@ -32,7 +31,6 @@ import { basename } from "node:path";
 
 import { KeyError } from "../../kernel/errors.js";
 import { Chunk as EvidenceChunk, EvidenceIndex } from "../../kernel/memory/evidence.js";
-import { SidecarClient, sidecarFromEnv } from "../../sidecar/client.js";
 import { OpenApiParser } from "./api.js";
 import type { YamlLoader } from "./api.js";
 import { ParserRegistry } from "./base.js";
@@ -41,12 +39,11 @@ import { docStats } from "./base.js";
 import { BpmnParser } from "./bpmn.js";
 import { PptxParser } from "./presentation.js";
 import { DdlParser } from "./sql.js";
-import type { SqlParseClient } from "./sql.js";
 import { CsvParser, XlsxParser } from "./tabular.js";
 import { DocxParser, TextParser } from "./text.js";
 import type { DocxExtractor } from "./text.js";
 import { VisionParser } from "./vision.js";
-import type { VisionGateway } from "./vision.js";
+import type { PdfPageRenderer, VisionGateway } from "./vision.js";
 
 // Python `__all__` 的对应物 —— 调用方 `import { XlsxParser } from ".../parse/index.js"`
 // 就够了，不必知道每个解析器住在哪个文件里。
@@ -72,7 +69,7 @@ export type { ColumnProfile } from "./tabular.js";
 // ══════════════════════════════════════════════════════════════════
 
 export interface DefaultRegistryOptions {
-  /** 传给 `DdlParser`。sidecar 那边照着这个方言解析。 */
+  /** 传给 `DdlParser`。node-sql-parser 照着这个方言解析（认不出的方言见 sql.ts）。 */
   sqlDialect?: string | null;
   /**
    * `kernel/catalog.ts` 的 `SmartGateway`。不传时扫描件仍会被登记，但会在
@@ -83,23 +80,21 @@ export interface DefaultRegistryOptions {
   visionPrefer?: string;
   /** 每页开始/结束回调一次。一页要几分钟，不报进度界面上就是几分钟死寂。 */
   visionProgress?: ((message: string) => void) | null;
-  /** DDL 解析的真身（契约 §2.3 在 Python）。不传时按环境变量懒建 sidecar 客户端。 */
-  sqlClient?: SqlParseClient;
   /** docx 抽取器。不传时给一个会抛的 —— 见文件头 1。 */
   docxExtract?: DocxExtractor;
   /** YAML 版 spec 的加载器。不传就只吃 JSON，并在 findings 里说清楚。 */
   yamlLoad?: YamlLoader | null;
-  /** 供 DDL / PDF 两条路复用的 sidecar 客户端。不传则各自到用时再装配。 */
-  sidecar?: SidecarClient;
+  /** PDF→图的执行者。不传就用 `onto/render.ts` 那一个（本进程内栅格化）。 */
+  renderPdf?: PdfPageRenderer;
 }
 
 /**
  * 内置解析器。**顺序即优先级** —— `.json` 归 `OpenApiParser` 而不是兜底的
  * `TextParser`，靠的就是它排在前面。
  *
- * 这个函数**不做任何 IO、不碰网络**：装配一个注册表不该因为 sidecar 没起就失败，
- * 上传一份 xlsx 的路径根本用不到 sidecar。要 sidecar 的两个解析器都是到解析
- * 当场才装配（`sidecarFromEnv` 缺 token 会抛，那时候抛才指得准）。
+ * 这个函数**不做任何 IO、不碰网络、不装载任何原生模块**：装配一个注册表不该为
+ * 一条走不到的路付代价 —— 上传一份 xlsx 根本不会碰 PDF 渲染器（那是几 MB 的
+ * pdfjs + 一次 dlopen），它到真遇到 PDF 时才装载。
  */
 export function defaultRegistry(opts: DefaultRegistryOptions = {}): ParserRegistry {
   const prefer = opts.visionPrefer ?? "quality";
@@ -107,7 +102,7 @@ export function defaultRegistry(opts: DefaultRegistryOptions = {}): ParserRegist
   return new ParserRegistry()
     .register(new XlsxParser())
     .register(new CsvParser())
-    .register(new DdlParser(opts.sqlClient ?? lazySqlClient(opts.sidecar), opts.sqlDialect ?? null))
+    .register(new DdlParser(opts.sqlDialect ?? null))
     .register(new OpenApiParser(opts.yamlLoad ?? null))
     .register(new BpmnParser())
     .register(new PptxParser())
@@ -117,19 +112,10 @@ export function defaultRegistry(opts: DefaultRegistryOptions = {}): ParserRegist
         prefer,
         // exactOptionalPropertyTypes：显式传 undefined 与"没传"不是一回事。
         ...(progress === undefined ? {} : { onProgress: progress }),
-        ...(opts.sidecar === undefined ? {} : { sidecar: opts.sidecar }),
+        ...(opts.renderPdf === undefined ? {} : { renderPdf: opts.renderPdf }),
       }),
     )
     .register(new TextParser(), { fallback: true });
-}
-
-/** 到 `parseSql` 被真正调用时才装配 sidecar —— 见 {@link defaultRegistry} 的理由。 */
-function lazySqlClient(sidecar: SidecarClient | undefined): SqlParseClient {
-  return {
-    async parseSql(sql: string, o: { dialect?: string; fileName?: string }): Promise<unknown> {
-      return (sidecar ?? new SidecarClient(sidecarFromEnv())).parseSql(sql, o);
-    },
-  };
 }
 
 /**
@@ -143,7 +129,7 @@ const missingDocxExtractor: DocxExtractor = (path: string) => {
   return Promise.reject(
     new Error(
       `没有配置 docx 抽取器，${basename(path)} 的内容一个字都读不出来。`
-      + `装配时传 docxExtract，或等 sidecar 补上 docx 抽取端点。`,
+      + `装配时传 docxExtract。`,
     ),
   );
 };

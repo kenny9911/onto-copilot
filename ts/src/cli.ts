@@ -28,8 +28,7 @@
  *
  * 这三条命令要用的 `onto/parse/__init__`（`default_registry` / `build_index` /
  * `collect_endpoints` / `collect_profiles` / `corpus_summary`）、`kernel/skills`、
- * `kernel/agents` 在 TS 侧**还不存在**（`kernel/sandbox` 按 CONTRACT §2.3 永远不迁，
- * 走 sidecar）。
+ * `kernel/agents` 在 TS 侧**还不存在**。
  *
  * 所以它们现在**如实报"尚未迁移"并退 1**，而不是：
  *   * 假装成功 —— 那会让 `build` 静默产出空模板；
@@ -325,7 +324,7 @@ export function cmdDoctor(_args: CmdArgs): number {
   return notMigrated("doctor", [
     "kernel/skills.ts",
     "kernel/agents.ts",
-    "sandbox（按 CONTRACT §2.3 走 sidecar）",
+    "sandbox（kernel/sandbox.ts 已落地，doctor 这条路还没接）",
   ]);
 }
 

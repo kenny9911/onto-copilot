@@ -33,6 +33,14 @@ import { TBL_OPEN } from "../state.js";
 import { BundleLink } from "./bundle.js";
 import { useUi } from "./store.js";
 
+// 参考流程图的预览尺寸。行内样式（不进那 767 行 CSS —— 见文件头最后一段）：
+// 宽度跟着卡片走，高度封顶免得一张 6 泳道的图把整条聊天流顶下去。
+const SKETCH_IMG = {
+  display: "block", maxWidth: "100%", maxHeight: "360px",
+  marginTop: "8px", border: "1px solid var(--line)", borderRadius: "6px",
+  background: "#fff",
+} as const;
+
 // ── ui.table 的行内样式（逐条抄自原模板字符串）────────────────────
 const TBL_BOX = { overflow: "auto", maxHeight: "420px", marginTop: "6px" } as const;
 const TBL = { borderCollapse: "collapse", width: "100%", fontSize: "0.926rem" } as const;
@@ -135,6 +143,35 @@ export function EvCard({ ev }: { ev: any }): ReactNode {
         <a className="act pri" style={{ marginTop: "8px" }} download
           href={`${API}/api/sessions/${G.S.id}/exports/${encodeURIComponent(ev.name)}`}
         >{t("export.download", "", { name: ev.name })}</a>
+      </div>
+    );
+  }
+
+  // 参考流程图（flow.sketch）。**与 artifact.ready 那张卡刻意不同**：那是从材料里
+  // 抽出来的交付物，这是模型凭领域通识画的底图 —— 卡上必须挂着来源标记
+  // （source_note），否则截图进方案文档之后就没人分得清哪张是有依据的。
+  // 直接内嵌预览而不是只给下载：这张图存在的意义就是"当场指着它跟业务方对"。
+  if (ev.kind === "sketch.ready") {
+    const href = `${API}/api/sessions/${G.S.id}/exports/${encodeURIComponent(ev.name)}`;
+    return (
+      <div className="card">
+        <h4>{ev.title || "参考流程图"}<span className="n">通用参考</span></h4>
+        <div className="cap">{ev.source_note || ""}</div>
+        <img src={href} alt={ev.title || "参考流程图"} style={SKETCH_IMG} />
+        <div style={{ marginTop: "8px" }}>
+          <a className="act" target="_blank" rel="noreferrer" href={href}>看大图</a>
+          <a className="act" download href={href}>下载 SVG</a>
+          {ev.mermaid ? (
+            <a className="act" download
+              href={`${API}/api/sessions/${G.S.id}/exports/${encodeURIComponent(ev.mermaid)}`}
+            >mermaid</a>
+          ) : null}
+          {ev.png ? (
+            <a className="act" download
+              href={`${API}/api/sessions/${G.S.id}/exports/${encodeURIComponent(ev.png)}`}
+            >PNG</a>
+          ) : null}
+        </div>
       </div>
     );
   }

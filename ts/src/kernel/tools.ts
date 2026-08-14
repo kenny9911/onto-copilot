@@ -23,7 +23,7 @@
  * 2. **`builtin_registry` 与 `impact.trace` 的那批内建工具没跟过来。** 它们依赖
  *    evidence / oir / sandbox 三个模块，其中 sandbox 按迁移约定 §2.3 **留在 Python**
  *    （`code.exec` 存在的理由就是让模型写 pandas）。等 evidence/oir 落地 TS、
- *    sidecar 接上之后再补，本文件只负责注册表与安全闸本身。
+ *    装配层（`server/glue/tools.ts`）接上之后再补，本文件只负责注册表与安全闸本身。
  *
  *    补的时候先读 Python 原件里那几段事故注释 —— 它们还留在 `kernel/tools.py`，
  *    没有被翻译成 TS 就等于没人会再看见：`evidence.search` 的 `files` 参数曾经按

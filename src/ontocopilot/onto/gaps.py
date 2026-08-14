@@ -209,16 +209,37 @@ _ENUM_ITEM_MAX = 8
 _ENUM_SPREAD_MAX = 5
 
 #: 名字里带这些就不是取值域的名字：拼接出来的列名、编号、半截括号。
-_BAD_NAME = re.compile(r"col\d|=|[（(【]|^\d|[一二三四五六七八九十]{1,2}[、.)]")
+#:
+#: 判据分两段，**分界线是调用方"剥列表编号"那一步**（见 :func:`enumerations`）：
+#:
+#:   · :data:`_BAD_RAW_NAME` 判**没剥过**的名字。`col1` 是解析器给无表头的列
+#:     编出来的名字，那个数字就是它的一部分；剥成 `col` 之后这条判据再也够不着，
+#:     于是一个凭空拼出来的列名会被当成真取值域问出去。
+#:   · :data:`_BAD_NAME` 判**剥过**的名字。剩下这几条要么与剥无关（`=`、半截
+#:     括号），要么正是靠"剥不掉"才成立 —— 全角 `１` 和中文数字 `一.` 都不在
+#:     strip 那串字符里，`^\d` 与中文数字那条拦的就是它们。
+#:
+#: 两段不能合并成一条去卡未剥的名字：`3.进度状态` 前面那个 `3.` 是列表编号，
+#: 剥掉之后是个正经取值域，一并卡掉就成了反方向的漏问。
+_BAD_RAW_NAME = re.compile(r"col\d")
+_BAD_NAME = re.compile(r"=|[（(【]|^\d|[一二三四五六七八九十]{1,2}[、.)]")
 
 
-def _is_value_domain(name: str, items: list[str]) -> bool:
+def _is_value_domain(name: str, items: list[str], *, raw: str | None = None) -> bool:
     """这串东西是不是一个**取值域**。
 
     判据全部是结构性的（个数、长度、长度离散度、名字形态），不认任何业务词 ——
     换一份材料、换一个行业，同一套判据照样成立。
+
+    Args:
+        name: 剥掉列表编号之后的名字，也是问题里显示的那个名字。
+        items: 顿号分出来的取值。
+        raw: 材料里**原样**的名字（还没剥编号）。`col1` 这类拼出来的列名只有在
+            这一份上才看得出来。缺省就是 ``name`` 自己。
     """
     if len(name) < 2 or _BAD_NAME.search(name):
+        return False
+    if _BAD_RAW_NAME.search(name if raw is None else raw):
         return False
     if not 3 <= len(items) <= 10:
         return False
@@ -240,9 +261,10 @@ def enumerations(chunks: list[Any], *, limit: int = 12) -> list[Gap]:
     for c in chunks:
         text = str(getattr(c, "render", "") or "")
         for m in _ENUM_RE.finditer(text):
-            name = m.group("name").strip(" 　\n0123456789.、）)①②③④⑤⑥⑦⑧⑨⑩")
+            raw = m.group("name")
+            name = raw.strip(" 　\n0123456789.、）)①②③④⑤⑥⑦⑧⑨⑩")
             items = [x.strip() for x in m.group("body").split("、") if x.strip()]
-            if not _is_value_domain(name, items) or name in seen:
+            if not _is_value_domain(name, items, raw=raw) or name in seen:
                 continue
             seen.add(name)
             out.append(Gap(

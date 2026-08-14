@@ -9,23 +9,21 @@
  *
  * ── 形状为什么是 snake_case ──────────────────────────────────────
  *
- * `Chunk` / `Finding` / `ParsedDoc` 的字段名与 `sidecar/client.ts` 的
- * `ParsedChunk` / `ParsedFinding` / `ParsedDoc` **逐字对齐**：DDL 解析的真身在
- * Python（sqlglot，契约 §2.3），结果要从 sidecar 原样接回来。两边键名不一致的话，
- * 接回来的那一步就得逐字段改名 —— 改名点是最容易悄悄丢字段的地方。
- * 这些结构还会进 journal 和 evidence 存储，snake_case 是它们的线上形态。
+ * `Chunk` / `Finding` / `ParsedDoc` 的字段名保持 **snake_case**：这些结构会进
+ * journal 和 evidence 存储，snake_case 是它们的线上形态，改名等于改存量数据的
+ * 读法。改名点也是最容易悄悄丢字段的地方。
  * 函数**参数**不跨进程，照 TS 惯例用 camelCase，两者不冲突。
  *
  * ── 与 Python 的两处结构性差异（不是翻译，是重设计）───────────────
  *
  * 1. **`parse` 是 async 的，没有 `aparse`。** Python 侧同步 `parse` + 异步
  *    `aparse` 的分工，前提是"绝大多数解析器是纯 CPU"。Node 上这个前提不成立：
- *    DdlParser 必须过 sidecar（HTTP），DocxParser 要过 python-docx，两者都无法
- *    同步实现。留一个同步 `parse` 只会逼出 `readFileSync` 和阻塞事件循环。
+ *    VisionParser 要调网关（HTTP）、PDF 要先栅格化，DocxParser 要过注入的抽取器，
+ *    都无法同步实现。留一个同步 `parse` 只会逼出 `readFileSync` 和阻塞事件循环。
  *    Python 的 `parse` / `aparse` 在 TS 侧合并成一个 `parse`。
  * 2. **`parse_all` 与 `aparse_all` 合并**成 `parseAll(paths, {fileIds})`。
- *    顺序执行不并发 —— 保持与 Python 一致的产出顺序，也不对 sidecar 同时压几十个
- *    请求（那边是单进程）。
+ *    顺序执行不并发 —— 保持与 Python 一致的产出顺序，也不让几十份材料同时去抢
+ *    网关配额和内存（一页 PDF 位图就是几十 MB）。
  */
 
 import { readFile, stat } from "node:fs/promises";

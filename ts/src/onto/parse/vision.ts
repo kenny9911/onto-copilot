@@ -12,17 +12,18 @@
  * **能力是硬要求，不做降级。** 没有具备 VISION 的模型时直接报错，而不是退回到
  * "凭文件名猜内容" —— 后者会产出一份看起来正常、实际全是编的结果。
  *
- * ── TS 侧的三处结构性差异（见 notes，不是随手改的）────────────────
+ * ── TS 侧的两处结构性差异（见 notes，不是随手改的）────────────────
  *
- * 1. **PDF→图走 sidecar。** `pymupdf` 是契约 §2.3 三个不迁的钉子之一，
- *    唯一入口是 `sidecar/client.ts` 的 `renderPdf()`。不找 JS 的 PDF 库替代 ——
- *    换一个渲染器就是换一套栅格化结果，而模型对分辨率和抗锯齿是敏感的。
- * 2. **没有 `_downscale`。** Python 用 PIL 把长边压到 `MAX_EDGE` 再统一转 PNG；
- *    Node 侧没有对等物，图片原样送出（PDF 那条路由 sidecar 按 zoom 渲染）。
+ * 1. **没有 `_downscale`。** Python 用 PIL 把长边压到 `MAX_EDGE` 再统一转 PNG；
+ *    Node 侧没有对等物，图片原样送出（PDF 那条路按 zoom 渲染）。
  *    后果只是**更贵**，不是更错。
- * 3. **没有同步 `parse` 抛错那一条。** `base.ts` 的 `Parser.parse` 本身就是
+ * 2. **没有同步 `parse` 抛错那一条。** `base.ts` 的 `Parser.parse` 本身就是
  *    async（它的文件头解释了为什么），Python 那个"同步入口不支持"的护栏
  *    在这边没有对应的坑可挡。
+ *
+ * PDF→图**在本进程内**做（`onto/render.ts`，pdfjs + @napi-rs/canvas）。它替掉的是
+ * pymupdf：同一份 PDF 两边渲染出的页数与每页像素尺寸逐页相等，理由与取整规则
+ * 写在 `render.ts` 的文件头。
  */
 
 import { readFile } from "node:fs/promises";
@@ -30,7 +31,7 @@ import { basename, extname } from "node:path";
 
 import { Capability, LookupError as NoCapableModel } from "../../kernel/catalog.js";
 import { formatFixed0 } from "../../kernel/errors.js";
-import { SidecarClient, sidecarFromEnv } from "../../sidecar/client.js";
+import { type PdfPages, pdfToPngs } from "../render.js";
 import type { ParsedDoc } from "./base.js";
 import { Parser, makeChunk, makeFinding, makeParsedDoc } from "./base.js";
 import { pyFloat, pyMax, pyMin, pyStrip } from "./doc/pycompat.js";
@@ -39,8 +40,8 @@ import { pyFloat, pyMax, pyMin, pyStrip } from "./doc/pycompat.js";
  * 送进模型前的长边上限。再大不会更准，只会更贵 —— 当前一代视觉模型的
  * 有效分辨率大约到这个量级。
  *
- * TS 侧**没有**执行这个缩放（没有 PIL 对等物），保留常量是因为 sidecar 那边的
- * 渲染参数最终要按它对齐。
+ * TS 侧**没有**执行这个缩放（没有 PIL 对等物），保留常量是因为 PDF 那条路的
+ * 渲染倍率最终要按它对齐。
  */
 export const MAX_EDGE = 2000;
 
@@ -208,10 +209,16 @@ export interface VisionParserOptions {
   /** 每页开始/结束回调一次。一页要几分钟，不报进度的话界面上就是几分钟的
    *  死寂，用户分不清在识别还是又挂了。 */
   onProgress?: (message: string) => void;
-  /** PDF→图的执行者。不传时按环境变量装配（只在真遇到 PDF 时才装配 ——
-   *  `sidecarFromEnv` 缺 token 会抛，而图片路径根本不需要 sidecar）。 */
-  sidecar?: SidecarClient;
+  /** PDF→图的执行者。不传就用本进程的 {@link pdfToPngs}。留这个口子是为了
+   *  让测试不必造一份真 PDF —— 不是为了再挂一个远端渲染服务。 */
+  renderPdf?: PdfPageRenderer;
 }
+
+/** `pdfToPngs` 的形状。== `render.ts` 那一个，写成端口只为可注入。 */
+export type PdfPageRenderer = (
+  data: Uint8Array,
+  opts: { maxPages?: number; zoom?: number },
+) => Promise<PdfPages>;
 
 /** 扫描件 / 图片 / PDF。 */
 export class VisionParser extends Parser {
@@ -224,7 +231,7 @@ export class VisionParser extends Parser {
   readonly maxPages: number;
   readonly nodeId: string;
   private readonly onProgress: ((message: string) => void) | undefined;
-  private readonly sidecar: SidecarClient | undefined;
+  private readonly renderPdf: PdfPageRenderer | undefined;
 
   constructor(
     readonly gateway: VisionGateway | null = null,
@@ -235,7 +242,7 @@ export class VisionParser extends Parser {
     this.maxPages = opts.maxPages ?? 20;
     this.nodeId = opts.nodeId ?? "PARSE.scan";
     this.onProgress = opts.onProgress;
-    this.sidecar = opts.sidecar;
+    this.renderPdf = opts.renderPdf;
   }
 
   private note(message: string): void {
@@ -267,7 +274,7 @@ export class VisionParser extends Parser {
 
     const pages = await renderPages(path, {
       maxPages: this.maxPages,
-      ...(this.sidecar === undefined ? {} : { sidecar: this.sidecar }),
+      ...(this.renderPdf === undefined ? {} : { renderPdf: this.renderPdf }),
     });
     if (pages.length === this.maxPages) {
       doc.findings.push(makeFinding(
@@ -419,22 +426,19 @@ const IMAGE_MIME: Readonly<Record<string, string>> = {
 /**
  * 把材料渲染成 base64 data URI 列表。PDF 逐页渲染，图片就是一页。
  *
- * 与 Python 的差别（见文件头 2）：不缩放、不统一转 PNG，所以 data URI 的
+ * 与 Python 的差别（见文件头 1）：不缩放、不统一转 PNG，所以 data URI 的
  * media type 按**真实扩展名**给。Python 那边一律写 `image/png` 是因为 PIL 确实
  * 重新编码过；这边照抄那个写法的话，一张 jpg 会被贴上 png 的标签送进模型。
  */
 export async function renderPages(path: string, opts: {
   maxPages?: number;
-  sidecar?: SidecarClient;
+  renderPdf?: PdfPageRenderer;
 } = {}): Promise<string[]> {
   const maxPages = opts.maxPages ?? 20;
   const ext = extname(path).toLowerCase();
   if (ext === ".pdf") {
-    // pymupdf 是不迁的钉子（契约 §2.3）：唯一入口是 sidecar。
-    const client = opts.sidecar ?? new SidecarClient(sidecarFromEnv());
-    const rendered = await client.renderPdf(await readFile(path), {
-      maxPages, zoom: PDF_ZOOM,
-    });
+    const render = opts.renderPdf ?? pdfToPngs;
+    const rendered = await render(await readFile(path), { maxPages, zoom: PDF_ZOOM });
     return rendered.pages.map((b64) => `data:image/png;base64,${b64}`);
   }
   const mime = IMAGE_MIME[ext] ?? "image/png";

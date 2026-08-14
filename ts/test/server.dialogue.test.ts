@@ -41,6 +41,7 @@ import {
   say,
   withSessionMutation,
 } from "../src/server/dialogue.js";
+import { RenderError } from "../src/server/dialogue/ports.js";
 import { dialogueOf, publishTurn, TABLE_MEMORY_CAP } from "../src/server/dialogue/memory.js";
 import { formatPercent0, pyJsonIndent, pyRound } from "../src/server/dialogue/pyutil.js";
 import type {
@@ -226,6 +227,11 @@ function makeDeps(over: DepsOver = {}): DialogueDeps {
       resolveFormat: (f) => (f === "excel" ? "xlsx" : ["xlsx", "md"].includes(f) ? f : ""),
       render: async () => [new Uint8Array([1, 2, 3]), { ext: ".xlsx", label: "Excel" }],
       safeName: (t, ext) => `${t}${ext}`,
+    },
+    // 默认「渲染不出来」：`flow.sketch` 的 PNG 分支在这一组用例里不该被当成
+    // 已经走通了 —— 那会让一条线上可能失败的路在测试里永远是绿的。
+    renderSvgPng: async () => {
+      throw new RenderError("SVG 渲染失败: 测试里没有渲染器");
     },
     applyFlowEdit: () => "改好了",
     tablesInText: () => [],

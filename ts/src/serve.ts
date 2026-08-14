@@ -29,10 +29,9 @@
  * 注意 engagement 的**恢复**那一档不走 `harness.*`：`_resume_engagement_release`
  * 自己就地装配（用的是 ScriptedBackend，见 `glue/engagement.ts` 的说明）。
  *
- * 唯一还在 Python 那边的是 `kernel/sandbox.py`（约定 §2.3：`code.exec` 存在的
- * 理由就是让模型写 pandas），经 `sidecar/client.ts` 调。**探不到 sidecar 时
- * `code.exec` 不进动作空间**，而不是进了之后每次调用都失败 —— 后者会让模型
- * 反复重试一个永远不会成功的工具，把预算烧光。
+ * `code.exec` 的沙箱是**可选**的（要显式开 `ONTOCOPILOT_ENABLE_CODEACT`）。
+ * **拿不到沙箱时 `code.exec` 不进动作空间**，而不是进了之后每次调用都失败 ——
+ * 后者会让模型反复重试一个永远不会成功的工具，把预算烧光。
  *
  * {@link notWired} 保留着：它是**显式抛错**的占位，不是空实现。一个悄悄什么都
  * 不做的 `persist` 会让"梳理跑完了但什么都没存"看起来像成功，而那种失败不会在
@@ -142,6 +141,7 @@ import { HARNESS } from "./server/glue/harness.js";
 import { chunkCache, preparse as gluePreparse } from "./server/glue/preparse.js";
 import { pendingQuestions, syncQuestionBacklog } from "./server/glue/questions.js";
 import { builtinRegistry } from "./server/glue/tools.js";
+import { svgToPng } from "./onto/render.js";
 
 // ══════════════════════════════════════════════════════════════════
 //  仓储选路
@@ -405,6 +405,9 @@ function dialogueDeps(): DialogueDeps {
         ),
       ),
     exportApi: seam(exportApi),
+    // 本进程内渲染（resvg）。`svgToPng` 是同步的 —— 包一层 async 是因为端口
+    // 声明的是 Promise：一张流程图几百 KB，将来换个渲染器要异步也不用改接口。
+    renderSvgPng: (svg, opts) => Promise.resolve(svgToPng(svg, opts ?? {})),
     applyFlowEdit: (g, op, args) => applyFlowEdit(seam(g), op, seam(args)),
     tablesInText: (text, ts) => tablesInText(text, ts, seam(blocksFromMarkdown)),
 

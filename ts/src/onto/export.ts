@@ -38,9 +38,10 @@
  *     就钉死在 {@link ZIP_EPOCH}，同样的输入永远产出同样的字节 —— 不然每次导出的
  *     diff 全是噪声，"文件变了吗"这个问题就再也答不了。
  *
- * **PDF 走注册点。** pymupdf 属于迁移约定 §2.3 里留在 Python sidecar 的三样之一，
- * TS 侧不写替身；`doc_to_html` + {@link PDF_CSS}（Story 的全部输入）逐字移植过来了，
- * 渲染器由 {@link registerPdfRenderer} 注入。没注入时 `render(doc,"pdf")` 抛
+ * **PDF 走注册点。** Python 那边用 pymupdf 的 Story 排版 HTML；TS 侧还没有对等的
+ * 排版器（`onto/render.ts` 只做栅格化，不做 HTML→PDF 的分页排版）。`doc_to_html` +
+ * {@link PDF_CSS}（Story 的全部输入）逐字移植过来了，渲染器由
+ * {@link registerPdfRenderer} 注入。没注入时 `render(doc,"pdf")` 抛
  * {@link ExportDependencyMissing} —— 与 Python 侧 `import pymupdf` 抛 ImportError
  * 落在同一条分支上，对话工具会回一句"这台机器上导不出 pdf"，而不是"写 pdf 失败"。
  */
@@ -1190,12 +1191,12 @@ export function docToHtml(doc: ExportDoc): string {
   return out.join("\n");
 }
 
-/** HTML + CSS → PDF 字节。由 sidecar（pymupdf Story）实现，见文件头。 */
+/** HTML + CSS → PDF 字节。实现由部署方注入，见文件头。 */
 export type PdfRenderer = (html: string, css: string) => Uint8Array;
 
 let _pdfRenderer: PdfRenderer | null = null;
 
-/** 迁移约定 §2.3 的接线点。传 null 解除（测试里用）。 */
+/** HTML→PDF 排版器的接线点。传 null 解除（测试里用）。 */
 export function registerPdfRenderer(fn: PdfRenderer | null): void {
   _pdfRenderer = fn;
 }
@@ -1203,8 +1204,8 @@ export function registerPdfRenderer(fn: PdfRenderer | null): void {
 export function toPdf(doc: ExportDoc): Uint8Array {
   if (_pdfRenderer === null) {
     throw new ExportDependencyMissing(
-      "PDF 需要 pymupdf（迁移约定 §2.3：留在 Python sidecar），当前进程没有接线 —— " +
-        "换 docx / xlsx / md，或起 sidecar 后调 registerPdfRenderer()",
+      "PDF 需要一个 HTML→PDF 排版器，当前进程没有接线 —— " +
+        "换 docx / xlsx / md，或在启动时调 registerPdfRenderer() 接一个",
     );
   }
   return _pdfRenderer(docToHtml(doc), PDF_CSS);

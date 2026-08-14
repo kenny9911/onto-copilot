@@ -10,9 +10,9 @@
  * · base / text —— 直接跑 TS 实现，逐份 ParsedDoc 与 golden 比。
  * · docx     —— golden 里成对导了 python-docx 抽出来的**原料**和最终 ParsedDoc。
  *   TS 侧吃原料、产 ParsedDoc，中间那段切段逻辑因此是真的被覆盖到的
- *   （抽取本身在 sidecar，不是这一层的事）。
- * · sql      —— golden 里的 `wire` 就是 sidecar `/sql/parse` 真返回的 dict，
- *   喂给一个假客户端即可覆盖整条接回路径，不必起进程。
+ *   （抽取本身由注入的抽取器负责，不是这一层的事）。
+ * · sql      —— 主场在 `onto.parse.sql.test.ts`（那份 golden 专门钉注释的
+ *   七种写法）。这里只跑真实形状的 DDL，覆盖整份 ParsedDoc。
  *
  * 末尾 "已知分叉" 一节钉的是 Python 与 JS 语言边界上的差（`1.0` 的序列化、
  * JSON 报错文本）。**钉住而不是跳过** —— 跳过的用例哪天真的坏了不会有人知道。
@@ -24,7 +24,6 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import type { SidecarClient } from "../src/sidecar/client.js";
 import type { Chunk, ParsedDoc } from "../src/onto/parse/base.js";
 import {
   ParserRegistry,
@@ -47,8 +46,7 @@ import {
   parseDocxContent,
   splitSections,
 } from "../src/onto/parse/text.js";
-import type { SqlParseClient } from "../src/onto/parse/sql.js";
-import { DdlParser, adoptWireDoc } from "../src/onto/parse/sql.js";
+import { DdlParser } from "../src/onto/parse/sql.js";
 
 // ── golden ────────────────────────────────────────────────────────
 interface DocDict {
@@ -127,10 +125,6 @@ async function write(name: string, b64: string, sub = ""): Promise<string> {
   return p;
 }
 
-// 只为 dispatch / 构造用，永远不会被调用到网络那一步
-const NULL_SQL_CLIENT: SqlParseClient = {
-  parseSql: () => Promise.reject(new Error("测试里不该真调 sidecar")),
-};
 const NULL_DOCX: DocxContent = {
   paragraphs: [],
   tables: [],
@@ -185,7 +179,7 @@ describe("base", () => {
 
   it("注册表按扩展名派发，未知扩展名落到兜底解析器", () => {
     const reg = new ParserRegistry()
-      .register(new DdlParser(NULL_SQL_CLIENT))
+      .register(new DdlParser())
       .register(new OpenApiParser())
       .register(new DocxParser(() => Promise.resolve(NULL_DOCX)))
       .register(new TextParser(), { fallback: true });
@@ -195,7 +189,7 @@ describe("base", () => {
   });
 
   it("没有兜底解析器时的报错消息（含 !r 的非 ASCII 后缀）", () => {
-    const bare = new ParserRegistry().register(new DdlParser(NULL_SQL_CLIENT));
+    const bare = new ParserRegistry().register(new DdlParser());
     expect(() => bare.forPath("a.xyz")).toThrow(G.base.no_parser_message.ascii);
     expect(() => bare.forPath("a.中文")).toThrow(G.base.no_parser_message.cjk);
   });
@@ -340,59 +334,35 @@ describe("api", () => {
 });
 
 // ══════════════════════════════════════════════════════════════════
+// sql 的主场在 `onto.parse.sql.test.ts`（它有自己的 golden，把七种注释写法
+// 和三条来源的分工边界一条条钉住了）。这里只留一件这份 golden 独有的事：
+// 用 `materials/schema.ddl` 这类**真实形状**的 DDL 跑一遍整份 ParsedDoc。
+//
+// 以前这一节测的是"跨进程的线上形态怎么接回本地形态"。sqlglot 换成
+// node-sql-parser 之后 DDL 解析全在本地，`wire` 那一路连同 `adoptWireDoc`
+// 一起没有了 —— 所以改成直接跑解析器与 golden 比。
 describe("sql", () => {
-  // 编译期断言：真正的 SidecarClient 必须满足 DdlParser 要的那一小片接口。
-  // 哪天 client.ts 改了 parseSql 的签名，这一行先红。
-  type AssertClient = SidecarClient extends SqlParseClient ? true : never;
-  const assertClient: AssertClient = true;
+  // 这两条是已知分叉，在 onto.parse.sql.test.ts 里单独钉：
+  // broken.ddl 的报错文本来自 sqlglot，mysql.ddl 的 TIMESTAMP 被 sqlglot
+  // 规范化成了 TIMESTAMPTZ。
+  const DIVERGENT = new Set(["broken.ddl", "mysql.ddl"]);
 
-  it("SidecarClient 结构上就是 SqlParseClient", () => {
-    expect(assertClient).toBe(true);
-  });
-
-  it("wire → ParsedDoc：chunk_id 重新加前缀、补回 file_id/file_name", () => {
-    for (const c of G.sql) {
-      const doc = adoptWireDoc(c.wire as never, {
-        fileId: c.file_id,
-        fileName: c.file_name,
-      });
-      expect(toDict(doc)).toEqual(c.doc);
-    }
-  });
-
-  it("DdlParser 把文件内容原样交给 sidecar，方言跟着走", async () => {
+  it("整份 ParsedDoc 与 Python 逐字段一致", async () => {
     for (const [i, c] of G.sql.entries()) {
+      if (DIVERGENT.has(c.name)) continue;
       const p = await write(c.file_name, Buffer.from(c.sql, "utf8").toString("base64"), `ddl${i}`);
-      const seen: { sql: string; opts: { dialect?: string; fileName?: string } }[] = [];
-      const client: SqlParseClient = {
-        parseSql: (sql, opts) => {
-          seen.push({ sql, opts });
-          return Promise.resolve(c.wire);
-        },
-      };
-      const doc = await new DdlParser(client, c.dialect).parse(p, { fileId: c.file_id });
-      // 文件内容原样、方言原样、文件名取的是 basename（sidecar 那边靠它做 file_name）
-      expect(seen).toEqual([
-        { sql: c.sql, opts: { dialect: c.dialect ?? "", fileName: c.file_name } },
-      ]);
-      expect(toDict(doc)).toEqual(c.doc);
+      const doc = await new DdlParser(c.dialect).parse(p, { fileId: c.file_id });
+      expect([c.name, toDict(doc)]).toEqual([c.name, c.doc]);
     }
   });
 
-  it("形状漂移要响，不许静默变成空文档", () => {
-    expect(() =>
-      adoptWireDoc({ file_id: "sidecar", file_name: "a.ddl", kind: "ddl", structured: {} } as never, {
-        fileId: "f_x",
-        fileName: "a.ddl",
-      }),
-    ).toThrow("chunks / findings 不是数组");
-  });
-
-  it("不同文件的切片 id 不会互相顶掉（sidecar 侧 file_id 恒为 sidecar）", () => {
-    const wire = G.sql[0]?.wire as never;
-    const a = adoptWireDoc(wire, { fileId: "f_aaa", fileName: "a.ddl" });
-    const b = adoptWireDoc(wire, { fileId: "f_bbb", fileName: "b.ddl" });
-    const ids = new Set([...a.chunks, ...b.chunks].map((c) => c.chunk_id));
+  it("不同文件的切片 id 不会互相顶掉", async () => {
+    const c = G.sql[0];
+    if (c === undefined) throw new Error("golden 里一条 DDL 都没有");
+    const p = await write(c.file_name, Buffer.from(c.sql, "utf8").toString("base64"), "ddl-dup");
+    const a = await new DdlParser(c.dialect).parse(p, { fileId: "f_aaa" });
+    const b = await new DdlParser(c.dialect).parse(p, { fileId: "f_bbb" });
+    const ids = new Set([...a.chunks, ...b.chunks].map((x) => x.chunk_id));
     expect(ids.size).toBe(a.chunks.length + b.chunks.length);
   });
 });

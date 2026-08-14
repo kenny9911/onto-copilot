@@ -60,7 +60,11 @@ export function timeline(dlg: any){
 // corpus.ready 是唯一带条件的：没有 findings 的那条不值得占位置 —— 它想说的
 // 「读完了」在推理轨迹里已经有一行。
 const CARD_KINDS = new Set(["parse.failed", "human.recorded", "artifact.ready",
-  "audit.applied", "ui.table", "export.ready", "run.failed", "session.restored"]);
+  "audit.applied", "ui.table", "export.ready", "run.failed", "session.restored",
+  // sketch.ready 必须占一张卡：它是一张**要当场看**的图（拿去跟业务方对），
+  // 而且卡上挂着「这是模型通识不是客户证据」那句标记 —— 缩成轨迹里的一行，
+  // 图看不见，标记也跟着不见了。
+  "sketch.ready"]);
 
 export function hasCard(ev: any): boolean {
   if (ev?.kind === "corpus.ready") return (ev.findings || []).length > 0;
@@ -92,6 +96,7 @@ export const EV_LABEL: Record<string, string> = {
   "oir.edited":"改了本体", "oir.stale_edits":"本体编辑已失效",
   "template.edited":"改了模板", "template.stale_edits":"模板编辑已失效",
   "export.ready":"导出文件", "ui.table":"列出表格",
+  "sketch.ready":"参考流程图",
   // 决策与问题
   "clarify.request":"待拍板", "question.answered":"答复问题",
   "human.recorded":"记下决策", "suggest.ready":"给出建议", "prompts.ready":"推荐问题",
@@ -149,6 +154,8 @@ export function evDetail(ev: any){
   if (k === "files.attached" || k === "materials.registered")
     return (ev.files || []).join("、") || `${(ev.files || []).length} 份`;
   if (k === "export.ready") return ev.name || "";
+  // 轨迹那一行也带上「通用参考」四个字：卡片会被折叠，标记不能只活在卡片上。
+  if (k === "sketch.ready") return `${ev.domain || ""}· 通用参考`;
   if (k === "session.renamed") return ev.title || "";
   if (k === "ui.table") return ev.title || `${(ev.rows || []).length} 行`;
   if (k === "question.answered") return ev.question_id || ev.qid || "";

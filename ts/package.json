@@ -21,9 +21,14 @@
   },
   "dependencies": {
     "@hono/node-server": "^2.1.0",
+    "@napi-rs/canvas": "^1.0.6",
+    "@resvg/resvg-js": "^2.6.2",
+    "arquero": "^8.0.3",
     "drizzle-orm": "^0.45.2",
     "exceljs": "^4.4.0",
     "hono": "^4.13.2",
+    "node-sql-parser": "^5.4.0",
+    "pdfjs-dist": "^6.2.108",
     "pg": "^8.23.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"

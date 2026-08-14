@@ -17,8 +17,7 @@
  *
  * ── `code.exec` 的存在与否是**动作空间**的事，不是调用结果的事 ──────────
  *
- * 沙箱留在 Python（约定 §2.3），TS 侧经 `sandboxViaSidecar` 取。开关没开、
- * sidecar 没起、sidecar 起了但没带沙箱能力 —— 三种"没有"都必须让 `code.exec`
+ * 开关没开、这台机器上没有容器运行时 —— 两种"没有"都必须让 `code.exec`
  * **不出现在动作空间里**，而不是出现之后调用才报错：一个注册了却必然失败的工具，
  * 模型会把失败回执读成"参数写错了"然后反复重试，把预算烧光，而每一轮都真花钱。
  * 这条判据落在 `glue/tools.ts` 的 `sandboxForTools()` + `builtinRegistry()` 里，
@@ -27,7 +26,7 @@
  * ── 与 Python 的一处签名差异 ────────────────────────────────────────────
  *
  * Python 的 `default_sandbox(production=True)` 是同步的（它只是挑一个本机运行时）；
- * TS 这边要**探一次 sidecar 的 /health**，是异步的。所以 {@link HarnessPort.buildTools}
+ * TS 这边要**探一次容器运行时在不在**，是异步的。所以 {@link HarnessPort.buildTools}
  * 落成 async，`run.ts` 那一处调用点跟着 `await`。行为不变：探测在装配工具之前
  * 完成，探不到就等于没有沙箱。
  */

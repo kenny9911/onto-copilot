@@ -593,11 +593,11 @@ describe("harness", () => {
     }
   });
 
-  it("开关开了但 sidecar 没起，照样不进动作空间（三种「没有」同一个处理）", async () => {
+  it("开关开了但这台机器上没有容器运行时，照样不进动作空间（两种「没有」同一个处理）", async () => {
     const beforeFlag = process.env["ONTOCOPILOT_ENABLE_CODEACT"];
-    const beforeTok = process.env["ONTOCOPILOT_SIDECAR_TOKEN"];
+    const beforePath = process.env["PATH"];
     process.env["ONTOCOPILOT_ENABLE_CODEACT"] = "1";
-    delete process.env["ONTOCOPILOT_SIDECAR_TOKEN"]; // token 没配 → SidecarUnavailable
+    process.env["PATH"] = ""; // docker 不在 PATH 上 → 探不到沙箱
     try {
       const reg = await HARNESS.buildTools({
         evidence: new EvidenceIndex() as never,
@@ -607,7 +607,7 @@ describe("harness", () => {
     } finally {
       if (beforeFlag === undefined) delete process.env["ONTOCOPILOT_ENABLE_CODEACT"];
       else process.env["ONTOCOPILOT_ENABLE_CODEACT"] = beforeFlag;
-      if (beforeTok !== undefined) process.env["ONTOCOPILOT_SIDECAR_TOKEN"] = beforeTok;
+      if (beforePath !== undefined) process.env["PATH"] = beforePath;
     }
   });
 

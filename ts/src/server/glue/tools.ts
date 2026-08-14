@@ -3,25 +3,34 @@
  *
  * ── 为什么它住在 `server/glue/` 而不是 `kernel/tools.ts` ────────────────
  *
- * 迁移约定 §2.3 把 `kernel/sandbox.py` 留在了 Python（`code.exec` 存在的**理由**
- * 就是让模型写 pandas，把它搬到 Node 等于把这个工具删掉）。于是 `builtin_registry`
- * 成了唯一一处跨语言的接缝：五个工具里四个是纯 TS 的，第五个必须走 sidecar。
- * `kernel/tools.ts` 是内核层，不该 import `sidecar/client.ts`（那是进程拓扑，
- * 不是内核概念），所以装配放在这一层。
+ * 五个工具里四个只认数据结构，第五个（`code.exec`）要一个**能跑起来的沙箱** ——
+ * 而"这台机器上有没有容器运行时"是部署拓扑，不是内核概念。`kernel/tools.ts`
+ * 只管注册表与安全闸，选沙箱、探沙箱这两件事落在这一层。
  *
- * ── sidecar 没起时 `code.exec` **不出现**，而不是调用时报错 ──────────────
+ * ── 没有沙箱时 `code.exec` **不出现**，而不是调用时报错 ────────────────
  *
  * Python 那行是 `if sandbox is not None:` —— 沙箱缺席时这个工具压根不注册。
  * 必须照搬这个形状：注册一个"调了必然失败"的工具，模型会反复重试它（失败回执
  * 在它看来是"参数写错了"），把预算烧光，而且每一轮都真花钱。动作空间里没有
  * 这个工具，模型才会去找别的路。
+ *
+ * 所以 {@link sandboxForTools} 要在**注册之前**把话问清楚：开关开了吗、
+ * 容器运行时在吗。这两件事任一为否，返回 `null`。
  */
+
+import { accessSync, constants } from "node:fs";
+import { join } from "node:path";
 
 import { scopesForTool } from "../../kernel/agents.js";
 import type { EvidenceIndex } from "../../kernel/memory/evidence.js";
 import { Danger, ToolRegistry, type ToolCallCtx } from "../../kernel/tools.js";
 import { cpSlice } from "../../onto/parse/base.js";
-import { sandboxViaSidecar, sidecarFromEnv, type SandboxLike } from "../../sidecar/client.js";
+import {
+  ContainerSandbox,
+  asSandboxLike,
+  defaultSandbox,
+  type ExecResultDict,
+} from "../../kernel/sandbox.js";
 import { pyReprList, pyUnquote } from "../pipeline/tables.js";
 
 // ══════════════════════════════════════════════════════════════════
@@ -59,6 +68,17 @@ export interface OirLike {
   readonly rules?: Map<string, unknown>;
   stats(): unknown;
   dependents(rid: string): Iterable<string>;
+}
+
+/**
+ * `code.exec` 认的沙箱形状：`exec(code, inputs) -> dict`。
+ *
+ * 收窄成一个方法而不是整个 `SandboxExecutor`：这一层只会调这一件事，而窄接口
+ * 让测试可以喂一个字面量对象，不必起一个真沙箱。`asSandboxLike()` 把内核那个
+ * 执行器包成这个形状。
+ */
+export interface SandboxLike {
+  exec(code: string, inputs?: Record<string, unknown>): Promise<ExecResultDict>;
 }
 
 export interface BuiltinRegistryOptions {
@@ -501,15 +521,20 @@ export function builtinRegistry(opts: BuiltinRegistryOptions = {}): ToolRegistry
     reg.fn(
       {
         name: "code.exec",
+        // 沙箱换成 TS 之后这段**必须**跟着改：模型是照描述写代码的，还写 pandas
+        // 的话每一次调用都是白跑，而它从错误里学不到「这里没有 Python」。
         description:
-          "在隔离沙箱里执行 Python。用于数据清洗、透视、连接、统计这类" +
-          "变换。环境里已注入 INPUTS(dict)、IN_DIR、OUT_DIR 和 emit(obj)；" +
-          "结构化结果请用 emit() 交回。无网络。",
+          "在隔离沙箱里执行 TypeScript/JavaScript（ESM，可写类型标注）。用于数据" +
+          "清洗、透视、连接、统计这类变换。已预先注入：aq（arquero，dplyr 风格的" +
+          "表操作 —— aq.from(rows) / groupby / rollup / derive / join / orderby，" +
+          "聚合函数在 aq.op 下）、INPUTS(对象)、IN_DIR、OUT_DIR、emit(obj)；" +
+          "结构化结果请用 emit() 交回（直接 emit 一张 arquero 表也认）。" +
+          "无网络，无子进程，只有 OUT_DIR 可写。",
         schema: {
           type: "object",
           required: ["code"],
           properties: {
-            code: { type: "string", description: "Python 源码" },
+            code: { type: "string", description: "TypeScript/JavaScript 源码（ESM）" },
             inputs: { type: "object", description: "注入为 INPUTS" },
           },
         },
@@ -539,11 +564,15 @@ export function builtinRegistry(opts: BuiltinRegistryOptions = {}): ToolRegistry
 
 /**
  * `default_sandbox(production=True) if ONTOCOPILOT_ENABLE_CODEACT else None` 的
- * TS 对等物 —— 沙箱本体留在 Python sidecar（约定 §2.3）。
+ * TS 对等物 —— 沙箱本体在 `kernel/sandbox.ts`，同一个进程里。
  *
- * 三种"没有"都回 `null`，因为 {@link builtinRegistry} 对它们的处理必须一样：
- * 开关没开、sidecar 没起、sidecar 起了但没带沙箱能力。**返回 null 的意思是
- * `code.exec` 不进动作空间**，见文件头。
+ * 两种"没有"都回 `null`，因为 {@link builtinRegistry} 对它们的处理必须一样：
+ * 开关没开、容器运行时不在。**返回 null 的意思是 `code.exec` 不进动作空间**，
+ * 见文件头。
+ *
+ * **`production: true` 不能省。** HTTP 服务跑的是不可信材料引出的代码，
+ * `LocalSubprocessSandbox` 没有内核隔离（它自己的文件头写着这句）。宁可这台
+ * 机器上没有 `code.exec`，也不要一个"看起来有沙箱"的子进程。
  */
 export async function sandboxForTools(
   env: NodeJS.ProcessEnv = process.env,
@@ -552,11 +581,37 @@ export async function sandboxForTools(
   const flag = String(env["ONTOCOPILOT_ENABLE_CODEACT"] ?? "").toLowerCase();
   if (!["1", "true", "yes"].includes(flag)) return null;
   try {
-    return await sandboxViaSidecar(sidecarFromEnv(env));
+    const executor = defaultSandbox({ production: true });
+    // **探一次再注册。** 容器沙箱要外部运行时；`docker` 不在 PATH 上时它每次
+    // 调用都抛 SandboxError —— 那正是文件头说的"模型反复重试一个永远不会成功
+    // 的工具"。
+    if (executor instanceof ContainerSandbox && !onPath(executor.docker, env)) return null;
+    return asSandboxLike(executor);
   } catch {
-    // 探测失败（sidecar 没起、token 不对、网络拒绝）等同于"没有沙箱"。抛上去
-    // 会让整条对话/梳理起不来，而 code.exec 从来不是必需品。
+    // 装配失败等同于"没有沙箱"。抛上去会让整条对话/梳理起不来，
+    // 而 code.exec 从来不是必需品。
     return null;
+  }
+}
+
+/**
+ * PATH 上有没有这个可执行文件。
+ *
+ * 自己走一遍 PATH 而不是 `spawnSync("docker","--version")`：探活会在**每次**装配
+ * 工具表时跑，起一个进程要几十毫秒，而对话那条路每轮都装一次。
+ */
+function onPath(bin: string, env: NodeJS.ProcessEnv): boolean {
+  if (bin.includes("/")) return canExec(bin);
+  const dirs = (env["PATH"] ?? "").split(":").filter((d) => d !== "");
+  return dirs.some((d) => canExec(join(d, bin)));
+}
+
+function canExec(p: string): boolean {
+  try {
+    accessSync(p, constants.X_OK);
+    return true;
+  } catch {
+    return false;
   }
 }
 
