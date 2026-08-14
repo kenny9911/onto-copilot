@@ -50,6 +50,7 @@ import {
   sessAsync,
 } from "../session.js";
 import type { SessionFile } from "../session.js";
+import { boolParsingError, pydanticBool, raise422 } from "../http422.js";
 
 // ══════════════════════════════════════════════════════════════════
 //  HTTP 错误：体的形状必须是 FastAPI 的 {"detail": "…"}
@@ -326,17 +327,16 @@ export function errTypeAndText(exc: unknown): string {
 //  查询参数与请求体
 // ══════════════════════════════════════════════════════════════════
 
-const TRUEY = new Set(["1", "true", "t", "yes", "y", "on"]);
-const FALSEY = new Set(["0", "false", "f", "no", "n", "off"]);
-
-/** `purge: bool = False`。pydantic 只认这两组字面量，其余 422 —— 不能把
- * `purge=maybe` 悄悄当成 false，那会让一次"彻底删除"变成"只从列表移除"。 */
-export function boolQuery(raw: string | undefined, dflt: boolean): boolean {
+/** `purge: bool = False`。pydantic 只认那两组字面量，其余 422 —— 不能把
+ * `purge=maybe` 悄悄当成 false，那会让一次"彻底删除"变成"只从列表移除"。
+ *
+ * 解析与 422 载荷都走 `http422.ts`：那边**不 trim**（`?purge=%20true%20` 在
+ * Python 侧是 422），载荷是 pydantic 的错误数组而不是一句话。 */
+export function boolQuery(raw: string | undefined, dflt: boolean, name = "purge"): boolean {
   if (raw === undefined) return dflt;
-  const v = raw.trim().toLowerCase();
-  if (TRUEY.has(v)) return true;
-  if (FALSEY.has(v)) return false;
-  throw apiError(422, "value could not be parsed to a boolean");
+  const v = pydanticBool(raw);
+  if (v === null) raise422(boolParsingError(["query", name], raw));
+  return v;
 }
 
 /** FastAPI 的 `body: dict[str, Any] | None = None`：空体/非对象都当 `{}`。 */

@@ -344,9 +344,14 @@ describe("超时", () => {
     const elapsed = Date.now() - t0;
 
     expect(balanceKnown(bal)).toBe(false); // 超时同样是"未知"，不是"没钱"
-    expect(elapsed).toBeLessThan(3000);
     // 预算是整段的：第一个端点把 120ms 吃光后，第二个连请求都不该发。
+    // **这条才是本用例真正要保的东西** —— 它与机器负载无关。
     expect(started).toBe(1);
+    // 墙钟只做一个"没有退化成无限等待"的粗判据，**故意放得很宽**：
+    // 全量套件并发跑时这台机器被压住过，一个 3000ms 的上限真的红过一次。
+    // 收紧它不会多测出任何东西（真正的收口由上面那条断言保证），只会让
+    // 套件间歇性变红 —— 而间歇性变红的测试很快就没人看了。
+    expect(elapsed).toBeLessThan(30_000);
   });
 
   it("AbortSignal.timeout 只收整数 —— 剩余预算带小数必须先取整", async () => {

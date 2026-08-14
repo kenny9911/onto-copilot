@@ -401,7 +401,7 @@ describe("TemplateSpec 的持久化", () => {
     const spec = TemplateSpec.fromDict(G.edits.base_spec);
     const m = spec.byRid();
     expect(m.size).toBe(spec.cells().length);
-    expect(m.get("ot_0 apiName")?.value).toBe("obj0");
+    expect(m.get("ot_0\u0000apiName")?.value).toBe("obj0");
   });
 });
 

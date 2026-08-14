@@ -348,7 +348,14 @@ export function segmentCorpus(
 ): Segment[] {
   // 键是 (文件名, 段名) 二元组 —— JS 没有元组键，用 Map + 显式的成对数组。
   const groups = new Map<string, { fname: string; key: string; ids: string[] }>();
-  const gkey = (fname: string, key: string): string => `${fname} ${key}`;
+  // Python 那边键是元组 `(file_name, key)`，JS 的 Map 没有结构化元组键，只能拼成
+  // 字符串。用 U+0000 当分隔符是因为它**不可能**出现在文件名或 key 里，换成 "|"
+  // 之类会在名字里带分隔符时把两个不同的组合并成一个。
+  //
+  // 写成 `\u0000` 转义而不是嵌一个裸 NUL 字节：裸字节会让整个文件被 `file(1)`
+  // 判成 binary，`grep` 于是**静默跳过它**（不是报错，是什么都不输出）——
+  // 在一个 1500 行的文件上找符号时，这会让人以为文件是空的。
+  const gkey = (fname: string, key: string): string => `${fname}\u0000${key}`;
 
   for (const doc of docs) {
     for (const c of doc.chunks) {

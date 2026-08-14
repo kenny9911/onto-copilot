@@ -127,12 +127,26 @@ export class AsyncLock {
   private locked = false;
   private readonly waiters: Array<() => void> = [];
 
-  async acquire(): Promise<void> {
-    if (!this.locked) {
-      this.locked = true;
-      return;
-    }
-    await new Promise<void>((res) => this.waiters.push(res));
+  /**
+   * 拿锁。**返回一个幂等的释放函数** —— 段 D 的 `withLock`（`pipeline/types.ts`）
+   * 用的就是这个形状，`s.build_lock` 那把锁是两段共用的同一个对象。
+   *
+   * 真实事故：这个类原来只回 `void`，而 `withLock` 拿到 undefined 之后在
+   * `finally` 里 `release()` —— `TypeError: release is not a function`。它发生在
+   * **拿到锁之后**，于是 `POST /build` 从 Python 的 400「还没有上传材料」变成
+   * 一个 500，而且锁再也放不掉，这个会话之后每一次 build 都会挂在 acquire 上。
+   * 返回值对老调用方（`run()` 与测试里的 `await acquire(); release()`）无影响。
+   */
+  async acquire(): Promise<() => void> {
+    if (!this.locked) this.locked = true;
+    else await new Promise<void>((res) => this.waiters.push(res));
+    // 幂等：finally 放一次之后，别的路径再调不会把锁交给下一个等待者两遍
+    let released = false;
+    return () => {
+      if (released) return;
+      released = true;
+      this.release();
+    };
   }
 
   release(): void {

@@ -28,7 +28,6 @@
 import { Hono } from "hono";
 import type { Context, MiddlewareHandler } from "hono";
 import { cors } from "hono/cors";
-import { HTTPException } from "hono/http-exception";
 
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
@@ -51,6 +50,7 @@ import {
   usageReport,
 } from "./usage.js";
 import type { UsageDrain, UsageReport } from "./usage.js";
+import { optionalIntQuery } from "./http422.js";
 
 /** 单一版本来源，与 `ontocopilot.__version__` 对齐。 */
 export const VERSION = "0.1.0";
@@ -154,17 +154,12 @@ app.use("*", async (c, next) => {
  * FastAPI 的 `days: int = 30` 在参数不是整数时回 422。Hono 不做这层校验，
  * 照着补 —— 不补的话 `?days=abc` 会静默变成默认 30 天，用户看到的是一份
  * 「和他要的不一样但也不报错」的账。
+ *
+ * 422 的**载荷形状**走 `http422.ts`：以前这里给的是一句话 detail，而 pydantic
+ * 给的是错误数组，前端两条渲染分支只认后者。
  */
 function queryInt(c: Context<AppEnv>, name: string, fallback: number): number {
-  const raw = c.req.query(name);
-  if (raw === undefined) return fallback;
-  const t = raw.trim();
-  if (!/^[+-]?[0-9]+$/.test(t)) {
-    throw new HTTPException(422, {
-      message: `${name} 必须是整数（收到 ${JSON.stringify(raw)}）`,
-    });
-  }
-  return Number(t);
+  return optionalIntQuery(c, name, fallback);
 }
 
 app.get("/api/usage", async (c) => {

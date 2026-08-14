@@ -178,7 +178,7 @@ function guard(spec: TemplateSpec): void {
   for (const sh of spec.sheets) {
     for (const row of sh.rows) {
       for (const cell of row.values()) {
-        const key = `${cell.rid} ${cell.field}`;
+        const key = `${cell.rid}\u0000${cell.field}`;
         const prev = seen.get(key);
         if (prev !== undefined && prev !== sh.name) {
           throw new EditError(

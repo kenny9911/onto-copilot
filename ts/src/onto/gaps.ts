@@ -386,17 +386,35 @@ const ENUM_ITEM_MAX = 8;
 const ENUM_SPREAD_MAX = 5;
 
 /** 名字里带这些就不是取值域的名字：拼接出来的列名、编号、半截括号。
- * `\d` 写成 `\p{Nd}` —— Python 的 `\d` 认全角 `０`，JS 的只认 ASCII。 */
-const BAD_NAME = /col\p{Nd}|=|[（(【]|^\p{Nd}|[一二三四五六七八九十]{1,2}[、.)]/u;
+ * `\d` 写成 `\p{Nd}` —— Python 的 `\d` 认全角 `０`，JS 的只认 ASCII。
+ *
+ * 判据分两段，**分界线是调用方"剥列表编号"那一步**（见 `enumerations`）：
+ *
+ *   · `BAD_RAW_NAME` 判**没剥过**的名字。`col1` 是解析器给无表头的列编出来的
+ *     名字，那个数字就是它的一部分；剥成 `col` 之后判据再也够不着，一个凭空
+ *     拼出来的列名就会被当成真取值域问出去。
+ *   · `BAD_NAME` 判**剥过**的名字。剩下这几条要么与剥无关（`=`、半截括号），
+ *     要么正是靠"剥不掉"才成立 —— 全角 `１` 和中文数字 `一.` 都不在 strip 那串
+ *     字符里，`^\p{Nd}` 与中文数字那条拦的就是它们。
+ *
+ * 两段不能合并成一条去卡未剥的名字：`3.进度状态` 前面那个 `3.` 是列表编号，
+ * 剥掉之后是个正经取值域，一并卡掉就成了反方向的漏问。
+ */
+const BAD_RAW_NAME = /col\p{Nd}/u;
+const BAD_NAME = /=|[（(【]|^\p{Nd}|[一二三四五六七八九十]{1,2}[、.)]/u;
 
 /**
  * 这串东西是不是一个**取值域**。
  *
  * 判据全部是结构性的（个数、长度、长度离散度、名字形态），不认任何业务词 ——
  * 换一份材料、换一个行业，同一套判据照样成立。
+ *
+ * `raw` 是材料里**原样**的名字（还没剥编号）。`col1` 这类拼出来的列名只有在
+ * 这一份上才看得出来。缺省就是 `name` 自己。
  */
-function isValueDomain(name: string, items: readonly string[]): boolean {
+function isValueDomain(name: string, items: readonly string[], raw?: string): boolean {
   if (cpLen(name) < 2 || BAD_NAME.test(name)) return false;
+  if (BAD_RAW_NAME.test(raw === undefined ? name : raw)) return false;
   if (!(items.length >= 3 && items.length <= 10)) return false;
   const lens = items.map(cpLen);
   if (Math.max(...lens) > ENUM_ITEM_MAX || Math.max(...lens) - Math.min(...lens) > ENUM_SPREAD_MAX) {
@@ -428,9 +446,10 @@ export function enumerations(
     const text = pyTruthy(c.render) ? pyStr(c.render) : "";
     for (const m of text.matchAll(ENUM_RE)) {
       const g = m.groups ?? {};
-      const name = pyStripChars(g["name"] ?? "", " 　\n0123456789.、）)①②③④⑤⑥⑦⑧⑨⑩");
+      const raw = g["name"] ?? "";
+      const name = pyStripChars(raw, " 　\n0123456789.、）)①②③④⑤⑥⑦⑧⑨⑩");
       const items = (g["body"] ?? "").split("、").map(pyStrip).filter((x) => x !== "");
-      if (!isValueDomain(name, items) || seen.has(name)) continue;
+      if (!isValueDomain(name, items, raw) || seen.has(name)) continue;
       seen.add(name);
       out.push(makeGap({
         text: `「${name}」目前列了 ${items.length} 个取值：${items.join("、")}。` +

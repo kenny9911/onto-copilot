@@ -34,7 +34,7 @@
  * JSON 字段名一个字都没动。
  */
 
-import type { Context, Hono } from "hono";
+import type { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { mkdir, writeFile } from "node:fs/promises";
@@ -66,6 +66,15 @@ import { eventRowAsSse, revisionRowFromDomain, type JsonObject } from "../../sto
 import { cmpCodePoint } from "../../onto/difflib.js";
 import { cpSlice } from "../../onto/parse/base.js";
 import { currentRepo, sessAsync, type Session } from "../session.js";
+import {
+  collectBoolQuery,
+  optionalBoolQuery,
+  requiredIntQuery,
+  requiredStrQuery,
+  requiredUploads,
+  ValidationErrors,
+  type UploadLike,
+} from "../http422.js";
 
 // ══════════════════════════════════════════════════════════════════
 //  产品版本
@@ -249,32 +258,9 @@ function pyPathName(name: string): string {
   return last;
 }
 
-// ══════════════════════════════════════════════════════════════════
-//  查询参数（FastAPI 的类型转换）
-// ══════════════════════════════════════════════════════════════════
-
-/** pydantic 的 bool 解析。认的词与大小写与 FastAPI 一致；别的值 422。 */
-function queryBool(c: Context, key: string, dflt: boolean): boolean {
-  const raw = c.req.query(key);
-  if (raw === undefined) return dflt;
-  const v = raw.trim().toLowerCase();
-  if (["1", "on", "t", "true", "y", "yes"].includes(v)) return true;
-  if (["0", "off", "f", "false", "n", "no"].includes(v)) return false;
-  throw new HTTPException(422, { message: `Input should be a valid boolean: ${key}` });
-}
-
-/** FastAPI 的 `seq: int`：缺席或非整数一律 422（Python 侧由 pydantic 拦）。 */
-function queryInt(c: Context, key: string): number {
-  const raw = c.req.query(key);
-  if (raw === undefined) {
-    throw new HTTPException(422, { message: `Field required: ${key}` });
-  }
-  const v = raw.trim();
-  if (!/^[+-]?\d+$/.test(v)) {
-    throw new HTTPException(422, { message: `Input should be a valid integer: ${key}` });
-  }
-  return Number.parseInt(v, 10);
-}
+// 查询参数与上传件的校验统一走 `../http422.ts` —— 那里的 422 载荷是 pydantic 的
+// **错误数组**形态。这一段以前自己写了一份"一句话 detail"的简化版，形状对不上
+// 前端的两条渲染分支（详见 http422.ts 的文件头）。
 
 // ══════════════════════════════════════════════════════════════════
 //  路由
@@ -312,7 +298,7 @@ export function registerArtifactRoutes(app: Hono, deps: ArtifactDeps): void {
    */
   app.get("/api/sessions/:sid/export", async (c) => {
     const sid = c.req.param("sid");
-    const seq = queryInt(c, "seq");
+    const seq = requiredIntQuery(c, "seq");
     const format = c.req.query("format") ?? "xlsx";
     const X = deps.exportModule;
 
@@ -381,7 +367,7 @@ export function registerArtifactRoutes(app: Hono, deps: ArtifactDeps): void {
    */
   app.get("/api/sessions/:sid/bundle", async (c) => {
     const sid = c.req.param("sid");
-    const materials = queryBool(c, "materials", true);
+    const materials = optionalBoolQuery(c, "materials", true);
     const s = await sessAsync(sid);
 
     // Bundle 是给业务方/下游消费的**正式交付边界**，与仍可下载的单份工作产物
@@ -514,10 +500,7 @@ export function registerArtifactRoutes(app: Hono, deps: ArtifactDeps): void {
    */
   app.get("/api/sessions/:sid/source", async (c) => {
     const sid = c.req.param("sid");
-    const file = c.req.query("file");
-    if (file === undefined) {
-      throw new HTTPException(422, { message: "Field required: file" });
-    }
+    const file = requiredStrQuery(c, "file");
     const q = c.req.query("q") ?? "";
     const s = await sessAsync(sid);
     const name = pyPathName(file);
@@ -584,8 +567,13 @@ export function registerArtifactRoutes(app: Hono, deps: ArtifactDeps): void {
    */
   app.post("/api/sessions/:sid/audit", async (c) => {
     const sid = c.req.param("sid");
-    const apply = queryBool(c, "apply", false);
-    const files = await parseUploads(c);
+    // 校验在**取会话之前**，且 query 与 body 的错要一次全收：FastAPI 解依赖是
+    // path → query → body，两处都错时回的是**两条**错误，而且这层比路由体先跑
+    // ——「会话不存在 + 没带 files」在 Python 侧回 422 而不是 404。
+    const bag = new ValidationErrors();
+    const apply = collectBoolQuery(bag, c, "apply", false);
+    const files = await requiredUploads(bag, c);
+    bag.raise();
     const s = await sessAsync(sid);
     if (apply) {
       return c.json(
@@ -602,11 +590,8 @@ export function registerArtifactRoutes(app: Hono, deps: ArtifactDeps): void {
 //  回传审核的正文
 // ══════════════════════════════════════════════════════════════════
 
-/** 一份上传件。`UploadFile` 的调用面只用到这两处。 */
-export interface Upload {
-  readonly filename: string;
-  read(): Promise<Uint8Array>;
-}
+/** 一份上传件。定义搬到 `http422.ts`（校验与形状在一处），这里留个别名。 */
+export type Upload = UploadLike;
 
 /** Run preview/apply after the route acquired the required mutation lease. */
 export async function auditOnce(
@@ -1009,24 +994,5 @@ function jsonResponse(status: number, body: unknown): Response {
   });
 }
 
-/**
- * `files: list[UploadFile]` 的等价物。
- *
- * FastAPI 按**表单字段名** `files` 收；Hono 的 `parseBody` 要显式打开 `all`
- * 才会把同名多值收成数组，否则只留最后一个 —— 那正是"传了三份只审了一份"。
- */
-export async function parseUploads(c: Context, field = "files"): Promise<Upload[]> {
-  const body = await c.req.parseBody({ all: true });
-  const raw = body[field];
-  const items = raw === undefined ? [] : Array.isArray(raw) ? raw : [raw];
-  const out: Upload[] = [];
-  for (const item of items) {
-    if (typeof item === "string") continue;
-    const f = item;
-    out.push({
-      filename: f.name,
-      read: async () => new Uint8Array(await f.arrayBuffer()),
-    });
-  }
-  return out;
-}
+// `files: list[UploadFile]` 的收取与校验搬进了 `http422.ts` 的 `requiredUploads`
+// —— 缺字段是 `missing`、那一位是文本是 `value_error`，两条都要带 loc。
