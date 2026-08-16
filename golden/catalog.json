@@ -1100,7 +1100,8 @@
    "to_dict": {
     "capabilities": [
      "long_context",
-     "structured"
+     "structured",
+     "vision"
     ],
     "effort": null,
     "name": "kimi-vl-a3b",
@@ -3410,7 +3411,8 @@
    "name": "kimi-vl-a3b",
    "out": [
     "long_context",
-    "structured"
+    "structured",
+    "vision"
    ]
   },
   {
