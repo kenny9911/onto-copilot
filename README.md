@@ -5,23 +5,31 @@
 - 架构文档：[`docs/OntoCopilot-Backend-Architecture.md`](docs/OntoCopilot-Backend-Architecture.md)
 - 可交互 UI：[`ui/OntoCopilot.html`](ui/OntoCopilot.html)
 
+代码在 `ts/`，Node ≥ 22（Node 26 已验证）。
+
 ```bash
-uv venv --python 3.12 && uv pip install -e ".[dev]"
+cd ts && npm install
 ```
 
 ```bash
-.venv/bin/python -m pytest        # 232 项
+npm test          # 5886 项
+npm run check     # tsc --noEmit
 ```
 
 ## 启动服务
 
 ```bash
-ontocopilot-server                  # http://127.0.0.1:8000
+./restart.sh                        # http://127.0.0.1:3594
 ```
 
-前端是无构建步骤的静态页，由后端在 `/` 直接吐出 —— **不单开前端服务器**：多一个
-进程就多一份 CORS、端口、部署配置要对齐，而这个 UI 没有构建步骤，分开跑没有好处。
-API 文档在 `/docs`。
+`restart.sh` 会先**按端口**收掉旧进程（不是 `pkill node`，免得连累别的项目）、
+重新构建前端、再启动；换端口用 `./restart.sh 8010`。只想起服务不重启的话，
+`cd ts && npm start`。
+
+前端由后端在 `/` 直接吐出 —— **不单开前端服务器**：多一个进程就多一份 CORS、
+端口、部署配置要对齐，分开跑没有好处。但它**有构建步骤**：`ts/src/ui/` 打成一个
+bundle 内联进 `ui/index.html`（`npm run build:ui`，`--check` 验有没有漂移），
+改了 UI 源码不重新构建，页面上还是上一次的。API 文档在 `/docs`。
 
 ## 登录、账号与设置
 
@@ -43,12 +51,18 @@ ONTOCOPILOT_AUTH=1 ONTOCOPILOT_COOKIE_SECURE=1 ontocopilot-server   # COOKIE_SEC
 
 ## 命令行
 
+入口是 `ts/src/cli_main.ts`：
+
 ```bash
-ontocopilot doctor                              # 检查配置、模型连通性、沙箱隔离等级
-ontocopilot parse 材料/                          # 只解析，看看读到了什么
-ontocopilot build 材料/ -o out --project ONT-112 # 解析→抽取→对齐→冲突→澄清→模板
-ontocopilot audit out/template.spec.json 回传.xlsx
+cd ts && npx tsx src/cli_main.ts <命令>
 ```
+
+**可用**：`audit`，以及账号类的 `useradd` / `passwd` / `role` / `users`
+（播种首个管理员就靠它）。
+
+**`doctor` / `parse` / `build` 还没接线**，跑起来会如实报"尚未迁移"并退 1。
+它们依赖的模块其实都已就绪，只差把命令接上去 —— 在那之前，整条解析→模板的流程
+走 Web UI。
 
 `build` 与 `audit` 之间通常隔着几天（业务方在填表），所以模板规格随 xlsx 一起落盘，
 审核时从盘上读回。
@@ -61,55 +75,67 @@ ontocopilot audit out/template.spec.json 回传.xlsx
 ## 代码结构
 
 ```
-src/ontocopilot/
+ts/src/
   kernel/                 L1 Harness Kernel —— 领域无关，换领域可整体复用
-    events.py             事件模型（一切都是事件）
-    journal.py            事件日志 + 内容寻址 blob 存储
-    recorder.py           ★ 持久化执行：effect 记账、确定性重放、HITL 挂起
+    events.ts             事件模型（一切都是事件）
+    journal.ts            事件日志 + 内容寻址 blob 存储
+    recorder.ts           ★ 持久化执行：effect 记账、确定性重放、HITL 挂起
     memory/
-      types.py            MemoryItem / 生命周期 / token 估算
-      short_term.py       Scratchpad（节点作用域）+ WorkingSet（Run 作用域）+ 压缩
-      long_term.py        ★ 跨 Run 记忆：晋升闸门、冲突留档、闲置衰减
-      evidence.py         L2 证据检索（BM25 + camelCase 拆词 + 邻域扩展）
-      context.py          ★ 四层上下文装配 + 预算分配
+      types.ts            MemoryItem / 生命周期 / token 估算
+      short_term.ts       Scratchpad（节点作用域）+ WorkingSet（Run 作用域）+ 压缩
+      long_term.ts        ★ 跨 Run 记忆：晋升闸门、冲突留档、闲置衰减
+      evidence.ts         L2 证据检索（BM25 + camelCase 拆词 + 邻域扩展）
+      context.ts          ★ 四层上下文装配 + 预算分配
+      dialogue.ts         对话记忆
+      project.ts          项目级记忆（跨会话）
     bus/
-      blackboard.py       ★ 共享事实层：append-only、冲突不覆盖
-      bus.py              ★ AgentBus：黑板 / 定向请求 / 广播，全部记账
-    dag.py                节点定义、fan-out 展开、拓扑校验、计划冻结
-    scheduler.py          流水线调度、崩溃恢复、降级广播
-    loop.py               Agent Loop 运行时（6 种模式）
-    llm.py                模型网关：难度路由、结构化输出、异构评委、成本记账
-    catalog.py            ★ 能力目录 + SmartGateway：按能力选型、失败切换、失败学习
-    backends.py           Anthropic 原生 + OpenAI 兼容网关两种后端
-    config.py             凭证从环境读，绝不落进源码
-    critic.py             Critic Panel + Gate
-    budget.py             多维预算 + 降级阶梯
-    tools.py              ★ 工具注册表 + MCP 安全闸（投毒扫描 / 指纹锁定 / 作用域）
-    sandbox.py            ★ 三档沙箱：子进程(开发) / gVisor / Firecracker
-    skills.py             ★ Skills：渐进披露的操作规程，带完成判据
-    agents.py             ★ 具名 Agent：角色 + 档位 + 工具作用域 + 技能 + 评审视角
+      blackboard.ts       ★ 共享事实层：append-only、冲突不覆盖
+      bus.ts              ★ AgentBus：黑板 / 定向请求 / 广播，全部记账
+    dag.ts                节点定义、fan-out 展开、拓扑校验、计划冻结
+    scheduler.ts          流水线调度、崩溃恢复、降级广播
+    loop.ts               Agent Loop 运行时（6 种模式）
+    llm.ts                模型网关：难度路由、结构化输出、异构评委、成本记账
+    catalog.ts            ★ 能力目录 + SmartGateway：按能力选型、失败切换、失败学习
+    backends.ts           Anthropic 原生 + OpenAI 兼容网关两种后端
+    config.ts             凭证从环境读，绝不落进源码
+    critic.ts             Critic Panel + Gate
+    budget.ts             多维预算 + 降级阶梯
+    tools.ts              ★ 工具注册表 + MCP 安全闸（投毒扫描 / 指纹锁定 / 作用域）
+    sandbox.ts            ★ 三档沙箱：子进程(开发) / gVisor / Firecracker
+    skills.ts             ★ Skills：渐进披露的操作规程，带完成判据
+    agents.ts             ★ 具名 Agent：角色 + 档位 + 工具作用域 + 技能 + 评审视角
+    intent.ts             意图识别（聊天 / 工作分流）
+    errors.ts / pyfmt.ts  Python 语义的错误类型与数字格式（golden 逐字节对齐用）
   onto/                   L2 领域层 —— 内核完全不知道它的存在
-    oir.py                ★ Ontology 中间表示（Assertion 强制携带溯源）
-    shape.py              ★ 段形状推断：列角色 → 这段能出什么 + 哪些规则就能定
-    pipeline.py           ★ 跑在 Harness 上的主 DAG：切段 → fan-out 抽取 → 合并
-    suggest.py            ★ 主动建议：规则推导，带依据/影响面/可执行动作
-    conflict.py           ★ 8 类冲突的检测与处置
-    clarify.py            ★ 澄清引擎（EIG 排序，选 top-3）
-    align.py              ★ 实体对齐：三路阻塞 → 结构+名称打分 → 连通分量 → 代表选举
-    template.py           ★ 模板编译器：xlsx + 隐藏锚点列 + 样式即语义 + 内嵌校验
-    audit.py              ★ 回传审核器：锚点对齐、单元格 diff、加权完成度、打回单
+    oir.ts                ★ Ontology 中间表示（Assertion 强制携带溯源）
+    shape.ts              ★ 段形状推断：列角色 → 这段能出什么 + 哪些规则就能定
+    pipeline.ts           ★ 跑在 Harness 上的主 DAG：切段 → fan-out 抽取 → 合并
+    suggest.ts            ★ 主动建议：规则推导，带依据/影响面/可执行动作
+    conflict.ts           ★ 8 类冲突的检测与处置
+    clarify.ts            ★ 澄清引擎（EIG 排序，选 top-3）
+    align.ts              ★ 实体对齐：三路阻塞 → 结构+名称打分 → 连通分量 → 代表选举
+    template.ts           ★ 模板编译器：xlsx + 隐藏锚点列 + 样式即语义 + 内嵌校验
+    audit.ts              ★ 回传审核器：锚点对齐、单元格 diff、加权完成度、打回单
+    flow*.ts              流程图：抽取 / 连线 / BPMN / 手绘草图
     parse/                ★ 真实解析器
-      tabular.py            xlsx/csv：表头探测、合并单元格还原、批注、元数据泄漏、列画像
-      sql.py                DDL：sqlglot AST + 行内注释还原（口径全在注释里）
-      api.py                OpenAPI：写端点 → ActionType 草稿源；schemas → 对象候选
-      text.py               docx/md：按标题分段、规则句打标、表格单独抽
-      vision.py             ★ 扫描件/PDF：视觉模型 OCR，出文本块+表格+连线，带 bbox
-  server.py               ★ FastAPI + SSE
-  serve.py                服务启动器
-  cli.py                  命令行入口
-ui/index.html             ★ 前端（无构建，后端直接托管）
-examples/                 两个演示脚本（离线骨架 / 真实 LLM）
-tests/                    232 项
+      tabular.ts            xlsx/csv：表头探测、合并单元格还原、批注、元数据泄漏、列画像
+      sql.ts                DDL：AST + 行内注释还原（口径全在注释里）
+      api.ts                OpenAPI：写端点 → ActionType 草稿源；schemas → 对象候选
+      text.ts               md：按标题分段、规则句打标、表格单独抽
+      docx.ts + doc/        ★ docx 原生解析（自带 zip/xml 读取，不依赖外部库）
+      vision.ts             ★ 扫描件/PDF：视觉模型 OCR，出文本块+表格+连线，带 bbox
+  server/                 ★ Hono + SSE（routes/ 路由、glue/ 编排、pipeline/ 落盘与回放）
+  store/                  ★ 持久层：SQLite（默认）/ Postgres 双驱动 + 迁移
+  ui/                     ★ 前端源码（TS + React），构建后内联进 ui/index.html
+  auth.ts / authgate.ts   登录与 fail-closed 门禁
+  serve.ts                服务启动器（DEFAULT_PORT 在这里）
+  main.ts                 进程入口：摆正 cwd → 调 serve
+  cli.ts / cli_main.ts    命令行入口
+ui/index.html             ★ 构建产物（由 ts/src/ui/ 打包内联，勿手改）
+ui/index.template.html    模板：HTML/CSS 逐字节冻结，只留一行 bundle 标记
+golden/                   ★ 跨实现的行为基线（原 Python 侧真跑出来的字节）
+ts/test/                  5886 项
+migrations/               数据库迁移
 ```
 
 `kernel/` 与 `onto/` 之间的边界是这套代码最重要的一条线：内核完全不知道什么是 ObjectType，领域层完全不知道什么是 DAG 调度。守住它，换领域只需重写 `onto/`。

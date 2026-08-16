@@ -307,37 +307,36 @@ export class Parser {
 }
 
 // ══════════════════════════════════════════════════════════════════
-//  doctor / parse / build —— 依赖尚未迁移的模块
+//  doctor / parse / build —— 命令本身还没接线
 // ══════════════════════════════════════════════════════════════════
 
-/** 缺哪些模块**逐条说清**。"暂不支持"这种话会让人以为是设计选择，
- * 而这里的真相是"另外几条 track 还没落地"。 */
-function notMigrated(command: string, needs: readonly string[]): number {
+/**
+ * **说清楚卡在哪一步。** 这几条命令原来报的是"还缺 kernel/skills.ts、
+ * kernel/agents.ts、onto/parse 的 default_registry…"，而那些模块**后来都落地了** ——
+ * 消息没跟着改，于是它点名的每一个文件如今都存在，读的人会去找一个不存在的缺口。
+ * 真正没做的只是**把命令接到这些模块上**这一步。
+ *
+ * 也不能再叫人去跑 `python -m ontocopilot.cli` ——  Python 实现已经不在本仓库了，
+ * 照着做只会撞上 "No module named ontocopilot"。整条流程目前走 Web UI。
+ */
+function notMigrated(command: string): number {
   process.stderr.write(
-    `${BAD} ${PROG} ${command} 尚未迁移到 TS：还缺 ${needs.join("、")}。\n` +
-      `  这几个模块落地之前请继续用 Python 侧的 \`python -m ontocopilot.cli ${command} …\`。\n`,
+    `${BAD} ${PROG} ${command} 尚未迁移到 TS：依赖的模块都已就绪，只差把这条命令接上去。\n` +
+      `  在那之前请走 Web UI（\`./restart.sh\` 后打开首页），整条解析→模板的流程都在那里。\n`,
   );
   return 1;
 }
 
 export function cmdDoctor(_args: CmdArgs): number {
-  return notMigrated("doctor", [
-    "kernel/skills.ts",
-    "kernel/agents.ts",
-    "sandbox（kernel/sandbox.ts 已落地，doctor 这条路还没接）",
-  ]);
+  return notMigrated("doctor");
 }
 
 export function cmdParse(_args: CmdArgs): number {
-  return notMigrated("parse", ["onto/parse 的 default_registry / corpus_summary"]);
+  return notMigrated("parse");
 }
 
 export function cmdBuild(_args: CmdArgs): number {
-  return notMigrated("build", [
-    "onto/parse 的 default_registry / build_index / collect_endpoints / collect_profiles / corpus_summary",
-    "kernel/skills.ts",
-    "kernel/agents.ts",
-  ]);
+  return notMigrated("build");
 }
 
 // ══════════════════════════════════════════════════════════════════
