@@ -1,0 +1,785 @@
+{
+ "registry": {
+  "shape": {
+   "row_count": 14,
+   "row_unit": "object",
+   "yields": [
+    "objects"
+   ],
+   "rule_decidable": [
+    "objects"
+   ],
+   "columns": [
+    {
+     "name": "应用模块",
+     "role": "enum",
+     "fill": 1.0,
+     "distinct_ratio": 0.143,
+     "mean_len": 6.9,
+     "samples": [
+      "采购计划管理",
+      "供应商关系管理"
+     ]
+    },
+    {
+     "name": "业务对象",
+     "role": "group",
+     "fill": 0.071,
+     "distinct_ratio": 1.0,
+     "mean_len": 6.0,
+     "samples": [
+      "采购需求计划"
+     ]
+    },
+    {
+     "name": "实体编码",
+     "role": "identifier",
+     "fill": 1.0,
+     "distinct_ratio": 1.0,
+     "mean_len": 7.3,
+     "samples": [
+      "pbpHeader",
+      "pbpLine",
+      "clmDoc0"
+     ]
+    },
+    {
+     "name": "实体名称",
+     "role": "label",
+     "fill": 1.0,
+     "distinct_ratio": 1.0,
+     "mean_len": 5.4,
+     "samples": [
+      "采购业务计划头",
+      "采购业务计划行",
+      "合同附件0"
+     ]
+    }
+   ],
+   "note": "有唯一标识符列但没有数据类型列 —— 这是**实体登记表**，一行一个对象。**这段没有属性可抽，零属性是正确结果。**"
+  },
+  "extract": {
+   "objects": [
+    {
+     "api_name": "pbpHeader",
+     "display_name": "采购业务计划头",
+     "source_locator": "x.xlsx!Sheet1!R2-2",
+     "_origin": "rule",
+     "module": "采购计划管理",
+     "group": "采购需求计划"
+    },
+    {
+     "api_name": "pbpLine",
+     "display_name": "采购业务计划行",
+     "source_locator": "x.xlsx!Sheet1!R3-3",
+     "_origin": "rule",
+     "module": "采购计划管理",
+     "group": "采购需求计划"
+    },
+    {
+     "api_name": "clmDoc0",
+     "display_name": "合同附件0",
+     "source_locator": "x.xlsx!Sheet1!R4-4",
+     "_origin": "rule",
+     "module": "供应商关系管理",
+     "group": "采购需求计划"
+    },
+    {
+     "api_name": "clmDoc1",
+     "display_name": "合同附件1",
+     "source_locator": "x.xlsx!Sheet1!R5-5",
+     "_origin": "rule",
+     "module": "供应商关系管理",
+     "group": "采购需求计划"
+    },
+    {
+     "api_name": "clmDoc2",
+     "display_name": "合同附件2",
+     "source_locator": "x.xlsx!Sheet1!R6-6",
+     "_origin": "rule",
+     "module": "供应商关系管理",
+     "group": "采购需求计划"
+    },
+    {
+     "api_name": "clmDoc3",
+     "display_name": "合同附件3",
+     "source_locator": "x.xlsx!Sheet1!R7-7",
+     "_origin": "rule",
+     "module": "供应商关系管理",
+     "group": "采购需求计划"
+    },
+    {
+     "api_name": "clmDoc4",
+     "display_name": "合同附件4",
+     "source_locator": "x.xlsx!Sheet1!R8-8",
+     "_origin": "rule",
+     "module": "供应商关系管理",
+     "group": "采购需求计划"
+    },
+    {
+     "api_name": "clmDoc5",
+     "display_name": "合同附件5",
+     "source_locator": "x.xlsx!Sheet1!R9-9",
+     "_origin": "rule",
+     "module": "供应商关系管理",
+     "group": "采购需求计划"
+    },
+    {
+     "api_name": "clmDoc6",
+     "display_name": "合同附件6",
+     "source_locator": "x.xlsx!Sheet1!R10-10",
+     "_origin": "rule",
+     "module": "供应商关系管理",
+     "group": "采购需求计划"
+    },
+    {
+     "api_name": "clmDoc7",
+     "display_name": "合同附件7",
+     "source_locator": "x.xlsx!Sheet1!R11-11",
+     "_origin": "rule",
+     "module": "供应商关系管理",
+     "group": "采购需求计划"
+    },
+    {
+     "api_name": "clmDoc8",
+     "display_name": "合同附件8",
+     "source_locator": "x.xlsx!Sheet1!R12-12",
+     "_origin": "rule",
+     "module": "供应商关系管理",
+     "group": "采购需求计划"
+    },
+    {
+     "api_name": "clmDoc9",
+     "display_name": "合同附件9",
+     "source_locator": "x.xlsx!Sheet1!R13-13",
+     "_origin": "rule",
+     "module": "供应商关系管理",
+     "group": "采购需求计划"
+    },
+    {
+     "api_name": "clmDoc10",
+     "display_name": "合同附件10",
+     "source_locator": "x.xlsx!Sheet1!R14-14",
+     "_origin": "rule",
+     "module": "供应商关系管理",
+     "group": "采购需求计划"
+    },
+    {
+     "api_name": "clmDoc11",
+     "display_name": "合同附件11",
+     "source_locator": "x.xlsx!Sheet1!R15-15",
+     "_origin": "rule",
+     "module": "供应商关系管理",
+     "group": "采购需求计划"
+    }
+   ],
+   "properties": [],
+   "links": [],
+   "actions": [],
+   "questions": []
+  }
+ },
+ "actions": {
+  "shape": {
+   "row_count": 12,
+   "row_unit": "action",
+   "yields": [
+    "actions",
+    "objects"
+   ],
+   "rule_decidable": [
+    "actions"
+   ],
+   "columns": [
+    {
+     "name": "应用模块",
+     "role": "enum",
+     "fill": 1.0,
+     "distinct_ratio": 0.083,
+     "mean_len": 6.0,
+     "samples": [
+      "采购计划管理"
+     ]
+    },
+    {
+     "name": "业务对象",
+     "role": "group",
+     "fill": 0.083,
+     "distinct_ratio": 1.0,
+     "mean_len": 6.0,
+     "samples": [
+      "采购需求计划"
+     ]
+    },
+    {
+     "name": "实体编码",
+     "role": "identifier",
+     "fill": 1.0,
+     "distinct_ratio": 1.0,
+     "mean_len": 9.1,
+     "samples": [
+      "createPbp",
+      "queryPbp0",
+      "queryPbp1"
+     ]
+    },
+    {
+     "name": "实体名称",
+     "role": "label",
+     "fill": 1.0,
+     "distinct_ratio": 1.0,
+     "mean_len": 6.0,
+     "samples": [
+      "创建PBP",
+      "查询PBP0",
+      "查询PBP1"
+     ]
+    },
+    {
+     "name": "url",
+     "role": "endpoint",
+     "fill": 1.0,
+     "distinct_ratio": 1.0,
+     "mean_len": 31.1,
+     "samples": [
+      "/msourcing/openapi/v1/createPbp",
+      "/msourcing/openapi/v1/queryPbp0",
+      "/msourcing/openapi/v1/queryPbp1"
+     ]
+    }
+   ],
+   "note": "有接口列 —— 每一行是一个行动，编码列装的是**行动码**不是实体码；宿主对象在重复出现的名称列里，需要按命名规范起 apiName。这段没有字段可抽。"
+  },
+  "extract": {
+   "objects": [],
+   "properties": [],
+   "links": [],
+   "actions": [
+    {
+     "api_name": "createPbp",
+     "display_name": "创建PBP",
+     "object_display": "采购需求计划",
+     "module": "采购计划管理",
+     "endpoint": "/msourcing/openapi/v1/createPbp",
+     "source_locator": "x.xlsx!Sheet1!R2-2",
+     "_origin": "rule"
+    },
+    {
+     "api_name": "queryPbp0",
+     "display_name": "查询PBP0",
+     "object_display": "采购需求计划",
+     "module": "采购计划管理",
+     "endpoint": "/msourcing/openapi/v1/queryPbp0",
+     "source_locator": "x.xlsx!Sheet1!R3-3",
+     "_origin": "rule"
+    },
+    {
+     "api_name": "queryPbp1",
+     "display_name": "查询PBP1",
+     "object_display": "采购需求计划",
+     "module": "采购计划管理",
+     "endpoint": "/msourcing/openapi/v1/queryPbp1",
+     "source_locator": "x.xlsx!Sheet1!R4-4",
+     "_origin": "rule"
+    },
+    {
+     "api_name": "queryPbp2",
+     "display_name": "查询PBP2",
+     "object_display": "采购需求计划",
+     "module": "采购计划管理",
+     "endpoint": "/msourcing/openapi/v1/queryPbp2",
+     "source_locator": "x.xlsx!Sheet1!R5-5",
+     "_origin": "rule"
+    },
+    {
+     "api_name": "queryPbp3",
+     "display_name": "查询PBP3",
+     "object_display": "采购需求计划",
+     "module": "采购计划管理",
+     "endpoint": "/msourcing/openapi/v1/queryPbp3",
+     "source_locator": "x.xlsx!Sheet1!R6-6",
+     "_origin": "rule"
+    },
+    {
+     "api_name": "queryPbp4",
+     "display_name": "查询PBP4",
+     "object_display": "采购需求计划",
+     "module": "采购计划管理",
+     "endpoint": "/msourcing/openapi/v1/queryPbp4",
+     "source_locator": "x.xlsx!Sheet1!R7-7",
+     "_origin": "rule"
+    },
+    {
+     "api_name": "queryPbp5",
+     "display_name": "查询PBP5",
+     "object_display": "采购需求计划",
+     "module": "采购计划管理",
+     "endpoint": "/msourcing/openapi/v1/queryPbp5",
+     "source_locator": "x.xlsx!Sheet1!R8-8",
+     "_origin": "rule"
+    },
+    {
+     "api_name": "queryPbp6",
+     "display_name": "查询PBP6",
+     "object_display": "采购需求计划",
+     "module": "采购计划管理",
+     "endpoint": "/msourcing/openapi/v1/queryPbp6",
+     "source_locator": "x.xlsx!Sheet1!R9-9",
+     "_origin": "rule"
+    },
+    {
+     "api_name": "queryPbp7",
+     "display_name": "查询PBP7",
+     "object_display": "采购需求计划",
+     "module": "采购计划管理",
+     "endpoint": "/msourcing/openapi/v1/queryPbp7",
+     "source_locator": "x.xlsx!Sheet1!R10-10",
+     "_origin": "rule"
+    },
+    {
+     "api_name": "queryPbp8",
+     "display_name": "查询PBP8",
+     "object_display": "采购需求计划",
+     "module": "采购计划管理",
+     "endpoint": "/msourcing/openapi/v1/queryPbp8",
+     "source_locator": "x.xlsx!Sheet1!R11-11",
+     "_origin": "rule"
+    },
+    {
+     "api_name": "queryPbp9",
+     "display_name": "查询PBP9",
+     "object_display": "采购需求计划",
+     "module": "采购计划管理",
+     "endpoint": "/msourcing/openapi/v1/queryPbp9",
+     "source_locator": "x.xlsx!Sheet1!R12-12",
+     "_origin": "rule"
+    },
+    {
+     "api_name": "queryPbp10",
+     "display_name": "查询PBP10",
+     "object_display": "采购需求计划",
+     "module": "采购计划管理",
+     "endpoint": "/msourcing/openapi/v1/queryPbp10",
+     "source_locator": "x.xlsx!Sheet1!R13-13",
+     "_origin": "rule"
+    }
+   ],
+   "questions": []
+  }
+ },
+ "fields": {
+  "shape": {
+   "row_count": 12,
+   "row_unit": "property",
+   "yields": [
+    "objects",
+    "properties"
+   ],
+   "rule_decidable": [
+    "properties"
+   ],
+   "columns": [
+    {
+     "name": "所属对象",
+     "role": "enum",
+     "fill": 1.0,
+     "distinct_ratio": 0.083,
+     "mean_len": 9.0,
+     "samples": [
+      "pbpHeader"
+     ]
+    },
+    {
+     "name": "字段名",
+     "role": "identifier",
+     "fill": 1.0,
+     "distinct_ratio": 1.0,
+     "mean_len": 6.2,
+     "samples": [
+      "field0",
+      "field1",
+      "field2"
+     ]
+    },
+    {
+     "name": "类型",
+     "role": "datatype",
+     "fill": 1.0,
+     "distinct_ratio": 0.5,
+     "mean_len": 8.5,
+     "samples": [
+      "varchar(64)",
+      "decimal(18,2)",
+      "date"
+     ]
+    },
+    {
+     "name": "口径",
+     "role": "label",
+     "fill": 1.0,
+     "distinct_ratio": 1.0,
+     "mean_len": 12.2,
+     "samples": [
+      "第 0 个字段的口径说明",
+      "第 1 个字段的口径说明",
+      "第 2 个字段的口径说明"
+     ]
+    },
+    {
+     "name": "必填",
+     "role": "required",
+     "fill": 1.0,
+     "distinct_ratio": 0.167,
+     "mean_len": 1.0,
+     "samples": [
+      "否",
+      "是"
+     ]
+    }
+   ],
+   "note": "有数据类型列 —— 每一行都是一个字段，必须抽成 PropertyType。"
+  },
+  "extract": {
+   "objects": [
+    {
+     "api_name": "pbpHeader",
+     "display_name": "pbpHeader",
+     "source_locator": "x.xlsx!Sheet1!R2-2",
+     "_origin": "rule"
+    }
+   ],
+   "properties": [
+    {
+     "parent_api_name": "pbpHeader",
+     "api_name": "field0",
+     "display_name": "第 0 个字段的口径说明",
+     "base_type": "STRING",
+     "definition": "",
+     "required": false,
+     "source_locator": "x.xlsx!Sheet1!R2-2",
+     "_origin": "rule"
+    },
+    {
+     "parent_api_name": "pbpHeader",
+     "api_name": "field1",
+     "display_name": "第 1 个字段的口径说明",
+     "base_type": "DECIMAL",
+     "definition": "",
+     "required": true,
+     "source_locator": "x.xlsx!Sheet1!R3-3",
+     "_origin": "rule"
+    },
+    {
+     "parent_api_name": "pbpHeader",
+     "api_name": "field2",
+     "display_name": "第 2 个字段的口径说明",
+     "base_type": "DATE",
+     "definition": "",
+     "required": false,
+     "source_locator": "x.xlsx!Sheet1!R4-4",
+     "_origin": "rule"
+    },
+    {
+     "parent_api_name": "pbpHeader",
+     "api_name": "field3",
+     "display_name": "第 3 个字段的口径说明",
+     "base_type": "INTEGER",
+     "definition": "",
+     "required": true,
+     "source_locator": "x.xlsx!Sheet1!R5-5",
+     "_origin": "rule"
+    },
+    {
+     "parent_api_name": "pbpHeader",
+     "api_name": "field4",
+     "display_name": "第 4 个字段的口径说明",
+     "base_type": "STRING",
+     "definition": "",
+     "required": false,
+     "source_locator": "x.xlsx!Sheet1!R6-6",
+     "_origin": "rule"
+    },
+    {
+     "parent_api_name": "pbpHeader",
+     "api_name": "field5",
+     "display_name": "第 5 个字段的口径说明",
+     "base_type": "TIMESTAMP",
+     "definition": "",
+     "required": true,
+     "source_locator": "x.xlsx!Sheet1!R7-7",
+     "_origin": "rule"
+    },
+    {
+     "parent_api_name": "pbpHeader",
+     "api_name": "field6",
+     "display_name": "第 6 个字段的口径说明",
+     "base_type": "STRING",
+     "definition": "",
+     "required": false,
+     "source_locator": "x.xlsx!Sheet1!R8-8",
+     "_origin": "rule"
+    },
+    {
+     "parent_api_name": "pbpHeader",
+     "api_name": "field7",
+     "display_name": "第 7 个字段的口径说明",
+     "base_type": "DECIMAL",
+     "definition": "",
+     "required": true,
+     "source_locator": "x.xlsx!Sheet1!R9-9",
+     "_origin": "rule"
+    },
+    {
+     "parent_api_name": "pbpHeader",
+     "api_name": "field8",
+     "display_name": "第 8 个字段的口径说明",
+     "base_type": "DATE",
+     "definition": "",
+     "required": false,
+     "source_locator": "x.xlsx!Sheet1!R10-10",
+     "_origin": "rule"
+    },
+    {
+     "parent_api_name": "pbpHeader",
+     "api_name": "field9",
+     "display_name": "第 9 个字段的口径说明",
+     "base_type": "INTEGER",
+     "definition": "",
+     "required": true,
+     "source_locator": "x.xlsx!Sheet1!R11-11",
+     "_origin": "rule"
+    },
+    {
+     "parent_api_name": "pbpHeader",
+     "api_name": "field10",
+     "display_name": "第 10 个字段的口径说明",
+     "base_type": "STRING",
+     "definition": "",
+     "required": false,
+     "source_locator": "x.xlsx!Sheet1!R12-12",
+     "_origin": "rule"
+    },
+    {
+     "parent_api_name": "pbpHeader",
+     "api_name": "field11",
+     "display_name": "第 11 个字段的口径说明",
+     "base_type": "TIMESTAMP",
+     "definition": "",
+     "required": true,
+     "source_locator": "x.xlsx!Sheet1!R13-13",
+     "_origin": "rule"
+    }
+   ],
+   "links": [],
+   "actions": [],
+   "questions": []
+  }
+ },
+ "survey": {
+  "shape": {
+   "row_count": 8,
+   "row_unit": "question",
+   "yields": [
+    "questions"
+   ],
+   "rule_decidable": [
+    "questions"
+   ],
+   "columns": [
+    {
+     "name": "节点",
+     "role": "group",
+     "fill": 0.125,
+     "distinct_ratio": 1.0,
+     "mean_len": 9.0,
+     "samples": [
+      "（1）编制集采计划"
+     ]
+    },
+    {
+     "name": "编号",
+     "role": "label",
+     "fill": 1.0,
+     "distinct_ratio": 1.0,
+     "mean_len": 1.0,
+     "samples": [
+      "1",
+      "2",
+      "3"
+     ]
+    },
+    {
+     "name": "澄清问题",
+     "role": "question",
+     "fill": 1.0,
+     "distinct_ratio": 0.125,
+     "mean_len": 23.0,
+     "samples": [
+      "集采计划是在系统里编的，还是线下编好只录结果？"
+     ]
+    },
+    {
+     "name": "参考选项",
+     "role": "options",
+     "fill": 1.0,
+     "distinct_ratio": 0.125,
+     "mean_len": 23.0,
+     "samples": [
+      "① 全线下 ② 系统里编 ③ 线下编、系统里审"
+     ]
+    },
+    {
+     "name": "答复",
+     "role": "answer_slot",
+     "fill": 0.0,
+     "distinct_ratio": 0.0,
+     "mean_len": 0.0,
+     "samples": []
+    }
+   ],
+   "note": "这是一份**待填问卷**：一列整列空着等人填，其余列都是满的，还有一列是问句。每一行是**一个待澄清的问题，不是业务实体**。已填答复的行是事实。**这一段没有对象、没有字段可抽。**"
+  },
+  "extract": {
+   "objects": [],
+   "properties": [],
+   "links": [],
+   "actions": [],
+   "questions": [
+    {
+     "text": "集采计划是在系统里编的，还是线下编好只录结果？",
+     "options": [
+      "全线下",
+      "系统里编",
+      "线下编、系统里审"
+     ],
+     "options_raw": "① 全线下 ② 系统里编 ③ 线下编、系统里审",
+     "answer": "",
+     "group": "（1）编制集采计划",
+     "code": "1",
+     "source_locator": "x.xlsx!Sheet1!R2-2",
+     "_origin": "rule"
+    },
+    {
+     "text": "集采计划是在系统里编的，还是线下编好只录结果？",
+     "options": [
+      "全线下",
+      "系统里编",
+      "线下编、系统里审"
+     ],
+     "options_raw": "① 全线下 ② 系统里编 ③ 线下编、系统里审",
+     "answer": "",
+     "group": "（1）编制集采计划",
+     "code": "2",
+     "source_locator": "x.xlsx!Sheet1!R3-3",
+     "_origin": "rule"
+    },
+    {
+     "text": "集采计划是在系统里编的，还是线下编好只录结果？",
+     "options": [
+      "全线下",
+      "系统里编",
+      "线下编、系统里审"
+     ],
+     "options_raw": "① 全线下 ② 系统里编 ③ 线下编、系统里审",
+     "answer": "",
+     "group": "（1）编制集采计划",
+     "code": "3",
+     "source_locator": "x.xlsx!Sheet1!R4-4",
+     "_origin": "rule"
+    },
+    {
+     "text": "集采计划是在系统里编的，还是线下编好只录结果？",
+     "options": [
+      "全线下",
+      "系统里编",
+      "线下编、系统里审"
+     ],
+     "options_raw": "① 全线下 ② 系统里编 ③ 线下编、系统里审",
+     "answer": "",
+     "group": "（1）编制集采计划",
+     "code": "4",
+     "source_locator": "x.xlsx!Sheet1!R5-5",
+     "_origin": "rule"
+    },
+    {
+     "text": "集采计划是在系统里编的，还是线下编好只录结果？",
+     "options": [
+      "全线下",
+      "系统里编",
+      "线下编、系统里审"
+     ],
+     "options_raw": "① 全线下 ② 系统里编 ③ 线下编、系统里审",
+     "answer": "",
+     "group": "（1）编制集采计划",
+     "code": "5",
+     "source_locator": "x.xlsx!Sheet1!R6-6",
+     "_origin": "rule"
+    },
+    {
+     "text": "集采计划是在系统里编的，还是线下编好只录结果？",
+     "options": [
+      "全线下",
+      "系统里编",
+      "线下编、系统里审"
+     ],
+     "options_raw": "① 全线下 ② 系统里编 ③ 线下编、系统里审",
+     "answer": "",
+     "group": "（1）编制集采计划",
+     "code": "6",
+     "source_locator": "x.xlsx!Sheet1!R7-7",
+     "_origin": "rule"
+    },
+    {
+     "text": "集采计划是在系统里编的，还是线下编好只录结果？",
+     "options": [
+      "全线下",
+      "系统里编",
+      "线下编、系统里审"
+     ],
+     "options_raw": "① 全线下 ② 系统里编 ③ 线下编、系统里审",
+     "answer": "",
+     "group": "（1）编制集采计划",
+     "code": "7",
+     "source_locator": "x.xlsx!Sheet1!R8-8",
+     "_origin": "rule"
+    },
+    {
+     "text": "集采计划是在系统里编的，还是线下编好只录结果？",
+     "options": [
+      "全线下",
+      "系统里编",
+      "线下编、系统里审"
+     ],
+     "options_raw": "① 全线下 ② 系统里编 ③ 线下编、系统里审",
+     "answer": "",
+     "group": "（1）编制集采计划",
+     "code": "8",
+     "source_locator": "x.xlsx!Sheet1!R9-9",
+     "_origin": "rule"
+    }
+   ]
+  }
+ },
+ "split_options": [
+  {
+   "in": "① 全线下 ② 系统里编 ③ 线下编、系统里审",
+   "out": [
+    "全线下",
+    "系统里编",
+    "线下编、系统里审"
+   ]
+  },
+  {
+   "in": "1. 固定周期 2. 到期前 3. 人工发起",
+   "out": [
+    "固定周期",
+    "到期前",
+    "人工发起"
+   ]
+  },
+  {
+   "in": "一句不该被拆开的完整的话",
+   "out": []
+  }
+ ]
+}

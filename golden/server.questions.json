@@ -1,0 +1,293 @@
+{
+ "content_disposition": {
+  "json": "attachment; filename=\"download.json\"; filename*=UTF-8''%E9%97%AE%E9%A2%98%E6%B8%85%E5%8D%95.json",
+  "md": "attachment; filename=\"download.md\"; filename*=UTF-8''%E9%97%AE%E9%A2%98%E6%B8%85%E5%8D%95.md",
+  "xlsx": "attachment; filename=\"download.xlsx\"; filename*=UTF-8''%E9%97%AE%E9%A2%98%E6%B8%85%E5%8D%95.xlsx"
+ },
+ "expected_version": [
+  {
+   "body": {},
+   "out": null
+  },
+  {
+   "body": {
+    "expected_revision": null
+   },
+   "out": null
+  },
+  {
+   "body": {
+    "expected_revision": 3
+   },
+   "out": 3
+  },
+  {
+   "body": {
+    "expected_revision": "7"
+   },
+   "out": 7
+  },
+  {
+   "body": {
+    "expected_revision": "  7  "
+   },
+   "out": 7
+  },
+  {
+   "body": {
+    "expected_revision": "+7"
+   },
+   "out": 7
+  },
+  {
+   "body": {
+    "expected_revision": "-2"
+   },
+   "out": -2
+  },
+  {
+   "body": {
+    "expected_revision": 2.9
+   },
+   "out": 2
+  },
+  {
+   "body": {
+    "expected_revision": -2.9
+   },
+   "out": -2
+  },
+  {
+   "body": {
+    "expected_revision": true
+   },
+   "out": 1
+  },
+  {
+   "body": {
+    "expected_revision": "1.5"
+   },
+   "error": [
+    400,
+    "expected_revision 必须是整数"
+   ]
+  },
+  {
+   "body": {
+    "expected_revision": "abc"
+   },
+   "error": [
+    400,
+    "expected_revision 必须是整数"
+   ]
+  },
+  {
+   "body": {
+    "expected_revision": []
+   },
+   "error": [
+    400,
+    "expected_revision 必须是整数"
+   ]
+  },
+  {
+   "body": {
+    "expectedRevision": 5
+   },
+   "out": 5
+  },
+  {
+   "body": {
+    "expectedRevision": 9,
+    "expected_revision": 1
+   },
+   "out": 1
+  },
+  {
+   "body": {
+    "expectedRevision": 9,
+    "expected_revision": null
+   },
+   "out": null
+  }
+ ],
+ "exports": {
+  "artifacts": [
+   "问题清单.json",
+   "问题清单.md",
+   "问题清单.xlsx"
+  ],
+  "json": "{\n  \"schemaVersion\": \"1.0.0\",\n  \"questions\": [\n    {\n      \"$schema\": \"ontocopilot.question/1\",\n      \"schemaVersion\": \"1.0.0\",\n      \"id\": \"q-b\",\n      \"text\": \"客户主数据的唯一键是什么？\",\n      \"status\": \"assigned\",\n      \"ownerUserId\": \"li\",\n      \"audienceRole\": \"\",\n      \"answerSchema\": {\n        \"type\": \"string\"\n      },\n      \"priority\": \"blocking\",\n      \"dependencies\": [],\n      \"blockedArtifacts\": [\n        \"模板_v1.xlsx\",\n        \"ontology.package.json\"\n      ],\n      \"sourceKind\": \"conflict\",\n      \"sourceRef\": \"cf_2\",\n      \"why\": \"\",\n      \"options\": [],\n      \"evidenceIds\": [],\n      \"scopeRefs\": [],\n      \"group\": \"\",\n      \"code\": \"\",\n      \"informationGain\": 0.0,\n      \"blastRadius\": 0,\n      \"createdAt\": 1700000002.0,\n      \"updatedAt\": 1700000002.0,\n      \"version\": 0,\n      \"metadata\": {},\n      \"activeDecision\": null,\n      \"answer\": null\n    },\n    {\n      \"$schema\": \"ontocopilot.question/1\",\n      \"schemaVersion\": \"1.0.0\",\n      \"id\": \"q-a\",\n      \"text\": \"订单金额是含税还是不含税？\",\n      \"status\": \"open\",\n      \"ownerUserId\": \"\",\n      \"audienceRole\": \"财务\",\n      \"answerSchema\": {\n        \"type\": \"string\"\n      },\n      \"priority\": \"normal\",\n      \"dependencies\": [\n        \"q-b\"\n      ],\n      \"blockedArtifacts\": [],\n      \"sourceKind\": \"open_question\",\n      \"sourceRef\": \"oq_1\",\n      \"why\": \"口径不一致会让报表对不上\",\n      \"options\": [],\n      \"evidenceIds\": [],\n      \"scopeRefs\": [],\n      \"group\": \"\",\n      \"code\": \"\",\n      \"informationGain\": 0.0,\n      \"blastRadius\": 0,\n      \"createdAt\": 1700000001.0,\n      \"updatedAt\": 1700000001.0,\n      \"version\": 0,\n      \"metadata\": {},\n      \"activeDecision\": null,\n      \"answer\": null\n    },\n    {\n      \"$schema\": \"ontocopilot.question/1\",\n      \"schemaVersion\": \"1.0.0\",\n      \"id\": \"q-c\",\n      \"text\": \"退货流程是否需要财务复核？\",\n      \"status\": \"answered\",\n      \"ownerUserId\": \"\",\n      \"audienceRole\": \"业务\",\n      \"answerSchema\": {\n        \"type\": \"string\"\n      },\n      \"priority\": \"low\",\n      \"dependencies\": [],\n      \"blockedArtifacts\": [],\n      \"sourceKind\": \"manual\",\n      \"sourceRef\": \"\",\n      \"why\": \"\",\n      \"options\": [],\n      \"evidenceIds\": [],\n      \"scopeRefs\": [],\n      \"group\": \"\",\n      \"code\": \"\",\n      \"informationGain\": 0.0,\n      \"blastRadius\": 0,\n      \"createdAt\": 1700000003.0,\n      \"updatedAt\": 1700000003.0,\n      \"version\": 0,\n      \"metadata\": {},\n      \"activeDecision\": null,\n      \"answer\": null\n    },\n    {\n      \"$schema\": \"ontocopilot.question/1\",\n      \"schemaVersion\": \"1.0.0\",\n      \"id\": \"q-d\",\n      \"text\": \"这条先放一放\",\n      \"status\": \"cancelled\",\n      \"ownerUserId\": \"\",\n      \"audienceRole\": \"\",\n      \"answerSchema\": {\n        \"type\": \"string\"\n      },\n      \"priority\": \"normal\",\n      \"dependencies\": [],\n      \"blockedArtifacts\": [],\n      \"sourceKind\": \"manual\",\n      \"sourceRef\": \"\",\n      \"why\": \"\",\n      \"options\": [],\n      \"evidenceIds\": [],\n      \"scopeRefs\": [],\n      \"group\": \"\",\n      \"code\": \"\",\n      \"informationGain\": 0.0,\n      \"blastRadius\": 0,\n      \"createdAt\": 1700000004.0,\n      \"updatedAt\": 1700000004.0,\n      \"version\": 0,\n      \"metadata\": {},\n      \"activeDecision\": null,\n      \"answer\": null\n    }\n  ],\n  \"summary\": {\n    \"open\": 1,\n    \"assigned\": 1,\n    \"blocked\": 0,\n    \"answered\": 1,\n    \"deferred\": 0,\n    \"cancelled\": 1,\n    \"total\": 4,\n    \"blockingOpen\": 1\n  }\n}",
+  "md": "# 示例 ERP 项目 · 待澄清问题\n\n共 4 条，未关闭 2 条。\n\n## 1. 订单金额是含税还是不含税？\n\n- 状态：open\n- 优先级：normal\n- 回答对象：财务\n- 负责人：待分派\n- 为什么问：口径不一致会让报表对不上\n\n## 2. 客户主数据的唯一键是什么？\n\n- 状态：assigned\n- 优先级：blocking\n- 回答对象：待分派\n- 负责人：li\n- 阻塞产物：模板_v1.xlsx、ontology.package.json\n\n## 3. 退货流程是否需要财务复核？\n\n- 状态：answered\n- 优先级：low\n- 回答对象：业务\n- 负责人：待分派\n\n## 4. 这条先放一放\n\n- 状态：cancelled\n- 优先级：normal\n- 回答对象：待分派\n- 负责人：待分派\n",
+  "stats": {
+   "answered": 1,
+   "assigned": 1,
+   "blocked": 0,
+   "blockingOpen": 1,
+   "cancelled": 1,
+   "deferred": 0,
+   "open": 1,
+   "total": 4
+  }
+ },
+ "media": {
+  "json": "application/json",
+  "md": "text/markdown; charset=utf-8",
+  "xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+ },
+ "next_batch": {
+  "-3": [
+   "q-b"
+  ],
+  "0": [
+   "q-b"
+  ],
+  "1": [
+   "q-b"
+  ],
+  "2": [
+   "q-b"
+  ],
+  "99": [
+   "q-b"
+  ]
+ },
+ "payload": {
+  "with_decision": {
+   "$schema": "ontocopilot.question/1",
+   "activeDecision": {
+    "$schema": "ontocopilot.decision/1",
+    "actor": "fde",
+    "actorRole": "财务",
+    "affectedIds": [
+     "oir_x",
+     "oir_y"
+    ],
+    "answer": "不含税",
+    "authority": "财务总监",
+    "createdAt": 1700000010.0,
+    "id": "dec_fixed",
+    "idempotencyKey": "idem-1",
+    "metadata": {
+     "status": "applied"
+    },
+    "questionId": "q-a",
+    "rationale": "以 ERP 里的净额为准",
+    "revision": null,
+    "schemaVersion": "1.0.0",
+    "sourceTurn": "t-7",
+    "supersedes": null
+   },
+   "answer": "不含税",
+   "answerSchema": {
+    "type": "string"
+   },
+   "audienceRole": "财务",
+   "blastRadius": 0,
+   "blockedArtifacts": [],
+   "code": "",
+   "createdAt": 1700000001.0,
+   "dependencies": [
+    "q-b"
+   ],
+   "evidenceIds": [],
+   "group": "",
+   "id": "q-a",
+   "informationGain": 0.0,
+   "metadata": {},
+   "options": [],
+   "ownerUserId": "",
+   "priority": "normal",
+   "schemaVersion": "1.0.0",
+   "scopeRefs": [],
+   "sourceKind": "open_question",
+   "sourceRef": "oq_1",
+   "status": "open",
+   "text": "订单金额是含税还是不含税？",
+   "updatedAt": 1700000001.0,
+   "version": 0,
+   "why": "口径不一致会让报表对不上"
+  },
+  "without_decision": {
+   "$schema": "ontocopilot.question/1",
+   "activeDecision": null,
+   "answer": null,
+   "answerSchema": {
+    "type": "string"
+   },
+   "audienceRole": "财务",
+   "blastRadius": 0,
+   "blockedArtifacts": [],
+   "code": "",
+   "createdAt": 1700000001.0,
+   "dependencies": [
+    "q-b"
+   ],
+   "evidenceIds": [],
+   "group": "",
+   "id": "q-a",
+   "informationGain": 0.0,
+   "metadata": {},
+   "options": [],
+   "ownerUserId": "",
+   "priority": "normal",
+   "schemaVersion": "1.0.0",
+   "scopeRefs": [],
+   "sourceKind": "open_question",
+   "sourceRef": "oq_1",
+   "status": "open",
+   "text": "订单金额是含税还是不含税？",
+   "updatedAt": 1700000001.0,
+   "version": 0,
+   "why": "口径不一致会让报表对不上"
+  }
+ },
+ "predict_effect": [
+  {
+   "option": "任意",
+   "out": [
+    "模板_v1.xlsx",
+    "ontology.package.json"
+   ],
+   "what": "no_conflict"
+  },
+  {
+   "option": "o1",
+   "out": [
+    "p_1",
+    "p_3"
+   ],
+   "what": "split"
+  },
+  {
+   "option": "o2",
+   "out": [
+    "p_1",
+    "p_3"
+   ],
+   "what": "unify_to"
+  },
+  {
+   "option": "o3",
+   "out": [
+    "p_1",
+    "p_2",
+    "p_3"
+   ],
+   "what": "set_base_type"
+  },
+  {
+   "option": "o4",
+   "out": [],
+   "what": "empty_effect"
+  },
+  {
+   "error": [
+    422,
+    "冲突 cf_2 没有选项 '不存在的选项'"
+   ],
+   "option": "不存在的选项",
+   "what": "missing_option"
+  }
+ ]
+}

@@ -1,0 +1,2123 @@
+{
+  "blocks": {
+    "arabic_indic_digit_marker": [
+      {
+        "columns": [],
+        "items": [
+          [
+            0,
+            "٣.",
+            "阿拉伯-印度数字序号"
+          ],
+          [
+            0,
+            "1.",
+            "普通序号"
+          ]
+        ],
+        "kind": "para",
+        "level": 1,
+        "rows": [],
+        "text": ""
+      }
+    ],
+    "empty": [],
+    "empty_markers": [
+      {
+        "columns": [],
+        "items": [
+          [
+            0,
+            "",
+            "真的有内容"
+          ]
+        ],
+        "kind": "para",
+        "level": 1,
+        "rows": [],
+        "text": ""
+      }
+    ],
+    "fence_empty_lang": [
+      {
+        "columns": [],
+        "items": [],
+        "kind": "code",
+        "level": 1,
+        "rows": [],
+        "text": "plain"
+      }
+    ],
+    "heading_trailing_hash": [
+      {
+        "columns": [],
+        "items": [],
+        "kind": "heading",
+        "level": 3,
+        "rows": [],
+        "text": "标题"
+      },
+      {
+        "columns": [],
+        "items": [],
+        "kind": "heading",
+        "level": 6,
+        "rows": [],
+        "text": "六级"
+      },
+      {
+        "columns": [],
+        "items": [],
+        "kind": "para",
+        "level": 1,
+        "rows": [],
+        "text": "####### 七个不是标题"
+      }
+    ],
+    "inline_marks": [
+      {
+        "columns": [],
+        "items": [],
+        "kind": "para",
+        "level": 1,
+        "rows": [],
+        "text": "粗与码与*斜*混排"
+      }
+    ],
+    "inline_star_next_to_cjk": [
+      {
+        "columns": [],
+        "items": [],
+        "kind": "para",
+        "level": 1,
+        "rows": [],
+        "text": "前*不是斜体*后"
+      },
+      {
+        "columns": [],
+        "items": [],
+        "kind": "para",
+        "level": 1,
+        "rows": [],
+        "text": "空格 是斜体 空格"
+      }
+    ],
+    "list_interrupted": [
+      {
+        "columns": [],
+        "items": [
+          [
+            0,
+            "",
+            "一"
+          ],
+          [
+            0,
+            "",
+            "二"
+          ]
+        ],
+        "kind": "para",
+        "level": 1,
+        "rows": [],
+        "text": ""
+      },
+      {
+        "columns": [],
+        "items": [],
+        "kind": "para",
+        "level": 1,
+        "rows": [],
+        "text": "正文打断"
+      },
+      {
+        "columns": [],
+        "items": [
+          [
+            0,
+            "",
+            "三"
+          ]
+        ],
+        "kind": "para",
+        "level": 1,
+        "rows": [],
+        "text": ""
+      }
+    ],
+    "nel_and_bom_whitespace": [
+      {
+        "columns": [],
+        "items": [],
+        "kind": "heading",
+        "level": 1,
+        "rows": [],
+        "text": "前面是 NEL"
+      },
+      {
+        "columns": [],
+        "items": [],
+        "kind": "para",
+        "level": 1,
+        "rows": [],
+        "text": "﻿# 前面是 BOM"
+      }
+    ],
+    "only_blank_lines": [],
+    "pipe_without_separator": [
+      {
+        "columns": [],
+        "items": [],
+        "kind": "para",
+        "level": 1,
+        "rows": [],
+        "text": "| 甲 | 乙 |\n| 丙 | 丁 |"
+      }
+    ],
+    "rules": [
+      {
+        "columns": [],
+        "items": [],
+        "kind": "rule",
+        "level": 1,
+        "rows": [],
+        "text": ""
+      },
+      {
+        "columns": [],
+        "items": [],
+        "kind": "rule",
+        "level": 1,
+        "rows": [],
+        "text": ""
+      },
+      {
+        "columns": [],
+        "items": [],
+        "kind": "rule",
+        "level": 1,
+        "rows": [],
+        "text": ""
+      },
+      {
+        "columns": [],
+        "items": [
+          [
+            0,
+            "",
+            "- -"
+          ]
+        ],
+        "kind": "para",
+        "level": 1,
+        "rows": [],
+        "text": ""
+      }
+    ],
+    "tab_indent": [
+      {
+        "columns": [],
+        "items": [
+          [
+            0,
+            "",
+            "零级"
+          ],
+          [
+            2,
+            "",
+            "制表符一级"
+          ],
+          [
+            2,
+            "",
+            "四空格一级"
+          ],
+          [
+            3,
+            "",
+            "六空格三级"
+          ]
+        ],
+        "kind": "para",
+        "level": 1,
+        "rows": [],
+        "text": ""
+      }
+    ],
+    "table_md": [
+      {
+        "columns": [],
+        "items": [],
+        "kind": "para",
+        "level": 1,
+        "rows": [],
+        "text": "已为您列出 3 条待澄清问题。"
+      },
+      {
+        "columns": [],
+        "items": [],
+        "kind": "heading",
+        "level": 4,
+        "rows": [],
+        "text": "1. 核心实体定位"
+      },
+      {
+        "columns": [],
+        "items": [],
+        "kind": "para",
+        "level": 1,
+        "rows": [],
+        "text": "（单据上的每一个字段）"
+      },
+      {
+        "columns": [
+          "节点",
+          "编号",
+          "澄清问题",
+          "参考选项"
+        ],
+        "items": [],
+        "kind": "table",
+        "level": 1,
+        "rows": [
+          [
+            "（1）编制集采计划",
+            "1",
+            "什么情况下使用集采？",
+            "-"
+          ],
+          [
+            "（1）编制集采计划",
+            "3",
+            "输入栏写了\"无系统节点\"",
+            "① 全线下 ② 系统里编"
+          ],
+          [
+            "（2）审批",
+            "4",
+            "=SUM(A1) 会不会被当成公式",
+            "-"
+          ]
+        ],
+        "text": ""
+      },
+      {
+        "columns": [],
+        "items": [
+          [
+            0,
+            "",
+            "字段信息缺失：175 个对象没有字段"
+          ],
+          [
+            1,
+            "",
+            "需要《字段梳理表》"
+          ],
+          [
+            0,
+            "1.",
+            "命名规范不统一"
+          ]
+        ],
+        "kind": "para",
+        "level": 1,
+        "rows": [],
+        "text": ""
+      },
+      {
+        "columns": [],
+        "items": [],
+        "kind": "rule",
+        "level": 1,
+        "rows": [],
+        "text": ""
+      },
+      {
+        "columns": [],
+        "items": [],
+        "kind": "code",
+        "level": 1,
+        "rows": [],
+        "text": "{\"a\": 1, \"b\": [2, 3]}"
+      }
+    ],
+    "table_ragged": [
+      {
+        "columns": [
+          "a",
+          "b",
+          "c"
+        ],
+        "items": [],
+        "kind": "table",
+        "level": 1,
+        "rows": [
+          [
+            "1",
+            "",
+            "粗"
+          ],
+          [
+            "只有一格"
+          ]
+        ],
+        "text": ""
+      }
+    ],
+    "table_then_text": [
+      {
+        "columns": [
+          "甲",
+          "乙"
+        ],
+        "items": [],
+        "kind": "table",
+        "level": 1,
+        "rows": [
+          [
+            "1",
+            "2"
+          ]
+        ],
+        "text": ""
+      },
+      {
+        "columns": [],
+        "items": [],
+        "kind": "para",
+        "level": 1,
+        "rows": [],
+        "text": "收尾一句话"
+      }
+    ],
+    "unclosed_fence": [
+      {
+        "columns": [],
+        "items": [],
+        "kind": "code",
+        "level": 1,
+        "rows": [],
+        "text": "x = 1\n\n还在代码里\n"
+      }
+    ]
+  },
+  "csv": {
+    "collide": "77u/YQ0KMQ0KDQphDQoyDQoNCmENCjMNCg==",
+    "injection": "77u/Jz1jbWR8Jy9jIGNhbGMnIUExLOato+W4uOWIlw0KJz1IWVBFUkxJTksoMSksJysxDQo=",
+    "prose_only": "77u/5rKh5pyJ6KGo55qE5LiA5Lu95Lic6KW/DQrmoIfpopgNCuato+aWh+S4gOauteOAgg0Kwrcg5YiX6KGo6aG5DQrigJTigJTigJTigJTigJTigJTigJTigJTigJTigJTigJTigJTigJTigJTigJTigJTigJTigJTigJTigJQNCg==",
+    "table_doc": "77u/6IqC54K5LOe8luWPtyzmvoTmuIXpl67popgs5Y+C6ICD6YCJ6aG5DQrvvIgx77yJ57yW5Yi26ZuG6YeH6K6h5YiSLDEs5LuA5LmI5oOF5Ya15LiL5L2/55So6ZuG6YeH77yfLCctDQrvvIgx77yJ57yW5Yi26ZuG6YeH6K6h5YiSLDMsIui+k+WFpeagj+WGmeS6hiIi5peg57O757uf6IqC54K5IiIiLOKRoCDlhajnur/kuIsg4pGhIOezu+e7n+mHjOe8lg0K77yIMu+8ieWuoeaJuSw0LCc9U1VNKEExKSDkvJrkuI3kvJrooqvlvZPmiJDlhazlvI8sJy0NCg==",
+    "typed": "77u/5ZCNLOWAvA0K5pW05pWwLDQyDQrlsI/mlbAsMy41DQrnnJ8sVHJ1ZQ0K56m6LA0K5YiX6KGoLCJbMSwgMl0iDQrplb/mlofmnKws6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/6ZW/DQo="
+  },
+  "docs": {
+    "collide": {
+      "blocks": [
+        {
+          "columns": [],
+          "items": [],
+          "kind": "heading",
+          "level": 2,
+          "rows": [],
+          "text": "报表/明细[2026]:第一版 长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长"
+        },
+        {
+          "columns": [
+            "a"
+          ],
+          "items": [],
+          "kind": "table",
+          "level": 1,
+          "rows": [
+            [
+              "1"
+            ]
+          ],
+          "text": ""
+        },
+        {
+          "columns": [],
+          "items": [],
+          "kind": "heading",
+          "level": 2,
+          "rows": [],
+          "text": "报表/明细[2026]:第一版 长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长"
+        },
+        {
+          "columns": [
+            "a"
+          ],
+          "items": [],
+          "kind": "table",
+          "level": 1,
+          "rows": [
+            [
+              "2"
+            ]
+          ],
+          "text": ""
+        },
+        {
+          "columns": [],
+          "items": [],
+          "kind": "heading",
+          "level": 2,
+          "rows": [],
+          "text": "报表/明细[2026]:第一版 长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长"
+        },
+        {
+          "columns": [
+            "a"
+          ],
+          "items": [],
+          "kind": "table",
+          "level": 1,
+          "rows": [
+            [
+              "3"
+            ]
+          ],
+          "text": ""
+        }
+      ],
+      "note": "",
+      "title": "x"
+    },
+    "injection": {
+      "blocks": [
+        {
+          "columns": [],
+          "items": [],
+          "kind": "para",
+          "level": 1,
+          "rows": [],
+          "text": "=WEBSERVICE(1)"
+        },
+        {
+          "columns": [
+            "=cmd|'/c calc'!A1",
+            "正常列"
+          ],
+          "items": [],
+          "kind": "table",
+          "level": 1,
+          "rows": [
+            [
+              "=HYPERLINK(1)",
+              "+1"
+            ]
+          ],
+          "text": ""
+        }
+      ],
+      "note": "=2+2",
+      "title": "=1+1 报表"
+    },
+    "prose_only": {
+      "blocks": [
+        {
+          "columns": [],
+          "items": [],
+          "kind": "heading",
+          "level": 1,
+          "rows": [],
+          "text": "标题"
+        },
+        {
+          "columns": [],
+          "items": [],
+          "kind": "para",
+          "level": 1,
+          "rows": [],
+          "text": "正文一段。"
+        },
+        {
+          "columns": [],
+          "items": [
+            [
+              0,
+              "",
+              "列表项"
+            ]
+          ],
+          "kind": "para",
+          "level": 1,
+          "rows": [],
+          "text": ""
+        },
+        {
+          "columns": [],
+          "items": [],
+          "kind": "rule",
+          "level": 1,
+          "rows": [],
+          "text": ""
+        }
+      ],
+      "note": "",
+      "title": "没有表的一份东西"
+    },
+    "table_doc": {
+      "blocks": [
+        {
+          "columns": [],
+          "items": [],
+          "kind": "para",
+          "level": 1,
+          "rows": [],
+          "text": "已为您列出 3 条待澄清问题。"
+        },
+        {
+          "columns": [],
+          "items": [],
+          "kind": "heading",
+          "level": 4,
+          "rows": [],
+          "text": "1. 核心实体定位"
+        },
+        {
+          "columns": [],
+          "items": [],
+          "kind": "para",
+          "level": 1,
+          "rows": [],
+          "text": "（单据上的每一个字段）"
+        },
+        {
+          "columns": [
+            "节点",
+            "编号",
+            "澄清问题",
+            "参考选项"
+          ],
+          "items": [],
+          "kind": "table",
+          "level": 1,
+          "rows": [
+            [
+              "（1）编制集采计划",
+              "1",
+              "什么情况下使用集采？",
+              "-"
+            ],
+            [
+              "（1）编制集采计划",
+              "3",
+              "输入栏写了\"无系统节点\"",
+              "① 全线下 ② 系统里编"
+            ],
+            [
+              "（2）审批",
+              "4",
+              "=SUM(A1) 会不会被当成公式",
+              "-"
+            ]
+          ],
+          "text": ""
+        },
+        {
+          "columns": [],
+          "items": [
+            [
+              0,
+              "",
+              "字段信息缺失：175 个对象没有字段"
+            ],
+            [
+              1,
+              "",
+              "需要《字段梳理表》"
+            ],
+            [
+              0,
+              "1.",
+              "命名规范不统一"
+            ]
+          ],
+          "kind": "para",
+          "level": 1,
+          "rows": [],
+          "text": ""
+        },
+        {
+          "columns": [],
+          "items": [],
+          "kind": "rule",
+          "level": 1,
+          "rows": [],
+          "text": ""
+        },
+        {
+          "columns": [],
+          "items": [],
+          "kind": "code",
+          "level": 1,
+          "rows": [],
+          "text": "{\"a\": 1, \"b\": [2, 3]}"
+        }
+      ],
+      "note": "共 3 条，由 OntoCopilot 导出",
+      "title": "采购计划 待澄清问题"
+    },
+    "typed": {
+      "blocks": [
+        {
+          "columns": [
+            "名",
+            "值"
+          ],
+          "items": [],
+          "kind": "table",
+          "level": 1,
+          "rows": [
+            [
+              "整数",
+              42
+            ],
+            [
+              "小数",
+              3.5
+            ],
+            [
+              "真",
+              true
+            ],
+            [
+              "空",
+              null
+            ],
+            [
+              "列表",
+              [
+                1,
+                2
+              ]
+            ],
+            [
+              "长文本",
+              "长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长"
+            ]
+          ],
+          "text": ""
+        }
+      ],
+      "note": "",
+      "title": "类型"
+    }
+  },
+  "docx": {
+    "collide": {
+      "ascii_font": "Calibri",
+      "east_asia": "Microsoft YaHei",
+      "paragraphs": [
+        {
+          "style": "Title",
+          "text": "x"
+        },
+        {
+          "style": "Heading 2",
+          "text": "报表/明细[2026]:第一版 长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长"
+        },
+        {
+          "style": "Heading 2",
+          "text": "报表/明细[2026]:第一版 长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长"
+        },
+        {
+          "style": "Heading 2",
+          "text": "报表/明细[2026]:第一版 长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长"
+        }
+      ],
+      "tables": [
+        [
+          [
+            "a"
+          ],
+          [
+            "1"
+          ]
+        ],
+        [
+          [
+            "a"
+          ],
+          [
+            "2"
+          ]
+        ],
+        [
+          [
+            "a"
+          ],
+          [
+            "3"
+          ]
+        ]
+      ]
+    },
+    "injection": {
+      "ascii_font": "Calibri",
+      "east_asia": "Microsoft YaHei",
+      "paragraphs": [
+        {
+          "style": "Title",
+          "text": "=1+1 报表"
+        },
+        {
+          "style": "Normal",
+          "text": "=2+2"
+        },
+        {
+          "style": "Normal",
+          "text": "=WEBSERVICE(1)"
+        }
+      ],
+      "tables": [
+        [
+          [
+            "=cmd|'/c calc'!A1",
+            "正常列"
+          ],
+          [
+            "=HYPERLINK(1)",
+            "+1"
+          ]
+        ]
+      ]
+    },
+    "prose_only": {
+      "ascii_font": "Calibri",
+      "east_asia": "Microsoft YaHei",
+      "paragraphs": [
+        {
+          "style": "Title",
+          "text": "没有表的一份东西"
+        },
+        {
+          "style": "Heading 1",
+          "text": "标题"
+        },
+        {
+          "style": "Normal",
+          "text": "正文一段。"
+        },
+        {
+          "style": "List Bullet",
+          "text": "列表项"
+        },
+        {
+          "style": "Normal",
+          "text": "——————————————————————————————"
+        }
+      ],
+      "tables": []
+    },
+    "table_doc": {
+      "ascii_font": "Calibri",
+      "east_asia": "Microsoft YaHei",
+      "paragraphs": [
+        {
+          "style": "Title",
+          "text": "采购计划 待澄清问题"
+        },
+        {
+          "style": "Normal",
+          "text": "共 3 条，由 OntoCopilot 导出"
+        },
+        {
+          "style": "Normal",
+          "text": "已为您列出 3 条待澄清问题。"
+        },
+        {
+          "style": "Heading 4",
+          "text": "1. 核心实体定位"
+        },
+        {
+          "style": "Normal",
+          "text": "（单据上的每一个字段）"
+        },
+        {
+          "style": "List Bullet",
+          "text": "字段信息缺失：175 个对象没有字段"
+        },
+        {
+          "style": "List Bullet 2",
+          "text": "需要《字段梳理表》"
+        },
+        {
+          "style": "List Number",
+          "text": "命名规范不统一"
+        },
+        {
+          "style": "Normal",
+          "text": "——————————————————————————————"
+        },
+        {
+          "style": "Normal",
+          "text": "{\"a\": 1, \"b\": [2, 3]}"
+        }
+      ],
+      "tables": [
+        [
+          [
+            "节点",
+            "编号",
+            "澄清问题",
+            "参考选项"
+          ],
+          [
+            "（1）编制集采计划",
+            "1",
+            "什么情况下使用集采？",
+            "-"
+          ],
+          [
+            "（1）编制集采计划",
+            "3",
+            "输入栏写了\"无系统节点\"",
+            "① 全线下 ② 系统里编"
+          ],
+          [
+            "（2）审批",
+            "4",
+            "=SUM(A1) 会不会被当成公式",
+            "-"
+          ]
+        ]
+      ]
+    },
+    "typed": {
+      "ascii_font": "Calibri",
+      "east_asia": "Microsoft YaHei",
+      "paragraphs": [
+        {
+          "style": "Title",
+          "text": "类型"
+        }
+      ],
+      "tables": [
+        [
+          [
+            "名",
+            "值"
+          ],
+          [
+            "整数",
+            "42"
+          ],
+          [
+            "小数",
+            "3.5"
+          ],
+          [
+            "真",
+            "True"
+          ],
+          [
+            "空",
+            "None"
+          ],
+          [
+            "列表",
+            "[1, 2]"
+          ],
+          [
+            "长文本",
+            "长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长"
+          ]
+        ]
+      ]
+    }
+  },
+  "formats": [
+    "md",
+    "csv",
+    "xlsx",
+    "docx",
+    "pdf"
+  ],
+  "html": {
+    "collide": "<h1>x</h1>\n<h3>报表/明细[2026]:第一版 长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长</h3>\n<table><tr><th>a</th></tr>\n<tr><td>1</td></tr>\n</table>\n<h3>报表/明细[2026]:第一版 长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长</h3>\n<table><tr><th>a</th></tr>\n<tr><td>2</td></tr>\n</table>\n<h3>报表/明细[2026]:第一版 长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长</h3>\n<table><tr><th>a</th></tr>\n<tr><td>3</td></tr>\n</table>",
+    "injection": "<h1>=1+1 报表</h1>\n<p class=\"note\">=2+2</p>\n<p>=WEBSERVICE(1)</p>\n<table><tr><th>=cmd|'/c calc'!A1</th><th>正常列</th></tr>\n<tr><td>=HYPERLINK(1)</td><td>+1</td></tr>\n</table>",
+    "prose_only": "<h1>没有表的一份东西</h1>\n<h2>标题</h2>\n<p>正文一段。</p>\n<ul>\n<li style=\"margin-left:0px\">列表项</li>\n</ul>\n<hr/>",
+    "table_doc": "<h1>采购计划 待澄清问题</h1>\n<p class=\"note\">共 3 条，由 OntoCopilot 导出</p>\n<p>已为您列出 3 条待澄清问题。</p>\n<h5>1. 核心实体定位</h5>\n<p>（单据上的每一个字段）</p>\n<table><tr><th>节点</th><th>编号</th><th>澄清问题</th><th>参考选项</th></tr>\n<tr><td>（1）编制集采计划</td><td>1</td><td>什么情况下使用集采？</td><td>-</td></tr>\n<tr><td>（1）编制集采计划</td><td>3</td><td>输入栏写了\"无系统节点\"</td><td>① 全线下 ② 系统里编</td></tr>\n<tr><td>（2）审批</td><td>4</td><td>=SUM(A1) 会不会被当成公式</td><td>-</td></tr>\n</table>\n<ul>\n<li style=\"margin-left:0px\">字段信息缺失：175 个对象没有字段</li>\n<li style=\"margin-left:16px\">需要《字段梳理表》</li>\n<li style=\"margin-left:0px\">1. 命名规范不统一</li>\n</ul>\n<hr/>\n<pre>{\"a\": 1, \"b\": [2, 3]}</pre>",
+    "typed": "<h1>类型</h1>\n<table><tr><th>名</th><th>值</th></tr>\n<tr><td>整数</td><td>42</td></tr>\n<tr><td>小数</td><td>3.5</td></tr>\n<tr><td>真</td><td>True</td></tr>\n<tr><td>空</td><td>None</td></tr>\n<tr><td>列表</td><td>[1, 2]</td></tr>\n<tr><td>长文本</td><td>长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长</td></tr>\n</table>"
+  },
+  "markdown": {
+    "collide": "# x\n\n### 报表/明细[2026]:第一版 长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长\n\n| a |\n| --- |\n| 1 |\n\n### 报表/明细[2026]:第一版 长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长\n\n| a |\n| --- |\n| 2 |\n\n### 报表/明细[2026]:第一版 长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长\n\n| a |\n| --- |\n| 3 |",
+    "injection": "# =1+1 报表\n\n> =2+2\n\n=WEBSERVICE(1)\n\n| =cmd|'/c calc'!A1 | 正常列 |\n| --- | --- |\n| =HYPERLINK(1) | +1 |",
+    "prose_only": "# 没有表的一份东西\n\n## 标题\n\n正文一段。\n\n- 列表项\n\n---",
+    "table_doc": "# 采购计划 待澄清问题\n\n> 共 3 条，由 OntoCopilot 导出\n\n已为您列出 3 条待澄清问题。\n\n##### 1. 核心实体定位\n\n（单据上的每一个字段）\n\n| 节点 | 编号 | 澄清问题 | 参考选项 |\n| --- | --- | --- | --- |\n| （1）编制集采计划 | 1 | 什么情况下使用集采？ | - |\n| （1）编制集采计划 | 3 | 输入栏写了\"无系统节点\" | ① 全线下 ② 系统里编 |\n| （2）审批 | 4 | =SUM(A1) 会不会被当成公式 | - |\n\n- 字段信息缺失：175 个对象没有字段\n  - 需要《字段梳理表》\n1. 命名规范不统一\n\n---\n\n```\n{\"a\": 1, \"b\": [2, 3]}\n```",
+    "typed": "# 类型\n\n| 名 | 值 |\n| --- | --- |\n| 整数 | 42 |\n| 小数 | 3.5 |\n| 真 | True |\n| 空 | None |\n| 列表 | [1, 2] |\n| 长文本 | 长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长 |"
+  },
+  "md_cases": {
+    "arabic_indic_digit_marker": "٣. 阿拉伯-印度数字序号\n1. 普通序号\n",
+    "empty": "",
+    "empty_markers": "- \n- 真的有内容\n-  \n",
+    "fence_empty_lang": "```\nplain\n```\n",
+    "heading_trailing_hash": "### 标题 ###\n###### 六级 ######\n####### 七个不是标题\n",
+    "inline_marks": "**粗**与`码`与*斜*混排\n",
+    "inline_star_next_to_cjk": "前*不是斜体*后\n\n空格 *是斜体* 空格\n",
+    "list_interrupted": "- 一\n- 二\n正文打断\n- 三\n",
+    "nel_and_bom_whitespace": "# 前面是 NEL\n﻿# 前面是 BOM\n",
+    "only_blank_lines": "\n\n   \n",
+    "pipe_without_separator": "| 甲 | 乙 |\n| 丙 | 丁 |\n",
+    "rules": "---\n***\n___\n- - -\n",
+    "tab_indent": "- 零级\n\t- 制表符一级\n    - 四空格一级\n      - 六空格三级\n",
+    "table_md": "已为您列出 3 条待澄清问题。\n\n#### 1. 核心实体定位\n*（单据上的每一个字段）*\n\n| 节点 | 编号 | 澄清问题 | 参考选项 |\n| :--- | :--- | :--- | :--- |\n| （1）编制集采计划 | 1 | 什么情况下使用集采？ | - |\n| （1）编制集采计划 | 3 | 输入栏写了\"无系统节点\" | ① 全线下 ② 系统里编 |\n| （2）审批 | 4 | =SUM(A1) 会不会被当成公式 | - |\n\n- 字段信息缺失：175 个对象没有字段\n  - 需要《字段梳理表》\n1. 命名规范不统一\n\n---\n\n```json\n{\"a\": 1, \"b\": [2, 3]}\n```\n",
+    "table_ragged": "| a | b | c |\n| --- | --- | --- |\n| 1 |  | **粗** |\n| 只有一格 |\n",
+    "table_then_text": "| 甲 | 乙 |\n| --- | --- |\n| 1 | 2 |\n收尾一句话\n",
+    "unclosed_fence": "```py\nx = 1\n\n还在代码里\n"
+  },
+  "resolve_format": [
+    [
+      "excel",
+      "xlsx"
+    ],
+    [
+      "Excel",
+      "xlsx"
+    ],
+    [
+      "EXCEL",
+      "xlsx"
+    ],
+    [
+      "表格",
+      "xlsx"
+    ],
+    [
+      ".xlsx",
+      "xlsx"
+    ],
+    [
+      "xlsx",
+      "xlsx"
+    ],
+    [
+      " xls ",
+      "xlsx"
+    ],
+    [
+      "word",
+      "docx"
+    ],
+    [
+      "Word",
+      "docx"
+    ],
+    [
+      "doc",
+      "docx"
+    ],
+    [
+      "文档",
+      "docx"
+    ],
+    [
+      "markdown",
+      "md"
+    ],
+    [
+      "文本",
+      "md"
+    ],
+    [
+      "txt",
+      "md"
+    ],
+    [
+      "md",
+      "md"
+    ],
+    [
+      "PDF",
+      "pdf"
+    ],
+    [
+      "pdf",
+      "pdf"
+    ],
+    [
+      ".pdf",
+      "pdf"
+    ],
+    [
+      "spreadsheet",
+      "xlsx"
+    ],
+    [
+      "pptx",
+      ""
+    ],
+    [
+      "",
+      ""
+    ],
+    [
+      "  ",
+      ""
+    ],
+    [
+      "..md",
+      "md"
+    ],
+    [
+      ".",
+      ""
+    ],
+    [
+      "CSV",
+      "csv"
+    ],
+    [
+      "csv",
+      "csv"
+    ]
+  ],
+  "safe_name": [
+    [
+      "采购计划 待澄清问题",
+      "xlsx",
+      "采购计划 待澄清问题.xlsx"
+    ],
+    [
+      "../../etc/passwd",
+      "xlsx",
+      "_.._etc_passwd.xlsx"
+    ],
+    [
+      "a/b\\c:d*e?f",
+      "xlsx",
+      "a_b_c_d_e_f.xlsx"
+    ],
+    [
+      "...",
+      "xlsx",
+      "导出.xlsx"
+    ],
+    [
+      "",
+      "xlsx",
+      "导出.xlsx"
+    ],
+    [
+      ".",
+      "xlsx",
+      "导出.xlsx"
+    ],
+    [
+      "..",
+      "xlsx",
+      "导出.xlsx"
+    ],
+    [
+      "  多个   空白\t折成一个  ",
+      "md",
+      "多个 空白_折成一个.md"
+    ],
+    [
+      "澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄",
+      "pdf",
+      "澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄澄.pdf"
+    ],
+    [
+      "尾部点和空格 . . ",
+      "csv",
+      "尾部点和空格.csv"
+    ],
+    [
+      "带\u0000控制\u001f字符",
+      "docx",
+      "带_控制_字符.docx"
+    ],
+    [
+      "emoji😀在第八十位附近字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字😀尾",
+      "md",
+      "emoji😀在第八十位附近字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字.md"
+    ],
+    [
+      "CON",
+      "md",
+      "CON.md"
+    ],
+    [
+      "　全角空格开头",
+      "md",
+      "全角空格开头.md"
+    ]
+  ],
+  "safe_name_fallback": "兜底.md",
+  "specs": {
+    "csv": {
+      "ext": "csv",
+      "label": "CSV",
+      "media_type": "text/csv; charset=utf-8"
+    },
+    "docx": {
+      "ext": "docx",
+      "label": "Word",
+      "media_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    },
+    "md": {
+      "ext": "md",
+      "label": "Markdown",
+      "media_type": "text/markdown; charset=utf-8"
+    },
+    "pdf": {
+      "ext": "pdf",
+      "label": "PDF",
+      "media_type": "application/pdf"
+    },
+    "xlsx": {
+      "ext": "xlsx",
+      "label": "Excel",
+      "media_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    }
+  },
+  "template_plan": {
+    "applied": [
+      "改了「02_关系」的填写说明。",
+      "把「02_关系」的「cardinality」列改成下拉：1:1/1:N。",
+      "把「01_对象清单」的「displayName」列改成 required。",
+      "表的顺序调整为：02_关系 → 01_对象清单。"
+    ],
+    "applied_empty": [],
+    "edits": [
+      {
+        "new": "口径定义",
+        "old": "definition",
+        "op": "rename_column",
+        "sheet": "01_对象清单",
+        "why": "业务方读不懂 definition"
+      },
+      {
+        "op": "set_guide",
+        "sheet": "02_关系",
+        "text": "一行一个关系",
+        "why": "没有说明"
+      },
+      {
+        "column": "cardinality",
+        "op": "set_options",
+        "options": [
+          "1:1",
+          "1:N"
+        ],
+        "sheet": "02_关系",
+        "why": "材料里只出现过这两种"
+      },
+      {
+        "column": "displayName",
+        "op": "set_role",
+        "role": "required",
+        "sheet": "01_对象清单",
+        "why": "名字必须确认"
+      },
+      {
+        "op": "reorder_sheets",
+        "order": [
+          "02_关系",
+          "01_对象清单"
+        ],
+        "why": "关系更急"
+      },
+      {
+        "column": "口径定义",
+        "op": "drop_column",
+        "sheet": "01_对象清单",
+        "why": "白名单外的 op"
+      },
+      {
+        "new": "编号",
+        "old": "_oir_rid",
+        "op": "rename_column",
+        "sheet": "01_对象清单",
+        "why": "锚点列改不得"
+      },
+      {
+        "column": "primaryKey",
+        "op": "set_role",
+        "role": "required",
+        "sheet": "02_关系",
+        "why": "黑名单字段"
+      },
+      {
+        "op": "reorder_sheets",
+        "order": [
+          "01_对象清单"
+        ],
+        "why": "少了一张表"
+      },
+      {
+        "op": "set_guide",
+        "sheet": "根本没有这张表",
+        "text": "x",
+        "why": "表名不存在"
+      },
+      {
+        "op": "set_options",
+        "sheet": "02_关系",
+        "why": "少了 column 和 options"
+      }
+    ],
+    "prompt": "## 项目\n集采平台\n\n## 已抽出的产物规模\n{'objects': 12, 'properties': 40}\n\n## 当前模板骨架\n- 「01_对象清单」2 行；列：displayName、definition\n- 「02_关系」2 行；列：cardinality、primaryKey\n\n## 材料里出现的业务词\n集采、采购包、供应商、词0、词1、词2、词3、词4、词5、词6、词7、词8、词9、词10、词11、词12、词13、词14、词15、词16、词17、词18、词19、词20、词21、词22、词23、词24、词25、词26、词27、词28、词29、词30、词31、词32、词33、词34、词35、词36\n\n## 待澄清的问题\n- 第 0 个待澄清问题？\n- 第 1 个待澄清问题？\n- 第 2 个待澄清问题？\n- 第 3 个待澄清问题？\n- 第 4 个待澄清问题？\n- 第 5 个待澄清问题？\n- 第 6 个待澄清问题？\n- 第 7 个待澄清问题？\n\n这张模板要发给**业务方**填。他们不是建模的人：`apiName`、`baseType`、`cardinality` 这些词他们读不懂，也不知道该往哪一列写什么。\n\n在**不改变有哪些行、值从哪来**的前提下，提一组改法让它更好填：\n- 把列名换成客户材料里的说法（用上面那些业务词，别自己造词）；\n- 给每张表写一句说明：这张表要他回答什么、答到什么程度算完；\n- 取值有限的列做成下拉（选项要来自材料里真出现过的值）；\n- 把最该他答、只有他答得了的表排前面。\n\n每条都要写 why。**没有把握就少提几条** —— 提一条错的改法比不提更糟。",
+    "prompt_empty": "## 项目\n（未命名）\n\n## 已抽出的产物规模\n{}\n\n## 当前模板骨架\n\n\n这张模板要发给**业务方**填。他们不是建模的人：`apiName`、`baseType`、`cardinality` 这些词他们读不懂，也不知道该往哪一列写什么。\n\n在**不改变有哪些行、值从哪来**的前提下，提一组改法让它更好填：\n- 把列名换成客户材料里的说法（用上面那些业务词，别自己造词）；\n- 给每张表写一句说明：这张表要他回答什么、答到什么程度算完；\n- 取值有限的列做成下拉（选项要来自材料里真出现过的值）；\n- 把最该他答、只有他答得了的表排前面。\n\n每条都要写 why。**没有把握就少提几条** —— 提一条错的改法比不提更糟。",
+    "rejected": [
+      {
+        "new": "口径定义",
+        "old": "definition",
+        "op": "rename_column",
+        "sheet": "01_对象清单",
+        "why": "业务方读不懂 definition",
+        "why_rejected": "「definition」的内容能回写进模型，改名成「口径定义」会切断这条路径（业务方填了会在合并时静默丢弃）。可用的名字：['cardinality', 'definition', 'description', 'displayName', 'effects', 'owner', 'primaryKey', '执行角色', '答复', '管哪个单据', '这条对吗']"
+      },
+      {
+        "column": "口径定义",
+        "op": "drop_column",
+        "sheet": "01_对象清单",
+        "why": "白名单外的 op",
+        "why_rejected": "「01_对象清单」没有列 口径定义。"
+      },
+      {
+        "new": "编号",
+        "old": "_oir_rid",
+        "op": "rename_column",
+        "sheet": "01_对象清单",
+        "why": "锚点列改不得",
+        "why_rejected": "_oir_rid 是回读锚点列，不能改名。"
+      },
+      {
+        "column": "primaryKey",
+        "op": "set_role",
+        "role": "required",
+        "sheet": "02_关系",
+        "why": "黑名单字段",
+        "why_rejected": "「primaryKey」不适合设成必填。"
+      },
+      {
+        "op": "reorder_sheets",
+        "order": [
+          "01_对象清单"
+        ],
+        "why": "少了一张表",
+        "why_rejected": "新顺序必须是现有表的一个排列，不能增删表。现有：['01_对象清单', '02_关系']"
+      },
+      {
+        "op": "set_guide",
+        "sheet": "根本没有这张表",
+        "text": "x",
+        "why": "表名不存在",
+        "why_rejected": "没有名为「根本没有这张表」的表。现有：02_关系、01_对象清单"
+      },
+      {
+        "op": "set_options",
+        "sheet": "02_关系",
+        "why": "少了 column 和 options",
+        "why_rejected": "set_options 的参数不对：_op_set_options() missing 2 required keyword-only arguments: 'column' and 'options'"
+      }
+    ],
+    "spec_after": {
+      "round": 1,
+      "sheets": [
+        {
+          "columns": [
+            "cardinality",
+            "primaryKey"
+          ],
+          "guide": "一行一个关系",
+          "name": "02_关系",
+          "rows": [
+            {
+              "cardinality": {
+                "comment": "",
+                "conflict": false,
+                "expects_prose": false,
+                "field": "cardinality",
+                "options": [
+                  "1:1",
+                  "1:N"
+                ],
+                "owner": null,
+                "rid": "l1",
+                "role": "prefilled",
+                "sheet": "02_关系",
+                "value": "1:N"
+              },
+              "primaryKey": {
+                "comment": "",
+                "conflict": false,
+                "expects_prose": false,
+                "field": "primaryKey",
+                "options": null,
+                "owner": null,
+                "rid": "l1",
+                "role": "prefilled",
+                "sheet": "02_关系",
+                "value": ""
+              }
+            },
+            {
+              "cardinality": {
+                "comment": "",
+                "conflict": false,
+                "expects_prose": false,
+                "field": "cardinality",
+                "options": [
+                  "1:1",
+                  "1:N"
+                ],
+                "owner": null,
+                "rid": "l2",
+                "role": "prefilled",
+                "sheet": "02_关系",
+                "value": "1:N"
+              },
+              "primaryKey": {
+                "comment": "",
+                "conflict": false,
+                "expects_prose": false,
+                "field": "primaryKey",
+                "options": null,
+                "owner": null,
+                "rid": "l2",
+                "role": "prefilled",
+                "sheet": "02_关系",
+                "value": ""
+              }
+            }
+          ]
+        },
+        {
+          "columns": [
+            "displayName",
+            "definition"
+          ],
+          "guide": "先填这张",
+          "name": "01_对象清单",
+          "rows": [
+            {
+              "definition": {
+                "comment": "",
+                "conflict": false,
+                "expects_prose": true,
+                "field": "definition",
+                "options": null,
+                "owner": null,
+                "rid": "o1",
+                "role": "required",
+                "sheet": "01_对象清单",
+                "value": ""
+              },
+              "displayName": {
+                "comment": "",
+                "conflict": false,
+                "expects_prose": false,
+                "field": "displayName",
+                "options": null,
+                "owner": null,
+                "rid": "o1",
+                "role": "required",
+                "sheet": "01_对象清单",
+                "value": "采购包"
+              }
+            },
+            {
+              "definition": {
+                "comment": "",
+                "conflict": false,
+                "expects_prose": true,
+                "field": "definition",
+                "options": null,
+                "owner": null,
+                "rid": "o2",
+                "role": "required",
+                "sheet": "01_对象清单",
+                "value": ""
+              },
+              "displayName": {
+                "comment": "",
+                "conflict": false,
+                "expects_prose": false,
+                "field": "displayName",
+                "options": null,
+                "owner": null,
+                "rid": "o2",
+                "role": "required",
+                "sheet": "01_对象清单",
+                "value": "供应商"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "spec_before": {
+      "round": 1,
+      "sheets": [
+        {
+          "columns": [
+            "displayName",
+            "definition"
+          ],
+          "guide": "先填这张",
+          "name": "01_对象清单",
+          "rows": [
+            {
+              "definition": {
+                "comment": "",
+                "conflict": false,
+                "expects_prose": true,
+                "field": "definition",
+                "options": null,
+                "owner": null,
+                "rid": "o1",
+                "role": "required",
+                "sheet": "01_对象清单",
+                "value": ""
+              },
+              "displayName": {
+                "comment": "",
+                "conflict": false,
+                "expects_prose": false,
+                "field": "displayName",
+                "options": null,
+                "owner": null,
+                "rid": "o1",
+                "role": "prefilled",
+                "sheet": "01_对象清单",
+                "value": "采购包"
+              }
+            },
+            {
+              "definition": {
+                "comment": "",
+                "conflict": false,
+                "expects_prose": true,
+                "field": "definition",
+                "options": null,
+                "owner": null,
+                "rid": "o2",
+                "role": "required",
+                "sheet": "01_对象清单",
+                "value": ""
+              },
+              "displayName": {
+                "comment": "",
+                "conflict": false,
+                "expects_prose": false,
+                "field": "displayName",
+                "options": null,
+                "owner": null,
+                "rid": "o2",
+                "role": "prefilled",
+                "sheet": "01_对象清单",
+                "value": "供应商"
+              }
+            }
+          ]
+        },
+        {
+          "columns": [
+            "cardinality",
+            "primaryKey"
+          ],
+          "guide": "",
+          "name": "02_关系",
+          "rows": [
+            {
+              "cardinality": {
+                "comment": "",
+                "conflict": false,
+                "expects_prose": false,
+                "field": "cardinality",
+                "options": [
+                  "1:1",
+                  "1:N",
+                  "N:N"
+                ],
+                "owner": null,
+                "rid": "l1",
+                "role": "prefilled",
+                "sheet": "02_关系",
+                "value": "1:N"
+              },
+              "primaryKey": {
+                "comment": "",
+                "conflict": false,
+                "expects_prose": false,
+                "field": "primaryKey",
+                "options": null,
+                "owner": null,
+                "rid": "l1",
+                "role": "prefilled",
+                "sheet": "02_关系",
+                "value": ""
+              }
+            },
+            {
+              "cardinality": {
+                "comment": "",
+                "conflict": false,
+                "expects_prose": false,
+                "field": "cardinality",
+                "options": [
+                  "1:1",
+                  "1:N",
+                  "N:N"
+                ],
+                "owner": null,
+                "rid": "l2",
+                "role": "prefilled",
+                "sheet": "02_关系",
+                "value": "1:N"
+              },
+              "primaryKey": {
+                "comment": "",
+                "conflict": false,
+                "expects_prose": false,
+                "field": "primaryKey",
+                "options": null,
+                "owner": null,
+                "rid": "l2",
+                "role": "prefilled",
+                "sheet": "02_关系",
+                "value": ""
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "xlsx": {
+    "collide": {
+      "sheetnames": [
+        "报表-明细-2026--第一版 长长长长长长长长长长长长长长长",
+        "报表-明细-2026--第一版 长长长长长长长长长长长长(2)",
+        "报表-明细-2026--第一版 长长长长长长长长长长长长(3)",
+        "说明"
+      ],
+      "sheets": [
+        {
+          "auto_filter": "A1:A2",
+          "cells": [
+            [
+              {
+                "t": "s",
+                "v": "a"
+              }
+            ],
+            [
+              {
+                "t": "s",
+                "v": "1"
+              }
+            ]
+          ],
+          "dimensions": "A1:A2",
+          "freeze_panes": "A2",
+          "max_column": 1,
+          "max_row": 2,
+          "title": "报表-明细-2026--第一版 长长长长长长长长长长长长长长长",
+          "widths": {
+            "A": 10.0
+          }
+        },
+        {
+          "auto_filter": "A1:A2",
+          "cells": [
+            [
+              {
+                "t": "s",
+                "v": "a"
+              }
+            ],
+            [
+              {
+                "t": "s",
+                "v": "2"
+              }
+            ]
+          ],
+          "dimensions": "A1:A2",
+          "freeze_panes": "A2",
+          "max_column": 1,
+          "max_row": 2,
+          "title": "报表-明细-2026--第一版 长长长长长长长长长长长长(2)",
+          "widths": {
+            "A": 10.0
+          }
+        },
+        {
+          "auto_filter": "A1:A2",
+          "cells": [
+            [
+              {
+                "t": "s",
+                "v": "a"
+              }
+            ],
+            [
+              {
+                "t": "s",
+                "v": "3"
+              }
+            ]
+          ],
+          "dimensions": "A1:A2",
+          "freeze_panes": "A2",
+          "max_column": 1,
+          "max_row": 2,
+          "title": "报表-明细-2026--第一版 长长长长长长长长长长长长(3)",
+          "widths": {
+            "A": 10.0
+          }
+        },
+        {
+          "auto_filter": null,
+          "cells": [
+            [
+              {
+                "t": "s",
+                "v": "x"
+              }
+            ],
+            [
+              {
+                "t": "n",
+                "v": null
+              }
+            ],
+            [
+              {
+                "t": "s",
+                "v": "报表/明细[2026]:第一版 长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长"
+              }
+            ],
+            [
+              {
+                "t": "s",
+                "v": "报表/明细[2026]:第一版 长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长"
+              }
+            ],
+            [
+              {
+                "t": "s",
+                "v": "报表/明细[2026]:第一版 长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长"
+              }
+            ]
+          ],
+          "dimensions": "A1:A5",
+          "freeze_panes": null,
+          "max_column": 1,
+          "max_row": 5,
+          "title": "说明",
+          "widths": {
+            "A": 100.0
+          }
+        }
+      ]
+    },
+    "injection": {
+      "sheetnames": [
+        "=1+1 报表",
+        "说明"
+      ],
+      "sheets": [
+        {
+          "auto_filter": "A1:B2",
+          "cells": [
+            [
+              {
+                "t": "s",
+                "v": "=cmd|'/c calc'!A1"
+              },
+              {
+                "t": "s",
+                "v": "正常列"
+              }
+            ],
+            [
+              {
+                "t": "s",
+                "v": "=HYPERLINK(1)"
+              },
+              {
+                "t": "s",
+                "v": "+1"
+              }
+            ]
+          ],
+          "dimensions": "A1:B2",
+          "freeze_panes": "A2",
+          "max_column": 2,
+          "max_row": 2,
+          "title": "=1+1 报表",
+          "widths": {
+            "A": 19.0,
+            "B": 10.0
+          }
+        },
+        {
+          "auto_filter": null,
+          "cells": [
+            [
+              {
+                "t": "s",
+                "v": "=1+1 报表"
+              }
+            ],
+            [
+              {
+                "t": "s",
+                "v": "=2+2"
+              }
+            ],
+            [
+              {
+                "t": "n",
+                "v": null
+              }
+            ],
+            [
+              {
+                "t": "s",
+                "v": "=WEBSERVICE(1)"
+              }
+            ]
+          ],
+          "dimensions": "A1:A4",
+          "freeze_panes": null,
+          "max_column": 1,
+          "max_row": 4,
+          "title": "说明",
+          "widths": {
+            "A": 100.0
+          }
+        }
+      ]
+    },
+    "prose_only": {
+      "sheetnames": [
+        "没有表的一份东西"
+      ],
+      "sheets": [
+        {
+          "auto_filter": null,
+          "cells": [
+            [
+              {
+                "t": "s",
+                "v": "没有表的一份东西"
+              }
+            ],
+            [
+              {
+                "t": "n",
+                "v": null
+              }
+            ],
+            [
+              {
+                "t": "s",
+                "v": "标题"
+              }
+            ],
+            [
+              {
+                "t": "s",
+                "v": "正文一段。"
+              }
+            ],
+            [
+              {
+                "t": "s",
+                "v": "· 列表项"
+              }
+            ],
+            [
+              {
+                "t": "s",
+                "v": "————————————————————"
+              }
+            ]
+          ],
+          "dimensions": "A1:A6",
+          "freeze_panes": null,
+          "max_column": 1,
+          "max_row": 6,
+          "title": "没有表的一份东西",
+          "widths": {
+            "A": 100.0
+          }
+        }
+      ]
+    },
+    "table_doc": {
+      "sheetnames": [
+        "1. 核心实体定位",
+        "说明"
+      ],
+      "sheets": [
+        {
+          "auto_filter": "A1:D4",
+          "cells": [
+            [
+              {
+                "t": "s",
+                "v": "节点"
+              },
+              {
+                "t": "s",
+                "v": "编号"
+              },
+              {
+                "t": "s",
+                "v": "澄清问题"
+              },
+              {
+                "t": "s",
+                "v": "参考选项"
+              }
+            ],
+            [
+              {
+                "t": "s",
+                "v": "（1）编制集采计划"
+              },
+              {
+                "t": "s",
+                "v": "1"
+              },
+              {
+                "t": "s",
+                "v": "什么情况下使用集采？"
+              },
+              {
+                "t": "s",
+                "v": "-"
+              }
+            ],
+            [
+              {
+                "t": "s",
+                "v": "（1）编制集采计划"
+              },
+              {
+                "t": "s",
+                "v": "3"
+              },
+              {
+                "t": "s",
+                "v": "输入栏写了\"无系统节点\""
+              },
+              {
+                "t": "s",
+                "v": "① 全线下 ② 系统里编"
+              }
+            ],
+            [
+              {
+                "t": "s",
+                "v": "（2）审批"
+              },
+              {
+                "t": "s",
+                "v": "4"
+              },
+              {
+                "t": "s",
+                "v": "=SUM(A1) 会不会被当成公式"
+              },
+              {
+                "t": "s",
+                "v": "-"
+              }
+            ]
+          ],
+          "dimensions": "A1:D4",
+          "freeze_panes": "A2",
+          "max_column": 4,
+          "max_row": 4,
+          "title": "1. 核心实体定位",
+          "widths": {
+            "A": 11.0,
+            "B": 10.0,
+            "C": 19.0,
+            "D": 14.0
+          }
+        },
+        {
+          "auto_filter": null,
+          "cells": [
+            [
+              {
+                "t": "s",
+                "v": "采购计划 待澄清问题"
+              }
+            ],
+            [
+              {
+                "t": "s",
+                "v": "共 3 条，由 OntoCopilot 导出"
+              }
+            ],
+            [
+              {
+                "t": "n",
+                "v": null
+              }
+            ],
+            [
+              {
+                "t": "s",
+                "v": "已为您列出 3 条待澄清问题。"
+              }
+            ],
+            [
+              {
+                "t": "s",
+                "v": "1. 核心实体定位"
+              }
+            ],
+            [
+              {
+                "t": "s",
+                "v": "（单据上的每一个字段）"
+              }
+            ],
+            [
+              {
+                "t": "s",
+                "v": "· 字段信息缺失：175 个对象没有字段"
+              }
+            ],
+            [
+              {
+                "t": "s",
+                "v": "  · 需要《字段梳理表》"
+              }
+            ],
+            [
+              {
+                "t": "s",
+                "v": "1. 命名规范不统一"
+              }
+            ],
+            [
+              {
+                "t": "s",
+                "v": "————————————————————"
+              }
+            ],
+            [
+              {
+                "t": "s",
+                "v": "{\"a\": 1, \"b\": [2, 3]}"
+              }
+            ]
+          ],
+          "dimensions": "A1:A11",
+          "freeze_panes": null,
+          "max_column": 1,
+          "max_row": 11,
+          "title": "说明",
+          "widths": {
+            "A": 100.0
+          }
+        }
+      ]
+    },
+    "typed": {
+      "sheetnames": [
+        "类型"
+      ],
+      "sheets": [
+        {
+          "auto_filter": "A1:B7",
+          "cells": [
+            [
+              {
+                "t": "s",
+                "v": "名"
+              },
+              {
+                "t": "s",
+                "v": "值"
+              }
+            ],
+            [
+              {
+                "t": "s",
+                "v": "整数"
+              },
+              {
+                "t": "n",
+                "v": 42
+              }
+            ],
+            [
+              {
+                "t": "s",
+                "v": "小数"
+              },
+              {
+                "t": "n",
+                "v": 3.5
+              }
+            ],
+            [
+              {
+                "t": "s",
+                "v": "真"
+              },
+              {
+                "t": "b",
+                "v": true
+              }
+            ],
+            [
+              {
+                "t": "s",
+                "v": "空"
+              },
+              {
+                "t": "n",
+                "v": null
+              }
+            ],
+            [
+              {
+                "t": "s",
+                "v": "列表"
+              },
+              {
+                "t": "s",
+                "v": "[1, 2]"
+              }
+            ],
+            [
+              {
+                "t": "s",
+                "v": "长文本"
+              },
+              {
+                "t": "s",
+                "v": "长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长"
+              }
+            ]
+          ],
+          "dimensions": "A1:B7",
+          "freeze_panes": "A2",
+          "max_column": 2,
+          "max_row": 7,
+          "title": "类型",
+          "widths": {
+            "A": 10.0,
+            "B": 60.0
+          }
+        }
+      ]
+    }
+  }
+}

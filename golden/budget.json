@@ -1,0 +1,65 @@
+{
+ "ladder": [
+  {
+   "spent_frac": 0.0,
+   "level": 0,
+   "critic_rounds_of_2": 2,
+   "allow_self_consistency": true,
+   "allow_llm_critic": true,
+   "must_halt": false
+  },
+  {
+   "spent_frac": 0.5,
+   "level": 0,
+   "critic_rounds_of_2": 2,
+   "allow_self_consistency": true,
+   "allow_llm_critic": true,
+   "must_halt": false
+  },
+  {
+   "spent_frac": 0.61,
+   "level": 1,
+   "critic_rounds_of_2": 2,
+   "allow_self_consistency": false,
+   "allow_llm_critic": true,
+   "must_halt": false
+  },
+  {
+   "spent_frac": 0.76,
+   "level": 2,
+   "critic_rounds_of_2": 1,
+   "allow_self_consistency": false,
+   "allow_llm_critic": true,
+   "must_halt": false
+  },
+  {
+   "spent_frac": 0.86,
+   "level": 3,
+   "critic_rounds_of_2": 0,
+   "allow_self_consistency": false,
+   "allow_llm_critic": false,
+   "must_halt": false
+  },
+  {
+   "spent_frac": 0.9601,
+   "level": 4,
+   "critic_rounds_of_2": 0,
+   "allow_self_consistency": false,
+   "allow_llm_critic": false,
+   "must_halt": true
+  },
+  {
+   "spent_frac": 1.0,
+   "level": 4,
+   "critic_rounds_of_2": 0,
+   "allow_self_consistency": false,
+   "allow_llm_critic": false,
+   "must_halt": true
+  },
+  {
+   "case": "latch",
+   "after_spend_900": 3,
+   "after_rollback_to_100": 3
+  }
+ ]
+}

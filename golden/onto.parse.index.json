@@ -1,0 +1,3213 @@
+{
+ "registry": {
+  "parsers": [
+   {
+    "kind": "xlsx",
+    "extensions": [
+     ".xlsx",
+     ".xlsm",
+     ".xltx"
+    ]
+   },
+   {
+    "kind": "csv",
+    "extensions": [
+     ".csv",
+     ".tsv"
+    ]
+   },
+   {
+    "kind": "ddl",
+    "extensions": [
+     ".ddl",
+     ".sql"
+    ]
+   },
+   {
+    "kind": "openapi",
+    "extensions": [
+     ".json",
+     ".yaml",
+     ".yml"
+    ]
+   },
+   {
+    "kind": "bpmn",
+    "extensions": [
+     ".bpmn",
+     ".bpmn20.xml"
+    ]
+   },
+   {
+    "kind": "pptx",
+    "extensions": [
+     ".pptx",
+     ".pptm",
+     ".ppsx"
+    ]
+   },
+   {
+    "kind": "docx",
+    "extensions": [
+     ".docx"
+    ]
+   },
+   {
+    "kind": "scan",
+    "extensions": [
+     ".png",
+     ".jpg",
+     ".jpeg",
+     ".webp",
+     ".bmp",
+     ".tif",
+     ".tiff",
+     ".pdf"
+    ]
+   },
+   {
+    "kind": "text",
+    "extensions": [
+     ".md",
+     ".txt",
+     ".markdown",
+     ".rst"
+    ]
+   }
+  ],
+  "fallback": "text",
+  "dispatch": [
+   {
+    "path": "/m/材料.xlsx",
+    "kind": "xlsx"
+   },
+   {
+    "path": "/m/表.XLSX",
+    "kind": "xlsx"
+   },
+   {
+    "path": "/m/清单.xlsm",
+    "kind": "xlsx"
+   },
+   {
+    "path": "/m/清单.xltx",
+    "kind": "xlsx"
+   },
+   {
+    "path": "/m/inventory.csv",
+    "kind": "csv"
+   },
+   {
+    "path": "/m/inventory.tsv",
+    "kind": "csv"
+   },
+   {
+    "path": "/m/schema.ddl",
+    "kind": "ddl"
+   },
+   {
+    "path": "/m/schema.sql",
+    "kind": "ddl"
+   },
+   {
+    "path": "/m/openapi.json",
+    "kind": "openapi"
+   },
+   {
+    "path": "/m/openapi.yaml",
+    "kind": "openapi"
+   },
+   {
+    "path": "/m/openapi.yml",
+    "kind": "openapi"
+   },
+   {
+    "path": "/m/flow.bpmn",
+    "kind": "bpmn"
+   },
+   {
+    "path": "/m/flow.bpmn20.xml",
+    "kind": "bpmn"
+   },
+   {
+    "path": "/m/plain.xml",
+    "kind": "text"
+   },
+   {
+    "path": "/m/deck.pptx",
+    "kind": "pptx"
+   },
+   {
+    "path": "/m/deck.pptm",
+    "kind": "pptx"
+   },
+   {
+    "path": "/m/deck.ppsx",
+    "kind": "pptx"
+   },
+   {
+    "path": "/m/doc.docx",
+    "kind": "docx"
+   },
+   {
+    "path": "/m/scan.png",
+    "kind": "scan"
+   },
+   {
+    "path": "/m/scan.PDF",
+    "kind": "scan"
+   },
+   {
+    "path": "/m/notes.md",
+    "kind": "text"
+   },
+   {
+    "path": "/m/notes.txt",
+    "kind": "text"
+   },
+   {
+    "path": "/m/notes.markdown",
+    "kind": "text"
+   },
+   {
+    "path": "/m/notes.rst",
+    "kind": "text"
+   },
+   {
+    "path": "/m/README",
+    "kind": "text"
+   },
+   {
+    "path": "/m/data.parquet",
+    "kind": "text"
+   },
+   {
+    "path": "/m/说明.中文后缀",
+    "kind": "text"
+   },
+   {
+    "path": "/m/archive.tar.gz",
+    "kind": "text"
+   }
+  ],
+  "no_fallback_errors": [
+   {
+    "path": "/m/data.parquet",
+    "error": "没有能处理 '.parquet' 的解析器，也没有配置兜底解析器"
+   },
+   {
+    "path": "/m/README",
+    "error": "没有能处理 '' 的解析器，也没有配置兜底解析器"
+   },
+   {
+    "path": "/m/说明.中文后缀",
+    "error": "没有能处理 '.中文后缀' 的解析器，也没有配置兜底解析器"
+   }
+  ],
+  "sql_dialect": [
+   {
+    "arg": null,
+    "dialect": null
+   },
+   {
+    "arg": "postgres",
+    "dialect": "postgres"
+   }
+  ],
+  "vision_prefer": [
+   {
+    "arg": "quality",
+    "prefer": "quality"
+   },
+   {
+    "arg": "cost",
+    "prefer": "cost"
+   }
+  ],
+  "vision_gateway_none": true
+ },
+ "corpus": {
+  "materials": [
+   {
+    "name": "材料.xlsx",
+    "from_golden": true,
+    "sha256_b64": "zZcpY5fw5/93Y719LVAP4qZcaxaESZseSC5GP6qXbEI="
+   },
+   {
+    "name": "客户.csv",
+    "from_golden": false,
+    "bytes_b64": "5a6i5oi357yW5Y+3LOWuouaIt+WQjeensCzms6jlhozml6XmnJ8s5L+h55So6aKd5bqmLOeKtuaAgQpDMDAxLOWMl+S6rOa1t+a3gOWVhui0uCwyMDIzLTAxLTE1LDEwMDAwMCzlkK/nlKgKQzAwMizkuIrmtbfmtabkuJzlrp7kuJosMjAyMy0wMi0yMCwyNTAwMDAs5ZCv55SoCkMwMDMs5bm/5bee5aSp5rKz56eR5oqALDIwMjMtMDMtMTEsLOWBnOeUqApDMDA0LOa3seWcs+WNl+WxseeJqea1gSwyMDIzLTA0LTAyLDgwMDAwLOWQr+eUqAo="
+   },
+   {
+    "name": "openapi.json",
+    "from_golden": false,
+    "bytes_b64": "ewogIm9wZW5hcGkiOiAiMy4wLjAiLAogImluZm8iOiB7CiAgInRpdGxlIjogIuWuouaIt+S4reW/gyBBUEkiLAogICJ2ZXJzaW9uIjogIjEuMC4wIgogfSwKICJwYXRocyI6IHsKICAiL2N1c3RvbWVycyI6IHsKICAgImdldCI6IHsKICAgICJzdW1tYXJ5IjogIuafpeivouWuouaIt+WIl+ihqCIsCiAgICAib3BlcmF0aW9uSWQiOiAibGlzdEN1c3RvbWVycyIKICAgfSwKICAgInBvc3QiOiB7CiAgICAic3VtbWFyeSI6ICLmlrDlu7rlrqLmiLciLAogICAgIm9wZXJhdGlvbklkIjogImNyZWF0ZUN1c3RvbWVyIiwKICAgICJyZXF1ZXN0Qm9keSI6IHsKICAgICAiY29udGVudCI6IHsKICAgICAgImFwcGxpY2F0aW9uL2pzb24iOiB7CiAgICAgICAic2NoZW1hIjogewogICAgICAgICIkcmVmIjogIiMvY29tcG9uZW50cy9zY2hlbWFzL0N1c3RvbWVyIgogICAgICAgfQogICAgICB9CiAgICAgfQogICAgfQogICB9CiAgfSwKICAiL2N1c3RvbWVycy97aWR9IjogewogICAiZ2V0IjogewogICAgInN1bW1hcnkiOiAi5p+l6K+i5a6i5oi3IiwKICAgICJvcGVyYXRpb25JZCI6ICJnZXRDdXN0b21lciIKICAgfSwKICAgInB1dCI6IHsKICAgICJzdW1tYXJ5IjogIuabtOaWsOWuouaItyIsCiAgICAib3BlcmF0aW9uSWQiOiAidXBkYXRlQ3VzdG9tZXIiCiAgIH0sCiAgICJkZWxldGUiOiB7CiAgICAic3VtbWFyeSI6ICLlgZznlKjlrqLmiLciLAogICAgIm9wZXJhdGlvbklkIjogImRlbGV0ZUN1c3RvbWVyIgogICB9CiAgfQogfSwKICJjb21wb25lbnRzIjogewogICJzY2hlbWFzIjogewogICAiQ3VzdG9tZXIiOiB7CiAgICAidHlwZSI6ICJvYmplY3QiLAogICAgInJlcXVpcmVkIjogWwogICAgICJjb2RlIiwKICAgICAibmFtZSIKICAgIF0sCiAgICAicHJvcGVydGllcyI6IHsKICAgICAiY29kZSI6IHsKICAgICAgInR5cGUiOiAic3RyaW5nIiwKICAgICAgImRlc2NyaXB0aW9uIjogIuWuouaIt+e8luWPtyIKICAgICB9LAogICAgICJuYW1lIjogewogICAgICAidHlwZSI6ICJzdHJpbmciLAogICAgICAiZGVzY3JpcHRpb24iOiAi5a6i5oi35ZCN56ewIgogICAgIH0sCiAgICAgImNyZWRpdCI6IHsKICAgICAgInR5cGUiOiAibnVtYmVyIiwKICAgICAgImRlc2NyaXB0aW9uIjogIuS/oeeUqOmineW6piIKICAgICB9CiAgICB9CiAgIH0KICB9CiB9Cn0="
+   },
+   {
+    "name": "notes.md",
+    "from_golden": false,
+    "bytes_b64": "IyDlrqLmiLfkuLvmlbDmja7lj6PlvoQKCuWuouaIt+e8luWPt+WFqOWxgOWUr+S4gO+8jOS4gOS4quWuouaIt+iHs+WkmuacieS4gOS4quS4u+i0o+mUgOWUruOAggrkv6HnlKjpop3luqblv4XpobvlpKfkuo7pm7bvvIzlgZznlKjlrqLmiLfkuI3lj4LkuI7pop3luqbmoKHpqozjgIIKCiMjIOeKtuaAgeacugoK5ZCv55SoIOKGkiDlgZznlKgg6ZyA6KaB5a6h5om577yM5YGc55SoIOKGkiDlkK/nlKgg5LiN6ZyA6KaB44CCCg=="
+   },
+   {
+    "name": "data.parquet",
+    "from_golden": false,
+    "bytes_b64": "aWR8bmFtZQoxfOeUsgoyfOS5mQo="
+   }
+  ],
+  "docs": [
+   {
+    "file_id": "f_cd97296397f0",
+    "file_name": "材料.xlsx",
+    "kind": "xlsx",
+    "meta": {
+     "creator": "openpyxl",
+     "modified": "2026-01-01T00:00:00Z"
+    },
+    "structured": {
+     "sheets": [
+      {
+       "name": "业务对象实体梳理",
+       "header_row": 1,
+       "columns": [
+        "应用模块",
+        "业务对象",
+        "实体编码",
+        "实体名称"
+       ],
+       "rows": 7,
+       "profile": {
+        "应用模块": {
+         "name": "应用模块",
+         "count": 7,
+         "non_null": 2,
+         "null_rate": 0.7143,
+         "distinct": 2,
+         "distinct_ratio": 1.0,
+         "unique": true,
+         "inferred_type": "STRING",
+         "samples": [
+          "采购计划管理",
+          "采购订单管理"
+         ]
+        },
+        "业务对象": {
+         "name": "业务对象",
+         "count": 7,
+         "non_null": 2,
+         "null_rate": 0.7143,
+         "distinct": 2,
+         "distinct_ratio": 1.0,
+         "unique": true,
+         "inferred_type": "STRING",
+         "samples": [
+          "采购需求计划",
+          "采购订单"
+         ]
+        },
+        "实体编码": {
+         "name": "实体编码",
+         "count": 7,
+         "non_null": 7,
+         "null_rate": 0.0,
+         "distinct": 7,
+         "distinct_ratio": 1.0,
+         "unique": true,
+         "inferred_type": "STRING",
+         "samples": [
+          "pbpHeader",
+          "pbpLine",
+          "pbpRel",
+          "poHeader",
+          "poLine"
+         ]
+        },
+        "实体名称": {
+         "name": "实体名称",
+         "count": 7,
+         "non_null": 7,
+         "null_rate": 0.0,
+         "distinct": 7,
+         "distinct_ratio": 1.0,
+         "unique": true,
+         "inferred_type": "STRING",
+         "samples": [
+          "采购业务计划头",
+          "采购业务计划行",
+          "采购业务计划头行关系",
+          "采购订单头",
+          "采购订单行"
+         ]
+        }
+       }
+      },
+      {
+       "name": "业务对象API梳理-行动",
+       "header_row": 1,
+       "columns": [
+        "应用模块",
+        "业务对象",
+        "实体编码",
+        "实体名称",
+        "url"
+       ],
+       "rows": 6,
+       "profile": {
+        "应用模块": {
+         "name": "应用模块",
+         "count": 6,
+         "non_null": 2,
+         "null_rate": 0.6667,
+         "distinct": 2,
+         "distinct_ratio": 1.0,
+         "unique": true,
+         "inferred_type": "STRING",
+         "samples": [
+          "采购计划管理",
+          "采购订单管理"
+         ]
+        },
+        "业务对象": {
+         "name": "业务对象",
+         "count": 6,
+         "non_null": 2,
+         "null_rate": 0.6667,
+         "distinct": 2,
+         "distinct_ratio": 1.0,
+         "unique": true,
+         "inferred_type": "STRING",
+         "samples": [
+          "采购需求计划",
+          "采购订单"
+         ]
+        },
+        "实体编码": {
+         "name": "实体编码",
+         "count": 6,
+         "non_null": 6,
+         "null_rate": 0.0,
+         "distinct": 6,
+         "distinct_ratio": 1.0,
+         "unique": true,
+         "inferred_type": "STRING",
+         "samples": [
+          "createPbp",
+          "cancelOpenPbp",
+          "queryOpenPbpHeader",
+          "createPo",
+          "updatePo"
+         ]
+        },
+        "实体名称": {
+         "name": "实体名称",
+         "count": 6,
+         "non_null": 6,
+         "null_rate": 0.0,
+         "distinct": 6,
+         "distinct_ratio": 1.0,
+         "unique": true,
+         "inferred_type": "STRING",
+         "samples": [
+          "创建PBP",
+          "取消PBP",
+          "查询PBP头",
+          "创建采购订单",
+          "修改采购订单"
+         ]
+        },
+        "url": {
+         "name": "url",
+         "count": 6,
+         "non_null": 6,
+         "null_rate": 0.0,
+         "distinct": 6,
+         "distinct_ratio": 1.0,
+         "unique": true,
+         "inferred_type": "STRING",
+         "samples": [
+          "/v1/createPbp",
+          "/v1/cancelPbp",
+          "/v1/queryPbpHeader",
+          "/v1/createPo",
+          "/v1/updatePo"
+         ]
+        }
+       }
+      },
+      {
+       "name": "业务规则",
+       "header_row": 0,
+       "columns": [
+        "col1"
+       ],
+       "rows": 2,
+       "profile": {
+        "col1": {
+         "name": "col1",
+         "count": 2,
+         "non_null": 2,
+         "null_rate": 0.0,
+         "distinct": 2,
+         "distinct_ratio": 1.0,
+         "unique": true,
+         "inferred_type": "STRING",
+         "samples": [
+          "（1）创建采购需求计划：基于已审批集采计划自动注入；\n触发条件：集采计划审批完成；\n输入：已审批集采计划；\n输出：未审批采购需求计划；\n执行者：需求申请人\n（2）审批采购需求计划：对已编制的采购需求计划进行审批；\n触发条件：采购需求计划已编制；\n输入：采购需求计划；\n输出：已审批采购需求计划；\n执行着：部门领导\n（3）取消采购需求计划：执行采购需求计划取消流程；\n触发条件：无需继续采购；\n输入：需求取消；\n输出：已取消采购需求计划；\n执行者：需求申请人",
+          "业务规则：\n1、需进行采购包总金额上线控制，如超出XX金额，则采购包创建失败；\n2、实际与计划基线对比，如提前XX天需要进行预警提醒；\n3、进度状态标准：未开始、执行中、部分完成、已完成、已暂停、已取消；"
+         ]
+        }
+       }
+      }
+     ]
+    },
+    "findings": [
+     {
+      "kind": "metadata_leak",
+      "message": "文档元数据里带着作者与保存路径（creator=openpyxl）。这些不在表格内容里，但对外发布前建议清理，或把项目名换成中性代号。",
+      "locator": {
+       "kind": "meta",
+       "field": "workbook.xml/docProps"
+      },
+      "severity": "warn"
+     },
+     {
+      "kind": "no_header",
+      "message": "「业务规则」没有可识别的表头，已按位置列名处理、正文从第 1 行起",
+      "locator": {
+       "sheet": "业务规则"
+      },
+      "severity": "info"
+     },
+     {
+      "kind": "empty_sheet",
+      "message": "工作表「实体间关系-待梳理」是空的，已跳过",
+      "locator": {
+       "sheet": "实体间关系-待梳理"
+      },
+      "severity": "info"
+     }
+    ],
+    "chunks": [
+     {
+      "chunk_id": "f_cd97296397f0:meta",
+      "file_id": "f_cd97296397f0",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "meta",
+       "field": "workbook.xml/absPath"
+      },
+      "render": "〔文档元数据〕creator=openpyxl",
+      "raw": {
+       "creator": "openpyxl",
+       "modified": "2026-01-01T00:00:00Z"
+      },
+      "order": -1,
+      "tags": [
+       "meta"
+      ],
+      "context": ""
+     },
+     {
+      "chunk_id": "f_cd97296397f0:业务对象实体梳理:schema",
+      "file_id": "f_cd97296397f0",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务对象实体梳理",
+       "rows": [
+        1,
+        1
+       ]
+      },
+      "render": "表「业务对象实体梳理」列：应用模块（STRING，唯一率100%） | 业务对象（STRING，唯一率100%） | 实体编码（STRING，唯一率100%） | 实体名称（STRING，唯一率100%）",
+      "raw": {
+       "应用模块": {
+        "name": "应用模块",
+        "count": 7,
+        "non_null": 2,
+        "null_rate": 0.7143,
+        "distinct": 2,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "采购计划管理",
+         "采购订单管理"
+        ]
+       },
+       "业务对象": {
+        "name": "业务对象",
+        "count": 7,
+        "non_null": 2,
+        "null_rate": 0.7143,
+        "distinct": 2,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "采购需求计划",
+         "采购订单"
+        ]
+       },
+       "实体编码": {
+        "name": "实体编码",
+        "count": 7,
+        "non_null": 7,
+        "null_rate": 0.0,
+        "distinct": 7,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "pbpHeader",
+         "pbpLine",
+         "pbpRel",
+         "poHeader",
+         "poLine"
+        ]
+       },
+       "实体名称": {
+        "name": "实体名称",
+        "count": 7,
+        "non_null": 7,
+        "null_rate": 0.0,
+        "distinct": 7,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "采购业务计划头",
+         "采购业务计划行",
+         "采购业务计划头行关系",
+         "采购订单头",
+         "采购订单行"
+        ]
+       }
+      },
+      "order": 0,
+      "tags": [
+       "schema"
+      ],
+      "context": ""
+     },
+     {
+      "chunk_id": "f_cd97296397f0:业务对象实体梳理:r2",
+      "file_id": "f_cd97296397f0",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务对象实体梳理",
+       "rows": [
+        2,
+        2
+       ]
+      },
+      "render": "应用模块=采购计划管理 | 业务对象=采购需求计划 | 实体编码=pbpHeader | 实体名称=采购业务计划头",
+      "raw": {
+       "应用模块": "采购计划管理",
+       "业务对象": "采购需求计划",
+       "实体编码": "pbpHeader",
+       "实体名称": "采购业务计划头"
+      },
+      "order": 1,
+      "tags": [
+       "row"
+      ],
+      "context": ""
+     },
+     {
+      "chunk_id": "f_cd97296397f0:业务对象实体梳理:r3",
+      "file_id": "f_cd97296397f0",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务对象实体梳理",
+       "rows": [
+        3,
+        3
+       ]
+      },
+      "render": "应用模块=采购计划管理 | 业务对象=采购需求计划 | 实体编码=pbpLine | 实体名称=采购业务计划行",
+      "raw": {
+       "应用模块": "",
+       "业务对象": "",
+       "实体编码": "pbpLine",
+       "实体名称": "采购业务计划行"
+      },
+      "order": 2,
+      "tags": [
+       "row"
+      ],
+      "context": ""
+     },
+     {
+      "chunk_id": "f_cd97296397f0:业务对象实体梳理:r4",
+      "file_id": "f_cd97296397f0",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务对象实体梳理",
+       "rows": [
+        4,
+        4
+       ]
+      },
+      "render": "应用模块=采购计划管理 | 业务对象=采购需求计划 | 实体编码=pbpRel | 实体名称=采购业务计划头行关系",
+      "raw": {
+       "应用模块": "",
+       "业务对象": "",
+       "实体编码": "pbpRel",
+       "实体名称": "采购业务计划头行关系"
+      },
+      "order": 3,
+      "tags": [
+       "row"
+      ],
+      "context": ""
+     },
+     {
+      "chunk_id": "f_cd97296397f0:业务对象实体梳理:r5",
+      "file_id": "f_cd97296397f0",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务对象实体梳理",
+       "rows": [
+        5,
+        5
+       ]
+      },
+      "render": "应用模块=采购订单管理 | 业务对象=采购订单 | 实体编码=poHeader | 实体名称=采购订单头",
+      "raw": {
+       "应用模块": "采购订单管理",
+       "业务对象": "采购订单",
+       "实体编码": "poHeader",
+       "实体名称": "采购订单头"
+      },
+      "order": 4,
+      "tags": [
+       "row"
+      ],
+      "context": ""
+     },
+     {
+      "chunk_id": "f_cd97296397f0:业务对象实体梳理:r6",
+      "file_id": "f_cd97296397f0",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务对象实体梳理",
+       "rows": [
+        6,
+        6
+       ]
+      },
+      "render": "应用模块=采购订单管理 | 业务对象=采购订单 | 实体编码=poLine | 实体名称=采购订单行",
+      "raw": {
+       "应用模块": "",
+       "业务对象": "",
+       "实体编码": "poLine",
+       "实体名称": "采购订单行"
+      },
+      "order": 5,
+      "tags": [
+       "row"
+      ],
+      "context": ""
+     },
+     {
+      "chunk_id": "f_cd97296397f0:业务对象实体梳理:r7",
+      "file_id": "f_cd97296397f0",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务对象实体梳理",
+       "rows": [
+        7,
+        7
+       ]
+      },
+      "render": "应用模块=采购订单管理 | 业务对象=采购订单 | 实体编码=poTaxLine | 实体名称=采购订单税行",
+      "raw": {
+       "应用模块": "",
+       "业务对象": "",
+       "实体编码": "poTaxLine",
+       "实体名称": "采购订单税行"
+      },
+      "order": 6,
+      "tags": [
+       "row"
+      ],
+      "context": ""
+     },
+     {
+      "chunk_id": "f_cd97296397f0:业务对象实体梳理:r8",
+      "file_id": "f_cd97296397f0",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务对象实体梳理",
+       "rows": [
+        8,
+        8
+       ]
+      },
+      "render": "应用模块=采购订单管理 | 业务对象=采购订单 | 实体编码=poActionLog | 实体名称=采购订单操作日志",
+      "raw": {
+       "应用模块": "",
+       "业务对象": "",
+       "实体编码": "poActionLog",
+       "实体名称": "采购订单操作日志"
+      },
+      "order": 7,
+      "tags": [
+       "row"
+      ],
+      "context": ""
+     },
+     {
+      "chunk_id": "f_cd97296397f0:业务对象API梳理-行动:schema",
+      "file_id": "f_cd97296397f0",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务对象API梳理-行动",
+       "rows": [
+        1,
+        1
+       ]
+      },
+      "render": "表「业务对象API梳理-行动」列：应用模块（STRING，唯一率100%） | 业务对象（STRING，唯一率100%） | 实体编码（STRING，唯一率100%） | 实体名称（STRING，唯一率100%） | url（STRING，唯一率100%）",
+      "raw": {
+       "应用模块": {
+        "name": "应用模块",
+        "count": 6,
+        "non_null": 2,
+        "null_rate": 0.6667,
+        "distinct": 2,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "采购计划管理",
+         "采购订单管理"
+        ]
+       },
+       "业务对象": {
+        "name": "业务对象",
+        "count": 6,
+        "non_null": 2,
+        "null_rate": 0.6667,
+        "distinct": 2,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "采购需求计划",
+         "采购订单"
+        ]
+       },
+       "实体编码": {
+        "name": "实体编码",
+        "count": 6,
+        "non_null": 6,
+        "null_rate": 0.0,
+        "distinct": 6,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "createPbp",
+         "cancelOpenPbp",
+         "queryOpenPbpHeader",
+         "createPo",
+         "updatePo"
+        ]
+       },
+       "实体名称": {
+        "name": "实体名称",
+        "count": 6,
+        "non_null": 6,
+        "null_rate": 0.0,
+        "distinct": 6,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "创建PBP",
+         "取消PBP",
+         "查询PBP头",
+         "创建采购订单",
+         "修改采购订单"
+        ]
+       },
+       "url": {
+        "name": "url",
+        "count": 6,
+        "non_null": 6,
+        "null_rate": 0.0,
+        "distinct": 6,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "/v1/createPbp",
+         "/v1/cancelPbp",
+         "/v1/queryPbpHeader",
+         "/v1/createPo",
+         "/v1/updatePo"
+        ]
+       }
+      },
+      "order": 8,
+      "tags": [
+       "schema"
+      ],
+      "context": ""
+     },
+     {
+      "chunk_id": "f_cd97296397f0:业务对象API梳理-行动:r2",
+      "file_id": "f_cd97296397f0",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务对象API梳理-行动",
+       "rows": [
+        2,
+        2
+       ]
+      },
+      "render": "应用模块=采购计划管理 | 业务对象=采购需求计划 | 实体编码=createPbp | 实体名称=创建PBP | url=/v1/createPbp",
+      "raw": {
+       "应用模块": "采购计划管理",
+       "业务对象": "采购需求计划",
+       "实体编码": "createPbp",
+       "实体名称": "创建PBP",
+       "url": "/v1/createPbp"
+      },
+      "order": 9,
+      "tags": [
+       "row"
+      ],
+      "context": ""
+     },
+     {
+      "chunk_id": "f_cd97296397f0:业务对象API梳理-行动:r3",
+      "file_id": "f_cd97296397f0",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务对象API梳理-行动",
+       "rows": [
+        3,
+        3
+       ]
+      },
+      "render": "应用模块=采购计划管理 | 业务对象=采购需求计划 | 实体编码=cancelOpenPbp | 实体名称=取消PBP | url=/v1/cancelPbp",
+      "raw": {
+       "应用模块": "",
+       "业务对象": "",
+       "实体编码": "cancelOpenPbp",
+       "实体名称": "取消PBP",
+       "url": "/v1/cancelPbp"
+      },
+      "order": 10,
+      "tags": [
+       "row"
+      ],
+      "context": ""
+     },
+     {
+      "chunk_id": "f_cd97296397f0:业务对象API梳理-行动:r4",
+      "file_id": "f_cd97296397f0",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务对象API梳理-行动",
+       "rows": [
+        4,
+        4
+       ]
+      },
+      "render": "应用模块=采购计划管理 | 业务对象=采购需求计划 | 实体编码=queryOpenPbpHeader | 实体名称=查询PBP头 | url=/v1/queryPbpHeader",
+      "raw": {
+       "应用模块": "",
+       "业务对象": "",
+       "实体编码": "queryOpenPbpHeader",
+       "实体名称": "查询PBP头",
+       "url": "/v1/queryPbpHeader"
+      },
+      "order": 11,
+      "tags": [
+       "row"
+      ],
+      "context": ""
+     },
+     {
+      "chunk_id": "f_cd97296397f0:业务对象API梳理-行动:r5",
+      "file_id": "f_cd97296397f0",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务对象API梳理-行动",
+       "rows": [
+        5,
+        5
+       ]
+      },
+      "render": "应用模块=采购订单管理 | 业务对象=采购订单 | 实体编码=createPo | 实体名称=创建采购订单 | url=/v1/createPo",
+      "raw": {
+       "应用模块": "采购订单管理",
+       "业务对象": "采购订单",
+       "实体编码": "createPo",
+       "实体名称": "创建采购订单",
+       "url": "/v1/createPo"
+      },
+      "order": 12,
+      "tags": [
+       "row"
+      ],
+      "context": ""
+     },
+     {
+      "chunk_id": "f_cd97296397f0:业务对象API梳理-行动:r6",
+      "file_id": "f_cd97296397f0",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务对象API梳理-行动",
+       "rows": [
+        6,
+        6
+       ]
+      },
+      "render": "应用模块=采购订单管理 | 业务对象=采购订单 | 实体编码=updatePo | 实体名称=修改采购订单 | url=/v1/updatePo",
+      "raw": {
+       "应用模块": "",
+       "业务对象": "",
+       "实体编码": "updatePo",
+       "实体名称": "修改采购订单",
+       "url": "/v1/updatePo"
+      },
+      "order": 13,
+      "tags": [
+       "row"
+      ],
+      "context": ""
+     },
+     {
+      "chunk_id": "f_cd97296397f0:业务对象API梳理-行动:r7",
+      "file_id": "f_cd97296397f0",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务对象API梳理-行动",
+       "rows": [
+        7,
+        7
+       ]
+      },
+      "render": "应用模块=采购订单管理 | 业务对象=采购订单 | 实体编码=queryPoHeader | 实体名称=查询采购订单头 | url=/v1/queryPoHeader",
+      "raw": {
+       "应用模块": "",
+       "业务对象": "",
+       "实体编码": "queryPoHeader",
+       "实体名称": "查询采购订单头",
+       "url": "/v1/queryPoHeader"
+      },
+      "order": 14,
+      "tags": [
+       "row"
+      ],
+      "context": ""
+     },
+     {
+      "chunk_id": "f_cd97296397f0:业务规则:schema",
+      "file_id": "f_cd97296397f0",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务规则",
+       "rows": [
+        0,
+        0
+       ]
+      },
+      "render": "表「业务规则」列：col1（STRING，唯一率100%）",
+      "raw": {
+       "col1": {
+        "name": "col1",
+        "count": 2,
+        "non_null": 2,
+        "null_rate": 0.0,
+        "distinct": 2,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "（1）创建采购需求计划：基于已审批集采计划自动注入；\n触发条件：集采计划审批完成；\n输入：已审批集采计划；\n输出：未审批采购需求计划；\n执行者：需求申请人\n（2）审批采购需求计划：对已编制的采购需求计划进行审批；\n触发条件：采购需求计划已编制；\n输入：采购需求计划；\n输出：已审批采购需求计划；\n执行着：部门领导\n（3）取消采购需求计划：执行采购需求计划取消流程；\n触发条件：无需继续采购；\n输入：需求取消；\n输出：已取消采购需求计划；\n执行者：需求申请人",
+         "业务规则：\n1、需进行采购包总金额上线控制，如超出XX金额，则采购包创建失败；\n2、实际与计划基线对比，如提前XX天需要进行预警提醒；\n3、进度状态标准：未开始、执行中、部分完成、已完成、已暂停、已取消；"
+        ]
+       }
+      },
+      "order": 15,
+      "tags": [
+       "schema"
+      ],
+      "context": ""
+     },
+     {
+      "chunk_id": "f_cd97296397f0:业务规则:r1",
+      "file_id": "f_cd97296397f0",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务规则",
+       "rows": [
+        1,
+        1
+       ]
+      },
+      "render": "col1=（1）创建采购需求计划：基于已审批集采计划自动注入；\n触发条件：集采计划审批完成；\n输入：已审批集采计划；\n输出：未审批采购需求计划；\n执行者：需求申请人\n（2）审批采购需求计划：对已编制的采购需求计划进行审批；\n触发条件：采购需求计划已编制；\n输入：采购需求计划；\n输出：已审批采购需求计划；\n执行着：部门领导\n（3）取消采购需求计划：执行采购需求计划取消流程；\n触发条件：无需继续采购；\n输入：需求取消；\n输出：已取消采购需求计划；\n执行者：需求申请人",
+      "raw": {
+       "col1": "（1）创建采购需求计划：基于已审批集采计划自动注入；\n触发条件：集采计划审批完成；\n输入：已审批集采计划；\n输出：未审批采购需求计划；\n执行者：需求申请人\n（2）审批采购需求计划：对已编制的采购需求计划进行审批；\n触发条件：采购需求计划已编制；\n输入：采购需求计划；\n输出：已审批采购需求计划；\n执行着：部门领导\n（3）取消采购需求计划：执行采购需求计划取消流程；\n触发条件：无需继续采购；\n输入：需求取消；\n输出：已取消采购需求计划；\n执行者：需求申请人"
+      },
+      "order": 16,
+      "tags": [
+       "row"
+      ],
+      "context": ""
+     },
+     {
+      "chunk_id": "f_cd97296397f0:业务规则:r2",
+      "file_id": "f_cd97296397f0",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务规则",
+       "rows": [
+        2,
+        2
+       ]
+      },
+      "render": "col1=业务规则：\n1、需进行采购包总金额上线控制，如超出XX金额，则采购包创建失败；\n2、实际与计划基线对比，如提前XX天需要进行预警提醒；\n3、进度状态标准：未开始、执行中、部分完成、已完成、已暂停、已取消；",
+      "raw": {
+       "col1": "业务规则：\n1、需进行采购包总金额上线控制，如超出XX金额，则采购包创建失败；\n2、实际与计划基线对比，如提前XX天需要进行预警提醒；\n3、进度状态标准：未开始、执行中、部分完成、已完成、已暂停、已取消；"
+      },
+      "order": 17,
+      "tags": [
+       "row"
+      ],
+      "context": ""
+     }
+    ],
+    "stats": {
+     "file": "材料.xlsx",
+     "kind": "xlsx",
+     "chunks": 19,
+     "findings": 3,
+     "sheets": 3
+    }
+   },
+   {
+    "file_id": "f_277ec02b8271",
+    "file_name": "客户.csv",
+    "kind": "csv",
+    "meta": {},
+    "structured": {
+     "columns": [
+      "客户编号",
+      "客户名称",
+      "注册日期",
+      "信用额度",
+      "状态"
+     ],
+     "rows": 4,
+     "delimiter": ",",
+     "profile": {
+      "客户编号": {
+       "name": "客户编号",
+       "count": 4,
+       "non_null": 4,
+       "null_rate": 0.0,
+       "distinct": 4,
+       "distinct_ratio": 1.0,
+       "unique": true,
+       "inferred_type": "STRING",
+       "samples": [
+        "C001",
+        "C002",
+        "C003",
+        "C004"
+       ]
+      },
+      "客户名称": {
+       "name": "客户名称",
+       "count": 4,
+       "non_null": 4,
+       "null_rate": 0.0,
+       "distinct": 4,
+       "distinct_ratio": 1.0,
+       "unique": true,
+       "inferred_type": "STRING",
+       "samples": [
+        "北京海淀商贸",
+        "上海浦东实业",
+        "广州天河科技",
+        "深圳南山物流"
+       ]
+      },
+      "注册日期": {
+       "name": "注册日期",
+       "count": 4,
+       "non_null": 4,
+       "null_rate": 0.0,
+       "distinct": 4,
+       "distinct_ratio": 1.0,
+       "unique": true,
+       "inferred_type": "DATE",
+       "samples": [
+        "2023-01-15",
+        "2023-02-20",
+        "2023-03-11",
+        "2023-04-02"
+       ]
+      },
+      "信用额度": {
+       "name": "信用额度",
+       "count": 4,
+       "non_null": 3,
+       "null_rate": 0.25,
+       "distinct": 3,
+       "distinct_ratio": 1.0,
+       "unique": true,
+       "inferred_type": "INTEGER",
+       "samples": [
+        "100000",
+        "250000",
+        "80000"
+       ]
+      },
+      "状态": {
+       "name": "状态",
+       "count": 4,
+       "non_null": 4,
+       "null_rate": 0.0,
+       "distinct": 2,
+       "distinct_ratio": 0.5,
+       "unique": false,
+       "inferred_type": "STRING",
+       "samples": [
+        "启用",
+        "停用"
+       ]
+      }
+     }
+    },
+    "findings": [],
+    "chunks": [
+     {
+      "chunk_id": "f_277ec02b8271:schema",
+      "file_id": "f_277ec02b8271",
+      "file_name": "客户.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "客户",
+       "rows": [
+        1,
+        1
+       ]
+      },
+      "render": "列：客户编号(STRING，唯一率100%，空值率0%) | 客户名称(STRING，唯一率100%，空值率0%) | 注册日期(DATE，唯一率100%，空值率0%) | 信用额度(INTEGER，唯一率100%，空值率25%) | 状态(STRING，唯一率50%，空值率0%)",
+      "raw": {
+       "客户编号": {
+        "name": "客户编号",
+        "count": 4,
+        "non_null": 4,
+        "null_rate": 0.0,
+        "distinct": 4,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "C001",
+         "C002",
+         "C003",
+         "C004"
+        ]
+       },
+       "客户名称": {
+        "name": "客户名称",
+        "count": 4,
+        "non_null": 4,
+        "null_rate": 0.0,
+        "distinct": 4,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "北京海淀商贸",
+         "上海浦东实业",
+         "广州天河科技",
+         "深圳南山物流"
+        ]
+       },
+       "注册日期": {
+        "name": "注册日期",
+        "count": 4,
+        "non_null": 4,
+        "null_rate": 0.0,
+        "distinct": 4,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "DATE",
+        "samples": [
+         "2023-01-15",
+         "2023-02-20",
+         "2023-03-11",
+         "2023-04-02"
+        ]
+       },
+       "信用额度": {
+        "name": "信用额度",
+        "count": 4,
+        "non_null": 3,
+        "null_rate": 0.25,
+        "distinct": 3,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "INTEGER",
+        "samples": [
+         "100000",
+         "250000",
+         "80000"
+        ]
+       },
+       "状态": {
+        "name": "状态",
+        "count": 4,
+        "non_null": 4,
+        "null_rate": 0.0,
+        "distinct": 2,
+        "distinct_ratio": 0.5,
+        "unique": false,
+        "inferred_type": "STRING",
+        "samples": [
+         "启用",
+         "停用"
+        ]
+       }
+      },
+      "order": 0,
+      "tags": [
+       "schema"
+      ],
+      "context": ""
+     },
+     {
+      "chunk_id": "f_277ec02b8271:r2",
+      "file_id": "f_277ec02b8271",
+      "file_name": "客户.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "客户",
+       "rows": [
+        2,
+        2
+       ]
+      },
+      "render": "客户编号=C001 | 客户名称=北京海淀商贸 | 注册日期=2023-01-15 | 信用额度=100000 | 状态=启用",
+      "raw": null,
+      "order": 1,
+      "tags": [
+       "sample"
+      ],
+      "context": ""
+     },
+     {
+      "chunk_id": "f_277ec02b8271:r3",
+      "file_id": "f_277ec02b8271",
+      "file_name": "客户.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "客户",
+       "rows": [
+        3,
+        3
+       ]
+      },
+      "render": "客户编号=C002 | 客户名称=上海浦东实业 | 注册日期=2023-02-20 | 信用额度=250000 | 状态=启用",
+      "raw": null,
+      "order": 2,
+      "tags": [
+       "sample"
+      ],
+      "context": ""
+     },
+     {
+      "chunk_id": "f_277ec02b8271:r4",
+      "file_id": "f_277ec02b8271",
+      "file_name": "客户.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "客户",
+       "rows": [
+        4,
+        4
+       ]
+      },
+      "render": "客户编号=C003 | 客户名称=广州天河科技 | 注册日期=2023-03-11 | 状态=停用",
+      "raw": null,
+      "order": 3,
+      "tags": [
+       "sample"
+      ],
+      "context": ""
+     },
+     {
+      "chunk_id": "f_277ec02b8271:r5",
+      "file_id": "f_277ec02b8271",
+      "file_name": "客户.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "客户",
+       "rows": [
+        5,
+        5
+       ]
+      },
+      "render": "客户编号=C004 | 客户名称=深圳南山物流 | 注册日期=2023-04-02 | 信用额度=80000 | 状态=启用",
+      "raw": null,
+      "order": 4,
+      "tags": [
+       "sample"
+      ],
+      "context": ""
+     }
+    ],
+    "stats": {
+     "file": "客户.csv",
+     "kind": "csv",
+     "chunks": 5,
+     "findings": 0,
+     "columns": 5,
+     "rows": 4,
+     "delimiter": ",",
+     "profile": 5
+    }
+   },
+   {
+    "file_id": "f_db649c21c23f",
+    "file_name": "openapi.json",
+    "kind": "openapi",
+    "meta": {},
+    "structured": {
+     "endpoints": [
+      {
+       "operationId": "listCustomers",
+       "method": "get",
+       "path": "/customers",
+       "write": false,
+       "summary": "查询客户列表",
+       "tags": [],
+       "request_schema": null,
+       "file_id": "f_db649c21c23f",
+       "file_name": "openapi.json",
+       "pointer": "$.paths./customers.get"
+      },
+      {
+       "operationId": "createCustomer",
+       "method": "post",
+       "path": "/customers",
+       "write": true,
+       "summary": "新建客户",
+       "tags": [],
+       "request_schema": "Customer",
+       "file_id": "f_db649c21c23f",
+       "file_name": "openapi.json",
+       "pointer": "$.paths./customers.post"
+      },
+      {
+       "operationId": "getCustomer",
+       "method": "get",
+       "path": "/customers/{id}",
+       "write": false,
+       "summary": "查询客户",
+       "tags": [],
+       "request_schema": null,
+       "file_id": "f_db649c21c23f",
+       "file_name": "openapi.json",
+       "pointer": "$.paths./customers/{id}.get"
+      },
+      {
+       "operationId": "updateCustomer",
+       "method": "put",
+       "path": "/customers/{id}",
+       "write": true,
+       "summary": "更新客户",
+       "tags": [],
+       "request_schema": null,
+       "file_id": "f_db649c21c23f",
+       "file_name": "openapi.json",
+       "pointer": "$.paths./customers/{id}.put"
+      },
+      {
+       "operationId": "deleteCustomer",
+       "method": "delete",
+       "path": "/customers/{id}",
+       "write": true,
+       "summary": "停用客户",
+       "tags": [],
+       "request_schema": null,
+       "file_id": "f_db649c21c23f",
+       "file_name": "openapi.json",
+       "pointer": "$.paths./customers/{id}.delete"
+      }
+     ],
+     "schemas": {
+      "Customer": {
+       "name": "Customer",
+       "description": "",
+       "properties": {
+        "code": {
+         "base_type": "STRING",
+         "required": true,
+         "description": "客户编号",
+         "enum": null,
+         "format": null
+        },
+        "name": {
+         "base_type": "STRING",
+         "required": true,
+         "description": "客户名称",
+         "enum": null,
+         "format": null
+        },
+        "credit": {
+         "base_type": "DECIMAL",
+         "required": false,
+         "description": "信用额度",
+         "enum": null,
+         "format": null
+        }
+       }
+      }
+     },
+     "title": "客户中心 API"
+    },
+    "findings": [],
+    "chunks": [
+     {
+      "chunk_id": "f_db649c21c23f:ep0",
+      "file_id": "f_db649c21c23f",
+      "file_name": "openapi.json",
+      "locator": {
+       "kind": "json",
+       "pointer": "$.paths./customers.get"
+      },
+      "render": "GET /customers  operationId=listCustomers　〔读操作〕 查询客户列表",
+      "raw": {
+       "operationId": "listCustomers",
+       "method": "get",
+       "path": "/customers",
+       "write": false,
+       "summary": "查询客户列表",
+       "tags": [],
+       "request_schema": null,
+       "file_id": "f_db649c21c23f",
+       "file_name": "openapi.json",
+       "pointer": "$.paths./customers.get"
+      },
+      "order": 0,
+      "tags": [
+       "endpoint",
+       "read"
+      ],
+      "context": ""
+     },
+     {
+      "chunk_id": "f_db649c21c23f:ep1",
+      "file_id": "f_db649c21c23f",
+      "file_name": "openapi.json",
+      "locator": {
+       "kind": "json",
+       "pointer": "$.paths./customers.post"
+      },
+      "render": "POST /customers  operationId=createCustomer　〔写操作，可反推 ActionType〕 新建客户",
+      "raw": {
+       "operationId": "createCustomer",
+       "method": "post",
+       "path": "/customers",
+       "write": true,
+       "summary": "新建客户",
+       "tags": [],
+       "request_schema": "Customer",
+       "file_id": "f_db649c21c23f",
+       "file_name": "openapi.json",
+       "pointer": "$.paths./customers.post"
+      },
+      "order": 1,
+      "tags": [
+       "endpoint",
+       "write"
+      ],
+      "context": ""
+     },
+     {
+      "chunk_id": "f_db649c21c23f:eplink2",
+      "file_id": "f_db649c21c23f",
+      "file_name": "openapi.json",
+      "locator": {
+       "kind": "json",
+       "pointer": "$.paths./customers.post"
+      },
+      "render": "createCustomer → Customer（请求体，引用该 schema）",
+      "raw": {
+       "from": "createCustomer",
+       "to": "Customer"
+      },
+      "order": 2,
+      "tags": [
+       "link",
+       "relation"
+      ],
+      "context": ""
+     },
+     {
+      "chunk_id": "f_db649c21c23f:ep3",
+      "file_id": "f_db649c21c23f",
+      "file_name": "openapi.json",
+      "locator": {
+       "kind": "json",
+       "pointer": "$.paths./customers/{id}.get"
+      },
+      "render": "GET /customers/{id}  operationId=getCustomer　〔读操作〕 查询客户",
+      "raw": {
+       "operationId": "getCustomer",
+       "method": "get",
+       "path": "/customers/{id}",
+       "write": false,
+       "summary": "查询客户",
+       "tags": [],
+       "request_schema": null,
+       "file_id": "f_db649c21c23f",
+       "file_name": "openapi.json",
+       "pointer": "$.paths./customers/{id}.get"
+      },
+      "order": 3,
+      "tags": [
+       "endpoint",
+       "read"
+      ],
+      "context": ""
+     },
+     {
+      "chunk_id": "f_db649c21c23f:ep4",
+      "file_id": "f_db649c21c23f",
+      "file_name": "openapi.json",
+      "locator": {
+       "kind": "json",
+       "pointer": "$.paths./customers/{id}.put"
+      },
+      "render": "PUT /customers/{id}  operationId=updateCustomer　〔写操作，可反推 ActionType〕 更新客户",
+      "raw": {
+       "operationId": "updateCustomer",
+       "method": "put",
+       "path": "/customers/{id}",
+       "write": true,
+       "summary": "更新客户",
+       "tags": [],
+       "request_schema": null,
+       "file_id": "f_db649c21c23f",
+       "file_name": "openapi.json",
+       "pointer": "$.paths./customers/{id}.put"
+      },
+      "order": 4,
+      "tags": [
+       "endpoint",
+       "write"
+      ],
+      "context": ""
+     },
+     {
+      "chunk_id": "f_db649c21c23f:ep5",
+      "file_id": "f_db649c21c23f",
+      "file_name": "openapi.json",
+      "locator": {
+       "kind": "json",
+       "pointer": "$.paths./customers/{id}.delete"
+      },
+      "render": "DELETE /customers/{id}  operationId=deleteCustomer　〔写操作，可反推 ActionType〕 停用客户",
+      "raw": {
+       "operationId": "deleteCustomer",
+       "method": "delete",
+       "path": "/customers/{id}",
+       "write": true,
+       "summary": "停用客户",
+       "tags": [],
+       "request_schema": null,
+       "file_id": "f_db649c21c23f",
+       "file_name": "openapi.json",
+       "pointer": "$.paths./customers/{id}.delete"
+      },
+      "order": 5,
+      "tags": [
+       "endpoint",
+       "write"
+      ],
+      "context": ""
+     },
+     {
+      "chunk_id": "f_db649c21c23f:schema:Customer",
+      "file_id": "f_db649c21c23f",
+      "file_name": "openapi.json",
+      "locator": {
+       "kind": "json",
+       "pointer": "$.components.schemas.Customer"
+      },
+      "render": "schema Customer：code:STRING*（客户编号）、name:STRING*（客户名称）、credit:DECIMAL（信用额度）",
+      "raw": {
+       "name": "Customer",
+       "description": "",
+       "properties": {
+        "code": {
+         "base_type": "STRING",
+         "required": true,
+         "description": "客户编号",
+         "enum": null,
+         "format": null
+        },
+        "name": {
+         "base_type": "STRING",
+         "required": true,
+         "description": "客户名称",
+         "enum": null,
+         "format": null
+        },
+        "credit": {
+         "base_type": "DECIMAL",
+         "required": false,
+         "description": "信用额度",
+         "enum": null,
+         "format": null
+        }
+       }
+      },
+      "order": 6,
+      "tags": [
+       "schema"
+      ],
+      "context": ""
+     }
+    ],
+    "stats": {
+     "file": "openapi.json",
+     "kind": "openapi",
+     "chunks": 7,
+     "findings": 0,
+     "endpoints": 5,
+     "schemas": 1,
+     "title": "客户中心 API"
+    }
+   },
+   {
+    "file_id": "f_bbc40e8ddae7",
+    "file_name": "notes.md",
+    "kind": "text",
+    "meta": {},
+    "structured": {
+     "sections": 2,
+     "chars": 93
+    },
+    "findings": [],
+    "chunks": [
+     {
+      "chunk_id": "f_bbc40e8ddae7:s0",
+      "file_id": "f_bbc40e8ddae7",
+      "file_name": "notes.md",
+      "locator": {
+       "kind": "page",
+       "page": 1,
+       "bbox": [
+        0,
+        0,
+        0,
+        0
+       ],
+       "section": "# 客户主数据口径"
+      },
+      "render": "〔# 客户主数据口径〕\n# 客户主数据口径\n\n客户编号全局唯一，一个客户至多有一个主责销售。\n信用额度必须大于零，停用客户不参与额度校验。",
+      "raw": null,
+      "order": 0,
+      "tags": [
+       "para",
+       "rule"
+      ],
+      "context": ""
+     },
+     {
+      "chunk_id": "f_bbc40e8ddae7:s1",
+      "file_id": "f_bbc40e8ddae7",
+      "file_name": "notes.md",
+      "locator": {
+       "kind": "page",
+       "page": 1,
+       "bbox": [
+        0,
+        0,
+        0,
+        0
+       ],
+       "section": "## 状态机"
+      },
+      "render": "〔## 状态机〕\n## 状态机\n\n启用 → 停用 需要审批，停用 → 启用 不需要。",
+      "raw": null,
+      "order": 1,
+      "tags": [
+       "para",
+       "rule"
+      ],
+      "context": ""
+     }
+    ],
+    "stats": {
+     "file": "notes.md",
+     "kind": "text",
+     "chunks": 2,
+     "findings": 0,
+     "sections": 2,
+     "chars": 93
+    }
+   },
+   {
+    "file_id": "f_1e14963e8241",
+    "file_name": "data.parquet",
+    "kind": "text",
+    "meta": {},
+    "structured": {
+     "sections": 1,
+     "chars": 16
+    },
+    "findings": [],
+    "chunks": [
+     {
+      "chunk_id": "f_1e14963e8241:s0",
+      "file_id": "f_1e14963e8241",
+      "file_name": "data.parquet",
+      "locator": {
+       "kind": "page",
+       "page": 1,
+       "bbox": [
+        0,
+        0,
+        0,
+        0
+       ],
+       "section": "§1"
+      },
+      "render": "id|name\n1|甲\n2|乙",
+      "raw": null,
+      "order": 0,
+      "tags": [
+       "para"
+      ],
+      "context": ""
+     }
+    ],
+    "stats": {
+     "file": "data.parquet",
+     "kind": "text",
+     "chunks": 1,
+     "findings": 0,
+     "sections": 1,
+     "chars": 16
+    }
+   }
+  ],
+  "summary": {
+   "files": [
+    {
+     "file": "材料.xlsx",
+     "kind": "xlsx",
+     "chunks": 19,
+     "findings": 3,
+     "sheets": 3
+    },
+    {
+     "file": "客户.csv",
+     "kind": "csv",
+     "chunks": 5,
+     "findings": 0,
+     "columns": 5,
+     "rows": 4,
+     "delimiter": ",",
+     "profile": 5
+    },
+    {
+     "file": "openapi.json",
+     "kind": "openapi",
+     "chunks": 7,
+     "findings": 0,
+     "endpoints": 5,
+     "schemas": 1,
+     "title": "客户中心 API"
+    },
+    {
+     "file": "notes.md",
+     "kind": "text",
+     "chunks": 2,
+     "findings": 0,
+     "sections": 2,
+     "chars": 93
+    },
+    {
+     "file": "data.parquet",
+     "kind": "text",
+     "chunks": 1,
+     "findings": 0,
+     "sections": 1,
+     "chars": 16
+    }
+   ],
+   "chunks": 34,
+   "findings": [
+    {
+     "file": "材料.xlsx",
+     "kind": "metadata_leak",
+     "severity": "warn",
+     "message": "文档元数据里带着作者与保存路径（creator=openpyxl）。这些不在表格内容里，但对外发布前建议清理，或把项目名换成中性代号。",
+     "locator": {
+      "kind": "meta",
+      "field": "workbook.xml/docProps"
+     }
+    },
+    {
+     "file": "材料.xlsx",
+     "kind": "no_header",
+     "severity": "info",
+     "message": "「业务规则」没有可识别的表头，已按位置列名处理、正文从第 1 行起",
+     "locator": {
+      "sheet": "业务规则"
+     }
+    },
+    {
+     "file": "材料.xlsx",
+     "kind": "empty_sheet",
+     "severity": "info",
+     "message": "工作表「实体间关系-待梳理」是空的，已跳过",
+     "locator": {
+      "sheet": "实体间关系-待梳理"
+     }
+    }
+   ]
+  },
+  "profiles": {
+   "业务对象实体梳理.应用模块": {
+    "name": "应用模块",
+    "count": 7,
+    "non_null": 2,
+    "null_rate": 0.7143,
+    "distinct": 2,
+    "distinct_ratio": 1.0,
+    "unique": true,
+    "inferred_type": "STRING",
+    "samples": [
+     "采购计划管理",
+     "采购订单管理"
+    ]
+   },
+   "业务对象实体梳理.业务对象": {
+    "name": "业务对象",
+    "count": 7,
+    "non_null": 2,
+    "null_rate": 0.7143,
+    "distinct": 2,
+    "distinct_ratio": 1.0,
+    "unique": true,
+    "inferred_type": "STRING",
+    "samples": [
+     "采购需求计划",
+     "采购订单"
+    ]
+   },
+   "业务对象实体梳理.实体编码": {
+    "name": "实体编码",
+    "count": 7,
+    "non_null": 7,
+    "null_rate": 0.0,
+    "distinct": 7,
+    "distinct_ratio": 1.0,
+    "unique": true,
+    "inferred_type": "STRING",
+    "samples": [
+     "pbpHeader",
+     "pbpLine",
+     "pbpRel",
+     "poHeader",
+     "poLine"
+    ]
+   },
+   "业务对象实体梳理.实体名称": {
+    "name": "实体名称",
+    "count": 7,
+    "non_null": 7,
+    "null_rate": 0.0,
+    "distinct": 7,
+    "distinct_ratio": 1.0,
+    "unique": true,
+    "inferred_type": "STRING",
+    "samples": [
+     "采购业务计划头",
+     "采购业务计划行",
+     "采购业务计划头行关系",
+     "采购订单头",
+     "采购订单行"
+    ]
+   },
+   "业务对象API梳理-行动.应用模块": {
+    "name": "应用模块",
+    "count": 6,
+    "non_null": 2,
+    "null_rate": 0.6667,
+    "distinct": 2,
+    "distinct_ratio": 1.0,
+    "unique": true,
+    "inferred_type": "STRING",
+    "samples": [
+     "采购计划管理",
+     "采购订单管理"
+    ]
+   },
+   "业务对象API梳理-行动.业务对象": {
+    "name": "业务对象",
+    "count": 6,
+    "non_null": 2,
+    "null_rate": 0.6667,
+    "distinct": 2,
+    "distinct_ratio": 1.0,
+    "unique": true,
+    "inferred_type": "STRING",
+    "samples": [
+     "采购需求计划",
+     "采购订单"
+    ]
+   },
+   "业务对象API梳理-行动.实体编码": {
+    "name": "实体编码",
+    "count": 6,
+    "non_null": 6,
+    "null_rate": 0.0,
+    "distinct": 6,
+    "distinct_ratio": 1.0,
+    "unique": true,
+    "inferred_type": "STRING",
+    "samples": [
+     "createPbp",
+     "cancelOpenPbp",
+     "queryOpenPbpHeader",
+     "createPo",
+     "updatePo"
+    ]
+   },
+   "业务对象API梳理-行动.实体名称": {
+    "name": "实体名称",
+    "count": 6,
+    "non_null": 6,
+    "null_rate": 0.0,
+    "distinct": 6,
+    "distinct_ratio": 1.0,
+    "unique": true,
+    "inferred_type": "STRING",
+    "samples": [
+     "创建PBP",
+     "取消PBP",
+     "查询PBP头",
+     "创建采购订单",
+     "修改采购订单"
+    ]
+   },
+   "业务对象API梳理-行动.url": {
+    "name": "url",
+    "count": 6,
+    "non_null": 6,
+    "null_rate": 0.0,
+    "distinct": 6,
+    "distinct_ratio": 1.0,
+    "unique": true,
+    "inferred_type": "STRING",
+    "samples": [
+     "/v1/createPbp",
+     "/v1/cancelPbp",
+     "/v1/queryPbpHeader",
+     "/v1/createPo",
+     "/v1/updatePo"
+    ]
+   },
+   "业务规则.col1": {
+    "name": "col1",
+    "count": 2,
+    "non_null": 2,
+    "null_rate": 0.0,
+    "distinct": 2,
+    "distinct_ratio": 1.0,
+    "unique": true,
+    "inferred_type": "STRING",
+    "samples": [
+     "（1）创建采购需求计划：基于已审批集采计划自动注入；\n触发条件：集采计划审批完成；\n输入：已审批集采计划；\n输出：未审批采购需求计划；\n执行者：需求申请人\n（2）审批采购需求计划：对已编制的采购需求计划进行审批；\n触发条件：采购需求计划已编制；\n输入：采购需求计划；\n输出：已审批采购需求计划；\n执行着：部门领导\n（3）取消采购需求计划：执行采购需求计划取消流程；\n触发条件：无需继续采购；\n输入：需求取消；\n输出：已取消采购需求计划；\n执行者：需求申请人",
+     "业务规则：\n1、需进行采购包总金额上线控制，如超出XX金额，则采购包创建失败；\n2、实际与计划基线对比，如提前XX天需要进行预警提醒；\n3、进度状态标准：未开始、执行中、部分完成、已完成、已暂停、已取消；"
+    ]
+   },
+   "客户.客户编号": {
+    "name": "客户编号",
+    "count": 4,
+    "non_null": 4,
+    "null_rate": 0.0,
+    "distinct": 4,
+    "distinct_ratio": 1.0,
+    "unique": true,
+    "inferred_type": "STRING",
+    "samples": [
+     "C001",
+     "C002",
+     "C003",
+     "C004"
+    ]
+   },
+   "客户.客户名称": {
+    "name": "客户名称",
+    "count": 4,
+    "non_null": 4,
+    "null_rate": 0.0,
+    "distinct": 4,
+    "distinct_ratio": 1.0,
+    "unique": true,
+    "inferred_type": "STRING",
+    "samples": [
+     "北京海淀商贸",
+     "上海浦东实业",
+     "广州天河科技",
+     "深圳南山物流"
+    ]
+   },
+   "客户.注册日期": {
+    "name": "注册日期",
+    "count": 4,
+    "non_null": 4,
+    "null_rate": 0.0,
+    "distinct": 4,
+    "distinct_ratio": 1.0,
+    "unique": true,
+    "inferred_type": "DATE",
+    "samples": [
+     "2023-01-15",
+     "2023-02-20",
+     "2023-03-11",
+     "2023-04-02"
+    ]
+   },
+   "客户.信用额度": {
+    "name": "信用额度",
+    "count": 4,
+    "non_null": 3,
+    "null_rate": 0.25,
+    "distinct": 3,
+    "distinct_ratio": 1.0,
+    "unique": true,
+    "inferred_type": "INTEGER",
+    "samples": [
+     "100000",
+     "250000",
+     "80000"
+    ]
+   },
+   "客户.状态": {
+    "name": "状态",
+    "count": 4,
+    "non_null": 4,
+    "null_rate": 0.0,
+    "distinct": 2,
+    "distinct_ratio": 0.5,
+    "unique": false,
+    "inferred_type": "STRING",
+    "samples": [
+     "启用",
+     "停用"
+    ]
+   }
+  },
+  "endpoints": [
+   {
+    "operationId": "createCustomer",
+    "method": "post",
+    "path": "/customers",
+    "write": true,
+    "summary": "新建客户",
+    "tags": [],
+    "request_schema": "Customer",
+    "file_id": "f_db649c21c23f",
+    "file_name": "openapi.json",
+    "pointer": "$.paths./customers.post"
+   },
+   {
+    "operationId": "updateCustomer",
+    "method": "put",
+    "path": "/customers/{id}",
+    "write": true,
+    "summary": "更新客户",
+    "tags": [],
+    "request_schema": null,
+    "file_id": "f_db649c21c23f",
+    "file_name": "openapi.json",
+    "pointer": "$.paths./customers/{id}.put"
+   },
+   {
+    "operationId": "deleteCustomer",
+    "method": "delete",
+    "path": "/customers/{id}",
+    "write": true,
+    "summary": "停用客户",
+    "tags": [],
+    "request_schema": null,
+    "file_id": "f_db649c21c23f",
+    "file_name": "openapi.json",
+    "pointer": "$.paths./customers/{id}.delete"
+   }
+  ],
+  "index": {
+   "len": 34,
+   "chunk_ids": [
+    "f_cd97296397f0:meta",
+    "f_cd97296397f0:业务对象实体梳理:schema",
+    "f_cd97296397f0:业务对象实体梳理:r2",
+    "f_cd97296397f0:业务对象实体梳理:r3",
+    "f_cd97296397f0:业务对象实体梳理:r4",
+    "f_cd97296397f0:业务对象实体梳理:r5",
+    "f_cd97296397f0:业务对象实体梳理:r6",
+    "f_cd97296397f0:业务对象实体梳理:r7",
+    "f_cd97296397f0:业务对象实体梳理:r8",
+    "f_cd97296397f0:业务对象API梳理-行动:schema",
+    "f_cd97296397f0:业务对象API梳理-行动:r2",
+    "f_cd97296397f0:业务对象API梳理-行动:r3",
+    "f_cd97296397f0:业务对象API梳理-行动:r4",
+    "f_cd97296397f0:业务对象API梳理-行动:r5",
+    "f_cd97296397f0:业务对象API梳理-行动:r6",
+    "f_cd97296397f0:业务对象API梳理-行动:r7",
+    "f_cd97296397f0:业务规则:schema",
+    "f_cd97296397f0:业务规则:r1",
+    "f_cd97296397f0:业务规则:r2",
+    "f_277ec02b8271:schema",
+    "f_277ec02b8271:r2",
+    "f_277ec02b8271:r3",
+    "f_277ec02b8271:r4",
+    "f_277ec02b8271:r5",
+    "f_db649c21c23f:ep0",
+    "f_db649c21c23f:ep1",
+    "f_db649c21c23f:eplink2",
+    "f_db649c21c23f:ep3",
+    "f_db649c21c23f:ep4",
+    "f_db649c21c23f:ep5",
+    "f_db649c21c23f:schema:Customer",
+    "f_bbc40e8ddae7:s0",
+    "f_bbc40e8ddae7:s1",
+    "f_1e14963e8241:s0"
+   ],
+   "file_names": {
+    "材料.xlsx": "f_cd97296397f0",
+    "客户.csv": "f_277ec02b8271",
+    "openapi.json": "f_db649c21c23f",
+    "notes.md": "f_bbc40e8ddae7",
+    "data.parquet": "f_1e14963e8241"
+   },
+   "by_file": {
+    "f_cd97296397f0": [
+     "f_cd97296397f0:meta",
+     "f_cd97296397f0:业务对象实体梳理:schema",
+     "f_cd97296397f0:业务对象实体梳理:r2",
+     "f_cd97296397f0:业务对象实体梳理:r3",
+     "f_cd97296397f0:业务对象实体梳理:r4",
+     "f_cd97296397f0:业务对象实体梳理:r5",
+     "f_cd97296397f0:业务对象实体梳理:r6",
+     "f_cd97296397f0:业务对象实体梳理:r7",
+     "f_cd97296397f0:业务对象实体梳理:r8",
+     "f_cd97296397f0:业务对象API梳理-行动:schema",
+     "f_cd97296397f0:业务对象API梳理-行动:r2",
+     "f_cd97296397f0:业务对象API梳理-行动:r3",
+     "f_cd97296397f0:业务对象API梳理-行动:r4",
+     "f_cd97296397f0:业务对象API梳理-行动:r5",
+     "f_cd97296397f0:业务对象API梳理-行动:r6",
+     "f_cd97296397f0:业务对象API梳理-行动:r7",
+     "f_cd97296397f0:业务规则:schema",
+     "f_cd97296397f0:业务规则:r1",
+     "f_cd97296397f0:业务规则:r2"
+    ],
+    "f_277ec02b8271": [
+     "f_277ec02b8271:schema",
+     "f_277ec02b8271:r2",
+     "f_277ec02b8271:r3",
+     "f_277ec02b8271:r4",
+     "f_277ec02b8271:r5"
+    ],
+    "f_db649c21c23f": [
+     "f_db649c21c23f:ep0",
+     "f_db649c21c23f:ep1",
+     "f_db649c21c23f:eplink2",
+     "f_db649c21c23f:ep3",
+     "f_db649c21c23f:ep4",
+     "f_db649c21c23f:ep5",
+     "f_db649c21c23f:schema:Customer"
+    ],
+    "f_bbc40e8ddae7": [
+     "f_bbc40e8ddae7:s0",
+     "f_bbc40e8ddae7:s1"
+    ],
+    "f_1e14963e8241": [
+     "f_1e14963e8241:s0"
+    ]
+   }
+  }
+ },
+ "vectors": [
+  {
+   "name": "空语料",
+   "docs": [],
+   "summary": {
+    "files": [],
+    "chunks": 0,
+    "findings": []
+   },
+   "profiles": {},
+   "endpoints": [],
+   "index": {
+    "len": 0,
+    "chunk_ids": []
+   }
+  },
+  {
+   "name": "sheets 的三种 profile 缺失形态",
+   "docs": [
+    {
+     "file_id": "f1",
+     "file_name": "a.xlsx",
+     "kind": "xlsx",
+     "meta": {},
+     "structured": {
+      "sheets": [
+       {
+        "name": "有画像",
+        "profile": {
+         "客户编号": {
+          "name": "客户编号",
+          "type": "code",
+          "nulls": 0
+         }
+        }
+       },
+       {
+        "name": "profile 是 None",
+        "profile": null
+       },
+       {
+        "name": "profile 是空字典",
+        "profile": {}
+       },
+       {
+        "name": "根本没有 profile 键"
+       }
+      ]
+     },
+     "findings": [],
+     "chunks": [
+      {
+       "chunk_id": "f1:c0",
+       "file_id": "f1",
+       "file_name": "a.xlsx",
+       "locator": {
+        "row": 0
+       },
+       "render": "块0",
+       "raw": null,
+       "order": 0,
+       "tags": [],
+       "context": ""
+      },
+      {
+       "chunk_id": "f1:c1",
+       "file_id": "f1",
+       "file_name": "a.xlsx",
+       "locator": {
+        "row": 1
+       },
+       "render": "块1",
+       "raw": null,
+       "order": 1,
+       "tags": [],
+       "context": ""
+      }
+     ]
+    }
+   ],
+   "summary": {
+    "files": [
+     {
+      "file": "a.xlsx",
+      "kind": "xlsx",
+      "chunks": 2,
+      "findings": 0,
+      "sheets": 4
+     }
+    ],
+    "chunks": 2,
+    "findings": []
+   },
+   "profiles": {
+    "有画像.客户编号": {
+     "name": "客户编号",
+     "type": "code",
+     "nulls": 0
+    }
+   },
+   "endpoints": [],
+   "index": {
+    "len": 2,
+    "chunk_ids": [
+     "f1:c0",
+     "f1:c1"
+    ]
+   }
+  },
+  {
+   "name": "doc 级 profile：空字典被 walrus 判假，整段跳过",
+   "docs": [
+    {
+     "file_id": "f1",
+     "file_name": "empty.csv",
+     "kind": "csv",
+     "meta": {},
+     "structured": {
+      "columns": [],
+      "rows": 0,
+      "profile": {}
+     },
+     "findings": [],
+     "chunks": []
+    },
+    {
+     "file_id": "f2",
+     "file_name": "有货.csv",
+     "kind": "csv",
+     "meta": {},
+     "structured": {
+      "rows": 3,
+      "profile": {
+       "金额": {
+        "name": "金额",
+        "type": "number",
+        "nulls": 2
+       }
+      }
+     },
+     "findings": [],
+     "chunks": []
+    }
+   ],
+   "summary": {
+    "files": [
+     {
+      "file": "empty.csv",
+      "kind": "csv",
+      "chunks": 0,
+      "findings": 0,
+      "columns": 0,
+      "rows": 0,
+      "profile": 0
+     },
+     {
+      "file": "有货.csv",
+      "kind": "csv",
+      "chunks": 0,
+      "findings": 0,
+      "rows": 3,
+      "profile": 1
+     }
+    ],
+    "chunks": 0,
+    "findings": []
+   },
+   "profiles": {
+    "有货.金额": {
+     "name": "金额",
+     "type": "number",
+     "nulls": 2
+    }
+   },
+   "endpoints": [],
+   "index": {
+    "len": 0,
+    "chunk_ids": []
+   }
+  },
+  {
+   "name": "Path(...).stem 的刁钻名字",
+   "docs": [
+    {
+     "file_id": "f1",
+     "file_name": "odd.name.csv",
+     "kind": "csv",
+     "meta": {},
+     "structured": {
+      "profile": {
+       "甲": {
+        "name": "客户编号",
+        "type": "code",
+        "nulls": 0
+       }
+      }
+     },
+     "findings": [],
+     "chunks": []
+    },
+    {
+     "file_id": "f2",
+     "file_name": "noext",
+     "kind": "csv",
+     "meta": {},
+     "structured": {
+      "profile": {
+       "乙": {
+        "name": "客户编号",
+        "type": "code",
+        "nulls": 0
+       }
+      }
+     },
+     "findings": [],
+     "chunks": []
+    },
+    {
+     "file_id": "f3",
+     "file_name": ".hidden",
+     "kind": "csv",
+     "meta": {},
+     "structured": {
+      "profile": {
+       "丙": {
+        "name": "客户编号",
+        "type": "code",
+        "nulls": 0
+       }
+      }
+     },
+     "findings": [],
+     "chunks": []
+    },
+    {
+     "file_id": "f4",
+     "file_name": "trail.",
+     "kind": "csv",
+     "meta": {},
+     "structured": {
+      "profile": {
+       "丁": {
+        "name": "客户编号",
+        "type": "code",
+        "nulls": 0
+       }
+      }
+     },
+     "findings": [],
+     "chunks": []
+    },
+    {
+     "file_id": "f5",
+     "file_name": "a..csv",
+     "kind": "csv",
+     "meta": {},
+     "structured": {
+      "profile": {
+       "戊": {
+        "name": "客户编号",
+        "type": "code",
+        "nulls": 0
+       }
+      }
+     },
+     "findings": [],
+     "chunks": []
+    },
+    {
+     "file_id": "f6",
+     "file_name": ".hidden.csv",
+     "kind": "csv",
+     "meta": {},
+     "structured": {
+      "profile": {
+       "己": {
+        "name": "客户编号",
+        "type": "code",
+        "nulls": 0
+       }
+      }
+     },
+     "findings": [],
+     "chunks": []
+    }
+   ],
+   "summary": {
+    "files": [
+     {
+      "file": "odd.name.csv",
+      "kind": "csv",
+      "chunks": 0,
+      "findings": 0,
+      "profile": 1
+     },
+     {
+      "file": "noext",
+      "kind": "csv",
+      "chunks": 0,
+      "findings": 0,
+      "profile": 1
+     },
+     {
+      "file": ".hidden",
+      "kind": "csv",
+      "chunks": 0,
+      "findings": 0,
+      "profile": 1
+     },
+     {
+      "file": "trail.",
+      "kind": "csv",
+      "chunks": 0,
+      "findings": 0,
+      "profile": 1
+     },
+     {
+      "file": "a..csv",
+      "kind": "csv",
+      "chunks": 0,
+      "findings": 0,
+      "profile": 1
+     },
+     {
+      "file": ".hidden.csv",
+      "kind": "csv",
+      "chunks": 0,
+      "findings": 0,
+      "profile": 1
+     }
+    ],
+    "chunks": 0,
+    "findings": []
+   },
+   "profiles": {
+    "odd.name.甲": {
+     "name": "客户编号",
+     "type": "code",
+     "nulls": 0
+    },
+    "noext.乙": {
+     "name": "客户编号",
+     "type": "code",
+     "nulls": 0
+    },
+    ".hidden.丙": {
+     "name": "客户编号",
+     "type": "code",
+     "nulls": 0
+    },
+    "trail..丁": {
+     "name": "客户编号",
+     "type": "code",
+     "nulls": 0
+    },
+    "a..戊": {
+     "name": "客户编号",
+     "type": "code",
+     "nulls": 0
+    },
+    ".hidden.己": {
+     "name": "客户编号",
+     "type": "code",
+     "nulls": 0
+    }
+   },
+   "endpoints": [],
+   "index": {
+    "len": 0,
+    "chunk_ids": []
+   }
+  },
+  {
+   "name": "跨文件同名 sheet：后者覆盖前者",
+   "docs": [
+    {
+     "file_id": "f1",
+     "file_name": "一月.xlsx",
+     "kind": "xlsx",
+     "meta": {},
+     "structured": {
+      "sheets": [
+       {
+        "name": "客户",
+        "profile": {
+         "编号": {
+          "name": "客户编号",
+          "type": "code",
+          "nulls": 0
+         }
+        }
+       }
+      ]
+     },
+     "findings": [],
+     "chunks": []
+    },
+    {
+     "file_id": "f2",
+     "file_name": "二月.xlsx",
+     "kind": "xlsx",
+     "meta": {},
+     "structured": {
+      "sheets": [
+       {
+        "name": "客户",
+        "profile": {
+         "编号": {
+          "name": "金额",
+          "type": "number",
+          "nulls": 2
+         }
+        }
+       }
+      ]
+     },
+     "findings": [],
+     "chunks": []
+    }
+   ],
+   "summary": {
+    "files": [
+     {
+      "file": "一月.xlsx",
+      "kind": "xlsx",
+      "chunks": 0,
+      "findings": 0,
+      "sheets": 1
+     },
+     {
+      "file": "二月.xlsx",
+      "kind": "xlsx",
+      "chunks": 0,
+      "findings": 0,
+      "sheets": 1
+     }
+    ],
+    "chunks": 0,
+    "findings": []
+   },
+   "profiles": {
+    "客户.编号": {
+     "name": "金额",
+     "type": "number",
+     "nulls": 2
+    }
+   },
+   "endpoints": [],
+   "index": {
+    "len": 0,
+    "chunk_ids": []
+   }
+  },
+  {
+   "name": "sheet 与 doc 级 profile 同时存在（键前缀不同）",
+   "docs": [
+    {
+     "file_id": "f1",
+     "file_name": "混合.xlsx",
+     "kind": "xlsx",
+     "meta": {},
+     "structured": {
+      "sheets": [
+       {
+        "name": "表一",
+        "profile": {
+         "甲": {
+          "name": "客户编号",
+          "type": "code",
+          "nulls": 0
+         }
+        }
+       }
+      ],
+      "profile": {
+       "乙": {
+        "name": "金额",
+        "type": "number",
+        "nulls": 2
+       }
+      }
+     },
+     "findings": [],
+     "chunks": []
+    }
+   ],
+   "summary": {
+    "files": [
+     {
+      "file": "混合.xlsx",
+      "kind": "xlsx",
+      "chunks": 0,
+      "findings": 0,
+      "sheets": 1,
+      "profile": 1
+     }
+    ],
+    "chunks": 0,
+    "findings": []
+   },
+   "profiles": {
+    "表一.甲": {
+     "name": "客户编号",
+     "type": "code",
+     "nulls": 0
+    },
+    "混合.乙": {
+     "name": "金额",
+     "type": "number",
+     "nulls": 2
+    }
+   },
+   "endpoints": [],
+   "index": {
+    "len": 0,
+    "chunk_ids": []
+   }
+  },
+  {
+   "name": "endpoints：write 取真值而不是 is True",
+   "docs": [
+    {
+     "file_id": "f1",
+     "file_name": "api.json",
+     "kind": "openapi",
+     "meta": {},
+     "structured": {
+      "endpoints": [
+       {
+        "method": "get",
+        "path": "/a",
+        "write": false
+       },
+       {
+        "method": "post",
+        "path": "/b",
+        "write": true
+       },
+       {
+        "method": "put",
+        "path": "/c"
+       },
+       {
+        "method": "patch",
+        "path": "/d",
+        "write": "yes"
+       },
+       {
+        "method": "delete",
+        "path": "/e",
+        "write": 0
+       },
+       {
+        "method": "post",
+        "path": "/f",
+        "write": null
+       },
+       {
+        "method": "post",
+        "path": "/g",
+        "write": 1
+       }
+      ]
+     },
+     "findings": [],
+     "chunks": []
+    },
+    {
+     "file_id": "f2",
+     "file_name": "plain.json",
+     "kind": "json",
+     "meta": {},
+     "structured": {
+      "keys": [
+       "a"
+      ]
+     },
+     "findings": [],
+     "chunks": []
+    },
+    {
+     "file_id": "f3",
+     "file_name": "空端点.json",
+     "kind": "openapi",
+     "meta": {},
+     "structured": {
+      "endpoints": []
+     },
+     "findings": [],
+     "chunks": []
+    }
+   ],
+   "summary": {
+    "files": [
+     {
+      "file": "api.json",
+      "kind": "openapi",
+      "chunks": 0,
+      "findings": 0,
+      "endpoints": 7
+     },
+     {
+      "file": "plain.json",
+      "kind": "json",
+      "chunks": 0,
+      "findings": 0,
+      "keys": 1
+     },
+     {
+      "file": "空端点.json",
+      "kind": "openapi",
+      "chunks": 0,
+      "findings": 0,
+      "endpoints": 0
+     }
+    ],
+    "chunks": 0,
+    "findings": []
+   },
+   "profiles": {},
+   "endpoints": [
+    {
+     "method": "post",
+     "path": "/b",
+     "write": true
+    },
+    {
+     "method": "patch",
+     "path": "/d",
+     "write": "yes"
+    },
+    {
+     "method": "post",
+     "path": "/g",
+     "write": 1
+    }
+   ],
+   "index": {
+    "len": 0,
+    "chunk_ids": []
+   }
+  },
+  {
+   "name": "corpus_summary：stats 里 title 是字符串所以原样、raw 键被排除",
+   "docs": [
+    {
+     "file_id": "f1",
+     "file_name": "api.json",
+     "kind": "openapi",
+     "meta": {},
+     "structured": {
+      "endpoints": [
+       {
+        "method": "post",
+        "path": "/a",
+        "write": true
+       }
+      ],
+      "schemas": {
+       "A": {},
+       "B": {}
+      },
+      "title": "客户中心 API",
+      "raw": {
+       "整份": "原始数据",
+       "很大": [
+        1,
+        2,
+        3
+       ]
+      }
+     },
+     "findings": [
+      {
+       "kind": "metadata_leak",
+       "message": "作者：张三",
+       "locator": {
+        "part": "docProps/core.xml"
+       },
+       "severity": "warn"
+      }
+     ],
+     "chunks": [
+      {
+       "chunk_id": "f1:c0",
+       "file_id": "f1",
+       "file_name": "api.json",
+       "locator": {
+        "row": 0
+       },
+       "render": "块0",
+       "raw": null,
+       "order": 0,
+       "tags": [],
+       "context": ""
+      },
+      {
+       "chunk_id": "f1:c1",
+       "file_id": "f1",
+       "file_name": "api.json",
+       "locator": {
+        "row": 1
+       },
+       "render": "块1",
+       "raw": null,
+       "order": 1,
+       "tags": [],
+       "context": ""
+      },
+      {
+       "chunk_id": "f1:c2",
+       "file_id": "f1",
+       "file_name": "api.json",
+       "locator": {
+        "row": 2
+       },
+       "render": "块2",
+       "raw": null,
+       "order": 2,
+       "tags": [],
+       "context": ""
+      }
+     ]
+    },
+    {
+     "file_id": "f2",
+     "file_name": "空.md",
+     "kind": "text",
+     "meta": {},
+     "structured": {
+      "sections": 0,
+      "chars": 0
+     },
+     "findings": [],
+     "chunks": []
+    },
+    {
+     "file_id": "f3",
+     "file_name": "多发现.csv",
+     "kind": "csv",
+     "meta": {},
+     "structured": {
+      "rows": 1
+     },
+     "findings": [
+      {
+       "kind": "encoding_guess",
+       "message": "按 gb18030 解码",
+       "locator": {},
+       "severity": "warn"
+      },
+      {
+       "kind": "header_shift",
+       "message": "表头在第 3 行",
+       "locator": {
+        "sheet": "x",
+        "row": 3
+       },
+       "severity": "info"
+      }
+     ],
+     "chunks": [
+      {
+       "chunk_id": "f3:c0",
+       "file_id": "f3",
+       "file_name": "多发现.csv",
+       "locator": {
+        "row": 0
+       },
+       "render": "块0",
+       "raw": null,
+       "order": 0,
+       "tags": [],
+       "context": ""
+      }
+     ]
+    }
+   ],
+   "summary": {
+    "files": [
+     {
+      "file": "api.json",
+      "kind": "openapi",
+      "chunks": 3,
+      "findings": 1,
+      "endpoints": 1,
+      "schemas": 2,
+      "title": "客户中心 API"
+     },
+     {
+      "file": "空.md",
+      "kind": "text",
+      "chunks": 0,
+      "findings": 0,
+      "sections": 0,
+      "chars": 0
+     },
+     {
+      "file": "多发现.csv",
+      "kind": "csv",
+      "chunks": 1,
+      "findings": 2,
+      "rows": 1
+     }
+    ],
+    "chunks": 4,
+    "findings": [
+     {
+      "file": "api.json",
+      "kind": "metadata_leak",
+      "severity": "warn",
+      "message": "作者：张三",
+      "locator": {
+       "part": "docProps/core.xml"
+      }
+     },
+     {
+      "file": "多发现.csv",
+      "kind": "encoding_guess",
+      "severity": "warn",
+      "message": "按 gb18030 解码",
+      "locator": {}
+     },
+     {
+      "file": "多发现.csv",
+      "kind": "header_shift",
+      "severity": "info",
+      "message": "表头在第 3 行",
+      "locator": {
+       "sheet": "x",
+       "row": 3
+      }
+     }
+    ]
+   },
+   "profiles": {},
+   "endpoints": [
+    {
+     "method": "post",
+     "path": "/a",
+     "write": true
+    }
+   ],
+   "index": {
+    "len": 4,
+    "chunk_ids": [
+     "f1:c0",
+     "f1:c1",
+     "f1:c2",
+     "f3:c0"
+    ]
+   }
+  },
+  {
+   "name": "stats 的取长度规则：list/dict 取长度、标量原样",
+   "docs": [
+    {
+     "file_id": "f1",
+     "file_name": "杂.xlsx",
+     "kind": "xlsx",
+     "meta": {},
+     "structured": {
+      "sheets": [
+       {
+        "name": "s1"
+       },
+       {
+        "name": "s2"
+       }
+      ],
+      "rows": 42,
+      "delimiter": ",",
+      "title": "标题不取长度",
+      "profile": {
+       "a": {},
+       "b": {},
+       "c": {}
+      },
+      "flag": true,
+      "ratio": 0.5,
+      "nothing": null
+     },
+     "findings": [],
+     "chunks": [
+      {
+       "chunk_id": "f1:c0",
+       "file_id": "f1",
+       "file_name": "杂.xlsx",
+       "locator": {
+        "row": 0
+       },
+       "render": "块0",
+       "raw": null,
+       "order": 0,
+       "tags": [],
+       "context": ""
+      }
+     ]
+    }
+   ],
+   "summary": {
+    "files": [
+     {
+      "file": "杂.xlsx",
+      "kind": "xlsx",
+      "chunks": 1,
+      "findings": 0,
+      "sheets": 2,
+      "rows": 42,
+      "delimiter": ",",
+      "title": "标题不取长度",
+      "profile": 3,
+      "flag": true,
+      "ratio": 0.5,
+      "nothing": null
+     }
+    ],
+    "chunks": 1,
+    "findings": []
+   },
+   "profiles": {
+    "杂.a": {},
+    "杂.b": {},
+    "杂.c": {}
+   },
+   "endpoints": [],
+   "index": {
+    "len": 1,
+    "chunk_ids": [
+     "f1:c0"
+    ]
+   }
+  }
+ ],
+ "build_index_reuse": {
+  "is_same_object": true,
+  "chunk_ids": [
+   "f1:c0",
+   "f1:c1",
+   "f2:c0",
+   "f2:c1",
+   "f2:c2"
+  ],
+  "twice_len": 2
+ }
+}

@@ -1,0 +1,3164 @@
+{
+ "_readme": "由 tools/golden/dag.py 导出。ops 是可 replay 的程序，两边跑同一串 ops 再比对输出。nodes 里的 gate.timeout_s / gate.on_timeout / scope.recall_long_term 三个字段全仓零读取，TS 侧没有迁 —— 见 dead_fields，测试里把这条分叉显式钉住。",
+ "enums": {
+  "NodeMode": {
+   "DETERMINISTIC": "deterministic",
+   "SINGLE_SHOT": "single_shot",
+   "REACT": "react",
+   "PLAN_EXECUTE": "plan_execute",
+   "CODEACT": "codeact",
+   "HITL": "hitl"
+  },
+  "Difficulty": {
+   "LOW": "low",
+   "MEDIUM": "medium",
+   "HIGH": "high",
+   "CRITICAL": "critical"
+  }
+ },
+ "defaults": {
+  "NodeSpec": {
+   "id": "X",
+   "mode": "deterministic",
+   "handler": "h",
+   "deps": [],
+   "scope": {
+    "evidence_top_k": 24,
+    "evidence_files": null,
+    "blackboard_pattern": "*",
+    "recall_long_term": true
+   },
+   "budget": {
+    "tokens": 60000,
+    "iterations": 4,
+    "wallclock_s": 300,
+    "tool_calls": 20
+   },
+   "critics": [],
+   "critic_rounds": 2,
+   "gate": null,
+   "difficulty": null,
+   "sandbox": null,
+   "retries": 1,
+   "fanout_over": null,
+   "params": {}
+  },
+  "ScopeSpec": {
+   "evidence_top_k": 24,
+   "evidence_files": null,
+   "blackboard_pattern": "*",
+   "recall_long_term": true
+  },
+  "NodeBudget": {
+   "tokens": 60000,
+   "iterations": 4,
+   "wallclock_s": 300,
+   "tool_calls": 20
+  },
+  "GateSpec": {
+   "kind": "auto",
+   "require": [],
+   "timeout_s": 604800,
+   "on_timeout": "SUSPEND"
+  }
+ },
+ "dead_fields": {
+  "GateSpec.timeout_s": 604800,
+  "GateSpec.on_timeout": "SUSPEND",
+  "ScopeSpec.recall_long_term": true
+ },
+ "cases": [
+  {
+   "name": "stable_topo",
+   "doc": "乱序 add 出来的拓扑序必须只由 id 排序决定 —— 重放的地基。",
+   "ops": [
+    {
+     "op": "dag",
+     "name": "t"
+    },
+    {
+     "op": "add",
+     "spec": {
+      "id": "C",
+      "mode": "deterministic",
+      "handler": "echo",
+      "deps": [
+       "A"
+      ]
+     }
+    },
+    {
+     "op": "add",
+     "spec": {
+      "id": "A",
+      "mode": "deterministic",
+      "handler": "echo",
+      "deps": []
+     }
+    },
+    {
+     "op": "add",
+     "spec": {
+      "id": "D",
+      "mode": "deterministic",
+      "handler": "echo",
+      "deps": [
+       "B",
+       "C"
+      ]
+     }
+    },
+    {
+     "op": "add",
+     "spec": {
+      "id": "B",
+      "mode": "deterministic",
+      "handler": "echo",
+      "deps": [
+       "A"
+      ]
+     }
+    }
+   ],
+   "frozen": false,
+   "freeze_before": null,
+   "len": 4,
+   "node_ids": [
+    "C",
+    "A",
+    "D",
+    "B"
+   ],
+   "nodes": [
+    {
+     "id": "C",
+     "mode": "deterministic",
+     "handler": "echo",
+     "deps": [
+      "A"
+     ],
+     "scope": {
+      "evidence_top_k": 24,
+      "evidence_files": null,
+      "blackboard_pattern": "*",
+      "recall_long_term": true
+     },
+     "budget": {
+      "tokens": 60000,
+      "iterations": 4,
+      "wallclock_s": 300,
+      "tool_calls": 20
+     },
+     "critics": [],
+     "critic_rounds": 2,
+     "gate": null,
+     "difficulty": null,
+     "sandbox": null,
+     "retries": 1,
+     "fanout_over": null,
+     "params": {}
+    },
+    {
+     "id": "A",
+     "mode": "deterministic",
+     "handler": "echo",
+     "deps": [],
+     "scope": {
+      "evidence_top_k": 24,
+      "evidence_files": null,
+      "blackboard_pattern": "*",
+      "recall_long_term": true
+     },
+     "budget": {
+      "tokens": 60000,
+      "iterations": 4,
+      "wallclock_s": 300,
+      "tool_calls": 20
+     },
+     "critics": [],
+     "critic_rounds": 2,
+     "gate": null,
+     "difficulty": null,
+     "sandbox": null,
+     "retries": 1,
+     "fanout_over": null,
+     "params": {}
+    },
+    {
+     "id": "D",
+     "mode": "deterministic",
+     "handler": "echo",
+     "deps": [
+      "B",
+      "C"
+     ],
+     "scope": {
+      "evidence_top_k": 24,
+      "evidence_files": null,
+      "blackboard_pattern": "*",
+      "recall_long_term": true
+     },
+     "budget": {
+      "tokens": 60000,
+      "iterations": 4,
+      "wallclock_s": 300,
+      "tool_calls": 20
+     },
+     "critics": [],
+     "critic_rounds": 2,
+     "gate": null,
+     "difficulty": null,
+     "sandbox": null,
+     "retries": 1,
+     "fanout_over": null,
+     "params": {}
+    },
+    {
+     "id": "B",
+     "mode": "deterministic",
+     "handler": "echo",
+     "deps": [
+      "A"
+     ],
+     "scope": {
+      "evidence_top_k": 24,
+      "evidence_files": null,
+      "blackboard_pattern": "*",
+      "recall_long_term": true
+     },
+     "budget": {
+      "tokens": 60000,
+      "iterations": 4,
+      "wallclock_s": 300,
+      "tool_calls": 20
+     },
+     "critics": [],
+     "critic_rounds": 2,
+     "gate": null,
+     "difficulty": null,
+     "sandbox": null,
+     "retries": 1,
+     "fanout_over": null,
+     "params": {}
+    }
+   ],
+   "is_fanout": [
+    [
+     "C",
+     false
+    ],
+    [
+     "A",
+     false
+    ],
+    [
+     "D",
+     false
+    ],
+    [
+     "B",
+     false
+    ]
+   ],
+   "topo_order": [
+    "A",
+    "B",
+    "C",
+    "D"
+   ],
+   "resolve_deps": [
+    [
+     "C",
+     [
+      "A"
+     ]
+    ],
+    [
+     "A",
+     []
+    ],
+    [
+     "D",
+     [
+      "B",
+      "C"
+     ]
+    ],
+    [
+     "B",
+     [
+      "A"
+     ]
+    ]
+   ],
+   "dependents": [
+    [
+     "C",
+     [
+      "D"
+     ]
+    ],
+    [
+     "A",
+     [
+      "B",
+      "C"
+     ]
+    ],
+    [
+     "D",
+     []
+    ],
+    [
+     "B",
+     [
+      "D"
+     ]
+    ]
+   ],
+   "describe": [
+    {
+     "id": "A",
+     "mode": "deterministic",
+     "deps": [],
+     "critics": [],
+     "gate": null
+    },
+    {
+     "id": "B",
+     "mode": "deterministic",
+     "deps": [
+      "A"
+     ],
+     "critics": [],
+     "gate": null
+    },
+    {
+     "id": "C",
+     "mode": "deterministic",
+     "deps": [
+      "A"
+     ],
+     "critics": [],
+     "gate": null
+    },
+    {
+     "id": "D",
+     "mode": "deterministic",
+     "deps": [
+      "B",
+      "C"
+     ],
+     "critics": [],
+     "gate": null
+    }
+   ],
+   "contains": [
+    [
+     "C",
+     true
+    ],
+    [
+     "A",
+     true
+    ],
+    [
+     "D",
+     true
+    ],
+    [
+     "B",
+     true
+    ],
+    [
+     "__ghost__",
+     false
+    ],
+    [
+     "PARSE",
+     false
+    ],
+    [
+     "P",
+     false
+    ]
+   ]
+  },
+  {
+   "name": "diamond_dependents",
+   "doc": "dependents 只算直接下游（澄清引擎的影响半径）。",
+   "ops": [
+    {
+     "op": "dag",
+     "name": "t"
+    },
+    {
+     "op": "add",
+     "spec": {
+      "id": "A",
+      "mode": "deterministic",
+      "handler": "echo"
+     }
+    },
+    {
+     "op": "add",
+     "spec": {
+      "id": "B",
+      "mode": "deterministic",
+      "handler": "echo",
+      "deps": [
+       "A"
+      ]
+     }
+    },
+    {
+     "op": "add",
+     "spec": {
+      "id": "C",
+      "mode": "deterministic",
+      "handler": "echo",
+      "deps": [
+       "A"
+      ]
+     }
+    },
+    {
+     "op": "add",
+     "spec": {
+      "id": "D",
+      "mode": "deterministic",
+      "handler": "echo",
+      "deps": [
+       "B"
+      ]
+     }
+    }
+   ],
+   "frozen": false,
+   "freeze_before": null,
+   "len": 4,
+   "node_ids": [
+    "A",
+    "B",
+    "C",
+    "D"
+   ],
+   "nodes": [
+    {
+     "id": "A",
+     "mode": "deterministic",
+     "handler": "echo",
+     "deps": [],
+     "scope": {
+      "evidence_top_k": 24,
+      "evidence_files": null,
+      "blackboard_pattern": "*",
+      "recall_long_term": true
+     },
+     "budget": {
+      "tokens": 60000,
+      "iterations": 4,
+      "wallclock_s": 300,
+      "tool_calls": 20
+     },
+     "critics": [],
+     "critic_rounds": 2,
+     "gate": null,
+     "difficulty": null,
+     "sandbox": null,
+     "retries": 1,
+     "fanout_over": null,
+     "params": {}
+    },
+    {
+     "id": "B",
+     "mode": "deterministic",
+     "handler": "echo",
+     "deps": [
+      "A"
+     ],
+     "scope": {
+      "evidence_top_k": 24,
+      "evidence_files": null,
+      "blackboard_pattern": "*",
+      "recall_long_term": true
+     },
+     "budget": {
+      "tokens": 60000,
+      "iterations": 4,
+      "wallclock_s": 300,
+      "tool_calls": 20
+     },
+     "critics": [],
+     "critic_rounds": 2,
+     "gate": null,
+     "difficulty": null,
+     "sandbox": null,
+     "retries": 1,
+     "fanout_over": null,
+     "params": {}
+    },
+    {
+     "id": "C",
+     "mode": "deterministic",
+     "handler": "echo",
+     "deps": [
+      "A"
+     ],
+     "scope": {
+      "evidence_top_k": 24,
+      "evidence_files": null,
+      "blackboard_pattern": "*",
+      "recall_long_term": true
+     },
+     "budget": {
+      "tokens": 60000,
+      "iterations": 4,
+      "wallclock_s": 300,
+      "tool_calls": 20
+     },
+     "critics": [],
+     "critic_rounds": 2,
+     "gate": null,
+     "difficulty": null,
+     "sandbox": null,
+     "retries": 1,
+     "fanout_over": null,
+     "params": {}
+    },
+    {
+     "id": "D",
+     "mode": "deterministic",
+     "handler": "echo",
+     "deps": [
+      "B"
+     ],
+     "scope": {
+      "evidence_top_k": 24,
+      "evidence_files": null,
+      "blackboard_pattern": "*",
+      "recall_long_term": true
+     },
+     "budget": {
+      "tokens": 60000,
+      "iterations": 4,
+      "wallclock_s": 300,
+      "tool_calls": 20
+     },
+     "critics": [],
+     "critic_rounds": 2,
+     "gate": null,
+     "difficulty": null,
+     "sandbox": null,
+     "retries": 1,
+     "fanout_over": null,
+     "params": {}
+    }
+   ],
+   "is_fanout": [
+    [
+     "A",
+     false
+    ],
+    [
+     "B",
+     false
+    ],
+    [
+     "C",
+     false
+    ],
+    [
+     "D",
+     false
+    ]
+   ],
+   "topo_order": [
+    "A",
+    "B",
+    "C",
+    "D"
+   ],
+   "resolve_deps": [
+    [
+     "A",
+     []
+    ],
+    [
+     "B",
+     [
+      "A"
+     ]
+    ],
+    [
+     "C",
+     [
+      "A"
+     ]
+    ],
+    [
+     "D",
+     [
+      "B"
+     ]
+    ]
+   ],
+   "dependents": [
+    [
+     "A",
+     [
+      "B",
+      "C"
+     ]
+    ],
+    [
+     "B",
+     [
+      "D"
+     ]
+    ],
+    [
+     "C",
+     []
+    ],
+    [
+     "D",
+     []
+    ]
+   ],
+   "describe": [
+    {
+     "id": "A",
+     "mode": "deterministic",
+     "deps": [],
+     "critics": [],
+     "gate": null
+    },
+    {
+     "id": "B",
+     "mode": "deterministic",
+     "deps": [
+      "A"
+     ],
+     "critics": [],
+     "gate": null
+    },
+    {
+     "id": "C",
+     "mode": "deterministic",
+     "deps": [
+      "A"
+     ],
+     "critics": [],
+     "gate": null
+    },
+    {
+     "id": "D",
+     "mode": "deterministic",
+     "deps": [
+      "B"
+     ],
+     "critics": [],
+     "gate": null
+    }
+   ],
+   "contains": [
+    [
+     "A",
+     true
+    ],
+    [
+     "B",
+     true
+    ],
+    [
+     "C",
+     true
+    ],
+    [
+     "D",
+     true
+    ],
+    [
+     "__ghost__",
+     false
+    ],
+    [
+     "PARSE",
+     false
+    ],
+    [
+     "P",
+     false
+    ]
+   ]
+  },
+  {
+   "name": "duplicate_dep_not_deduped",
+   "doc": "deps 里同一个上游写两遍不去重 —— 入度也算两次，两边必须一致。",
+   "ops": [
+    {
+     "op": "dag",
+     "name": "t"
+    },
+    {
+     "op": "add",
+     "spec": {
+      "id": "A",
+      "mode": "deterministic",
+      "handler": "echo"
+     }
+    },
+    {
+     "op": "add",
+     "spec": {
+      "id": "B",
+      "mode": "deterministic",
+      "handler": "echo",
+      "deps": [
+       "A",
+       "A"
+      ]
+     }
+    }
+   ],
+   "frozen": false,
+   "freeze_before": null,
+   "len": 2,
+   "node_ids": [
+    "A",
+    "B"
+   ],
+   "nodes": [
+    {
+     "id": "A",
+     "mode": "deterministic",
+     "handler": "echo",
+     "deps": [],
+     "scope": {
+      "evidence_top_k": 24,
+      "evidence_files": null,
+      "blackboard_pattern": "*",
+      "recall_long_term": true
+     },
+     "budget": {
+      "tokens": 60000,
+      "iterations": 4,
+      "wallclock_s": 300,
+      "tool_calls": 20
+     },
+     "critics": [],
+     "critic_rounds": 2,
+     "gate": null,
+     "difficulty": null,
+     "sandbox": null,
+     "retries": 1,
+     "fanout_over": null,
+     "params": {}
+    },
+    {
+     "id": "B",
+     "mode": "deterministic",
+     "handler": "echo",
+     "deps": [
+      "A",
+      "A"
+     ],
+     "scope": {
+      "evidence_top_k": 24,
+      "evidence_files": null,
+      "blackboard_pattern": "*",
+      "recall_long_term": true
+     },
+     "budget": {
+      "tokens": 60000,
+      "iterations": 4,
+      "wallclock_s": 300,
+      "tool_calls": 20
+     },
+     "critics": [],
+     "critic_rounds": 2,
+     "gate": null,
+     "difficulty": null,
+     "sandbox": null,
+     "retries": 1,
+     "fanout_over": null,
+     "params": {}
+    }
+   ],
+   "is_fanout": [
+    [
+     "A",
+     false
+    ],
+    [
+     "B",
+     false
+    ]
+   ],
+   "topo_order": [
+    "A",
+    "B"
+   ],
+   "resolve_deps": [
+    [
+     "A",
+     []
+    ],
+    [
+     "B",
+     [
+      "A",
+      "A"
+     ]
+    ]
+   ],
+   "dependents": [
+    [
+     "A",
+     [
+      "B"
+     ]
+    ],
+    [
+     "B",
+     []
+    ]
+   ],
+   "describe": [
+    {
+     "id": "A",
+     "mode": "deterministic",
+     "deps": [],
+     "critics": [],
+     "gate": null
+    },
+    {
+     "id": "B",
+     "mode": "deterministic",
+     "deps": [
+      "A",
+      "A"
+     ],
+     "critics": [],
+     "gate": null
+    }
+   ],
+   "contains": [
+    [
+     "A",
+     true
+    ],
+    [
+     "B",
+     true
+    ],
+    [
+     "__ghost__",
+     false
+    ],
+    [
+     "PARSE",
+     false
+    ],
+    [
+     "P",
+     false
+    ]
+   ]
+  },
+  {
+   "name": "fanout_barrier",
+   "doc": "PARSE.* 通配依赖 = 同步屏障；展开后 fanout_over 清空、params 补 fanout_key。",
+   "ops": [
+    {
+     "op": "dag",
+     "name": "t"
+    },
+    {
+     "op": "add",
+     "spec": {
+      "id": "PARSE",
+      "mode": "deterministic",
+      "handler": "echo",
+      "fanout_over": "files"
+     }
+    },
+    {
+     "op": "add",
+     "spec": {
+      "id": "ALIGN",
+      "mode": "deterministic",
+      "handler": "echo",
+      "deps": [
+       "PARSE.*"
+      ]
+     }
+    },
+    {
+     "op": "expand",
+     "cardinalities": {
+      "PARSE": [
+       "f1",
+       "f2",
+       "f3"
+      ]
+     }
+    }
+   ],
+   "frozen": false,
+   "freeze_before": null,
+   "len": 4,
+   "node_ids": [
+    "ALIGN",
+    "PARSE.f1",
+    "PARSE.f2",
+    "PARSE.f3"
+   ],
+   "nodes": [
+    {
+     "id": "ALIGN",
+     "mode": "deterministic",
+     "handler": "echo",
+     "deps": [
+      "PARSE.*"
+     ],
+     "scope": {
+      "evidence_top_k": 24,
+      "evidence_files": null,
+      "blackboard_pattern": "*",
+      "recall_long_term": true
+     },
+     "budget": {
+      "tokens": 60000,
+      "iterations": 4,
+      "wallclock_s": 300,
+      "tool_calls": 20
+     },
+     "critics": [],
+     "critic_rounds": 2,
+     "gate": null,
+     "difficulty": null,
+     "sandbox": null,
+     "retries": 1,
+     "fanout_over": null,
+     "params": {}
+    },
+    {
+     "id": "PARSE.f1",
+     "mode": "deterministic",
+     "handler": "echo",
+     "deps": [],
+     "scope": {
+      "evidence_top_k": 24,
+      "evidence_files": null,
+      "blackboard_pattern": "*",
+      "recall_long_term": true
+     },
+     "budget": {
+      "tokens": 60000,
+      "iterations": 4,
+      "wallclock_s": 300,
+      "tool_calls": 20
+     },
+     "critics": [],
+     "critic_rounds": 2,
+     "gate": null,
+     "difficulty": null,
+     "sandbox": null,
+     "retries": 1,
+     "fanout_over": null,
+     "params": {
+      "fanout_key": "f1"
+     }
+    },
+    {
+     "id": "PARSE.f2",
+     "mode": "deterministic",
+     "handler": "echo",
+     "deps": [],
+     "scope": {
+      "evidence_top_k": 24,
+      "evidence_files": null,
+      "blackboard_pattern": "*",
+      "recall_long_term": true
+     },
+     "budget": {
+      "tokens": 60000,
+      "iterations": 4,
+      "wallclock_s": 300,
+      "tool_calls": 20
+     },
+     "critics": [],
+     "critic_rounds": 2,
+     "gate": null,
+     "difficulty": null,
+     "sandbox": null,
+     "retries": 1,
+     "fanout_over": null,
+     "params": {
+      "fanout_key": "f2"
+     }
+    },
+    {
+     "id": "PARSE.f3",
+     "mode": "deterministic",
+     "handler": "echo",
+     "deps": [],
+     "scope": {
+      "evidence_top_k": 24,
+      "evidence_files": null,
+      "blackboard_pattern": "*",
+      "recall_long_term": true
+     },
+     "budget": {
+      "tokens": 60000,
+      "iterations": 4,
+      "wallclock_s": 300,
+      "tool_calls": 20
+     },
+     "critics": [],
+     "critic_rounds": 2,
+     "gate": null,
+     "difficulty": null,
+     "sandbox": null,
+     "retries": 1,
+     "fanout_over": null,
+     "params": {
+      "fanout_key": "f3"
+     }
+    }
+   ],
+   "is_fanout": [
+    [
+     "ALIGN",
+     false
+    ],
+    [
+     "PARSE.f1",
+     false
+    ],
+    [
+     "PARSE.f2",
+     false
+    ],
+    [
+     "PARSE.f3",
+     false
+    ]
+   ],
+   "topo_order": [
+    "PARSE.f1",
+    "PARSE.f2",
+    "PARSE.f3",
+    "ALIGN"
+   ],
+   "resolve_deps": [
+    [
+     "ALIGN",
+     [
+      "PARSE.f1",
+      "PARSE.f2",
+      "PARSE.f3"
+     ]
+    ],
+    [
+     "PARSE.f1",
+     []
+    ],
+    [
+     "PARSE.f2",
+     []
+    ],
+    [
+     "PARSE.f3",
+     []
+    ]
+   ],
+   "dependents": [
+    [
+     "ALIGN",
+     []
+    ],
+    [
+     "PARSE.f1",
+     [
+      "ALIGN"
+     ]
+    ],
+    [
+     "PARSE.f2",
+     [
+      "ALIGN"
+     ]
+    ],
+    [
+     "PARSE.f3",
+     [
+      "ALIGN"
+     ]
+    ]
+   ],
+   "describe": [
+    {
+     "id": "PARSE.f1",
+     "mode": "deterministic",
+     "deps": [],
+     "critics": [],
+     "gate": null
+    },
+    {
+     "id": "PARSE.f2",
+     "mode": "deterministic",
+     "deps": [],
+     "critics": [],
+     "gate": null
+    },
+    {
+     "id": "PARSE.f3",
+     "mode": "deterministic",
+     "deps": [],
+     "critics": [],
+     "gate": null
+    },
+    {
+     "id": "ALIGN",
+     "mode": "deterministic",
+     "deps": [
+      "PARSE.f1",
+      "PARSE.f2",
+      "PARSE.f3"
+     ],
+     "critics": [],
+     "gate": null
+    }
+   ],
+   "contains": [
+    [
+     "ALIGN",
+     true
+    ],
+    [
+     "PARSE.f1",
+     true
+    ],
+    [
+     "PARSE.f2",
+     true
+    ],
+    [
+     "PARSE.f3",
+     true
+    ],
+    [
+     "__ghost__",
+     false
+    ],
+    [
+     "PARSE",
+     false
+    ],
+    [
+     "P",
+     false
+    ]
+   ]
+  },
+  {
+   "name": "fanout_keeps_existing_params",
+   "doc": "展开时 params 是合并不是替换；同名 fanout_key 被覆盖。",
+   "ops": [
+    {
+     "op": "dag",
+     "name": "t"
+    },
+    {
+     "op": "add",
+     "spec": {
+      "id": "EX",
+      "mode": "deterministic",
+      "handler": "echo",
+      "fanout_over": "segments",
+      "params": {
+       "keep": 1,
+       "fanout_key": "会被覆盖"
+      }
+     }
+    },
+    {
+     "op": "expand",
+     "cardinalities": {
+      "EX": [
+       "s0"
+      ]
+     }
+    }
+   ],
+   "frozen": false,
+   "freeze_before": null,
+   "len": 1,
+   "node_ids": [
+    "EX.s0"
+   ],
+   "nodes": [
+    {
+     "id": "EX.s0",
+     "mode": "deterministic",
+     "handler": "echo",
+     "deps": [],
+     "scope": {
+      "evidence_top_k": 24,
+      "evidence_files": null,
+      "blackboard_pattern": "*",
+      "recall_long_term": true
+     },
+     "budget": {
+      "tokens": 60000,
+      "iterations": 4,
+      "wallclock_s": 300,
+      "tool_calls": 20
+     },
+     "critics": [],
+     "critic_rounds": 2,
+     "gate": null,
+     "difficulty": null,
+     "sandbox": null,
+     "retries": 1,
+     "fanout_over": null,
+     "params": {
+      "keep": 1,
+      "fanout_key": "s0"
+     }
+    }
+   ],
+   "is_fanout": [
+    [
+     "EX.s0",
+     false
+    ]
+   ],
+   "topo_order": [
+    "EX.s0"
+   ],
+   "resolve_deps": [
+    [
+     "EX.s0",
+     []
+    ]
+   ],
+   "dependents": [
+    [
+     "EX.s0",
+     []
+    ]
+   ],
+   "describe": [
+    {
+     "id": "EX.s0",
+     "mode": "deterministic",
+     "deps": [],
+     "critics": [],
+     "gate": null
+    }
+   ],
+   "contains": [
+    [
+     "EX.s0",
+     true
+    ],
+    [
+     "__ghost__",
+     false
+    ],
+    [
+     "PARSE",
+     false
+    ],
+    [
+     "P",
+     false
+    ]
+   ]
+  },
+  {
+   "name": "wildcard_does_not_match_the_base_id",
+   "doc": "dep[:-1] 只削掉 '*'，留着那个点 —— 所以 'PARSE.*' 匹配不到 'PARSE' 自己。",
+   "ops": [
+    {
+     "op": "dag",
+     "name": "t"
+    },
+    {
+     "op": "add",
+     "spec": {
+      "id": "PARSE",
+      "mode": "deterministic",
+      "handler": "echo"
+     }
+    },
+    {
+     "op": "add",
+     "spec": {
+      "id": "PARSE.f1",
+      "mode": "deterministic",
+      "handler": "echo"
+     }
+    },
+    {
+     "op": "add",
+     "spec": {
+      "id": "ALIGN",
+      "mode": "deterministic",
+      "handler": "echo",
+      "deps": [
+       "PARSE.*"
+      ]
+     }
+    }
+   ],
+   "frozen": false,
+   "freeze_before": null,
+   "len": 3,
+   "node_ids": [
+    "PARSE",
+    "PARSE.f1",
+    "ALIGN"
+   ],
+   "nodes": [
+    {
+     "id": "PARSE",
+     "mode": "deterministic",
+     "handler": "echo",
+     "deps": [],
+     "scope": {
+      "evidence_top_k": 24,
+      "evidence_files": null,
+      "blackboard_pattern": "*",
+      "recall_long_term": true
+     },
+     "budget": {
+      "tokens": 60000,
+      "iterations": 4,
+      "wallclock_s": 300,
+      "tool_calls": 20
+     },
+     "critics": [],
+     "critic_rounds": 2,
+     "gate": null,
+     "difficulty": null,
+     "sandbox": null,
+     "retries": 1,
+     "fanout_over": null,
+     "params": {}
+    },
+    {
+     "id": "PARSE.f1",
+     "mode": "deterministic",
+     "handler": "echo",
+     "deps": [],
+     "scope": {
+      "evidence_top_k": 24,
+      "evidence_files": null,
+      "blackboard_pattern": "*",
+      "recall_long_term": true
+     },
+     "budget": {
+      "tokens": 60000,
+      "iterations": 4,
+      "wallclock_s": 300,
+      "tool_calls": 20
+     },
+     "critics": [],
+     "critic_rounds": 2,
+     "gate": null,
+     "difficulty": null,
+     "sandbox": null,
+     "retries": 1,
+     "fanout_over": null,
+     "params": {}
+    },
+    {
+     "id": "ALIGN",
+     "mode": "deterministic",
+     "handler": "echo",
+     "deps": [
+      "PARSE.*"
+     ],
+     "scope": {
+      "evidence_top_k": 24,
+      "evidence_files": null,
+      "blackboard_pattern": "*",
+      "recall_long_term": true
+     },
+     "budget": {
+      "tokens": 60000,
+      "iterations": 4,
+      "wallclock_s": 300,
+      "tool_calls": 20
+     },
+     "critics": [],
+     "critic_rounds": 2,
+     "gate": null,
+     "difficulty": null,
+     "sandbox": null,
+     "retries": 1,
+     "fanout_over": null,
+     "params": {}
+    }
+   ],
+   "is_fanout": [
+    [
+     "PARSE",
+     false
+    ],
+    [
+     "PARSE.f1",
+     false
+    ],
+    [
+     "ALIGN",
+     false
+    ]
+   ],
+   "topo_order": [
+    "PARSE",
+    "PARSE.f1",
+    "ALIGN"
+   ],
+   "resolve_deps": [
+    [
+     "PARSE",
+     []
+    ],
+    [
+     "PARSE.f1",
+     []
+    ],
+    [
+     "ALIGN",
+     [
+      "PARSE.f1"
+     ]
+    ]
+   ],
+   "dependents": [
+    [
+     "PARSE",
+     []
+    ],
+    [
+     "PARSE.f1",
+     [
+      "ALIGN"
+     ]
+    ],
+    [
+     "ALIGN",
+     []
+    ]
+   ],
+   "describe": [
+    {
+     "id": "PARSE",
+     "mode": "deterministic",
+     "deps": [],
+     "critics": [],
+     "gate": null
+    },
+    {
+     "id": "PARSE.f1",
+     "mode": "deterministic",
+     "deps": [],
+     "critics": [],
+     "gate": null
+    },
+    {
+     "id": "ALIGN",
+     "mode": "deterministic",
+     "deps": [
+      "PARSE.f1"
+     ],
+     "critics": [],
+     "gate": null
+    }
+   ],
+   "contains": [
+    [
+     "PARSE",
+     true
+    ],
+    [
+     "PARSE.f1",
+     true
+    ],
+    [
+     "ALIGN",
+     true
+    ],
+    [
+     "__ghost__",
+     false
+    ],
+    [
+     "PARSE",
+     true
+    ],
+    [
+     "P",
+     false
+    ]
+   ]
+  },
+  {
+   "name": "sort_is_by_code_point",
+   "doc": "fan-out 后缀来自用户上传的文件名，可能含 emoji。Python sorted 按 code point，JS 默认 sort 按 UTF-16 code unit —— 'z' < U+FFFF < U+1F40D 在两者之间排法不同。拓扑序漂了重放就废了，这条必须钉住。",
+   "ops": [
+    {
+     "op": "dag",
+     "name": "t"
+    },
+    {
+     "op": "add",
+     "spec": {
+      "id": "P",
+      "mode": "deterministic",
+      "handler": "echo",
+      "fanout_over": "files"
+     }
+    },
+    {
+     "op": "add",
+     "spec": {
+      "id": "ALIGN",
+      "mode": "deterministic",
+      "handler": "echo",
+      "deps": [
+       "P.*"
+      ]
+     }
+    },
+    {
+     "op": "expand",
+     "cardinalities": {
+      "P": [
+       "🐍",
+       "￿",
+       "z"
+      ]
+     }
+    }
+   ],
+   "frozen": false,
+   "freeze_before": null,
+   "len": 4,
+   "node_ids": [
+    "ALIGN",
+    "P.🐍",
+    "P.￿",
+    "P.z"
+   ],
+   "nodes": [
+    {
+     "id": "ALIGN",
+     "mode": "deterministic",
+     "handler": "echo",
+     "deps": [
+      "P.*"
+     ],
+     "scope": {
+      "evidence_top_k": 24,
+      "evidence_files": null,
+      "blackboard_pattern": "*",
+      "recall_long_term": true
+     },
+     "budget": {
+      "tokens": 60000,
+      "iterations": 4,
+      "wallclock_s": 300,
+      "tool_calls": 20
+     },
+     "critics": [],
+     "critic_rounds": 2,
+     "gate": null,
+     "difficulty": null,
+     "sandbox": null,
+     "retries": 1,
+     "fanout_over": null,
+     "params": {}
+    },
+    {
+     "id": "P.🐍",
+     "mode": "deterministic",
+     "handler": "echo",
+     "deps": [],
+     "scope": {
+      "evidence_top_k": 24,
+      "evidence_files": null,
+      "blackboard_pattern": "*",
+      "recall_long_term": true
+     },
+     "budget": {
+      "tokens": 60000,
+      "iterations": 4,
+      "wallclock_s": 300,
+      "tool_calls": 20
+     },
+     "critics": [],
+     "critic_rounds": 2,
+     "gate": null,
+     "difficulty": null,
+     "sandbox": null,
+     "retries": 1,
+     "fanout_over": null,
+     "params": {
+      "fanout_key": "🐍"
+     }
+    },
+    {
+     "id": "P.￿",
+     "mode": "deterministic",
+     "handler": "echo",
+     "deps": [],
+     "scope": {
+      "evidence_top_k": 24,
+      "evidence_files": null,
+      "blackboard_pattern": "*",
+      "recall_long_term": true
+     },
+     "budget": {
+      "tokens": 60000,
+      "iterations": 4,
+      "wallclock_s": 300,
+      "tool_calls": 20
+     },
+     "critics": [],
+     "critic_rounds": 2,
+     "gate": null,
+     "difficulty": null,
+     "sandbox": null,
+     "retries": 1,
+     "fanout_over": null,
+     "params": {
+      "fanout_key": "￿"
+     }
+    },
+    {
+     "id": "P.z",
+     "mode": "deterministic",
+     "handler": "echo",
+     "deps": [],
+     "scope": {
+      "evidence_top_k": 24,
+      "evidence_files": null,
+      "blackboard_pattern": "*",
+      "recall_long_term": true
+     },
+     "budget": {
+      "tokens": 60000,
+      "iterations": 4,
+      "wallclock_s": 300,
+      "tool_calls": 20
+     },
+     "critics": [],
+     "critic_rounds": 2,
+     "gate": null,
+     "difficulty": null,
+     "sandbox": null,
+     "retries": 1,
+     "fanout_over": null,
+     "params": {
+      "fanout_key": "z"
+     }
+    }
+   ],
+   "is_fanout": [
+    [
+     "ALIGN",
+     false
+    ],
+    [
+     "P.🐍",
+     false
+    ],
+    [
+     "P.￿",
+     false
+    ],
+    [
+     "P.z",
+     false
+    ]
+   ],
+   "topo_order": [
+    "P.z",
+    "P.￿",
+    "P.🐍",
+    "ALIGN"
+   ],
+   "resolve_deps": [
+    [
+     "ALIGN",
+     [
+      "P.z",
+      "P.￿",
+      "P.🐍"
+     ]
+    ],
+    [
+     "P.🐍",
+     []
+    ],
+    [
+     "P.￿",
+     []
+    ],
+    [
+     "P.z",
+     []
+    ]
+   ],
+   "dependents": [
+    [
+     "ALIGN",
+     []
+    ],
+    [
+     "P.🐍",
+     [
+      "ALIGN"
+     ]
+    ],
+    [
+     "P.￿",
+     [
+      "ALIGN"
+     ]
+    ],
+    [
+     "P.z",
+     [
+      "ALIGN"
+     ]
+    ]
+   ],
+   "describe": [
+    {
+     "id": "P.z",
+     "mode": "deterministic",
+     "deps": [],
+     "critics": [],
+     "gate": null
+    },
+    {
+     "id": "P.￿",
+     "mode": "deterministic",
+     "deps": [],
+     "critics": [],
+     "gate": null
+    },
+    {
+     "id": "P.🐍",
+     "mode": "deterministic",
+     "deps": [],
+     "critics": [],
+     "gate": null
+    },
+    {
+     "id": "ALIGN",
+     "mode": "deterministic",
+     "deps": [
+      "P.z",
+      "P.￿",
+      "P.🐍"
+     ],
+     "critics": [],
+     "gate": null
+    }
+   ],
+   "contains": [
+    [
+     "ALIGN",
+     true
+    ],
+    [
+     "P.🐍",
+     true
+    ],
+    [
+     "P.￿",
+     true
+    ],
+    [
+     "P.z",
+     true
+    ],
+    [
+     "__ghost__",
+     false
+    ],
+    [
+     "PARSE",
+     false
+    ],
+    [
+     "P",
+     false
+    ]
+   ]
+  },
+  {
+   "name": "expand_with_empty_cardinality_deletes_the_node",
+   "doc": "上传清单为空时 fan-out 节点直接消失，不留占位。",
+   "ops": [
+    {
+     "op": "dag",
+     "name": "t"
+    },
+    {
+     "op": "add",
+     "spec": {
+      "id": "A",
+      "mode": "deterministic",
+      "handler": "echo"
+     }
+    },
+    {
+     "op": "add",
+     "spec": {
+      "id": "P",
+      "mode": "deterministic",
+      "handler": "echo",
+      "fanout_over": "files"
+     }
+    },
+    {
+     "op": "expand",
+     "cardinalities": {
+      "P": []
+     }
+    }
+   ],
+   "frozen": false,
+   "freeze_before": null,
+   "len": 1,
+   "node_ids": [
+    "A"
+   ],
+   "nodes": [
+    {
+     "id": "A",
+     "mode": "deterministic",
+     "handler": "echo",
+     "deps": [],
+     "scope": {
+      "evidence_top_k": 24,
+      "evidence_files": null,
+      "blackboard_pattern": "*",
+      "recall_long_term": true
+     },
+     "budget": {
+      "tokens": 60000,
+      "iterations": 4,
+      "wallclock_s": 300,
+      "tool_calls": 20
+     },
+     "critics": [],
+     "critic_rounds": 2,
+     "gate": null,
+     "difficulty": null,
+     "sandbox": null,
+     "retries": 1,
+     "fanout_over": null,
+     "params": {}
+    }
+   ],
+   "is_fanout": [
+    [
+     "A",
+     false
+    ]
+   ],
+   "topo_order": [
+    "A"
+   ],
+   "resolve_deps": [
+    [
+     "A",
+     []
+    ]
+   ],
+   "dependents": [
+    [
+     "A",
+     []
+    ]
+   ],
+   "describe": [
+    {
+     "id": "A",
+     "mode": "deterministic",
+     "deps": [],
+     "critics": [],
+     "gate": null
+    }
+   ],
+   "contains": [
+    [
+     "A",
+     true
+    ],
+    [
+     "__ghost__",
+     false
+    ],
+    [
+     "PARSE",
+     false
+    ],
+    [
+     "P",
+     false
+    ]
+   ]
+  },
+  {
+   "name": "freeze_before_may_point_at_an_expanded_prefix",
+   "doc": "freeze_before='EXTRACT' 在展开成 EXTRACT.s0/s1 之后仍然合法。",
+   "ops": [
+    {
+     "op": "dag",
+     "name": "onto_extract",
+     "freeze_before": "EXTRACT"
+    },
+    {
+     "op": "add",
+     "spec": {
+      "id": "EXTRACT",
+      "mode": "plan_execute",
+      "handler": "extract",
+      "fanout_over": "segments",
+      "scope": {
+       "evidence_top_k": 0
+      },
+      "budget": {
+       "tokens": 24000,
+       "iterations": 4,
+       "wallclock_s": 420
+      },
+      "critics": [
+       "coverage",
+       "provenance"
+      ],
+      "critic_rounds": 2,
+      "difficulty": "high",
+      "retries": 1
+     }
+    },
+    {
+     "op": "add",
+     "spec": {
+      "id": "MERGE",
+      "mode": "deterministic",
+      "handler": "merge",
+      "deps": [
+       "EXTRACT.*"
+      ]
+     }
+    },
+    {
+     "op": "expand",
+     "cardinalities": {
+      "EXTRACT": [
+       "s0",
+       "s1"
+      ]
+     }
+    },
+    {
+     "op": "freeze"
+    }
+   ],
+   "frozen": true,
+   "freeze_before": "EXTRACT",
+   "len": 3,
+   "node_ids": [
+    "MERGE",
+    "EXTRACT.s0",
+    "EXTRACT.s1"
+   ],
+   "nodes": [
+    {
+     "id": "MERGE",
+     "mode": "deterministic",
+     "handler": "merge",
+     "deps": [
+      "EXTRACT.*"
+     ],
+     "scope": {
+      "evidence_top_k": 24,
+      "evidence_files": null,
+      "blackboard_pattern": "*",
+      "recall_long_term": true
+     },
+     "budget": {
+      "tokens": 60000,
+      "iterations": 4,
+      "wallclock_s": 300,
+      "tool_calls": 20
+     },
+     "critics": [],
+     "critic_rounds": 2,
+     "gate": null,
+     "difficulty": null,
+     "sandbox": null,
+     "retries": 1,
+     "fanout_over": null,
+     "params": {}
+    },
+    {
+     "id": "EXTRACT.s0",
+     "mode": "plan_execute",
+     "handler": "extract",
+     "deps": [],
+     "scope": {
+      "evidence_top_k": 0,
+      "evidence_files": null,
+      "blackboard_pattern": "*",
+      "recall_long_term": true
+     },
+     "budget": {
+      "tokens": 24000,
+      "iterations": 4,
+      "wallclock_s": 420,
+      "tool_calls": 20
+     },
+     "critics": [
+      "coverage",
+      "provenance"
+     ],
+     "critic_rounds": 2,
+     "gate": null,
+     "difficulty": "high",
+     "sandbox": null,
+     "retries": 1,
+     "fanout_over": null,
+     "params": {
+      "fanout_key": "s0"
+     }
+    },
+    {
+     "id": "EXTRACT.s1",
+     "mode": "plan_execute",
+     "handler": "extract",
+     "deps": [],
+     "scope": {
+      "evidence_top_k": 0,
+      "evidence_files": null,
+      "blackboard_pattern": "*",
+      "recall_long_term": true
+     },
+     "budget": {
+      "tokens": 24000,
+      "iterations": 4,
+      "wallclock_s": 420,
+      "tool_calls": 20
+     },
+     "critics": [
+      "coverage",
+      "provenance"
+     ],
+     "critic_rounds": 2,
+     "gate": null,
+     "difficulty": "high",
+     "sandbox": null,
+     "retries": 1,
+     "fanout_over": null,
+     "params": {
+      "fanout_key": "s1"
+     }
+    }
+   ],
+   "is_fanout": [
+    [
+     "MERGE",
+     false
+    ],
+    [
+     "EXTRACT.s0",
+     false
+    ],
+    [
+     "EXTRACT.s1",
+     false
+    ]
+   ],
+   "topo_order": [
+    "EXTRACT.s0",
+    "EXTRACT.s1",
+    "MERGE"
+   ],
+   "resolve_deps": [
+    [
+     "MERGE",
+     [
+      "EXTRACT.s0",
+      "EXTRACT.s1"
+     ]
+    ],
+    [
+     "EXTRACT.s0",
+     []
+    ],
+    [
+     "EXTRACT.s1",
+     []
+    ]
+   ],
+   "dependents": [
+    [
+     "MERGE",
+     []
+    ],
+    [
+     "EXTRACT.s0",
+     [
+      "MERGE"
+     ]
+    ],
+    [
+     "EXTRACT.s1",
+     [
+      "MERGE"
+     ]
+    ]
+   ],
+   "describe": [
+    {
+     "id": "EXTRACT.s0",
+     "mode": "plan_execute",
+     "deps": [],
+     "critics": [
+      "coverage",
+      "provenance"
+     ],
+     "gate": null
+    },
+    {
+     "id": "EXTRACT.s1",
+     "mode": "plan_execute",
+     "deps": [],
+     "critics": [
+      "coverage",
+      "provenance"
+     ],
+     "gate": null
+    },
+    {
+     "id": "MERGE",
+     "mode": "deterministic",
+     "deps": [
+      "EXTRACT.s0",
+      "EXTRACT.s1"
+     ],
+     "critics": [],
+     "gate": null
+    }
+   ],
+   "contains": [
+    [
+     "MERGE",
+     true
+    ],
+    [
+     "EXTRACT.s0",
+     true
+    ],
+    [
+     "EXTRACT.s1",
+     true
+    ],
+    [
+     "__ghost__",
+     false
+    ],
+    [
+     "PARSE",
+     false
+    ],
+    [
+     "P",
+     false
+    ]
+   ]
+  },
+  {
+   "name": "rich_spec_round_trip",
+   "doc": "把所有字段都填满：gate / critics / sandbox / 嵌套 params / evidence_files。",
+   "ops": [
+    {
+     "op": "dag",
+     "name": "fde_like",
+     "freeze_before": "INTAKE"
+    },
+    {
+     "op": "extend",
+     "specs": [
+      {
+       "id": "INTAKE",
+       "mode": "single_shot",
+       "handler": "agent.fde_interviewer",
+       "scope": {
+        "evidence_top_k": 40,
+        "evidence_files": [
+         "a.xlsx",
+         "b.docx"
+        ],
+        "blackboard_pattern": "INTAKE.*"
+       },
+       "params": {
+        "agent": "fde_interviewer",
+        "tool_scope": "reader",
+        "output_schema": {
+         "type": "object",
+         "required": [
+          "scope",
+          "roles"
+         ]
+        }
+       }
+      },
+      {
+       "id": "GAP",
+       "mode": "deterministic",
+       "handler": "engagement.collect_gaps",
+       "deps": [
+        "INTAKE"
+       ],
+       "scope": {
+        "evidence_top_k": 0
+       },
+       "budget": {
+        "tokens": 0,
+        "iterations": 1,
+        "wallclock_s": 60,
+        "tool_calls": 0
+       },
+       "params": {
+        "output_contract": "QuestionBacklog",
+        "rank_by": [
+         "downstream_blocking",
+         "blast_radius"
+        ]
+       },
+       "retries": 0
+      },
+      {
+       "id": "INTERVIEW",
+       "mode": "hitl",
+       "handler": "engagement.interview",
+       "deps": [
+        "GAP"
+       ],
+       "gate": {
+        "kind": "hitl"
+       },
+       "difficulty": "low",
+       "retries": 0
+      },
+      {
+       "id": "CODE",
+       "mode": "codeact",
+       "handler": "transform",
+       "deps": [
+        "INTERVIEW"
+       ],
+       "sandbox": "S2",
+       "critics": [
+        "coverage"
+       ],
+       "critic_rounds": 3,
+       "difficulty": "critical"
+      },
+      {
+       "id": "REVIEW",
+       "mode": "react",
+       "handler": "agent.delivery_reviewer",
+       "deps": [
+        "CODE"
+       ],
+       "gate": {
+        "kind": "auto",
+        "require": [
+         "verdict == 'PASS'",
+         "blocker_count == 0"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "op": "freeze"
+    }
+   ],
+   "frozen": true,
+   "freeze_before": "INTAKE",
+   "len": 5,
+   "node_ids": [
+    "INTAKE",
+    "GAP",
+    "INTERVIEW",
+    "CODE",
+    "REVIEW"
+   ],
+   "nodes": [
+    {
+     "id": "INTAKE",
+     "mode": "single_shot",
+     "handler": "agent.fde_interviewer",
+     "deps": [],
+     "scope": {
+      "evidence_top_k": 40,
+      "evidence_files": [
+       "a.xlsx",
+       "b.docx"
+      ],
+      "blackboard_pattern": "INTAKE.*",
+      "recall_long_term": true
+     },
+     "budget": {
+      "tokens": 60000,
+      "iterations": 4,
+      "wallclock_s": 300,
+      "tool_calls": 20
+     },
+     "critics": [],
+     "critic_rounds": 2,
+     "gate": null,
+     "difficulty": null,
+     "sandbox": null,
+     "retries": 1,
+     "fanout_over": null,
+     "params": {
+      "agent": "fde_interviewer",
+      "tool_scope": "reader",
+      "output_schema": {
+       "type": "object",
+       "required": [
+        "scope",
+        "roles"
+       ]
+      }
+     }
+    },
+    {
+     "id": "GAP",
+     "mode": "deterministic",
+     "handler": "engagement.collect_gaps",
+     "deps": [
+      "INTAKE"
+     ],
+     "scope": {
+      "evidence_top_k": 0,
+      "evidence_files": null,
+      "blackboard_pattern": "*",
+      "recall_long_term": true
+     },
+     "budget": {
+      "tokens": 0,
+      "iterations": 1,
+      "wallclock_s": 60,
+      "tool_calls": 0
+     },
+     "critics": [],
+     "critic_rounds": 2,
+     "gate": null,
+     "difficulty": null,
+     "sandbox": null,
+     "retries": 0,
+     "fanout_over": null,
+     "params": {
+      "output_contract": "QuestionBacklog",
+      "rank_by": [
+       "downstream_blocking",
+       "blast_radius"
+      ]
+     }
+    },
+    {
+     "id": "INTERVIEW",
+     "mode": "hitl",
+     "handler": "engagement.interview",
+     "deps": [
+      "GAP"
+     ],
+     "scope": {
+      "evidence_top_k": 24,
+      "evidence_files": null,
+      "blackboard_pattern": "*",
+      "recall_long_term": true
+     },
+     "budget": {
+      "tokens": 60000,
+      "iterations": 4,
+      "wallclock_s": 300,
+      "tool_calls": 20
+     },
+     "critics": [],
+     "critic_rounds": 2,
+     "gate": {
+      "kind": "hitl",
+      "require": [],
+      "timeout_s": 604800,
+      "on_timeout": "SUSPEND"
+     },
+     "difficulty": "low",
+     "sandbox": null,
+     "retries": 0,
+     "fanout_over": null,
+     "params": {}
+    },
+    {
+     "id": "CODE",
+     "mode": "codeact",
+     "handler": "transform",
+     "deps": [
+      "INTERVIEW"
+     ],
+     "scope": {
+      "evidence_top_k": 24,
+      "evidence_files": null,
+      "blackboard_pattern": "*",
+      "recall_long_term": true
+     },
+     "budget": {
+      "tokens": 60000,
+      "iterations": 4,
+      "wallclock_s": 300,
+      "tool_calls": 20
+     },
+     "critics": [
+      "coverage"
+     ],
+     "critic_rounds": 3,
+     "gate": null,
+     "difficulty": "critical",
+     "sandbox": "S2",
+     "retries": 1,
+     "fanout_over": null,
+     "params": {}
+    },
+    {
+     "id": "REVIEW",
+     "mode": "react",
+     "handler": "agent.delivery_reviewer",
+     "deps": [
+      "CODE"
+     ],
+     "scope": {
+      "evidence_top_k": 24,
+      "evidence_files": null,
+      "blackboard_pattern": "*",
+      "recall_long_term": true
+     },
+     "budget": {
+      "tokens": 60000,
+      "iterations": 4,
+      "wallclock_s": 300,
+      "tool_calls": 20
+     },
+     "critics": [],
+     "critic_rounds": 2,
+     "gate": {
+      "kind": "auto",
+      "require": [
+       "verdict == 'PASS'",
+       "blocker_count == 0"
+      ],
+      "timeout_s": 604800,
+      "on_timeout": "SUSPEND"
+     },
+     "difficulty": null,
+     "sandbox": null,
+     "retries": 1,
+     "fanout_over": null,
+     "params": {}
+    }
+   ],
+   "is_fanout": [
+    [
+     "INTAKE",
+     false
+    ],
+    [
+     "GAP",
+     false
+    ],
+    [
+     "INTERVIEW",
+     false
+    ],
+    [
+     "CODE",
+     false
+    ],
+    [
+     "REVIEW",
+     false
+    ]
+   ],
+   "topo_order": [
+    "INTAKE",
+    "GAP",
+    "INTERVIEW",
+    "CODE",
+    "REVIEW"
+   ],
+   "resolve_deps": [
+    [
+     "INTAKE",
+     []
+    ],
+    [
+     "GAP",
+     [
+      "INTAKE"
+     ]
+    ],
+    [
+     "INTERVIEW",
+     [
+      "GAP"
+     ]
+    ],
+    [
+     "CODE",
+     [
+      "INTERVIEW"
+     ]
+    ],
+    [
+     "REVIEW",
+     [
+      "CODE"
+     ]
+    ]
+   ],
+   "dependents": [
+    [
+     "INTAKE",
+     [
+      "GAP"
+     ]
+    ],
+    [
+     "GAP",
+     [
+      "INTERVIEW"
+     ]
+    ],
+    [
+     "INTERVIEW",
+     [
+      "CODE"
+     ]
+    ],
+    [
+     "CODE",
+     [
+      "REVIEW"
+     ]
+    ],
+    [
+     "REVIEW",
+     []
+    ]
+   ],
+   "describe": [
+    {
+     "id": "INTAKE",
+     "mode": "single_shot",
+     "deps": [],
+     "critics": [],
+     "gate": null
+    },
+    {
+     "id": "GAP",
+     "mode": "deterministic",
+     "deps": [
+      "INTAKE"
+     ],
+     "critics": [],
+     "gate": null
+    },
+    {
+     "id": "INTERVIEW",
+     "mode": "hitl",
+     "deps": [
+      "GAP"
+     ],
+     "critics": [],
+     "gate": "hitl"
+    },
+    {
+     "id": "CODE",
+     "mode": "codeact",
+     "deps": [
+      "INTERVIEW"
+     ],
+     "critics": [
+      "coverage"
+     ],
+     "gate": null
+    },
+    {
+     "id": "REVIEW",
+     "mode": "react",
+     "deps": [
+      "CODE"
+     ],
+     "critics": [],
+     "gate": "auto"
+    }
+   ],
+   "contains": [
+    [
+     "INTAKE",
+     true
+    ],
+    [
+     "GAP",
+     true
+    ],
+    [
+     "INTERVIEW",
+     true
+    ],
+    [
+     "CODE",
+     true
+    ],
+    [
+     "REVIEW",
+     true
+    ],
+    [
+     "__ghost__",
+     false
+    ],
+    [
+     "PARSE",
+     false
+    ],
+    [
+     "P",
+     false
+    ]
+   ]
+  }
+ ],
+ "errors": [
+  {
+   "name": "duplicate_node_id",
+   "doc": "repr 里的引号形态也要一致：id 含单引号时 Python repr 换成双引号。",
+   "ops": [
+    {
+     "op": "dag",
+     "name": "t"
+    },
+    {
+     "op": "add",
+     "spec": {
+      "id": "节点'A",
+      "mode": "deterministic",
+      "handler": "echo"
+     }
+    },
+    {
+     "op": "add",
+     "spec": {
+      "id": "节点'A",
+      "mode": "deterministic",
+      "handler": "echo"
+     }
+    }
+   ],
+   "error": {
+    "type": "DagError",
+    "message": "节点 id 重复: \"节点'A\""
+   }
+  },
+  {
+   "name": "cycle_two_nodes",
+   "doc": "",
+   "ops": [
+    {
+     "op": "dag",
+     "name": "t"
+    },
+    {
+     "op": "add",
+     "spec": {
+      "id": "A",
+      "mode": "deterministic",
+      "handler": "echo",
+      "deps": [
+       "B"
+      ]
+     }
+    },
+    {
+     "op": "add",
+     "spec": {
+      "id": "B",
+      "mode": "deterministic",
+      "handler": "echo",
+      "deps": [
+       "A"
+      ]
+     }
+    },
+    {
+     "op": "topo_order"
+    }
+   ],
+   "error": {
+    "type": "DagError",
+    "message": "DAG 存在环，涉及节点: ['A', 'B']"
+   }
+  },
+  {
+   "name": "cycle_partial_stuck_set_is_sorted",
+   "doc": "",
+   "ops": [
+    {
+     "op": "dag",
+     "name": "t"
+    },
+    {
+     "op": "add",
+     "spec": {
+      "id": "A",
+      "mode": "deterministic",
+      "handler": "echo"
+     }
+    },
+    {
+     "op": "add",
+     "spec": {
+      "id": "C",
+      "mode": "deterministic",
+      "handler": "echo",
+      "deps": [
+       "B"
+      ]
+     }
+    },
+    {
+     "op": "add",
+     "spec": {
+      "id": "B",
+      "mode": "deterministic",
+      "handler": "echo",
+      "deps": [
+       "C"
+      ]
+     }
+    },
+    {
+     "op": "topo_order"
+    }
+   ],
+   "error": {
+    "type": "DagError",
+    "message": "DAG 存在环，涉及节点: ['B', 'C']"
+   }
+  },
+  {
+   "name": "dangling_dependency",
+   "doc": "",
+   "ops": [
+    {
+     "op": "dag",
+     "name": "t"
+    },
+    {
+     "op": "add",
+     "spec": {
+      "id": "A",
+      "mode": "deterministic",
+      "handler": "echo",
+      "deps": [
+       "ghost"
+      ]
+     }
+    },
+    {
+     "op": "topo_order"
+    }
+   ],
+   "error": {
+    "type": "DagError",
+    "message": "'A' 依赖了不存在的节点 'ghost'"
+   }
+  },
+  {
+   "name": "dangling_dependency_via_resolve_deps",
+   "doc": "",
+   "ops": [
+    {
+     "op": "dag",
+     "name": "t"
+    },
+    {
+     "op": "add",
+     "spec": {
+      "id": "A",
+      "mode": "deterministic",
+      "handler": "echo",
+      "deps": [
+       "ghost"
+      ]
+     }
+    },
+    {
+     "op": "resolve_deps",
+     "node": "A"
+    }
+   ],
+   "error": {
+    "type": "DagError",
+    "message": "'A' 依赖了不存在的节点 'ghost'"
+   }
+  },
+  {
+   "name": "wildcard_matches_nothing",
+   "doc": "",
+   "ops": [
+    {
+     "op": "dag",
+     "name": "t"
+    },
+    {
+     "op": "add",
+     "spec": {
+      "id": "ALIGN",
+      "mode": "deterministic",
+      "handler": "echo",
+      "deps": [
+       "PARSE.*"
+      ]
+     }
+    },
+    {
+     "op": "resolve_deps",
+     "node": "ALIGN"
+    }
+   ],
+   "error": {
+    "type": "DagError",
+    "message": "'ALIGN' 的通配依赖 'PARSE.*' 匹配不到任何节点"
+   }
+  },
+  {
+   "name": "wildcard_matches_nothing_after_empty_expand",
+   "doc": "展开成 0 个实例后，通配依赖立刻变成硬错 —— 不静默当作空屏障。",
+   "ops": [
+    {
+     "op": "dag",
+     "name": "t"
+    },
+    {
+     "op": "add",
+     "spec": {
+      "id": "P",
+      "mode": "deterministic",
+      "handler": "echo",
+      "fanout_over": "files"
+     }
+    },
+    {
+     "op": "add",
+     "spec": {
+      "id": "ALIGN",
+      "mode": "deterministic",
+      "handler": "echo",
+      "deps": [
+       "P.*"
+      ]
+     }
+    },
+    {
+     "op": "expand",
+     "cardinalities": {
+      "P": []
+     }
+    },
+    {
+     "op": "topo_order"
+    }
+   ],
+   "error": {
+    "type": "DagError",
+    "message": "'ALIGN' 的通配依赖 'P.*' 匹配不到任何节点"
+   }
+  },
+  {
+   "name": "expand_unknown_node",
+   "doc": "",
+   "ops": [
+    {
+     "op": "dag",
+     "name": "t"
+    },
+    {
+     "op": "add",
+     "spec": {
+      "id": "A",
+      "mode": "deterministic",
+      "handler": "echo"
+     }
+    },
+    {
+     "op": "expand",
+     "cardinalities": {
+      "NOPE": [
+       "f1"
+      ]
+     }
+    }
+   ],
+   "error": {
+    "type": "DagError",
+    "message": "要展开的节点不存在: 'NOPE'"
+   }
+  },
+  {
+   "name": "expand_node_without_fanout_over",
+   "doc": "",
+   "ops": [
+    {
+     "op": "dag",
+     "name": "t"
+    },
+    {
+     "op": "add",
+     "spec": {
+      "id": "A",
+      "mode": "deterministic",
+      "handler": "echo"
+     }
+    },
+    {
+     "op": "expand",
+     "cardinalities": {
+      "A": [
+       "f1"
+      ]
+     }
+    }
+   ],
+   "error": {
+    "type": "DagError",
+    "message": "节点 'A' 未声明 fanout_over，不能展开"
+   }
+  },
+  {
+   "name": "freeze_before_points_nowhere",
+   "doc": "",
+   "ops": [
+    {
+     "op": "dag",
+     "name": "t",
+     "freeze_before": "GHOST"
+    },
+    {
+     "op": "add",
+     "spec": {
+      "id": "A",
+      "mode": "deterministic",
+      "handler": "echo"
+     }
+    },
+    {
+     "op": "freeze"
+    }
+   ],
+   "error": {
+    "type": "DagError",
+    "message": "freeze_before 指向不存在的节点: 'GHOST'"
+   }
+  },
+  {
+   "name": "frozen_rejects_add",
+   "doc": "冻结是安全边界：材料里写「再加一个外发节点」也加不进来。",
+   "ops": [
+    {
+     "op": "dag",
+     "name": "t"
+    },
+    {
+     "op": "add",
+     "spec": {
+      "id": "A",
+      "mode": "deterministic",
+      "handler": "echo"
+     }
+    },
+    {
+     "op": "freeze"
+    },
+    {
+     "op": "add",
+     "spec": {
+      "id": "EVIL_EXFIL",
+      "mode": "deterministic",
+      "handler": "http.fetch"
+     }
+    }
+   ],
+   "error": {
+    "type": "FrozenPlanViolation",
+    "message": "DAG 't' 已冻结，不允许再改拓扑。材料内容只能作为节点输入，绝不能改变计划结构。"
+   }
+  },
+  {
+   "name": "frozen_rejects_extend",
+   "doc": "",
+   "ops": [
+    {
+     "op": "dag",
+     "name": "t"
+    },
+    {
+     "op": "add",
+     "spec": {
+      "id": "A",
+      "mode": "deterministic",
+      "handler": "echo"
+     }
+    },
+    {
+     "op": "freeze"
+    },
+    {
+     "op": "extend",
+     "specs": [
+      {
+       "id": "B",
+       "mode": "deterministic",
+       "handler": "echo",
+       "deps": [
+        "A"
+       ]
+      }
+     ]
+    }
+   ],
+   "error": {
+    "type": "FrozenPlanViolation",
+    "message": "DAG 't' 已冻结，不允许再改拓扑。材料内容只能作为节点输入，绝不能改变计划结构。"
+   }
+  },
+  {
+   "name": "frozen_rejects_expand",
+   "doc": "",
+   "ops": [
+    {
+     "op": "dag",
+     "name": "t"
+    },
+    {
+     "op": "add",
+     "spec": {
+      "id": "P",
+      "mode": "deterministic",
+      "handler": "echo",
+      "fanout_over": "files"
+     }
+    },
+    {
+     "op": "expand",
+     "cardinalities": {
+      "P": [
+       "f1"
+      ]
+     }
+    },
+    {
+     "op": "freeze"
+    },
+    {
+     "op": "expand",
+     "cardinalities": {
+      "P": [
+       "f2"
+      ]
+     }
+    }
+   ],
+   "error": {
+    "type": "FrozenPlanViolation",
+    "message": "DAG 't' 已冻结，不允许再改拓扑。材料内容只能作为节点输入，绝不能改变计划结构。"
+   }
+  },
+  {
+   "name": "frozen_message_quotes_the_dag_name",
+   "doc": "name 含单引号时 repr 换双引号 —— 消息要一模一样才叫钉住。",
+   "ops": [
+    {
+     "op": "dag",
+     "name": "t's dag"
+    },
+    {
+     "op": "add",
+     "spec": {
+      "id": "A",
+      "mode": "deterministic",
+      "handler": "echo"
+     }
+    },
+    {
+     "op": "freeze"
+    },
+    {
+     "op": "add",
+     "spec": {
+      "id": "B",
+      "mode": "deterministic",
+      "handler": "echo"
+     }
+    }
+   ],
+   "error": {
+    "type": "FrozenPlanViolation",
+    "message": "DAG \"t's dag\" 已冻结，不允许再改拓扑。材料内容只能作为节点输入，绝不能改变计划结构。"
+   }
+  },
+  {
+   "name": "missing_node_lookup",
+   "doc": "Python 的 __getitem__ 抛 KeyError；TS 侧没有 KeyError，见 TS 注释里的分叉说明。",
+   "ops": [
+    {
+     "op": "dag",
+     "name": "t"
+    },
+    {
+     "op": "add",
+     "spec": {
+      "id": "A",
+      "mode": "deterministic",
+      "handler": "echo"
+     }
+    },
+    {
+     "op": "get",
+     "node": "GHOST"
+    }
+   ],
+   "error": {
+    "type": "KeyError",
+    "message": "'GHOST'"
+   }
+  }
+ ]
+}

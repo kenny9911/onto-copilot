@@ -1,0 +1,4960 @@
+{
+ "api": [
+  {
+   "doc": {
+    "chunks": [
+     {
+      "chunk_id": "f_0123456789ab:ep0",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "openapi.json",
+      "locator": {
+       "kind": "json",
+       "pointer": "$.paths./purchase-plans/{id}/submit.post"
+      },
+      "order": 0,
+      "raw": {
+       "file_id": "f_0123456789ab",
+       "file_name": "openapi.json",
+       "method": "post",
+       "operationId": "submitPurchasePlan",
+       "path": "/purchase-plans/{id}/submit",
+       "pointer": "$.paths./purchase-plans/{id}/submit.post",
+       "request_schema": "SubmitReq",
+       "summary": "提交采购计划",
+       "tags": [],
+       "write": true
+      },
+      "render": "POST /purchase-plans/{id}/submit  operationId=submitPurchasePlan　〔写操作，可反推 ActionType〕 提交采购计划",
+      "tags": [
+       "endpoint",
+       "write"
+      ]
+     },
+     {
+      "chunk_id": "f_0123456789ab:eplink1",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "openapi.json",
+      "locator": {
+       "kind": "json",
+       "pointer": "$.paths./purchase-plans/{id}/submit.post"
+      },
+      "order": 1,
+      "raw": {
+       "from": "submitPurchasePlan",
+       "to": "SubmitReq"
+      },
+      "render": "submitPurchasePlan → SubmitReq（请求体，引用该 schema）",
+      "tags": [
+       "link",
+       "relation"
+      ]
+     },
+     {
+      "chunk_id": "f_0123456789ab:ep2",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "openapi.json",
+      "locator": {
+       "kind": "json",
+       "pointer": "$.paths./purchase-packages.post"
+      },
+      "order": 2,
+      "raw": {
+       "file_id": "f_0123456789ab",
+       "file_name": "openapi.json",
+       "method": "post",
+       "operationId": "createPurchasePackage",
+       "path": "/purchase-packages",
+       "pointer": "$.paths./purchase-packages.post",
+       "request_schema": null,
+       "summary": "创建采购包",
+       "tags": [],
+       "write": true
+      },
+      "render": "POST /purchase-packages  operationId=createPurchasePackage　〔写操作，可反推 ActionType〕 创建采购包",
+      "tags": [
+       "endpoint",
+       "write"
+      ]
+     },
+     {
+      "chunk_id": "f_0123456789ab:ep3",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "openapi.json",
+      "locator": {
+       "kind": "json",
+       "pointer": "$.paths./suppliers.get"
+      },
+      "order": 3,
+      "raw": {
+       "file_id": "f_0123456789ab",
+       "file_name": "openapi.json",
+       "method": "get",
+       "operationId": "listSuppliers",
+       "path": "/suppliers",
+       "pointer": "$.paths./suppliers.get",
+       "request_schema": null,
+       "summary": "",
+       "tags": [],
+       "write": false
+      },
+      "render": "GET /suppliers  operationId=listSuppliers　〔读操作〕",
+      "tags": [
+       "endpoint",
+       "read"
+      ]
+     },
+     {
+      "chunk_id": "f_0123456789ab:schema:Plan",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "openapi.json",
+      "locator": {
+       "kind": "json",
+       "pointer": "$.components.schemas.Plan"
+      },
+      "order": 4,
+      "raw": {
+       "description": "",
+       "name": "Plan",
+       "properties": {
+        "effectiveDate": {
+         "base_type": "DATE",
+         "description": "",
+         "enum": null,
+         "format": "date",
+         "required": false
+        },
+        "planAmount": {
+         "base_type": "DECIMAL",
+         "description": "计划金额（含税，年度累计）",
+         "enum": null,
+         "format": "double",
+         "required": false
+        },
+        "planId": {
+         "base_type": "STRING",
+         "description": "",
+         "enum": null,
+         "format": null,
+         "required": true
+        },
+        "status": {
+         "base_type": "STRING",
+         "description": "",
+         "enum": [
+          "DRAFT",
+          "SUBMITTED"
+         ],
+         "format": null,
+         "required": false
+        }
+       }
+      },
+      "render": "schema Plan：planId:STRING*、planAmount:DECIMAL（计划金额（含税，年度累计））、effectiveDate:DATE、status:STRING[DRAFT|SUBMITTED]",
+      "tags": [
+       "schema"
+      ]
+     },
+     {
+      "chunk_id": "f_0123456789ab:schema:SubmitReq",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "openapi.json",
+      "locator": {
+       "kind": "json",
+       "pointer": "$.components.schemas.SubmitReq"
+      },
+      "order": 5,
+      "raw": {
+       "description": "",
+       "name": "SubmitReq",
+       "properties": {
+        "remark": {
+         "base_type": "STRING",
+         "description": "",
+         "enum": null,
+         "format": null,
+         "required": false
+        }
+       }
+      },
+      "render": "schema SubmitReq：remark:STRING",
+      "tags": [
+       "schema"
+      ]
+     }
+    ],
+    "file_id": "f_0123456789ab",
+    "file_name": "openapi.json",
+    "findings": [],
+    "kind": "openapi",
+    "meta": {},
+    "stats": {
+     "chunks": 6,
+     "endpoints": 3,
+     "file": "openapi.json",
+     "findings": 0,
+     "kind": "openapi",
+     "schemas": 2,
+     "title": "采购中台 API"
+    },
+    "structured": {
+     "endpoints": [
+      {
+       "file_id": "f_0123456789ab",
+       "file_name": "openapi.json",
+       "method": "post",
+       "operationId": "submitPurchasePlan",
+       "path": "/purchase-plans/{id}/submit",
+       "pointer": "$.paths./purchase-plans/{id}/submit.post",
+       "request_schema": "SubmitReq",
+       "summary": "提交采购计划",
+       "tags": [],
+       "write": true
+      },
+      {
+       "file_id": "f_0123456789ab",
+       "file_name": "openapi.json",
+       "method": "post",
+       "operationId": "createPurchasePackage",
+       "path": "/purchase-packages",
+       "pointer": "$.paths./purchase-packages.post",
+       "request_schema": null,
+       "summary": "创建采购包",
+       "tags": [],
+       "write": true
+      },
+      {
+       "file_id": "f_0123456789ab",
+       "file_name": "openapi.json",
+       "method": "get",
+       "operationId": "listSuppliers",
+       "path": "/suppliers",
+       "pointer": "$.paths./suppliers.get",
+       "request_schema": null,
+       "summary": "",
+       "tags": [],
+       "write": false
+      }
+     ],
+     "schemas": {
+      "Plan": {
+       "description": "",
+       "name": "Plan",
+       "properties": {
+        "effectiveDate": {
+         "base_type": "DATE",
+         "description": "",
+         "enum": null,
+         "format": "date",
+         "required": false
+        },
+        "planAmount": {
+         "base_type": "DECIMAL",
+         "description": "计划金额（含税，年度累计）",
+         "enum": null,
+         "format": "double",
+         "required": false
+        },
+        "planId": {
+         "base_type": "STRING",
+         "description": "",
+         "enum": null,
+         "format": null,
+         "required": true
+        },
+        "status": {
+         "base_type": "STRING",
+         "description": "",
+         "enum": [
+          "DRAFT",
+          "SUBMITTED"
+         ],
+         "format": null,
+         "required": false
+        }
+       }
+      },
+      "SubmitReq": {
+       "description": "",
+       "name": "SubmitReq",
+       "properties": {
+        "remark": {
+         "base_type": "STRING",
+         "description": "",
+         "enum": null,
+         "format": null,
+         "required": false
+        }
+       }
+      }
+     },
+     "title": "采购中台 API"
+    }
+   },
+   "file_id": "f_0123456789ab",
+   "name": "openapi.json",
+   "text": "{\"openapi\": \"3.0.0\", \"info\": {\"title\": \"采购中台 API\"}, \"paths\": {\"/purchase-plans/{id}/submit\": {\"post\": {\"operationId\": \"submitPurchasePlan\", \"summary\": \"提交采购计划\", \"requestBody\": {\"content\": {\"application/json\": {\"schema\": {\"$ref\": \"#/components/schemas/SubmitReq\"}}}}}}, \"/purchase-packages\": {\"post\": {\"operationId\": \"createPurchasePackage\", \"summary\": \"创建采购包\"}}, \"/suppliers\": {\"get\": {\"operationId\": \"listSuppliers\"}}}, \"components\": {\"schemas\": {\"Plan\": {\"type\": \"object\", \"required\": [\"planId\"], \"properties\": {\"planId\": {\"type\": \"string\"}, \"planAmount\": {\"type\": \"number\", \"format\": \"double\", \"description\": \"计划金额（含税，年度累计）\"}, \"effectiveDate\": {\"type\": \"string\", \"format\": \"date\"}, \"status\": {\"type\": \"string\", \"enum\": [\"DRAFT\", \"SUBMITTED\"]}}}, \"SubmitReq\": {\"type\": \"object\", \"properties\": {\"remark\": {\"type\": \"string\"}}}}}}"
+  },
+  {
+   "doc": {
+    "chunks": [
+     {
+      "chunk_id": "f_0123456789ab:ep0",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "edge.json",
+      "locator": {
+       "kind": "json",
+       "pointer": "$.paths./a/{id}/b.delete"
+      },
+      "order": 0,
+      "raw": {
+       "file_id": "f_0123456789ab",
+       "file_name": "edge.json",
+       "method": "delete",
+       "operationId": "deleteAB",
+       "path": "/a/{id}/b",
+       "pointer": "$.paths./a/{id}/b.delete",
+       "request_schema": null,
+       "summary": "删",
+       "tags": [
+        "x"
+       ],
+       "write": true
+      },
+      "render": "DELETE /a/{id}/b  operationId=deleteAB　〔写操作，可反推 ActionType〕 删",
+      "tags": [
+       "endpoint",
+       "write"
+      ]
+     },
+     {
+      "chunk_id": "f_0123456789ab:ep1",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "edge.json",
+      "locator": {
+       "kind": "json",
+       "pointer": "$.paths./a/{id}/b.patch"
+      },
+      "order": 1,
+      "raw": {
+       "file_id": "f_0123456789ab",
+       "file_name": "edge.json",
+       "method": "patch",
+       "operationId": "patchAB",
+       "path": "/a/{id}/b",
+       "pointer": "$.paths./a/{id}/b.patch",
+       "request_schema": null,
+       "summary": "只有 description 长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长",
+       "tags": [],
+       "write": true
+      },
+      "render": "PATCH /a/{id}/b  operationId=patchAB　〔写操作，可反推 ActionType〕 只有 description 长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长",
+      "tags": [
+       "endpoint",
+       "write"
+      ]
+     },
+     {
+      "chunk_id": "f_0123456789ab:ep2",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "edge.json",
+      "locator": {
+       "kind": "json",
+       "pointer": "$.paths./.put"
+      },
+      "order": 2,
+      "raw": {
+       "file_id": "f_0123456789ab",
+       "file_name": "edge.json",
+       "method": "put",
+       "operationId": "put",
+       "path": "/",
+       "pointer": "$.paths./.put",
+       "request_schema": null,
+       "summary": "",
+       "tags": [],
+       "write": true
+      },
+      "render": "PUT /  operationId=put　〔写操作，可反推 ActionType〕",
+      "tags": [
+       "endpoint",
+       "write"
+      ]
+     },
+     {
+      "chunk_id": "f_0123456789ab:ep3",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "edge.json",
+      "locator": {
+       "kind": "json",
+       "pointer": "$.paths.//weird//.post"
+      },
+      "order": 3,
+      "raw": {
+       "file_id": "f_0123456789ab",
+       "file_name": "edge.json",
+       "method": "post",
+       "operationId": "postWeird",
+       "path": "//weird//",
+       "pointer": "$.paths.//weird//.post",
+       "request_schema": null,
+       "summary": "",
+       "tags": [],
+       "write": true
+      },
+      "render": "POST //weird//  operationId=postWeird　〔写操作，可反推 ActionType〕",
+      "tags": [
+       "endpoint",
+       "write"
+      ]
+     },
+     {
+      "chunk_id": "f_0123456789ab:schema:Legacy",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "edge.json",
+      "locator": {
+       "kind": "json",
+       "pointer": "$.components.schemas.Legacy"
+      },
+      "order": 4,
+      "raw": {
+       "description": "",
+       "name": "Legacy",
+       "properties": {
+        "a": {
+         "base_type": "INTEGER",
+         "description": "",
+         "enum": null,
+         "format": null,
+         "required": true
+        },
+        "b": {
+         "base_type": "TIMESTAMP",
+         "description": "时间",
+         "enum": null,
+         "format": "date-time",
+         "required": false
+        },
+        "c": {
+         "base_type": "BOOLEAN",
+         "description": "",
+         "enum": [
+          true,
+          false,
+          1,
+          2.5,
+          null
+         ],
+         "format": null,
+         "required": false
+        },
+        "d": {
+         "base_type": "STRING",
+         "description": "",
+         "enum": null,
+         "format": "uuid",
+         "required": false
+        },
+        "e": {
+         "base_type": "STRING",
+         "description": "",
+         "enum": null,
+         "format": null,
+         "required": false
+        }
+       }
+      },
+      "render": "schema Legacy：a:INTEGER*、b:TIMESTAMP（时间）、c:BOOLEAN[True|False|1|2.5|None]、d:STRING、e:STRING",
+      "tags": [
+       "schema"
+      ]
+     }
+    ],
+    "file_id": "f_0123456789ab",
+    "file_name": "edge.json",
+    "findings": [],
+    "kind": "openapi",
+    "meta": {},
+    "stats": {
+     "chunks": 5,
+     "endpoints": 4,
+     "file": "edge.json",
+     "findings": 0,
+     "kind": "openapi",
+     "schemas": 1,
+     "title": ""
+    },
+    "structured": {
+     "endpoints": [
+      {
+       "file_id": "f_0123456789ab",
+       "file_name": "edge.json",
+       "method": "delete",
+       "operationId": "deleteAB",
+       "path": "/a/{id}/b",
+       "pointer": "$.paths./a/{id}/b.delete",
+       "request_schema": null,
+       "summary": "删",
+       "tags": [
+        "x"
+       ],
+       "write": true
+      },
+      {
+       "file_id": "f_0123456789ab",
+       "file_name": "edge.json",
+       "method": "patch",
+       "operationId": "patchAB",
+       "path": "/a/{id}/b",
+       "pointer": "$.paths./a/{id}/b.patch",
+       "request_schema": null,
+       "summary": "只有 description 长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长",
+       "tags": [],
+       "write": true
+      },
+      {
+       "file_id": "f_0123456789ab",
+       "file_name": "edge.json",
+       "method": "put",
+       "operationId": "put",
+       "path": "/",
+       "pointer": "$.paths./.put",
+       "request_schema": null,
+       "summary": "",
+       "tags": [],
+       "write": true
+      },
+      {
+       "file_id": "f_0123456789ab",
+       "file_name": "edge.json",
+       "method": "post",
+       "operationId": "postWeird",
+       "path": "//weird//",
+       "pointer": "$.paths.//weird//.post",
+       "request_schema": null,
+       "summary": "",
+       "tags": [],
+       "write": true
+      }
+     ],
+     "schemas": {
+      "Legacy": {
+       "description": "",
+       "name": "Legacy",
+       "properties": {
+        "a": {
+         "base_type": "INTEGER",
+         "description": "",
+         "enum": null,
+         "format": null,
+         "required": true
+        },
+        "b": {
+         "base_type": "TIMESTAMP",
+         "description": "时间",
+         "enum": null,
+         "format": "date-time",
+         "required": false
+        },
+        "c": {
+         "base_type": "BOOLEAN",
+         "description": "",
+         "enum": [
+          true,
+          false,
+          1,
+          2.5,
+          null
+         ],
+         "format": null,
+         "required": false
+        },
+        "d": {
+         "base_type": "STRING",
+         "description": "",
+         "enum": null,
+         "format": "uuid",
+         "required": false
+        },
+        "e": {
+         "base_type": "STRING",
+         "description": "",
+         "enum": null,
+         "format": null,
+         "required": false
+        }
+       }
+      }
+     },
+     "title": ""
+    }
+   },
+   "file_id": "f_0123456789ab",
+   "name": "edge.json",
+   "text": "{\"info\": {}, \"paths\": {\"/a/{id}/b\": {\"delete\": {\"summary\": \"删\", \"tags\": [\"x\"]}, \"head\": {\"operationId\": \"ignored\"}, \"patch\": {\"description\": \"只有 description 长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长\"}}, \"/\": {\"put\": {}}, \"//weird//\": {\"post\": {}}, \"/notadict\": \"oops\", \"/opnotadict\": {\"post\": 3}}, \"definitions\": {\"Legacy\": {\"required\": [\"a\"], \"properties\": {\"a\": {\"type\": \"integer\"}, \"b\": {\"type\": \"string\", \"format\": \"date-time\", \"description\": \"时间\"}, \"c\": {\"type\": \"boolean\", \"enum\": [true, false, 1, 2.5, null]}, \"d\": {\"type\": \"string\", \"format\": \"uuid\"}, \"e\": {\"type\": \"array\", \"items\": {\"type\": \"string\"}}, \"f\": \"notadict\"}}, \"NotObject\": {\"type\": \"string\"}, \"Arr\": [\"x\"]}}"
+  },
+  {
+   "doc": {
+    "chunks": [
+     {
+      "chunk_id": "f_0123456789ab:ep0",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "readonly.json",
+      "locator": {
+       "kind": "json",
+       "pointer": "$.paths./x.get"
+      },
+      "order": 0,
+      "raw": {
+       "file_id": "f_0123456789ab",
+       "file_name": "readonly.json",
+       "method": "get",
+       "operationId": "getX",
+       "path": "/x",
+       "pointer": "$.paths./x.get",
+       "request_schema": null,
+       "summary": "",
+       "tags": [],
+       "write": false
+      },
+      "render": "GET /x  operationId=getX　〔读操作〕",
+      "tags": [
+       "endpoint",
+       "read"
+      ]
+     }
+    ],
+    "file_id": "f_0123456789ab",
+    "file_name": "readonly.json",
+    "findings": [
+     {
+      "kind": "no_write_endpoints",
+      "locator": {},
+      "message": "spec 里没有写操作端点，无法反推 ActionType 草稿",
+      "severity": "info"
+     }
+    ],
+    "kind": "openapi",
+    "meta": {},
+    "stats": {
+     "chunks": 1,
+     "endpoints": 1,
+     "file": "readonly.json",
+     "findings": 1,
+     "kind": "openapi",
+     "schemas": 0,
+     "title": "只读"
+    },
+    "structured": {
+     "endpoints": [
+      {
+       "file_id": "f_0123456789ab",
+       "file_name": "readonly.json",
+       "method": "get",
+       "operationId": "getX",
+       "path": "/x",
+       "pointer": "$.paths./x.get",
+       "request_schema": null,
+       "summary": "",
+       "tags": [],
+       "write": false
+      }
+     ],
+     "schemas": {},
+     "title": "只读"
+    }
+   },
+   "file_id": "f_0123456789ab",
+   "name": "readonly.json",
+   "text": "{\"info\": {\"title\": \"只读\"}, \"paths\": {\"/x\": {\"get\": {}}}, \"components\": {\"schemas\": {}}}"
+  },
+  {
+   "doc": {
+    "chunks": [
+     {
+      "chunk_id": "f_0123456789ab:k0",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "plain.json",
+      "locator": {
+       "kind": "json",
+       "pointer": "$.名单"
+      },
+      "order": 0,
+      "raw": [
+       "甲",
+       "乙"
+      ],
+      "render": "名单: [\"甲\", \"乙\"]",
+      "tags": [
+       "json"
+      ]
+     },
+     {
+      "chunk_id": "f_0123456789ab:k1",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "plain.json",
+      "locator": {
+       "kind": "json",
+       "pointer": "$.数量"
+      },
+      "order": 1,
+      "raw": 3,
+      "render": "数量: 3",
+      "tags": [
+       "json"
+      ]
+     },
+     {
+      "chunk_id": "f_0123456789ab:k2",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "plain.json",
+      "locator": {
+       "kind": "json",
+       "pointer": "$.嵌套"
+      },
+      "order": 2,
+      "raw": {
+       "a": 1.0,
+       "b": null,
+       "c": true
+      },
+      "render": "嵌套: {\"a\": 1.0, \"b\": null, \"c\": true}",
+      "tags": [
+       "json"
+      ]
+     },
+     {
+      "chunk_id": "f_0123456789ab:k3",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "plain.json",
+      "locator": {
+       "kind": "json",
+       "pointer": "$.长文本"
+      },
+      "order": 3,
+      "raw": "很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长",
+      "render": "长文本: \"很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很",
+      "tags": [
+       "json"
+      ]
+     }
+    ],
+    "file_id": "f_0123456789ab",
+    "file_name": "plain.json",
+    "findings": [],
+    "kind": "json",
+    "meta": {},
+    "stats": {
+     "chunks": 4,
+     "file": "plain.json",
+     "findings": 0,
+     "keys": 4,
+     "kind": "json"
+    },
+    "structured": {
+     "keys": [
+      "名单",
+      "数量",
+      "嵌套",
+      "长文本"
+     ]
+    }
+   },
+   "file_id": "f_0123456789ab",
+   "name": "plain.json",
+   "text": "{\"名单\": [\"甲\", \"乙\"], \"数量\": 3, \"嵌套\": {\"a\": 1.0, \"b\": null, \"c\": true}, \"长文本\": \"很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长\"}"
+  },
+  {
+   "doc": {
+    "chunks": [],
+    "file_id": "f_0123456789ab",
+    "file_name": "toplevel_list.json",
+    "findings": [
+     {
+      "kind": "parse_failed",
+      "locator": {},
+      "message": "顶层不是对象",
+      "severity": "warn"
+     }
+    ],
+    "kind": "openapi",
+    "meta": {},
+    "stats": {
+     "chunks": 0,
+     "file": "toplevel_list.json",
+     "findings": 1,
+     "kind": "openapi"
+    },
+    "structured": {}
+   },
+   "file_id": "f_0123456789ab",
+   "name": "toplevel_list.json",
+   "text": "[1, 2]"
+  },
+  {
+   "doc": {
+    "chunks": [],
+    "file_id": "f_0123456789ab",
+    "file_name": "broken.json",
+    "findings": [
+     {
+      "kind": "parse_failed",
+      "locator": {},
+      "message": "既不是合法 JSON 也读不成 YAML：Expecting property name enclosed in double quotes: line 1 column 2 (char 1)",
+      "severity": "warn"
+     }
+    ],
+    "kind": "openapi",
+    "meta": {},
+    "stats": {
+     "chunks": 0,
+     "file": "broken.json",
+     "findings": 1,
+     "kind": "openapi"
+    },
+    "structured": {}
+   },
+   "file_id": "f_0123456789ab",
+   "name": "broken.json",
+   "text": "{不是 JSON"
+  },
+  {
+   "doc": {
+    "chunks": [
+     {
+      "chunk_id": "f_0123456789ab:ep0",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "openapi.json",
+      "locator": {
+       "kind": "json",
+       "pointer": "$.paths./purchase-plans/{id}/submit.post"
+      },
+      "order": 0,
+      "raw": {
+       "file_id": "f_0123456789ab",
+       "file_name": "openapi.json",
+       "method": "post",
+       "operationId": "submitPurchasePlan",
+       "path": "/purchase-plans/{id}/submit",
+       "pointer": "$.paths./purchase-plans/{id}/submit.post",
+       "request_schema": "SubmitReq",
+       "summary": "提交采购计划",
+       "tags": [],
+       "write": true
+      },
+      "render": "POST /purchase-plans/{id}/submit  operationId=submitPurchasePlan　〔写操作，可反推 ActionType〕 提交采购计划",
+      "tags": [
+       "endpoint",
+       "write"
+      ]
+     },
+     {
+      "chunk_id": "f_0123456789ab:eplink1",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "openapi.json",
+      "locator": {
+       "kind": "json",
+       "pointer": "$.paths./purchase-plans/{id}/submit.post"
+      },
+      "order": 1,
+      "raw": {
+       "from": "submitPurchasePlan",
+       "to": "SubmitReq"
+      },
+      "render": "submitPurchasePlan → SubmitReq（请求体，引用该 schema）",
+      "tags": [
+       "link",
+       "relation"
+      ]
+     },
+     {
+      "chunk_id": "f_0123456789ab:ep2",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "openapi.json",
+      "locator": {
+       "kind": "json",
+       "pointer": "$.paths./purchase-packages.post"
+      },
+      "order": 2,
+      "raw": {
+       "file_id": "f_0123456789ab",
+       "file_name": "openapi.json",
+       "method": "post",
+       "operationId": "createPurchasePackage",
+       "path": "/purchase-packages",
+       "pointer": "$.paths./purchase-packages.post",
+       "request_schema": null,
+       "summary": "创建采购包",
+       "tags": [],
+       "write": true
+      },
+      "render": "POST /purchase-packages  operationId=createPurchasePackage　〔写操作，可反推 ActionType〕 创建采购包",
+      "tags": [
+       "endpoint",
+       "write"
+      ]
+     },
+     {
+      "chunk_id": "f_0123456789ab:ep3",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "openapi.json",
+      "locator": {
+       "kind": "json",
+       "pointer": "$.paths./suppliers.get"
+      },
+      "order": 3,
+      "raw": {
+       "file_id": "f_0123456789ab",
+       "file_name": "openapi.json",
+       "method": "get",
+       "operationId": "listSuppliers",
+       "path": "/suppliers",
+       "pointer": "$.paths./suppliers.get",
+       "request_schema": null,
+       "summary": "",
+       "tags": [],
+       "write": false
+      },
+      "render": "GET /suppliers  operationId=listSuppliers　〔读操作〕",
+      "tags": [
+       "endpoint",
+       "read"
+      ]
+     },
+     {
+      "chunk_id": "f_0123456789ab:schema:Plan",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "openapi.json",
+      "locator": {
+       "kind": "json",
+       "pointer": "$.components.schemas.Plan"
+      },
+      "order": 4,
+      "raw": {
+       "description": "",
+       "name": "Plan",
+       "properties": {
+        "effectiveDate": {
+         "base_type": "DATE",
+         "description": "",
+         "enum": null,
+         "format": "date",
+         "required": false
+        },
+        "planAmount": {
+         "base_type": "DECIMAL",
+         "description": "计划金额（含税，年度累计）",
+         "enum": null,
+         "format": "double",
+         "required": false
+        },
+        "planId": {
+         "base_type": "STRING",
+         "description": "",
+         "enum": null,
+         "format": null,
+         "required": true
+        },
+        "status": {
+         "base_type": "STRING",
+         "description": "",
+         "enum": [
+          "DRAFT",
+          "SUBMITTED"
+         ],
+         "format": null,
+         "required": false
+        }
+       }
+      },
+      "render": "schema Plan：planId:STRING*、planAmount:DECIMAL（计划金额（含税，年度累计））、effectiveDate:DATE、status:STRING[DRAFT|SUBMITTED]",
+      "tags": [
+       "schema"
+      ]
+     },
+     {
+      "chunk_id": "f_0123456789ab:schema:SubmitReq",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "openapi.json",
+      "locator": {
+       "kind": "json",
+       "pointer": "$.components.schemas.SubmitReq"
+      },
+      "order": 5,
+      "raw": {
+       "description": "",
+       "name": "SubmitReq",
+       "properties": {
+        "remark": {
+         "base_type": "STRING",
+         "description": "",
+         "enum": null,
+         "format": null,
+         "required": false
+        }
+       }
+      },
+      "render": "schema SubmitReq：remark:STRING",
+      "tags": [
+       "schema"
+      ]
+     }
+    ],
+    "file_id": "f_0123456789ab",
+    "file_name": "openapi.json",
+    "findings": [],
+    "kind": "openapi",
+    "meta": {},
+    "stats": {
+     "chunks": 6,
+     "endpoints": 3,
+     "file": "openapi.json",
+     "findings": 0,
+     "kind": "openapi",
+     "schemas": 2,
+     "title": "采购中台 API"
+    },
+    "structured": {
+     "endpoints": [
+      {
+       "file_id": "f_0123456789ab",
+       "file_name": "openapi.json",
+       "method": "post",
+       "operationId": "submitPurchasePlan",
+       "path": "/purchase-plans/{id}/submit",
+       "pointer": "$.paths./purchase-plans/{id}/submit.post",
+       "request_schema": "SubmitReq",
+       "summary": "提交采购计划",
+       "tags": [],
+       "write": true
+      },
+      {
+       "file_id": "f_0123456789ab",
+       "file_name": "openapi.json",
+       "method": "post",
+       "operationId": "createPurchasePackage",
+       "path": "/purchase-packages",
+       "pointer": "$.paths./purchase-packages.post",
+       "request_schema": null,
+       "summary": "创建采购包",
+       "tags": [],
+       "write": true
+      },
+      {
+       "file_id": "f_0123456789ab",
+       "file_name": "openapi.json",
+       "method": "get",
+       "operationId": "listSuppliers",
+       "path": "/suppliers",
+       "pointer": "$.paths./suppliers.get",
+       "request_schema": null,
+       "summary": "",
+       "tags": [],
+       "write": false
+      }
+     ],
+     "schemas": {
+      "Plan": {
+       "description": "",
+       "name": "Plan",
+       "properties": {
+        "effectiveDate": {
+         "base_type": "DATE",
+         "description": "",
+         "enum": null,
+         "format": "date",
+         "required": false
+        },
+        "planAmount": {
+         "base_type": "DECIMAL",
+         "description": "计划金额（含税，年度累计）",
+         "enum": null,
+         "format": "double",
+         "required": false
+        },
+        "planId": {
+         "base_type": "STRING",
+         "description": "",
+         "enum": null,
+         "format": null,
+         "required": true
+        },
+        "status": {
+         "base_type": "STRING",
+         "description": "",
+         "enum": [
+          "DRAFT",
+          "SUBMITTED"
+         ],
+         "format": null,
+         "required": false
+        }
+       }
+      },
+      "SubmitReq": {
+       "description": "",
+       "name": "SubmitReq",
+       "properties": {
+        "remark": {
+         "base_type": "STRING",
+         "description": "",
+         "enum": null,
+         "format": null,
+         "required": false
+        }
+       }
+      }
+     },
+     "title": "采购中台 API"
+    }
+   },
+   "file_id": "f_0123456789ab",
+   "name": "materials/openapi.json",
+   "text": "{\"openapi\": \"3.0.0\", \"info\": {\"title\": \"采购中台 API\"}, \"paths\": {\"/purchase-plans/{id}/submit\": {\"post\": {\"operationId\": \"submitPurchasePlan\", \"summary\": \"提交采购计划\", \"requestBody\": {\"content\": {\"application/json\": {\"schema\": {\"$ref\": \"#/components/schemas/SubmitReq\"}}}}}}, \"/purchase-packages\": {\"post\": {\"operationId\": \"createPurchasePackage\", \"summary\": \"创建采购包\"}}, \"/suppliers\": {\"get\": {\"operationId\": \"listSuppliers\"}}}, \"components\": {\"schemas\": {\"Plan\": {\"type\": \"object\", \"required\": [\"planId\"], \"properties\": {\"planId\": {\"type\": \"string\"}, \"planAmount\": {\"type\": \"number\", \"format\": \"double\", \"description\": \"计划金额（含税，年度累计）\"}, \"effectiveDate\": {\"type\": \"string\", \"format\": \"date\"}, \"status\": {\"type\": \"string\", \"enum\": [\"DRAFT\", \"SUBMITTED\"]}}}, \"SubmitReq\": {\"type\": \"object\", \"properties\": {\"remark\": {\"type\": \"string\"}}}}}}"
+  }
+ ],
+ "base": {
+  "content_file_id": [
+   {
+    "bytes_b64": "aGVsbG8=",
+    "file_id": "f_2cf24dba5fb0",
+    "name": "a.txt"
+   },
+   {
+    "bytes_b64": "5ZCr56iOCg==",
+    "file_id": "f_3f6b316619aa",
+    "name": "b.txt"
+   },
+   {
+    "bytes_b64": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8gISIjJCUmJygpKissLS4vMDEyMzQ1Njc4OTo7PD0+P0BBQkNERUZHSElKS0xNTk9QUVJTVFVWV1hZWltcXV5fYGFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6e3x9fn+AgYKDhIWGh4iJiouMjY6PkJGSk5SVlpeYmZqbnJ2en6ChoqOkpaanqKmqq6ytrq+wsbKztLW2t7i5uru8vb6/wMHCw8TFxsfIycrLzM3Oz9DR0tPU1dbX2Nna29zd3t/g4eLj5OXm5+jp6uvs7e7v8PHy8/T19vf4+fr7/P3+/w==",
+    "file_id": "f_40aff2e9d2d8",
+    "name": "c.bin"
+   },
+   {
+    "bytes_b64": "",
+    "file_id": "f_e3b0c44298fc",
+    "name": "d.txt"
+   },
+   {
+    "bytes_b64": null,
+    "file_id": "f_ac43e1881410",
+    "name": "adir"
+   }
+  ],
+  "dispatch": [
+   {
+    "kind": "ddl",
+    "name": "a.ddl"
+   },
+   {
+    "kind": "ddl",
+    "name": "a.sql"
+   },
+   {
+    "kind": "ddl",
+    "name": "a.SQL"
+   },
+   {
+    "kind": "openapi",
+    "name": "a.json"
+   },
+   {
+    "kind": "openapi",
+    "name": "a.yaml"
+   },
+   {
+    "kind": "openapi",
+    "name": "a.yml"
+   },
+   {
+    "kind": "docx",
+    "name": "a.docx"
+   },
+   {
+    "kind": "docx",
+    "name": "a.DOCX"
+   },
+   {
+    "kind": "text",
+    "name": "a.md"
+   },
+   {
+    "kind": "text",
+    "name": "a.txt"
+   },
+   {
+    "kind": "text",
+    "name": "a.markdown"
+   },
+   {
+    "kind": "text",
+    "name": "a.rst"
+   },
+   {
+    "kind": "text",
+    "name": "a.xlsx"
+   },
+   {
+    "kind": "text",
+    "name": "a"
+   },
+   {
+    "kind": "text",
+    "name": ".bashrc"
+   },
+   {
+    "kind": "text",
+    "name": "a.tar.gz"
+   },
+   {
+    "kind": "text",
+    "name": "a."
+   }
+  ],
+  "make_chunk": [
+   {
+    "in": {
+     "doc_id": "s0",
+     "file_id": "f_x",
+     "file_name": "a.md",
+     "locator": {
+      "kind": "page",
+      "page": 1
+     },
+     "render": "正文"
+    },
+    "out": {
+     "chunk_id": "f_x:s0",
+     "context": "",
+     "file_id": "f_x",
+     "file_name": "a.md",
+     "locator": {
+      "kind": "page",
+      "page": 1
+     },
+     "order": 0,
+     "raw": null,
+     "render": "正文",
+     "tags": []
+    }
+   },
+   {
+    "in": {
+     "doc_id": "t0r1",
+     "file_id": "f_y",
+     "file_name": "b.docx",
+     "locator": {
+      "kind": "ddl",
+      "object": "t"
+     },
+     "order": 7,
+     "raw": {
+      "a": 1
+     },
+     "render": "r",
+     "tags": [
+      "table",
+      "rule"
+     ]
+    },
+    "out": {
+     "chunk_id": "f_y:t0r1",
+     "context": "",
+     "file_id": "f_y",
+     "file_name": "b.docx",
+     "locator": {
+      "kind": "ddl",
+      "object": "t"
+     },
+     "order": 7,
+     "raw": {
+      "a": 1
+     },
+     "render": "r",
+     "tags": [
+      "table",
+      "rule"
+     ]
+    }
+   }
+  ],
+  "no_parser_message": {
+   "ascii": "没有能处理 '.xyz' 的解析器，也没有配置兜底解析器",
+   "cjk": "没有能处理 '.中文' 的解析器，也没有配置兜底解析器"
+  },
+  "stats": [
+   {
+    "out": {
+     "chunks": 1,
+     "file": "x.json",
+     "findings": 1,
+     "kind": "openapi"
+    },
+    "structured": {}
+   },
+   {
+    "out": {
+     "chars": 120,
+     "chunks": 1,
+     "file": "x.json",
+     "findings": 1,
+     "kind": "openapi",
+     "sections": 3
+    },
+    "structured": {
+     "chars": 120,
+     "sections": 3
+    }
+   },
+   {
+    "out": {
+     "chunks": 1,
+     "endpoints": 3,
+     "file": "x.json",
+     "findings": 1,
+     "kind": "openapi",
+     "schemas": 2,
+     "title": "采购中台 API"
+    },
+    "structured": {
+     "endpoints": [
+      1,
+      2,
+      3
+     ],
+     "schemas": {
+      "A": {},
+      "B": {}
+     },
+     "title": "采购中台 API"
+    }
+   },
+   {
+    "out": {
+     "chunks": 1,
+     "file": "x.json",
+     "findings": 1,
+     "kind": "openapi",
+     "tables": 0
+    },
+    "structured": {
+     "raw": [
+      1,
+      2,
+      3
+     ],
+     "tables": []
+    }
+   },
+   {
+    "out": {
+     "chunks": 1,
+     "file": "x.json",
+     "findings": 1,
+     "keys": 2,
+     "kind": "openapi",
+     "note": null,
+     "ok": true
+    },
+    "structured": {
+     "keys": [
+      "a",
+      "b"
+     ],
+     "note": null,
+     "ok": true
+    }
+   }
+  ]
+ },
+ "docx": [
+  {
+   "content": {
+    "core": {
+     "creator": "wubin",
+     "last_modified_by": "",
+     "modified": "2013-12-23 23:15:00+00:00",
+     "title": ""
+    },
+    "paragraphs": [
+     {
+      "style": "Heading 1",
+      "text": "采购业务流程说明"
+     },
+     {
+      "style": "Heading 2",
+      "text": "3.2 采购包组建"
+     },
+     {
+      "style": "Normal",
+      "text": "执行计划下达后，采购员按物料类别、供应商能力、交付窗口三个因子组包。一个执行计划可拆入多个采购包，一个采购包也可包含多个执行计划的行项。组包完成后进入询比价环节。"
+     },
+     {
+      "style": "Heading 2",
+      "text": "4.1 金额口径"
+     },
+     {
+      "style": "Normal",
+      "text": "预算控制以年度累计含税金额为准；合同签订时按不含税单次金额记录，两者之间的换算由财务共享中心维护税率表。"
+     }
+    ],
+    "tables": [
+     [
+      [
+       "字段",
+       "所属对象",
+       "口径"
+      ],
+      [
+       "plan_amount",
+       "pbpHeader",
+       "含税年度累计"
+      ],
+      [
+       "plan_amount",
+       "clmContract",
+       "不含税单次"
+      ]
+     ]
+    ]
+   },
+   "doc": {
+    "chunks": [
+     {
+      "chunk_id": "f_0123456789ab:s0",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "流程说明.docx",
+      "locator": {
+       "bbox": [
+        0,
+        0,
+        0,
+        0
+       ],
+       "kind": "page",
+       "page": 1,
+       "section": "采购业务流程说明 > 3.2 采购包组建"
+      },
+      "order": 0,
+      "raw": null,
+      "render": "〔采购业务流程说明 > 3.2 采购包组建〕\n执行计划下达后，采购员按物料类别、供应商能力、交付窗口三个因子组包。一个执行计划可拆入多个采购包，一个采购包也可包含多个执行计划的行项。组包完成后进入询比价环节。",
+      "tags": [
+       "para",
+       "rule"
+      ]
+     },
+     {
+      "chunk_id": "f_0123456789ab:s1",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "流程说明.docx",
+      "locator": {
+       "bbox": [
+        0,
+        0,
+        0,
+        0
+       ],
+       "kind": "page",
+       "page": 1,
+       "section": "采购业务流程说明 > 4.1 金额口径"
+      },
+      "order": 1,
+      "raw": null,
+      "render": "〔采购业务流程说明 > 4.1 金额口径〕\n预算控制以年度累计含税金额为准；合同签订时按不含税单次金额记录，两者之间的换算由财务共享中心维护税率表。",
+      "tags": [
+       "para",
+       "rule"
+      ]
+     },
+     {
+      "chunk_id": "f_0123456789ab:t0r0",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "流程说明.docx",
+      "locator": {
+       "bbox": [
+        0,
+        0,
+        0,
+        0
+       ],
+       "kind": "page",
+       "page": 1,
+       "row": 1,
+       "table": 0
+      },
+      "order": 2,
+      "raw": null,
+      "render": "字段=plan_amount | 所属对象=pbpHeader | 口径=含税年度累计",
+      "tags": [
+       "table"
+      ]
+     },
+     {
+      "chunk_id": "f_0123456789ab:t0r1",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "流程说明.docx",
+      "locator": {
+       "bbox": [
+        0,
+        0,
+        0,
+        0
+       ],
+       "kind": "page",
+       "page": 1,
+       "row": 2,
+       "table": 0
+      },
+      "order": 3,
+      "raw": null,
+      "render": "字段=plan_amount | 所属对象=clmContract | 口径=不含税单次",
+      "tags": [
+       "table"
+      ]
+     }
+    ],
+    "file_id": "f_0123456789ab",
+    "file_name": "流程说明.docx",
+    "findings": [
+     {
+      "kind": "metadata_leak",
+      "locator": {
+       "field": "docProps/core.xml",
+       "kind": "meta"
+      },
+      "message": "文档元数据里带着作者信息（creator=wubin），对外发布前建议清理。",
+      "severity": "warn"
+     }
+    ],
+    "kind": "docx",
+    "meta": {
+     "creator": "wubin",
+     "modified": "2013-12-23 23:15:00+00:00"
+    },
+    "stats": {
+     "chunks": 4,
+     "file": "流程说明.docx",
+     "findings": 1,
+     "kind": "docx",
+     "sections": 2,
+     "tables": 1
+    },
+    "structured": {
+     "sections": 2,
+     "tables": [
+      {
+       "columns": [
+        "字段",
+        "所属对象",
+        "口径"
+       ],
+       "index": 0,
+       "rows": 2
+      }
+     ]
+    }
+   },
+   "file_id": "f_0123456789ab",
+   "name": "流程说明.docx"
+  },
+  {
+   "content": {
+    "core": {
+     "creator": "python-docx",
+     "last_modified_by": "",
+     "modified": "2013-12-23 23:15:00+00:00",
+     "title": ""
+    },
+    "paragraphs": [
+     {
+      "style": "Heading 1",
+      "text": "Rules"
+     },
+     {
+      "style": "Normal",
+      "text": "Each order must reference exactly one customer; an order can contain multiple line items."
+     }
+    ],
+    "tables": []
+   },
+   "doc": {
+    "chunks": [
+     {
+      "chunk_id": "f_0123456789ab:s0",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "rules.docx",
+      "locator": {
+       "bbox": [
+        0,
+        0,
+        0,
+        0
+       ],
+       "kind": "page",
+       "page": 1,
+       "section": "Rules"
+      },
+      "order": 0,
+      "raw": null,
+      "render": "〔Rules〕\nEach order must reference exactly one customer; an order can contain multiple line items.",
+      "tags": [
+       "para",
+       "rule"
+      ]
+     }
+    ],
+    "file_id": "f_0123456789ab",
+    "file_name": "rules.docx",
+    "findings": [
+     {
+      "kind": "metadata_leak",
+      "locator": {
+       "field": "docProps/core.xml",
+       "kind": "meta"
+      },
+      "message": "文档元数据里带着作者信息（creator=python-docx），对外发布前建议清理。",
+      "severity": "warn"
+     }
+    ],
+    "kind": "docx",
+    "meta": {
+     "creator": "python-docx",
+     "modified": "2013-12-23 23:15:00+00:00"
+    },
+    "stats": {
+     "chunks": 1,
+     "file": "rules.docx",
+     "findings": 1,
+     "kind": "docx",
+     "sections": 1,
+     "tables": 0
+    },
+    "structured": {
+     "sections": 1,
+     "tables": []
+    }
+   },
+   "file_id": "f_0123456789ab",
+   "name": "rules.docx"
+  },
+  {
+   "content": {
+    "core": {
+     "creator": "",
+     "last_modified_by": "李强",
+     "modified": "2013-12-23 23:15:00+00:00",
+     "title": ""
+    },
+    "paragraphs": [
+     {
+      "style": "Heading 1",
+      "text": "标题"
+     },
+     {
+      "style": "Normal",
+      "text": "短段。"
+     },
+     {
+      "style": "Normal",
+      "text": "正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正"
+     },
+     {
+      "style": "Normal",
+      "text": "文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文"
+     },
+     {
+      "style": "Normal",
+      "text": ""
+     }
+    ],
+    "tables": [
+     [
+      [
+       "",
+       ""
+      ],
+      [
+       "",
+       ""
+      ]
+     ],
+     [
+      [
+       "字段",
+       "",
+       ""
+      ],
+      [
+       "a",
+       "b",
+       ""
+      ],
+      [
+       "",
+       "",
+       "c"
+      ]
+     ]
+    ]
+   },
+   "doc": {
+    "chunks": [
+     {
+      "chunk_id": "f_0123456789ab:s0",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "edge.docx",
+      "locator": {
+       "bbox": [
+        0,
+        0,
+        0,
+        0
+       ],
+       "kind": "page",
+       "page": 1,
+       "section": "标题"
+      },
+      "order": 0,
+      "raw": null,
+      "render": "〔标题〕\n短段。\n正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正\n文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文",
+      "tags": [
+       "para"
+      ]
+     },
+     {
+      "chunk_id": "f_0123456789ab:t1r0",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "edge.docx",
+      "locator": {
+       "bbox": [
+        0,
+        0,
+        0,
+        0
+       ],
+       "kind": "page",
+       "page": 2,
+       "row": 1,
+       "table": 1
+      },
+      "order": 1,
+      "raw": null,
+      "render": "字段=a | =b",
+      "tags": [
+       "table"
+      ]
+     },
+     {
+      "chunk_id": "f_0123456789ab:t1r1",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "edge.docx",
+      "locator": {
+       "bbox": [
+        0,
+        0,
+        0,
+        0
+       ],
+       "kind": "page",
+       "page": 2,
+       "row": 2,
+       "table": 1
+      },
+      "order": 2,
+      "raw": null,
+      "render": "=c",
+      "tags": [
+       "table"
+      ]
+     }
+    ],
+    "file_id": "f_0123456789ab",
+    "file_name": "edge.docx",
+    "findings": [
+     {
+      "kind": "metadata_leak",
+      "locator": {
+       "field": "docProps/core.xml",
+       "kind": "meta"
+      },
+      "message": "文档元数据里带着作者信息（last_modified_by=李强），对外发布前建议清理。",
+      "severity": "warn"
+     }
+    ],
+    "kind": "docx",
+    "meta": {
+     "last_modified_by": "李强",
+     "modified": "2013-12-23 23:15:00+00:00"
+    },
+    "stats": {
+     "chunks": 3,
+     "file": "edge.docx",
+     "findings": 1,
+     "kind": "docx",
+     "sections": 1,
+     "tables": 1
+    },
+    "structured": {
+     "sections": 1,
+     "tables": [
+      {
+       "columns": [
+        "字段",
+        "",
+        ""
+       ],
+       "index": 1,
+       "rows": 2
+      }
+     ]
+    }
+   },
+   "file_id": "f_0123456789ab",
+   "name": "edge.docx"
+  },
+  {
+   "content": {
+    "core": {
+     "creator": "wubin",
+     "last_modified_by": "",
+     "modified": "2013-12-23 23:15:00+00:00",
+     "title": ""
+    },
+    "paragraphs": [
+     {
+      "style": "Heading 1",
+      "text": "采购业务流程说明"
+     },
+     {
+      "style": "Heading 2",
+      "text": "3.2 采购包组建"
+     },
+     {
+      "style": "Normal",
+      "text": "执行计划下达后，采购员按物料类别、供应商能力、交付窗口三个因子组包。一个执行计划可拆入多个采购包，一个采购包也可包含多个执行计划的行项。组包完成后进入询比价环节。"
+     },
+     {
+      "style": "Heading 2",
+      "text": "4.1 金额口径"
+     },
+     {
+      "style": "Normal",
+      "text": "预算控制以年度累计含税金额为准；合同签订时按不含税单次金额记录，两者之间的换算由财务共享中心维护税率表。"
+     }
+    ],
+    "tables": [
+     [
+      [
+       "字段",
+       "所属对象",
+       "口径"
+      ],
+      [
+       "plan_amount",
+       "pbpHeader",
+       "含税年度累计"
+      ],
+      [
+       "plan_amount",
+       "clmContract",
+       "不含税单次"
+      ]
+     ]
+    ]
+   },
+   "doc": {
+    "chunks": [
+     {
+      "chunk_id": "f_0123456789ab:s0",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "流程说明.docx",
+      "locator": {
+       "bbox": [
+        0,
+        0,
+        0,
+        0
+       ],
+       "kind": "page",
+       "page": 1,
+       "section": "采购业务流程说明 > 3.2 采购包组建"
+      },
+      "order": 0,
+      "raw": null,
+      "render": "〔采购业务流程说明 > 3.2 采购包组建〕\n执行计划下达后，采购员按物料类别、供应商能力、交付窗口三个因子组包。一个执行计划可拆入多个采购包，一个采购包也可包含多个执行计划的行项。组包完成后进入询比价环节。",
+      "tags": [
+       "para",
+       "rule"
+      ]
+     },
+     {
+      "chunk_id": "f_0123456789ab:s1",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "流程说明.docx",
+      "locator": {
+       "bbox": [
+        0,
+        0,
+        0,
+        0
+       ],
+       "kind": "page",
+       "page": 1,
+       "section": "采购业务流程说明 > 4.1 金额口径"
+      },
+      "order": 1,
+      "raw": null,
+      "render": "〔采购业务流程说明 > 4.1 金额口径〕\n预算控制以年度累计含税金额为准；合同签订时按不含税单次金额记录，两者之间的换算由财务共享中心维护税率表。",
+      "tags": [
+       "para",
+       "rule"
+      ]
+     },
+     {
+      "chunk_id": "f_0123456789ab:t0r0",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "流程说明.docx",
+      "locator": {
+       "bbox": [
+        0,
+        0,
+        0,
+        0
+       ],
+       "kind": "page",
+       "page": 1,
+       "row": 1,
+       "table": 0
+      },
+      "order": 2,
+      "raw": null,
+      "render": "字段=plan_amount | 所属对象=pbpHeader | 口径=含税年度累计",
+      "tags": [
+       "table"
+      ]
+     },
+     {
+      "chunk_id": "f_0123456789ab:t0r1",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "流程说明.docx",
+      "locator": {
+       "bbox": [
+        0,
+        0,
+        0,
+        0
+       ],
+       "kind": "page",
+       "page": 1,
+       "row": 2,
+       "table": 0
+      },
+      "order": 3,
+      "raw": null,
+      "render": "字段=plan_amount | 所属对象=clmContract | 口径=不含税单次",
+      "tags": [
+       "table"
+      ]
+     }
+    ],
+    "file_id": "f_0123456789ab",
+    "file_name": "流程说明.docx",
+    "findings": [
+     {
+      "kind": "metadata_leak",
+      "locator": {
+       "field": "docProps/core.xml",
+       "kind": "meta"
+      },
+      "message": "文档元数据里带着作者信息（creator=wubin），对外发布前建议清理。",
+      "severity": "warn"
+     }
+    ],
+    "kind": "docx",
+    "meta": {
+     "creator": "wubin",
+     "modified": "2013-12-23 23:15:00+00:00"
+    },
+    "stats": {
+     "chunks": 4,
+     "file": "流程说明.docx",
+     "findings": 1,
+     "kind": "docx",
+     "sections": 2,
+     "tables": 1
+    },
+    "structured": {
+     "sections": 2,
+     "tables": [
+      {
+       "columns": [
+        "字段",
+        "所属对象",
+        "口径"
+       ],
+       "index": 0,
+       "rows": 2
+      }
+     ]
+    }
+   },
+   "file_id": "f_0123456789ab",
+   "name": "materials/流程说明.docx"
+  }
+ ],
+ "sql": [
+  {
+   "dialect": null,
+   "doc": {
+    "chunks": [
+     {
+      "chunk_id": "f_0123456789ab:pbp_header",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "schema.ddl",
+      "locator": {
+       "kind": "ddl",
+       "object": "pbp_header"
+      },
+      "order": 0,
+      "raw": {
+       "columns": [
+        "plan_id",
+        "plan_name",
+        "plan_amount",
+        "created_at"
+       ],
+       "primary_key": [
+        "plan_id"
+       ],
+       "table": "pbp_header"
+      },
+      "render": "表 pbp_header（4 列，主键 plan_id）：plan_id、plan_name、plan_amount、created_at",
+      "tags": [
+       "table"
+      ]
+     },
+     {
+      "chunk_id": "f_0123456789ab:pbp_header.plan_id",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "schema.ddl",
+      "locator": {
+       "kind": "ddl",
+       "object": "pbp_header.plan_id"
+      },
+      "order": 1,
+      "raw": {
+       "comment": "",
+       "name": "plan_id",
+       "nullable": false,
+       "type": "VARCHAR(32)"
+      },
+      "render": "pbp_header.plan_id VARCHAR(32) PRIMARY KEY NOT NULL",
+      "tags": [
+       "column"
+      ]
+     },
+     {
+      "chunk_id": "f_0123456789ab:pbp_header.plan_name",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "schema.ddl",
+      "locator": {
+       "kind": "ddl",
+       "object": "pbp_header.plan_name"
+      },
+      "order": 2,
+      "raw": {
+       "comment": "",
+       "name": "plan_name",
+       "nullable": true,
+       "type": "VARCHAR(200)"
+      },
+      "render": "pbp_header.plan_name VARCHAR(200)",
+      "tags": [
+       "column"
+      ]
+     },
+     {
+      "chunk_id": "f_0123456789ab:pbp_header.plan_amount",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "schema.ddl",
+      "locator": {
+       "kind": "ddl",
+       "object": "pbp_header.plan_amount"
+      },
+      "order": 3,
+      "raw": {
+       "comment": "含税·年度累计·CNY",
+       "name": "plan_amount",
+       "nullable": true,
+       "type": "DECIMAL(18, 2)"
+      },
+      "render": "pbp_header.plan_amount DECIMAL(18, 2) -- 含税·年度累计·CNY",
+      "tags": [
+       "column"
+      ]
+     },
+     {
+      "chunk_id": "f_0123456789ab:pbp_header.created_at",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "schema.ddl",
+      "locator": {
+       "kind": "ddl",
+       "object": "pbp_header.created_at"
+      },
+      "order": 4,
+      "raw": {
+       "comment": "",
+       "name": "created_at",
+       "nullable": true,
+       "type": "TIMESTAMP"
+      },
+      "render": "pbp_header.created_at TIMESTAMP",
+      "tags": [
+       "column"
+      ]
+     },
+     {
+      "chunk_id": "f_0123456789ab:clm_contract",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "schema.ddl",
+      "locator": {
+       "kind": "ddl",
+       "object": "clm_contract"
+      },
+      "order": 5,
+      "raw": {
+       "columns": [
+        "contract_id",
+        "plan_id",
+        "plan_amount"
+       ],
+       "primary_key": [
+        "contract_id"
+       ],
+       "table": "clm_contract"
+      },
+      "render": "表 clm_contract（3 列，主键 contract_id）：contract_id、plan_id、plan_amount",
+      "tags": [
+       "table"
+      ]
+     },
+     {
+      "chunk_id": "f_0123456789ab:clm_contract.contract_id",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "schema.ddl",
+      "locator": {
+       "kind": "ddl",
+       "object": "clm_contract.contract_id"
+      },
+      "order": 6,
+      "raw": {
+       "comment": "",
+       "name": "contract_id",
+       "nullable": false,
+       "type": "VARCHAR(32)"
+      },
+      "render": "clm_contract.contract_id VARCHAR(32) PRIMARY KEY NOT NULL",
+      "tags": [
+       "column"
+      ]
+     },
+     {
+      "chunk_id": "f_0123456789ab:clm_contract.plan_id",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "schema.ddl",
+      "locator": {
+       "kind": "ddl",
+       "object": "clm_contract.plan_id"
+      },
+      "order": 7,
+      "raw": {
+       "comment": "",
+       "name": "plan_id",
+       "nullable": false,
+       "type": "VARCHAR(32)"
+      },
+      "render": "clm_contract.plan_id VARCHAR(32) NOT NULL",
+      "tags": [
+       "column"
+      ]
+     },
+     {
+      "chunk_id": "f_0123456789ab:clm_contract.plan_amount",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "schema.ddl",
+      "locator": {
+       "kind": "ddl",
+       "object": "clm_contract.plan_amount"
+      },
+      "order": 8,
+      "raw": {
+       "comment": "不含税·单次·CNY",
+       "name": "plan_amount",
+       "nullable": true,
+       "type": "DECIMAL(18, 2)"
+      },
+      "render": "clm_contract.plan_amount DECIMAL(18, 2) -- 不含税·单次·CNY",
+      "tags": [
+       "column"
+      ]
+     },
+     {
+      "chunk_id": "f_0123456789ab:clm_contract.fk.plan_id",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "schema.ddl",
+      "locator": {
+       "kind": "ddl",
+       "object": "clm_contract.fk_plan"
+      },
+      "order": 9,
+      "raw": {
+       "column": "plan_id",
+       "name": "fk_plan",
+       "ref_column": "plan_id",
+       "ref_table": "pbp_header"
+      },
+      "render": "clm_contract.plan_id → pbp_header.plan_id（外键，暗示 pbp_header 一对多 clm_contract）",
+      "tags": [
+       "fk"
+      ]
+     }
+    ],
+    "file_id": "f_0123456789ab",
+    "file_name": "schema.ddl",
+    "findings": [],
+    "kind": "ddl",
+    "meta": {},
+    "stats": {
+     "chunks": 10,
+     "file": "schema.ddl",
+     "findings": 0,
+     "kind": "ddl",
+     "tables": 2
+    },
+    "structured": {
+     "tables": [
+      {
+       "columns": [
+        {
+         "comment": "",
+         "name": "plan_id",
+         "nullable": false,
+         "type": "VARCHAR(32)"
+        },
+        {
+         "comment": "",
+         "name": "plan_name",
+         "nullable": true,
+         "type": "VARCHAR(200)"
+        },
+        {
+         "comment": "含税·年度累计·CNY",
+         "name": "plan_amount",
+         "nullable": true,
+         "type": "DECIMAL(18, 2)"
+        },
+        {
+         "comment": "",
+         "name": "created_at",
+         "nullable": true,
+         "type": "TIMESTAMP"
+        }
+       ],
+       "foreign_keys": [],
+       "name": "pbp_header",
+       "primary_key": [
+        "plan_id"
+       ]
+      },
+      {
+       "columns": [
+        {
+         "comment": "",
+         "name": "contract_id",
+         "nullable": false,
+         "type": "VARCHAR(32)"
+        },
+        {
+         "comment": "",
+         "name": "plan_id",
+         "nullable": false,
+         "type": "VARCHAR(32)"
+        },
+        {
+         "comment": "不含税·单次·CNY",
+         "name": "plan_amount",
+         "nullable": true,
+         "type": "DECIMAL(18, 2)"
+        }
+       ],
+       "foreign_keys": [
+        {
+         "column": "plan_id",
+         "name": "fk_plan",
+         "ref_column": "plan_id",
+         "ref_table": "pbp_header"
+        }
+       ],
+       "name": "clm_contract",
+       "primary_key": [
+        "contract_id"
+       ]
+      }
+     ]
+    }
+   },
+   "file_id": "f_0123456789ab",
+   "file_name": "schema.ddl",
+   "name": "schema.ddl",
+   "sql": "-- 采购中台物理模型\nCREATE TABLE pbp_header (\n  plan_id      VARCHAR(32) NOT NULL PRIMARY KEY,\n  plan_name    VARCHAR(200),\n  plan_amount  DECIMAL(18,2),   -- 含税·年度累计·CNY\n  created_at   TIMESTAMP\n);\n\nCREATE TABLE clm_contract (\n  contract_id  VARCHAR(32) NOT NULL PRIMARY KEY,\n  plan_id      VARCHAR(32) NOT NULL,\n  plan_amount  DECIMAL(18,2),   -- 不含税·单次·CNY\n  CONSTRAINT fk_plan FOREIGN KEY (plan_id) REFERENCES pbp_header(plan_id)\n);\n",
+   "wire": {
+    "chunks": [
+     {
+      "chunk_id": "sidecar:pbp_header",
+      "locator": {
+       "kind": "ddl",
+       "object": "pbp_header"
+      },
+      "order": 0,
+      "raw": {
+       "columns": [
+        "plan_id",
+        "plan_name",
+        "plan_amount",
+        "created_at"
+       ],
+       "primary_key": [
+        "plan_id"
+       ],
+       "table": "pbp_header"
+      },
+      "render": "表 pbp_header（4 列，主键 plan_id）：plan_id、plan_name、plan_amount、created_at",
+      "tags": [
+       "table"
+      ]
+     },
+     {
+      "chunk_id": "sidecar:pbp_header.plan_id",
+      "locator": {
+       "kind": "ddl",
+       "object": "pbp_header.plan_id"
+      },
+      "order": 1,
+      "raw": {
+       "comment": "",
+       "name": "plan_id",
+       "nullable": false,
+       "type": "VARCHAR(32)"
+      },
+      "render": "pbp_header.plan_id VARCHAR(32) PRIMARY KEY NOT NULL",
+      "tags": [
+       "column"
+      ]
+     },
+     {
+      "chunk_id": "sidecar:pbp_header.plan_name",
+      "locator": {
+       "kind": "ddl",
+       "object": "pbp_header.plan_name"
+      },
+      "order": 2,
+      "raw": {
+       "comment": "",
+       "name": "plan_name",
+       "nullable": true,
+       "type": "VARCHAR(200)"
+      },
+      "render": "pbp_header.plan_name VARCHAR(200)",
+      "tags": [
+       "column"
+      ]
+     },
+     {
+      "chunk_id": "sidecar:pbp_header.plan_amount",
+      "locator": {
+       "kind": "ddl",
+       "object": "pbp_header.plan_amount"
+      },
+      "order": 3,
+      "raw": {
+       "comment": "含税·年度累计·CNY",
+       "name": "plan_amount",
+       "nullable": true,
+       "type": "DECIMAL(18, 2)"
+      },
+      "render": "pbp_header.plan_amount DECIMAL(18, 2) -- 含税·年度累计·CNY",
+      "tags": [
+       "column"
+      ]
+     },
+     {
+      "chunk_id": "sidecar:pbp_header.created_at",
+      "locator": {
+       "kind": "ddl",
+       "object": "pbp_header.created_at"
+      },
+      "order": 4,
+      "raw": {
+       "comment": "",
+       "name": "created_at",
+       "nullable": true,
+       "type": "TIMESTAMP"
+      },
+      "render": "pbp_header.created_at TIMESTAMP",
+      "tags": [
+       "column"
+      ]
+     },
+     {
+      "chunk_id": "sidecar:clm_contract",
+      "locator": {
+       "kind": "ddl",
+       "object": "clm_contract"
+      },
+      "order": 5,
+      "raw": {
+       "columns": [
+        "contract_id",
+        "plan_id",
+        "plan_amount"
+       ],
+       "primary_key": [
+        "contract_id"
+       ],
+       "table": "clm_contract"
+      },
+      "render": "表 clm_contract（3 列，主键 contract_id）：contract_id、plan_id、plan_amount",
+      "tags": [
+       "table"
+      ]
+     },
+     {
+      "chunk_id": "sidecar:clm_contract.contract_id",
+      "locator": {
+       "kind": "ddl",
+       "object": "clm_contract.contract_id"
+      },
+      "order": 6,
+      "raw": {
+       "comment": "",
+       "name": "contract_id",
+       "nullable": false,
+       "type": "VARCHAR(32)"
+      },
+      "render": "clm_contract.contract_id VARCHAR(32) PRIMARY KEY NOT NULL",
+      "tags": [
+       "column"
+      ]
+     },
+     {
+      "chunk_id": "sidecar:clm_contract.plan_id",
+      "locator": {
+       "kind": "ddl",
+       "object": "clm_contract.plan_id"
+      },
+      "order": 7,
+      "raw": {
+       "comment": "",
+       "name": "plan_id",
+       "nullable": false,
+       "type": "VARCHAR(32)"
+      },
+      "render": "clm_contract.plan_id VARCHAR(32) NOT NULL",
+      "tags": [
+       "column"
+      ]
+     },
+     {
+      "chunk_id": "sidecar:clm_contract.plan_amount",
+      "locator": {
+       "kind": "ddl",
+       "object": "clm_contract.plan_amount"
+      },
+      "order": 8,
+      "raw": {
+       "comment": "不含税·单次·CNY",
+       "name": "plan_amount",
+       "nullable": true,
+       "type": "DECIMAL(18, 2)"
+      },
+      "render": "clm_contract.plan_amount DECIMAL(18, 2) -- 不含税·单次·CNY",
+      "tags": [
+       "column"
+      ]
+     },
+     {
+      "chunk_id": "sidecar:clm_contract.fk.plan_id",
+      "locator": {
+       "kind": "ddl",
+       "object": "clm_contract.fk_plan"
+      },
+      "order": 9,
+      "raw": {
+       "column": "plan_id",
+       "name": "fk_plan",
+       "ref_column": "plan_id",
+       "ref_table": "pbp_header"
+      },
+      "render": "clm_contract.plan_id → pbp_header.plan_id（外键，暗示 pbp_header 一对多 clm_contract）",
+      "tags": [
+       "fk"
+      ]
+     }
+    ],
+    "file_id": "sidecar",
+    "file_name": "schema.ddl",
+    "findings": [],
+    "kind": "ddl",
+    "structured": {
+     "tables": [
+      {
+       "columns": [
+        {
+         "comment": "",
+         "name": "plan_id",
+         "nullable": false,
+         "type": "VARCHAR(32)"
+        },
+        {
+         "comment": "",
+         "name": "plan_name",
+         "nullable": true,
+         "type": "VARCHAR(200)"
+        },
+        {
+         "comment": "含税·年度累计·CNY",
+         "name": "plan_amount",
+         "nullable": true,
+         "type": "DECIMAL(18, 2)"
+        },
+        {
+         "comment": "",
+         "name": "created_at",
+         "nullable": true,
+         "type": "TIMESTAMP"
+        }
+       ],
+       "foreign_keys": [],
+       "name": "pbp_header",
+       "primary_key": [
+        "plan_id"
+       ]
+      },
+      {
+       "columns": [
+        {
+         "comment": "",
+         "name": "contract_id",
+         "nullable": false,
+         "type": "VARCHAR(32)"
+        },
+        {
+         "comment": "",
+         "name": "plan_id",
+         "nullable": false,
+         "type": "VARCHAR(32)"
+        },
+        {
+         "comment": "不含税·单次·CNY",
+         "name": "plan_amount",
+         "nullable": true,
+         "type": "DECIMAL(18, 2)"
+        }
+       ],
+       "foreign_keys": [
+        {
+         "column": "plan_id",
+         "name": "fk_plan",
+         "ref_column": "plan_id",
+         "ref_table": "pbp_header"
+        }
+       ],
+       "name": "clm_contract",
+       "primary_key": [
+        "contract_id"
+       ]
+      }
+     ]
+    }
+   }
+  },
+  {
+   "dialect": null,
+   "doc": {
+    "chunks": [
+     {
+      "chunk_id": "f_0123456789ab:line",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "composite.ddl",
+      "locator": {
+       "kind": "ddl",
+       "object": "line"
+      },
+      "order": 0,
+      "raw": {
+       "columns": [
+        "a",
+        "b"
+       ],
+       "primary_key": [
+        "a",
+        "b"
+       ],
+       "table": "line"
+      },
+      "render": "表 line（2 列，主键 a+b）：a、b",
+      "tags": [
+       "table"
+      ]
+     },
+     {
+      "chunk_id": "f_0123456789ab:line.a",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "composite.ddl",
+      "locator": {
+       "kind": "ddl",
+       "object": "line.a"
+      },
+      "order": 1,
+      "raw": {
+       "comment": "行内注释口径",
+       "name": "a",
+       "nullable": true,
+       "type": "VARCHAR(8)"
+      },
+      "render": "line.a VARCHAR(8) PRIMARY KEY -- 行内注释口径",
+      "tags": [
+       "column"
+      ]
+     },
+     {
+      "chunk_id": "f_0123456789ab:line.b",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "composite.ddl",
+      "locator": {
+       "kind": "ddl",
+       "object": "line.b"
+      },
+      "order": 2,
+      "raw": {
+       "comment": "",
+       "name": "b",
+       "nullable": true,
+       "type": "VARCHAR(8)"
+      },
+      "render": "line.b VARCHAR(8) PRIMARY KEY",
+      "tags": [
+       "column"
+      ]
+     },
+     {
+      "chunk_id": "f_0123456789ab:line.fk.a",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "composite.ddl",
+      "locator": {
+       "kind": "ddl",
+       "object": "line.fk_ab"
+      },
+      "order": 3,
+      "raw": {
+       "column": "a",
+       "name": "fk_ab",
+       "ref_column": "x",
+       "ref_table": "head"
+      },
+      "render": "line.a → head.x（外键，暗示 head 一对多 line）",
+      "tags": [
+       "fk"
+      ]
+     },
+     {
+      "chunk_id": "f_0123456789ab:line.fk.b",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "composite.ddl",
+      "locator": {
+       "kind": "ddl",
+       "object": "line.fk_ab"
+      },
+      "order": 4,
+      "raw": {
+       "column": "b",
+       "name": "fk_ab",
+       "ref_column": "y",
+       "ref_table": "head"
+      },
+      "render": "line.b → head.y（外键，暗示 head 一对多 line）",
+      "tags": [
+       "fk"
+      ]
+     }
+    ],
+    "file_id": "f_0123456789ab",
+    "file_name": "composite.ddl",
+    "findings": [],
+    "kind": "ddl",
+    "meta": {},
+    "stats": {
+     "chunks": 5,
+     "file": "composite.ddl",
+     "findings": 0,
+     "kind": "ddl",
+     "tables": 1
+    },
+    "structured": {
+     "tables": [
+      {
+       "columns": [
+        {
+         "comment": "行内注释口径",
+         "name": "a",
+         "nullable": true,
+         "type": "VARCHAR(8)"
+        },
+        {
+         "comment": "",
+         "name": "b",
+         "nullable": true,
+         "type": "VARCHAR(8)"
+        }
+       ],
+       "foreign_keys": [
+        {
+         "column": "a",
+         "name": "fk_ab",
+         "ref_column": "x",
+         "ref_table": "head"
+        },
+        {
+         "column": "b",
+         "name": "fk_ab",
+         "ref_column": "y",
+         "ref_table": "head"
+        }
+       ],
+       "name": "line",
+       "primary_key": [
+        "a",
+        "b"
+       ]
+      }
+     ]
+    }
+   },
+   "file_id": "f_0123456789ab",
+   "file_name": "composite.ddl",
+   "name": "composite.ddl",
+   "sql": "CREATE TABLE line (\n  a VARCHAR(8) COMMENT '行内注释口径',\n  b VARCHAR(8),\n  PRIMARY KEY (a, b),\n  CONSTRAINT fk_ab FOREIGN KEY (a, b) REFERENCES head(x, y)\n);\n",
+   "wire": {
+    "chunks": [
+     {
+      "chunk_id": "sidecar:line",
+      "locator": {
+       "kind": "ddl",
+       "object": "line"
+      },
+      "order": 0,
+      "raw": {
+       "columns": [
+        "a",
+        "b"
+       ],
+       "primary_key": [
+        "a",
+        "b"
+       ],
+       "table": "line"
+      },
+      "render": "表 line（2 列，主键 a+b）：a、b",
+      "tags": [
+       "table"
+      ]
+     },
+     {
+      "chunk_id": "sidecar:line.a",
+      "locator": {
+       "kind": "ddl",
+       "object": "line.a"
+      },
+      "order": 1,
+      "raw": {
+       "comment": "行内注释口径",
+       "name": "a",
+       "nullable": true,
+       "type": "VARCHAR(8)"
+      },
+      "render": "line.a VARCHAR(8) PRIMARY KEY -- 行内注释口径",
+      "tags": [
+       "column"
+      ]
+     },
+     {
+      "chunk_id": "sidecar:line.b",
+      "locator": {
+       "kind": "ddl",
+       "object": "line.b"
+      },
+      "order": 2,
+      "raw": {
+       "comment": "",
+       "name": "b",
+       "nullable": true,
+       "type": "VARCHAR(8)"
+      },
+      "render": "line.b VARCHAR(8) PRIMARY KEY",
+      "tags": [
+       "column"
+      ]
+     },
+     {
+      "chunk_id": "sidecar:line.fk.a",
+      "locator": {
+       "kind": "ddl",
+       "object": "line.fk_ab"
+      },
+      "order": 3,
+      "raw": {
+       "column": "a",
+       "name": "fk_ab",
+       "ref_column": "x",
+       "ref_table": "head"
+      },
+      "render": "line.a → head.x（外键，暗示 head 一对多 line）",
+      "tags": [
+       "fk"
+      ]
+     },
+     {
+      "chunk_id": "sidecar:line.fk.b",
+      "locator": {
+       "kind": "ddl",
+       "object": "line.fk_ab"
+      },
+      "order": 4,
+      "raw": {
+       "column": "b",
+       "name": "fk_ab",
+       "ref_column": "y",
+       "ref_table": "head"
+      },
+      "render": "line.b → head.y（外键，暗示 head 一对多 line）",
+      "tags": [
+       "fk"
+      ]
+     }
+    ],
+    "file_id": "sidecar",
+    "file_name": "composite.ddl",
+    "findings": [],
+    "kind": "ddl",
+    "structured": {
+     "tables": [
+      {
+       "columns": [
+        {
+         "comment": "行内注释口径",
+         "name": "a",
+         "nullable": true,
+         "type": "VARCHAR(8)"
+        },
+        {
+         "comment": "",
+         "name": "b",
+         "nullable": true,
+         "type": "VARCHAR(8)"
+        }
+       ],
+       "foreign_keys": [
+        {
+         "column": "a",
+         "name": "fk_ab",
+         "ref_column": "x",
+         "ref_table": "head"
+        },
+        {
+         "column": "b",
+         "name": "fk_ab",
+         "ref_column": "y",
+         "ref_table": "head"
+        }
+       ],
+       "name": "line",
+       "primary_key": [
+        "a",
+        "b"
+       ]
+      }
+     ]
+    }
+   }
+  },
+  {
+   "dialect": null,
+   "doc": {
+    "chunks": [],
+    "file_id": "f_0123456789ab",
+    "file_name": "empty.ddl",
+    "findings": [
+     {
+      "kind": "no_tables",
+      "locator": {},
+      "message": "文件里没有 CREATE TABLE 语句",
+      "severity": "warn"
+     }
+    ],
+    "kind": "ddl",
+    "meta": {},
+    "stats": {
+     "chunks": 0,
+     "file": "empty.ddl",
+     "findings": 1,
+     "kind": "ddl",
+     "tables": 0
+    },
+    "structured": {
+     "tables": []
+    }
+   },
+   "file_id": "f_0123456789ab",
+   "file_name": "empty.ddl",
+   "name": "empty.ddl",
+   "sql": "SELECT 1;\n",
+   "wire": {
+    "chunks": [],
+    "file_id": "sidecar",
+    "file_name": "empty.ddl",
+    "findings": [
+     {
+      "kind": "no_tables",
+      "locator": {},
+      "message": "文件里没有 CREATE TABLE 语句",
+      "severity": "warn"
+     }
+    ],
+    "kind": "ddl",
+    "structured": {
+     "tables": []
+    }
+   }
+  },
+  {
+   "dialect": null,
+   "doc": {
+    "chunks": [],
+    "file_id": "f_0123456789ab",
+    "file_name": "broken.ddl",
+    "findings": [
+     {
+      "kind": "parse_failed",
+      "locator": {},
+      "message": "sqlglot 解析失败（方言 自动）：Expected table name but got <Token token_type: TokenType.L_PAREN, text: (, line: 1, col: 14, start: 13, end: 13, comments: []>. Line 1, Col: 14.\n  CREATE TABLE \u001b[4m(\u001b[0m ( ( ;\n",
+      "severity": "warn"
+     }
+    ],
+    "kind": "ddl",
+    "meta": {},
+    "stats": {
+     "chunks": 0,
+     "file": "broken.ddl",
+     "findings": 1,
+     "kind": "ddl"
+    },
+    "structured": {}
+   },
+   "file_id": "f_0123456789ab",
+   "file_name": "broken.ddl",
+   "name": "broken.ddl",
+   "sql": "CREATE TABLE ( ( ( ;\n",
+   "wire": {
+    "chunks": [],
+    "file_id": "sidecar",
+    "file_name": "broken.ddl",
+    "findings": [
+     {
+      "kind": "parse_failed",
+      "locator": {},
+      "message": "sqlglot 解析失败（方言 自动）：Expected table name but got <Token token_type: TokenType.L_PAREN, text: (, line: 1, col: 14, start: 13, end: 13, comments: []>. Line 1, Col: 14.\n  CREATE TABLE \u001b[4m(\u001b[0m ( ( ;\n",
+      "severity": "warn"
+     }
+    ],
+    "kind": "ddl",
+    "structured": {}
+   }
+  },
+  {
+   "dialect": "mysql",
+   "doc": {
+    "chunks": [
+     {
+      "chunk_id": "f_0123456789ab:pbp_header",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "mysql.ddl",
+      "locator": {
+       "kind": "ddl",
+       "object": "pbp_header"
+      },
+      "order": 0,
+      "raw": {
+       "columns": [
+        "plan_id",
+        "plan_name",
+        "plan_amount",
+        "created_at"
+       ],
+       "primary_key": [
+        "plan_id"
+       ],
+       "table": "pbp_header"
+      },
+      "render": "表 pbp_header（4 列，主键 plan_id）：plan_id、plan_name、plan_amount、created_at",
+      "tags": [
+       "table"
+      ]
+     },
+     {
+      "chunk_id": "f_0123456789ab:pbp_header.plan_id",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "mysql.ddl",
+      "locator": {
+       "kind": "ddl",
+       "object": "pbp_header.plan_id"
+      },
+      "order": 1,
+      "raw": {
+       "comment": "",
+       "name": "plan_id",
+       "nullable": false,
+       "type": "VARCHAR(32)"
+      },
+      "render": "pbp_header.plan_id VARCHAR(32) PRIMARY KEY NOT NULL",
+      "tags": [
+       "column"
+      ]
+     },
+     {
+      "chunk_id": "f_0123456789ab:pbp_header.plan_name",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "mysql.ddl",
+      "locator": {
+       "kind": "ddl",
+       "object": "pbp_header.plan_name"
+      },
+      "order": 2,
+      "raw": {
+       "comment": "",
+       "name": "plan_name",
+       "nullable": true,
+       "type": "VARCHAR(200)"
+      },
+      "render": "pbp_header.plan_name VARCHAR(200)",
+      "tags": [
+       "column"
+      ]
+     },
+     {
+      "chunk_id": "f_0123456789ab:pbp_header.plan_amount",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "mysql.ddl",
+      "locator": {
+       "kind": "ddl",
+       "object": "pbp_header.plan_amount"
+      },
+      "order": 3,
+      "raw": {
+       "comment": "含税·年度累计·CNY",
+       "name": "plan_amount",
+       "nullable": true,
+       "type": "DECIMAL(18, 2)"
+      },
+      "render": "pbp_header.plan_amount DECIMAL(18, 2) -- 含税·年度累计·CNY",
+      "tags": [
+       "column"
+      ]
+     },
+     {
+      "chunk_id": "f_0123456789ab:pbp_header.created_at",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "mysql.ddl",
+      "locator": {
+       "kind": "ddl",
+       "object": "pbp_header.created_at"
+      },
+      "order": 4,
+      "raw": {
+       "comment": "",
+       "name": "created_at",
+       "nullable": true,
+       "type": "TIMESTAMPTZ"
+      },
+      "render": "pbp_header.created_at TIMESTAMPTZ",
+      "tags": [
+       "column"
+      ]
+     },
+     {
+      "chunk_id": "f_0123456789ab:clm_contract",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "mysql.ddl",
+      "locator": {
+       "kind": "ddl",
+       "object": "clm_contract"
+      },
+      "order": 5,
+      "raw": {
+       "columns": [
+        "contract_id",
+        "plan_id",
+        "plan_amount"
+       ],
+       "primary_key": [
+        "contract_id"
+       ],
+       "table": "clm_contract"
+      },
+      "render": "表 clm_contract（3 列，主键 contract_id）：contract_id、plan_id、plan_amount",
+      "tags": [
+       "table"
+      ]
+     },
+     {
+      "chunk_id": "f_0123456789ab:clm_contract.contract_id",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "mysql.ddl",
+      "locator": {
+       "kind": "ddl",
+       "object": "clm_contract.contract_id"
+      },
+      "order": 6,
+      "raw": {
+       "comment": "",
+       "name": "contract_id",
+       "nullable": false,
+       "type": "VARCHAR(32)"
+      },
+      "render": "clm_contract.contract_id VARCHAR(32) PRIMARY KEY NOT NULL",
+      "tags": [
+       "column"
+      ]
+     },
+     {
+      "chunk_id": "f_0123456789ab:clm_contract.plan_id",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "mysql.ddl",
+      "locator": {
+       "kind": "ddl",
+       "object": "clm_contract.plan_id"
+      },
+      "order": 7,
+      "raw": {
+       "comment": "",
+       "name": "plan_id",
+       "nullable": false,
+       "type": "VARCHAR(32)"
+      },
+      "render": "clm_contract.plan_id VARCHAR(32) NOT NULL",
+      "tags": [
+       "column"
+      ]
+     },
+     {
+      "chunk_id": "f_0123456789ab:clm_contract.plan_amount",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "mysql.ddl",
+      "locator": {
+       "kind": "ddl",
+       "object": "clm_contract.plan_amount"
+      },
+      "order": 8,
+      "raw": {
+       "comment": "不含税·单次·CNY",
+       "name": "plan_amount",
+       "nullable": true,
+       "type": "DECIMAL(18, 2)"
+      },
+      "render": "clm_contract.plan_amount DECIMAL(18, 2) -- 不含税·单次·CNY",
+      "tags": [
+       "column"
+      ]
+     },
+     {
+      "chunk_id": "f_0123456789ab:clm_contract.fk.plan_id",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "mysql.ddl",
+      "locator": {
+       "kind": "ddl",
+       "object": "clm_contract.fk_plan"
+      },
+      "order": 9,
+      "raw": {
+       "column": "plan_id",
+       "name": "fk_plan",
+       "ref_column": "plan_id",
+       "ref_table": "pbp_header"
+      },
+      "render": "clm_contract.plan_id → pbp_header.plan_id（外键，暗示 pbp_header 一对多 clm_contract）",
+      "tags": [
+       "fk"
+      ]
+     }
+    ],
+    "file_id": "f_0123456789ab",
+    "file_name": "mysql.ddl",
+    "findings": [],
+    "kind": "ddl",
+    "meta": {},
+    "stats": {
+     "chunks": 10,
+     "file": "mysql.ddl",
+     "findings": 0,
+     "kind": "ddl",
+     "tables": 2
+    },
+    "structured": {
+     "tables": [
+      {
+       "columns": [
+        {
+         "comment": "",
+         "name": "plan_id",
+         "nullable": false,
+         "type": "VARCHAR(32)"
+        },
+        {
+         "comment": "",
+         "name": "plan_name",
+         "nullable": true,
+         "type": "VARCHAR(200)"
+        },
+        {
+         "comment": "含税·年度累计·CNY",
+         "name": "plan_amount",
+         "nullable": true,
+         "type": "DECIMAL(18, 2)"
+        },
+        {
+         "comment": "",
+         "name": "created_at",
+         "nullable": true,
+         "type": "TIMESTAMPTZ"
+        }
+       ],
+       "foreign_keys": [],
+       "name": "pbp_header",
+       "primary_key": [
+        "plan_id"
+       ]
+      },
+      {
+       "columns": [
+        {
+         "comment": "",
+         "name": "contract_id",
+         "nullable": false,
+         "type": "VARCHAR(32)"
+        },
+        {
+         "comment": "",
+         "name": "plan_id",
+         "nullable": false,
+         "type": "VARCHAR(32)"
+        },
+        {
+         "comment": "不含税·单次·CNY",
+         "name": "plan_amount",
+         "nullable": true,
+         "type": "DECIMAL(18, 2)"
+        }
+       ],
+       "foreign_keys": [
+        {
+         "column": "plan_id",
+         "name": "fk_plan",
+         "ref_column": "plan_id",
+         "ref_table": "pbp_header"
+        }
+       ],
+       "name": "clm_contract",
+       "primary_key": [
+        "contract_id"
+       ]
+      }
+     ]
+    }
+   },
+   "file_id": "f_0123456789ab",
+   "file_name": "mysql.ddl",
+   "name": "mysql.ddl",
+   "sql": "-- 采购中台物理模型\nCREATE TABLE pbp_header (\n  plan_id      VARCHAR(32) NOT NULL PRIMARY KEY,\n  plan_name    VARCHAR(200),\n  plan_amount  DECIMAL(18,2),   -- 含税·年度累计·CNY\n  created_at   TIMESTAMP\n);\n\nCREATE TABLE clm_contract (\n  contract_id  VARCHAR(32) NOT NULL PRIMARY KEY,\n  plan_id      VARCHAR(32) NOT NULL,\n  plan_amount  DECIMAL(18,2),   -- 不含税·单次·CNY\n  CONSTRAINT fk_plan FOREIGN KEY (plan_id) REFERENCES pbp_header(plan_id)\n);\n",
+   "wire": {
+    "chunks": [
+     {
+      "chunk_id": "sidecar:pbp_header",
+      "locator": {
+       "kind": "ddl",
+       "object": "pbp_header"
+      },
+      "order": 0,
+      "raw": {
+       "columns": [
+        "plan_id",
+        "plan_name",
+        "plan_amount",
+        "created_at"
+       ],
+       "primary_key": [
+        "plan_id"
+       ],
+       "table": "pbp_header"
+      },
+      "render": "表 pbp_header（4 列，主键 plan_id）：plan_id、plan_name、plan_amount、created_at",
+      "tags": [
+       "table"
+      ]
+     },
+     {
+      "chunk_id": "sidecar:pbp_header.plan_id",
+      "locator": {
+       "kind": "ddl",
+       "object": "pbp_header.plan_id"
+      },
+      "order": 1,
+      "raw": {
+       "comment": "",
+       "name": "plan_id",
+       "nullable": false,
+       "type": "VARCHAR(32)"
+      },
+      "render": "pbp_header.plan_id VARCHAR(32) PRIMARY KEY NOT NULL",
+      "tags": [
+       "column"
+      ]
+     },
+     {
+      "chunk_id": "sidecar:pbp_header.plan_name",
+      "locator": {
+       "kind": "ddl",
+       "object": "pbp_header.plan_name"
+      },
+      "order": 2,
+      "raw": {
+       "comment": "",
+       "name": "plan_name",
+       "nullable": true,
+       "type": "VARCHAR(200)"
+      },
+      "render": "pbp_header.plan_name VARCHAR(200)",
+      "tags": [
+       "column"
+      ]
+     },
+     {
+      "chunk_id": "sidecar:pbp_header.plan_amount",
+      "locator": {
+       "kind": "ddl",
+       "object": "pbp_header.plan_amount"
+      },
+      "order": 3,
+      "raw": {
+       "comment": "含税·年度累计·CNY",
+       "name": "plan_amount",
+       "nullable": true,
+       "type": "DECIMAL(18, 2)"
+      },
+      "render": "pbp_header.plan_amount DECIMAL(18, 2) -- 含税·年度累计·CNY",
+      "tags": [
+       "column"
+      ]
+     },
+     {
+      "chunk_id": "sidecar:pbp_header.created_at",
+      "locator": {
+       "kind": "ddl",
+       "object": "pbp_header.created_at"
+      },
+      "order": 4,
+      "raw": {
+       "comment": "",
+       "name": "created_at",
+       "nullable": true,
+       "type": "TIMESTAMPTZ"
+      },
+      "render": "pbp_header.created_at TIMESTAMPTZ",
+      "tags": [
+       "column"
+      ]
+     },
+     {
+      "chunk_id": "sidecar:clm_contract",
+      "locator": {
+       "kind": "ddl",
+       "object": "clm_contract"
+      },
+      "order": 5,
+      "raw": {
+       "columns": [
+        "contract_id",
+        "plan_id",
+        "plan_amount"
+       ],
+       "primary_key": [
+        "contract_id"
+       ],
+       "table": "clm_contract"
+      },
+      "render": "表 clm_contract（3 列，主键 contract_id）：contract_id、plan_id、plan_amount",
+      "tags": [
+       "table"
+      ]
+     },
+     {
+      "chunk_id": "sidecar:clm_contract.contract_id",
+      "locator": {
+       "kind": "ddl",
+       "object": "clm_contract.contract_id"
+      },
+      "order": 6,
+      "raw": {
+       "comment": "",
+       "name": "contract_id",
+       "nullable": false,
+       "type": "VARCHAR(32)"
+      },
+      "render": "clm_contract.contract_id VARCHAR(32) PRIMARY KEY NOT NULL",
+      "tags": [
+       "column"
+      ]
+     },
+     {
+      "chunk_id": "sidecar:clm_contract.plan_id",
+      "locator": {
+       "kind": "ddl",
+       "object": "clm_contract.plan_id"
+      },
+      "order": 7,
+      "raw": {
+       "comment": "",
+       "name": "plan_id",
+       "nullable": false,
+       "type": "VARCHAR(32)"
+      },
+      "render": "clm_contract.plan_id VARCHAR(32) NOT NULL",
+      "tags": [
+       "column"
+      ]
+     },
+     {
+      "chunk_id": "sidecar:clm_contract.plan_amount",
+      "locator": {
+       "kind": "ddl",
+       "object": "clm_contract.plan_amount"
+      },
+      "order": 8,
+      "raw": {
+       "comment": "不含税·单次·CNY",
+       "name": "plan_amount",
+       "nullable": true,
+       "type": "DECIMAL(18, 2)"
+      },
+      "render": "clm_contract.plan_amount DECIMAL(18, 2) -- 不含税·单次·CNY",
+      "tags": [
+       "column"
+      ]
+     },
+     {
+      "chunk_id": "sidecar:clm_contract.fk.plan_id",
+      "locator": {
+       "kind": "ddl",
+       "object": "clm_contract.fk_plan"
+      },
+      "order": 9,
+      "raw": {
+       "column": "plan_id",
+       "name": "fk_plan",
+       "ref_column": "plan_id",
+       "ref_table": "pbp_header"
+      },
+      "render": "clm_contract.plan_id → pbp_header.plan_id（外键，暗示 pbp_header 一对多 clm_contract）",
+      "tags": [
+       "fk"
+      ]
+     }
+    ],
+    "file_id": "sidecar",
+    "file_name": "mysql.ddl",
+    "findings": [],
+    "kind": "ddl",
+    "structured": {
+     "tables": [
+      {
+       "columns": [
+        {
+         "comment": "",
+         "name": "plan_id",
+         "nullable": false,
+         "type": "VARCHAR(32)"
+        },
+        {
+         "comment": "",
+         "name": "plan_name",
+         "nullable": true,
+         "type": "VARCHAR(200)"
+        },
+        {
+         "comment": "含税·年度累计·CNY",
+         "name": "plan_amount",
+         "nullable": true,
+         "type": "DECIMAL(18, 2)"
+        },
+        {
+         "comment": "",
+         "name": "created_at",
+         "nullable": true,
+         "type": "TIMESTAMPTZ"
+        }
+       ],
+       "foreign_keys": [],
+       "name": "pbp_header",
+       "primary_key": [
+        "plan_id"
+       ]
+      },
+      {
+       "columns": [
+        {
+         "comment": "",
+         "name": "contract_id",
+         "nullable": false,
+         "type": "VARCHAR(32)"
+        },
+        {
+         "comment": "",
+         "name": "plan_id",
+         "nullable": false,
+         "type": "VARCHAR(32)"
+        },
+        {
+         "comment": "不含税·单次·CNY",
+         "name": "plan_amount",
+         "nullable": true,
+         "type": "DECIMAL(18, 2)"
+        }
+       ],
+       "foreign_keys": [
+        {
+         "column": "plan_id",
+         "name": "fk_plan",
+         "ref_column": "plan_id",
+         "ref_table": "pbp_header"
+        }
+       ],
+       "name": "clm_contract",
+       "primary_key": [
+        "contract_id"
+       ]
+      }
+     ]
+    }
+   }
+  },
+  {
+   "dialect": null,
+   "doc": {
+    "chunks": [
+     {
+      "chunk_id": "f_0123456789ab:pbp_header",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "schema.ddl",
+      "locator": {
+       "kind": "ddl",
+       "object": "pbp_header"
+      },
+      "order": 0,
+      "raw": {
+       "columns": [
+        "plan_id",
+        "plan_name",
+        "plan_amount",
+        "created_at"
+       ],
+       "primary_key": [
+        "plan_id"
+       ],
+       "table": "pbp_header"
+      },
+      "render": "表 pbp_header（4 列，主键 plan_id）：plan_id、plan_name、plan_amount、created_at",
+      "tags": [
+       "table"
+      ]
+     },
+     {
+      "chunk_id": "f_0123456789ab:pbp_header.plan_id",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "schema.ddl",
+      "locator": {
+       "kind": "ddl",
+       "object": "pbp_header.plan_id"
+      },
+      "order": 1,
+      "raw": {
+       "comment": "",
+       "name": "plan_id",
+       "nullable": false,
+       "type": "VARCHAR(32)"
+      },
+      "render": "pbp_header.plan_id VARCHAR(32) PRIMARY KEY NOT NULL",
+      "tags": [
+       "column"
+      ]
+     },
+     {
+      "chunk_id": "f_0123456789ab:pbp_header.plan_name",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "schema.ddl",
+      "locator": {
+       "kind": "ddl",
+       "object": "pbp_header.plan_name"
+      },
+      "order": 2,
+      "raw": {
+       "comment": "",
+       "name": "plan_name",
+       "nullable": true,
+       "type": "VARCHAR(200)"
+      },
+      "render": "pbp_header.plan_name VARCHAR(200)",
+      "tags": [
+       "column"
+      ]
+     },
+     {
+      "chunk_id": "f_0123456789ab:pbp_header.plan_amount",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "schema.ddl",
+      "locator": {
+       "kind": "ddl",
+       "object": "pbp_header.plan_amount"
+      },
+      "order": 3,
+      "raw": {
+       "comment": "含税·年度累计·CNY",
+       "name": "plan_amount",
+       "nullable": true,
+       "type": "DECIMAL(18, 2)"
+      },
+      "render": "pbp_header.plan_amount DECIMAL(18, 2) -- 含税·年度累计·CNY",
+      "tags": [
+       "column"
+      ]
+     },
+     {
+      "chunk_id": "f_0123456789ab:pbp_header.created_at",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "schema.ddl",
+      "locator": {
+       "kind": "ddl",
+       "object": "pbp_header.created_at"
+      },
+      "order": 4,
+      "raw": {
+       "comment": "",
+       "name": "created_at",
+       "nullable": true,
+       "type": "TIMESTAMP"
+      },
+      "render": "pbp_header.created_at TIMESTAMP",
+      "tags": [
+       "column"
+      ]
+     },
+     {
+      "chunk_id": "f_0123456789ab:clm_contract",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "schema.ddl",
+      "locator": {
+       "kind": "ddl",
+       "object": "clm_contract"
+      },
+      "order": 5,
+      "raw": {
+       "columns": [
+        "contract_id",
+        "plan_id",
+        "plan_amount"
+       ],
+       "primary_key": [
+        "contract_id"
+       ],
+       "table": "clm_contract"
+      },
+      "render": "表 clm_contract（3 列，主键 contract_id）：contract_id、plan_id、plan_amount",
+      "tags": [
+       "table"
+      ]
+     },
+     {
+      "chunk_id": "f_0123456789ab:clm_contract.contract_id",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "schema.ddl",
+      "locator": {
+       "kind": "ddl",
+       "object": "clm_contract.contract_id"
+      },
+      "order": 6,
+      "raw": {
+       "comment": "",
+       "name": "contract_id",
+       "nullable": false,
+       "type": "VARCHAR(32)"
+      },
+      "render": "clm_contract.contract_id VARCHAR(32) PRIMARY KEY NOT NULL",
+      "tags": [
+       "column"
+      ]
+     },
+     {
+      "chunk_id": "f_0123456789ab:clm_contract.plan_id",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "schema.ddl",
+      "locator": {
+       "kind": "ddl",
+       "object": "clm_contract.plan_id"
+      },
+      "order": 7,
+      "raw": {
+       "comment": "",
+       "name": "plan_id",
+       "nullable": false,
+       "type": "VARCHAR(32)"
+      },
+      "render": "clm_contract.plan_id VARCHAR(32) NOT NULL",
+      "tags": [
+       "column"
+      ]
+     },
+     {
+      "chunk_id": "f_0123456789ab:clm_contract.plan_amount",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "schema.ddl",
+      "locator": {
+       "kind": "ddl",
+       "object": "clm_contract.plan_amount"
+      },
+      "order": 8,
+      "raw": {
+       "comment": "不含税·单次·CNY",
+       "name": "plan_amount",
+       "nullable": true,
+       "type": "DECIMAL(18, 2)"
+      },
+      "render": "clm_contract.plan_amount DECIMAL(18, 2) -- 不含税·单次·CNY",
+      "tags": [
+       "column"
+      ]
+     },
+     {
+      "chunk_id": "f_0123456789ab:clm_contract.fk.plan_id",
+      "context": "",
+      "file_id": "f_0123456789ab",
+      "file_name": "schema.ddl",
+      "locator": {
+       "kind": "ddl",
+       "object": "clm_contract.fk_plan"
+      },
+      "order": 9,
+      "raw": {
+       "column": "plan_id",
+       "name": "fk_plan",
+       "ref_column": "plan_id",
+       "ref_table": "pbp_header"
+      },
+      "render": "clm_contract.plan_id → pbp_header.plan_id（外键，暗示 pbp_header 一对多 clm_contract）",
+      "tags": [
+       "fk"
+      ]
+     }
+    ],
+    "file_id": "f_0123456789ab",
+    "file_name": "schema.ddl",
+    "findings": [],
+    "kind": "ddl",
+    "meta": {},
+    "stats": {
+     "chunks": 10,
+     "file": "schema.ddl",
+     "findings": 0,
+     "kind": "ddl",
+     "tables": 2
+    },
+    "structured": {
+     "tables": [
+      {
+       "columns": [
+        {
+         "comment": "",
+         "name": "plan_id",
+         "nullable": false,
+         "type": "VARCHAR(32)"
+        },
+        {
+         "comment": "",
+         "name": "plan_name",
+         "nullable": true,
+         "type": "VARCHAR(200)"
+        },
+        {
+         "comment": "含税·年度累计·CNY",
+         "name": "plan_amount",
+         "nullable": true,
+         "type": "DECIMAL(18, 2)"
+        },
+        {
+         "comment": "",
+         "name": "created_at",
+         "nullable": true,
+         "type": "TIMESTAMP"
+        }
+       ],
+       "foreign_keys": [],
+       "name": "pbp_header",
+       "primary_key": [
+        "plan_id"
+       ]
+      },
+      {
+       "columns": [
+        {
+         "comment": "",
+         "name": "contract_id",
+         "nullable": false,
+         "type": "VARCHAR(32)"
+        },
+        {
+         "comment": "",
+         "name": "plan_id",
+         "nullable": false,
+         "type": "VARCHAR(32)"
+        },
+        {
+         "comment": "不含税·单次·CNY",
+         "name": "plan_amount",
+         "nullable": true,
+         "type": "DECIMAL(18, 2)"
+        }
+       ],
+       "foreign_keys": [
+        {
+         "column": "plan_id",
+         "name": "fk_plan",
+         "ref_column": "plan_id",
+         "ref_table": "pbp_header"
+        }
+       ],
+       "name": "clm_contract",
+       "primary_key": [
+        "contract_id"
+       ]
+      }
+     ]
+    }
+   },
+   "file_id": "f_0123456789ab",
+   "file_name": "schema.ddl",
+   "name": "materials/schema.ddl",
+   "sql": "-- 采购中台物理模型\nCREATE TABLE pbp_header (\n  plan_id      VARCHAR(32) NOT NULL PRIMARY KEY,\n  plan_name    VARCHAR(200),\n  plan_amount  DECIMAL(18,2),   -- 含税·年度累计·CNY\n  created_at   TIMESTAMP\n);\n\nCREATE TABLE clm_contract (\n  contract_id  VARCHAR(32) NOT NULL PRIMARY KEY,\n  plan_id      VARCHAR(32) NOT NULL,\n  plan_amount  DECIMAL(18,2),   -- 不含税·单次·CNY\n  CONSTRAINT fk_plan FOREIGN KEY (plan_id) REFERENCES pbp_header(plan_id)\n);\n",
+   "wire": {
+    "chunks": [
+     {
+      "chunk_id": "sidecar:pbp_header",
+      "locator": {
+       "kind": "ddl",
+       "object": "pbp_header"
+      },
+      "order": 0,
+      "raw": {
+       "columns": [
+        "plan_id",
+        "plan_name",
+        "plan_amount",
+        "created_at"
+       ],
+       "primary_key": [
+        "plan_id"
+       ],
+       "table": "pbp_header"
+      },
+      "render": "表 pbp_header（4 列，主键 plan_id）：plan_id、plan_name、plan_amount、created_at",
+      "tags": [
+       "table"
+      ]
+     },
+     {
+      "chunk_id": "sidecar:pbp_header.plan_id",
+      "locator": {
+       "kind": "ddl",
+       "object": "pbp_header.plan_id"
+      },
+      "order": 1,
+      "raw": {
+       "comment": "",
+       "name": "plan_id",
+       "nullable": false,
+       "type": "VARCHAR(32)"
+      },
+      "render": "pbp_header.plan_id VARCHAR(32) PRIMARY KEY NOT NULL",
+      "tags": [
+       "column"
+      ]
+     },
+     {
+      "chunk_id": "sidecar:pbp_header.plan_name",
+      "locator": {
+       "kind": "ddl",
+       "object": "pbp_header.plan_name"
+      },
+      "order": 2,
+      "raw": {
+       "comment": "",
+       "name": "plan_name",
+       "nullable": true,
+       "type": "VARCHAR(200)"
+      },
+      "render": "pbp_header.plan_name VARCHAR(200)",
+      "tags": [
+       "column"
+      ]
+     },
+     {
+      "chunk_id": "sidecar:pbp_header.plan_amount",
+      "locator": {
+       "kind": "ddl",
+       "object": "pbp_header.plan_amount"
+      },
+      "order": 3,
+      "raw": {
+       "comment": "含税·年度累计·CNY",
+       "name": "plan_amount",
+       "nullable": true,
+       "type": "DECIMAL(18, 2)"
+      },
+      "render": "pbp_header.plan_amount DECIMAL(18, 2) -- 含税·年度累计·CNY",
+      "tags": [
+       "column"
+      ]
+     },
+     {
+      "chunk_id": "sidecar:pbp_header.created_at",
+      "locator": {
+       "kind": "ddl",
+       "object": "pbp_header.created_at"
+      },
+      "order": 4,
+      "raw": {
+       "comment": "",
+       "name": "created_at",
+       "nullable": true,
+       "type": "TIMESTAMP"
+      },
+      "render": "pbp_header.created_at TIMESTAMP",
+      "tags": [
+       "column"
+      ]
+     },
+     {
+      "chunk_id": "sidecar:clm_contract",
+      "locator": {
+       "kind": "ddl",
+       "object": "clm_contract"
+      },
+      "order": 5,
+      "raw": {
+       "columns": [
+        "contract_id",
+        "plan_id",
+        "plan_amount"
+       ],
+       "primary_key": [
+        "contract_id"
+       ],
+       "table": "clm_contract"
+      },
+      "render": "表 clm_contract（3 列，主键 contract_id）：contract_id、plan_id、plan_amount",
+      "tags": [
+       "table"
+      ]
+     },
+     {
+      "chunk_id": "sidecar:clm_contract.contract_id",
+      "locator": {
+       "kind": "ddl",
+       "object": "clm_contract.contract_id"
+      },
+      "order": 6,
+      "raw": {
+       "comment": "",
+       "name": "contract_id",
+       "nullable": false,
+       "type": "VARCHAR(32)"
+      },
+      "render": "clm_contract.contract_id VARCHAR(32) PRIMARY KEY NOT NULL",
+      "tags": [
+       "column"
+      ]
+     },
+     {
+      "chunk_id": "sidecar:clm_contract.plan_id",
+      "locator": {
+       "kind": "ddl",
+       "object": "clm_contract.plan_id"
+      },
+      "order": 7,
+      "raw": {
+       "comment": "",
+       "name": "plan_id",
+       "nullable": false,
+       "type": "VARCHAR(32)"
+      },
+      "render": "clm_contract.plan_id VARCHAR(32) NOT NULL",
+      "tags": [
+       "column"
+      ]
+     },
+     {
+      "chunk_id": "sidecar:clm_contract.plan_amount",
+      "locator": {
+       "kind": "ddl",
+       "object": "clm_contract.plan_amount"
+      },
+      "order": 8,
+      "raw": {
+       "comment": "不含税·单次·CNY",
+       "name": "plan_amount",
+       "nullable": true,
+       "type": "DECIMAL(18, 2)"
+      },
+      "render": "clm_contract.plan_amount DECIMAL(18, 2) -- 不含税·单次·CNY",
+      "tags": [
+       "column"
+      ]
+     },
+     {
+      "chunk_id": "sidecar:clm_contract.fk.plan_id",
+      "locator": {
+       "kind": "ddl",
+       "object": "clm_contract.fk_plan"
+      },
+      "order": 9,
+      "raw": {
+       "column": "plan_id",
+       "name": "fk_plan",
+       "ref_column": "plan_id",
+       "ref_table": "pbp_header"
+      },
+      "render": "clm_contract.plan_id → pbp_header.plan_id（外键，暗示 pbp_header 一对多 clm_contract）",
+      "tags": [
+       "fk"
+      ]
+     }
+    ],
+    "file_id": "sidecar",
+    "file_name": "schema.ddl",
+    "findings": [],
+    "kind": "ddl",
+    "structured": {
+     "tables": [
+      {
+       "columns": [
+        {
+         "comment": "",
+         "name": "plan_id",
+         "nullable": false,
+         "type": "VARCHAR(32)"
+        },
+        {
+         "comment": "",
+         "name": "plan_name",
+         "nullable": true,
+         "type": "VARCHAR(200)"
+        },
+        {
+         "comment": "含税·年度累计·CNY",
+         "name": "plan_amount",
+         "nullable": true,
+         "type": "DECIMAL(18, 2)"
+        },
+        {
+         "comment": "",
+         "name": "created_at",
+         "nullable": true,
+         "type": "TIMESTAMP"
+        }
+       ],
+       "foreign_keys": [],
+       "name": "pbp_header",
+       "primary_key": [
+        "plan_id"
+       ]
+      },
+      {
+       "columns": [
+        {
+         "comment": "",
+         "name": "contract_id",
+         "nullable": false,
+         "type": "VARCHAR(32)"
+        },
+        {
+         "comment": "",
+         "name": "plan_id",
+         "nullable": false,
+         "type": "VARCHAR(32)"
+        },
+        {
+         "comment": "不含税·单次·CNY",
+         "name": "plan_amount",
+         "nullable": true,
+         "type": "DECIMAL(18, 2)"
+        }
+       ],
+       "foreign_keys": [
+        {
+         "column": "plan_id",
+         "name": "fk_plan",
+         "ref_column": "plan_id",
+         "ref_table": "pbp_header"
+        }
+       ],
+       "name": "clm_contract",
+       "primary_key": [
+        "contract_id"
+       ]
+      }
+     ]
+    }
+   }
+  }
+ ],
+ "text": {
+  "docs": [
+   {
+    "bytes_b64": "IyDph4fotK3or7TmmI4K5LiA5Liq5omn6KGM6K6h5YiS5Y+v5ouG5YWl5aSa5Liq6YeH6LSt5YyF44CCCgojIyDlj6PlvoQK6aKE566X5o6n5Yi25Lul5bm05bqm57Sv6K6h5ZCr56iO6YeR6aKd5Li65YeG44CC",
+    "doc": {
+     "chunks": [
+      {
+       "chunk_id": "f_0123456789ab:s0",
+       "context": "",
+       "file_id": "f_0123456789ab",
+       "file_name": "说明.md",
+       "locator": {
+        "bbox": [
+         0,
+         0,
+         0,
+         0
+        ],
+        "kind": "page",
+        "page": 1,
+        "section": "# 采购说明"
+       },
+       "order": 0,
+       "raw": null,
+       "render": "〔# 采购说明〕\n# 采购说明\n一个执行计划可拆入多个采购包。",
+       "tags": [
+        "para",
+        "rule"
+       ]
+      },
+      {
+       "chunk_id": "f_0123456789ab:s1",
+       "context": "",
+       "file_id": "f_0123456789ab",
+       "file_name": "说明.md",
+       "locator": {
+        "bbox": [
+         0,
+         0,
+         0,
+         0
+        ],
+        "kind": "page",
+        "page": 1,
+        "section": "## 口径"
+       },
+       "order": 1,
+       "raw": null,
+       "render": "〔## 口径〕\n## 口径\n预算控制以年度累计含税金额为准。",
+       "tags": [
+        "para",
+        "rule"
+       ]
+      }
+     ],
+     "file_id": "f_0123456789ab",
+     "file_name": "说明.md",
+     "findings": [],
+     "kind": "text",
+     "meta": {},
+     "stats": {
+      "chars": 46,
+      "chunks": 2,
+      "file": "说明.md",
+      "findings": 0,
+      "kind": "text",
+      "sections": 2
+     },
+     "structured": {
+      "chars": 46,
+      "sections": 2
+     }
+    },
+    "encoding_hint": "utf-8",
+    "file_id": "f_0123456789ab",
+    "name": "说明.md"
+   },
+   {
+    "bytes_b64": "0ruhotfc1PIKw7+49raptaWx2NDrttTTptK7uPa/zbunoaM=",
+    "doc": {
+     "chunks": [
+      {
+       "chunk_id": "f_0123456789ab:s0",
+       "context": "",
+       "file_id": "f_0123456789ab",
+       "file_name": "gbk.txt",
+       "locator": {
+        "bbox": [
+         0,
+         0,
+         0,
+         0
+        ],
+        "kind": "page",
+        "page": 1,
+        "section": "一、总则"
+       },
+       "order": 0,
+       "raw": null,
+       "render": "〔一、总则〕\n一、总则\n每个订单必须对应一个客户。",
+       "tags": [
+        "para",
+        "rule"
+       ]
+      }
+     ],
+     "file_id": "f_0123456789ab",
+     "file_name": "gbk.txt",
+     "findings": [
+      {
+       "kind": "encoding_guess",
+       "locator": {},
+       "message": "按 gb18030 解码",
+       "severity": "info"
+      }
+     ],
+     "kind": "text",
+     "meta": {},
+     "stats": {
+      "chars": 18,
+      "chunks": 1,
+      "file": "gbk.txt",
+      "findings": 1,
+      "kind": "text",
+      "sections": 1
+     },
+     "structured": {
+      "chars": 18,
+      "sections": 1
+     }
+    },
+    "encoding_hint": "gb18030",
+    "file_id": "f_0123456789ab",
+    "name": "gbk.txt"
+   },
+   {
+    "bytes_b64": "77u/77u/IyDmoIfpopgK5q2j5paH",
+    "doc": {
+     "chunks": [
+      {
+       "chunk_id": "f_0123456789ab:s0",
+       "context": "",
+       "file_id": "f_0123456789ab",
+       "file_name": "bom.txt",
+       "locator": {
+        "bbox": [
+         0,
+         0,
+         0,
+         0
+        ],
+        "kind": "page",
+        "page": 1,
+        "section": "§1"
+       },
+       "order": 0,
+       "raw": null,
+       "render": "﻿# 标题\n正文",
+       "tags": [
+        "para"
+       ]
+      }
+     ],
+     "file_id": "f_0123456789ab",
+     "file_name": "bom.txt",
+     "findings": [],
+     "kind": "text",
+     "meta": {},
+     "stats": {
+      "chars": 8,
+      "chunks": 1,
+      "file": "bom.txt",
+      "findings": 0,
+      "kind": "text",
+      "sections": 1
+     },
+     "structured": {
+      "chars": 8,
+      "sections": 1
+     }
+    },
+    "encoding_hint": "utf-8-sig",
+    "file_id": "f_0123456789ab",
+    "name": "bom.txt"
+   },
+   {
+    "bytes_b64": "gEEK/w==",
+    "doc": {
+     "chunks": [
+      {
+       "chunk_id": "f_0123456789ab:s0",
+       "context": "",
+       "file_id": "f_0123456789ab",
+       "file_name": "latin.txt",
+       "locator": {
+        "bbox": [
+         0,
+         0,
+         0,
+         0
+        ],
+        "kind": "page",
+        "page": 1,
+        "section": "§1"
+       },
+       "order": 0,
+       "raw": null,
+       "render": "A\nÿ",
+       "tags": [
+        "para"
+       ]
+      }
+     ],
+     "file_id": "f_0123456789ab",
+     "file_name": "latin.txt",
+     "findings": [
+      {
+       "kind": "encoding_guess",
+       "locator": {},
+       "message": "按 latin-1 解码",
+       "severity": "info"
+      }
+     ],
+     "kind": "text",
+     "meta": {},
+     "stats": {
+      "chars": 4,
+      "chunks": 1,
+      "file": "latin.txt",
+      "findings": 1,
+      "kind": "text",
+      "sections": 1
+     },
+     "structured": {
+      "chars": 4,
+      "sections": 1
+     }
+    },
+    "encoding_hint": "latin-1",
+    "file_id": "f_0123456789ab",
+    "name": "latin.txt"
+   },
+   {
+    "bytes_b64": "IyDwn5mCIOagh+mimArmr4/kuKrwn5mC5b+F6aG75pyJ5LiA5Liq8J+Zg+OAgg==",
+    "doc": {
+     "chunks": [
+      {
+       "chunk_id": "f_0123456789ab:s0",
+       "context": "",
+       "file_id": "f_0123456789ab",
+       "file_name": "emoji.md",
+       "locator": {
+        "bbox": [
+         0,
+         0,
+         0,
+         0
+        ],
+        "kind": "page",
+        "page": 1,
+        "section": "# 🙂 标题"
+       },
+       "order": 0,
+       "raw": null,
+       "render": "〔# 🙂 标题〕\n# 🙂 标题\n每个🙂必须有一个🙃。",
+       "tags": [
+        "para",
+        "rule"
+       ]
+      }
+     ],
+     "file_id": "f_0123456789ab",
+     "file_name": "emoji.md",
+     "findings": [],
+     "kind": "text",
+     "meta": {},
+     "stats": {
+      "chars": 17,
+      "chunks": 1,
+      "file": "emoji.md",
+      "findings": 0,
+      "kind": "text",
+      "sections": 1
+     },
+     "structured": {
+      "chars": 17,
+      "sections": 1
+     }
+    },
+    "encoding_hint": "utf-8",
+    "file_id": "f_0123456789ab",
+    "name": "emoji.md"
+   }
+  ],
+  "heading_level": [
+   {
+    "out": 2,
+    "style": null,
+    "text": "3.2 采购包组建"
+   },
+   {
+    "out": 1,
+    "style": "Heading 1",
+    "text": "采购业务流程说明"
+   },
+   {
+    "out": 2,
+    "style": "Heading 2",
+    "text": "3.2 采购包组建"
+   },
+   {
+    "out": 3,
+    "style": "标题 3",
+    "text": "金额口径"
+   },
+   {
+    "out": 9,
+    "style": "heading 9",
+    "text": "x"
+   },
+   {
+    "out": 1,
+    "style": "Normal",
+    "text": "普通段落"
+   },
+   {
+    "out": 1,
+    "style": "Normal",
+    "text": "第三章 采购"
+   },
+   {
+    "out": 2,
+    "style": "Normal",
+    "text": "第二节 组包"
+   },
+   {
+    "out": 1,
+    "style": "Normal",
+    "text": "一、总则"
+   },
+   {
+    "out": 1,
+    "style": "Normal",
+    "text": "## 二级标题"
+   },
+   {
+    "out": 1,
+    "style": "Normal",
+    "text": "#没有空格"
+   },
+   {
+    "out": 3,
+    "style": "Normal",
+    "text": "1.2.3 三级编号"
+   },
+   {
+    "out": 2,
+    "style": "Normal",
+    "text": "１.２ 全角数字"
+   },
+   {
+    "out": 2,
+    "style": "标题２",
+    "text": "全角样式号"
+   },
+   {
+    "out": 1,
+    "style": null,
+    "text": ""
+   },
+   {
+    "out": 1,
+    "style": "Normal",
+    "text": "  4. 带前导空格"
+   },
+   {
+    "out": 1,
+    "style": "Normal",
+    "text": "﻿# 标题"
+   },
+   {
+    "out": 1,
+    "style": "Normal",
+    "text": "　一、全角空格开头"
+   }
+  ],
+  "heading_of": [
+   {
+    "block": "# 标题\n正文一\n正文二\n# 标题二\n正文三",
+    "out": "# 标题"
+   },
+   {
+    "block": "一、总则\n第一条 甲方应当……\n二、附则\n第二条 本办法自发布之日起施行。",
+    "out": "一、总则"
+   },
+   {
+    "block": "没有任何标题的一段话。第二句话。",
+    "out": ""
+   },
+   {
+    "block": "",
+    "out": ""
+   },
+   {
+    "block": "   \n\n  ",
+    "out": ""
+   },
+   {
+    "block": "正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正。文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文。",
+    "out": ""
+   },
+   {
+    "block": "句。长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长",
+    "out": ""
+   },
+   {
+    "block": "正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正。\n正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正。\n正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正。\n文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文",
+    "out": ""
+   },
+   {
+    "block": "甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲\n\n乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙",
+    "out": ""
+   },
+   {
+    "block": "🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正。文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文",
+    "out": ""
+   },
+   {
+    "block": "# 🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂\n正文",
+    "out": "# 🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂"
+   },
+   {
+    "block": "第一段\r\n第二段\r\n# 标\r\n题下正文",
+    "out": ""
+   },
+   {
+    "block": "行一\u000b行二\f行三 行四",
+    "out": ""
+   },
+   {
+    "block": "带🙂emoji的一行\n尾尾尾",
+    "out": ""
+   }
+  ],
+  "is_heading": [
+   {
+    "out": true,
+    "style": null,
+    "text": "3.2 采购包组建"
+   },
+   {
+    "out": true,
+    "style": "Heading 1",
+    "text": "采购业务流程说明"
+   },
+   {
+    "out": true,
+    "style": "Heading 2",
+    "text": "3.2 采购包组建"
+   },
+   {
+    "out": true,
+    "style": "标题 3",
+    "text": "金额口径"
+   },
+   {
+    "out": true,
+    "style": "heading 9",
+    "text": "x"
+   },
+   {
+    "out": false,
+    "style": "Normal",
+    "text": "普通段落"
+   },
+   {
+    "out": true,
+    "style": "Normal",
+    "text": "第三章 采购"
+   },
+   {
+    "out": true,
+    "style": "Normal",
+    "text": "第二节 组包"
+   },
+   {
+    "out": true,
+    "style": "Normal",
+    "text": "一、总则"
+   },
+   {
+    "out": true,
+    "style": "Normal",
+    "text": "## 二级标题"
+   },
+   {
+    "out": false,
+    "style": "Normal",
+    "text": "#没有空格"
+   },
+   {
+    "out": true,
+    "style": "Normal",
+    "text": "1.2.3 三级编号"
+   },
+   {
+    "out": true,
+    "style": "Normal",
+    "text": "１.２ 全角数字"
+   },
+   {
+    "out": true,
+    "style": "标题２",
+    "text": "全角样式号"
+   },
+   {
+    "out": false,
+    "style": null,
+    "text": ""
+   },
+   {
+    "out": true,
+    "style": "Normal",
+    "text": "  4. 带前导空格"
+   },
+   {
+    "out": false,
+    "style": "Normal",
+    "text": "﻿# 标题"
+   },
+   {
+    "out": true,
+    "style": "Normal",
+    "text": "　一、全角空格开头"
+   }
+  ],
+  "read_text": [
+   {
+    "bytes_b64": "",
+    "encoding": "utf-8",
+    "text": ""
+   },
+   {
+    "bytes_b64": "aGVsbG8K",
+    "encoding": "utf-8",
+    "text": "hello\n"
+   },
+   {
+    "bytes_b64": "5ZCr56iOwrflubTluqbntK/orqE=",
+    "encoding": "utf-8",
+    "text": "含税·年度累计"
+   },
+   {
+    "bytes_b64": "77u/77u/IyDmoIfpopg=",
+    "encoding": "utf-8",
+    "text": "﻿# 标题"
+   },
+   {
+    "bytes_b64": "0ruhotfc1PIKw7+49raptaWx2NDrttTTptK7uPa/zbunoaM=",
+    "encoding": "gb18030",
+    "text": "一、总则\n每个订单必须对应一个客户。"
+   },
+   {
+    "bytes_b64": "scTByqZYrPk=",
+    "encoding": "gb18030",
+    "text": "蹦潦"
+   },
+   {
+    "bytes_b64": "gEEK/w==",
+    "encoding": "latin-1",
+    "text": "A\nÿ"
+   },
+   {
+    "bytes_b64": "oUA=",
+    "encoding": "gb18030",
+    "text": ""
+   },
+   {
+    "bytes_b64": "gTCBMA==",
+    "encoding": "gb18030",
+    "text": ""
+   },
+   {
+    "bytes_b64": "Y2Fm6Q==",
+    "encoding": "latin-1",
+    "text": "café"
+   },
+   {
+    "bytes_b64": "6Q==",
+    "encoding": "latin-1",
+    "text": "é"
+   },
+   {
+    "bytes_b64": "yEA=",
+    "encoding": "gb18030",
+    "text": "菮"
+   }
+  ],
+  "rule_hints": [
+   {
+    "hit": true,
+    "s": "一个执行计划可拆入多个采购包"
+   },
+   {
+    "hit": true,
+    "s": "每个订单必须对应一个客户"
+   },
+   {
+    "hit": true,
+    "s": "references the parent table"
+   },
+   {
+    "hit": true,
+    "s": "Each order must reference exactly one customer"
+   },
+   {
+    "hit": true,
+    "s": "an order can contain multiple line items"
+   },
+   {
+    "hit": false,
+    "s": "金额含税"
+   },
+   {
+    "hit": false,
+    "s": "按不含税记录"
+   },
+   {
+    "hit": false,
+    "s": "今天天气不错"
+   },
+   {
+    "hit": true,
+    "s": "PRIMARY KEY 约束"
+   },
+   {
+    "hit": true,
+    "s": "每个ORDER必须"
+   },
+   {
+    "hit": true,
+    "s": "多个each多个"
+   },
+   {
+    "hit": false,
+    "s": "订单each订单"
+   },
+   {
+    "hit": false,
+    "s": "很多many很多"
+   },
+   {
+    "hit": true,
+    "s": "订单 each 订单"
+   },
+   {
+    "hit": true,
+    "s": "由采购员生成"
+   },
+   {
+    "hit": true,
+    "s": "由采购员在系统里生成"
+   },
+   {
+    "hit": false,
+    "s": "由采购员在系统的界面里生成"
+   }
+  ],
+  "split_sections": [
+   {
+    "out": [
+     "# 标题\n正文一\n正文二",
+     "# 标题二\n正文三"
+    ],
+    "text": "# 标题\n正文一\n正文二\n# 标题二\n正文三"
+   },
+   {
+    "out": [
+     "一、总则",
+     "第一条 甲方应当……",
+     "二、附则",
+     "第二条 本办法自发布之日起施行。"
+    ],
+    "text": "一、总则\n第一条 甲方应当……\n二、附则\n第二条 本办法自发布之日起施行。"
+   },
+   {
+    "out": [
+     "没有任何标题的一段话。第二句话。"
+    ],
+    "text": "没有任何标题的一段话。第二句话。"
+   },
+   {
+    "out": [],
+    "text": ""
+   },
+   {
+    "out": [],
+    "text": "   \n\n  "
+   },
+   {
+    "out": [
+     "正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正。文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文。"
+    ],
+    "text": "正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正。文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文。"
+   },
+   {
+    "out": [
+     "句。长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长"
+    ],
+    "text": "句。长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长"
+   },
+   {
+    "out": [
+     "正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正。\n正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正。\n正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正。",
+     "文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文"
+    ],
+    "text": "正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正。\n正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正。\n正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正。\n文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文"
+   },
+   {
+    "out": [
+     "甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲",
+     "乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙"
+    ],
+    "text": "甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲\n\n乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙乙"
+   },
+   {
+    "out": [
+     "🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正。文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文"
+    ],
+    "text": "🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正正。文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文文"
+   },
+   {
+    "out": [
+     "# 🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂\n正文"
+    ],
+    "text": "# 🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂\n正文"
+   },
+   {
+    "out": [
+     "第一段\n第二段",
+     "# 标\n题下正文"
+    ],
+    "text": "第一段\r\n第二段\r\n# 标\r\n题下正文"
+   },
+   {
+    "out": [
+     "行一\n行二\n行三\n行四"
+    ],
+    "text": "行一\u000b行二\f行三 行四"
+   },
+   {
+    "out": [
+     "带🙂emoji的一行\n尾尾尾"
+    ],
+    "text": "带🙂emoji的一行\n尾尾尾"
+   }
+  ]
+ }
+}

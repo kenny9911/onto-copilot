@@ -1,0 +1,7159 @@
+{
+  "ops": [
+    {
+      "kw": {},
+      "m": "create_session",
+      "pos": [
+        {
+          "created": 10.0,
+          "error": "",
+          "id": "s1",
+          "owner": "u1",
+          "project": "",
+          "project_id": "",
+          "state_version": 0,
+          "status": "idle",
+          "title": "甲"
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "create_session",
+      "pos": [
+        {
+          "created": 30.0,
+          "error": "",
+          "id": "s2",
+          "owner": "u2",
+          "project": "",
+          "project_id": "",
+          "state_version": 0,
+          "status": "idle",
+          "title": "乙"
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "create_session",
+      "pos": [
+        {
+          "created": 20.0,
+          "error": "",
+          "id": "s3",
+          "owner": "",
+          "project": "",
+          "project_id": "",
+          "state_version": 0,
+          "status": "idle",
+          "title": "丙"
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "create_session",
+      "pos": [
+        {
+          "created": 0.0,
+          "error": "",
+          "id": "s4",
+          "owner": "u1",
+          "project": "",
+          "project_id": "",
+          "state_version": 0,
+          "status": "idle",
+          "title": "丁"
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "create_session",
+      "pos": [
+        {
+          "created": 0.0,
+          "error": "",
+          "id": "s1",
+          "owner": "",
+          "project": "",
+          "project_id": "",
+          "state_version": 0,
+          "status": "idle",
+          "title": "重复"
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "list_sessions",
+      "pos": []
+    },
+    {
+      "kw": {
+        "owner": "u1"
+      },
+      "m": "list_sessions",
+      "pos": []
+    },
+    {
+      "kw": {
+        "owner": ""
+      },
+      "m": "list_sessions",
+      "pos": []
+    },
+    {
+      "kw": {
+        "limit": 2
+      },
+      "m": "list_sessions",
+      "pos": []
+    },
+    {
+      "kw": {
+        "limit": 0
+      },
+      "m": "list_sessions",
+      "pos": []
+    },
+    {
+      "kw": {},
+      "m": "get_session",
+      "pos": [
+        "s1"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "get_session",
+      "pos": [
+        "nope"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "rename_session",
+      "pos": [
+        "s1",
+        "甲改"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "rename_session",
+      "pos": [
+        "nope",
+        "x"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "get_session",
+      "pos": [
+        "s1"
+      ]
+    },
+    {
+      "kw": {
+        "error": "炸了"
+      },
+      "m": "set_status",
+      "pos": [
+        "s2",
+        "failed"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "set_status",
+      "pos": [
+        "nope",
+        "failed"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "get_session",
+      "pos": [
+        "s2"
+      ]
+    },
+    {
+      "kw": {
+        "from_statuses": [
+          "idle"
+        ],
+        "to_status": "queued"
+      },
+      "m": "claim_session_status",
+      "pos": [
+        "s3"
+      ]
+    },
+    {
+      "kw": {
+        "from_statuses": [
+          "idle"
+        ],
+        "to_status": "queued"
+      },
+      "m": "claim_session_status",
+      "pos": [
+        "s3"
+      ]
+    },
+    {
+      "kw": {
+        "from_statuses": [
+          "idle"
+        ],
+        "to_status": "queued"
+      },
+      "m": "claim_session_status",
+      "pos": [
+        "nope"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "add_files",
+      "pos": [
+        "s1",
+        [
+          {
+            "name": "a.pdf",
+            "rel_path": "f/a.pdf",
+            "sha256": "aa",
+            "size": 3
+          },
+          {
+            "name": "b.csv",
+            "rel_path": "f/b.csv",
+            "sha256": "bb",
+            "size": 5
+          }
+        ]
+      ]
+    },
+    {
+      "kw": {},
+      "m": "add_files",
+      "pos": [
+        "s1",
+        [
+          {
+            "name": "a.pdf",
+            "rel_path": "f/a2.pdf",
+            "sha256": "cc",
+            "size": 9
+          }
+        ]
+      ]
+    },
+    {
+      "kw": {},
+      "m": "list_files",
+      "pos": [
+        "s1"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "remove_file",
+      "pos": [
+        "s1",
+        "b.csv"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "remove_file",
+      "pos": [
+        "s1",
+        "b.csv"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "list_files",
+      "pos": [
+        "s1"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "list_files",
+      "pos": [
+        "nope"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "save_state",
+      "pos": [
+        "s1",
+        {
+          "budget": {
+            "usd": 2
+          },
+          "oir": {
+            "n": 1
+          }
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "load_state",
+      "pos": [
+        "s1"
+      ]
+    },
+    {
+      "kw": {
+        "include_derived": false
+      },
+      "m": "load_state",
+      "pos": [
+        "s1"
+      ]
+    },
+    {
+      "kw": {
+        "keys": [
+          "oir"
+        ]
+      },
+      "m": "load_state",
+      "pos": [
+        "s1"
+      ]
+    },
+    {
+      "kw": {
+        "keys": []
+      },
+      "m": "load_state",
+      "pos": [
+        "s1"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "save_state",
+      "pos": [
+        "s1",
+        {
+          "corpus": [
+            1,
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "load_state",
+      "pos": [
+        "s1"
+      ]
+    },
+    {
+      "kw": {
+        "expected_version": 99
+      },
+      "m": "save_state",
+      "pos": [
+        "s1",
+        {
+          "x": 1
+        }
+      ]
+    },
+    {
+      "kw": {
+        "expected_version": 2
+      },
+      "m": "save_state",
+      "pos": [
+        "s1",
+        {
+          "x": 1
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "load_state",
+      "pos": [
+        "s1"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "save_state",
+      "pos": [
+        "nope",
+        {}
+      ]
+    },
+    {
+      "kw": {
+        "asked_rids": [
+          "c2"
+        ],
+        "conflicts": [
+          {
+            "kind": "dup",
+            "rid": "c1"
+          },
+          {
+            "kind": "gap",
+            "rid": "c2"
+          }
+        ]
+      },
+      "m": "save_state",
+      "pos": [
+        "s1",
+        {}
+      ]
+    },
+    {
+      "kw": {},
+      "m": "list_conflicts",
+      "pos": [
+        "s1"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "get_conflict",
+      "pos": [
+        "s1",
+        "c2"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "get_conflict",
+      "pos": [
+        "s1",
+        "nope"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "save_state",
+      "pos": [
+        "s1",
+        {
+          "oir": {
+            "n": 2
+          }
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "list_conflicts",
+      "pos": [
+        "s1"
+      ]
+    },
+    {
+      "kw": {
+        "conflicts": []
+      },
+      "m": "save_state",
+      "pos": [
+        "s1",
+        {}
+      ]
+    },
+    {
+      "kw": {},
+      "m": "list_conflicts",
+      "pos": [
+        "s1"
+      ]
+    },
+    {
+      "kw": {
+        "from_statuses": [
+          "idle"
+        ],
+        "now": 100.0,
+        "owner": "w1",
+        "ttl": 30.0
+      },
+      "m": "claim_build_lease",
+      "pos": [
+        "s4"
+      ]
+    },
+    {
+      "kw": {
+        "from_statuses": [
+          "idle"
+        ],
+        "now": 100.0,
+        "owner": "w2",
+        "ttl": 30.0
+      },
+      "m": "claim_build_lease",
+      "pos": [
+        "s4"
+      ]
+    },
+    {
+      "kw": {
+        "from_statuses": [
+          "idle"
+        ],
+        "now": 100.0,
+        "owner": "",
+        "ttl": 30.0
+      },
+      "m": "claim_build_lease",
+      "pos": [
+        "s4"
+      ]
+    },
+    {
+      "kw": {
+        "from_statuses": [
+          "idle"
+        ],
+        "now": 100.0,
+        "owner": "w2",
+        "ttl": 0.0
+      },
+      "m": "claim_build_lease",
+      "pos": [
+        "s4"
+      ]
+    },
+    {
+      "kw": {
+        "now": 110.0,
+        "owner": "w2",
+        "ttl": 30.0
+      },
+      "m": "renew_build_lease",
+      "pos": [
+        "s4"
+      ]
+    },
+    {
+      "kw": {
+        "now": 110.0,
+        "owner": "w1",
+        "ttl": 30.0
+      },
+      "m": "renew_build_lease",
+      "pos": [
+        "s4"
+      ]
+    },
+    {
+      "kw": {
+        "now": 200.0,
+        "owner": "w1",
+        "status": "parsing"
+      },
+      "m": "set_build_status",
+      "pos": [
+        "s4"
+      ]
+    },
+    {
+      "kw": {
+        "now": 120.0,
+        "owner": "w1",
+        "status": "parsing"
+      },
+      "m": "set_build_status",
+      "pos": [
+        "s4"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "get_session",
+      "pos": [
+        "s4"
+      ]
+    },
+    {
+      "kw": {
+        "now": 120.0,
+        "owner": "w1",
+        "status": "extracting"
+      },
+      "m": "save_build_state",
+      "pos": [
+        "s4",
+        {
+          "oir": {
+            "k": 1
+          }
+        }
+      ]
+    },
+    {
+      "kw": {
+        "now": 120.0,
+        "owner": "wX",
+        "status": "extracting"
+      },
+      "m": "save_build_state",
+      "pos": [
+        "s4",
+        {
+          "oir": {
+            "k": 2
+          }
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "get_session",
+      "pos": [
+        "s4"
+      ]
+    },
+    {
+      "kw": {
+        "now": 130.0
+      },
+      "m": "request_build_cancel",
+      "pos": [
+        "s4"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "get_session",
+      "pos": [
+        "s4"
+      ]
+    },
+    {
+      "kw": {
+        "now": 131.0,
+        "owner": "w1",
+        "ttl": 30.0
+      },
+      "m": "renew_build_lease",
+      "pos": [
+        "s4"
+      ]
+    },
+    {
+      "kw": {
+        "owner": "w2"
+      },
+      "m": "release_build_lease",
+      "pos": [
+        "s4"
+      ]
+    },
+    {
+      "kw": {
+        "owner": "w1"
+      },
+      "m": "release_build_lease",
+      "pos": [
+        "s4"
+      ]
+    },
+    {
+      "kw": {
+        "owner": "w1"
+      },
+      "m": "release_build_lease",
+      "pos": [
+        "s4"
+      ]
+    },
+    {
+      "kw": {
+        "from_statuses": [
+          "stopped"
+        ],
+        "now": 300.0,
+        "owner": "w3",
+        "ttl": 10.0
+      },
+      "m": "claim_build_lease",
+      "pos": [
+        "s4"
+      ]
+    },
+    {
+      "kw": {
+        "error": "超时",
+        "now": 305.0
+      },
+      "m": "reap_expired_build_lease",
+      "pos": [
+        "s4"
+      ]
+    },
+    {
+      "kw": {
+        "error": "超时",
+        "now": 400.0
+      },
+      "m": "reap_expired_build_lease",
+      "pos": [
+        "s4"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "get_session",
+      "pos": [
+        "s4"
+      ]
+    },
+    {
+      "kw": {
+        "now": 100.0,
+        "owner": "c1",
+        "ttl": 30.0
+      },
+      "m": "claim_chat_lease",
+      "pos": [
+        "s1"
+      ]
+    },
+    {
+      "kw": {
+        "now": 100.0,
+        "owner": "c2",
+        "ttl": 30.0
+      },
+      "m": "claim_chat_lease",
+      "pos": [
+        "s1"
+      ]
+    },
+    {
+      "kw": {
+        "now": 200.0,
+        "owner": "c2",
+        "ttl": 30.0
+      },
+      "m": "claim_chat_lease",
+      "pos": [
+        "s1"
+      ]
+    },
+    {
+      "kw": {
+        "now": 1.0,
+        "owner": "c1",
+        "ttl": 1.0
+      },
+      "m": "claim_chat_lease",
+      "pos": [
+        "nope"
+      ]
+    },
+    {
+      "kw": {
+        "now": 205.0,
+        "owner": "c1",
+        "ttl": 30.0
+      },
+      "m": "renew_chat_lease",
+      "pos": [
+        "s1"
+      ]
+    },
+    {
+      "kw": {
+        "now": 205.0,
+        "owner": "c2",
+        "ttl": 30.0
+      },
+      "m": "renew_chat_lease",
+      "pos": [
+        "s1"
+      ]
+    },
+    {
+      "kw": {
+        "now": 210.0,
+        "owner": "c2"
+      },
+      "m": "save_chat_state",
+      "pos": [
+        "s1",
+        {
+          "chat": 1
+        }
+      ]
+    },
+    {
+      "kw": {
+        "now": 210.0,
+        "owner": "c1"
+      },
+      "m": "save_chat_state",
+      "pos": [
+        "s1",
+        {
+          "chat": 2
+        }
+      ]
+    },
+    {
+      "kw": {
+        "now": 211.0
+      },
+      "m": "request_chat_cancel",
+      "pos": [
+        "s1"
+      ]
+    },
+    {
+      "kw": {
+        "now": 212.0
+      },
+      "m": "request_chat_cancel",
+      "pos": [
+        "s1"
+      ]
+    },
+    {
+      "kw": {
+        "now": 213.0,
+        "owner": "c2"
+      },
+      "m": "save_chat_state",
+      "pos": [
+        "s1",
+        {
+          "chat": 3
+        }
+      ]
+    },
+    {
+      "kw": {
+        "owner": "c2"
+      },
+      "m": "release_chat_lease",
+      "pos": [
+        "s1"
+      ]
+    },
+    {
+      "kw": {
+        "kind": "edit",
+        "now": 300.0,
+        "owner": "m1",
+        "ttl": 30.0
+      },
+      "m": "claim_mutation_lease",
+      "pos": [
+        "s1"
+      ]
+    },
+    {
+      "kw": {
+        "kind": "edit",
+        "now": 300.0,
+        "owner": "m2",
+        "ttl": 30.0
+      },
+      "m": "claim_mutation_lease",
+      "pos": [
+        "s1"
+      ]
+    },
+    {
+      "kw": {
+        "now": 301.0,
+        "owner": "c9",
+        "ttl": 30.0
+      },
+      "m": "claim_chat_lease",
+      "pos": [
+        "s1"
+      ]
+    },
+    {
+      "kw": {
+        "now": 305.0,
+        "owner": "m1",
+        "ttl": 30.0
+      },
+      "m": "renew_mutation_lease",
+      "pos": [
+        "s1"
+      ]
+    },
+    {
+      "kw": {
+        "now": 306.0,
+        "owner": "m1",
+        "status": "idle"
+      },
+      "m": "save_mutation_state",
+      "pos": [
+        "s1",
+        {
+          "mut": 1
+        }
+      ]
+    },
+    {
+      "kw": {
+        "chat_owner": "ghost",
+        "now": 306.0,
+        "owner": "m1",
+        "status": "idle"
+      },
+      "m": "save_mutation_state",
+      "pos": [
+        "s1",
+        {
+          "mut": 2
+        }
+      ]
+    },
+    {
+      "kw": {
+        "owner": "m1"
+      },
+      "m": "release_mutation_lease",
+      "pos": [
+        "s1"
+      ]
+    },
+    {
+      "kw": {
+        "owner": "m1"
+      },
+      "m": "release_mutation_lease",
+      "pos": [
+        "s1"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "record_decision",
+      "pos": [
+        "s1",
+        {
+          "changed": [],
+          "kind": "answer",
+          "note": "",
+          "option_id": "",
+          "ordinal": 0,
+          "scope_refs": [],
+          "statement": "第一次",
+          "superseded_by": null,
+          "target_rid": "c1",
+          "ts": 5.0,
+          "turn_index": -1
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "record_decision",
+      "pos": [
+        "s1",
+        {
+          "changed": [],
+          "kind": "answer",
+          "note": "",
+          "option_id": "",
+          "ordinal": 0,
+          "scope_refs": [],
+          "statement": "第二次",
+          "superseded_by": null,
+          "target_rid": "c1",
+          "ts": 0.0,
+          "turn_index": -1
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "record_decision",
+      "pos": [
+        "s1",
+        {
+          "changed": [],
+          "kind": "answer",
+          "note": "",
+          "option_id": "",
+          "ordinal": 0,
+          "scope_refs": [],
+          "statement": "另一个",
+          "superseded_by": null,
+          "target_rid": "c2",
+          "ts": 0.0,
+          "turn_index": -1
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "record_decision",
+      "pos": [
+        "s1",
+        {
+          "changed": [],
+          "kind": "scope",
+          "note": "",
+          "option_id": "",
+          "ordinal": 0,
+          "scope_refs": [
+            "b",
+            "a"
+          ],
+          "statement": "范围一",
+          "superseded_by": null,
+          "target_rid": "",
+          "ts": 0.0,
+          "turn_index": -1
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "record_decision",
+      "pos": [
+        "s1",
+        {
+          "changed": [],
+          "kind": "scope",
+          "note": "",
+          "option_id": "",
+          "ordinal": 0,
+          "scope_refs": [
+            "a",
+            "b"
+          ],
+          "statement": "范围二",
+          "superseded_by": null,
+          "target_rid": "",
+          "ts": 0.0,
+          "turn_index": -1
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "record_decision",
+      "pos": [
+        "s1",
+        {
+          "changed": [],
+          "kind": "scope",
+          "note": "",
+          "option_id": "",
+          "ordinal": 0,
+          "scope_refs": [
+            "c"
+          ],
+          "statement": "别的范围",
+          "superseded_by": null,
+          "target_rid": "",
+          "ts": 0.0,
+          "turn_index": -1
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "list_decisions",
+      "pos": [
+        "s1"
+      ]
+    },
+    {
+      "kw": {
+        "active_only": true
+      },
+      "m": "list_decisions",
+      "pos": [
+        "s1"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "answered_rids",
+      "pos": [
+        "s1"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "upsert_questions",
+      "pos": [
+        "s1",
+        [
+          {
+            "answer_schema": {},
+            "audience_role": "",
+            "blocked_artifacts": [],
+            "created": 7.0,
+            "dependencies": [],
+            "doc": {
+              "id": "q2",
+              "version": 0
+            },
+            "id": "q2",
+            "owner_user_id": "",
+            "priority": "normal",
+            "source_kind": "manual",
+            "source_ref": "",
+            "status": "open",
+            "text": "问题 q2",
+            "updated": 0.0,
+            "version": 0
+          },
+          {
+            "answer_schema": {},
+            "audience_role": "",
+            "blocked_artifacts": [],
+            "created": 7.0,
+            "dependencies": [],
+            "doc": {
+              "id": "q1",
+              "version": 0
+            },
+            "id": "q1",
+            "owner_user_id": "",
+            "priority": "normal",
+            "source_kind": "manual",
+            "source_ref": "",
+            "status": "open",
+            "text": "问题 q1",
+            "updated": 0.0,
+            "version": 0
+          },
+          {
+            "answer_schema": {},
+            "audience_role": "",
+            "blocked_artifacts": [],
+            "created": 0.0,
+            "dependencies": [],
+            "doc": {
+              "id": "q3",
+              "version": 0
+            },
+            "id": "q3",
+            "owner_user_id": "",
+            "priority": "normal",
+            "source_kind": "manual",
+            "source_ref": "",
+            "status": "open",
+            "text": "问题 q3",
+            "updated": 0.0,
+            "version": 0
+          }
+        ]
+      ]
+    },
+    {
+      "kw": {},
+      "m": "upsert_questions",
+      "pos": [
+        "s1",
+        [
+          {
+            "answer_schema": {},
+            "audience_role": "",
+            "blocked_artifacts": [],
+            "created": 0.0,
+            "dependencies": [],
+            "doc": {
+              "id": "q1",
+              "version": 0
+            },
+            "id": "q1",
+            "owner_user_id": "",
+            "priority": "normal",
+            "source_kind": "manual",
+            "source_ref": "",
+            "status": "open",
+            "text": "改过了",
+            "updated": 0.0,
+            "version": 0
+          }
+        ]
+      ]
+    },
+    {
+      "kw": {},
+      "m": "list_questions",
+      "pos": [
+        "s1"
+      ]
+    },
+    {
+      "kw": {
+        "statuses": [
+          "open"
+        ]
+      },
+      "m": "list_questions",
+      "pos": [
+        "s1"
+      ]
+    },
+    {
+      "kw": {
+        "statuses": [
+          "answered"
+        ]
+      },
+      "m": "list_questions",
+      "pos": [
+        "s1"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "get_question",
+      "pos": [
+        "s1",
+        "q1"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "get_question",
+      "pos": [
+        "s1",
+        "nope"
+      ]
+    },
+    {
+      "kw": {
+        "expected_version": 0
+      },
+      "m": "save_question",
+      "pos": [
+        "s1",
+        {
+          "answer_schema": {},
+          "audience_role": "",
+          "blocked_artifacts": [],
+          "created": 0.0,
+          "dependencies": [],
+          "doc": {
+            "id": "q1",
+            "version": 0
+          },
+          "id": "q1",
+          "owner_user_id": "",
+          "priority": "normal",
+          "source_kind": "manual",
+          "source_ref": "",
+          "status": "open",
+          "text": "CAS",
+          "updated": 0.0,
+          "version": 0
+        }
+      ]
+    },
+    {
+      "kw": {
+        "expected_version": 0
+      },
+      "m": "save_question",
+      "pos": [
+        "s1",
+        {
+          "answer_schema": {},
+          "audience_role": "",
+          "blocked_artifacts": [],
+          "created": 0.0,
+          "dependencies": [],
+          "doc": {
+            "id": "q1",
+            "version": 0
+          },
+          "id": "q1",
+          "owner_user_id": "",
+          "priority": "normal",
+          "source_kind": "manual",
+          "source_ref": "",
+          "status": "open",
+          "text": "再来",
+          "updated": 0.0,
+          "version": 0
+        }
+      ]
+    },
+    {
+      "kw": {
+        "expected_version": 0
+      },
+      "m": "save_question",
+      "pos": [
+        "s1",
+        {
+          "answer_schema": {},
+          "audience_role": "",
+          "blocked_artifacts": [],
+          "created": 0.0,
+          "dependencies": [],
+          "doc": {
+            "id": "zz",
+            "version": 0
+          },
+          "id": "zz",
+          "owner_user_id": "",
+          "priority": "normal",
+          "source_kind": "manual",
+          "source_ref": "",
+          "status": "open",
+          "text": "没有这条",
+          "updated": 0.0,
+          "version": 0
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "save_question",
+      "pos": [
+        "s1",
+        {
+          "answer_schema": {},
+          "audience_role": "",
+          "blocked_artifacts": [],
+          "created": 0.0,
+          "dependencies": [],
+          "doc": {
+            "id": "q3",
+            "version": 0
+          },
+          "id": "q3",
+          "owner_user_id": "",
+          "priority": "normal",
+          "source_kind": "manual",
+          "source_ref": "",
+          "status": "open",
+          "text": "无 CAS",
+          "updated": 0.0,
+          "version": 0
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "get_question",
+      "pos": [
+        "s1",
+        "q1"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "record_decision_v1",
+      "pos": [
+        "s1",
+        {
+          "actor": "u1",
+          "actor_role": "",
+          "affected_ids": [],
+          "answer": "A",
+          "authority": "",
+          "created": 0.0,
+          "id": "d0",
+          "idempotency_key": "",
+          "metadata": {},
+          "question_id": "q1",
+          "rationale": "",
+          "revision": null,
+          "semantic_hash": "",
+          "source_turn": "",
+          "supersedes": null
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "record_decision_v1",
+      "pos": [
+        "s1",
+        {
+          "actor": "u1",
+          "actor_role": "",
+          "affected_ids": [],
+          "answer": "A",
+          "authority": "",
+          "created": 0.0,
+          "id": "d1",
+          "idempotency_key": "k1",
+          "metadata": {},
+          "question_id": "q1",
+          "rationale": "",
+          "revision": null,
+          "semantic_hash": "h1",
+          "source_turn": "",
+          "supersedes": null
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "record_decision_v1",
+      "pos": [
+        "s1",
+        {
+          "actor": "u1",
+          "actor_role": "",
+          "affected_ids": [],
+          "answer": "A",
+          "authority": "",
+          "created": 0.0,
+          "id": "d1b",
+          "idempotency_key": "k1",
+          "metadata": {},
+          "question_id": "q1",
+          "rationale": "",
+          "revision": null,
+          "semantic_hash": "h1",
+          "source_turn": "",
+          "supersedes": null
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "record_decision_v1",
+      "pos": [
+        "s1",
+        {
+          "actor": "u1",
+          "actor_role": "",
+          "affected_ids": [],
+          "answer": "A",
+          "authority": "",
+          "created": 0.0,
+          "id": "d1c",
+          "idempotency_key": "k1",
+          "metadata": {},
+          "question_id": "q1",
+          "rationale": "",
+          "revision": null,
+          "semantic_hash": "h2",
+          "source_turn": "",
+          "supersedes": null
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "record_decision_v1",
+      "pos": [
+        "s1",
+        {
+          "actor": "u1",
+          "actor_role": "",
+          "affected_ids": [],
+          "answer": "A",
+          "authority": "",
+          "created": 0.0,
+          "id": "d2",
+          "idempotency_key": "k2",
+          "metadata": {},
+          "question_id": "q1",
+          "rationale": "",
+          "revision": null,
+          "semantic_hash": "h1",
+          "source_turn": "",
+          "supersedes": null
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "record_decision_v1",
+      "pos": [
+        "s1",
+        {
+          "actor": "u1",
+          "actor_role": "",
+          "affected_ids": [],
+          "answer": "B",
+          "authority": "",
+          "created": 0.0,
+          "id": "d3",
+          "idempotency_key": "k3",
+          "metadata": {},
+          "question_id": "q1",
+          "rationale": "",
+          "revision": null,
+          "semantic_hash": "h9",
+          "source_turn": "",
+          "supersedes": null
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "record_decision_v1",
+      "pos": [
+        "s1",
+        {
+          "actor": "u1",
+          "actor_role": "",
+          "affected_ids": [],
+          "answer": "A",
+          "authority": "",
+          "created": 0.0,
+          "id": "d4",
+          "idempotency_key": "k4",
+          "metadata": {
+            "status": "claimed"
+          },
+          "question_id": "q2",
+          "rationale": "",
+          "revision": null,
+          "semantic_hash": "h4",
+          "source_turn": "",
+          "supersedes": null
+        }
+      ]
+    },
+    {
+      "kw": {
+        "error": "工具炸了",
+        "status": "failed"
+      },
+      "m": "finalize_decision_v1",
+      "pos": [
+        "s1",
+        "d4"
+      ]
+    },
+    {
+      "kw": {
+        "status": "failed"
+      },
+      "m": "finalize_decision_v1",
+      "pos": [
+        "s1",
+        "d4"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "record_decision_v1",
+      "pos": [
+        "s1",
+        {
+          "actor": "u1",
+          "actor_role": "",
+          "affected_ids": [],
+          "answer": "A",
+          "authority": "",
+          "created": 0.0,
+          "id": "d5",
+          "idempotency_key": "k5",
+          "metadata": {
+            "status": "claimed"
+          },
+          "question_id": "q2",
+          "rationale": "",
+          "revision": null,
+          "semantic_hash": "h5",
+          "source_turn": "",
+          "supersedes": null
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "list_decisions_v1",
+      "pos": [
+        "s1"
+      ]
+    },
+    {
+      "kw": {
+        "status": "applied"
+      },
+      "m": "finalize_decision_v1",
+      "pos": [
+        "s1",
+        "d3"
+      ]
+    },
+    {
+      "kw": {
+        "status": "applied"
+      },
+      "m": "finalize_decision_v1",
+      "pos": [
+        "s1",
+        "d3"
+      ]
+    },
+    {
+      "kw": {
+        "status": "failed"
+      },
+      "m": "finalize_decision_v1",
+      "pos": [
+        "s1",
+        "d3"
+      ]
+    },
+    {
+      "kw": {
+        "error": "没生效",
+        "status": "failed"
+      },
+      "m": "finalize_decision_v1",
+      "pos": [
+        "s1",
+        "d1"
+      ]
+    },
+    {
+      "kw": {
+        "status": "failed"
+      },
+      "m": "finalize_decision_v1",
+      "pos": [
+        "s1",
+        "d1"
+      ]
+    },
+    {
+      "kw": {
+        "status": "applied"
+      },
+      "m": "finalize_decision_v1",
+      "pos": [
+        "s1",
+        "nope"
+      ]
+    },
+    {
+      "kw": {
+        "status": "乱来"
+      },
+      "m": "finalize_decision_v1",
+      "pos": [
+        "s1",
+        "d3"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "list_decisions_v1",
+      "pos": [
+        "s1"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "record_revision",
+      "pos": [
+        "s1",
+        {
+          "actor": "agent",
+          "changed_ids": [],
+          "created": 0.0,
+          "doc": {
+            "id": "rv2",
+            "ordinal": 2
+          },
+          "id": "rv2",
+          "idempotency_key": "",
+          "invalidated_artifacts": [],
+          "kind": "edit",
+          "ordinal": 2,
+          "parent_id": null,
+          "patch_set": null,
+          "snapshot_hash": "",
+          "source_turn": "",
+          "status": "proposed"
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "record_revision",
+      "pos": [
+        "s1",
+        {
+          "actor": "agent",
+          "changed_ids": [],
+          "created": 0.0,
+          "doc": {
+            "id": "rv1",
+            "ordinal": 1
+          },
+          "id": "rv1",
+          "idempotency_key": "",
+          "invalidated_artifacts": [],
+          "kind": "edit",
+          "ordinal": 1,
+          "parent_id": null,
+          "patch_set": null,
+          "snapshot_hash": "",
+          "source_turn": "",
+          "status": "proposed"
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "list_revisions",
+      "pos": [
+        "s1"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "record_revision",
+      "pos": [
+        "s1",
+        {
+          "actor": "agent",
+          "changed_ids": [],
+          "created": 0.0,
+          "doc": {
+            "id": "rv1",
+            "ordinal": 5
+          },
+          "id": "rv1",
+          "idempotency_key": "",
+          "invalidated_artifacts": [],
+          "kind": "edit",
+          "ordinal": 5,
+          "parent_id": null,
+          "patch_set": null,
+          "snapshot_hash": "",
+          "source_turn": "",
+          "status": "proposed"
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "record_revision",
+      "pos": [
+        "s1",
+        {
+          "actor": "agent",
+          "changed_ids": [],
+          "created": 0.0,
+          "doc": {
+            "id": "rv9",
+            "ordinal": 2
+          },
+          "id": "rv9",
+          "idempotency_key": "",
+          "invalidated_artifacts": [],
+          "kind": "edit",
+          "ordinal": 2,
+          "parent_id": null,
+          "patch_set": null,
+          "snapshot_hash": "",
+          "source_turn": "",
+          "status": "proposed"
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "record_revision",
+      "pos": [
+        "s1",
+        {
+          "actor": "agent",
+          "changed_ids": [],
+          "created": 0.0,
+          "doc": {
+            "id": "rv3",
+            "ordinal": 3
+          },
+          "id": "rv3",
+          "idempotency_key": "ik",
+          "invalidated_artifacts": [],
+          "kind": "edit",
+          "ordinal": 3,
+          "parent_id": null,
+          "patch_set": null,
+          "snapshot_hash": "",
+          "source_turn": "",
+          "status": "proposed"
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "record_revision",
+      "pos": [
+        "s1",
+        {
+          "actor": "agent",
+          "changed_ids": [],
+          "created": 0.0,
+          "doc": {
+            "id": "rv3",
+            "ordinal": 3
+          },
+          "id": "rv3",
+          "idempotency_key": "ik",
+          "invalidated_artifacts": [],
+          "kind": "edit",
+          "ordinal": 3,
+          "parent_id": null,
+          "patch_set": null,
+          "snapshot_hash": "",
+          "source_turn": "",
+          "status": "proposed"
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "record_revision",
+      "pos": [
+        "s1",
+        {
+          "actor": "agent",
+          "changed_ids": [],
+          "created": 0.0,
+          "doc": {
+            "id": "rv4",
+            "不一样": true
+          },
+          "id": "rv4",
+          "idempotency_key": "ik",
+          "invalidated_artifacts": [],
+          "kind": "edit",
+          "ordinal": 4,
+          "parent_id": null,
+          "patch_set": null,
+          "snapshot_hash": "",
+          "source_turn": "",
+          "status": "proposed"
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "append_revision",
+      "pos": [
+        "s1",
+        {
+          "actor": "agent",
+          "changed_ids": [],
+          "created": 0.0,
+          "doc": {
+            "id": "忽略",
+            "ordinal": -1
+          },
+          "id": "忽略",
+          "idempotency_key": "",
+          "invalidated_artifacts": [],
+          "kind": "edit",
+          "ordinal": -1,
+          "parent_id": null,
+          "patch_set": null,
+          "snapshot_hash": "",
+          "source_turn": "",
+          "status": "proposed"
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "append_revision",
+      "pos": [
+        "s1",
+        {
+          "actor": "agent",
+          "changed_ids": [],
+          "created": 0.0,
+          "doc": {
+            "id": "忽略",
+            "ordinal": -1
+          },
+          "id": "忽略",
+          "idempotency_key": "ak",
+          "invalidated_artifacts": [],
+          "kind": "edit",
+          "ordinal": -1,
+          "parent_id": null,
+          "patch_set": null,
+          "snapshot_hash": "",
+          "source_turn": "",
+          "status": "proposed"
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "append_revision",
+      "pos": [
+        "s1",
+        {
+          "actor": "agent",
+          "changed_ids": [],
+          "created": 0.0,
+          "doc": {
+            "id": "忽略",
+            "ordinal": -1
+          },
+          "id": "忽略",
+          "idempotency_key": "ak",
+          "invalidated_artifacts": [],
+          "kind": "edit",
+          "ordinal": -1,
+          "parent_id": null,
+          "patch_set": null,
+          "snapshot_hash": "",
+          "source_turn": "",
+          "status": "proposed"
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "list_revisions",
+      "pos": [
+        "s1"
+      ]
+    },
+    {
+      "kw": {
+        "status": "applied"
+      },
+      "m": "finalize_revision",
+      "pos": [
+        "s1",
+        "rv1"
+      ]
+    },
+    {
+      "kw": {
+        "status": "applied"
+      },
+      "m": "finalize_revision",
+      "pos": [
+        "s1",
+        "rv1"
+      ]
+    },
+    {
+      "kw": {
+        "status": "rejected"
+      },
+      "m": "finalize_revision",
+      "pos": [
+        "s1",
+        "rv1"
+      ]
+    },
+    {
+      "kw": {
+        "status": "applied"
+      },
+      "m": "finalize_revision",
+      "pos": [
+        "s1",
+        "nope"
+      ]
+    },
+    {
+      "kw": {
+        "status": "乱来"
+      },
+      "m": "finalize_revision",
+      "pos": [
+        "s1",
+        "rv2"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "list_revisions",
+      "pos": [
+        "s1"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "append_event",
+      "pos": [
+        "s1",
+        "node.started",
+        {
+          "node": "A"
+        }
+      ]
+    },
+    {
+      "kw": {
+        "event_id": "e1"
+      },
+      "m": "append_event",
+      "pos": [
+        "s1",
+        "node.done",
+        {
+          "node": "A"
+        }
+      ]
+    },
+    {
+      "kw": {
+        "event_id": "e1"
+      },
+      "m": "append_event",
+      "pos": [
+        "s1",
+        "node.done",
+        {
+          "node": "B"
+        }
+      ]
+    },
+    {
+      "kw": {
+        "event_id": "e2"
+      },
+      "m": "append_event",
+      "pos": [
+        "s1",
+        "node.done",
+        {
+          "node": "B"
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "append_event",
+      "pos": [
+        "s1",
+        "tick",
+        {}
+      ]
+    },
+    {
+      "kw": {},
+      "m": "append_event",
+      "pos": [
+        "s1",
+        "tick",
+        {}
+      ]
+    },
+    {
+      "kw": {},
+      "m": "read_events",
+      "pos": [
+        "s1"
+      ]
+    },
+    {
+      "kw": {
+        "since": 3
+      },
+      "m": "read_events",
+      "pos": [
+        "s1"
+      ]
+    },
+    {
+      "kw": {
+        "since": 99
+      },
+      "m": "read_events",
+      "pos": [
+        "s1"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "count_events",
+      "pos": [
+        "s1"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "count_events",
+      "pos": [
+        "nope"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "next_run",
+      "pos": [
+        "s1",
+        "build"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "next_run",
+      "pos": [
+        "s1",
+        "chat"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "next_run",
+      "pos": [
+        "s2",
+        "build"
+      ]
+    },
+    {
+      "kw": {
+        "budget": {
+          "usd": 1
+        },
+        "status": "ok"
+      },
+      "m": "finish_run",
+      "pos": [
+        "s1.0"
+      ]
+    },
+    {
+      "kw": {
+        "status": "ok"
+      },
+      "m": "finish_run",
+      "pos": [
+        "nope"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "create_user",
+      "pos": [
+        {
+          "active": true,
+          "created": 50.0,
+          "display_name": "",
+          "id": "u1",
+          "password_hash": "h",
+          "prefs": {},
+          "role": "user",
+          "username": "alice"
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "create_user",
+      "pos": [
+        {
+          "active": true,
+          "created": 40.0,
+          "display_name": "",
+          "id": "u2",
+          "password_hash": "h",
+          "prefs": {},
+          "role": "user",
+          "username": "bob"
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "create_user",
+      "pos": [
+        {
+          "active": true,
+          "created": 0.0,
+          "display_name": "",
+          "id": "u1",
+          "password_hash": "h",
+          "prefs": {},
+          "role": "user",
+          "username": "x"
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "create_user",
+      "pos": [
+        {
+          "active": true,
+          "created": 0.0,
+          "display_name": "",
+          "id": "u3",
+          "password_hash": "h",
+          "prefs": {},
+          "role": "user",
+          "username": "alice"
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "list_users",
+      "pos": []
+    },
+    {
+      "kw": {},
+      "m": "count_users",
+      "pos": []
+    },
+    {
+      "kw": {},
+      "m": "get_user",
+      "pos": [
+        "u1"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "get_user_by_username",
+      "pos": [
+        "bob"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "get_user_by_username",
+      "pos": [
+        "nope"
+      ]
+    },
+    {
+      "kw": {
+        "role": "admin"
+      },
+      "m": "update_user",
+      "pos": [
+        "u1"
+      ]
+    },
+    {
+      "kw": {
+        "active": false,
+        "display_name": "爱丽丝",
+        "prefs": {
+          "theme": "dark"
+        }
+      },
+      "m": "update_user",
+      "pos": [
+        "u1"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "update_user",
+      "pos": [
+        "u1"
+      ]
+    },
+    {
+      "kw": {
+        "role": "admin"
+      },
+      "m": "update_user",
+      "pos": [
+        "nope"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "get_user",
+      "pos": [
+        "u1"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "create_auth_session",
+      "pos": [
+        {
+          "created": 0.0,
+          "expires": 100.0,
+          "last_seen": 0.0,
+          "token_hash": "t1",
+          "user_id": "u1"
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "create_auth_session",
+      "pos": [
+        {
+          "created": 0.0,
+          "expires": 0.0,
+          "last_seen": 0.0,
+          "token_hash": "t2",
+          "user_id": "u1"
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "create_auth_session",
+      "pos": [
+        {
+          "created": 3.0,
+          "expires": 500.0,
+          "last_seen": 4.0,
+          "token_hash": "t3",
+          "user_id": "u2"
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "get_auth_session",
+      "pos": [
+        "t1"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "get_auth_session",
+      "pos": [
+        "nope"
+      ]
+    },
+    {
+      "kw": {
+        "now": 200.0
+      },
+      "m": "prune_auth_sessions",
+      "pos": []
+    },
+    {
+      "kw": {},
+      "m": "get_auth_session",
+      "pos": [
+        "t1"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "delete_auth_session",
+      "pos": [
+        "t2"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "delete_auth_session",
+      "pos": [
+        "t2"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "delete_user_auth_sessions",
+      "pos": [
+        "u2"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "create_auth_session",
+      "pos": [
+        {
+          "created": 0.0,
+          "expires": 900.0,
+          "last_seen": 0.0,
+          "token_hash": "t4",
+          "user_id": "u2"
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "delete_user",
+      "pos": [
+        "u2"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "get_auth_session",
+      "pos": [
+        "t4"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "delete_user",
+      "pos": [
+        "u2"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "count_users",
+      "pos": []
+    },
+    {
+      "kw": {},
+      "m": "add_usage",
+      "pos": [
+        {
+          "attempts": 1,
+          "cache_read": 0,
+          "cache_write": 0,
+          "day": "2026-01-01",
+          "effort": "",
+          "id": "g1",
+          "kind": "build",
+          "model": "m",
+          "node_id": "",
+          "owner": "u1",
+          "run_id": "",
+          "session_id": "",
+          "status": "ok",
+          "tok_in": 5,
+          "tok_out": 0,
+          "ts": 10.0,
+          "usd": 0.0,
+          "usd_source": "estimated"
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "add_usage",
+      "pos": [
+        {
+          "attempts": 1,
+          "cache_read": 0,
+          "cache_write": 0,
+          "day": "2026-01-01",
+          "effort": "",
+          "id": "g2",
+          "kind": "build",
+          "model": "m",
+          "node_id": "",
+          "owner": "u2",
+          "run_id": "",
+          "session_id": "",
+          "status": "ok",
+          "tok_in": 0,
+          "tok_out": 7,
+          "ts": 30.0,
+          "usd": 0.0,
+          "usd_source": "estimated"
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "add_usage",
+      "pos": [
+        {
+          "attempts": 1,
+          "cache_read": 0,
+          "cache_write": 0,
+          "day": "2026-01-01",
+          "effort": "",
+          "id": "g3",
+          "kind": "build",
+          "model": "m",
+          "node_id": "",
+          "owner": "",
+          "run_id": "",
+          "session_id": "",
+          "status": "ok",
+          "tok_in": 0,
+          "tok_out": 0,
+          "ts": 20.0,
+          "usd": 0.5,
+          "usd_source": "gateway"
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "add_usage",
+      "pos": [
+        {
+          "attempts": 1,
+          "cache_read": 0,
+          "cache_write": 0,
+          "day": "2026-01-01",
+          "effort": "",
+          "id": "bad",
+          "kind": "乱来",
+          "model": "m",
+          "node_id": "",
+          "owner": "",
+          "run_id": "",
+          "session_id": "",
+          "status": "ok",
+          "tok_in": 0,
+          "tok_out": 0,
+          "ts": 1.0,
+          "usd": 0.0,
+          "usd_source": "estimated"
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "add_usage",
+      "pos": [
+        {
+          "attempts": 0,
+          "cache_read": 0,
+          "cache_write": 0,
+          "day": "2026-01-01",
+          "effort": "",
+          "id": "bad2",
+          "kind": "build",
+          "model": "m",
+          "node_id": "",
+          "owner": "",
+          "run_id": "",
+          "session_id": "",
+          "status": "ok",
+          "tok_in": 0,
+          "tok_out": 0,
+          "ts": 1.0,
+          "usd": 0.0,
+          "usd_source": "estimated"
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "usage_since",
+      "pos": [
+        0.0
+      ]
+    },
+    {
+      "kw": {},
+      "m": "usage_since",
+      "pos": [
+        15.0
+      ]
+    },
+    {
+      "kw": {
+        "owner": "u1"
+      },
+      "m": "usage_since",
+      "pos": [
+        0.0
+      ]
+    },
+    {
+      "kw": {
+        "owner": ""
+      },
+      "m": "usage_since",
+      "pos": [
+        0.0
+      ]
+    },
+    {
+      "kw": {
+        "limit": 2
+      },
+      "m": "usage_since",
+      "pos": [
+        0.0
+      ]
+    },
+    {
+      "kw": {
+        "limit": 0
+      },
+      "m": "usage_since",
+      "pos": [
+        0.0
+      ]
+    },
+    {
+      "kw": {},
+      "m": "create_project",
+      "pos": [
+        {
+          "id": "p1",
+          "name": "项目甲",
+          "owner": "u1",
+          "prefs": {},
+          "sort_order": 2
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "create_project",
+      "pos": [
+        {
+          "id": "p2",
+          "name": "项目乙",
+          "owner": "u1",
+          "prefs": {},
+          "sort_order": 1
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "create_project",
+      "pos": [
+        {
+          "id": "p3",
+          "name": "项目丙",
+          "owner": "",
+          "prefs": {},
+          "sort_order": 1
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "create_project",
+      "pos": [
+        {
+          "id": "p1",
+          "name": "重复",
+          "owner": "",
+          "prefs": {},
+          "sort_order": 0
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "list_projects",
+      "pos": []
+    },
+    {
+      "kw": {
+        "owner": "u1"
+      },
+      "m": "list_projects",
+      "pos": []
+    },
+    {
+      "kw": {
+        "owner": ""
+      },
+      "m": "list_projects",
+      "pos": []
+    },
+    {
+      "kw": {},
+      "m": "get_project",
+      "pos": [
+        "p1"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "get_project",
+      "pos": [
+        "nope"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "rename_project",
+      "pos": [
+        "p1",
+        "项目甲改"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "rename_project",
+      "pos": [
+        "nope",
+        "x"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "assign_session",
+      "pos": [
+        "s1",
+        "p1"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "assign_session",
+      "pos": [
+        "s2",
+        "p1"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "assign_session",
+      "pos": [
+        "s3",
+        null
+      ]
+    },
+    {
+      "kw": {},
+      "m": "assign_session",
+      "pos": [
+        "nope",
+        "p1"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "get_session",
+      "pos": [
+        "s1"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "reassign_sessions",
+      "pos": [
+        "u1",
+        "u9"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "reassign_projects",
+      "pos": [
+        "u1",
+        "u9"
+      ]
+    },
+    {
+      "kw": {
+        "owner": "u9"
+      },
+      "m": "list_sessions",
+      "pos": []
+    },
+    {
+      "kw": {
+        "owner": "u9"
+      },
+      "m": "list_projects",
+      "pos": []
+    },
+    {
+      "kw": {},
+      "m": "upsert_project_memory",
+      "pos": [
+        [
+          {
+            "confidence": 0.5,
+            "content": "内容 b",
+            "contested_by": [],
+            "created_run": "",
+            "hit_runs": [],
+            "key": "b",
+            "kind": "convention",
+            "last_used_run": "",
+            "origin_files": [],
+            "origin_session": "",
+            "project_id": "p1",
+            "support": [],
+            "tags": [],
+            "tier": "authoritative",
+            "use_count": 0
+          },
+          {
+            "confidence": 0.5,
+            "content": "内容 a",
+            "contested_by": [],
+            "created_run": "",
+            "hit_runs": [],
+            "key": "a",
+            "kind": "convention",
+            "last_used_run": "",
+            "origin_files": [],
+            "origin_session": "",
+            "project_id": "p1",
+            "support": [],
+            "tags": [],
+            "tier": "authoritative",
+            "use_count": 0
+          },
+          {
+            "confidence": 0.5,
+            "content": "内容 z",
+            "contested_by": [],
+            "created_run": "",
+            "hit_runs": [],
+            "key": "z",
+            "kind": "convention",
+            "last_used_run": "",
+            "origin_files": [],
+            "origin_session": "",
+            "project_id": "p2",
+            "support": [],
+            "tags": [],
+            "tier": "authoritative",
+            "use_count": 0
+          }
+        ]
+      ]
+    },
+    {
+      "kw": {},
+      "m": "upsert_project_memory",
+      "pos": [
+        [
+          {
+            "confidence": 0.5,
+            "content": "改过了",
+            "contested_by": [],
+            "created_run": "",
+            "hit_runs": [],
+            "key": "a",
+            "kind": "convention",
+            "last_used_run": "",
+            "origin_files": [],
+            "origin_session": "",
+            "project_id": "p1",
+            "support": [],
+            "tags": [],
+            "tier": "reference",
+            "use_count": 0
+          }
+        ]
+      ]
+    },
+    {
+      "kw": {},
+      "m": "list_project_memory",
+      "pos": [
+        "p1"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "list_project_memory",
+      "pos": [
+        "nope"
+      ]
+    },
+    {
+      "kw": {
+        "keys": [
+          "a",
+          "不存在"
+        ]
+      },
+      "m": "delete_project_memory",
+      "pos": [
+        "p1"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "list_project_memory",
+      "pos": [
+        "p1"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "delete_project_memory",
+      "pos": [
+        "p1"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "delete_project_memory",
+      "pos": [
+        "p1"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "delete_project",
+      "pos": [
+        "p1"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "get_session",
+      "pos": [
+        "s1"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "get_project",
+      "pos": [
+        "p1"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "list_project_memory",
+      "pos": [
+        "p2"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "set_setting",
+      "pos": [
+        "b",
+        {
+          "on": true
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "set_setting",
+      "pos": [
+        "a",
+        42
+      ]
+    },
+    {
+      "kw": {},
+      "m": "set_setting",
+      "pos": [
+        "b",
+        "改过了"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "get_setting",
+      "pos": [
+        "b"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "get_setting",
+      "pos": [
+        "nope"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "list_settings",
+      "pos": []
+    },
+    {
+      "kw": {},
+      "m": "delete_setting",
+      "pos": [
+        "a"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "delete_setting",
+      "pos": [
+        "a"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "list_settings",
+      "pos": []
+    },
+    {
+      "kw": {},
+      "m": "create_project",
+      "pos": [
+        {
+          "id": "P",
+          "name": "同名项目",
+          "owner": "",
+          "prefs": {},
+          "sort_order": 0
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "upsert_project_memory",
+      "pos": [
+        [
+          {
+            "confidence": 0.5,
+            "content": "内容 k1",
+            "contested_by": [],
+            "created_run": "",
+            "hit_runs": [],
+            "key": "k1",
+            "kind": "convention",
+            "last_used_run": "",
+            "origin_files": [],
+            "origin_session": "",
+            "project_id": "P",
+            "support": [],
+            "tags": [],
+            "tier": "authoritative",
+            "use_count": 0
+          }
+        ]
+      ]
+    },
+    {
+      "kw": {},
+      "m": "create_session",
+      "pos": [
+        {
+          "created": 1.0,
+          "error": "",
+          "id": "P",
+          "owner": "",
+          "project": "",
+          "project_id": "",
+          "state_version": 0,
+          "status": "idle",
+          "title": "同名会话"
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "append_event",
+      "pos": [
+        "P",
+        "x",
+        {}
+      ]
+    },
+    {
+      "kw": {},
+      "m": "next_run",
+      "pos": [
+        "P",
+        "build"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "delete_session",
+      "pos": [
+        "P"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "delete_session",
+      "pos": [
+        "P"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "get_project",
+      "pos": [
+        "P"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "list_project_memory",
+      "pos": [
+        "P"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "count_users",
+      "pos": []
+    },
+    {
+      "kw": {},
+      "m": "list_settings",
+      "pos": []
+    },
+    {
+      "kw": {},
+      "m": "usage_since",
+      "pos": [
+        0.0
+      ]
+    },
+    {
+      "kw": {},
+      "m": "count_events",
+      "pos": [
+        "P"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "next_run",
+      "pos": [
+        "P",
+        "build"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "list_sessions",
+      "pos": []
+    },
+    {
+      "kw": {},
+      "m": "create_session",
+      "pos": [
+        {
+          "created": 0.0,
+          "error": "",
+          "id": "s2",
+          "owner": "",
+          "project": "",
+          "project_id": "",
+          "state_version": 0,
+          "status": "idle",
+          "title": "不能到这一步"
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "delete_session",
+      "pos": [
+        "s2"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "create_session",
+      "pos": [
+        {
+          "created": 99.0,
+          "error": "",
+          "id": "s2",
+          "owner": "",
+          "project": "",
+          "project_id": "",
+          "state_version": 0,
+          "status": "idle",
+          "title": "重建"
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "load_state",
+      "pos": [
+        "s2"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "count_events",
+      "pos": [
+        "s2"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "list_decisions",
+      "pos": [
+        "s2"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "create_session",
+      "pos": [
+        {
+          "created": 5.0,
+          "error": "",
+          "id": "10",
+          "owner": "",
+          "project": "",
+          "project_id": "",
+          "state_version": 0,
+          "status": "idle",
+          "title": "十"
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "create_session",
+      "pos": [
+        {
+          "created": 5.0,
+          "error": "",
+          "id": "2",
+          "owner": "",
+          "project": "",
+          "project_id": "",
+          "state_version": 0,
+          "status": "idle",
+          "title": "二"
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "create_session",
+      "pos": [
+        {
+          "created": 5.0,
+          "error": "",
+          "id": "a",
+          "owner": "",
+          "project": "",
+          "project_id": "",
+          "state_version": 0,
+          "status": "idle",
+          "title": "甲"
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "list_sessions",
+      "pos": []
+    },
+    {
+      "kw": {},
+      "m": "add_files",
+      "pos": [
+        "10",
+        [
+          {
+            "name": "10.pdf",
+            "rel_path": "x",
+            "sha256": "",
+            "size": 1
+          },
+          {
+            "name": "2.pdf",
+            "rel_path": "x",
+            "sha256": "",
+            "size": 1
+          },
+          {
+            "name": "b.pdf",
+            "rel_path": "x",
+            "sha256": "",
+            "size": 1
+          }
+        ]
+      ]
+    },
+    {
+      "kw": {},
+      "m": "list_files",
+      "pos": [
+        "10"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "set_setting",
+      "pos": [
+        "10",
+        1
+      ]
+    },
+    {
+      "kw": {},
+      "m": "set_setting",
+      "pos": [
+        "2",
+        2
+      ]
+    },
+    {
+      "kw": {},
+      "m": "set_setting",
+      "pos": [
+        "zz",
+        3
+      ]
+    },
+    {
+      "kw": {},
+      "m": "list_settings",
+      "pos": []
+    },
+    {
+      "kw": {},
+      "m": "save_state",
+      "pos": [
+        "10",
+        {
+          "10": "十",
+          "2": "二",
+          "oir": {
+            "10": 1,
+            "2": 2
+          }
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "load_state",
+      "pos": [
+        "10"
+      ]
+    },
+    {
+      "kw": {
+        "asked_rids": [
+          "c",
+          "10"
+        ],
+        "conflicts": [
+          {
+            "rid": "10"
+          },
+          {
+            "rid": "2"
+          },
+          {
+            "rid": "c"
+          }
+        ]
+      },
+      "m": "save_state",
+      "pos": [
+        "10",
+        {}
+      ]
+    },
+    {
+      "kw": {},
+      "m": "list_conflicts",
+      "pos": [
+        "10"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "create_session",
+      "pos": [
+        {
+          "created": 1.0,
+          "error": "",
+          "id": "sx",
+          "owner": "",
+          "project": "",
+          "project_id": "",
+          "state_version": 0,
+          "status": "idle",
+          "title": "新建会话"
+        }
+      ]
+    },
+    {
+      "kw": {},
+      "m": "upsert_questions",
+      "pos": [
+        "sx",
+        [
+          {
+            "answer_schema": {},
+            "audience_role": "",
+            "blocked_artifacts": [],
+            "created": 1.0,
+            "dependencies": [],
+            "doc": {
+              "id": "😀",
+              "version": 0
+            },
+            "id": "😀",
+            "owner_user_id": "",
+            "priority": "normal",
+            "source_kind": "manual",
+            "source_ref": "",
+            "status": "open",
+            "text": "问题 😀",
+            "updated": 0.0,
+            "version": 0
+          },
+          {
+            "answer_schema": {},
+            "audience_role": "",
+            "blocked_artifacts": [],
+            "created": 1.0,
+            "dependencies": [],
+            "doc": {
+              "id": "�",
+              "version": 0
+            },
+            "id": "�",
+            "owner_user_id": "",
+            "priority": "normal",
+            "source_kind": "manual",
+            "source_ref": "",
+            "status": "open",
+            "text": "问题 �",
+            "updated": 0.0,
+            "version": 0
+          }
+        ]
+      ]
+    },
+    {
+      "kw": {},
+      "m": "list_questions",
+      "pos": [
+        "sx"
+      ]
+    },
+    {
+      "kw": {},
+      "m": "upsert_project_memory",
+      "pos": [
+        [
+          {
+            "confidence": 0.5,
+            "content": "内容 😀",
+            "contested_by": [],
+            "created_run": "",
+            "hit_runs": [],
+            "key": "😀",
+            "kind": "convention",
+            "last_used_run": "",
+            "origin_files": [],
+            "origin_session": "",
+            "project_id": "px",
+            "support": [],
+            "tags": [],
+            "tier": "authoritative",
+            "use_count": 0
+          },
+          {
+            "confidence": 0.5,
+            "content": "内容 �",
+            "contested_by": [],
+            "created_run": "",
+            "hit_runs": [],
+            "key": "�",
+            "kind": "convention",
+            "last_used_run": "",
+            "origin_files": [],
+            "origin_session": "",
+            "project_id": "px",
+            "support": [],
+            "tags": [],
+            "tier": "authoritative",
+            "use_count": 0
+          }
+        ]
+      ]
+    },
+    {
+      "kw": {},
+      "m": "list_project_memory",
+      "pos": [
+        "px"
+      ]
+    }
+  ],
+  "results": [
+    {
+      "ok": {
+        "created": 10.0,
+        "error": "",
+        "id": "s1",
+        "owner": "u1",
+        "project": "",
+        "project_id": "",
+        "state_version": 0,
+        "status": "idle",
+        "title": "甲"
+      }
+    },
+    {
+      "ok": {
+        "created": 30.0,
+        "error": "",
+        "id": "s2",
+        "owner": "u2",
+        "project": "",
+        "project_id": "",
+        "state_version": 0,
+        "status": "idle",
+        "title": "乙"
+      }
+    },
+    {
+      "ok": {
+        "created": 20.0,
+        "error": "",
+        "id": "s3",
+        "owner": "",
+        "project": "",
+        "project_id": "",
+        "state_version": 0,
+        "status": "idle",
+        "title": "丙"
+      }
+    },
+    {
+      "ok": {
+        "created": 1001.0,
+        "error": "",
+        "id": "s4",
+        "owner": "u1",
+        "project": "",
+        "project_id": "",
+        "state_version": 0,
+        "status": "idle",
+        "title": "丁"
+      }
+    },
+    {
+      "err": {
+        "msg": "'会话已存在: s1'",
+        "type": "KeyError"
+      }
+    },
+    {
+      "ok": [
+        {
+          "created": 1001.0,
+          "error": "",
+          "id": "s4",
+          "owner": "u1",
+          "project": "",
+          "project_id": "",
+          "state_version": 0,
+          "status": "idle",
+          "title": "丁"
+        },
+        {
+          "created": 30.0,
+          "error": "",
+          "id": "s2",
+          "owner": "u2",
+          "project": "",
+          "project_id": "",
+          "state_version": 0,
+          "status": "idle",
+          "title": "乙"
+        },
+        {
+          "created": 20.0,
+          "error": "",
+          "id": "s3",
+          "owner": "",
+          "project": "",
+          "project_id": "",
+          "state_version": 0,
+          "status": "idle",
+          "title": "丙"
+        },
+        {
+          "created": 10.0,
+          "error": "",
+          "id": "s1",
+          "owner": "u1",
+          "project": "",
+          "project_id": "",
+          "state_version": 0,
+          "status": "idle",
+          "title": "甲"
+        }
+      ]
+    },
+    {
+      "ok": [
+        {
+          "created": 1001.0,
+          "error": "",
+          "id": "s4",
+          "owner": "u1",
+          "project": "",
+          "project_id": "",
+          "state_version": 0,
+          "status": "idle",
+          "title": "丁"
+        },
+        {
+          "created": 10.0,
+          "error": "",
+          "id": "s1",
+          "owner": "u1",
+          "project": "",
+          "project_id": "",
+          "state_version": 0,
+          "status": "idle",
+          "title": "甲"
+        }
+      ]
+    },
+    {
+      "ok": [
+        {
+          "created": 20.0,
+          "error": "",
+          "id": "s3",
+          "owner": "",
+          "project": "",
+          "project_id": "",
+          "state_version": 0,
+          "status": "idle",
+          "title": "丙"
+        }
+      ]
+    },
+    {
+      "ok": [
+        {
+          "created": 1001.0,
+          "error": "",
+          "id": "s4",
+          "owner": "u1",
+          "project": "",
+          "project_id": "",
+          "state_version": 0,
+          "status": "idle",
+          "title": "丁"
+        },
+        {
+          "created": 30.0,
+          "error": "",
+          "id": "s2",
+          "owner": "u2",
+          "project": "",
+          "project_id": "",
+          "state_version": 0,
+          "status": "idle",
+          "title": "乙"
+        }
+      ]
+    },
+    {
+      "ok": []
+    },
+    {
+      "ok": {
+        "created": 10.0,
+        "error": "",
+        "id": "s1",
+        "owner": "u1",
+        "project": "",
+        "project_id": "",
+        "state_version": 0,
+        "status": "idle",
+        "title": "甲"
+      }
+    },
+    {
+      "ok": null
+    },
+    {
+      "ok": true
+    },
+    {
+      "ok": false
+    },
+    {
+      "ok": {
+        "created": 10.0,
+        "error": "",
+        "id": "s1",
+        "owner": "u1",
+        "project": "",
+        "project_id": "",
+        "state_version": 0,
+        "status": "idle",
+        "title": "甲改"
+      }
+    },
+    {
+      "ok": null
+    },
+    {
+      "err": {
+        "msg": "'nope'",
+        "type": "KeyError"
+      }
+    },
+    {
+      "ok": {
+        "created": 30.0,
+        "error": "炸了",
+        "id": "s2",
+        "owner": "u2",
+        "project": "",
+        "project_id": "",
+        "state_version": 0,
+        "status": "failed",
+        "title": "乙"
+      }
+    },
+    {
+      "ok": true
+    },
+    {
+      "ok": false
+    },
+    {
+      "ok": false
+    },
+    {
+      "ok": [
+        {
+          "name": "a.pdf",
+          "rel_path": "f/a.pdf",
+          "sha256": "aa",
+          "size": 3
+        },
+        {
+          "name": "b.csv",
+          "rel_path": "f/b.csv",
+          "sha256": "bb",
+          "size": 5
+        }
+      ]
+    },
+    {
+      "ok": [
+        {
+          "name": "a.pdf",
+          "rel_path": "f/a2.pdf",
+          "sha256": "cc",
+          "size": 9
+        },
+        {
+          "name": "b.csv",
+          "rel_path": "f/b.csv",
+          "sha256": "bb",
+          "size": 5
+        }
+      ]
+    },
+    {
+      "ok": [
+        {
+          "name": "a.pdf",
+          "rel_path": "f/a2.pdf",
+          "sha256": "cc",
+          "size": 9
+        },
+        {
+          "name": "b.csv",
+          "rel_path": "f/b.csv",
+          "sha256": "bb",
+          "size": 5
+        }
+      ]
+    },
+    {
+      "ok": true
+    },
+    {
+      "ok": false
+    },
+    {
+      "ok": [
+        {
+          "name": "a.pdf",
+          "rel_path": "f/a2.pdf",
+          "sha256": "cc",
+          "size": 9
+        }
+      ]
+    },
+    {
+      "ok": []
+    },
+    {
+      "ok": 1
+    },
+    {
+      "ok": {
+        "budget": {
+          "usd": 2
+        },
+        "oir": {
+          "n": 1
+        }
+      }
+    },
+    {
+      "ok": {
+        "oir": {
+          "n": 1
+        }
+      }
+    },
+    {
+      "ok": {
+        "oir": {
+          "n": 1
+        }
+      }
+    },
+    {
+      "ok": {}
+    },
+    {
+      "ok": 2
+    },
+    {
+      "ok": {
+        "budget": {
+          "usd": 2
+        },
+        "corpus": [
+          1,
+          2
+        ],
+        "oir": {
+          "n": 1
+        }
+      }
+    },
+    {
+      "ok": null
+    },
+    {
+      "ok": 3
+    },
+    {
+      "ok": {
+        "budget": {
+          "usd": 2
+        },
+        "corpus": [
+          1,
+          2
+        ],
+        "oir": {
+          "n": 1
+        },
+        "x": 1
+      }
+    },
+    {
+      "err": {
+        "msg": "'nope'",
+        "type": "KeyError"
+      }
+    },
+    {
+      "ok": 4
+    },
+    {
+      "ok": [
+        {
+          "kind": "dup",
+          "rid": "c1"
+        },
+        {
+          "kind": "gap",
+          "rid": "c2"
+        }
+      ]
+    },
+    {
+      "ok": {
+        "kind": "gap",
+        "rid": "c2"
+      }
+    },
+    {
+      "ok": null
+    },
+    {
+      "ok": 5
+    },
+    {
+      "ok": [
+        {
+          "kind": "dup",
+          "rid": "c1"
+        },
+        {
+          "kind": "gap",
+          "rid": "c2"
+        }
+      ]
+    },
+    {
+      "ok": 6
+    },
+    {
+      "ok": []
+    },
+    {
+      "ok": true
+    },
+    {
+      "ok": false
+    },
+    {
+      "err": {
+        "msg": "build lease owner 不能为空且 ttl 必须大于 0",
+        "type": "ValueError"
+      }
+    },
+    {
+      "err": {
+        "msg": "build lease owner 不能为空且 ttl 必须大于 0",
+        "type": "ValueError"
+      }
+    },
+    {
+      "ok": false
+    },
+    {
+      "ok": true
+    },
+    {
+      "ok": false
+    },
+    {
+      "ok": true
+    },
+    {
+      "ok": {
+        "created": 1001.0,
+        "error": "",
+        "id": "s4",
+        "owner": "u1",
+        "project": "",
+        "project_id": "",
+        "state_version": 0,
+        "status": "parsing",
+        "title": "丁"
+      }
+    },
+    {
+      "ok": 1
+    },
+    {
+      "ok": null
+    },
+    {
+      "ok": {
+        "created": 1001.0,
+        "error": "",
+        "id": "s4",
+        "owner": "u1",
+        "project": "",
+        "project_id": "",
+        "state_version": 1,
+        "status": "extracting",
+        "title": "丁"
+      }
+    },
+    {
+      "ok": true
+    },
+    {
+      "ok": {
+        "created": 1001.0,
+        "error": "",
+        "id": "s4",
+        "owner": "u1",
+        "project": "",
+        "project_id": "",
+        "state_version": 1,
+        "status": "stopped",
+        "title": "丁"
+      }
+    },
+    {
+      "ok": false
+    },
+    {
+      "ok": false
+    },
+    {
+      "ok": true
+    },
+    {
+      "ok": false
+    },
+    {
+      "ok": true
+    },
+    {
+      "ok": false
+    },
+    {
+      "ok": true
+    },
+    {
+      "ok": {
+        "created": 1001.0,
+        "error": "超时",
+        "id": "s4",
+        "owner": "u1",
+        "project": "",
+        "project_id": "",
+        "state_version": 1,
+        "status": "failed",
+        "title": "丁"
+      }
+    },
+    {
+      "ok": true
+    },
+    {
+      "ok": false
+    },
+    {
+      "ok": true
+    },
+    {
+      "ok": false
+    },
+    {
+      "ok": false
+    },
+    {
+      "ok": true
+    },
+    {
+      "ok": 7
+    },
+    {
+      "ok": null
+    },
+    {
+      "ok": true
+    },
+    {
+      "ok": false
+    },
+    {
+      "ok": null
+    },
+    {
+      "ok": true
+    },
+    {
+      "ok": true
+    },
+    {
+      "ok": false
+    },
+    {
+      "ok": false
+    },
+    {
+      "ok": true
+    },
+    {
+      "ok": 8
+    },
+    {
+      "ok": null
+    },
+    {
+      "ok": true
+    },
+    {
+      "ok": false
+    },
+    {
+      "ok": {
+        "changed": [],
+        "kind": "answer",
+        "note": "",
+        "option_id": "",
+        "ordinal": 0,
+        "scope_refs": [],
+        "statement": "第一次",
+        "superseded_by": null,
+        "target_rid": "c1",
+        "ts": 5.0,
+        "turn_index": -1
+      }
+    },
+    {
+      "ok": {
+        "changed": [],
+        "kind": "answer",
+        "note": "",
+        "option_id": "",
+        "ordinal": 1,
+        "scope_refs": [],
+        "statement": "第二次",
+        "superseded_by": null,
+        "target_rid": "c1",
+        "ts": 1002.0,
+        "turn_index": -1
+      }
+    },
+    {
+      "ok": {
+        "changed": [],
+        "kind": "answer",
+        "note": "",
+        "option_id": "",
+        "ordinal": 2,
+        "scope_refs": [],
+        "statement": "另一个",
+        "superseded_by": null,
+        "target_rid": "c2",
+        "ts": 1003.0,
+        "turn_index": -1
+      }
+    },
+    {
+      "ok": {
+        "changed": [],
+        "kind": "scope",
+        "note": "",
+        "option_id": "",
+        "ordinal": 3,
+        "scope_refs": [
+          "b",
+          "a"
+        ],
+        "statement": "范围一",
+        "superseded_by": null,
+        "target_rid": "",
+        "ts": 1004.0,
+        "turn_index": -1
+      }
+    },
+    {
+      "ok": {
+        "changed": [],
+        "kind": "scope",
+        "note": "",
+        "option_id": "",
+        "ordinal": 4,
+        "scope_refs": [
+          "a",
+          "b"
+        ],
+        "statement": "范围二",
+        "superseded_by": null,
+        "target_rid": "",
+        "ts": 1005.0,
+        "turn_index": -1
+      }
+    },
+    {
+      "ok": {
+        "changed": [],
+        "kind": "scope",
+        "note": "",
+        "option_id": "",
+        "ordinal": 5,
+        "scope_refs": [
+          "c"
+        ],
+        "statement": "别的范围",
+        "superseded_by": null,
+        "target_rid": "",
+        "ts": 1006.0,
+        "turn_index": -1
+      }
+    },
+    {
+      "ok": [
+        {
+          "changed": [],
+          "kind": "answer",
+          "note": "",
+          "option_id": "",
+          "ordinal": 0,
+          "scope_refs": [],
+          "statement": "第一次",
+          "superseded_by": 1,
+          "target_rid": "c1",
+          "ts": 5.0,
+          "turn_index": -1
+        },
+        {
+          "changed": [],
+          "kind": "answer",
+          "note": "",
+          "option_id": "",
+          "ordinal": 1,
+          "scope_refs": [],
+          "statement": "第二次",
+          "superseded_by": null,
+          "target_rid": "c1",
+          "ts": 1002.0,
+          "turn_index": -1
+        },
+        {
+          "changed": [],
+          "kind": "answer",
+          "note": "",
+          "option_id": "",
+          "ordinal": 2,
+          "scope_refs": [],
+          "statement": "另一个",
+          "superseded_by": null,
+          "target_rid": "c2",
+          "ts": 1003.0,
+          "turn_index": -1
+        },
+        {
+          "changed": [],
+          "kind": "scope",
+          "note": "",
+          "option_id": "",
+          "ordinal": 3,
+          "scope_refs": [
+            "b",
+            "a"
+          ],
+          "statement": "范围一",
+          "superseded_by": 4,
+          "target_rid": "",
+          "ts": 1004.0,
+          "turn_index": -1
+        },
+        {
+          "changed": [],
+          "kind": "scope",
+          "note": "",
+          "option_id": "",
+          "ordinal": 4,
+          "scope_refs": [
+            "a",
+            "b"
+          ],
+          "statement": "范围二",
+          "superseded_by": null,
+          "target_rid": "",
+          "ts": 1005.0,
+          "turn_index": -1
+        },
+        {
+          "changed": [],
+          "kind": "scope",
+          "note": "",
+          "option_id": "",
+          "ordinal": 5,
+          "scope_refs": [
+            "c"
+          ],
+          "statement": "别的范围",
+          "superseded_by": null,
+          "target_rid": "",
+          "ts": 1006.0,
+          "turn_index": -1
+        }
+      ]
+    },
+    {
+      "ok": [
+        {
+          "changed": [],
+          "kind": "answer",
+          "note": "",
+          "option_id": "",
+          "ordinal": 1,
+          "scope_refs": [],
+          "statement": "第二次",
+          "superseded_by": null,
+          "target_rid": "c1",
+          "ts": 1002.0,
+          "turn_index": -1
+        },
+        {
+          "changed": [],
+          "kind": "answer",
+          "note": "",
+          "option_id": "",
+          "ordinal": 2,
+          "scope_refs": [],
+          "statement": "另一个",
+          "superseded_by": null,
+          "target_rid": "c2",
+          "ts": 1003.0,
+          "turn_index": -1
+        },
+        {
+          "changed": [],
+          "kind": "scope",
+          "note": "",
+          "option_id": "",
+          "ordinal": 4,
+          "scope_refs": [
+            "a",
+            "b"
+          ],
+          "statement": "范围二",
+          "superseded_by": null,
+          "target_rid": "",
+          "ts": 1005.0,
+          "turn_index": -1
+        },
+        {
+          "changed": [],
+          "kind": "scope",
+          "note": "",
+          "option_id": "",
+          "ordinal": 5,
+          "scope_refs": [
+            "c"
+          ],
+          "statement": "别的范围",
+          "superseded_by": null,
+          "target_rid": "",
+          "ts": 1006.0,
+          "turn_index": -1
+        }
+      ]
+    },
+    {
+      "ok": [
+        "c1",
+        "c2"
+      ]
+    },
+    {
+      "ok": [
+        {
+          "answer_schema": {},
+          "audience_role": "",
+          "blocked_artifacts": [],
+          "created": 7.0,
+          "dependencies": [],
+          "doc": {
+            "id": "q2",
+            "version": 0
+          },
+          "id": "q2",
+          "owner_user_id": "",
+          "priority": "normal",
+          "source_kind": "manual",
+          "source_ref": "",
+          "status": "open",
+          "text": "问题 q2",
+          "updated": 1007.0,
+          "version": 0
+        },
+        {
+          "answer_schema": {},
+          "audience_role": "",
+          "blocked_artifacts": [],
+          "created": 7.0,
+          "dependencies": [],
+          "doc": {
+            "id": "q1",
+            "version": 0
+          },
+          "id": "q1",
+          "owner_user_id": "",
+          "priority": "normal",
+          "source_kind": "manual",
+          "source_ref": "",
+          "status": "open",
+          "text": "问题 q1",
+          "updated": 1007.0,
+          "version": 0
+        },
+        {
+          "answer_schema": {},
+          "audience_role": "",
+          "blocked_artifacts": [],
+          "created": 1007.0,
+          "dependencies": [],
+          "doc": {
+            "id": "q3",
+            "version": 0
+          },
+          "id": "q3",
+          "owner_user_id": "",
+          "priority": "normal",
+          "source_kind": "manual",
+          "source_ref": "",
+          "status": "open",
+          "text": "问题 q3",
+          "updated": 1007.0,
+          "version": 0
+        }
+      ]
+    },
+    {
+      "ok": [
+        {
+          "answer_schema": {},
+          "audience_role": "",
+          "blocked_artifacts": [],
+          "created": 7.0,
+          "dependencies": [],
+          "doc": {
+            "id": "q2",
+            "version": 0
+          },
+          "id": "q2",
+          "owner_user_id": "",
+          "priority": "normal",
+          "source_kind": "manual",
+          "source_ref": "",
+          "status": "open",
+          "text": "问题 q2",
+          "updated": 1007.0,
+          "version": 0
+        },
+        {
+          "answer_schema": {},
+          "audience_role": "",
+          "blocked_artifacts": [],
+          "created": 7.0,
+          "dependencies": [],
+          "doc": {
+            "id": "q1",
+            "version": 0
+          },
+          "id": "q1",
+          "owner_user_id": "",
+          "priority": "normal",
+          "source_kind": "manual",
+          "source_ref": "",
+          "status": "open",
+          "text": "改过了",
+          "updated": 1008.0,
+          "version": 0
+        },
+        {
+          "answer_schema": {},
+          "audience_role": "",
+          "blocked_artifacts": [],
+          "created": 1007.0,
+          "dependencies": [],
+          "doc": {
+            "id": "q3",
+            "version": 0
+          },
+          "id": "q3",
+          "owner_user_id": "",
+          "priority": "normal",
+          "source_kind": "manual",
+          "source_ref": "",
+          "status": "open",
+          "text": "问题 q3",
+          "updated": 1007.0,
+          "version": 0
+        }
+      ]
+    },
+    {
+      "ok": [
+        {
+          "answer_schema": {},
+          "audience_role": "",
+          "blocked_artifacts": [],
+          "created": 7.0,
+          "dependencies": [],
+          "doc": {
+            "id": "q1",
+            "version": 0
+          },
+          "id": "q1",
+          "owner_user_id": "",
+          "priority": "normal",
+          "source_kind": "manual",
+          "source_ref": "",
+          "status": "open",
+          "text": "改过了",
+          "updated": 1008.0,
+          "version": 0
+        },
+        {
+          "answer_schema": {},
+          "audience_role": "",
+          "blocked_artifacts": [],
+          "created": 7.0,
+          "dependencies": [],
+          "doc": {
+            "id": "q2",
+            "version": 0
+          },
+          "id": "q2",
+          "owner_user_id": "",
+          "priority": "normal",
+          "source_kind": "manual",
+          "source_ref": "",
+          "status": "open",
+          "text": "问题 q2",
+          "updated": 1007.0,
+          "version": 0
+        },
+        {
+          "answer_schema": {},
+          "audience_role": "",
+          "blocked_artifacts": [],
+          "created": 1007.0,
+          "dependencies": [],
+          "doc": {
+            "id": "q3",
+            "version": 0
+          },
+          "id": "q3",
+          "owner_user_id": "",
+          "priority": "normal",
+          "source_kind": "manual",
+          "source_ref": "",
+          "status": "open",
+          "text": "问题 q3",
+          "updated": 1007.0,
+          "version": 0
+        }
+      ]
+    },
+    {
+      "ok": [
+        {
+          "answer_schema": {},
+          "audience_role": "",
+          "blocked_artifacts": [],
+          "created": 7.0,
+          "dependencies": [],
+          "doc": {
+            "id": "q1",
+            "version": 0
+          },
+          "id": "q1",
+          "owner_user_id": "",
+          "priority": "normal",
+          "source_kind": "manual",
+          "source_ref": "",
+          "status": "open",
+          "text": "改过了",
+          "updated": 1008.0,
+          "version": 0
+        },
+        {
+          "answer_schema": {},
+          "audience_role": "",
+          "blocked_artifacts": [],
+          "created": 7.0,
+          "dependencies": [],
+          "doc": {
+            "id": "q2",
+            "version": 0
+          },
+          "id": "q2",
+          "owner_user_id": "",
+          "priority": "normal",
+          "source_kind": "manual",
+          "source_ref": "",
+          "status": "open",
+          "text": "问题 q2",
+          "updated": 1007.0,
+          "version": 0
+        },
+        {
+          "answer_schema": {},
+          "audience_role": "",
+          "blocked_artifacts": [],
+          "created": 1007.0,
+          "dependencies": [],
+          "doc": {
+            "id": "q3",
+            "version": 0
+          },
+          "id": "q3",
+          "owner_user_id": "",
+          "priority": "normal",
+          "source_kind": "manual",
+          "source_ref": "",
+          "status": "open",
+          "text": "问题 q3",
+          "updated": 1007.0,
+          "version": 0
+        }
+      ]
+    },
+    {
+      "ok": []
+    },
+    {
+      "ok": {
+        "answer_schema": {},
+        "audience_role": "",
+        "blocked_artifacts": [],
+        "created": 7.0,
+        "dependencies": [],
+        "doc": {
+          "id": "q1",
+          "version": 0
+        },
+        "id": "q1",
+        "owner_user_id": "",
+        "priority": "normal",
+        "source_kind": "manual",
+        "source_ref": "",
+        "status": "open",
+        "text": "改过了",
+        "updated": 1008.0,
+        "version": 0
+      }
+    },
+    {
+      "ok": null
+    },
+    {
+      "ok": {
+        "answer_schema": {},
+        "audience_role": "",
+        "blocked_artifacts": [],
+        "created": 7.0,
+        "dependencies": [],
+        "doc": {
+          "id": "q1",
+          "updatedAt": 1009.0,
+          "version": 1
+        },
+        "id": "q1",
+        "owner_user_id": "",
+        "priority": "normal",
+        "source_kind": "manual",
+        "source_ref": "",
+        "status": "open",
+        "text": "CAS",
+        "updated": 1009.0,
+        "version": 1
+      }
+    },
+    {
+      "err": {
+        "msg": "问题 q1 预期 version 0，实际是 1",
+        "type": "RevisionConflict"
+      }
+    },
+    {
+      "err": {
+        "msg": "问题 zz 预期 version 0，实际是 None",
+        "type": "RevisionConflict"
+      }
+    },
+    {
+      "ok": {
+        "answer_schema": {},
+        "audience_role": "",
+        "blocked_artifacts": [],
+        "created": 1007.0,
+        "dependencies": [],
+        "doc": {
+          "id": "q3",
+          "version": 0
+        },
+        "id": "q3",
+        "owner_user_id": "",
+        "priority": "normal",
+        "source_kind": "manual",
+        "source_ref": "",
+        "status": "open",
+        "text": "无 CAS",
+        "updated": 1010.0,
+        "version": 0
+      }
+    },
+    {
+      "ok": {
+        "answer_schema": {},
+        "audience_role": "",
+        "blocked_artifacts": [],
+        "created": 7.0,
+        "dependencies": [],
+        "doc": {
+          "id": "q1",
+          "updatedAt": 1009.0,
+          "version": 1
+        },
+        "id": "q1",
+        "owner_user_id": "",
+        "priority": "normal",
+        "source_kind": "manual",
+        "source_ref": "",
+        "status": "open",
+        "text": "CAS",
+        "updated": 1009.0,
+        "version": 1
+      }
+    },
+    {
+      "err": {
+        "msg": "Decision 必须提供 idempotency_key",
+        "type": "ValueError"
+      }
+    },
+    {
+      "ok": [
+        {
+          "actor": "u1",
+          "actor_role": "",
+          "affected_ids": [],
+          "answer": "A",
+          "authority": "",
+          "created": 1011.0,
+          "id": "d1",
+          "idempotency_key": "k1",
+          "metadata": {},
+          "question_id": "q1",
+          "rationale": "",
+          "revision": null,
+          "semantic_hash": "h1",
+          "source_turn": "",
+          "supersedes": null
+        },
+        true
+      ]
+    },
+    {
+      "ok": [
+        {
+          "actor": "u1",
+          "actor_role": "",
+          "affected_ids": [],
+          "answer": "A",
+          "authority": "",
+          "created": 1011.0,
+          "id": "d1",
+          "idempotency_key": "k1",
+          "metadata": {},
+          "question_id": "q1",
+          "rationale": "",
+          "revision": null,
+          "semantic_hash": "h1",
+          "source_turn": "",
+          "supersedes": null
+        },
+        false
+      ]
+    },
+    {
+      "err": {
+        "msg": "幂等键 'k1' 已用于另一份回答",
+        "type": "IdempotencyConflict"
+      }
+    },
+    {
+      "ok": [
+        {
+          "actor": "u1",
+          "actor_role": "",
+          "affected_ids": [],
+          "answer": "A",
+          "authority": "",
+          "created": 1011.0,
+          "id": "d1",
+          "idempotency_key": "k1",
+          "metadata": {},
+          "question_id": "q1",
+          "rationale": "",
+          "revision": null,
+          "semantic_hash": "h1",
+          "source_turn": "",
+          "supersedes": null
+        },
+        false
+      ]
+    },
+    {
+      "ok": [
+        {
+          "actor": "u1",
+          "actor_role": "",
+          "affected_ids": [],
+          "answer": "B",
+          "authority": "",
+          "created": 1013.0,
+          "id": "d3",
+          "idempotency_key": "k3",
+          "metadata": {},
+          "question_id": "q1",
+          "rationale": "",
+          "revision": null,
+          "semantic_hash": "h9",
+          "source_turn": "",
+          "supersedes": "d1"
+        },
+        true
+      ]
+    },
+    {
+      "ok": [
+        {
+          "actor": "u1",
+          "actor_role": "",
+          "affected_ids": [],
+          "answer": "A",
+          "authority": "",
+          "created": 1014.0,
+          "id": "d4",
+          "idempotency_key": "k4",
+          "metadata": {
+            "status": "claimed"
+          },
+          "question_id": "q2",
+          "rationale": "",
+          "revision": null,
+          "semantic_hash": "h4",
+          "source_turn": "",
+          "supersedes": null
+        },
+        true
+      ]
+    },
+    {
+      "ok": {
+        "actor": "u1",
+        "actor_role": "",
+        "affected_ids": [],
+        "answer": "A",
+        "authority": "",
+        "created": 1014.0,
+        "id": "d4",
+        "idempotency_key": "k4",
+        "metadata": {
+          "error": "工具炸了",
+          "status": "failed"
+        },
+        "question_id": "q2",
+        "rationale": "",
+        "revision": null,
+        "semantic_hash": "h4",
+        "source_turn": "",
+        "supersedes": null
+      }
+    },
+    {
+      "ok": {
+        "actor": "u1",
+        "actor_role": "",
+        "affected_ids": [],
+        "answer": "A",
+        "authority": "",
+        "created": 1014.0,
+        "id": "d4",
+        "idempotency_key": "k4",
+        "metadata": {
+          "status": "failed"
+        },
+        "question_id": "q2",
+        "rationale": "",
+        "revision": null,
+        "semantic_hash": "h4",
+        "source_turn": "",
+        "supersedes": null
+      }
+    },
+    {
+      "ok": [
+        {
+          "actor": "u1",
+          "actor_role": "",
+          "affected_ids": [],
+          "answer": "A",
+          "authority": "",
+          "created": 1015.0,
+          "id": "d5",
+          "idempotency_key": "k5",
+          "metadata": {
+            "status": "claimed"
+          },
+          "question_id": "q2",
+          "rationale": "",
+          "revision": null,
+          "semantic_hash": "h5",
+          "source_turn": "",
+          "supersedes": null
+        },
+        true
+      ]
+    },
+    {
+      "ok": [
+        {
+          "actor": "u1",
+          "actor_role": "",
+          "affected_ids": [],
+          "answer": "A",
+          "authority": "",
+          "created": 1011.0,
+          "id": "d1",
+          "idempotency_key": "k1",
+          "metadata": {},
+          "question_id": "q1",
+          "rationale": "",
+          "revision": null,
+          "semantic_hash": "h1",
+          "source_turn": "",
+          "supersedes": null
+        },
+        {
+          "actor": "u1",
+          "actor_role": "",
+          "affected_ids": [],
+          "answer": "B",
+          "authority": "",
+          "created": 1013.0,
+          "id": "d3",
+          "idempotency_key": "k3",
+          "metadata": {},
+          "question_id": "q1",
+          "rationale": "",
+          "revision": null,
+          "semantic_hash": "h9",
+          "source_turn": "",
+          "supersedes": "d1"
+        },
+        {
+          "actor": "u1",
+          "actor_role": "",
+          "affected_ids": [],
+          "answer": "A",
+          "authority": "",
+          "created": 1014.0,
+          "id": "d4",
+          "idempotency_key": "k4",
+          "metadata": {
+            "status": "failed"
+          },
+          "question_id": "q2",
+          "rationale": "",
+          "revision": null,
+          "semantic_hash": "h4",
+          "source_turn": "",
+          "supersedes": null
+        },
+        {
+          "actor": "u1",
+          "actor_role": "",
+          "affected_ids": [],
+          "answer": "A",
+          "authority": "",
+          "created": 1015.0,
+          "id": "d5",
+          "idempotency_key": "k5",
+          "metadata": {
+            "status": "claimed"
+          },
+          "question_id": "q2",
+          "rationale": "",
+          "revision": null,
+          "semantic_hash": "h5",
+          "source_turn": "",
+          "supersedes": null
+        }
+      ]
+    },
+    {
+      "ok": {
+        "actor": "u1",
+        "actor_role": "",
+        "affected_ids": [],
+        "answer": "B",
+        "authority": "",
+        "created": 1013.0,
+        "id": "d3",
+        "idempotency_key": "k3",
+        "metadata": {
+          "status": "applied"
+        },
+        "question_id": "q1",
+        "rationale": "",
+        "revision": null,
+        "semantic_hash": "h9",
+        "source_turn": "",
+        "supersedes": "d1"
+      }
+    },
+    {
+      "ok": {
+        "actor": "u1",
+        "actor_role": "",
+        "affected_ids": [],
+        "answer": "B",
+        "authority": "",
+        "created": 1013.0,
+        "id": "d3",
+        "idempotency_key": "k3",
+        "metadata": {
+          "status": "applied"
+        },
+        "question_id": "q1",
+        "rationale": "",
+        "revision": null,
+        "semantic_hash": "h9",
+        "source_turn": "",
+        "supersedes": "d1"
+      }
+    },
+    {
+      "err": {
+        "msg": "Decision d3 已是 applied，不能改为 failed",
+        "type": "ValueError"
+      }
+    },
+    {
+      "err": {
+        "msg": "Decision d1 已是 applied，不能改为 failed",
+        "type": "ValueError"
+      }
+    },
+    {
+      "err": {
+        "msg": "Decision d1 已是 applied，不能改为 failed",
+        "type": "ValueError"
+      }
+    },
+    {
+      "err": {
+        "msg": "'没有 Decision nope'",
+        "type": "KeyError"
+      }
+    },
+    {
+      "err": {
+        "msg": "不支持的 Decision 终态: 乱来",
+        "type": "ValueError"
+      }
+    },
+    {
+      "ok": [
+        {
+          "actor": "u1",
+          "actor_role": "",
+          "affected_ids": [],
+          "answer": "A",
+          "authority": "",
+          "created": 1011.0,
+          "id": "d1",
+          "idempotency_key": "k1",
+          "metadata": {},
+          "question_id": "q1",
+          "rationale": "",
+          "revision": null,
+          "semantic_hash": "h1",
+          "source_turn": "",
+          "supersedes": null
+        },
+        {
+          "actor": "u1",
+          "actor_role": "",
+          "affected_ids": [],
+          "answer": "B",
+          "authority": "",
+          "created": 1013.0,
+          "id": "d3",
+          "idempotency_key": "k3",
+          "metadata": {
+            "status": "applied"
+          },
+          "question_id": "q1",
+          "rationale": "",
+          "revision": null,
+          "semantic_hash": "h9",
+          "source_turn": "",
+          "supersedes": "d1"
+        },
+        {
+          "actor": "u1",
+          "actor_role": "",
+          "affected_ids": [],
+          "answer": "A",
+          "authority": "",
+          "created": 1014.0,
+          "id": "d4",
+          "idempotency_key": "k4",
+          "metadata": {
+            "status": "failed"
+          },
+          "question_id": "q2",
+          "rationale": "",
+          "revision": null,
+          "semantic_hash": "h4",
+          "source_turn": "",
+          "supersedes": null
+        },
+        {
+          "actor": "u1",
+          "actor_role": "",
+          "affected_ids": [],
+          "answer": "A",
+          "authority": "",
+          "created": 1015.0,
+          "id": "d5",
+          "idempotency_key": "k5",
+          "metadata": {
+            "status": "claimed"
+          },
+          "question_id": "q2",
+          "rationale": "",
+          "revision": null,
+          "semantic_hash": "h5",
+          "source_turn": "",
+          "supersedes": null
+        }
+      ]
+    },
+    {
+      "ok": [
+        {
+          "actor": "agent",
+          "changed_ids": [],
+          "created": 1016.0,
+          "doc": {
+            "id": "rv2",
+            "ordinal": 2
+          },
+          "id": "rv2",
+          "idempotency_key": "",
+          "invalidated_artifacts": [],
+          "kind": "edit",
+          "ordinal": 2,
+          "parent_id": null,
+          "patch_set": null,
+          "snapshot_hash": "",
+          "source_turn": "",
+          "status": "proposed"
+        },
+        true
+      ]
+    },
+    {
+      "ok": [
+        {
+          "actor": "agent",
+          "changed_ids": [],
+          "created": 1017.0,
+          "doc": {
+            "id": "rv1",
+            "ordinal": 1
+          },
+          "id": "rv1",
+          "idempotency_key": "",
+          "invalidated_artifacts": [],
+          "kind": "edit",
+          "ordinal": 1,
+          "parent_id": null,
+          "patch_set": null,
+          "snapshot_hash": "",
+          "source_turn": "",
+          "status": "proposed"
+        },
+        true
+      ]
+    },
+    {
+      "ok": [
+        {
+          "actor": "agent",
+          "changed_ids": [],
+          "created": 1017.0,
+          "doc": {
+            "id": "rv1",
+            "ordinal": 1
+          },
+          "id": "rv1",
+          "idempotency_key": "",
+          "invalidated_artifacts": [],
+          "kind": "edit",
+          "ordinal": 1,
+          "parent_id": null,
+          "patch_set": null,
+          "snapshot_hash": "",
+          "source_turn": "",
+          "status": "proposed"
+        },
+        {
+          "actor": "agent",
+          "changed_ids": [],
+          "created": 1016.0,
+          "doc": {
+            "id": "rv2",
+            "ordinal": 2
+          },
+          "id": "rv2",
+          "idempotency_key": "",
+          "invalidated_artifacts": [],
+          "kind": "edit",
+          "ordinal": 2,
+          "parent_id": null,
+          "patch_set": null,
+          "snapshot_hash": "",
+          "source_turn": "",
+          "status": "proposed"
+        }
+      ]
+    },
+    {
+      "err": {
+        "msg": "Revision id/ordinal 已存在: rv1/5",
+        "type": "ValueError"
+      }
+    },
+    {
+      "err": {
+        "msg": "Revision id/ordinal 已存在: rv9/2",
+        "type": "ValueError"
+      }
+    },
+    {
+      "ok": [
+        {
+          "actor": "agent",
+          "changed_ids": [],
+          "created": 1018.0,
+          "doc": {
+            "id": "rv3",
+            "ordinal": 3
+          },
+          "id": "rv3",
+          "idempotency_key": "ik",
+          "invalidated_artifacts": [],
+          "kind": "edit",
+          "ordinal": 3,
+          "parent_id": null,
+          "patch_set": null,
+          "snapshot_hash": "",
+          "source_turn": "",
+          "status": "proposed"
+        },
+        true
+      ]
+    },
+    {
+      "ok": [
+        {
+          "actor": "agent",
+          "changed_ids": [],
+          "created": 1018.0,
+          "doc": {
+            "id": "rv3",
+            "ordinal": 3
+          },
+          "id": "rv3",
+          "idempotency_key": "ik",
+          "invalidated_artifacts": [],
+          "kind": "edit",
+          "ordinal": 3,
+          "parent_id": null,
+          "patch_set": null,
+          "snapshot_hash": "",
+          "source_turn": "",
+          "status": "proposed"
+        },
+        false
+      ]
+    },
+    {
+      "err": {
+        "msg": "幂等键 'ik' 已用于另一个 revision",
+        "type": "IdempotencyConflict"
+      }
+    },
+    {
+      "ok": [
+        {
+          "actor": "agent",
+          "changed_ids": [],
+          "created": 1019.0,
+          "doc": {
+            "id": "rev.4",
+            "ordinal": 4,
+            "parentId": "rv3"
+          },
+          "id": "rev.4",
+          "idempotency_key": "",
+          "invalidated_artifacts": [],
+          "kind": "edit",
+          "ordinal": 4,
+          "parent_id": "rv3",
+          "patch_set": null,
+          "snapshot_hash": "",
+          "source_turn": "",
+          "status": "proposed"
+        },
+        true
+      ]
+    },
+    {
+      "ok": [
+        {
+          "actor": "agent",
+          "changed_ids": [],
+          "created": 1020.0,
+          "doc": {
+            "id": "rev.5",
+            "ordinal": 5,
+            "parentId": "rev.4"
+          },
+          "id": "rev.5",
+          "idempotency_key": "ak",
+          "invalidated_artifacts": [],
+          "kind": "edit",
+          "ordinal": 5,
+          "parent_id": "rev.4",
+          "patch_set": null,
+          "snapshot_hash": "",
+          "source_turn": "",
+          "status": "proposed"
+        },
+        true
+      ]
+    },
+    {
+      "ok": [
+        {
+          "actor": "agent",
+          "changed_ids": [],
+          "created": 1020.0,
+          "doc": {
+            "id": "rev.5",
+            "ordinal": 5,
+            "parentId": "rev.4"
+          },
+          "id": "rev.5",
+          "idempotency_key": "ak",
+          "invalidated_artifacts": [],
+          "kind": "edit",
+          "ordinal": 5,
+          "parent_id": "rev.4",
+          "patch_set": null,
+          "snapshot_hash": "",
+          "source_turn": "",
+          "status": "proposed"
+        },
+        false
+      ]
+    },
+    {
+      "ok": [
+        {
+          "actor": "agent",
+          "changed_ids": [],
+          "created": 1017.0,
+          "doc": {
+            "id": "rv1",
+            "ordinal": 1
+          },
+          "id": "rv1",
+          "idempotency_key": "",
+          "invalidated_artifacts": [],
+          "kind": "edit",
+          "ordinal": 1,
+          "parent_id": null,
+          "patch_set": null,
+          "snapshot_hash": "",
+          "source_turn": "",
+          "status": "proposed"
+        },
+        {
+          "actor": "agent",
+          "changed_ids": [],
+          "created": 1016.0,
+          "doc": {
+            "id": "rv2",
+            "ordinal": 2
+          },
+          "id": "rv2",
+          "idempotency_key": "",
+          "invalidated_artifacts": [],
+          "kind": "edit",
+          "ordinal": 2,
+          "parent_id": null,
+          "patch_set": null,
+          "snapshot_hash": "",
+          "source_turn": "",
+          "status": "proposed"
+        },
+        {
+          "actor": "agent",
+          "changed_ids": [],
+          "created": 1018.0,
+          "doc": {
+            "id": "rv3",
+            "ordinal": 3
+          },
+          "id": "rv3",
+          "idempotency_key": "ik",
+          "invalidated_artifacts": [],
+          "kind": "edit",
+          "ordinal": 3,
+          "parent_id": null,
+          "patch_set": null,
+          "snapshot_hash": "",
+          "source_turn": "",
+          "status": "proposed"
+        },
+        {
+          "actor": "agent",
+          "changed_ids": [],
+          "created": 1019.0,
+          "doc": {
+            "id": "rev.4",
+            "ordinal": 4,
+            "parentId": "rv3"
+          },
+          "id": "rev.4",
+          "idempotency_key": "",
+          "invalidated_artifacts": [],
+          "kind": "edit",
+          "ordinal": 4,
+          "parent_id": "rv3",
+          "patch_set": null,
+          "snapshot_hash": "",
+          "source_turn": "",
+          "status": "proposed"
+        },
+        {
+          "actor": "agent",
+          "changed_ids": [],
+          "created": 1020.0,
+          "doc": {
+            "id": "rev.5",
+            "ordinal": 5,
+            "parentId": "rev.4"
+          },
+          "id": "rev.5",
+          "idempotency_key": "ak",
+          "invalidated_artifacts": [],
+          "kind": "edit",
+          "ordinal": 5,
+          "parent_id": "rev.4",
+          "patch_set": null,
+          "snapshot_hash": "",
+          "source_turn": "",
+          "status": "proposed"
+        }
+      ]
+    },
+    {
+      "ok": {
+        "actor": "agent",
+        "changed_ids": [],
+        "created": 1017.0,
+        "doc": {
+          "id": "rv1",
+          "ordinal": 1,
+          "status": "applied"
+        },
+        "id": "rv1",
+        "idempotency_key": "",
+        "invalidated_artifacts": [],
+        "kind": "edit",
+        "ordinal": 1,
+        "parent_id": null,
+        "patch_set": null,
+        "snapshot_hash": "",
+        "source_turn": "",
+        "status": "applied"
+      }
+    },
+    {
+      "ok": {
+        "actor": "agent",
+        "changed_ids": [],
+        "created": 1017.0,
+        "doc": {
+          "id": "rv1",
+          "ordinal": 1,
+          "status": "applied"
+        },
+        "id": "rv1",
+        "idempotency_key": "",
+        "invalidated_artifacts": [],
+        "kind": "edit",
+        "ordinal": 1,
+        "parent_id": null,
+        "patch_set": null,
+        "snapshot_hash": "",
+        "source_turn": "",
+        "status": "applied"
+      }
+    },
+    {
+      "err": {
+        "msg": "Revision rv1 已是 applied，不能改为 rejected",
+        "type": "ValueError"
+      }
+    },
+    {
+      "err": {
+        "msg": "'没有 Revision nope'",
+        "type": "KeyError"
+      }
+    },
+    {
+      "err": {
+        "msg": "不支持的 Revision 终态: 乱来",
+        "type": "ValueError"
+      }
+    },
+    {
+      "ok": [
+        {
+          "actor": "agent",
+          "changed_ids": [],
+          "created": 1017.0,
+          "doc": {
+            "id": "rv1",
+            "ordinal": 1,
+            "status": "applied"
+          },
+          "id": "rv1",
+          "idempotency_key": "",
+          "invalidated_artifacts": [],
+          "kind": "edit",
+          "ordinal": 1,
+          "parent_id": null,
+          "patch_set": null,
+          "snapshot_hash": "",
+          "source_turn": "",
+          "status": "applied"
+        },
+        {
+          "actor": "agent",
+          "changed_ids": [],
+          "created": 1016.0,
+          "doc": {
+            "id": "rv2",
+            "ordinal": 2
+          },
+          "id": "rv2",
+          "idempotency_key": "",
+          "invalidated_artifacts": [],
+          "kind": "edit",
+          "ordinal": 2,
+          "parent_id": null,
+          "patch_set": null,
+          "snapshot_hash": "",
+          "source_turn": "",
+          "status": "proposed"
+        },
+        {
+          "actor": "agent",
+          "changed_ids": [],
+          "created": 1018.0,
+          "doc": {
+            "id": "rv3",
+            "ordinal": 3
+          },
+          "id": "rv3",
+          "idempotency_key": "ik",
+          "invalidated_artifacts": [],
+          "kind": "edit",
+          "ordinal": 3,
+          "parent_id": null,
+          "patch_set": null,
+          "snapshot_hash": "",
+          "source_turn": "",
+          "status": "proposed"
+        },
+        {
+          "actor": "agent",
+          "changed_ids": [],
+          "created": 1019.0,
+          "doc": {
+            "id": "rev.4",
+            "ordinal": 4,
+            "parentId": "rv3"
+          },
+          "id": "rev.4",
+          "idempotency_key": "",
+          "invalidated_artifacts": [],
+          "kind": "edit",
+          "ordinal": 4,
+          "parent_id": "rv3",
+          "patch_set": null,
+          "snapshot_hash": "",
+          "source_turn": "",
+          "status": "proposed"
+        },
+        {
+          "actor": "agent",
+          "changed_ids": [],
+          "created": 1020.0,
+          "doc": {
+            "id": "rev.5",
+            "ordinal": 5,
+            "parentId": "rev.4"
+          },
+          "id": "rev.5",
+          "idempotency_key": "ak",
+          "invalidated_artifacts": [],
+          "kind": "edit",
+          "ordinal": 5,
+          "parent_id": "rev.4",
+          "patch_set": null,
+          "snapshot_hash": "",
+          "source_turn": "",
+          "status": "proposed"
+        }
+      ]
+    },
+    {
+      "ok": {
+        "event_id": "",
+        "kind": "node.started",
+        "payload": {
+          "node": "A"
+        },
+        "seq": 0,
+        "ts": 1021.0
+      }
+    },
+    {
+      "ok": {
+        "event_id": "e1",
+        "kind": "node.done",
+        "payload": {
+          "node": "A"
+        },
+        "seq": 1,
+        "ts": 1022.0
+      }
+    },
+    {
+      "ok": {
+        "event_id": "e1",
+        "kind": "node.done",
+        "payload": {
+          "node": "A"
+        },
+        "seq": 1,
+        "ts": 1022.0
+      }
+    },
+    {
+      "ok": {
+        "event_id": "e2",
+        "kind": "node.done",
+        "payload": {
+          "node": "B"
+        },
+        "seq": 2,
+        "ts": 1023.0
+      }
+    },
+    {
+      "ok": {
+        "event_id": "",
+        "kind": "tick",
+        "payload": {},
+        "seq": 3,
+        "ts": 1024.0
+      }
+    },
+    {
+      "ok": {
+        "event_id": "",
+        "kind": "tick",
+        "payload": {},
+        "seq": 4,
+        "ts": 1025.0
+      }
+    },
+    {
+      "ok": [
+        {
+          "event_id": "",
+          "kind": "node.started",
+          "payload": {
+            "node": "A"
+          },
+          "seq": 0,
+          "ts": 1021.0
+        },
+        {
+          "event_id": "e1",
+          "kind": "node.done",
+          "payload": {
+            "node": "A"
+          },
+          "seq": 1,
+          "ts": 1022.0
+        },
+        {
+          "event_id": "e2",
+          "kind": "node.done",
+          "payload": {
+            "node": "B"
+          },
+          "seq": 2,
+          "ts": 1023.0
+        },
+        {
+          "event_id": "",
+          "kind": "tick",
+          "payload": {},
+          "seq": 3,
+          "ts": 1024.0
+        },
+        {
+          "event_id": "",
+          "kind": "tick",
+          "payload": {},
+          "seq": 4,
+          "ts": 1025.0
+        }
+      ]
+    },
+    {
+      "ok": [
+        {
+          "event_id": "",
+          "kind": "tick",
+          "payload": {},
+          "seq": 3,
+          "ts": 1024.0
+        },
+        {
+          "event_id": "",
+          "kind": "tick",
+          "payload": {},
+          "seq": 4,
+          "ts": 1025.0
+        }
+      ]
+    },
+    {
+      "ok": []
+    },
+    {
+      "ok": 5
+    },
+    {
+      "ok": 0
+    },
+    {
+      "ok": "s1.0"
+    },
+    {
+      "ok": "s1.1"
+    },
+    {
+      "ok": "s2.0"
+    },
+    {
+      "ok": null
+    },
+    {
+      "err": {
+        "msg": "'nope'",
+        "type": "KeyError"
+      }
+    },
+    {
+      "ok": {
+        "active": true,
+        "created": 50.0,
+        "display_name": "",
+        "id": "u1",
+        "password_hash": "h",
+        "prefs": {},
+        "role": "user",
+        "username": "alice"
+      }
+    },
+    {
+      "ok": {
+        "active": true,
+        "created": 40.0,
+        "display_name": "",
+        "id": "u2",
+        "password_hash": "h",
+        "prefs": {},
+        "role": "user",
+        "username": "bob"
+      }
+    },
+    {
+      "err": {
+        "msg": "用户 id 已存在: u1",
+        "type": "DuplicateUsername"
+      }
+    },
+    {
+      "err": {
+        "msg": "用户名已存在: alice",
+        "type": "DuplicateUsername"
+      }
+    },
+    {
+      "ok": [
+        {
+          "active": true,
+          "created": 40.0,
+          "display_name": "",
+          "id": "u2",
+          "password_hash": "h",
+          "prefs": {},
+          "role": "user",
+          "username": "bob"
+        },
+        {
+          "active": true,
+          "created": 50.0,
+          "display_name": "",
+          "id": "u1",
+          "password_hash": "h",
+          "prefs": {},
+          "role": "user",
+          "username": "alice"
+        }
+      ]
+    },
+    {
+      "ok": 2
+    },
+    {
+      "ok": {
+        "active": true,
+        "created": 50.0,
+        "display_name": "",
+        "id": "u1",
+        "password_hash": "h",
+        "prefs": {},
+        "role": "user",
+        "username": "alice"
+      }
+    },
+    {
+      "ok": {
+        "active": true,
+        "created": 40.0,
+        "display_name": "",
+        "id": "u2",
+        "password_hash": "h",
+        "prefs": {},
+        "role": "user",
+        "username": "bob"
+      }
+    },
+    {
+      "ok": null
+    },
+    {
+      "ok": {
+        "active": true,
+        "created": 50.0,
+        "display_name": "",
+        "id": "u1",
+        "password_hash": "h",
+        "prefs": {},
+        "role": "admin",
+        "username": "alice"
+      }
+    },
+    {
+      "ok": {
+        "active": false,
+        "created": 50.0,
+        "display_name": "爱丽丝",
+        "id": "u1",
+        "password_hash": "h",
+        "prefs": {
+          "theme": "dark"
+        },
+        "role": "admin",
+        "username": "alice"
+      }
+    },
+    {
+      "ok": {
+        "active": false,
+        "created": 50.0,
+        "display_name": "爱丽丝",
+        "id": "u1",
+        "password_hash": "h",
+        "prefs": {
+          "theme": "dark"
+        },
+        "role": "admin",
+        "username": "alice"
+      }
+    },
+    {
+      "ok": null
+    },
+    {
+      "ok": {
+        "active": false,
+        "created": 50.0,
+        "display_name": "爱丽丝",
+        "id": "u1",
+        "password_hash": "h",
+        "prefs": {
+          "theme": "dark"
+        },
+        "role": "admin",
+        "username": "alice"
+      }
+    },
+    {
+      "ok": {
+        "created": 1026.0,
+        "expires": 100.0,
+        "last_seen": 1026.0,
+        "token_hash": "t1",
+        "user_id": "u1"
+      }
+    },
+    {
+      "ok": {
+        "created": 1027.0,
+        "expires": 0.0,
+        "last_seen": 1027.0,
+        "token_hash": "t2",
+        "user_id": "u1"
+      }
+    },
+    {
+      "ok": {
+        "created": 3.0,
+        "expires": 500.0,
+        "last_seen": 4.0,
+        "token_hash": "t3",
+        "user_id": "u2"
+      }
+    },
+    {
+      "ok": {
+        "created": 1026.0,
+        "expires": 100.0,
+        "last_seen": 1026.0,
+        "token_hash": "t1",
+        "user_id": "u1"
+      }
+    },
+    {
+      "ok": null
+    },
+    {
+      "ok": 1
+    },
+    {
+      "ok": null
+    },
+    {
+      "ok": true
+    },
+    {
+      "ok": false
+    },
+    {
+      "ok": 1
+    },
+    {
+      "ok": {
+        "created": 1028.0,
+        "expires": 900.0,
+        "last_seen": 1028.0,
+        "token_hash": "t4",
+        "user_id": "u2"
+      }
+    },
+    {
+      "ok": true
+    },
+    {
+      "ok": null
+    },
+    {
+      "ok": false
+    },
+    {
+      "ok": 1
+    },
+    {
+      "ok": null
+    },
+    {
+      "ok": null
+    },
+    {
+      "ok": null
+    },
+    {
+      "err": {
+        "msg": "usage kind 不支持: 乱来",
+        "type": "ValueError"
+      }
+    },
+    {
+      "err": {
+        "msg": "usage attempts 必须至少为 1",
+        "type": "ValueError"
+      }
+    },
+    {
+      "ok": [
+        {
+          "attempts": 1,
+          "cache_read": 0,
+          "cache_write": 0,
+          "day": "2026-01-01",
+          "effort": "",
+          "id": "g2",
+          "kind": "build",
+          "model": "m",
+          "node_id": "",
+          "owner": "u2",
+          "run_id": "",
+          "session_id": "",
+          "status": "ok",
+          "tok_in": 0,
+          "tok_out": 7,
+          "ts": 30.0,
+          "usd": 0.0,
+          "usd_source": "estimated"
+        },
+        {
+          "attempts": 1,
+          "cache_read": 0,
+          "cache_write": 0,
+          "day": "2026-01-01",
+          "effort": "",
+          "id": "g3",
+          "kind": "build",
+          "model": "m",
+          "node_id": "",
+          "owner": "",
+          "run_id": "",
+          "session_id": "",
+          "status": "ok",
+          "tok_in": 0,
+          "tok_out": 0,
+          "ts": 20.0,
+          "usd": 0.5,
+          "usd_source": "gateway"
+        },
+        {
+          "attempts": 1,
+          "cache_read": 0,
+          "cache_write": 0,
+          "day": "2026-01-01",
+          "effort": "",
+          "id": "g1",
+          "kind": "build",
+          "model": "m",
+          "node_id": "",
+          "owner": "u1",
+          "run_id": "",
+          "session_id": "",
+          "status": "ok",
+          "tok_in": 5,
+          "tok_out": 0,
+          "ts": 10.0,
+          "usd": 0.0,
+          "usd_source": "estimated"
+        }
+      ]
+    },
+    {
+      "ok": [
+        {
+          "attempts": 1,
+          "cache_read": 0,
+          "cache_write": 0,
+          "day": "2026-01-01",
+          "effort": "",
+          "id": "g2",
+          "kind": "build",
+          "model": "m",
+          "node_id": "",
+          "owner": "u2",
+          "run_id": "",
+          "session_id": "",
+          "status": "ok",
+          "tok_in": 0,
+          "tok_out": 7,
+          "ts": 30.0,
+          "usd": 0.0,
+          "usd_source": "estimated"
+        },
+        {
+          "attempts": 1,
+          "cache_read": 0,
+          "cache_write": 0,
+          "day": "2026-01-01",
+          "effort": "",
+          "id": "g3",
+          "kind": "build",
+          "model": "m",
+          "node_id": "",
+          "owner": "",
+          "run_id": "",
+          "session_id": "",
+          "status": "ok",
+          "tok_in": 0,
+          "tok_out": 0,
+          "ts": 20.0,
+          "usd": 0.5,
+          "usd_source": "gateway"
+        }
+      ]
+    },
+    {
+      "ok": [
+        {
+          "attempts": 1,
+          "cache_read": 0,
+          "cache_write": 0,
+          "day": "2026-01-01",
+          "effort": "",
+          "id": "g1",
+          "kind": "build",
+          "model": "m",
+          "node_id": "",
+          "owner": "u1",
+          "run_id": "",
+          "session_id": "",
+          "status": "ok",
+          "tok_in": 5,
+          "tok_out": 0,
+          "ts": 10.0,
+          "usd": 0.0,
+          "usd_source": "estimated"
+        }
+      ]
+    },
+    {
+      "ok": [
+        {
+          "attempts": 1,
+          "cache_read": 0,
+          "cache_write": 0,
+          "day": "2026-01-01",
+          "effort": "",
+          "id": "g3",
+          "kind": "build",
+          "model": "m",
+          "node_id": "",
+          "owner": "",
+          "run_id": "",
+          "session_id": "",
+          "status": "ok",
+          "tok_in": 0,
+          "tok_out": 0,
+          "ts": 20.0,
+          "usd": 0.5,
+          "usd_source": "gateway"
+        }
+      ]
+    },
+    {
+      "ok": [
+        {
+          "attempts": 1,
+          "cache_read": 0,
+          "cache_write": 0,
+          "day": "2026-01-01",
+          "effort": "",
+          "id": "g2",
+          "kind": "build",
+          "model": "m",
+          "node_id": "",
+          "owner": "u2",
+          "run_id": "",
+          "session_id": "",
+          "status": "ok",
+          "tok_in": 0,
+          "tok_out": 7,
+          "ts": 30.0,
+          "usd": 0.0,
+          "usd_source": "estimated"
+        },
+        {
+          "attempts": 1,
+          "cache_read": 0,
+          "cache_write": 0,
+          "day": "2026-01-01",
+          "effort": "",
+          "id": "g3",
+          "kind": "build",
+          "model": "m",
+          "node_id": "",
+          "owner": "",
+          "run_id": "",
+          "session_id": "",
+          "status": "ok",
+          "tok_in": 0,
+          "tok_out": 0,
+          "ts": 20.0,
+          "usd": 0.5,
+          "usd_source": "gateway"
+        }
+      ]
+    },
+    {
+      "ok": []
+    },
+    {
+      "ok": {
+        "id": "p1",
+        "name": "项目甲",
+        "owner": "u1",
+        "prefs": {},
+        "sort_order": 2
+      }
+    },
+    {
+      "ok": {
+        "id": "p2",
+        "name": "项目乙",
+        "owner": "u1",
+        "prefs": {},
+        "sort_order": 1
+      }
+    },
+    {
+      "ok": {
+        "id": "p3",
+        "name": "项目丙",
+        "owner": "",
+        "prefs": {},
+        "sort_order": 1
+      }
+    },
+    {
+      "err": {
+        "msg": "'项目已存在: p1'",
+        "type": "KeyError"
+      }
+    },
+    {
+      "ok": [
+        {
+          "id": "p2",
+          "name": "项目乙",
+          "owner": "u1",
+          "prefs": {},
+          "sort_order": 1
+        },
+        {
+          "id": "p3",
+          "name": "项目丙",
+          "owner": "",
+          "prefs": {},
+          "sort_order": 1
+        },
+        {
+          "id": "p1",
+          "name": "项目甲",
+          "owner": "u1",
+          "prefs": {},
+          "sort_order": 2
+        }
+      ]
+    },
+    {
+      "ok": [
+        {
+          "id": "p2",
+          "name": "项目乙",
+          "owner": "u1",
+          "prefs": {},
+          "sort_order": 1
+        },
+        {
+          "id": "p1",
+          "name": "项目甲",
+          "owner": "u1",
+          "prefs": {},
+          "sort_order": 2
+        }
+      ]
+    },
+    {
+      "ok": [
+        {
+          "id": "p3",
+          "name": "项目丙",
+          "owner": "",
+          "prefs": {},
+          "sort_order": 1
+        }
+      ]
+    },
+    {
+      "ok": {
+        "id": "p1",
+        "name": "项目甲",
+        "owner": "u1",
+        "prefs": {},
+        "sort_order": 2
+      }
+    },
+    {
+      "ok": null
+    },
+    {
+      "ok": true
+    },
+    {
+      "ok": false
+    },
+    {
+      "ok": true
+    },
+    {
+      "ok": true
+    },
+    {
+      "ok": true
+    },
+    {
+      "ok": false
+    },
+    {
+      "ok": {
+        "created": 10.0,
+        "error": "",
+        "id": "s1",
+        "owner": "u1",
+        "project": "",
+        "project_id": "p1",
+        "state_version": 8,
+        "status": "idle",
+        "title": "甲改"
+      }
+    },
+    {
+      "ok": 2
+    },
+    {
+      "ok": 2
+    },
+    {
+      "ok": [
+        {
+          "created": 1001.0,
+          "error": "超时",
+          "id": "s4",
+          "owner": "u9",
+          "project": "",
+          "project_id": "",
+          "state_version": 1,
+          "status": "failed",
+          "title": "丁"
+        },
+        {
+          "created": 10.0,
+          "error": "",
+          "id": "s1",
+          "owner": "u9",
+          "project": "",
+          "project_id": "p1",
+          "state_version": 8,
+          "status": "idle",
+          "title": "甲改"
+        }
+      ]
+    },
+    {
+      "ok": [
+        {
+          "id": "p2",
+          "name": "项目乙",
+          "owner": "u9",
+          "prefs": {},
+          "sort_order": 1
+        },
+        {
+          "id": "p1",
+          "name": "项目甲改",
+          "owner": "u9",
+          "prefs": {},
+          "sort_order": 2
+        }
+      ]
+    },
+    {
+      "ok": 3
+    },
+    {
+      "ok": 1
+    },
+    {
+      "ok": [
+        {
+          "confidence": 0.5,
+          "content": "改过了",
+          "contested_by": [],
+          "created_run": "",
+          "hit_runs": [],
+          "key": "a",
+          "kind": "convention",
+          "last_used_run": "",
+          "origin_files": [],
+          "origin_session": "",
+          "project_id": "p1",
+          "support": [],
+          "tags": [],
+          "tier": "reference",
+          "use_count": 0
+        },
+        {
+          "confidence": 0.5,
+          "content": "内容 b",
+          "contested_by": [],
+          "created_run": "",
+          "hit_runs": [],
+          "key": "b",
+          "kind": "convention",
+          "last_used_run": "",
+          "origin_files": [],
+          "origin_session": "",
+          "project_id": "p1",
+          "support": [],
+          "tags": [],
+          "tier": "authoritative",
+          "use_count": 0
+        }
+      ]
+    },
+    {
+      "ok": []
+    },
+    {
+      "ok": 1
+    },
+    {
+      "ok": [
+        {
+          "confidence": 0.5,
+          "content": "内容 b",
+          "contested_by": [],
+          "created_run": "",
+          "hit_runs": [],
+          "key": "b",
+          "kind": "convention",
+          "last_used_run": "",
+          "origin_files": [],
+          "origin_session": "",
+          "project_id": "p1",
+          "support": [],
+          "tags": [],
+          "tier": "authoritative",
+          "use_count": 0
+        }
+      ]
+    },
+    {
+      "ok": 1
+    },
+    {
+      "ok": 0
+    },
+    {
+      "ok": 2
+    },
+    {
+      "ok": {
+        "created": 10.0,
+        "error": "",
+        "id": "s1",
+        "owner": "u9",
+        "project": "",
+        "project_id": "",
+        "state_version": 8,
+        "status": "idle",
+        "title": "甲改"
+      }
+    },
+    {
+      "ok": null
+    },
+    {
+      "ok": [
+        {
+          "confidence": 0.5,
+          "content": "内容 z",
+          "contested_by": [],
+          "created_run": "",
+          "hit_runs": [],
+          "key": "z",
+          "kind": "convention",
+          "last_used_run": "",
+          "origin_files": [],
+          "origin_session": "",
+          "project_id": "p2",
+          "support": [],
+          "tags": [],
+          "tier": "authoritative",
+          "use_count": 0
+        }
+      ]
+    },
+    {
+      "ok": null
+    },
+    {
+      "ok": null
+    },
+    {
+      "ok": null
+    },
+    {
+      "ok": "改过了"
+    },
+    {
+      "ok": null
+    },
+    {
+      "ok": [
+        {
+          "key": "b",
+          "updated": 0.0,
+          "value": "改过了"
+        },
+        {
+          "key": "a",
+          "updated": 0.0,
+          "value": 42
+        }
+      ]
+    },
+    {
+      "ok": true
+    },
+    {
+      "ok": false
+    },
+    {
+      "ok": [
+        {
+          "key": "b",
+          "updated": 0.0,
+          "value": "改过了"
+        }
+      ]
+    },
+    {
+      "ok": {
+        "id": "P",
+        "name": "同名项目",
+        "owner": "",
+        "prefs": {},
+        "sort_order": 0
+      }
+    },
+    {
+      "ok": 1
+    },
+    {
+      "ok": {
+        "created": 1.0,
+        "error": "",
+        "id": "P",
+        "owner": "",
+        "project": "",
+        "project_id": "",
+        "state_version": 0,
+        "status": "idle",
+        "title": "同名会话"
+      }
+    },
+    {
+      "ok": {
+        "event_id": "",
+        "kind": "x",
+        "payload": {},
+        "seq": 0,
+        "ts": 1029.0
+      }
+    },
+    {
+      "ok": "P.0"
+    },
+    {
+      "ok": true
+    },
+    {
+      "ok": false
+    },
+    {
+      "ok": {
+        "id": "P",
+        "name": "同名项目",
+        "owner": "",
+        "prefs": {},
+        "sort_order": 0
+      }
+    },
+    {
+      "ok": [
+        {
+          "confidence": 0.5,
+          "content": "内容 k1",
+          "contested_by": [],
+          "created_run": "",
+          "hit_runs": [],
+          "key": "k1",
+          "kind": "convention",
+          "last_used_run": "",
+          "origin_files": [],
+          "origin_session": "",
+          "project_id": "P",
+          "support": [],
+          "tags": [],
+          "tier": "authoritative",
+          "use_count": 0
+        }
+      ]
+    },
+    {
+      "ok": 1
+    },
+    {
+      "ok": [
+        {
+          "key": "b",
+          "updated": 0.0,
+          "value": "改过了"
+        }
+      ]
+    },
+    {
+      "ok": [
+        {
+          "attempts": 1,
+          "cache_read": 0,
+          "cache_write": 0,
+          "day": "2026-01-01",
+          "effort": "",
+          "id": "g2",
+          "kind": "build",
+          "model": "m",
+          "node_id": "",
+          "owner": "u2",
+          "run_id": "",
+          "session_id": "",
+          "status": "ok",
+          "tok_in": 0,
+          "tok_out": 7,
+          "ts": 30.0,
+          "usd": 0.0,
+          "usd_source": "estimated"
+        },
+        {
+          "attempts": 1,
+          "cache_read": 0,
+          "cache_write": 0,
+          "day": "2026-01-01",
+          "effort": "",
+          "id": "g3",
+          "kind": "build",
+          "model": "m",
+          "node_id": "",
+          "owner": "",
+          "run_id": "",
+          "session_id": "",
+          "status": "ok",
+          "tok_in": 0,
+          "tok_out": 0,
+          "ts": 20.0,
+          "usd": 0.5,
+          "usd_source": "gateway"
+        },
+        {
+          "attempts": 1,
+          "cache_read": 0,
+          "cache_write": 0,
+          "day": "2026-01-01",
+          "effort": "",
+          "id": "g1",
+          "kind": "build",
+          "model": "m",
+          "node_id": "",
+          "owner": "u1",
+          "run_id": "",
+          "session_id": "",
+          "status": "ok",
+          "tok_in": 5,
+          "tok_out": 0,
+          "ts": 10.0,
+          "usd": 0.0,
+          "usd_source": "estimated"
+        }
+      ]
+    },
+    {
+      "ok": 0
+    },
+    {
+      "ok": "P.0"
+    },
+    {
+      "ok": [
+        {
+          "created": 1001.0,
+          "error": "超时",
+          "id": "s4",
+          "owner": "u9",
+          "project": "",
+          "project_id": "",
+          "state_version": 1,
+          "status": "failed",
+          "title": "丁"
+        },
+        {
+          "created": 30.0,
+          "error": "炸了",
+          "id": "s2",
+          "owner": "u2",
+          "project": "",
+          "project_id": "",
+          "state_version": 0,
+          "status": "failed",
+          "title": "乙"
+        },
+        {
+          "created": 20.0,
+          "error": "",
+          "id": "s3",
+          "owner": "",
+          "project": "",
+          "project_id": "",
+          "state_version": 0,
+          "status": "queued",
+          "title": "丙"
+        },
+        {
+          "created": 10.0,
+          "error": "",
+          "id": "s1",
+          "owner": "u9",
+          "project": "",
+          "project_id": "",
+          "state_version": 8,
+          "status": "idle",
+          "title": "甲改"
+        }
+      ]
+    },
+    {
+      "err": {
+        "msg": "'会话已存在: s2'",
+        "type": "KeyError"
+      }
+    },
+    {
+      "ok": true
+    },
+    {
+      "ok": {
+        "created": 99.0,
+        "error": "",
+        "id": "s2",
+        "owner": "",
+        "project": "",
+        "project_id": "",
+        "state_version": 0,
+        "status": "idle",
+        "title": "重建"
+      }
+    },
+    {
+      "ok": {}
+    },
+    {
+      "ok": 0
+    },
+    {
+      "ok": []
+    },
+    {
+      "ok": {
+        "created": 5.0,
+        "error": "",
+        "id": "10",
+        "owner": "",
+        "project": "",
+        "project_id": "",
+        "state_version": 0,
+        "status": "idle",
+        "title": "十"
+      }
+    },
+    {
+      "ok": {
+        "created": 5.0,
+        "error": "",
+        "id": "2",
+        "owner": "",
+        "project": "",
+        "project_id": "",
+        "state_version": 0,
+        "status": "idle",
+        "title": "二"
+      }
+    },
+    {
+      "ok": {
+        "created": 5.0,
+        "error": "",
+        "id": "a",
+        "owner": "",
+        "project": "",
+        "project_id": "",
+        "state_version": 0,
+        "status": "idle",
+        "title": "甲"
+      }
+    },
+    {
+      "ok": [
+        {
+          "created": 1001.0,
+          "error": "超时",
+          "id": "s4",
+          "owner": "u9",
+          "project": "",
+          "project_id": "",
+          "state_version": 1,
+          "status": "failed",
+          "title": "丁"
+        },
+        {
+          "created": 99.0,
+          "error": "",
+          "id": "s2",
+          "owner": "",
+          "project": "",
+          "project_id": "",
+          "state_version": 0,
+          "status": "idle",
+          "title": "重建"
+        },
+        {
+          "created": 20.0,
+          "error": "",
+          "id": "s3",
+          "owner": "",
+          "project": "",
+          "project_id": "",
+          "state_version": 0,
+          "status": "queued",
+          "title": "丙"
+        },
+        {
+          "created": 10.0,
+          "error": "",
+          "id": "s1",
+          "owner": "u9",
+          "project": "",
+          "project_id": "",
+          "state_version": 8,
+          "status": "idle",
+          "title": "甲改"
+        },
+        {
+          "created": 5.0,
+          "error": "",
+          "id": "10",
+          "owner": "",
+          "project": "",
+          "project_id": "",
+          "state_version": 0,
+          "status": "idle",
+          "title": "十"
+        },
+        {
+          "created": 5.0,
+          "error": "",
+          "id": "2",
+          "owner": "",
+          "project": "",
+          "project_id": "",
+          "state_version": 0,
+          "status": "idle",
+          "title": "二"
+        },
+        {
+          "created": 5.0,
+          "error": "",
+          "id": "a",
+          "owner": "",
+          "project": "",
+          "project_id": "",
+          "state_version": 0,
+          "status": "idle",
+          "title": "甲"
+        }
+      ]
+    },
+    {
+      "ok": [
+        {
+          "name": "10.pdf",
+          "rel_path": "x",
+          "sha256": "",
+          "size": 1
+        },
+        {
+          "name": "2.pdf",
+          "rel_path": "x",
+          "sha256": "",
+          "size": 1
+        },
+        {
+          "name": "b.pdf",
+          "rel_path": "x",
+          "sha256": "",
+          "size": 1
+        }
+      ]
+    },
+    {
+      "ok": [
+        {
+          "name": "10.pdf",
+          "rel_path": "x",
+          "sha256": "",
+          "size": 1
+        },
+        {
+          "name": "2.pdf",
+          "rel_path": "x",
+          "sha256": "",
+          "size": 1
+        },
+        {
+          "name": "b.pdf",
+          "rel_path": "x",
+          "sha256": "",
+          "size": 1
+        }
+      ]
+    },
+    {
+      "ok": null
+    },
+    {
+      "ok": null
+    },
+    {
+      "ok": null
+    },
+    {
+      "ok": [
+        {
+          "key": "b",
+          "updated": 0.0,
+          "value": "改过了"
+        },
+        {
+          "key": "10",
+          "updated": 0.0,
+          "value": 1
+        },
+        {
+          "key": "2",
+          "updated": 0.0,
+          "value": 2
+        },
+        {
+          "key": "zz",
+          "updated": 0.0,
+          "value": 3
+        }
+      ]
+    },
+    {
+      "ok": 1
+    },
+    {
+      "ok": {
+        "10": "十",
+        "2": "二",
+        "oir": {
+          "10": 1,
+          "2": 2
+        }
+      }
+    },
+    {
+      "ok": 2
+    },
+    {
+      "ok": [
+        {
+          "rid": "10"
+        },
+        {
+          "rid": "2"
+        },
+        {
+          "rid": "c"
+        }
+      ]
+    },
+    {
+      "ok": {
+        "created": 1.0,
+        "error": "",
+        "id": "sx",
+        "owner": "",
+        "project": "",
+        "project_id": "",
+        "state_version": 0,
+        "status": "idle",
+        "title": "新建会话"
+      }
+    },
+    {
+      "ok": [
+        {
+          "answer_schema": {},
+          "audience_role": "",
+          "blocked_artifacts": [],
+          "created": 1.0,
+          "dependencies": [],
+          "doc": {
+            "id": "😀",
+            "version": 0
+          },
+          "id": "😀",
+          "owner_user_id": "",
+          "priority": "normal",
+          "source_kind": "manual",
+          "source_ref": "",
+          "status": "open",
+          "text": "问题 😀",
+          "updated": 1030.0,
+          "version": 0
+        },
+        {
+          "answer_schema": {},
+          "audience_role": "",
+          "blocked_artifacts": [],
+          "created": 1.0,
+          "dependencies": [],
+          "doc": {
+            "id": "�",
+            "version": 0
+          },
+          "id": "�",
+          "owner_user_id": "",
+          "priority": "normal",
+          "source_kind": "manual",
+          "source_ref": "",
+          "status": "open",
+          "text": "问题 �",
+          "updated": 1030.0,
+          "version": 0
+        }
+      ]
+    },
+    {
+      "ok": [
+        {
+          "answer_schema": {},
+          "audience_role": "",
+          "blocked_artifacts": [],
+          "created": 1.0,
+          "dependencies": [],
+          "doc": {
+            "id": "�",
+            "version": 0
+          },
+          "id": "�",
+          "owner_user_id": "",
+          "priority": "normal",
+          "source_kind": "manual",
+          "source_ref": "",
+          "status": "open",
+          "text": "问题 �",
+          "updated": 1030.0,
+          "version": 0
+        },
+        {
+          "answer_schema": {},
+          "audience_role": "",
+          "blocked_artifacts": [],
+          "created": 1.0,
+          "dependencies": [],
+          "doc": {
+            "id": "😀",
+            "version": 0
+          },
+          "id": "😀",
+          "owner_user_id": "",
+          "priority": "normal",
+          "source_kind": "manual",
+          "source_ref": "",
+          "status": "open",
+          "text": "问题 😀",
+          "updated": 1030.0,
+          "version": 0
+        }
+      ]
+    },
+    {
+      "ok": 2
+    },
+    {
+      "ok": [
+        {
+          "confidence": 0.5,
+          "content": "内容 �",
+          "contested_by": [],
+          "created_run": "",
+          "hit_runs": [],
+          "key": "�",
+          "kind": "convention",
+          "last_used_run": "",
+          "origin_files": [],
+          "origin_session": "",
+          "project_id": "px",
+          "support": [],
+          "tags": [],
+          "tier": "authoritative",
+          "use_count": 0
+        },
+        {
+          "confidence": 0.5,
+          "content": "内容 😀",
+          "contested_by": [],
+          "created_run": "",
+          "hit_runs": [],
+          "key": "😀",
+          "kind": "convention",
+          "last_used_run": "",
+          "origin_files": [],
+          "origin_session": "",
+          "project_id": "px",
+          "support": [],
+          "tags": [],
+          "tier": "authoritative",
+          "use_count": 0
+        }
+      ]
+    }
+  ]
+}

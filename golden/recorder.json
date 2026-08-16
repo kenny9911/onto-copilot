@@ -1,0 +1,1541 @@
+{
+ "_note": "由 tools/golden/recorder.py 生成，勿手改",
+ "inline_limit": 2048,
+ "ts_ms": 1723000000000,
+ "fingerprints": [
+  {
+   "kind": "llm.call",
+   "request": {
+    "prompt": "抽取对象"
+   },
+   "fp": "d58afdd8f6027ea5"
+  },
+  {
+   "kind": "llm.call",
+   "request": {
+    "prompt": "v1"
+   },
+   "fp": "77ac122898e85b0a"
+  },
+  {
+   "kind": "clock.now",
+   "request": {},
+   "fp": "c2e5c0a84ace834a"
+  },
+  {
+   "kind": "clock.rand",
+   "request": {
+    "n": 10000
+   },
+   "fp": "fce6926d162a65d1"
+  },
+  {
+   "kind": "tool.call",
+   "request": {
+    "tool": "sql",
+    "args": {
+     "q": "select 1"
+    }
+   },
+   "fp": "c429a4a79107f587"
+  }
+ ],
+ "cases": [
+  {
+   "name": "effect_executes_once_then_replays",
+   "why": "重放不重新调用、不重新付费：第二轮 fn 返回 WRONG 也拿回首次结果",
+   "steps": [
+    {
+     "op": "open",
+     "resume": false
+    },
+    {
+     "op": "effect",
+     "node": "N",
+     "kind": "llm.call",
+     "request": {
+      "prompt": "抽取对象"
+     },
+     "result": "23 个对象"
+    },
+    {
+     "op": "open",
+     "resume": true
+    },
+    {
+     "op": "effect",
+     "node": "N",
+     "kind": "llm.call",
+     "request": {
+      "prompt": "抽取对象"
+     },
+     "result": "WRONG"
+    }
+   ],
+   "outputs": [
+    null,
+    "23 个对象",
+    null,
+    "23 个对象"
+   ],
+   "events": [
+    {
+     "run_id": "r1",
+     "seq": 0,
+     "kind": "effect.requested",
+     "node_id": "N",
+     "payload": {
+      "key": "N#0",
+      "kind": "llm.call",
+      "fp": "d58afdd8f6027ea5",
+      "request": {
+       "prompt": "抽取对象"
+      }
+     }
+    },
+    {
+     "run_id": "r1",
+     "seq": 1,
+     "kind": "effect.completed",
+     "node_id": "N",
+     "payload": {
+      "result": "23 个对象",
+      "key": "N#0",
+      "kind": "llm.call",
+      "fp": "d58afdd8f6027ea5"
+     }
+    }
+   ]
+  },
+  {
+   "name": "keys_are_namespaced_per_node",
+   "why": "并行节点的全局顺序不稳定，所以 effect 按节点分命名空间；换序重放各拿各的",
+   "steps": [
+    {
+     "op": "open",
+     "resume": false
+    },
+    {
+     "op": "effect",
+     "node": "A",
+     "kind": "t",
+     "request": {
+      "i": 0
+     },
+     "result": "a0"
+    },
+    {
+     "op": "effect",
+     "node": "B",
+     "kind": "t",
+     "request": {
+      "i": 0
+     },
+     "result": "b0"
+    },
+    {
+     "op": "effect",
+     "node": "A",
+     "kind": "t",
+     "request": {
+      "i": 1
+     },
+     "result": "a1"
+    },
+    {
+     "op": "open",
+     "resume": true
+    },
+    {
+     "op": "effect",
+     "node": "B",
+     "kind": "t",
+     "request": {
+      "i": 0
+     },
+     "result": "WRONG"
+    },
+    {
+     "op": "effect",
+     "node": "A",
+     "kind": "t",
+     "request": {
+      "i": 0
+     },
+     "result": "WRONG"
+    },
+    {
+     "op": "effect",
+     "node": "A",
+     "kind": "t",
+     "request": {
+      "i": 1
+     },
+     "result": "WRONG"
+    }
+   ],
+   "outputs": [
+    null,
+    "a0",
+    "b0",
+    "a1",
+    null,
+    "b0",
+    "a0",
+    "a1"
+   ],
+   "events": [
+    {
+     "run_id": "r1",
+     "seq": 0,
+     "kind": "effect.requested",
+     "node_id": "A",
+     "payload": {
+      "key": "A#0",
+      "kind": "t",
+      "fp": "56abc14b4d871a79",
+      "request": {
+       "i": "0"
+      }
+     }
+    },
+    {
+     "run_id": "r1",
+     "seq": 1,
+     "kind": "effect.completed",
+     "node_id": "A",
+     "payload": {
+      "result": "a0",
+      "key": "A#0",
+      "kind": "t",
+      "fp": "56abc14b4d871a79"
+     }
+    },
+    {
+     "run_id": "r1",
+     "seq": 2,
+     "kind": "effect.requested",
+     "node_id": "B",
+     "payload": {
+      "key": "B#0",
+      "kind": "t",
+      "fp": "56abc14b4d871a79",
+      "request": {
+       "i": "0"
+      }
+     }
+    },
+    {
+     "run_id": "r1",
+     "seq": 3,
+     "kind": "effect.completed",
+     "node_id": "B",
+     "payload": {
+      "result": "b0",
+      "key": "B#0",
+      "kind": "t",
+      "fp": "56abc14b4d871a79"
+     }
+    },
+    {
+     "run_id": "r1",
+     "seq": 4,
+     "kind": "effect.requested",
+     "node_id": "A",
+     "payload": {
+      "key": "A#1",
+      "kind": "t",
+      "fp": "f954faf4495ede83",
+      "request": {
+       "i": "1"
+      }
+     }
+    },
+    {
+     "run_id": "r1",
+     "seq": 5,
+     "kind": "effect.completed",
+     "node_id": "A",
+     "payload": {
+      "result": "a1",
+      "key": "A#1",
+      "kind": "t",
+      "fp": "f954faf4495ede83"
+     }
+    }
+   ]
+  },
+  {
+   "name": "explicit_key_replaces_the_counter",
+   "why": "节点内并发的 effect（四个 critic 视角）必须显式给 key，否则计数器顺序不稳",
+   "steps": [
+    {
+     "op": "open",
+     "resume": false
+    },
+    {
+     "op": "effect",
+     "node": "CRITIC",
+     "kind": "llm.call",
+     "request": {
+      "lens": "schema"
+     },
+     "key": "schema",
+     "result": "schema:ok"
+    },
+    {
+     "op": "effect",
+     "node": "CRITIC",
+     "kind": "llm.call",
+     "request": {
+      "lens": "naming"
+     },
+     "key": "naming",
+     "result": "naming:ok"
+    },
+    {
+     "op": "open",
+     "resume": true
+    },
+    {
+     "op": "effect",
+     "node": "CRITIC",
+     "kind": "llm.call",
+     "request": {
+      "lens": "naming"
+     },
+     "key": "naming",
+     "result": "WRONG"
+    },
+    {
+     "op": "effect",
+     "node": "CRITIC",
+     "kind": "llm.call",
+     "request": {
+      "lens": "schema"
+     },
+     "key": "schema",
+     "result": "WRONG"
+    }
+   ],
+   "outputs": [
+    null,
+    "schema:ok",
+    "naming:ok",
+    null,
+    "naming:ok",
+    "schema:ok"
+   ],
+   "events": [
+    {
+     "run_id": "r1",
+     "seq": 0,
+     "kind": "effect.requested",
+     "node_id": "CRITIC",
+     "payload": {
+      "key": "CRITIC#schema",
+      "kind": "llm.call",
+      "fp": "d76084bb73abbe16",
+      "request": {
+       "lens": "schema"
+      }
+     }
+    },
+    {
+     "run_id": "r1",
+     "seq": 1,
+     "kind": "effect.completed",
+     "node_id": "CRITIC",
+     "payload": {
+      "result": "schema:ok",
+      "key": "CRITIC#schema",
+      "kind": "llm.call",
+      "fp": "d76084bb73abbe16"
+     }
+    },
+    {
+     "run_id": "r1",
+     "seq": 2,
+     "kind": "effect.requested",
+     "node_id": "CRITIC",
+     "payload": {
+      "key": "CRITIC#naming",
+      "kind": "llm.call",
+      "fp": "7bd8a635586cf6ed",
+      "request": {
+       "lens": "naming"
+      }
+     }
+    },
+    {
+     "run_id": "r1",
+     "seq": 3,
+     "kind": "effect.completed",
+     "node_id": "CRITIC",
+     "payload": {
+      "result": "naming:ok",
+      "key": "CRITIC#naming",
+      "kind": "llm.call",
+      "fp": "7bd8a635586cf6ed"
+     }
+    }
+   ]
+  },
+  {
+   "name": "changed_request_raises_determinism_violation",
+   "why": "重放时请求变了说明混进了未记账的非确定性，必须炸而不是放宽",
+   "steps": [
+    {
+     "op": "open",
+     "resume": false
+    },
+    {
+     "op": "effect",
+     "node": "N",
+     "kind": "llm.call",
+     "request": {
+      "prompt": "v1"
+     },
+     "result": "out"
+    },
+    {
+     "op": "open",
+     "resume": true
+    },
+    {
+     "op": "effect",
+     "node": "N",
+     "kind": "llm.call",
+     "request": {
+      "prompt": "v2"
+     },
+     "result": "out"
+    }
+   ],
+   "outputs": [
+    null,
+    "out",
+    null,
+    {
+     "__error__": "DeterminismViolation",
+     "message": "effect 'N#0' 重放不一致\n  已记录: 77ac122898e85b0a\n  重算出: 4d8a32d45ab3b3d9"
+    }
+   ],
+   "events": [
+    {
+     "run_id": "r1",
+     "seq": 0,
+     "kind": "effect.requested",
+     "node_id": "N",
+     "payload": {
+      "key": "N#0",
+      "kind": "llm.call",
+      "fp": "77ac122898e85b0a",
+      "request": {
+       "prompt": "v1"
+      }
+     }
+    },
+    {
+     "run_id": "r1",
+     "seq": 1,
+     "kind": "effect.completed",
+     "node_id": "N",
+     "payload": {
+      "result": "out",
+      "key": "N#0",
+      "kind": "llm.call",
+      "fp": "77ac122898e85b0a"
+     }
+    }
+   ]
+  },
+  {
+   "name": "large_result_goes_to_blob",
+   "why": "大结果落 blob，事件里只留 ref；重放从 blob 读回",
+   "steps": [
+    {
+     "op": "open",
+     "resume": false
+    },
+    {
+     "op": "effect",
+     "node": "N",
+     "kind": "tool.exec",
+     "request": {},
+     "result": {
+      "__repeat__": [
+       "x",
+       2500
+      ]
+     }
+    },
+    {
+     "op": "open",
+     "resume": true
+    },
+    {
+     "op": "effect",
+     "node": "N",
+     "kind": "tool.exec",
+     "request": {},
+     "result": null
+    }
+   ],
+   "outputs": [
+    null,
+    "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    null,
+    "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+   ],
+   "events": [
+    {
+     "run_id": "r1",
+     "seq": 0,
+     "kind": "effect.requested",
+     "node_id": "N",
+     "payload": {
+      "key": "N#0",
+      "kind": "tool.exec",
+      "fp": "36ab79c14c29f150",
+      "request": {}
+     }
+    },
+    {
+     "run_id": "r1",
+     "seq": 1,
+     "kind": "effect.completed",
+     "node_id": "N",
+     "payload": {
+      "key": "N#0",
+      "kind": "tool.exec",
+      "fp": "36ab79c14c29f150"
+     },
+     "ref": "blob:d8a09274f44098236175e89e74a6398c"
+    }
+   ]
+  },
+  {
+   "name": "crash_midway_resumes_from_last_effect",
+   "why": "核心承诺：第 3 步崩溃从第 3 步继续，前 3 步不重跑（失败的那次没记账）",
+   "steps": [
+    {
+     "op": "open",
+     "resume": false
+    },
+    {
+     "op": "effect",
+     "node": "LOOP",
+     "kind": "llm.call",
+     "request": {
+      "i": 0
+     },
+     "result": "step0"
+    },
+    {
+     "op": "effect",
+     "node": "LOOP",
+     "kind": "llm.call",
+     "request": {
+      "i": 1
+     },
+     "result": "step1"
+    },
+    {
+     "op": "effect",
+     "node": "LOOP",
+     "kind": "llm.call",
+     "request": {
+      "i": 2
+     },
+     "result": "step2"
+    },
+    {
+     "op": "effect",
+     "node": "LOOP",
+     "kind": "llm.call",
+     "request": {
+      "i": 3
+     },
+     "raises": "沙箱超时"
+    },
+    {
+     "op": "open",
+     "resume": true
+    },
+    {
+     "op": "effect",
+     "node": "LOOP",
+     "kind": "llm.call",
+     "request": {
+      "i": 0
+     },
+     "result": "WRONG"
+    },
+    {
+     "op": "effect",
+     "node": "LOOP",
+     "kind": "llm.call",
+     "request": {
+      "i": 1
+     },
+     "result": "WRONG"
+    },
+    {
+     "op": "effect",
+     "node": "LOOP",
+     "kind": "llm.call",
+     "request": {
+      "i": 2
+     },
+     "result": "WRONG"
+    },
+    {
+     "op": "effect",
+     "node": "LOOP",
+     "kind": "llm.call",
+     "request": {
+      "i": 3
+     },
+     "result": "step3"
+    }
+   ],
+   "outputs": [
+    null,
+    "step0",
+    "step1",
+    "step2",
+    {
+     "__error__": "Boom",
+     "message": "沙箱超时"
+    },
+    null,
+    "step0",
+    "step1",
+    "step2",
+    "step3"
+   ],
+   "events": [
+    {
+     "run_id": "r1",
+     "seq": 0,
+     "kind": "effect.requested",
+     "node_id": "LOOP",
+     "payload": {
+      "key": "LOOP#0",
+      "kind": "llm.call",
+      "fp": "f947cb24af342a14",
+      "request": {
+       "i": "0"
+      }
+     }
+    },
+    {
+     "run_id": "r1",
+     "seq": 1,
+     "kind": "effect.completed",
+     "node_id": "LOOP",
+     "payload": {
+      "result": "step0",
+      "key": "LOOP#0",
+      "kind": "llm.call",
+      "fp": "f947cb24af342a14"
+     }
+    },
+    {
+     "run_id": "r1",
+     "seq": 2,
+     "kind": "effect.requested",
+     "node_id": "LOOP",
+     "payload": {
+      "key": "LOOP#1",
+      "kind": "llm.call",
+      "fp": "61ee6b4d5df4207d",
+      "request": {
+       "i": "1"
+      }
+     }
+    },
+    {
+     "run_id": "r1",
+     "seq": 3,
+     "kind": "effect.completed",
+     "node_id": "LOOP",
+     "payload": {
+      "result": "step1",
+      "key": "LOOP#1",
+      "kind": "llm.call",
+      "fp": "61ee6b4d5df4207d"
+     }
+    },
+    {
+     "run_id": "r1",
+     "seq": 4,
+     "kind": "effect.requested",
+     "node_id": "LOOP",
+     "payload": {
+      "key": "LOOP#2",
+      "kind": "llm.call",
+      "fp": "bcf6b5eaf116d22b",
+      "request": {
+       "i": "2"
+      }
+     }
+    },
+    {
+     "run_id": "r1",
+     "seq": 5,
+     "kind": "effect.completed",
+     "node_id": "LOOP",
+     "payload": {
+      "result": "step2",
+      "key": "LOOP#2",
+      "kind": "llm.call",
+      "fp": "bcf6b5eaf116d22b"
+     }
+    },
+    {
+     "run_id": "r1",
+     "seq": 6,
+     "kind": "effect.requested",
+     "node_id": "LOOP",
+     "payload": {
+      "key": "LOOP#3",
+      "kind": "llm.call",
+      "fp": "9b7bdc4b8664138e",
+      "request": {
+       "i": "3"
+      }
+     }
+    },
+    {
+     "run_id": "r1",
+     "seq": 7,
+     "kind": "effect.failed",
+     "node_id": "LOOP",
+     "payload": {
+      "key": "LOOP#3",
+      "kind": "llm.call",
+      "error": "Boom: 沙箱超时"
+     }
+    },
+    {
+     "run_id": "r1",
+     "seq": 8,
+     "kind": "effect.requested",
+     "node_id": "LOOP",
+     "payload": {
+      "key": "LOOP#3",
+      "kind": "llm.call",
+      "fp": "9b7bdc4b8664138e",
+      "request": {
+       "i": "3"
+      }
+     }
+    },
+    {
+     "run_id": "r1",
+     "seq": 9,
+     "kind": "effect.completed",
+     "node_id": "LOOP",
+     "payload": {
+      "result": "step3",
+      "key": "LOOP#3",
+      "kind": "llm.call",
+      "fp": "9b7bdc4b8664138e"
+     }
+    }
+   ]
+  },
+  {
+   "name": "duplicate_effect_record_keeps_the_first",
+   "why": "同 key 的重复写入意味着重试，重放必须复用首次结果（_effects 是 setdefault）",
+   "steps": [
+    {
+     "op": "open",
+     "resume": false
+    },
+    {
+     "op": "effect",
+     "node": "N",
+     "kind": "llm.call",
+     "request": {
+      "prompt": "p"
+     },
+     "result": "first"
+    },
+    {
+     "op": "open",
+     "resume": false
+    },
+    {
+     "op": "effect",
+     "node": "N",
+     "kind": "llm.call",
+     "request": {
+      "prompt": "p"
+     },
+     "result": "second"
+    },
+    {
+     "op": "open",
+     "resume": true
+    },
+    {
+     "op": "effect",
+     "node": "N",
+     "kind": "llm.call",
+     "request": {
+      "prompt": "p"
+     },
+     "result": "WRONG"
+    }
+   ],
+   "outputs": [
+    null,
+    "first",
+    null,
+    "second",
+    null,
+    "first"
+   ],
+   "events": [
+    {
+     "run_id": "r1",
+     "seq": 0,
+     "kind": "effect.requested",
+     "node_id": "N",
+     "payload": {
+      "key": "N#0",
+      "kind": "llm.call",
+      "fp": "7a8583485f650cdf",
+      "request": {
+       "prompt": "p"
+      }
+     }
+    },
+    {
+     "run_id": "r1",
+     "seq": 1,
+     "kind": "effect.completed",
+     "node_id": "N",
+     "payload": {
+      "result": "first",
+      "key": "N#0",
+      "kind": "llm.call",
+      "fp": "7a8583485f650cdf"
+     }
+    },
+    {
+     "run_id": "r1",
+     "seq": 0,
+     "kind": "effect.requested",
+     "node_id": "N",
+     "payload": {
+      "key": "N#0",
+      "kind": "llm.call",
+      "fp": "7a8583485f650cdf",
+      "request": {
+       "prompt": "p"
+      }
+     }
+    },
+    {
+     "run_id": "r1",
+     "seq": 1,
+     "kind": "effect.completed",
+     "node_id": "N",
+     "payload": {
+      "result": "second",
+      "key": "N#0",
+      "kind": "llm.call",
+      "fp": "7a8583485f650cdf"
+     }
+    }
+   ]
+  },
+  {
+   "name": "completed_node_is_skipped_entirely",
+   "why": "节点级 checkpoint：历史里有 NODE_COMPLETED 就直接恢复产出",
+   "steps": [
+    {
+     "op": "open",
+     "resume": false
+    },
+    {
+     "op": "complete_node",
+     "node": "EXTRACT",
+     "output": {
+      "objects": 23
+     }
+    },
+    {
+     "op": "complete_node",
+     "node": "NONE_OUT",
+     "output": null
+    },
+    {
+     "op": "open",
+     "resume": true
+    },
+    {
+     "op": "node_is_complete",
+     "node": "EXTRACT"
+    },
+    {
+     "op": "node_output",
+     "node": "EXTRACT"
+    },
+    {
+     "op": "node_is_complete",
+     "node": "ALIGN"
+    },
+    {
+     "op": "node_is_complete",
+     "node": "NONE_OUT"
+    },
+    {
+     "op": "node_output",
+     "node": "NONE_OUT"
+    },
+    {
+     "op": "node_output",
+     "node": "ALIGN"
+    }
+   ],
+   "outputs": [
+    null,
+    null,
+    null,
+    null,
+    true,
+    {
+     "objects": 23
+    },
+    false,
+    true,
+    null,
+    {
+     "__error__": "KeyError",
+     "message": "'ALIGN'"
+    }
+   ],
+   "events": [
+    {
+     "run_id": "r1",
+     "seq": 0,
+     "kind": "node.completed",
+     "node_id": "EXTRACT",
+     "ref": "blob:b6d060a96deaacb247134928ccb403ee"
+    },
+    {
+     "run_id": "r1",
+     "seq": 1,
+     "kind": "node.completed",
+     "node_id": "NONE_OUT",
+     "ref": "blob:74234e98afe7498fb5daf1f36ac2d78a"
+    }
+   ]
+  },
+  {
+   "name": "attempts_are_recovered_from_node_entered",
+   "why": "重试次数从历史里的 NODE_ENTERED 恢复，恢复后接着往下数",
+   "steps": [
+    {
+     "op": "open",
+     "resume": false
+    },
+    {
+     "op": "next_attempt",
+     "node": "N"
+    },
+    {
+     "op": "node_entered",
+     "node": "N",
+     "attempt": 0
+    },
+    {
+     "op": "next_attempt",
+     "node": "N"
+    },
+    {
+     "op": "node_entered",
+     "node": "N",
+     "attempt": 1
+    },
+    {
+     "op": "open",
+     "resume": true
+    },
+    {
+     "op": "next_attempt",
+     "node": "N"
+    },
+    {
+     "op": "next_attempt",
+     "node": "OTHER"
+    }
+   ],
+   "outputs": [
+    null,
+    0,
+    null,
+    1,
+    null,
+    null,
+    2,
+    0
+   ],
+   "events": [
+    {
+     "run_id": "r1",
+     "seq": 0,
+     "kind": "node.entered",
+     "node_id": "N",
+     "payload": {
+      "attempt": 0
+     }
+    },
+    {
+     "run_id": "r1",
+     "seq": 1,
+     "kind": "node.entered",
+     "node_id": "N",
+     "payload": {
+      "attempt": 1
+     }
+    }
+   ]
+  },
+  {
+   "name": "human_gate_suspends_then_resumes",
+   "why": "HITL 是持久化的：挂起 → 人回答 → 重放到原地继续",
+   "steps": [
+    {
+     "op": "open",
+     "resume": false
+    },
+    {
+     "op": "effect",
+     "node": "CLARIFY",
+     "kind": "llm.call",
+     "request": {},
+     "result": "3 个问题"
+    },
+    {
+     "op": "ask_human",
+     "node": "CLARIFY",
+     "request_id": "q_plan_amount",
+     "payload": {
+      "options": [
+       "A",
+       "B"
+      ]
+     }
+    },
+    {
+     "op": "open",
+     "resume": true
+    },
+    {
+     "op": "record_human_answer",
+     "node": "CLARIFY",
+     "request_id": "q_plan_amount",
+     "answer": {
+      "option_id": "split_two_properties"
+     }
+    },
+    {
+     "op": "open",
+     "resume": true
+    },
+    {
+     "op": "effect",
+     "node": "CLARIFY",
+     "kind": "llm.call",
+     "request": {},
+     "result": "WRONG"
+    },
+    {
+     "op": "ask_human",
+     "node": "CLARIFY",
+     "request_id": "q_plan_amount",
+     "payload": {
+      "options": [
+       "A",
+       "B"
+      ]
+     }
+    }
+   ],
+   "outputs": [
+    null,
+    "3 个问题",
+    {
+     "__error__": "HumanInputRequired",
+     "message": "[CLARIFY] 等待人工决策 q_plan_amount"
+    },
+    null,
+    null,
+    null,
+    "3 个问题",
+    {
+     "option_id": "split_two_properties"
+    }
+   ],
+   "events": [
+    {
+     "run_id": "r1",
+     "seq": 0,
+     "kind": "effect.requested",
+     "node_id": "CLARIFY",
+     "payload": {
+      "key": "CLARIFY#0",
+      "kind": "llm.call",
+      "fp": "e010c79d0ed33639",
+      "request": {}
+     }
+    },
+    {
+     "run_id": "r1",
+     "seq": 1,
+     "kind": "effect.completed",
+     "node_id": "CLARIFY",
+     "payload": {
+      "result": "3 个问题",
+      "key": "CLARIFY#0",
+      "kind": "llm.call",
+      "fp": "e010c79d0ed33639"
+     }
+    },
+    {
+     "run_id": "r1",
+     "seq": 2,
+     "kind": "human.requested",
+     "node_id": "CLARIFY",
+     "payload": {
+      "request_id": "q_plan_amount",
+      "options": [
+       "A",
+       "B"
+      ]
+     }
+    },
+    {
+     "run_id": "r1",
+     "seq": 3,
+     "kind": "human.recorded",
+     "node_id": "CLARIFY",
+     "payload": {
+      "request_id": "q_plan_amount",
+      "answer": {
+       "option_id": "split_two_properties"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "name": "effect_failure_is_logged_and_reraised",
+   "why": "失败的 effect 不记账，重试时真正重跑；EFFECT_FAILED 里带 类名: 消息",
+   "steps": [
+    {
+     "op": "open",
+     "resume": false
+    },
+    {
+     "op": "effect",
+     "node": "N",
+     "kind": "tool.exec",
+     "request": {},
+     "raises": "沙箱超时"
+    },
+    {
+     "op": "open",
+     "resume": true
+    },
+    {
+     "op": "effect",
+     "node": "N",
+     "kind": "tool.exec",
+     "request": {},
+     "result": "ok"
+    }
+   ],
+   "outputs": [
+    null,
+    {
+     "__error__": "Boom",
+     "message": "沙箱超时"
+    },
+    null,
+    "ok"
+   ],
+   "events": [
+    {
+     "run_id": "r1",
+     "seq": 0,
+     "kind": "effect.requested",
+     "node_id": "N",
+     "payload": {
+      "key": "N#0",
+      "kind": "tool.exec",
+      "fp": "36ab79c14c29f150",
+      "request": {}
+     }
+    },
+    {
+     "run_id": "r1",
+     "seq": 1,
+     "kind": "effect.failed",
+     "node_id": "N",
+     "payload": {
+      "key": "N#0",
+      "kind": "tool.exec",
+      "error": "Boom: 沙箱超时"
+     }
+    },
+    {
+     "run_id": "r1",
+     "seq": 2,
+     "kind": "effect.requested",
+     "node_id": "N",
+     "payload": {
+      "key": "N#0",
+      "kind": "tool.exec",
+      "fp": "36ab79c14c29f150",
+      "request": {}
+     }
+    },
+    {
+     "run_id": "r1",
+     "seq": 3,
+     "kind": "effect.completed",
+     "node_id": "N",
+     "payload": {
+      "result": "ok",
+      "key": "N#0",
+      "kind": "tool.exec",
+      "fp": "36ab79c14c29f150"
+     }
+    }
+   ]
+  },
+  {
+   "name": "prompt_body_is_not_dumped_into_the_log",
+   "why": "事件日志里只留 400 码位的摘要，全量内容靠 fp 与 blob 关联",
+   "steps": [
+    {
+     "op": "open",
+     "resume": false
+    },
+    {
+     "op": "effect",
+     "node": "N",
+     "kind": "llm.call",
+     "request": {
+      "prompt": {
+       "__repeat__": [
+        "月",
+        5000
+       ]
+      }
+     },
+     "result": "ok"
+    }
+   ],
+   "outputs": [
+    null,
+    "ok"
+   ],
+   "events": [
+    {
+     "run_id": "r1",
+     "seq": 0,
+     "kind": "effect.requested",
+     "node_id": "N",
+     "payload": {
+      "key": "N#0",
+      "kind": "llm.call",
+      "fp": "c299c1a6c4981cfa",
+      "request": {
+       "prompt": "月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月…(+4600)"
+      }
+     }
+    },
+    {
+     "run_id": "r1",
+     "seq": 1,
+     "kind": "effect.completed",
+     "node_id": "N",
+     "payload": {
+      "result": "ok",
+      "key": "N#0",
+      "kind": "llm.call",
+      "fp": "c299c1a6c4981cfa"
+     }
+    }
+   ]
+  }
+ ],
+ "store": [
+  {
+   "why": "恰好 2048 码位：内联",
+   "value": {
+    "__repeat__": [
+     "x",
+     2046
+    ]
+   },
+   "json_len": 2048,
+   "inline": true,
+   "ref": null
+  },
+  {
+   "why": "2049 码位：落 blob",
+   "value": {
+    "__repeat__": [
+     "x",
+     2047
+    ]
+   },
+   "json_len": 2049,
+   "inline": false,
+   "ref": "blob:9b451e45d68c520847a7a9619dd620b0"
+  },
+  {
+   "why": "CJK 2048 码位（UTF-8 是 3 倍字节）：仍然内联",
+   "value": {
+    "__repeat__": [
+     "月",
+     2046
+    ]
+   },
+   "json_len": 2048,
+   "inline": true,
+   "ref": null
+  },
+  {
+   "why": "星平面 1026 码位 / 2050 码元：按码元判就会错判成 blob",
+   "value": {
+    "__repeat__": [
+     "𝄞",
+     1024
+    ]
+   },
+   "json_len": 1026,
+   "inline": true,
+   "ref": null
+  },
+  {
+   "why": "小对象：内联",
+   "value": {
+    "objects": 23,
+    "note": "ok"
+   },
+   "json_len": 29,
+   "inline": true,
+   "ref": null
+  },
+  {
+   "why": "None：内联",
+   "value": null,
+   "json_len": 4,
+   "inline": true,
+   "ref": null
+  }
+ ],
+ "digest": [
+  {
+   "why": "短字符串原样",
+   "request": {
+    "prompt": "抽取对象",
+    "lens": "schema"
+   },
+   "out": {
+    "prompt": "抽取对象",
+    "lens": "schema"
+   }
+  },
+  {
+   "why": "int / bool / None 走 str()",
+   "request": {
+    "n": 10000,
+    "ok": true,
+    "no": false,
+    "nil": null
+   },
+   "out": {
+    "n": "10000",
+    "ok": "True",
+    "no": "False",
+    "nil": "None"
+   }
+  },
+  {
+   "why": "嵌套容器走 repr：单引号、', ' 分隔",
+   "request": {
+    "args": {
+     "a": 1,
+     "b": "x"
+    },
+    "xs": [
+     1,
+     "y",
+     true,
+     null
+    ]
+   },
+   "out": {
+    "args": "{'a': 1, 'b': 'x'}",
+    "xs": "[1, 'y', True, None]"
+   }
+  },
+  {
+   "why": "空容器",
+   "request": {
+    "d": {},
+    "l": [],
+    "s": ""
+   },
+   "out": {
+    "d": "{}",
+    "l": "[]",
+    "s": ""
+   }
+  },
+  {
+   "why": "字符串里有引号：repr 会换引号",
+   "request": {
+    "q": {
+     "k": "it's"
+    },
+    "q2": {
+     "k": "say \"hi\""
+    }
+   },
+   "out": {
+    "q": "{'k': \"it's\"}",
+    "q2": "{'k': 'say \"hi\"'}"
+   }
+  },
+  {
+   "why": "恰好 400 码位不截断",
+   "request": {
+    "prompt": {
+     "__repeat__": [
+      "月",
+      400
+     ]
+    }
+   },
+   "out": {
+    "prompt": "月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月"
+   }
+  },
+  {
+   "why": "401 码位开始截断，尾巴带 …(+N)",
+   "request": {
+    "prompt": {
+     "__repeat__": [
+      "月",
+      401
+     ]
+    }
+   },
+   "out": {
+    "prompt": "月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月…(+1)"
+   }
+  },
+  {
+   "why": "长 prompt",
+   "request": {
+    "prompt": {
+     "__repeat__": [
+      "月",
+      5000
+     ]
+    }
+   },
+   "out": {
+    "prompt": "月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月月…(+4600)"
+   }
+  },
+  {
+   "why": "星平面字符按码位切，不劈成半个",
+   "request": {
+    "prompt": {
+     "__repeat__": [
+      "𝄞",
+      401
+     ]
+    }
+   },
+   "out": {
+    "prompt": "𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞…(+1)"
+   }
+  }
+ ],
+ "digest_divergent": [
+  {
+   "why": "值为整数的 float",
+   "request": {
+    "t": 1.0
+   },
+   "python": {
+    "t": "1.0"
+   }
+  },
+  {
+   "why": "小数 float",
+   "request": {
+    "t": 0.25
+   },
+   "python": {
+    "t": "0.25"
+   }
+  },
+  {
+   "why": "指数记号阈值",
+   "request": {
+    "t": 1e-05
+   },
+   "python": {
+    "t": "1e-05"
+   }
+  },
+  {
+   "why": "容器里的 float",
+   "request": {
+    "args": {
+     "temperature": 1.0
+    }
+   },
+   "python": {
+    "args": "{'temperature': 1.0}"
+   }
+  }
+ ],
+ "clock": [
+  {
+   "call": "now",
+   "node": "N",
+   "n": null,
+   "key": "N#0",
+   "kind": "clock.now",
+   "fp": "c2e5c0a84ace834a",
+   "request": {}
+  },
+  {
+   "call": "rand",
+   "node": "N",
+   "n": 10000,
+   "key": "N#0",
+   "kind": "clock.rand",
+   "fp": "fce6926d162a65d1",
+   "request": {
+    "n": "10000"
+   }
+  }
+ ]
+}

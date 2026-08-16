@@ -1,0 +1,171 @@
+[
+ {
+  "key": "s0_0",
+  "label": "业务对象API梳理-行动",
+  "chunks": 7,
+  "shape": {
+   "row_count": 6,
+   "row_unit": "action",
+   "yields": [
+    "actions",
+    "objects"
+   ],
+   "rule_decidable": [
+    "actions"
+   ],
+   "columns": [
+    {
+     "name": "应用模块",
+     "role": "group",
+     "fill": 0.333,
+     "distinct_ratio": 1.0,
+     "mean_len": 6.0,
+     "samples": [
+      "采购计划管理",
+      "采购订单管理"
+     ]
+    },
+    {
+     "name": "业务对象",
+     "role": "group",
+     "fill": 0.333,
+     "distinct_ratio": 1.0,
+     "mean_len": 5.0,
+     "samples": [
+      "采购需求计划",
+      "采购订单"
+     ]
+    },
+    {
+     "name": "实体编码",
+     "role": "identifier",
+     "fill": 1.0,
+     "distinct_ratio": 1.0,
+     "mean_len": 11.5,
+     "samples": [
+      "createPbp",
+      "cancelOpenPbp",
+      "queryOpenPbpHeader"
+     ]
+    },
+    {
+     "name": "实体名称",
+     "role": "label",
+     "fill": 1.0,
+     "distinct_ratio": 1.0,
+     "mean_len": 5.8,
+     "samples": [
+      "创建PBP",
+      "取消PBP",
+      "查询PBP头"
+     ]
+    },
+    {
+     "name": "url",
+     "role": "endpoint",
+     "fill": 1.0,
+     "distinct_ratio": 1.0,
+     "mean_len": 14.2,
+     "samples": [
+      "/v1/createPbp",
+      "/v1/cancelPbp",
+      "/v1/queryPbpHeader"
+     ]
+    }
+   ],
+   "note": "有接口列 —— 每一行是一个行动，编码列装的是**行动码**不是实体码；宿主对象在重复出现的名称列里，需要按命名规范起 apiName。这段没有字段可抽。"
+  },
+  "carry_in": {}
+ },
+ {
+  "key": "s1_0",
+  "label": "业务对象实体梳理",
+  "chunks": 8,
+  "shape": {
+   "row_count": 7,
+   "row_unit": "object",
+   "yields": [
+    "objects"
+   ],
+   "rule_decidable": [
+    "objects"
+   ],
+   "columns": [
+    {
+     "name": "应用模块",
+     "role": "group",
+     "fill": 0.286,
+     "distinct_ratio": 1.0,
+     "mean_len": 6.0,
+     "samples": [
+      "采购计划管理",
+      "采购订单管理"
+     ]
+    },
+    {
+     "name": "业务对象",
+     "role": "group",
+     "fill": 0.286,
+     "distinct_ratio": 1.0,
+     "mean_len": 5.0,
+     "samples": [
+      "采购需求计划",
+      "采购订单"
+     ]
+    },
+    {
+     "name": "实体编码",
+     "role": "identifier",
+     "fill": 1.0,
+     "distinct_ratio": 1.0,
+     "mean_len": 8.0,
+     "samples": [
+      "pbpHeader",
+      "pbpLine",
+      "pbpRel"
+     ]
+    },
+    {
+     "name": "实体名称",
+     "role": "label",
+     "fill": 1.0,
+     "distinct_ratio": 1.0,
+     "mean_len": 6.9,
+     "samples": [
+      "采购业务计划头",
+      "采购业务计划行",
+      "采购业务计划头行关系"
+     ]
+    }
+   ],
+   "note": "有唯一标识符列但没有数据类型列 —— 这是**实体登记表**，一行一个对象。**这段没有属性可抽，零属性是正确结果。**"
+  },
+  "carry_in": {}
+ },
+ {
+  "key": "s2_0",
+  "label": "其它",
+  "chunks": 4,
+  "shape": {
+   "row_count": 2,
+   "row_unit": null,
+   "yields": [],
+   "rule_decidable": [],
+   "columns": [
+    {
+     "name": "col1",
+     "role": "prose",
+     "fill": 1.0,
+     "distinct_ratio": 1.0,
+     "mean_len": 165.0,
+     "samples": [
+      "（1）创建采购需求计划：基于已审批集采计划自动注入；\n触发条件：集采计划审批完成；\n输入：已审批集采计划；\n输出：未审批采购需求计划；\n执行者：需求申请人\n（2）审批采购需求计划：对已编制的采购需求计划进行审批；\n触发条件：采购需求计划已编制；\n输入：采购需求计划；\n输出：已审批采购需求计划；\n执行着：部门领导\n（3）取消采购需求计划：执行采购需求计划取消流程；\n触发条件：无需继续采购；\n输入：需求取消；\n输出：已取消采购需求计划；\n执行者：需求申请人",
+      "业务规则：\n1、需进行采购包总金额上线控制，如超出XX金额，则采购包创建失败；\n2、实际与计划基线对比，如提前XX天需要进行预警提醒；\n3、进度状态标准：未开始、执行中、部分完成、已完成、已暂停、已取消；"
+     ]
+    }
+   ],
+   "note": "样本太少（不足 3 行），不下形状判断。"
+  },
+  "carry_in": {}
+ }
+]

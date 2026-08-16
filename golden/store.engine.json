@@ -1,0 +1,7451 @@
+{
+ "constants": {
+  "DEFAULT_POOL_SIZE": 5,
+  "DEFAULT_MAX_OVERFLOW": 5,
+  "SQLITE_SCHEMA_VERSION": 13
+ },
+ "database_url": [
+  {
+   "env": {},
+   "out": ""
+  },
+  {
+   "env": {
+    "DATABASE_URL": ""
+   },
+   "out": ""
+  },
+  {
+   "env": {
+    "DATABASE_URL": "   "
+   },
+   "out": ""
+  },
+  {
+   "env": {
+    "DATABASE_URL": "  postgres://u:p@h:5432/db  "
+   },
+   "out": "postgresql+asyncpg://u:p@h:5432/db"
+  },
+  {
+   "env": {
+    "DATABASE_URL": "postgres://u:p@h/db"
+   },
+   "out": "postgresql+asyncpg://u:p@h/db"
+  },
+  {
+   "env": {
+    "DATABASE_URL": "postgresql://u:p@h/db"
+   },
+   "out": "postgresql+asyncpg://u:p@h/db"
+  },
+  {
+   "env": {
+    "DATABASE_URL": "postgresql+asyncpg://u:p@h/db"
+   },
+   "out": "postgresql+asyncpg://u:p@h/db"
+  },
+  {
+   "env": {
+    "DATABASE_URL": "postgresql+psycopg://u:p@h/db"
+   },
+   "out": "postgresql+psycopg://u:p@h/db"
+  },
+  {
+   "env": {
+    "DATABASE_URL": "sqlite+aiosqlite:////tmp/x.db"
+   },
+   "out": "sqlite+aiosqlite:////tmp/x.db"
+  },
+  {
+   "env": {
+    "DATABASE_URL": "sqlite+aiosqlite:///:memory:"
+   },
+   "out": "sqlite+aiosqlite:///:memory:"
+  },
+  {
+   "env": {
+    "DATABASE_URL": "sqlite:///rel.db"
+   },
+   "out": "sqlite:///rel.db"
+  },
+  {
+   "env": {
+    "DATABASE_URL": "Postgres://u@h/db"
+   },
+   "out": "Postgres://u@h/db"
+  },
+  {
+   "env": {
+    "DATABASE_URL": "postgres://u:p@ss@h/db?sslmode=require"
+   },
+   "out": "postgresql+asyncpg://u:p@ss@h/db?sslmode=require"
+  }
+ ],
+ "memory": {
+  "mode": "memory",
+  "enabled": false,
+  "healthcheck": {
+   "mode": "memory",
+   "ok": true,
+   "note": "未配置 DATABASE_URL，会话状态只在内存里，进程重启即丢"
+  }
+ },
+ "fresh": {
+  "user_version": 13,
+  "tables": {
+   "app_setting": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "key",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "value",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 2,
+      "name": "updated_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [],
+    "indexes": [
+     {
+      "name": "sqlite_autoindex_app_setting_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "key"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE app_setting (\n\t\"key\" TEXT NOT NULL, \n\tvalue JSON NOT NULL, \n\tupdated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tPRIMARY KEY (\"key\")\n)"
+   },
+   "app_user": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "username",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 2,
+      "name": "display_name",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "password_hash",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "role",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "'user'",
+      "pk": 0
+     },
+     {
+      "cid": 5,
+      "name": "active",
+      "type": "BOOLEAN",
+      "notnull": 1,
+      "dflt_value": "1",
+      "pk": 0
+     },
+     {
+      "cid": 6,
+      "name": "prefs",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": "'{}'",
+      "pk": 0
+     },
+     {
+      "cid": 7,
+      "name": "created_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     },
+     {
+      "cid": 8,
+      "name": "updated_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [],
+    "indexes": [
+     {
+      "name": "sqlite_autoindex_app_user_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "id"
+      ]
+     },
+     {
+      "name": "sqlite_autoindex_app_user_2",
+      "unique": 1,
+      "origin": "u",
+      "partial": 0,
+      "columns": [
+       "username"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE app_user (\n\tid TEXT NOT NULL, \n\tusername TEXT NOT NULL, \n\tdisplay_name TEXT DEFAULT '' NOT NULL, \n\tpassword_hash TEXT NOT NULL, \n\trole TEXT DEFAULT 'user' NOT NULL, \n\tactive BOOLEAN DEFAULT 1 NOT NULL, \n\tprefs JSON DEFAULT '{}' NOT NULL, \n\tcreated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tupdated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tPRIMARY KEY (id), \n\tCONSTRAINT app_user_role_ck CHECK (role IN ('admin','user')), \n\tUNIQUE (username)\n)"
+   },
+   "auth_session": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "token_hash",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "user_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 2,
+      "name": "created_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "last_seen_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "expires_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [
+     {
+      "table": "app_user",
+      "from": "user_id",
+      "to": "id",
+      "on_update": "NO ACTION",
+      "on_delete": "CASCADE",
+      "match": "NONE"
+     }
+    ],
+    "indexes": [
+     {
+      "name": "auth_session_user_idx",
+      "unique": 0,
+      "origin": "c",
+      "partial": 0,
+      "columns": [
+       "user_id"
+      ]
+     },
+     {
+      "name": "sqlite_autoindex_auth_session_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "token_hash"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE auth_session (\n\ttoken_hash TEXT NOT NULL, \n\tuser_id TEXT NOT NULL, \n\tcreated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tlast_seen_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\texpires_at DATETIME NOT NULL, \n\tPRIMARY KEY (token_hash), \n\tFOREIGN KEY(user_id) REFERENCES app_user (id) ON DELETE CASCADE\n)"
+   },
+   "blob": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "ref",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "data",
+      "type": "BLOB",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 2,
+      "name": "size_bytes",
+      "type": "INTEGER",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "created_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [],
+    "indexes": [
+     {
+      "name": "sqlite_autoindex_blob_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "ref"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE blob (\n\tref TEXT NOT NULL, \n\tdata BLOB NOT NULL, \n\tsize_bytes INTEGER NOT NULL, \n\tcreated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tPRIMARY KEY (ref)\n)"
+   },
+   "build_lease": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "session_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "owner",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 2,
+      "name": "acquired_at",
+      "type": "FLOAT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "heartbeat_at",
+      "type": "FLOAT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "expires_at",
+      "type": "FLOAT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 5,
+      "name": "cancel_requested_at",
+      "type": "FLOAT",
+      "notnull": 0,
+      "dflt_value": null,
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [
+     {
+      "table": "session",
+      "from": "session_id",
+      "to": "id",
+      "on_update": "NO ACTION",
+      "on_delete": "CASCADE",
+      "match": "NONE"
+     }
+    ],
+    "indexes": [
+     {
+      "name": "build_lease_expiry_idx",
+      "unique": 0,
+      "origin": "c",
+      "partial": 0,
+      "columns": [
+       "expires_at"
+      ]
+     },
+     {
+      "name": "sqlite_autoindex_build_lease_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "session_id"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE build_lease (\n\tsession_id TEXT NOT NULL, \n\towner TEXT NOT NULL, \n\tacquired_at FLOAT NOT NULL, \n\theartbeat_at FLOAT NOT NULL, \n\texpires_at FLOAT NOT NULL, \n\tcancel_requested_at FLOAT, \n\tPRIMARY KEY (session_id), \n\tFOREIGN KEY(session_id) REFERENCES session (id) ON DELETE CASCADE\n)"
+   },
+   "chat_lease": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "session_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "owner",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 2,
+      "name": "acquired_at",
+      "type": "FLOAT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "heartbeat_at",
+      "type": "FLOAT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "expires_at",
+      "type": "FLOAT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 5,
+      "name": "cancel_requested_at",
+      "type": "FLOAT",
+      "notnull": 0,
+      "dflt_value": null,
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [
+     {
+      "table": "session",
+      "from": "session_id",
+      "to": "id",
+      "on_update": "NO ACTION",
+      "on_delete": "CASCADE",
+      "match": "NONE"
+     }
+    ],
+    "indexes": [
+     {
+      "name": "chat_lease_expiry_idx",
+      "unique": 0,
+      "origin": "c",
+      "partial": 0,
+      "columns": [
+       "expires_at"
+      ]
+     },
+     {
+      "name": "sqlite_autoindex_chat_lease_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "session_id"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE chat_lease (\n\tsession_id TEXT NOT NULL, \n\towner TEXT NOT NULL, \n\tacquired_at FLOAT NOT NULL, \n\theartbeat_at FLOAT NOT NULL, \n\texpires_at FLOAT NOT NULL, \n\tcancel_requested_at FLOAT, \n\tPRIMARY KEY (session_id), \n\tFOREIGN KEY(session_id) REFERENCES session (id) ON DELETE CASCADE\n)"
+   },
+   "chat_turn": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "session_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "ordinal",
+      "type": "INTEGER",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 2
+     },
+     {
+      "cid": 2,
+      "name": "speaker",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "text",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "intent",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 5,
+      "name": "refs",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": "'[]'",
+      "pk": 0
+     },
+     {
+      "cid": 6,
+      "name": "compressed",
+      "type": "BOOLEAN",
+      "notnull": 1,
+      "dflt_value": "0",
+      "pk": 0
+     },
+     {
+      "cid": 7,
+      "name": "ts",
+      "type": "FLOAT",
+      "notnull": 1,
+      "dflt_value": "'0'",
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [
+     {
+      "table": "session",
+      "from": "session_id",
+      "to": "id",
+      "on_update": "NO ACTION",
+      "on_delete": "CASCADE",
+      "match": "NONE"
+     }
+    ],
+    "indexes": [
+     {
+      "name": "sqlite_autoindex_chat_turn_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "session_id",
+       "ordinal"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE chat_turn (\n\tsession_id TEXT NOT NULL, \n\tordinal INTEGER NOT NULL, \n\tspeaker TEXT NOT NULL, \n\ttext TEXT NOT NULL, \n\tintent TEXT DEFAULT '' NOT NULL, \n\trefs JSON DEFAULT '[]' NOT NULL, \n\tcompressed BOOLEAN DEFAULT 0 NOT NULL, \n\tts FLOAT DEFAULT '0' NOT NULL, \n\tPRIMARY KEY (session_id, ordinal), \n\tFOREIGN KEY(session_id) REFERENCES session (id) ON DELETE CASCADE\n)"
+   },
+   "conflict": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "session_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "rid",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 2
+     },
+     {
+      "cid": 2,
+      "name": "kind",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "handling",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "summary",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 5,
+      "name": "subjects",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": "'[]'",
+      "pk": 0
+     },
+     {
+      "cid": 6,
+      "name": "detector",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "'rule'",
+      "pk": 0
+     },
+     {
+      "cid": 7,
+      "name": "owner",
+      "type": "TEXT",
+      "notnull": 0,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 8,
+      "name": "doc",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 9,
+      "name": "asked",
+      "type": "BOOLEAN",
+      "notnull": 1,
+      "dflt_value": "0",
+      "pk": 0
+     },
+     {
+      "cid": 10,
+      "name": "ask_rank",
+      "type": "INTEGER",
+      "notnull": 0,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 11,
+      "name": "version",
+      "type": "BIGINT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [
+     {
+      "table": "session",
+      "from": "session_id",
+      "to": "id",
+      "on_update": "NO ACTION",
+      "on_delete": "CASCADE",
+      "match": "NONE"
+     }
+    ],
+    "indexes": [
+     {
+      "name": "sqlite_autoindex_conflict_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "session_id",
+       "rid"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE \"conflict\" (\n\tsession_id TEXT NOT NULL, \n\trid TEXT NOT NULL, \n\tkind TEXT NOT NULL, \n\thandling TEXT NOT NULL, \n\tsummary TEXT DEFAULT '' NOT NULL, \n\tsubjects JSON DEFAULT '[]' NOT NULL, \n\tdetector TEXT DEFAULT 'rule' NOT NULL, \n\towner TEXT, \n\tdoc JSON NOT NULL, \n\tasked BOOLEAN DEFAULT 0 NOT NULL, \n\task_rank INTEGER, \n\tversion BIGINT NOT NULL, \n\tPRIMARY KEY (session_id, rid), \n\tCONSTRAINT conflict_handling_ck CHECK (handling IN ('ask_user','auto_repair','round_trip','hint')), \n\tFOREIGN KEY(session_id) REFERENCES session (id) ON DELETE CASCADE\n)"
+   },
+   "decision": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "session_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "ordinal",
+      "type": "INTEGER",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 2
+     },
+     {
+      "cid": 2,
+      "name": "kind",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "statement",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "scope_refs",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": "'[]'",
+      "pk": 0
+     },
+     {
+      "cid": 5,
+      "name": "turn_index",
+      "type": "INTEGER",
+      "notnull": 1,
+      "dflt_value": "'-1'",
+      "pk": 0
+     },
+     {
+      "cid": 6,
+      "name": "superseded_by",
+      "type": "INTEGER",
+      "notnull": 0,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 7,
+      "name": "target_rid",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 8,
+      "name": "option_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 9,
+      "name": "changed",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": "'[]'",
+      "pk": 0
+     },
+     {
+      "cid": 10,
+      "name": "note",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 11,
+      "name": "actor",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "'user'",
+      "pk": 0
+     },
+     {
+      "cid": 12,
+      "name": "ts",
+      "type": "FLOAT",
+      "notnull": 1,
+      "dflt_value": "'0'",
+      "pk": 0
+     },
+     {
+      "cid": 13,
+      "name": "created_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [
+     {
+      "table": "session",
+      "from": "session_id",
+      "to": "id",
+      "on_update": "NO ACTION",
+      "on_delete": "CASCADE",
+      "match": "NONE"
+     }
+    ],
+    "indexes": [
+     {
+      "name": "decision_live_answer_uq",
+      "unique": 1,
+      "origin": "c",
+      "partial": 1,
+      "columns": [
+       "session_id",
+       "target_rid"
+      ]
+     },
+     {
+      "name": "sqlite_autoindex_decision_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "session_id",
+       "ordinal"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE decision (\n\tsession_id TEXT NOT NULL, \n\tordinal INTEGER NOT NULL, \n\tkind TEXT NOT NULL, \n\tstatement TEXT DEFAULT '' NOT NULL, \n\tscope_refs JSON DEFAULT '[]' NOT NULL, \n\tturn_index INTEGER DEFAULT '-1' NOT NULL, \n\tsuperseded_by INTEGER, \n\ttarget_rid TEXT DEFAULT '' NOT NULL, \n\toption_id TEXT DEFAULT '' NOT NULL, \n\tchanged JSON DEFAULT '[]' NOT NULL, \n\tnote TEXT DEFAULT '' NOT NULL, \n\tactor TEXT DEFAULT 'user' NOT NULL, \n\tts FLOAT DEFAULT '0' NOT NULL, \n\tcreated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tPRIMARY KEY (session_id, ordinal), \n\tCONSTRAINT decision_kind_ck CHECK (kind IN ('caliber','naming','scope','answer','adoption','correction')), \n\tFOREIGN KEY(session_id) REFERENCES session (id) ON DELETE CASCADE\n)"
+   },
+   "decision_record": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "session_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 2
+     },
+     {
+      "cid": 2,
+      "name": "question_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "answer",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "actor",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 5,
+      "name": "actor_role",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 6,
+      "name": "authority",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 7,
+      "name": "source_turn",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 8,
+      "name": "affected_ids",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": "'[]'",
+      "pk": 0
+     },
+     {
+      "cid": 9,
+      "name": "supersedes",
+      "type": "TEXT",
+      "notnull": 0,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 10,
+      "name": "revision",
+      "type": "BIGINT",
+      "notnull": 0,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 11,
+      "name": "idempotency_key",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 12,
+      "name": "semantic_hash",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 13,
+      "name": "rationale",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 14,
+      "name": "metadata",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": "'{}'",
+      "pk": 0
+     },
+     {
+      "cid": 15,
+      "name": "created_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [
+     {
+      "table": "session",
+      "from": "session_id",
+      "to": "id",
+      "on_update": "NO ACTION",
+      "on_delete": "CASCADE",
+      "match": "NONE"
+     }
+    ],
+    "indexes": [
+     {
+      "name": "decision_record_idempotency_uq",
+      "unique": 1,
+      "origin": "c",
+      "partial": 0,
+      "columns": [
+       "session_id",
+       "idempotency_key"
+      ]
+     },
+     {
+      "name": "decision_record_question_idx",
+      "unique": 0,
+      "origin": "c",
+      "partial": 0,
+      "columns": [
+       "session_id",
+       "question_id",
+       "created_at"
+      ]
+     },
+     {
+      "name": "sqlite_autoindex_decision_record_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "session_id",
+       "id"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE decision_record (\n\tsession_id TEXT NOT NULL, \n\tid TEXT NOT NULL, \n\tquestion_id TEXT NOT NULL, \n\tanswer JSON NOT NULL, \n\tactor TEXT NOT NULL, \n\tactor_role TEXT DEFAULT '' NOT NULL, \n\tauthority TEXT DEFAULT '' NOT NULL, \n\tsource_turn TEXT DEFAULT '' NOT NULL, \n\taffected_ids JSON DEFAULT '[]' NOT NULL, \n\tsupersedes TEXT, \n\trevision BIGINT, \n\tidempotency_key TEXT NOT NULL, \n\tsemantic_hash TEXT NOT NULL, \n\trationale TEXT DEFAULT '' NOT NULL, \n\tmetadata JSON DEFAULT '{}' NOT NULL, \n\tcreated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tPRIMARY KEY (session_id, id), \n\tFOREIGN KEY(session_id) REFERENCES session (id) ON DELETE CASCADE\n)"
+   },
+   "kernel_event": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "run_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "seq",
+      "type": "BIGINT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 2
+     },
+     {
+      "cid": 2,
+      "name": "kind",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "node_id",
+      "type": "TEXT",
+      "notnull": 0,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "payload",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": "'{}'",
+      "pk": 0
+     },
+     {
+      "cid": 5,
+      "name": "ref",
+      "type": "TEXT",
+      "notnull": 0,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 6,
+      "name": "ts_ms",
+      "type": "BIGINT",
+      "notnull": 1,
+      "dflt_value": "'0'",
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [
+     {
+      "table": "run",
+      "from": "run_id",
+      "to": "id",
+      "on_update": "NO ACTION",
+      "on_delete": "CASCADE",
+      "match": "NONE"
+     }
+    ],
+    "indexes": [
+     {
+      "name": "sqlite_autoindex_kernel_event_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "run_id",
+       "seq"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE kernel_event (\n\trun_id TEXT NOT NULL, \n\tseq BIGINT NOT NULL, \n\tkind TEXT NOT NULL, \n\tnode_id TEXT, \n\tpayload JSON DEFAULT '{}' NOT NULL, \n\tref TEXT, \n\tts_ms BIGINT DEFAULT '0' NOT NULL, \n\tPRIMARY KEY (run_id, seq), \n\tFOREIGN KEY(run_id) REFERENCES run (id) ON DELETE CASCADE\n)"
+   },
+   "llm_usage": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "ts",
+      "type": "FLOAT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 2,
+      "name": "day",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "owner",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "session_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 5,
+      "name": "run_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 6,
+      "name": "node_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 7,
+      "name": "kind",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "'build'",
+      "pk": 0
+     },
+     {
+      "cid": 8,
+      "name": "model",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 9,
+      "name": "effort",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 10,
+      "name": "tok_in",
+      "type": "BIGINT",
+      "notnull": 1,
+      "dflt_value": "'0'",
+      "pk": 0
+     },
+     {
+      "cid": 11,
+      "name": "tok_out",
+      "type": "BIGINT",
+      "notnull": 1,
+      "dflt_value": "'0'",
+      "pk": 0
+     },
+     {
+      "cid": 12,
+      "name": "cache_read",
+      "type": "BIGINT",
+      "notnull": 1,
+      "dflt_value": "'0'",
+      "pk": 0
+     },
+     {
+      "cid": 13,
+      "name": "cache_write",
+      "type": "BIGINT",
+      "notnull": 1,
+      "dflt_value": "'0'",
+      "pk": 0
+     },
+     {
+      "cid": 14,
+      "name": "usd",
+      "type": "FLOAT",
+      "notnull": 1,
+      "dflt_value": "'0'",
+      "pk": 0
+     },
+     {
+      "cid": 15,
+      "name": "usd_source",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "'estimated'",
+      "pk": 0
+     },
+     {
+      "cid": 16,
+      "name": "attempts",
+      "type": "INTEGER",
+      "notnull": 1,
+      "dflt_value": "'1'",
+      "pk": 0
+     },
+     {
+      "cid": 17,
+      "name": "status",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "'ok'",
+      "pk": 0
+     },
+     {
+      "cid": 18,
+      "name": "created_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [],
+    "indexes": [
+     {
+      "name": "llm_usage_model_day_idx",
+      "unique": 0,
+      "origin": "c",
+      "partial": 0,
+      "columns": [
+       "model",
+       "day"
+      ]
+     },
+     {
+      "name": "llm_usage_owner_day_idx",
+      "unique": 0,
+      "origin": "c",
+      "partial": 0,
+      "columns": [
+       "owner",
+       "day"
+      ]
+     },
+     {
+      "name": "llm_usage_ts_idx",
+      "unique": 0,
+      "origin": "c",
+      "partial": 0,
+      "columns": [
+       "ts"
+      ]
+     },
+     {
+      "name": "sqlite_autoindex_llm_usage_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "id"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE llm_usage (\n\tid TEXT NOT NULL, \n\tts FLOAT NOT NULL, \n\tday TEXT NOT NULL, \n\towner TEXT DEFAULT '' NOT NULL, \n\tsession_id TEXT DEFAULT '' NOT NULL, \n\trun_id TEXT DEFAULT '' NOT NULL, \n\tnode_id TEXT DEFAULT '' NOT NULL, \n\tkind TEXT DEFAULT 'build' NOT NULL, \n\tmodel TEXT NOT NULL, \n\teffort TEXT DEFAULT '' NOT NULL, \n\ttok_in BIGINT DEFAULT '0' NOT NULL, \n\ttok_out BIGINT DEFAULT '0' NOT NULL, \n\tcache_read BIGINT DEFAULT '0' NOT NULL, \n\tcache_write BIGINT DEFAULT '0' NOT NULL, \n\tusd FLOAT DEFAULT '0' NOT NULL, \n\tusd_source TEXT DEFAULT 'estimated' NOT NULL, \n\tattempts INTEGER DEFAULT '1' NOT NULL, \n\tstatus TEXT DEFAULT 'ok' NOT NULL, \n\tcreated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tPRIMARY KEY (id), \n\tCONSTRAINT llm_usage_kind_ck CHECK (kind IN ('build','chat','aux')), \n\tCONSTRAINT llm_usage_tokens_ck CHECK (tok_in >= 0 AND tok_out >= 0 AND cache_read >= 0 AND cache_write >= 0), \n\tCONSTRAINT llm_usage_usd_ck CHECK (usd >= 0), \n\tCONSTRAINT llm_usage_attempts_ck CHECK (attempts >= 1), \n\tCONSTRAINT llm_usage_usd_source_ck CHECK (usd_source IN ('gateway','estimated')), \n\tCONSTRAINT llm_usage_status_ck CHECK (status IN ('ok','failed'))\n)"
+   },
+   "mutation_lease": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "session_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "owner",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 2,
+      "name": "kind",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "acquired_at",
+      "type": "FLOAT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "heartbeat_at",
+      "type": "FLOAT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 5,
+      "name": "expires_at",
+      "type": "FLOAT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [
+     {
+      "table": "session",
+      "from": "session_id",
+      "to": "id",
+      "on_update": "NO ACTION",
+      "on_delete": "CASCADE",
+      "match": "NONE"
+     }
+    ],
+    "indexes": [
+     {
+      "name": "mutation_lease_expiry_idx",
+      "unique": 0,
+      "origin": "c",
+      "partial": 0,
+      "columns": [
+       "expires_at"
+      ]
+     },
+     {
+      "name": "sqlite_autoindex_mutation_lease_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "session_id"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE mutation_lease (\n\tsession_id TEXT NOT NULL, \n\towner TEXT NOT NULL, \n\tkind TEXT NOT NULL, \n\tacquired_at FLOAT NOT NULL, \n\theartbeat_at FLOAT NOT NULL, \n\texpires_at FLOAT NOT NULL, \n\tPRIMARY KEY (session_id), \n\tFOREIGN KEY(session_id) REFERENCES session (id) ON DELETE CASCADE\n)"
+   },
+   "project": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "name",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 2,
+      "name": "owner",
+      "type": "TEXT",
+      "notnull": 0,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "prefs",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "sort_order",
+      "type": "INTEGER",
+      "notnull": 1,
+      "dflt_value": "'0'",
+      "pk": 0
+     },
+     {
+      "cid": 5,
+      "name": "created_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     },
+     {
+      "cid": 6,
+      "name": "updated_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [],
+    "indexes": [
+     {
+      "name": "project_owner_idx",
+      "unique": 0,
+      "origin": "c",
+      "partial": 0,
+      "columns": [
+       "owner"
+      ]
+     },
+     {
+      "name": "sqlite_autoindex_project_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "id"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE project (\n\tid TEXT NOT NULL, \n\tname TEXT NOT NULL, \n\towner TEXT, \n\tprefs JSON NOT NULL, \n\tsort_order INTEGER DEFAULT '0' NOT NULL, \n\tcreated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tupdated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tPRIMARY KEY (id)\n)"
+   },
+   "project_memory": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "project_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "key",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 2
+     },
+     {
+      "cid": 2,
+      "name": "tier",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "kind",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "content",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 5,
+      "name": "confidence",
+      "type": "FLOAT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 6,
+      "name": "support",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 7,
+      "name": "tags",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 8,
+      "name": "origin_session",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 9,
+      "name": "origin_files",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 10,
+      "name": "contested_by",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 11,
+      "name": "hit_runs",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 12,
+      "name": "use_count",
+      "type": "INTEGER",
+      "notnull": 1,
+      "dflt_value": "'0'",
+      "pk": 0
+     },
+     {
+      "cid": 13,
+      "name": "created_run",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 14,
+      "name": "last_used_run",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 15,
+      "name": "updated_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [],
+    "indexes": [
+     {
+      "name": "sqlite_autoindex_project_memory_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "project_id",
+       "key"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE project_memory (\n\tproject_id TEXT NOT NULL, \n\t\"key\" TEXT NOT NULL, \n\ttier TEXT NOT NULL, \n\tkind TEXT NOT NULL, \n\tcontent TEXT NOT NULL, \n\tconfidence FLOAT NOT NULL, \n\tsupport JSON NOT NULL, \n\ttags JSON NOT NULL, \n\torigin_session TEXT DEFAULT '' NOT NULL, \n\torigin_files JSON NOT NULL, \n\tcontested_by JSON NOT NULL, \n\thit_runs JSON NOT NULL, \n\tuse_count INTEGER DEFAULT '0' NOT NULL, \n\tcreated_run TEXT DEFAULT '' NOT NULL, \n\tlast_used_run TEXT DEFAULT '' NOT NULL, \n\tupdated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tPRIMARY KEY (project_id, \"key\"), \n\tCONSTRAINT project_memory_tier_ck CHECK (tier IN ('authoritative','reference'))\n)"
+   },
+   "question_item": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "session_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 2
+     },
+     {
+      "cid": 2,
+      "name": "text",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "status",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "'open'",
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "owner_user_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 5,
+      "name": "audience_role",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 6,
+      "name": "answer_schema",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": "'{}'",
+      "pk": 0
+     },
+     {
+      "cid": 7,
+      "name": "priority",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "'normal'",
+      "pk": 0
+     },
+     {
+      "cid": 8,
+      "name": "dependencies",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": "'[]'",
+      "pk": 0
+     },
+     {
+      "cid": 9,
+      "name": "blocked_artifacts",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": "'[]'",
+      "pk": 0
+     },
+     {
+      "cid": 10,
+      "name": "source_kind",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "'manual'",
+      "pk": 0
+     },
+     {
+      "cid": 11,
+      "name": "source_ref",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 12,
+      "name": "doc",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 13,
+      "name": "version",
+      "type": "BIGINT",
+      "notnull": 1,
+      "dflt_value": "'0'",
+      "pk": 0
+     },
+     {
+      "cid": 14,
+      "name": "created_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     },
+     {
+      "cid": 15,
+      "name": "updated_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [
+     {
+      "table": "session",
+      "from": "session_id",
+      "to": "id",
+      "on_update": "NO ACTION",
+      "on_delete": "CASCADE",
+      "match": "NONE"
+     }
+    ],
+    "indexes": [
+     {
+      "name": "question_item_queue_idx",
+      "unique": 0,
+      "origin": "c",
+      "partial": 0,
+      "columns": [
+       "session_id",
+       "status",
+       "priority"
+      ]
+     },
+     {
+      "name": "question_item_source_idx",
+      "unique": 0,
+      "origin": "c",
+      "partial": 0,
+      "columns": [
+       "session_id",
+       "source_kind",
+       "source_ref"
+      ]
+     },
+     {
+      "name": "sqlite_autoindex_question_item_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "session_id",
+       "id"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE question_item (\n\tsession_id TEXT NOT NULL, \n\tid TEXT NOT NULL, \n\ttext TEXT NOT NULL, \n\tstatus TEXT DEFAULT 'open' NOT NULL, \n\towner_user_id TEXT DEFAULT '' NOT NULL, \n\taudience_role TEXT DEFAULT '' NOT NULL, \n\tanswer_schema JSON DEFAULT '{}' NOT NULL, \n\tpriority TEXT DEFAULT 'normal' NOT NULL, \n\tdependencies JSON DEFAULT '[]' NOT NULL, \n\tblocked_artifacts JSON DEFAULT '[]' NOT NULL, \n\tsource_kind TEXT DEFAULT 'manual' NOT NULL, \n\tsource_ref TEXT DEFAULT '' NOT NULL, \n\tdoc JSON NOT NULL, \n\tversion BIGINT DEFAULT '0' NOT NULL, \n\tcreated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tupdated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tPRIMARY KEY (session_id, id), \n\tCONSTRAINT question_item_status_ck CHECK (status IN ('open','assigned','blocked','answered','deferred','cancelled')), \n\tCONSTRAINT question_item_priority_ck CHECK (priority IN ('blocking','high','normal','low')), \n\tFOREIGN KEY(session_id) REFERENCES session (id) ON DELETE CASCADE\n)"
+   },
+   "revision_record": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "session_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 2
+     },
+     {
+      "cid": 2,
+      "name": "ordinal",
+      "type": "BIGINT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "parent_id",
+      "type": "TEXT",
+      "notnull": 0,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "kind",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 5,
+      "name": "status",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 6,
+      "name": "patch_set",
+      "type": "JSON",
+      "notnull": 0,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 7,
+      "name": "changed_ids",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": "'[]'",
+      "pk": 0
+     },
+     {
+      "cid": 8,
+      "name": "invalidated_artifacts",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": "'[]'",
+      "pk": 0
+     },
+     {
+      "cid": 9,
+      "name": "actor",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "'agent'",
+      "pk": 0
+     },
+     {
+      "cid": 10,
+      "name": "source_turn",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 11,
+      "name": "snapshot_hash",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 12,
+      "name": "idempotency_key",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 13,
+      "name": "doc",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 14,
+      "name": "created_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [
+     {
+      "table": "session",
+      "from": "session_id",
+      "to": "id",
+      "on_update": "NO ACTION",
+      "on_delete": "CASCADE",
+      "match": "NONE"
+     }
+    ],
+    "indexes": [
+     {
+      "name": "revision_record_idempotency_uq",
+      "unique": 1,
+      "origin": "c",
+      "partial": 1,
+      "columns": [
+       "session_id",
+       "idempotency_key"
+      ]
+     },
+     {
+      "name": "sqlite_autoindex_revision_record_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "session_id",
+       "id"
+      ]
+     },
+     {
+      "name": "sqlite_autoindex_revision_record_2",
+      "unique": 1,
+      "origin": "u",
+      "partial": 0,
+      "columns": [
+       "session_id",
+       "ordinal"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE revision_record (\n\tsession_id TEXT NOT NULL, \n\tid TEXT NOT NULL, \n\tordinal BIGINT NOT NULL, \n\tparent_id TEXT, \n\tkind TEXT NOT NULL, \n\tstatus TEXT NOT NULL, \n\tpatch_set JSON, \n\tchanged_ids JSON DEFAULT '[]' NOT NULL, \n\tinvalidated_artifacts JSON DEFAULT '[]' NOT NULL, \n\tactor TEXT DEFAULT 'agent' NOT NULL, \n\tsource_turn TEXT DEFAULT '' NOT NULL, \n\tsnapshot_hash TEXT DEFAULT '' NOT NULL, \n\tidempotency_key TEXT DEFAULT '' NOT NULL, \n\tdoc JSON NOT NULL, \n\tcreated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tPRIMARY KEY (session_id, id), \n\tCONSTRAINT revision_record_ordinal_uq UNIQUE (session_id, ordinal), \n\tCONSTRAINT revision_record_status_ck CHECK (status IN ('proposed','applied','rejected','rolled_back')), \n\tFOREIGN KEY(session_id) REFERENCES session (id) ON DELETE CASCADE\n)"
+   },
+   "run": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "session_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 2,
+      "name": "ordinal",
+      "type": "INTEGER",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "kind",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "status",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "'running'",
+      "pk": 0
+     },
+     {
+      "cid": 5,
+      "name": "budget",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": "'{}'",
+      "pk": 0
+     },
+     {
+      "cid": 6,
+      "name": "error",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 7,
+      "name": "started_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     },
+     {
+      "cid": 8,
+      "name": "ended_at",
+      "type": "DATETIME",
+      "notnull": 0,
+      "dflt_value": null,
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [
+     {
+      "table": "session",
+      "from": "session_id",
+      "to": "id",
+      "on_update": "NO ACTION",
+      "on_delete": "CASCADE",
+      "match": "NONE"
+     }
+    ],
+    "indexes": [
+     {
+      "name": "sqlite_autoindex_run_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "id"
+      ]
+     },
+     {
+      "name": "sqlite_autoindex_run_2",
+      "unique": 1,
+      "origin": "u",
+      "partial": 0,
+      "columns": [
+       "session_id",
+       "ordinal"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE run (\n\tid TEXT NOT NULL, \n\tsession_id TEXT NOT NULL, \n\tordinal INTEGER NOT NULL, \n\tkind TEXT NOT NULL, \n\tstatus TEXT DEFAULT 'running' NOT NULL, \n\tbudget JSON DEFAULT '{}' NOT NULL, \n\terror TEXT DEFAULT '' NOT NULL, \n\tstarted_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tended_at DATETIME, \n\tPRIMARY KEY (id), \n\tCONSTRAINT run_session_ordinal_uq UNIQUE (session_id, ordinal), \n\tCONSTRAINT run_status_ck CHECK (status IN ('running','suspended','done','failed')), \n\tFOREIGN KEY(session_id) REFERENCES session (id) ON DELETE CASCADE\n)"
+   },
+   "schema_migration": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "version",
+      "type": "INTEGER",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "name",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 2,
+      "name": "checksum",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "applied_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [],
+    "indexes": [],
+    "sql": "CREATE TABLE schema_migration (\n\tversion INTEGER NOT NULL, \n\tname TEXT NOT NULL, \n\tchecksum TEXT NOT NULL, \n\tapplied_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tPRIMARY KEY (version)\n)"
+   },
+   "session": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "title",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "'新建会话'",
+      "pk": 0
+     },
+     {
+      "cid": 2,
+      "name": "project",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "status",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "'idle'",
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "error",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 5,
+      "name": "state_version",
+      "type": "BIGINT",
+      "notnull": 1,
+      "dflt_value": "'0'",
+      "pk": 0
+     },
+     {
+      "cid": 6,
+      "name": "next_event_seq",
+      "type": "BIGINT",
+      "notnull": 1,
+      "dflt_value": "'0'",
+      "pk": 0
+     },
+     {
+      "cid": 7,
+      "name": "next_run_ordinal",
+      "type": "INTEGER",
+      "notnull": 1,
+      "dflt_value": "'0'",
+      "pk": 0
+     },
+     {
+      "cid": 8,
+      "name": "next_decision_ordinal",
+      "type": "INTEGER",
+      "notnull": 1,
+      "dflt_value": "'0'",
+      "pk": 0
+     },
+     {
+      "cid": 9,
+      "name": "created_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     },
+     {
+      "cid": 10,
+      "name": "updated_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     },
+     {
+      "cid": 11,
+      "name": "owner",
+      "type": "TEXT",
+      "notnull": 0,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 12,
+      "name": "project_id",
+      "type": "TEXT",
+      "notnull": 0,
+      "dflt_value": null,
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [],
+    "indexes": [
+     {
+      "name": "session_project_idx",
+      "unique": 0,
+      "origin": "c",
+      "partial": 0,
+      "columns": [
+       "project_id"
+      ]
+     },
+     {
+      "name": "sqlite_autoindex_session_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "id"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE session (\n\tid TEXT NOT NULL, \n\ttitle TEXT DEFAULT '新建会话' NOT NULL, \n\tproject TEXT DEFAULT '' NOT NULL, \n\tstatus TEXT DEFAULT 'idle' NOT NULL, \n\terror TEXT DEFAULT '' NOT NULL, \n\tstate_version BIGINT DEFAULT '0' NOT NULL, \n\tnext_event_seq BIGINT DEFAULT '0' NOT NULL, \n\tnext_run_ordinal INTEGER DEFAULT '0' NOT NULL, \n\tnext_decision_ordinal INTEGER DEFAULT '0' NOT NULL, \n\tcreated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tupdated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\towner TEXT, \n\tproject_id TEXT, \n\tPRIMARY KEY (id), \n\tCONSTRAINT session_status_ck CHECK (status IN ('idle','queued','parsing','extracting','awaiting_answer','done','failed','stopped'))\n)"
+   },
+   "session_event": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "session_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "seq",
+      "type": "BIGINT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 2
+     },
+     {
+      "cid": 2,
+      "name": "kind",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "payload",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": "'{}'",
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "ref",
+      "type": "TEXT",
+      "notnull": 0,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 5,
+      "name": "ts",
+      "type": "FLOAT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 6,
+      "name": "event_id",
+      "type": "TEXT",
+      "notnull": 0,
+      "dflt_value": null,
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [
+     {
+      "table": "session",
+      "from": "session_id",
+      "to": "id",
+      "on_update": "NO ACTION",
+      "on_delete": "CASCADE",
+      "match": "NONE"
+     }
+    ],
+    "indexes": [
+     {
+      "name": "session_event_event_id_uq",
+      "unique": 1,
+      "origin": "c",
+      "partial": 1,
+      "columns": [
+       "event_id"
+      ]
+     },
+     {
+      "name": "sqlite_autoindex_session_event_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "session_id",
+       "seq"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE session_event (\n\tsession_id TEXT NOT NULL, \n\tseq BIGINT NOT NULL, \n\tkind TEXT NOT NULL, \n\tpayload JSON DEFAULT '{}' NOT NULL, \n\tref TEXT, \n\tts FLOAT NOT NULL, \n\tevent_id TEXT, \n\tPRIMARY KEY (session_id, seq), \n\tFOREIGN KEY(session_id) REFERENCES session (id) ON DELETE CASCADE\n)"
+   },
+   "session_file": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "session_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "name",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 2
+     },
+     {
+      "cid": 2,
+      "name": "rel_path",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "size_bytes",
+      "type": "BIGINT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "sha256",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 5,
+      "name": "uploaded_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [
+     {
+      "table": "session",
+      "from": "session_id",
+      "to": "id",
+      "on_update": "NO ACTION",
+      "on_delete": "CASCADE",
+      "match": "NONE"
+     }
+    ],
+    "indexes": [
+     {
+      "name": "sqlite_autoindex_session_file_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "session_id",
+       "name"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE session_file (\n\tsession_id TEXT NOT NULL, \n\tname TEXT NOT NULL, \n\trel_path TEXT NOT NULL, \n\tsize_bytes BIGINT NOT NULL, \n\tsha256 TEXT DEFAULT '' NOT NULL, \n\tuploaded_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tPRIMARY KEY (session_id, name), \n\tFOREIGN KEY(session_id) REFERENCES session (id) ON DELETE CASCADE\n)"
+   },
+   "session_state": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "session_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "key",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 2
+     },
+     {
+      "cid": 2,
+      "name": "doc",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "version",
+      "type": "BIGINT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "derived",
+      "type": "BOOLEAN",
+      "notnull": 1,
+      "dflt_value": "0",
+      "pk": 0
+     },
+     {
+      "cid": 5,
+      "name": "updated_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [
+     {
+      "table": "session",
+      "from": "session_id",
+      "to": "id",
+      "on_update": "NO ACTION",
+      "on_delete": "CASCADE",
+      "match": "NONE"
+     }
+    ],
+    "indexes": [
+     {
+      "name": "sqlite_autoindex_session_state_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "session_id",
+       "key"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE session_state (\n\tsession_id TEXT NOT NULL, \n\t\"key\" TEXT NOT NULL, \n\tdoc JSON NOT NULL, \n\tversion BIGINT NOT NULL, \n\tderived BOOLEAN DEFAULT 0 NOT NULL, \n\tupdated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tPRIMARY KEY (session_id, \"key\"), \n\tFOREIGN KEY(session_id) REFERENCES session (id) ON DELETE CASCADE\n)"
+   }
+  },
+  "healthcheck": {
+   "mode": "sqlite",
+   "ok": true,
+   "schema_version": 13
+  },
+  "mode": "sqlite"
+ },
+ "reopen": {
+  "user_version": 13,
+  "tables": {
+   "app_setting": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "key",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "value",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 2,
+      "name": "updated_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [],
+    "indexes": [
+     {
+      "name": "sqlite_autoindex_app_setting_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "key"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE app_setting (\n\t\"key\" TEXT NOT NULL, \n\tvalue JSON NOT NULL, \n\tupdated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tPRIMARY KEY (\"key\")\n)"
+   },
+   "app_user": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "username",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 2,
+      "name": "display_name",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "password_hash",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "role",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "'user'",
+      "pk": 0
+     },
+     {
+      "cid": 5,
+      "name": "active",
+      "type": "BOOLEAN",
+      "notnull": 1,
+      "dflt_value": "1",
+      "pk": 0
+     },
+     {
+      "cid": 6,
+      "name": "prefs",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": "'{}'",
+      "pk": 0
+     },
+     {
+      "cid": 7,
+      "name": "created_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     },
+     {
+      "cid": 8,
+      "name": "updated_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [],
+    "indexes": [
+     {
+      "name": "sqlite_autoindex_app_user_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "id"
+      ]
+     },
+     {
+      "name": "sqlite_autoindex_app_user_2",
+      "unique": 1,
+      "origin": "u",
+      "partial": 0,
+      "columns": [
+       "username"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE app_user (\n\tid TEXT NOT NULL, \n\tusername TEXT NOT NULL, \n\tdisplay_name TEXT DEFAULT '' NOT NULL, \n\tpassword_hash TEXT NOT NULL, \n\trole TEXT DEFAULT 'user' NOT NULL, \n\tactive BOOLEAN DEFAULT 1 NOT NULL, \n\tprefs JSON DEFAULT '{}' NOT NULL, \n\tcreated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tupdated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tPRIMARY KEY (id), \n\tCONSTRAINT app_user_role_ck CHECK (role IN ('admin','user')), \n\tUNIQUE (username)\n)"
+   },
+   "auth_session": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "token_hash",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "user_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 2,
+      "name": "created_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "last_seen_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "expires_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [
+     {
+      "table": "app_user",
+      "from": "user_id",
+      "to": "id",
+      "on_update": "NO ACTION",
+      "on_delete": "CASCADE",
+      "match": "NONE"
+     }
+    ],
+    "indexes": [
+     {
+      "name": "auth_session_user_idx",
+      "unique": 0,
+      "origin": "c",
+      "partial": 0,
+      "columns": [
+       "user_id"
+      ]
+     },
+     {
+      "name": "sqlite_autoindex_auth_session_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "token_hash"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE auth_session (\n\ttoken_hash TEXT NOT NULL, \n\tuser_id TEXT NOT NULL, \n\tcreated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tlast_seen_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\texpires_at DATETIME NOT NULL, \n\tPRIMARY KEY (token_hash), \n\tFOREIGN KEY(user_id) REFERENCES app_user (id) ON DELETE CASCADE\n)"
+   },
+   "blob": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "ref",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "data",
+      "type": "BLOB",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 2,
+      "name": "size_bytes",
+      "type": "INTEGER",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "created_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [],
+    "indexes": [
+     {
+      "name": "sqlite_autoindex_blob_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "ref"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE blob (\n\tref TEXT NOT NULL, \n\tdata BLOB NOT NULL, \n\tsize_bytes INTEGER NOT NULL, \n\tcreated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tPRIMARY KEY (ref)\n)"
+   },
+   "build_lease": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "session_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "owner",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 2,
+      "name": "acquired_at",
+      "type": "FLOAT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "heartbeat_at",
+      "type": "FLOAT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "expires_at",
+      "type": "FLOAT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 5,
+      "name": "cancel_requested_at",
+      "type": "FLOAT",
+      "notnull": 0,
+      "dflt_value": null,
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [
+     {
+      "table": "session",
+      "from": "session_id",
+      "to": "id",
+      "on_update": "NO ACTION",
+      "on_delete": "CASCADE",
+      "match": "NONE"
+     }
+    ],
+    "indexes": [
+     {
+      "name": "build_lease_expiry_idx",
+      "unique": 0,
+      "origin": "c",
+      "partial": 0,
+      "columns": [
+       "expires_at"
+      ]
+     },
+     {
+      "name": "sqlite_autoindex_build_lease_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "session_id"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE build_lease (\n\tsession_id TEXT NOT NULL, \n\towner TEXT NOT NULL, \n\tacquired_at FLOAT NOT NULL, \n\theartbeat_at FLOAT NOT NULL, \n\texpires_at FLOAT NOT NULL, \n\tcancel_requested_at FLOAT, \n\tPRIMARY KEY (session_id), \n\tFOREIGN KEY(session_id) REFERENCES session (id) ON DELETE CASCADE\n)"
+   },
+   "chat_lease": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "session_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "owner",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 2,
+      "name": "acquired_at",
+      "type": "FLOAT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "heartbeat_at",
+      "type": "FLOAT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "expires_at",
+      "type": "FLOAT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 5,
+      "name": "cancel_requested_at",
+      "type": "FLOAT",
+      "notnull": 0,
+      "dflt_value": null,
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [
+     {
+      "table": "session",
+      "from": "session_id",
+      "to": "id",
+      "on_update": "NO ACTION",
+      "on_delete": "CASCADE",
+      "match": "NONE"
+     }
+    ],
+    "indexes": [
+     {
+      "name": "chat_lease_expiry_idx",
+      "unique": 0,
+      "origin": "c",
+      "partial": 0,
+      "columns": [
+       "expires_at"
+      ]
+     },
+     {
+      "name": "sqlite_autoindex_chat_lease_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "session_id"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE chat_lease (\n\tsession_id TEXT NOT NULL, \n\towner TEXT NOT NULL, \n\tacquired_at FLOAT NOT NULL, \n\theartbeat_at FLOAT NOT NULL, \n\texpires_at FLOAT NOT NULL, \n\tcancel_requested_at FLOAT, \n\tPRIMARY KEY (session_id), \n\tFOREIGN KEY(session_id) REFERENCES session (id) ON DELETE CASCADE\n)"
+   },
+   "chat_turn": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "session_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "ordinal",
+      "type": "INTEGER",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 2
+     },
+     {
+      "cid": 2,
+      "name": "speaker",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "text",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "intent",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 5,
+      "name": "refs",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": "'[]'",
+      "pk": 0
+     },
+     {
+      "cid": 6,
+      "name": "compressed",
+      "type": "BOOLEAN",
+      "notnull": 1,
+      "dflt_value": "0",
+      "pk": 0
+     },
+     {
+      "cid": 7,
+      "name": "ts",
+      "type": "FLOAT",
+      "notnull": 1,
+      "dflt_value": "'0'",
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [
+     {
+      "table": "session",
+      "from": "session_id",
+      "to": "id",
+      "on_update": "NO ACTION",
+      "on_delete": "CASCADE",
+      "match": "NONE"
+     }
+    ],
+    "indexes": [
+     {
+      "name": "sqlite_autoindex_chat_turn_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "session_id",
+       "ordinal"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE chat_turn (\n\tsession_id TEXT NOT NULL, \n\tordinal INTEGER NOT NULL, \n\tspeaker TEXT NOT NULL, \n\ttext TEXT NOT NULL, \n\tintent TEXT DEFAULT '' NOT NULL, \n\trefs JSON DEFAULT '[]' NOT NULL, \n\tcompressed BOOLEAN DEFAULT 0 NOT NULL, \n\tts FLOAT DEFAULT '0' NOT NULL, \n\tPRIMARY KEY (session_id, ordinal), \n\tFOREIGN KEY(session_id) REFERENCES session (id) ON DELETE CASCADE\n)"
+   },
+   "conflict": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "session_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "rid",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 2
+     },
+     {
+      "cid": 2,
+      "name": "kind",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "handling",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "summary",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 5,
+      "name": "subjects",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": "'[]'",
+      "pk": 0
+     },
+     {
+      "cid": 6,
+      "name": "detector",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "'rule'",
+      "pk": 0
+     },
+     {
+      "cid": 7,
+      "name": "owner",
+      "type": "TEXT",
+      "notnull": 0,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 8,
+      "name": "doc",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 9,
+      "name": "asked",
+      "type": "BOOLEAN",
+      "notnull": 1,
+      "dflt_value": "0",
+      "pk": 0
+     },
+     {
+      "cid": 10,
+      "name": "ask_rank",
+      "type": "INTEGER",
+      "notnull": 0,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 11,
+      "name": "version",
+      "type": "BIGINT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [
+     {
+      "table": "session",
+      "from": "session_id",
+      "to": "id",
+      "on_update": "NO ACTION",
+      "on_delete": "CASCADE",
+      "match": "NONE"
+     }
+    ],
+    "indexes": [
+     {
+      "name": "sqlite_autoindex_conflict_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "session_id",
+       "rid"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE \"conflict\" (\n\tsession_id TEXT NOT NULL, \n\trid TEXT NOT NULL, \n\tkind TEXT NOT NULL, \n\thandling TEXT NOT NULL, \n\tsummary TEXT DEFAULT '' NOT NULL, \n\tsubjects JSON DEFAULT '[]' NOT NULL, \n\tdetector TEXT DEFAULT 'rule' NOT NULL, \n\towner TEXT, \n\tdoc JSON NOT NULL, \n\tasked BOOLEAN DEFAULT 0 NOT NULL, \n\task_rank INTEGER, \n\tversion BIGINT NOT NULL, \n\tPRIMARY KEY (session_id, rid), \n\tCONSTRAINT conflict_handling_ck CHECK (handling IN ('ask_user','auto_repair','round_trip','hint')), \n\tFOREIGN KEY(session_id) REFERENCES session (id) ON DELETE CASCADE\n)"
+   },
+   "decision": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "session_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "ordinal",
+      "type": "INTEGER",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 2
+     },
+     {
+      "cid": 2,
+      "name": "kind",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "statement",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "scope_refs",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": "'[]'",
+      "pk": 0
+     },
+     {
+      "cid": 5,
+      "name": "turn_index",
+      "type": "INTEGER",
+      "notnull": 1,
+      "dflt_value": "'-1'",
+      "pk": 0
+     },
+     {
+      "cid": 6,
+      "name": "superseded_by",
+      "type": "INTEGER",
+      "notnull": 0,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 7,
+      "name": "target_rid",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 8,
+      "name": "option_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 9,
+      "name": "changed",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": "'[]'",
+      "pk": 0
+     },
+     {
+      "cid": 10,
+      "name": "note",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 11,
+      "name": "actor",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "'user'",
+      "pk": 0
+     },
+     {
+      "cid": 12,
+      "name": "ts",
+      "type": "FLOAT",
+      "notnull": 1,
+      "dflt_value": "'0'",
+      "pk": 0
+     },
+     {
+      "cid": 13,
+      "name": "created_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [
+     {
+      "table": "session",
+      "from": "session_id",
+      "to": "id",
+      "on_update": "NO ACTION",
+      "on_delete": "CASCADE",
+      "match": "NONE"
+     }
+    ],
+    "indexes": [
+     {
+      "name": "decision_live_answer_uq",
+      "unique": 1,
+      "origin": "c",
+      "partial": 1,
+      "columns": [
+       "session_id",
+       "target_rid"
+      ]
+     },
+     {
+      "name": "sqlite_autoindex_decision_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "session_id",
+       "ordinal"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE decision (\n\tsession_id TEXT NOT NULL, \n\tordinal INTEGER NOT NULL, \n\tkind TEXT NOT NULL, \n\tstatement TEXT DEFAULT '' NOT NULL, \n\tscope_refs JSON DEFAULT '[]' NOT NULL, \n\tturn_index INTEGER DEFAULT '-1' NOT NULL, \n\tsuperseded_by INTEGER, \n\ttarget_rid TEXT DEFAULT '' NOT NULL, \n\toption_id TEXT DEFAULT '' NOT NULL, \n\tchanged JSON DEFAULT '[]' NOT NULL, \n\tnote TEXT DEFAULT '' NOT NULL, \n\tactor TEXT DEFAULT 'user' NOT NULL, \n\tts FLOAT DEFAULT '0' NOT NULL, \n\tcreated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tPRIMARY KEY (session_id, ordinal), \n\tCONSTRAINT decision_kind_ck CHECK (kind IN ('caliber','naming','scope','answer','adoption','correction')), \n\tFOREIGN KEY(session_id) REFERENCES session (id) ON DELETE CASCADE\n)"
+   },
+   "decision_record": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "session_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 2
+     },
+     {
+      "cid": 2,
+      "name": "question_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "answer",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "actor",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 5,
+      "name": "actor_role",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 6,
+      "name": "authority",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 7,
+      "name": "source_turn",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 8,
+      "name": "affected_ids",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": "'[]'",
+      "pk": 0
+     },
+     {
+      "cid": 9,
+      "name": "supersedes",
+      "type": "TEXT",
+      "notnull": 0,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 10,
+      "name": "revision",
+      "type": "BIGINT",
+      "notnull": 0,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 11,
+      "name": "idempotency_key",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 12,
+      "name": "semantic_hash",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 13,
+      "name": "rationale",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 14,
+      "name": "metadata",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": "'{}'",
+      "pk": 0
+     },
+     {
+      "cid": 15,
+      "name": "created_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [
+     {
+      "table": "session",
+      "from": "session_id",
+      "to": "id",
+      "on_update": "NO ACTION",
+      "on_delete": "CASCADE",
+      "match": "NONE"
+     }
+    ],
+    "indexes": [
+     {
+      "name": "decision_record_idempotency_uq",
+      "unique": 1,
+      "origin": "c",
+      "partial": 0,
+      "columns": [
+       "session_id",
+       "idempotency_key"
+      ]
+     },
+     {
+      "name": "decision_record_question_idx",
+      "unique": 0,
+      "origin": "c",
+      "partial": 0,
+      "columns": [
+       "session_id",
+       "question_id",
+       "created_at"
+      ]
+     },
+     {
+      "name": "sqlite_autoindex_decision_record_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "session_id",
+       "id"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE decision_record (\n\tsession_id TEXT NOT NULL, \n\tid TEXT NOT NULL, \n\tquestion_id TEXT NOT NULL, \n\tanswer JSON NOT NULL, \n\tactor TEXT NOT NULL, \n\tactor_role TEXT DEFAULT '' NOT NULL, \n\tauthority TEXT DEFAULT '' NOT NULL, \n\tsource_turn TEXT DEFAULT '' NOT NULL, \n\taffected_ids JSON DEFAULT '[]' NOT NULL, \n\tsupersedes TEXT, \n\trevision BIGINT, \n\tidempotency_key TEXT NOT NULL, \n\tsemantic_hash TEXT NOT NULL, \n\trationale TEXT DEFAULT '' NOT NULL, \n\tmetadata JSON DEFAULT '{}' NOT NULL, \n\tcreated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tPRIMARY KEY (session_id, id), \n\tFOREIGN KEY(session_id) REFERENCES session (id) ON DELETE CASCADE\n)"
+   },
+   "kernel_event": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "run_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "seq",
+      "type": "BIGINT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 2
+     },
+     {
+      "cid": 2,
+      "name": "kind",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "node_id",
+      "type": "TEXT",
+      "notnull": 0,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "payload",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": "'{}'",
+      "pk": 0
+     },
+     {
+      "cid": 5,
+      "name": "ref",
+      "type": "TEXT",
+      "notnull": 0,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 6,
+      "name": "ts_ms",
+      "type": "BIGINT",
+      "notnull": 1,
+      "dflt_value": "'0'",
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [
+     {
+      "table": "run",
+      "from": "run_id",
+      "to": "id",
+      "on_update": "NO ACTION",
+      "on_delete": "CASCADE",
+      "match": "NONE"
+     }
+    ],
+    "indexes": [
+     {
+      "name": "sqlite_autoindex_kernel_event_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "run_id",
+       "seq"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE kernel_event (\n\trun_id TEXT NOT NULL, \n\tseq BIGINT NOT NULL, \n\tkind TEXT NOT NULL, \n\tnode_id TEXT, \n\tpayload JSON DEFAULT '{}' NOT NULL, \n\tref TEXT, \n\tts_ms BIGINT DEFAULT '0' NOT NULL, \n\tPRIMARY KEY (run_id, seq), \n\tFOREIGN KEY(run_id) REFERENCES run (id) ON DELETE CASCADE\n)"
+   },
+   "llm_usage": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "ts",
+      "type": "FLOAT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 2,
+      "name": "day",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "owner",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "session_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 5,
+      "name": "run_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 6,
+      "name": "node_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 7,
+      "name": "kind",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "'build'",
+      "pk": 0
+     },
+     {
+      "cid": 8,
+      "name": "model",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 9,
+      "name": "effort",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 10,
+      "name": "tok_in",
+      "type": "BIGINT",
+      "notnull": 1,
+      "dflt_value": "'0'",
+      "pk": 0
+     },
+     {
+      "cid": 11,
+      "name": "tok_out",
+      "type": "BIGINT",
+      "notnull": 1,
+      "dflt_value": "'0'",
+      "pk": 0
+     },
+     {
+      "cid": 12,
+      "name": "cache_read",
+      "type": "BIGINT",
+      "notnull": 1,
+      "dflt_value": "'0'",
+      "pk": 0
+     },
+     {
+      "cid": 13,
+      "name": "cache_write",
+      "type": "BIGINT",
+      "notnull": 1,
+      "dflt_value": "'0'",
+      "pk": 0
+     },
+     {
+      "cid": 14,
+      "name": "usd",
+      "type": "FLOAT",
+      "notnull": 1,
+      "dflt_value": "'0'",
+      "pk": 0
+     },
+     {
+      "cid": 15,
+      "name": "usd_source",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "'estimated'",
+      "pk": 0
+     },
+     {
+      "cid": 16,
+      "name": "attempts",
+      "type": "INTEGER",
+      "notnull": 1,
+      "dflt_value": "'1'",
+      "pk": 0
+     },
+     {
+      "cid": 17,
+      "name": "status",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "'ok'",
+      "pk": 0
+     },
+     {
+      "cid": 18,
+      "name": "created_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [],
+    "indexes": [
+     {
+      "name": "llm_usage_model_day_idx",
+      "unique": 0,
+      "origin": "c",
+      "partial": 0,
+      "columns": [
+       "model",
+       "day"
+      ]
+     },
+     {
+      "name": "llm_usage_owner_day_idx",
+      "unique": 0,
+      "origin": "c",
+      "partial": 0,
+      "columns": [
+       "owner",
+       "day"
+      ]
+     },
+     {
+      "name": "llm_usage_ts_idx",
+      "unique": 0,
+      "origin": "c",
+      "partial": 0,
+      "columns": [
+       "ts"
+      ]
+     },
+     {
+      "name": "sqlite_autoindex_llm_usage_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "id"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE llm_usage (\n\tid TEXT NOT NULL, \n\tts FLOAT NOT NULL, \n\tday TEXT NOT NULL, \n\towner TEXT DEFAULT '' NOT NULL, \n\tsession_id TEXT DEFAULT '' NOT NULL, \n\trun_id TEXT DEFAULT '' NOT NULL, \n\tnode_id TEXT DEFAULT '' NOT NULL, \n\tkind TEXT DEFAULT 'build' NOT NULL, \n\tmodel TEXT NOT NULL, \n\teffort TEXT DEFAULT '' NOT NULL, \n\ttok_in BIGINT DEFAULT '0' NOT NULL, \n\ttok_out BIGINT DEFAULT '0' NOT NULL, \n\tcache_read BIGINT DEFAULT '0' NOT NULL, \n\tcache_write BIGINT DEFAULT '0' NOT NULL, \n\tusd FLOAT DEFAULT '0' NOT NULL, \n\tusd_source TEXT DEFAULT 'estimated' NOT NULL, \n\tattempts INTEGER DEFAULT '1' NOT NULL, \n\tstatus TEXT DEFAULT 'ok' NOT NULL, \n\tcreated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tPRIMARY KEY (id), \n\tCONSTRAINT llm_usage_kind_ck CHECK (kind IN ('build','chat','aux')), \n\tCONSTRAINT llm_usage_tokens_ck CHECK (tok_in >= 0 AND tok_out >= 0 AND cache_read >= 0 AND cache_write >= 0), \n\tCONSTRAINT llm_usage_usd_ck CHECK (usd >= 0), \n\tCONSTRAINT llm_usage_attempts_ck CHECK (attempts >= 1), \n\tCONSTRAINT llm_usage_usd_source_ck CHECK (usd_source IN ('gateway','estimated')), \n\tCONSTRAINT llm_usage_status_ck CHECK (status IN ('ok','failed'))\n)"
+   },
+   "mutation_lease": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "session_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "owner",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 2,
+      "name": "kind",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "acquired_at",
+      "type": "FLOAT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "heartbeat_at",
+      "type": "FLOAT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 5,
+      "name": "expires_at",
+      "type": "FLOAT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [
+     {
+      "table": "session",
+      "from": "session_id",
+      "to": "id",
+      "on_update": "NO ACTION",
+      "on_delete": "CASCADE",
+      "match": "NONE"
+     }
+    ],
+    "indexes": [
+     {
+      "name": "mutation_lease_expiry_idx",
+      "unique": 0,
+      "origin": "c",
+      "partial": 0,
+      "columns": [
+       "expires_at"
+      ]
+     },
+     {
+      "name": "sqlite_autoindex_mutation_lease_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "session_id"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE mutation_lease (\n\tsession_id TEXT NOT NULL, \n\towner TEXT NOT NULL, \n\tkind TEXT NOT NULL, \n\tacquired_at FLOAT NOT NULL, \n\theartbeat_at FLOAT NOT NULL, \n\texpires_at FLOAT NOT NULL, \n\tPRIMARY KEY (session_id), \n\tFOREIGN KEY(session_id) REFERENCES session (id) ON DELETE CASCADE\n)"
+   },
+   "project": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "name",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 2,
+      "name": "owner",
+      "type": "TEXT",
+      "notnull": 0,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "prefs",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "sort_order",
+      "type": "INTEGER",
+      "notnull": 1,
+      "dflt_value": "'0'",
+      "pk": 0
+     },
+     {
+      "cid": 5,
+      "name": "created_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     },
+     {
+      "cid": 6,
+      "name": "updated_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [],
+    "indexes": [
+     {
+      "name": "project_owner_idx",
+      "unique": 0,
+      "origin": "c",
+      "partial": 0,
+      "columns": [
+       "owner"
+      ]
+     },
+     {
+      "name": "sqlite_autoindex_project_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "id"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE project (\n\tid TEXT NOT NULL, \n\tname TEXT NOT NULL, \n\towner TEXT, \n\tprefs JSON NOT NULL, \n\tsort_order INTEGER DEFAULT '0' NOT NULL, \n\tcreated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tupdated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tPRIMARY KEY (id)\n)"
+   },
+   "project_memory": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "project_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "key",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 2
+     },
+     {
+      "cid": 2,
+      "name": "tier",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "kind",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "content",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 5,
+      "name": "confidence",
+      "type": "FLOAT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 6,
+      "name": "support",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 7,
+      "name": "tags",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 8,
+      "name": "origin_session",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 9,
+      "name": "origin_files",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 10,
+      "name": "contested_by",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 11,
+      "name": "hit_runs",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 12,
+      "name": "use_count",
+      "type": "INTEGER",
+      "notnull": 1,
+      "dflt_value": "'0'",
+      "pk": 0
+     },
+     {
+      "cid": 13,
+      "name": "created_run",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 14,
+      "name": "last_used_run",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 15,
+      "name": "updated_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [],
+    "indexes": [
+     {
+      "name": "sqlite_autoindex_project_memory_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "project_id",
+       "key"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE project_memory (\n\tproject_id TEXT NOT NULL, \n\t\"key\" TEXT NOT NULL, \n\ttier TEXT NOT NULL, \n\tkind TEXT NOT NULL, \n\tcontent TEXT NOT NULL, \n\tconfidence FLOAT NOT NULL, \n\tsupport JSON NOT NULL, \n\ttags JSON NOT NULL, \n\torigin_session TEXT DEFAULT '' NOT NULL, \n\torigin_files JSON NOT NULL, \n\tcontested_by JSON NOT NULL, \n\thit_runs JSON NOT NULL, \n\tuse_count INTEGER DEFAULT '0' NOT NULL, \n\tcreated_run TEXT DEFAULT '' NOT NULL, \n\tlast_used_run TEXT DEFAULT '' NOT NULL, \n\tupdated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tPRIMARY KEY (project_id, \"key\"), \n\tCONSTRAINT project_memory_tier_ck CHECK (tier IN ('authoritative','reference'))\n)"
+   },
+   "question_item": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "session_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 2
+     },
+     {
+      "cid": 2,
+      "name": "text",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "status",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "'open'",
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "owner_user_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 5,
+      "name": "audience_role",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 6,
+      "name": "answer_schema",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": "'{}'",
+      "pk": 0
+     },
+     {
+      "cid": 7,
+      "name": "priority",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "'normal'",
+      "pk": 0
+     },
+     {
+      "cid": 8,
+      "name": "dependencies",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": "'[]'",
+      "pk": 0
+     },
+     {
+      "cid": 9,
+      "name": "blocked_artifacts",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": "'[]'",
+      "pk": 0
+     },
+     {
+      "cid": 10,
+      "name": "source_kind",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "'manual'",
+      "pk": 0
+     },
+     {
+      "cid": 11,
+      "name": "source_ref",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 12,
+      "name": "doc",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 13,
+      "name": "version",
+      "type": "BIGINT",
+      "notnull": 1,
+      "dflt_value": "'0'",
+      "pk": 0
+     },
+     {
+      "cid": 14,
+      "name": "created_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     },
+     {
+      "cid": 15,
+      "name": "updated_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [
+     {
+      "table": "session",
+      "from": "session_id",
+      "to": "id",
+      "on_update": "NO ACTION",
+      "on_delete": "CASCADE",
+      "match": "NONE"
+     }
+    ],
+    "indexes": [
+     {
+      "name": "question_item_queue_idx",
+      "unique": 0,
+      "origin": "c",
+      "partial": 0,
+      "columns": [
+       "session_id",
+       "status",
+       "priority"
+      ]
+     },
+     {
+      "name": "question_item_source_idx",
+      "unique": 0,
+      "origin": "c",
+      "partial": 0,
+      "columns": [
+       "session_id",
+       "source_kind",
+       "source_ref"
+      ]
+     },
+     {
+      "name": "sqlite_autoindex_question_item_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "session_id",
+       "id"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE question_item (\n\tsession_id TEXT NOT NULL, \n\tid TEXT NOT NULL, \n\ttext TEXT NOT NULL, \n\tstatus TEXT DEFAULT 'open' NOT NULL, \n\towner_user_id TEXT DEFAULT '' NOT NULL, \n\taudience_role TEXT DEFAULT '' NOT NULL, \n\tanswer_schema JSON DEFAULT '{}' NOT NULL, \n\tpriority TEXT DEFAULT 'normal' NOT NULL, \n\tdependencies JSON DEFAULT '[]' NOT NULL, \n\tblocked_artifacts JSON DEFAULT '[]' NOT NULL, \n\tsource_kind TEXT DEFAULT 'manual' NOT NULL, \n\tsource_ref TEXT DEFAULT '' NOT NULL, \n\tdoc JSON NOT NULL, \n\tversion BIGINT DEFAULT '0' NOT NULL, \n\tcreated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tupdated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tPRIMARY KEY (session_id, id), \n\tCONSTRAINT question_item_status_ck CHECK (status IN ('open','assigned','blocked','answered','deferred','cancelled')), \n\tCONSTRAINT question_item_priority_ck CHECK (priority IN ('blocking','high','normal','low')), \n\tFOREIGN KEY(session_id) REFERENCES session (id) ON DELETE CASCADE\n)"
+   },
+   "revision_record": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "session_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 2
+     },
+     {
+      "cid": 2,
+      "name": "ordinal",
+      "type": "BIGINT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "parent_id",
+      "type": "TEXT",
+      "notnull": 0,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "kind",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 5,
+      "name": "status",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 6,
+      "name": "patch_set",
+      "type": "JSON",
+      "notnull": 0,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 7,
+      "name": "changed_ids",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": "'[]'",
+      "pk": 0
+     },
+     {
+      "cid": 8,
+      "name": "invalidated_artifacts",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": "'[]'",
+      "pk": 0
+     },
+     {
+      "cid": 9,
+      "name": "actor",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "'agent'",
+      "pk": 0
+     },
+     {
+      "cid": 10,
+      "name": "source_turn",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 11,
+      "name": "snapshot_hash",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 12,
+      "name": "idempotency_key",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 13,
+      "name": "doc",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 14,
+      "name": "created_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [
+     {
+      "table": "session",
+      "from": "session_id",
+      "to": "id",
+      "on_update": "NO ACTION",
+      "on_delete": "CASCADE",
+      "match": "NONE"
+     }
+    ],
+    "indexes": [
+     {
+      "name": "revision_record_idempotency_uq",
+      "unique": 1,
+      "origin": "c",
+      "partial": 1,
+      "columns": [
+       "session_id",
+       "idempotency_key"
+      ]
+     },
+     {
+      "name": "sqlite_autoindex_revision_record_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "session_id",
+       "id"
+      ]
+     },
+     {
+      "name": "sqlite_autoindex_revision_record_2",
+      "unique": 1,
+      "origin": "u",
+      "partial": 0,
+      "columns": [
+       "session_id",
+       "ordinal"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE revision_record (\n\tsession_id TEXT NOT NULL, \n\tid TEXT NOT NULL, \n\tordinal BIGINT NOT NULL, \n\tparent_id TEXT, \n\tkind TEXT NOT NULL, \n\tstatus TEXT NOT NULL, \n\tpatch_set JSON, \n\tchanged_ids JSON DEFAULT '[]' NOT NULL, \n\tinvalidated_artifacts JSON DEFAULT '[]' NOT NULL, \n\tactor TEXT DEFAULT 'agent' NOT NULL, \n\tsource_turn TEXT DEFAULT '' NOT NULL, \n\tsnapshot_hash TEXT DEFAULT '' NOT NULL, \n\tidempotency_key TEXT DEFAULT '' NOT NULL, \n\tdoc JSON NOT NULL, \n\tcreated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tPRIMARY KEY (session_id, id), \n\tCONSTRAINT revision_record_ordinal_uq UNIQUE (session_id, ordinal), \n\tCONSTRAINT revision_record_status_ck CHECK (status IN ('proposed','applied','rejected','rolled_back')), \n\tFOREIGN KEY(session_id) REFERENCES session (id) ON DELETE CASCADE\n)"
+   },
+   "run": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "session_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 2,
+      "name": "ordinal",
+      "type": "INTEGER",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "kind",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "status",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "'running'",
+      "pk": 0
+     },
+     {
+      "cid": 5,
+      "name": "budget",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": "'{}'",
+      "pk": 0
+     },
+     {
+      "cid": 6,
+      "name": "error",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 7,
+      "name": "started_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     },
+     {
+      "cid": 8,
+      "name": "ended_at",
+      "type": "DATETIME",
+      "notnull": 0,
+      "dflt_value": null,
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [
+     {
+      "table": "session",
+      "from": "session_id",
+      "to": "id",
+      "on_update": "NO ACTION",
+      "on_delete": "CASCADE",
+      "match": "NONE"
+     }
+    ],
+    "indexes": [
+     {
+      "name": "sqlite_autoindex_run_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "id"
+      ]
+     },
+     {
+      "name": "sqlite_autoindex_run_2",
+      "unique": 1,
+      "origin": "u",
+      "partial": 0,
+      "columns": [
+       "session_id",
+       "ordinal"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE run (\n\tid TEXT NOT NULL, \n\tsession_id TEXT NOT NULL, \n\tordinal INTEGER NOT NULL, \n\tkind TEXT NOT NULL, \n\tstatus TEXT DEFAULT 'running' NOT NULL, \n\tbudget JSON DEFAULT '{}' NOT NULL, \n\terror TEXT DEFAULT '' NOT NULL, \n\tstarted_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tended_at DATETIME, \n\tPRIMARY KEY (id), \n\tCONSTRAINT run_session_ordinal_uq UNIQUE (session_id, ordinal), \n\tCONSTRAINT run_status_ck CHECK (status IN ('running','suspended','done','failed')), \n\tFOREIGN KEY(session_id) REFERENCES session (id) ON DELETE CASCADE\n)"
+   },
+   "schema_migration": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "version",
+      "type": "INTEGER",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "name",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 2,
+      "name": "checksum",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "applied_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [],
+    "indexes": [],
+    "sql": "CREATE TABLE schema_migration (\n\tversion INTEGER NOT NULL, \n\tname TEXT NOT NULL, \n\tchecksum TEXT NOT NULL, \n\tapplied_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tPRIMARY KEY (version)\n)"
+   },
+   "session": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "title",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "'新建会话'",
+      "pk": 0
+     },
+     {
+      "cid": 2,
+      "name": "project",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "status",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "'idle'",
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "error",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 5,
+      "name": "state_version",
+      "type": "BIGINT",
+      "notnull": 1,
+      "dflt_value": "'0'",
+      "pk": 0
+     },
+     {
+      "cid": 6,
+      "name": "next_event_seq",
+      "type": "BIGINT",
+      "notnull": 1,
+      "dflt_value": "'0'",
+      "pk": 0
+     },
+     {
+      "cid": 7,
+      "name": "next_run_ordinal",
+      "type": "INTEGER",
+      "notnull": 1,
+      "dflt_value": "'0'",
+      "pk": 0
+     },
+     {
+      "cid": 8,
+      "name": "next_decision_ordinal",
+      "type": "INTEGER",
+      "notnull": 1,
+      "dflt_value": "'0'",
+      "pk": 0
+     },
+     {
+      "cid": 9,
+      "name": "created_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     },
+     {
+      "cid": 10,
+      "name": "updated_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     },
+     {
+      "cid": 11,
+      "name": "owner",
+      "type": "TEXT",
+      "notnull": 0,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 12,
+      "name": "project_id",
+      "type": "TEXT",
+      "notnull": 0,
+      "dflt_value": null,
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [],
+    "indexes": [
+     {
+      "name": "session_project_idx",
+      "unique": 0,
+      "origin": "c",
+      "partial": 0,
+      "columns": [
+       "project_id"
+      ]
+     },
+     {
+      "name": "sqlite_autoindex_session_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "id"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE session (\n\tid TEXT NOT NULL, \n\ttitle TEXT DEFAULT '新建会话' NOT NULL, \n\tproject TEXT DEFAULT '' NOT NULL, \n\tstatus TEXT DEFAULT 'idle' NOT NULL, \n\terror TEXT DEFAULT '' NOT NULL, \n\tstate_version BIGINT DEFAULT '0' NOT NULL, \n\tnext_event_seq BIGINT DEFAULT '0' NOT NULL, \n\tnext_run_ordinal INTEGER DEFAULT '0' NOT NULL, \n\tnext_decision_ordinal INTEGER DEFAULT '0' NOT NULL, \n\tcreated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tupdated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\towner TEXT, \n\tproject_id TEXT, \n\tPRIMARY KEY (id), \n\tCONSTRAINT session_status_ck CHECK (status IN ('idle','queued','parsing','extracting','awaiting_answer','done','failed','stopped'))\n)"
+   },
+   "session_event": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "session_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "seq",
+      "type": "BIGINT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 2
+     },
+     {
+      "cid": 2,
+      "name": "kind",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "payload",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": "'{}'",
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "ref",
+      "type": "TEXT",
+      "notnull": 0,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 5,
+      "name": "ts",
+      "type": "FLOAT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 6,
+      "name": "event_id",
+      "type": "TEXT",
+      "notnull": 0,
+      "dflt_value": null,
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [
+     {
+      "table": "session",
+      "from": "session_id",
+      "to": "id",
+      "on_update": "NO ACTION",
+      "on_delete": "CASCADE",
+      "match": "NONE"
+     }
+    ],
+    "indexes": [
+     {
+      "name": "session_event_event_id_uq",
+      "unique": 1,
+      "origin": "c",
+      "partial": 1,
+      "columns": [
+       "event_id"
+      ]
+     },
+     {
+      "name": "sqlite_autoindex_session_event_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "session_id",
+       "seq"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE session_event (\n\tsession_id TEXT NOT NULL, \n\tseq BIGINT NOT NULL, \n\tkind TEXT NOT NULL, \n\tpayload JSON DEFAULT '{}' NOT NULL, \n\tref TEXT, \n\tts FLOAT NOT NULL, \n\tevent_id TEXT, \n\tPRIMARY KEY (session_id, seq), \n\tFOREIGN KEY(session_id) REFERENCES session (id) ON DELETE CASCADE\n)"
+   },
+   "session_file": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "session_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "name",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 2
+     },
+     {
+      "cid": 2,
+      "name": "rel_path",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "size_bytes",
+      "type": "BIGINT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "sha256",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 5,
+      "name": "uploaded_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [
+     {
+      "table": "session",
+      "from": "session_id",
+      "to": "id",
+      "on_update": "NO ACTION",
+      "on_delete": "CASCADE",
+      "match": "NONE"
+     }
+    ],
+    "indexes": [
+     {
+      "name": "sqlite_autoindex_session_file_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "session_id",
+       "name"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE session_file (\n\tsession_id TEXT NOT NULL, \n\tname TEXT NOT NULL, \n\trel_path TEXT NOT NULL, \n\tsize_bytes BIGINT NOT NULL, \n\tsha256 TEXT DEFAULT '' NOT NULL, \n\tuploaded_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tPRIMARY KEY (session_id, name), \n\tFOREIGN KEY(session_id) REFERENCES session (id) ON DELETE CASCADE\n)"
+   },
+   "session_state": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "session_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "key",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 2
+     },
+     {
+      "cid": 2,
+      "name": "doc",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "version",
+      "type": "BIGINT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "derived",
+      "type": "BOOLEAN",
+      "notnull": 1,
+      "dflt_value": "0",
+      "pk": 0
+     },
+     {
+      "cid": 5,
+      "name": "updated_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [
+     {
+      "table": "session",
+      "from": "session_id",
+      "to": "id",
+      "on_update": "NO ACTION",
+      "on_delete": "CASCADE",
+      "match": "NONE"
+     }
+    ],
+    "indexes": [
+     {
+      "name": "sqlite_autoindex_session_state_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "session_id",
+       "key"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE session_state (\n\tsession_id TEXT NOT NULL, \n\t\"key\" TEXT NOT NULL, \n\tdoc JSON NOT NULL, \n\tversion BIGINT NOT NULL, \n\tderived BOOLEAN DEFAULT 0 NOT NULL, \n\tupdated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tPRIMARY KEY (session_id, \"key\"), \n\tFOREIGN KEY(session_id) REFERENCES session (id) ON DELETE CASCADE\n)"
+   }
+  },
+  "healthcheck": {
+   "mode": "sqlite",
+   "ok": true,
+   "schema_version": 13
+  },
+  "mode": "sqlite"
+ },
+ "legacy": {
+  "user_version": 13,
+  "tables": {
+   "app_setting": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "key",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "value",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 2,
+      "name": "updated_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [],
+    "indexes": [
+     {
+      "name": "sqlite_autoindex_app_setting_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "key"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE app_setting (\n\t\"key\" TEXT NOT NULL, \n\tvalue JSON NOT NULL, \n\tupdated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tPRIMARY KEY (\"key\")\n)"
+   },
+   "app_user": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "username",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 2,
+      "name": "password_hash",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "role",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "'user'",
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "active",
+      "type": "BOOLEAN",
+      "notnull": 1,
+      "dflt_value": "1",
+      "pk": 0
+     },
+     {
+      "cid": 5,
+      "name": "prefs",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": "'{}'",
+      "pk": 0
+     },
+     {
+      "cid": 6,
+      "name": "created_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     },
+     {
+      "cid": 7,
+      "name": "updated_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     },
+     {
+      "cid": 8,
+      "name": "display_name",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [],
+    "indexes": [
+     {
+      "name": "sqlite_autoindex_app_user_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "id"
+      ]
+     },
+     {
+      "name": "sqlite_autoindex_app_user_2",
+      "unique": 1,
+      "origin": "u",
+      "partial": 0,
+      "columns": [
+       "username"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE app_user (\n    id TEXT NOT NULL,\n    username TEXT NOT NULL,\n    password_hash TEXT NOT NULL,\n    role TEXT DEFAULT 'user' NOT NULL,\n    active BOOLEAN DEFAULT 1 NOT NULL,\n    prefs JSON DEFAULT '{}' NOT NULL,\n    created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,\n    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, display_name TEXT NOT NULL DEFAULT '',\n    PRIMARY KEY (id),\n    CONSTRAINT app_user_role_ck CHECK (role IN ('admin','user')),\n    UNIQUE (username)\n)"
+   },
+   "auth_session": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "token_hash",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "user_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 2,
+      "name": "created_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "last_seen_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "expires_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [
+     {
+      "table": "app_user",
+      "from": "user_id",
+      "to": "id",
+      "on_update": "NO ACTION",
+      "on_delete": "CASCADE",
+      "match": "NONE"
+     }
+    ],
+    "indexes": [
+     {
+      "name": "auth_session_user_idx",
+      "unique": 0,
+      "origin": "c",
+      "partial": 0,
+      "columns": [
+       "user_id"
+      ]
+     },
+     {
+      "name": "sqlite_autoindex_auth_session_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "token_hash"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE auth_session (\n\ttoken_hash TEXT NOT NULL, \n\tuser_id TEXT NOT NULL, \n\tcreated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tlast_seen_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\texpires_at DATETIME NOT NULL, \n\tPRIMARY KEY (token_hash), \n\tFOREIGN KEY(user_id) REFERENCES app_user (id) ON DELETE CASCADE\n)"
+   },
+   "blob": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "ref",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "data",
+      "type": "BLOB",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 2,
+      "name": "size_bytes",
+      "type": "INTEGER",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "created_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [],
+    "indexes": [
+     {
+      "name": "sqlite_autoindex_blob_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "ref"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE blob (\n\tref TEXT NOT NULL, \n\tdata BLOB NOT NULL, \n\tsize_bytes INTEGER NOT NULL, \n\tcreated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tPRIMARY KEY (ref)\n)"
+   },
+   "build_lease": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "session_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "owner",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 2,
+      "name": "acquired_at",
+      "type": "FLOAT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "heartbeat_at",
+      "type": "FLOAT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "expires_at",
+      "type": "FLOAT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 5,
+      "name": "cancel_requested_at",
+      "type": "FLOAT",
+      "notnull": 0,
+      "dflt_value": null,
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [
+     {
+      "table": "session",
+      "from": "session_id",
+      "to": "id",
+      "on_update": "NO ACTION",
+      "on_delete": "CASCADE",
+      "match": "NONE"
+     }
+    ],
+    "indexes": [
+     {
+      "name": "build_lease_expiry_idx",
+      "unique": 0,
+      "origin": "c",
+      "partial": 0,
+      "columns": [
+       "expires_at"
+      ]
+     },
+     {
+      "name": "sqlite_autoindex_build_lease_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "session_id"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE build_lease (\n\tsession_id TEXT NOT NULL, \n\towner TEXT NOT NULL, \n\tacquired_at FLOAT NOT NULL, \n\theartbeat_at FLOAT NOT NULL, \n\texpires_at FLOAT NOT NULL, \n\tcancel_requested_at FLOAT, \n\tPRIMARY KEY (session_id), \n\tFOREIGN KEY(session_id) REFERENCES session (id) ON DELETE CASCADE\n)"
+   },
+   "chat_lease": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "session_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "owner",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 2,
+      "name": "acquired_at",
+      "type": "FLOAT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "heartbeat_at",
+      "type": "FLOAT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "expires_at",
+      "type": "FLOAT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 5,
+      "name": "cancel_requested_at",
+      "type": "FLOAT",
+      "notnull": 0,
+      "dflt_value": null,
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [
+     {
+      "table": "session",
+      "from": "session_id",
+      "to": "id",
+      "on_update": "NO ACTION",
+      "on_delete": "CASCADE",
+      "match": "NONE"
+     }
+    ],
+    "indexes": [
+     {
+      "name": "chat_lease_expiry_idx",
+      "unique": 0,
+      "origin": "c",
+      "partial": 0,
+      "columns": [
+       "expires_at"
+      ]
+     },
+     {
+      "name": "sqlite_autoindex_chat_lease_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "session_id"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE chat_lease (\n\tsession_id TEXT NOT NULL, \n\towner TEXT NOT NULL, \n\tacquired_at FLOAT NOT NULL, \n\theartbeat_at FLOAT NOT NULL, \n\texpires_at FLOAT NOT NULL, \n\tcancel_requested_at FLOAT, \n\tPRIMARY KEY (session_id), \n\tFOREIGN KEY(session_id) REFERENCES session (id) ON DELETE CASCADE\n)"
+   },
+   "chat_turn": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "session_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "ordinal",
+      "type": "INTEGER",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 2
+     },
+     {
+      "cid": 2,
+      "name": "speaker",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "text",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "intent",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 5,
+      "name": "refs",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": "'[]'",
+      "pk": 0
+     },
+     {
+      "cid": 6,
+      "name": "compressed",
+      "type": "BOOLEAN",
+      "notnull": 1,
+      "dflt_value": "0",
+      "pk": 0
+     },
+     {
+      "cid": 7,
+      "name": "ts",
+      "type": "FLOAT",
+      "notnull": 1,
+      "dflt_value": "'0'",
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [
+     {
+      "table": "session",
+      "from": "session_id",
+      "to": "id",
+      "on_update": "NO ACTION",
+      "on_delete": "CASCADE",
+      "match": "NONE"
+     }
+    ],
+    "indexes": [
+     {
+      "name": "sqlite_autoindex_chat_turn_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "session_id",
+       "ordinal"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE chat_turn (\n\tsession_id TEXT NOT NULL, \n\tordinal INTEGER NOT NULL, \n\tspeaker TEXT NOT NULL, \n\ttext TEXT NOT NULL, \n\tintent TEXT DEFAULT '' NOT NULL, \n\trefs JSON DEFAULT '[]' NOT NULL, \n\tcompressed BOOLEAN DEFAULT 0 NOT NULL, \n\tts FLOAT DEFAULT '0' NOT NULL, \n\tPRIMARY KEY (session_id, ordinal), \n\tFOREIGN KEY(session_id) REFERENCES session (id) ON DELETE CASCADE\n)"
+   },
+   "conflict": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "session_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "rid",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 2
+     },
+     {
+      "cid": 2,
+      "name": "kind",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "handling",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "summary",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 5,
+      "name": "subjects",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": "'[]'",
+      "pk": 0
+     },
+     {
+      "cid": 6,
+      "name": "detector",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "'rule'",
+      "pk": 0
+     },
+     {
+      "cid": 7,
+      "name": "owner",
+      "type": "TEXT",
+      "notnull": 0,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 8,
+      "name": "doc",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 9,
+      "name": "asked",
+      "type": "BOOLEAN",
+      "notnull": 1,
+      "dflt_value": "0",
+      "pk": 0
+     },
+     {
+      "cid": 10,
+      "name": "ask_rank",
+      "type": "INTEGER",
+      "notnull": 0,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 11,
+      "name": "version",
+      "type": "BIGINT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [
+     {
+      "table": "session",
+      "from": "session_id",
+      "to": "id",
+      "on_update": "NO ACTION",
+      "on_delete": "CASCADE",
+      "match": "NONE"
+     }
+    ],
+    "indexes": [
+     {
+      "name": "sqlite_autoindex_conflict_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "session_id",
+       "rid"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE \"conflict\" (\n\tsession_id TEXT NOT NULL, \n\trid TEXT NOT NULL, \n\tkind TEXT NOT NULL, \n\thandling TEXT NOT NULL, \n\tsummary TEXT DEFAULT '' NOT NULL, \n\tsubjects JSON DEFAULT '[]' NOT NULL, \n\tdetector TEXT DEFAULT 'rule' NOT NULL, \n\towner TEXT, \n\tdoc JSON NOT NULL, \n\tasked BOOLEAN DEFAULT 0 NOT NULL, \n\task_rank INTEGER, \n\tversion BIGINT NOT NULL, \n\tPRIMARY KEY (session_id, rid), \n\tCONSTRAINT conflict_handling_ck CHECK (handling IN ('ask_user','auto_repair','round_trip','hint')), \n\tFOREIGN KEY(session_id) REFERENCES session (id) ON DELETE CASCADE\n)"
+   },
+   "decision": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "session_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "ordinal",
+      "type": "INTEGER",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 2
+     },
+     {
+      "cid": 2,
+      "name": "kind",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "statement",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "scope_refs",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": "'[]'",
+      "pk": 0
+     },
+     {
+      "cid": 5,
+      "name": "turn_index",
+      "type": "INTEGER",
+      "notnull": 1,
+      "dflt_value": "'-1'",
+      "pk": 0
+     },
+     {
+      "cid": 6,
+      "name": "superseded_by",
+      "type": "INTEGER",
+      "notnull": 0,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 7,
+      "name": "target_rid",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 8,
+      "name": "option_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 9,
+      "name": "changed",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": "'[]'",
+      "pk": 0
+     },
+     {
+      "cid": 10,
+      "name": "note",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 11,
+      "name": "actor",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "'user'",
+      "pk": 0
+     },
+     {
+      "cid": 12,
+      "name": "ts",
+      "type": "FLOAT",
+      "notnull": 1,
+      "dflt_value": "'0'",
+      "pk": 0
+     },
+     {
+      "cid": 13,
+      "name": "created_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [
+     {
+      "table": "session",
+      "from": "session_id",
+      "to": "id",
+      "on_update": "NO ACTION",
+      "on_delete": "CASCADE",
+      "match": "NONE"
+     }
+    ],
+    "indexes": [
+     {
+      "name": "decision_live_answer_uq",
+      "unique": 1,
+      "origin": "c",
+      "partial": 1,
+      "columns": [
+       "session_id",
+       "target_rid"
+      ]
+     },
+     {
+      "name": "sqlite_autoindex_decision_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "session_id",
+       "ordinal"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE decision (\n\tsession_id TEXT NOT NULL, \n\tordinal INTEGER NOT NULL, \n\tkind TEXT NOT NULL, \n\tstatement TEXT DEFAULT '' NOT NULL, \n\tscope_refs JSON DEFAULT '[]' NOT NULL, \n\tturn_index INTEGER DEFAULT '-1' NOT NULL, \n\tsuperseded_by INTEGER, \n\ttarget_rid TEXT DEFAULT '' NOT NULL, \n\toption_id TEXT DEFAULT '' NOT NULL, \n\tchanged JSON DEFAULT '[]' NOT NULL, \n\tnote TEXT DEFAULT '' NOT NULL, \n\tactor TEXT DEFAULT 'user' NOT NULL, \n\tts FLOAT DEFAULT '0' NOT NULL, \n\tcreated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tPRIMARY KEY (session_id, ordinal), \n\tCONSTRAINT decision_kind_ck CHECK (kind IN ('caliber','naming','scope','answer','adoption','correction')), \n\tFOREIGN KEY(session_id) REFERENCES session (id) ON DELETE CASCADE\n)"
+   },
+   "decision_record": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "session_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 2
+     },
+     {
+      "cid": 2,
+      "name": "question_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "answer",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "actor",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 5,
+      "name": "actor_role",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 6,
+      "name": "authority",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 7,
+      "name": "source_turn",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 8,
+      "name": "affected_ids",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": "'[]'",
+      "pk": 0
+     },
+     {
+      "cid": 9,
+      "name": "supersedes",
+      "type": "TEXT",
+      "notnull": 0,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 10,
+      "name": "revision",
+      "type": "BIGINT",
+      "notnull": 0,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 11,
+      "name": "idempotency_key",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 12,
+      "name": "semantic_hash",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 13,
+      "name": "rationale",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 14,
+      "name": "metadata",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": "'{}'",
+      "pk": 0
+     },
+     {
+      "cid": 15,
+      "name": "created_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [
+     {
+      "table": "session",
+      "from": "session_id",
+      "to": "id",
+      "on_update": "NO ACTION",
+      "on_delete": "CASCADE",
+      "match": "NONE"
+     }
+    ],
+    "indexes": [
+     {
+      "name": "decision_record_idempotency_uq",
+      "unique": 1,
+      "origin": "c",
+      "partial": 0,
+      "columns": [
+       "session_id",
+       "idempotency_key"
+      ]
+     },
+     {
+      "name": "decision_record_question_idx",
+      "unique": 0,
+      "origin": "c",
+      "partial": 0,
+      "columns": [
+       "session_id",
+       "question_id",
+       "created_at"
+      ]
+     },
+     {
+      "name": "sqlite_autoindex_decision_record_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "session_id",
+       "id"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE decision_record (\n\tsession_id TEXT NOT NULL, \n\tid TEXT NOT NULL, \n\tquestion_id TEXT NOT NULL, \n\tanswer JSON NOT NULL, \n\tactor TEXT NOT NULL, \n\tactor_role TEXT DEFAULT '' NOT NULL, \n\tauthority TEXT DEFAULT '' NOT NULL, \n\tsource_turn TEXT DEFAULT '' NOT NULL, \n\taffected_ids JSON DEFAULT '[]' NOT NULL, \n\tsupersedes TEXT, \n\trevision BIGINT, \n\tidempotency_key TEXT NOT NULL, \n\tsemantic_hash TEXT NOT NULL, \n\trationale TEXT DEFAULT '' NOT NULL, \n\tmetadata JSON DEFAULT '{}' NOT NULL, \n\tcreated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tPRIMARY KEY (session_id, id), \n\tFOREIGN KEY(session_id) REFERENCES session (id) ON DELETE CASCADE\n)"
+   },
+   "kernel_event": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "run_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "seq",
+      "type": "BIGINT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 2
+     },
+     {
+      "cid": 2,
+      "name": "kind",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "node_id",
+      "type": "TEXT",
+      "notnull": 0,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "payload",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": "'{}'",
+      "pk": 0
+     },
+     {
+      "cid": 5,
+      "name": "ref",
+      "type": "TEXT",
+      "notnull": 0,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 6,
+      "name": "ts_ms",
+      "type": "BIGINT",
+      "notnull": 1,
+      "dflt_value": "'0'",
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [
+     {
+      "table": "run",
+      "from": "run_id",
+      "to": "id",
+      "on_update": "NO ACTION",
+      "on_delete": "CASCADE",
+      "match": "NONE"
+     }
+    ],
+    "indexes": [
+     {
+      "name": "sqlite_autoindex_kernel_event_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "run_id",
+       "seq"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE kernel_event (\n\trun_id TEXT NOT NULL, \n\tseq BIGINT NOT NULL, \n\tkind TEXT NOT NULL, \n\tnode_id TEXT, \n\tpayload JSON DEFAULT '{}' NOT NULL, \n\tref TEXT, \n\tts_ms BIGINT DEFAULT '0' NOT NULL, \n\tPRIMARY KEY (run_id, seq), \n\tFOREIGN KEY(run_id) REFERENCES run (id) ON DELETE CASCADE\n)"
+   },
+   "llm_usage": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "ts",
+      "type": "FLOAT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 2,
+      "name": "day",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "owner",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "session_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 5,
+      "name": "run_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 6,
+      "name": "node_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 7,
+      "name": "kind",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "'build'",
+      "pk": 0
+     },
+     {
+      "cid": 8,
+      "name": "model",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 9,
+      "name": "effort",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 10,
+      "name": "tok_in",
+      "type": "BIGINT",
+      "notnull": 1,
+      "dflt_value": "'0'",
+      "pk": 0
+     },
+     {
+      "cid": 11,
+      "name": "tok_out",
+      "type": "BIGINT",
+      "notnull": 1,
+      "dflt_value": "'0'",
+      "pk": 0
+     },
+     {
+      "cid": 12,
+      "name": "cache_read",
+      "type": "BIGINT",
+      "notnull": 1,
+      "dflt_value": "'0'",
+      "pk": 0
+     },
+     {
+      "cid": 13,
+      "name": "cache_write",
+      "type": "BIGINT",
+      "notnull": 1,
+      "dflt_value": "'0'",
+      "pk": 0
+     },
+     {
+      "cid": 14,
+      "name": "usd",
+      "type": "FLOAT",
+      "notnull": 1,
+      "dflt_value": "'0'",
+      "pk": 0
+     },
+     {
+      "cid": 15,
+      "name": "usd_source",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "'estimated'",
+      "pk": 0
+     },
+     {
+      "cid": 16,
+      "name": "attempts",
+      "type": "INTEGER",
+      "notnull": 1,
+      "dflt_value": "'1'",
+      "pk": 0
+     },
+     {
+      "cid": 17,
+      "name": "status",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "'ok'",
+      "pk": 0
+     },
+     {
+      "cid": 18,
+      "name": "created_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [],
+    "indexes": [
+     {
+      "name": "llm_usage_model_day_idx",
+      "unique": 0,
+      "origin": "c",
+      "partial": 0,
+      "columns": [
+       "model",
+       "day"
+      ]
+     },
+     {
+      "name": "llm_usage_owner_day_idx",
+      "unique": 0,
+      "origin": "c",
+      "partial": 0,
+      "columns": [
+       "owner",
+       "day"
+      ]
+     },
+     {
+      "name": "llm_usage_ts_idx",
+      "unique": 0,
+      "origin": "c",
+      "partial": 0,
+      "columns": [
+       "ts"
+      ]
+     },
+     {
+      "name": "sqlite_autoindex_llm_usage_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "id"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE llm_usage (\n\tid TEXT NOT NULL, \n\tts FLOAT NOT NULL, \n\tday TEXT NOT NULL, \n\towner TEXT DEFAULT '' NOT NULL, \n\tsession_id TEXT DEFAULT '' NOT NULL, \n\trun_id TEXT DEFAULT '' NOT NULL, \n\tnode_id TEXT DEFAULT '' NOT NULL, \n\tkind TEXT DEFAULT 'build' NOT NULL, \n\tmodel TEXT NOT NULL, \n\teffort TEXT DEFAULT '' NOT NULL, \n\ttok_in BIGINT DEFAULT '0' NOT NULL, \n\ttok_out BIGINT DEFAULT '0' NOT NULL, \n\tcache_read BIGINT DEFAULT '0' NOT NULL, \n\tcache_write BIGINT DEFAULT '0' NOT NULL, \n\tusd FLOAT DEFAULT '0' NOT NULL, \n\tusd_source TEXT DEFAULT 'estimated' NOT NULL, \n\tattempts INTEGER DEFAULT '1' NOT NULL, \n\tstatus TEXT DEFAULT 'ok' NOT NULL, \n\tcreated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tPRIMARY KEY (id), \n\tCONSTRAINT llm_usage_kind_ck CHECK (kind IN ('build','chat','aux')), \n\tCONSTRAINT llm_usage_tokens_ck CHECK (tok_in >= 0 AND tok_out >= 0 AND cache_read >= 0 AND cache_write >= 0), \n\tCONSTRAINT llm_usage_usd_ck CHECK (usd >= 0), \n\tCONSTRAINT llm_usage_attempts_ck CHECK (attempts >= 1), \n\tCONSTRAINT llm_usage_usd_source_ck CHECK (usd_source IN ('gateway','estimated')), \n\tCONSTRAINT llm_usage_status_ck CHECK (status IN ('ok','failed'))\n)"
+   },
+   "mutation_lease": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "session_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "owner",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 2,
+      "name": "kind",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "acquired_at",
+      "type": "FLOAT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "heartbeat_at",
+      "type": "FLOAT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 5,
+      "name": "expires_at",
+      "type": "FLOAT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [
+     {
+      "table": "session",
+      "from": "session_id",
+      "to": "id",
+      "on_update": "NO ACTION",
+      "on_delete": "CASCADE",
+      "match": "NONE"
+     }
+    ],
+    "indexes": [
+     {
+      "name": "mutation_lease_expiry_idx",
+      "unique": 0,
+      "origin": "c",
+      "partial": 0,
+      "columns": [
+       "expires_at"
+      ]
+     },
+     {
+      "name": "sqlite_autoindex_mutation_lease_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "session_id"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE mutation_lease (\n\tsession_id TEXT NOT NULL, \n\towner TEXT NOT NULL, \n\tkind TEXT NOT NULL, \n\tacquired_at FLOAT NOT NULL, \n\theartbeat_at FLOAT NOT NULL, \n\texpires_at FLOAT NOT NULL, \n\tPRIMARY KEY (session_id), \n\tFOREIGN KEY(session_id) REFERENCES session (id) ON DELETE CASCADE\n)"
+   },
+   "project": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "name",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 2,
+      "name": "owner",
+      "type": "TEXT",
+      "notnull": 0,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "prefs",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "sort_order",
+      "type": "INTEGER",
+      "notnull": 1,
+      "dflt_value": "'0'",
+      "pk": 0
+     },
+     {
+      "cid": 5,
+      "name": "created_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     },
+     {
+      "cid": 6,
+      "name": "updated_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [],
+    "indexes": [
+     {
+      "name": "project_owner_idx",
+      "unique": 0,
+      "origin": "c",
+      "partial": 0,
+      "columns": [
+       "owner"
+      ]
+     },
+     {
+      "name": "sqlite_autoindex_project_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "id"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE project (\n\tid TEXT NOT NULL, \n\tname TEXT NOT NULL, \n\towner TEXT, \n\tprefs JSON NOT NULL, \n\tsort_order INTEGER DEFAULT '0' NOT NULL, \n\tcreated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tupdated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tPRIMARY KEY (id)\n)"
+   },
+   "project_memory": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "project_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "key",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 2
+     },
+     {
+      "cid": 2,
+      "name": "tier",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "kind",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "content",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 5,
+      "name": "confidence",
+      "type": "FLOAT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 6,
+      "name": "support",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 7,
+      "name": "tags",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 8,
+      "name": "origin_session",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 9,
+      "name": "origin_files",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 10,
+      "name": "contested_by",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 11,
+      "name": "hit_runs",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 12,
+      "name": "use_count",
+      "type": "INTEGER",
+      "notnull": 1,
+      "dflt_value": "'0'",
+      "pk": 0
+     },
+     {
+      "cid": 13,
+      "name": "created_run",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 14,
+      "name": "last_used_run",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 15,
+      "name": "updated_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [],
+    "indexes": [
+     {
+      "name": "sqlite_autoindex_project_memory_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "project_id",
+       "key"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE project_memory (\n\tproject_id TEXT NOT NULL, \n\t\"key\" TEXT NOT NULL, \n\ttier TEXT NOT NULL, \n\tkind TEXT NOT NULL, \n\tcontent TEXT NOT NULL, \n\tconfidence FLOAT NOT NULL, \n\tsupport JSON NOT NULL, \n\ttags JSON NOT NULL, \n\torigin_session TEXT DEFAULT '' NOT NULL, \n\torigin_files JSON NOT NULL, \n\tcontested_by JSON NOT NULL, \n\thit_runs JSON NOT NULL, \n\tuse_count INTEGER DEFAULT '0' NOT NULL, \n\tcreated_run TEXT DEFAULT '' NOT NULL, \n\tlast_used_run TEXT DEFAULT '' NOT NULL, \n\tupdated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tPRIMARY KEY (project_id, \"key\"), \n\tCONSTRAINT project_memory_tier_ck CHECK (tier IN ('authoritative','reference'))\n)"
+   },
+   "question_item": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "session_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 2
+     },
+     {
+      "cid": 2,
+      "name": "text",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "status",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "'open'",
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "owner_user_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 5,
+      "name": "audience_role",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 6,
+      "name": "answer_schema",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": "'{}'",
+      "pk": 0
+     },
+     {
+      "cid": 7,
+      "name": "priority",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "'normal'",
+      "pk": 0
+     },
+     {
+      "cid": 8,
+      "name": "dependencies",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": "'[]'",
+      "pk": 0
+     },
+     {
+      "cid": 9,
+      "name": "blocked_artifacts",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": "'[]'",
+      "pk": 0
+     },
+     {
+      "cid": 10,
+      "name": "source_kind",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "'manual'",
+      "pk": 0
+     },
+     {
+      "cid": 11,
+      "name": "source_ref",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 12,
+      "name": "doc",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 13,
+      "name": "version",
+      "type": "BIGINT",
+      "notnull": 1,
+      "dflt_value": "'0'",
+      "pk": 0
+     },
+     {
+      "cid": 14,
+      "name": "created_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     },
+     {
+      "cid": 15,
+      "name": "updated_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [
+     {
+      "table": "session",
+      "from": "session_id",
+      "to": "id",
+      "on_update": "NO ACTION",
+      "on_delete": "CASCADE",
+      "match": "NONE"
+     }
+    ],
+    "indexes": [
+     {
+      "name": "question_item_queue_idx",
+      "unique": 0,
+      "origin": "c",
+      "partial": 0,
+      "columns": [
+       "session_id",
+       "status",
+       "priority"
+      ]
+     },
+     {
+      "name": "question_item_source_idx",
+      "unique": 0,
+      "origin": "c",
+      "partial": 0,
+      "columns": [
+       "session_id",
+       "source_kind",
+       "source_ref"
+      ]
+     },
+     {
+      "name": "sqlite_autoindex_question_item_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "session_id",
+       "id"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE question_item (\n\tsession_id TEXT NOT NULL, \n\tid TEXT NOT NULL, \n\ttext TEXT NOT NULL, \n\tstatus TEXT DEFAULT 'open' NOT NULL, \n\towner_user_id TEXT DEFAULT '' NOT NULL, \n\taudience_role TEXT DEFAULT '' NOT NULL, \n\tanswer_schema JSON DEFAULT '{}' NOT NULL, \n\tpriority TEXT DEFAULT 'normal' NOT NULL, \n\tdependencies JSON DEFAULT '[]' NOT NULL, \n\tblocked_artifacts JSON DEFAULT '[]' NOT NULL, \n\tsource_kind TEXT DEFAULT 'manual' NOT NULL, \n\tsource_ref TEXT DEFAULT '' NOT NULL, \n\tdoc JSON NOT NULL, \n\tversion BIGINT DEFAULT '0' NOT NULL, \n\tcreated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tupdated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tPRIMARY KEY (session_id, id), \n\tCONSTRAINT question_item_status_ck CHECK (status IN ('open','assigned','blocked','answered','deferred','cancelled')), \n\tCONSTRAINT question_item_priority_ck CHECK (priority IN ('blocking','high','normal','low')), \n\tFOREIGN KEY(session_id) REFERENCES session (id) ON DELETE CASCADE\n)"
+   },
+   "revision_record": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "session_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 2
+     },
+     {
+      "cid": 2,
+      "name": "ordinal",
+      "type": "BIGINT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "parent_id",
+      "type": "TEXT",
+      "notnull": 0,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "kind",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 5,
+      "name": "status",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 6,
+      "name": "patch_set",
+      "type": "JSON",
+      "notnull": 0,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 7,
+      "name": "changed_ids",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": "'[]'",
+      "pk": 0
+     },
+     {
+      "cid": 8,
+      "name": "invalidated_artifacts",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": "'[]'",
+      "pk": 0
+     },
+     {
+      "cid": 9,
+      "name": "actor",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "'agent'",
+      "pk": 0
+     },
+     {
+      "cid": 10,
+      "name": "source_turn",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 11,
+      "name": "snapshot_hash",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 12,
+      "name": "idempotency_key",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 13,
+      "name": "doc",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 14,
+      "name": "created_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [
+     {
+      "table": "session",
+      "from": "session_id",
+      "to": "id",
+      "on_update": "NO ACTION",
+      "on_delete": "CASCADE",
+      "match": "NONE"
+     }
+    ],
+    "indexes": [
+     {
+      "name": "revision_record_idempotency_uq",
+      "unique": 1,
+      "origin": "c",
+      "partial": 1,
+      "columns": [
+       "session_id",
+       "idempotency_key"
+      ]
+     },
+     {
+      "name": "sqlite_autoindex_revision_record_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "session_id",
+       "id"
+      ]
+     },
+     {
+      "name": "sqlite_autoindex_revision_record_2",
+      "unique": 1,
+      "origin": "u",
+      "partial": 0,
+      "columns": [
+       "session_id",
+       "ordinal"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE revision_record (\n\tsession_id TEXT NOT NULL, \n\tid TEXT NOT NULL, \n\tordinal BIGINT NOT NULL, \n\tparent_id TEXT, \n\tkind TEXT NOT NULL, \n\tstatus TEXT NOT NULL, \n\tpatch_set JSON, \n\tchanged_ids JSON DEFAULT '[]' NOT NULL, \n\tinvalidated_artifacts JSON DEFAULT '[]' NOT NULL, \n\tactor TEXT DEFAULT 'agent' NOT NULL, \n\tsource_turn TEXT DEFAULT '' NOT NULL, \n\tsnapshot_hash TEXT DEFAULT '' NOT NULL, \n\tidempotency_key TEXT DEFAULT '' NOT NULL, \n\tdoc JSON NOT NULL, \n\tcreated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tPRIMARY KEY (session_id, id), \n\tCONSTRAINT revision_record_ordinal_uq UNIQUE (session_id, ordinal), \n\tCONSTRAINT revision_record_status_ck CHECK (status IN ('proposed','applied','rejected','rolled_back')), \n\tFOREIGN KEY(session_id) REFERENCES session (id) ON DELETE CASCADE\n)"
+   },
+   "run": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "session_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 2,
+      "name": "ordinal",
+      "type": "INTEGER",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "kind",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "status",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "'running'",
+      "pk": 0
+     },
+     {
+      "cid": 5,
+      "name": "budget",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": "'{}'",
+      "pk": 0
+     },
+     {
+      "cid": 6,
+      "name": "error",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 7,
+      "name": "started_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     },
+     {
+      "cid": 8,
+      "name": "ended_at",
+      "type": "DATETIME",
+      "notnull": 0,
+      "dflt_value": null,
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [
+     {
+      "table": "session",
+      "from": "session_id",
+      "to": "id",
+      "on_update": "NO ACTION",
+      "on_delete": "CASCADE",
+      "match": "NONE"
+     }
+    ],
+    "indexes": [
+     {
+      "name": "sqlite_autoindex_run_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "id"
+      ]
+     },
+     {
+      "name": "sqlite_autoindex_run_2",
+      "unique": 1,
+      "origin": "u",
+      "partial": 0,
+      "columns": [
+       "session_id",
+       "ordinal"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE run (\n\tid TEXT NOT NULL, \n\tsession_id TEXT NOT NULL, \n\tordinal INTEGER NOT NULL, \n\tkind TEXT NOT NULL, \n\tstatus TEXT DEFAULT 'running' NOT NULL, \n\tbudget JSON DEFAULT '{}' NOT NULL, \n\terror TEXT DEFAULT '' NOT NULL, \n\tstarted_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tended_at DATETIME, \n\tPRIMARY KEY (id), \n\tCONSTRAINT run_session_ordinal_uq UNIQUE (session_id, ordinal), \n\tCONSTRAINT run_status_ck CHECK (status IN ('running','suspended','done','failed')), \n\tFOREIGN KEY(session_id) REFERENCES session (id) ON DELETE CASCADE\n)"
+   },
+   "schema_migration": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "version",
+      "type": "INTEGER",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "name",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 2,
+      "name": "checksum",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "applied_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [],
+    "indexes": [],
+    "sql": "CREATE TABLE schema_migration (\n\tversion INTEGER NOT NULL, \n\tname TEXT NOT NULL, \n\tchecksum TEXT NOT NULL, \n\tapplied_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tPRIMARY KEY (version)\n)"
+   },
+   "session": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "id",
+      "type": "TEXT",
+      "notnull": 0,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "title",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "'新建会话'",
+      "pk": 0
+     },
+     {
+      "cid": 2,
+      "name": "project",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "status",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "'idle'",
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "error",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 5,
+      "name": "state_version",
+      "type": "BIGINT",
+      "notnull": 1,
+      "dflt_value": "0",
+      "pk": 0
+     },
+     {
+      "cid": 6,
+      "name": "next_event_seq",
+      "type": "BIGINT",
+      "notnull": 1,
+      "dflt_value": "0",
+      "pk": 0
+     },
+     {
+      "cid": 7,
+      "name": "next_run_ordinal",
+      "type": "INTEGER",
+      "notnull": 1,
+      "dflt_value": "0",
+      "pk": 0
+     },
+     {
+      "cid": 8,
+      "name": "next_decision_ordinal",
+      "type": "INTEGER",
+      "notnull": 1,
+      "dflt_value": "0",
+      "pk": 0
+     },
+     {
+      "cid": 9,
+      "name": "created_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     },
+     {
+      "cid": 10,
+      "name": "updated_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     },
+     {
+      "cid": 11,
+      "name": "owner",
+      "type": "TEXT",
+      "notnull": 0,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 12,
+      "name": "project_id",
+      "type": "TEXT",
+      "notnull": 0,
+      "dflt_value": null,
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [],
+    "indexes": [
+     {
+      "name": "sqlite_autoindex_session_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "id"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE \"session\" (\n                    id TEXT PRIMARY KEY,\n                    title TEXT NOT NULL DEFAULT '新建会话',\n                    project TEXT NOT NULL DEFAULT '',\n                    status TEXT NOT NULL DEFAULT 'idle',\n                    error TEXT NOT NULL DEFAULT '',\n                    state_version BIGINT NOT NULL DEFAULT 0,\n                    next_event_seq BIGINT NOT NULL DEFAULT 0,\n                    next_run_ordinal INTEGER NOT NULL DEFAULT 0,\n                    next_decision_ordinal INTEGER NOT NULL DEFAULT 0,\n                    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,\n                    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,\n                    owner TEXT,\n                    project_id TEXT,\n                    CONSTRAINT session_status_ck CHECK (status IN (\n                        'idle','queued','parsing','extracting','awaiting_answer',\n                        'done','failed','stopped'))\n                )"
+   },
+   "session_event": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "session_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "seq",
+      "type": "BIGINT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 2
+     },
+     {
+      "cid": 2,
+      "name": "kind",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "payload",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": "'{}'",
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "ref",
+      "type": "TEXT",
+      "notnull": 0,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 5,
+      "name": "ts",
+      "type": "FLOAT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 6,
+      "name": "event_id",
+      "type": "TEXT",
+      "notnull": 0,
+      "dflt_value": null,
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [
+     {
+      "table": "session",
+      "from": "session_id",
+      "to": "id",
+      "on_update": "NO ACTION",
+      "on_delete": "CASCADE",
+      "match": "NONE"
+     }
+    ],
+    "indexes": [
+     {
+      "name": "session_event_event_id_uq",
+      "unique": 1,
+      "origin": "c",
+      "partial": 1,
+      "columns": [
+       "event_id"
+      ]
+     },
+     {
+      "name": "sqlite_autoindex_session_event_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "session_id",
+       "seq"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE session_event (\n    session_id TEXT NOT NULL,\n    seq BIGINT NOT NULL,\n    kind TEXT NOT NULL,\n    payload JSON DEFAULT '{}' NOT NULL,\n    ref TEXT,\n    ts FLOAT NOT NULL, event_id TEXT,\n    PRIMARY KEY (session_id, seq),\n    FOREIGN KEY(session_id) REFERENCES session (id) ON DELETE CASCADE\n)"
+   },
+   "session_file": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "session_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "name",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 2
+     },
+     {
+      "cid": 2,
+      "name": "rel_path",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "size_bytes",
+      "type": "BIGINT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "sha256",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
+     },
+     {
+      "cid": 5,
+      "name": "uploaded_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [
+     {
+      "table": "session",
+      "from": "session_id",
+      "to": "id",
+      "on_update": "NO ACTION",
+      "on_delete": "CASCADE",
+      "match": "NONE"
+     }
+    ],
+    "indexes": [
+     {
+      "name": "sqlite_autoindex_session_file_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "session_id",
+       "name"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE session_file (\n\tsession_id TEXT NOT NULL, \n\tname TEXT NOT NULL, \n\trel_path TEXT NOT NULL, \n\tsize_bytes BIGINT NOT NULL, \n\tsha256 TEXT DEFAULT '' NOT NULL, \n\tuploaded_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tPRIMARY KEY (session_id, name), \n\tFOREIGN KEY(session_id) REFERENCES session (id) ON DELETE CASCADE\n)"
+   },
+   "session_state": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "session_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "key",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 2
+     },
+     {
+      "cid": 2,
+      "name": "doc",
+      "type": "JSON",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 3,
+      "name": "version",
+      "type": "BIGINT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "derived",
+      "type": "BOOLEAN",
+      "notnull": 1,
+      "dflt_value": "0",
+      "pk": 0
+     },
+     {
+      "cid": 5,
+      "name": "updated_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [
+     {
+      "table": "session",
+      "from": "session_id",
+      "to": "id",
+      "on_update": "NO ACTION",
+      "on_delete": "CASCADE",
+      "match": "NONE"
+     }
+    ],
+    "indexes": [
+     {
+      "name": "sqlite_autoindex_session_state_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "session_id",
+       "key"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE session_state (\n\tsession_id TEXT NOT NULL, \n\t\"key\" TEXT NOT NULL, \n\tdoc JSON NOT NULL, \n\tversion BIGINT NOT NULL, \n\tderived BOOLEAN DEFAULT 0 NOT NULL, \n\tupdated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tPRIMARY KEY (session_id, \"key\"), \n\tFOREIGN KEY(session_id) REFERENCES session (id) ON DELETE CASCADE\n)"
+   }
+  },
+  "healthcheck": {
+   "mode": "sqlite",
+   "ok": true,
+   "schema_version": 13
+  },
+  "mode": "sqlite",
+  "rows": {
+   "session": [
+    {
+     "id": "s1",
+     "title": "旧会话",
+     "project": "P",
+     "status": "done",
+     "error": "",
+     "state_version": 7,
+     "next_event_seq": 42,
+     "next_run_ordinal": 3,
+     "next_decision_ordinal": 2,
+     "created_at": "2024-01-02 03:04:05",
+     "updated_at": "2024-01-02 03:04:06",
+     "owner": null,
+     "project_id": null
+    }
+   ],
+   "session_event": [
+    {
+     "session_id": "s1",
+     "seq": 0,
+     "kind": "session.created",
+     "payload": "{\"a\":1}",
+     "ref": null,
+     "ts": 1700000000.5,
+     "event_id": null
+    }
+   ],
+   "app_user": [
+    {
+     "id": "u1",
+     "username": "alice",
+     "password_hash": "scrypt$x",
+     "role": "user",
+     "active": 1,
+     "prefs": "{}",
+     "created_at": "2024-01-02 03:04:07",
+     "updated_at": "2024-01-02 03:04:08",
+     "display_name": ""
+    }
+   ]
+  },
+  "setup_sql": [
+   "CREATE TABLE session (\n    id TEXT NOT NULL,\n    title TEXT DEFAULT '新建会话' NOT NULL,\n    project TEXT DEFAULT '' NOT NULL,\n    status TEXT DEFAULT 'idle' NOT NULL,\n    error TEXT DEFAULT '' NOT NULL,\n    state_version BIGINT DEFAULT '0' NOT NULL,\n    next_event_seq BIGINT DEFAULT '0' NOT NULL,\n    next_run_ordinal INTEGER DEFAULT '0' NOT NULL,\n    next_decision_ordinal INTEGER DEFAULT '0' NOT NULL,\n    created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,\n    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,\n    PRIMARY KEY (id),\n    CONSTRAINT session_status_ck CHECK (status IN ('idle','parsing','extracting',\n        'awaiting_answer','done','failed'))\n)",
+   "CREATE TABLE session_event (\n    session_id TEXT NOT NULL,\n    seq BIGINT NOT NULL,\n    kind TEXT NOT NULL,\n    payload JSON DEFAULT '{}' NOT NULL,\n    ref TEXT,\n    ts FLOAT NOT NULL,\n    PRIMARY KEY (session_id, seq),\n    FOREIGN KEY(session_id) REFERENCES session (id) ON DELETE CASCADE\n)",
+   "CREATE TABLE app_user (\n    id TEXT NOT NULL,\n    username TEXT NOT NULL,\n    password_hash TEXT NOT NULL,\n    role TEXT DEFAULT 'user' NOT NULL,\n    active BOOLEAN DEFAULT 1 NOT NULL,\n    prefs JSON DEFAULT '{}' NOT NULL,\n    created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,\n    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,\n    PRIMARY KEY (id),\n    CONSTRAINT app_user_role_ck CHECK (role IN ('admin','user')),\n    UNIQUE (username)\n)",
+   "INSERT INTO session (id,title,project,status,error,state_version,next_event_seq,next_run_ordinal,next_decision_ordinal,created_at,updated_at) VALUES ('s1','旧会话','P','done','',7,42,3,2,'2024-01-02 03:04:05','2024-01-02 03:04:06')",
+   "INSERT INTO session_event (session_id,seq,kind,payload,ref,ts) VALUES ('s1',0,'session.created','{\"a\":1}',NULL,1700000000.5)",
+   "INSERT INTO app_user (id,username,password_hash,created_at,updated_at) VALUES ('u1','alice','scrypt$x','2024-01-02 03:04:07','2024-01-02 03:04:08')"
+  ]
+ },
+ "legacy_unknown_schema": {
+  "type": "RuntimeError",
+  "message": "SQLite session 表需要升级，但列结构不是受支持的历史版本：id,title,project,status,error,state_version,next_event_seq,next_run_ordinal,next_decision_ordinal,created_at,updated_at,weird,owner,project_id",
+  "setup_sql": [
+   "CREATE TABLE session (\n    id TEXT NOT NULL,\n    title TEXT DEFAULT '新建会话' NOT NULL,\n    project TEXT DEFAULT '' NOT NULL,\n    status TEXT DEFAULT 'idle' NOT NULL,\n    error TEXT DEFAULT '' NOT NULL,\n    state_version BIGINT DEFAULT '0' NOT NULL,\n    next_event_seq BIGINT DEFAULT '0' NOT NULL,\n    next_run_ordinal INTEGER DEFAULT '0' NOT NULL,\n    next_decision_ordinal INTEGER DEFAULT '0' NOT NULL,\n    created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,\n    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,\n    PRIMARY KEY (id),\n    CONSTRAINT session_status_ck CHECK (status IN ('idle','parsing','extracting',\n        'awaiting_answer','done','failed'))\n)",
+   "CREATE TABLE session_event (\n    session_id TEXT NOT NULL,\n    seq BIGINT NOT NULL,\n    kind TEXT NOT NULL,\n    payload JSON DEFAULT '{}' NOT NULL,\n    ref TEXT,\n    ts FLOAT NOT NULL,\n    PRIMARY KEY (session_id, seq),\n    FOREIGN KEY(session_id) REFERENCES session (id) ON DELETE CASCADE\n)",
+   "CREATE TABLE app_user (\n    id TEXT NOT NULL,\n    username TEXT NOT NULL,\n    password_hash TEXT NOT NULL,\n    role TEXT DEFAULT 'user' NOT NULL,\n    active BOOLEAN DEFAULT 1 NOT NULL,\n    prefs JSON DEFAULT '{}' NOT NULL,\n    created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,\n    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,\n    PRIMARY KEY (id),\n    CONSTRAINT app_user_role_ck CHECK (role IN ('admin','user')),\n    UNIQUE (username)\n)",
+   "ALTER TABLE session ADD COLUMN weird TEXT",
+   "INSERT INTO session (id,title,project,status,error,state_version,next_event_seq,next_run_ordinal,next_decision_ordinal,created_at,updated_at) VALUES ('s1','旧会话','P','done','',7,42,3,2,'2024-01-02 03:04:05','2024-01-02 03:04:06')",
+   "INSERT INTO session_event (session_id,seq,kind,payload,ref,ts) VALUES ('s1',0,'session.created','{\"a\":1}',NULL,1700000000.5)",
+   "INSERT INTO app_user (id,username,password_hash,created_at,updated_at) VALUES ('u1','alice','scrypt$x','2024-01-02 03:04:07','2024-01-02 03:04:08')"
+  ]
+ }
+}

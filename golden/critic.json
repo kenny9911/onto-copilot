@@ -1,0 +1,1546 @@
+{
+ "_note": "由 tools/golden/critic.py 生成，勿手改",
+ "severity": [
+  "high",
+  "medium",
+  "low"
+ ],
+ "decision": [
+  "pass",
+  "revise",
+  "ask_user",
+  "round_trip",
+  "auto_repair",
+  "abort"
+ ],
+ "defaults": {
+  "finding": {
+   "severity": "low",
+   "code": "C",
+   "target": "T",
+   "claim": "claim",
+   "evidence_checked": [],
+   "proposed_fix": null,
+   "verifier": ""
+  },
+  "verdict": {
+   "lens": "lens",
+   "passed": true,
+   "high": 0,
+   "findings": [],
+   "note": ""
+  },
+  "gate_result": {
+   "decision": "pass",
+   "reason": "r",
+   "detail": {}
+  },
+  "critic_context": {
+   "evidence_render": "",
+   "facts": "",
+   "rules": "",
+   "samples": 1
+  }
+ },
+ "schema": {
+  "type": "object",
+  "required": [
+   "checks",
+   "findings"
+  ],
+  "properties": {
+   "checks": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "required": [
+      "item",
+      "pass"
+     ],
+     "properties": {
+      "item": {
+       "type": "string"
+      },
+      "pass": {
+       "type": "boolean"
+      },
+      "why": {
+       "type": "string"
+      }
+     }
+    }
+   },
+   "findings": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "required": [
+      "severity",
+      "code",
+      "target",
+      "claim",
+      "evidence_checked"
+     ],
+     "properties": {
+      "severity": {
+       "type": "string",
+       "enum": [
+        "high",
+        "medium",
+        "low"
+       ]
+      },
+      "code": {
+       "type": "string"
+      },
+      "target": {
+       "type": "string"
+      },
+      "claim": {
+       "type": "string"
+      },
+      "evidence_checked": {
+       "type": "array",
+       "items": {
+        "type": "string"
+       }
+      }
+     }
+    }
+   }
+  }
+ },
+ "prompt": [
+  {
+   "why": "最小形态：两条 rubric、无额外规范",
+   "name": "semantic",
+   "rubric": [
+    "口径是否一致",
+    "是否有编造的出处"
+   ],
+   "instruction": "",
+   "evidence_render": "",
+   "draft": {
+    "objects": [
+     "采购订单头"
+    ],
+    "props": [
+     "planAmount"
+    ]
+   },
+   "len": 280,
+   "sha256": "e6628141c812b34ab2f691d2eb961fd40423e2e88ca9856ecbf504d810e21283",
+   "prompt": "你是 semantic 视角的评审。逐条判定下面每个检查项通过与否，不要给总体评分、不要评论文风。\n\n## 检查项\n1. 口径是否一致\n2. 是否有编造的出处\n\n## 项目规范\n（无额外规范）\n\n## 已知事实\n（无）\n\n## 待审产物\n{\"objects\": [\"采购订单头\"], \"props\": [\"planAmount\"]}\n\n每条不通过的检查项都要产出一条 finding，且 evidence_checked 必须填你实际核对过的出处（文件!位置）。核对不到出处就把 severity 标 high、code 填 EVIDENCE_MISSING。"
+  },
+  {
+   "why": "带项目规范",
+   "name": "命名",
+   "rubric": [
+    "属性是否 lowerCamelCase"
+   ],
+   "instruction": "项目规范：对象用中文名，属性用 lowerCamelCase。",
+   "evidence_render": "",
+   "draft": {
+    "props": [
+     "PlanDate"
+    ]
+   },
+   "len": 275,
+   "sha256": "ebca9ce9dc323e7d16d56d8acce5b1c7d9d92803ccda7af33c67048553e541d4",
+   "prompt": "你是 命名 视角的评审。逐条判定下面每个检查项通过与否，不要给总体评分、不要评论文风。\n\n## 检查项\n1. 属性是否 lowerCamelCase\n\n## 项目规范\n项目规范：对象用中文名，属性用 lowerCamelCase。\n\n## 已知事实\n（无）\n\n## 待审产物\n{\"props\": [\"PlanDate\"]}\n\n每条不通过的检查项都要产出一条 finding，且 evidence_checked 必须填你实际核对过的出处（文件!位置）。核对不到出处就把 severity 标 high、code 填 EVIDENCE_MISSING。"
+  },
+  {
+   "why": "带可核对的证据（追加在末尾）",
+   "name": "provenance",
+   "rubric": [
+    "每条断言是否有出处"
+   ],
+   "instruction": "",
+   "evidence_render": "材料.xlsx!Sheet1!A1: 计划金额",
+   "draft": {
+    "claims": [
+     {
+      "text": "计划金额来自表头",
+      "cite": "材料.xlsx!A1"
+     }
+    ]
+   },
+   "len": 317,
+   "sha256": "0f5b326d167f5194043a65f84f7d31a2bd7b23ffa4f4a610875f0b6dee1b8aff",
+   "prompt": "你是 provenance 视角的评审。逐条判定下面每个检查项通过与否，不要给总体评分、不要评论文风。\n\n## 检查项\n1. 每条断言是否有出处\n\n## 项目规范\n（无额外规范）\n\n## 已知事实\n（无）\n\n## 待审产物\n{\"claims\": [{\"text\": \"计划金额来自表头\", \"cite\": \"材料.xlsx!A1\"}]}\n\n每条不通过的检查项都要产出一条 finding，且 evidence_checked 必须填你实际核对过的出处（文件!位置）。核对不到出处就把 severity 标 high、code 填 EVIDENCE_MISSING。\n\n## 可核对的证据\n材料.xlsx!Sheet1!A1: 计划金额"
+  },
+  {
+   "why": "空 rubric：检查项那一段是空行",
+   "name": "empty",
+   "rubric": [],
+   "instruction": "",
+   "evidence_render": "",
+   "draft": {},
+   "len": 211,
+   "sha256": "8e62f81fb089b793a77493fefef59dca624770563a74759b63d9b04cc047bcee",
+   "prompt": "你是 empty 视角的评审。逐条判定下面每个检查项通过与否，不要给总体评分、不要评论文风。\n\n## 检查项\n\n\n## 项目规范\n（无额外规范）\n\n## 已知事实\n（无）\n\n## 待审产物\n{}\n\n每条不通过的检查项都要产出一条 finding，且 evidence_checked 必须填你实际核对过的出处（文件!位置）。核对不到出处就把 severity 标 high、code 填 EVIDENCE_MISSING。"
+  },
+  {
+   "why": "draft 超过 20000 码位要按码位截断",
+   "name": "big",
+   "rubric": [
+    "够不够"
+   ],
+   "instruction": "",
+   "evidence_render": "",
+   "draft": {
+    "s": {
+     "__repeat__": [
+      "月",
+      30000
+     ]
+    }
+   },
+   "len": 20213,
+   "sha256": "a54149bcb5b5b133c291d786381a1a29437c5332a969769fd5333878b090cb0d"
+  },
+  {
+   "why": "证据超过 20000 码位同样截断",
+   "name": "big_ev",
+   "rubric": [
+    "够不够"
+   ],
+   "instruction": "",
+   "evidence_render": {
+    "__repeat__": [
+     "证",
+     30000
+    ]
+   },
+   "draft": {},
+   "len": 20230,
+   "sha256": "279efafdeb8b1bb285759375d7a00a5e84eccf36225848bc8cc8b81be8db1ca1"
+  }
+ ],
+ "rule_critic": [
+  {
+   "why": "无 finding → 通过",
+   "name": "schema",
+   "findings": [],
+   "verdict": {
+    "lens": "schema",
+    "passed": true,
+    "high": 0,
+    "findings": [],
+    "note": "规则视角 · 0 条"
+   },
+   "needs_llm": false
+  },
+  {
+   "why": "只有 MEDIUM → 仍然通过（只有 HIGH 阻断）",
+   "name": "naming",
+   "findings": [
+    {
+     "severity": "medium",
+     "code": "NAMING",
+     "target": "x",
+     "claim": "命名可优化",
+     "verifier": "dict"
+    }
+   ],
+   "verdict": {
+    "lens": "naming",
+    "passed": true,
+    "high": 0,
+    "findings": [
+     {
+      "severity": "medium",
+      "code": "NAMING",
+      "target": "x",
+      "claim": "命名可优化",
+      "evidence_checked": [],
+      "proposed_fix": null,
+      "verifier": "dict"
+     }
+    ],
+    "note": "规则视角 · 1 条"
+   },
+   "needs_llm": false
+  },
+  {
+   "why": "有 HIGH → 不通过",
+   "name": "provenance",
+   "findings": [
+    {
+     "severity": "high",
+     "code": "EVIDENCE_MISSING",
+     "target": "pt_x",
+     "claim": "无证据",
+     "verifier": "rule"
+    },
+    {
+     "severity": "low",
+     "code": "STYLE",
+     "target": "pt_y",
+     "claim": "措辞",
+     "verifier": "rule"
+    }
+   ],
+   "verdict": {
+    "lens": "provenance",
+    "passed": false,
+    "high": 1,
+    "findings": [
+     {
+      "severity": "high",
+      "code": "EVIDENCE_MISSING",
+      "target": "pt_x",
+      "claim": "无证据",
+      "evidence_checked": [],
+      "proposed_fix": null,
+      "verifier": "rule"
+     },
+     {
+      "severity": "low",
+      "code": "STYLE",
+      "target": "pt_y",
+      "claim": "措辞",
+      "evidence_checked": [],
+      "proposed_fix": null,
+      "verifier": "rule"
+     }
+    ],
+    "note": "规则视角 · 2 条"
+   },
+   "needs_llm": false
+  }
+ ],
+ "vote": [
+  {
+   "why": "单票否决必须生效：阈值 0.5，1 > 0.5",
+   "rubric": [
+    "口径一致",
+    "有出处"
+   ],
+   "votes": [
+    {
+     "checks": [
+      {
+       "item": "口径一致",
+       "pass": false
+      },
+      {
+       "item": "有出处",
+       "pass": true
+      }
+     ],
+     "findings": []
+    }
+   ],
+   "verdict": {
+    "lens": "semantic",
+    "passed": false,
+    "high": 0,
+    "findings": [],
+    "note": "1 票；未通过检查项 1/2"
+   },
+   "gateway_calls": [
+    {
+     "salt": 0,
+     "key": "critic:semantic:0"
+    }
+   ]
+  },
+  {
+   "why": "两票里只有一票判失败：1 > 1.0 不成立，不算失败",
+   "rubric": [
+    "口径一致"
+   ],
+   "votes": [
+    {
+     "checks": [
+      {
+       "item": "口径一致",
+       "pass": false
+      }
+     ],
+     "findings": []
+    },
+    {
+     "checks": [
+      {
+       "item": "口径一致",
+       "pass": true
+      }
+     ],
+     "findings": []
+    }
+   ],
+   "verdict": {
+    "lens": "semantic",
+    "passed": true,
+    "high": 0,
+    "findings": [],
+    "note": "2 票；未通过检查项 0/1"
+   },
+   "gateway_calls": [
+    {
+     "salt": 0,
+     "key": "critic:semantic:0"
+    },
+    {
+     "salt": 1,
+     "key": "critic:semantic:1"
+    }
+   ]
+  },
+  {
+   "why": "三票里两票判失败：2 > 1.5，算失败",
+   "rubric": [
+    "口径一致"
+   ],
+   "votes": [
+    {
+     "checks": [
+      {
+       "item": "口径一致",
+       "pass": false
+      }
+     ],
+     "findings": []
+    },
+    {
+     "checks": [
+      {
+       "item": "口径一致",
+       "pass": false
+      }
+     ],
+     "findings": []
+    },
+    {
+     "checks": [
+      {
+       "item": "口径一致",
+       "pass": true
+      }
+     ],
+     "findings": []
+    }
+   ],
+   "verdict": {
+    "lens": "semantic",
+    "passed": false,
+    "high": 0,
+    "findings": [],
+    "note": "3 票；未通过检查项 1/1"
+   },
+   "gateway_calls": [
+    {
+     "salt": 0,
+     "key": "critic:semantic:0"
+    },
+    {
+     "salt": 1,
+     "key": "critic:semantic:1"
+    },
+    {
+     "salt": 2,
+     "key": "critic:semantic:2"
+    }
+   ]
+  },
+  {
+   "why": "三票里一票判失败：1 > 1.5 不成立",
+   "rubric": [
+    "口径一致"
+   ],
+   "votes": [
+    {
+     "checks": [
+      {
+       "item": "口径一致",
+       "pass": false
+      }
+     ],
+     "findings": []
+    },
+    {
+     "checks": [
+      {
+       "item": "口径一致",
+       "pass": true
+      }
+     ],
+     "findings": []
+    },
+    {
+     "checks": [
+      {
+       "item": "口径一致",
+       "pass": true
+      }
+     ],
+     "findings": []
+    }
+   ],
+   "verdict": {
+    "lens": "semantic",
+    "passed": true,
+    "high": 0,
+    "findings": [],
+    "note": "3 票；未通过检查项 0/1"
+   },
+   "gateway_calls": [
+    {
+     "salt": 0,
+     "key": "critic:semantic:0"
+    },
+    {
+     "salt": 1,
+     "key": "critic:semantic:1"
+    },
+    {
+     "salt": 2,
+     "key": "critic:semantic:2"
+    }
+   ]
+  },
+  {
+   "why": "空 dict 是**假票**（Python 真值性），全空 → CRITIC_FAILED",
+   "rubric": [
+    "口径一致"
+   ],
+   "votes": [
+    {},
+    {}
+   ],
+   "verdict": {
+    "lens": "semantic",
+    "passed": false,
+    "high": 1,
+    "findings": [
+     {
+      "severity": "high",
+      "code": "CRITIC_FAILED",
+      "target": "-",
+      "claim": "评委未返回可解析结果",
+      "evidence_checked": [],
+      "proposed_fix": null,
+      "verifier": "llm"
+     }
+    ],
+    "note": ""
+   },
+   "gateway_calls": [
+    {
+     "salt": 0,
+     "key": "critic:semantic:0"
+    },
+    {
+     "salt": 1,
+     "key": "critic:semantic:1"
+    }
+   ]
+  },
+  {
+   "why": "None 与空 dict 混一票真的：只按那一票算",
+   "rubric": [
+    "口径一致"
+   ],
+   "votes": [
+    null,
+    {
+     "checks": [
+      {
+       "item": "口径一致",
+       "pass": false
+      }
+     ],
+     "findings": []
+    }
+   ],
+   "verdict": {
+    "lens": "semantic",
+    "passed": false,
+    "high": 0,
+    "findings": [],
+    "note": "1 票；未通过检查项 1/1"
+   },
+   "gateway_calls": [
+    {
+     "salt": 0,
+     "key": "critic:semantic:0"
+    },
+    {
+     "salt": 1,
+     "key": "critic:semantic:1"
+    }
+   ]
+  },
+  {
+   "why": "checks 缺 pass 字段 → 默认算通过",
+   "rubric": [
+    "口径一致"
+   ],
+   "votes": [
+    {
+     "checks": [
+      {
+       "item": "口径一致"
+      }
+     ],
+     "findings": []
+    }
+   ],
+   "verdict": {
+    "lens": "semantic",
+    "passed": true,
+    "high": 0,
+    "findings": [],
+    "note": "1 票；未通过检查项 0/1"
+   },
+   "gateway_calls": [
+    {
+     "salt": 0,
+     "key": "critic:semantic:0"
+    }
+   ]
+  },
+  {
+   "why": "finding 按 (code, target) 跨票去重，先到的留下",
+   "rubric": [
+    "有出处"
+   ],
+   "votes": [
+    {
+     "checks": [],
+     "findings": [
+      {
+       "severity": "medium",
+       "code": "EVIDENCE_MISSING",
+       "target": "pt_x",
+       "claim": "EVIDENCE_MISSING 于 pt_x",
+       "evidence_checked": [
+        "材料.xlsx!A1"
+       ]
+      }
+     ]
+    },
+    {
+     "checks": [],
+     "findings": [
+      {
+       "severity": "medium",
+       "code": "EVIDENCE_MISSING",
+       "target": "pt_x",
+       "claim": "EVIDENCE_MISSING 于 pt_x",
+       "evidence_checked": [
+        "材料.xlsx!A1"
+       ]
+      },
+      {
+       "severity": "medium",
+       "code": "EVIDENCE_MISSING",
+       "target": "pt_y",
+       "claim": "EVIDENCE_MISSING 于 pt_y",
+       "evidence_checked": [
+        "材料.xlsx!A1"
+       ]
+      }
+     ]
+    }
+   ],
+   "verdict": {
+    "lens": "semantic",
+    "passed": true,
+    "high": 0,
+    "findings": [
+     {
+      "severity": "medium",
+      "code": "EVIDENCE_MISSING",
+      "target": "pt_x",
+      "claim": "EVIDENCE_MISSING 于 pt_x",
+      "evidence_checked": [
+       "材料.xlsx!A1"
+      ],
+      "proposed_fix": null,
+      "verifier": "llm"
+     },
+     {
+      "severity": "medium",
+      "code": "EVIDENCE_MISSING",
+      "target": "pt_y",
+      "claim": "EVIDENCE_MISSING 于 pt_y",
+      "evidence_checked": [
+       "材料.xlsx!A1"
+      ],
+      "proposed_fix": null,
+      "verifier": "llm"
+     }
+    ],
+    "note": "2 票；未通过检查项 0/1"
+   },
+   "gateway_calls": [
+    {
+     "salt": 0,
+     "key": "critic:semantic:0"
+    },
+    {
+     "salt": 1,
+     "key": "critic:semantic:1"
+    }
+   ]
+  },
+  {
+   "why": "HIGH finding 单独就能否决，即使没有失败的检查项",
+   "rubric": [
+    "有出处"
+   ],
+   "votes": [
+    {
+     "checks": [
+      {
+       "item": "有出处",
+       "pass": true
+      }
+     ],
+     "findings": [
+      {
+       "severity": "high",
+       "code": "CITATION_FABRICATED",
+       "target": "-",
+       "claim": "CITATION_FABRICATED 于 -",
+       "evidence_checked": [
+        "材料.xlsx!A1"
+       ]
+      }
+     ]
+    }
+   ],
+   "verdict": {
+    "lens": "semantic",
+    "passed": false,
+    "high": 1,
+    "findings": [
+     {
+      "severity": "high",
+      "code": "CITATION_FABRICATED",
+      "target": "-",
+      "claim": "CITATION_FABRICATED 于 -",
+      "evidence_checked": [
+       "材料.xlsx!A1"
+      ],
+      "proposed_fix": null,
+      "verifier": "llm"
+     }
+    ],
+    "note": "1 票；未通过检查项 0/1"
+   },
+   "gateway_calls": [
+    {
+     "salt": 0,
+     "key": "critic:semantic:0"
+    }
+   ]
+  },
+  {
+   "why": "全通过：passed=True，note 报 0/N",
+   "rubric": [
+    "口径一致",
+    "有出处"
+   ],
+   "votes": [
+    {
+     "checks": [
+      {
+       "item": "口径一致",
+       "pass": true
+      },
+      {
+       "item": "有出处",
+       "pass": true
+      }
+     ],
+     "findings": []
+    }
+   ],
+   "verdict": {
+    "lens": "semantic",
+    "passed": true,
+    "high": 0,
+    "findings": [],
+    "note": "1 票；未通过检查项 0/2"
+   },
+   "gateway_calls": [
+    {
+     "salt": 0,
+     "key": "critic:semantic:0"
+    }
+   ]
+  },
+  {
+   "why": "checks/findings 字段整个缺失",
+   "rubric": [
+    "口径一致"
+   ],
+   "votes": [
+    {
+     "other": 1
+    }
+   ],
+   "verdict": {
+    "lens": "semantic",
+    "passed": true,
+    "high": 0,
+    "findings": [],
+    "note": "1 票；未通过检查项 0/1"
+   },
+   "gateway_calls": [
+    {
+     "salt": 0,
+     "key": "critic:semantic:0"
+    }
+   ]
+  }
+ ],
+ "metrics": [
+  {
+   "why": "空 panel 是未评审，不是空洞的成功",
+   "verdicts": [],
+   "metrics": {
+    "review_count": 0,
+    "all_passed": false,
+    "high_findings": 0,
+    "total_findings": 0,
+    "by_lens": {},
+    "high_by_lens": {},
+    "findings_by_lens": {},
+    "codes": []
+   }
+  },
+  {
+   "why": "全过",
+   "verdicts": [
+    {
+     "lens": "schema",
+     "passed": true
+    }
+   ],
+   "metrics": {
+    "review_count": 1,
+    "all_passed": true,
+    "high_findings": 0,
+    "total_findings": 0,
+    "by_lens": {
+     "schema": true
+    },
+    "high_by_lens": {
+     "schema": 0
+    },
+    "findings_by_lens": {
+     "schema": 0
+    },
+    "codes": []
+   }
+  },
+  {
+   "why": "一过一不过，带 HIGH",
+   "verdicts": [
+    {
+     "lens": "schema",
+     "passed": true
+    },
+    {
+     "lens": "prov",
+     "passed": false,
+     "findings": [
+      {
+       "severity": "high",
+       "code": "EVIDENCE_MISSING",
+       "target": "pt_x",
+       "claim": "无证据",
+       "verifier": "rule"
+      },
+      {
+       "severity": "low",
+       "code": "AAA",
+       "target": "pt_y",
+       "claim": "小事"
+      }
+     ]
+    }
+   ],
+   "metrics": {
+    "review_count": 2,
+    "all_passed": false,
+    "high_findings": 1,
+    "total_findings": 2,
+    "by_lens": {
+     "schema": true,
+     "prov": false
+    },
+    "high_by_lens": {
+     "schema": 0,
+     "prov": 1
+    },
+    "findings_by_lens": {
+     "schema": 0,
+     "prov": 2
+    },
+    "codes": [
+     "AAA",
+     "EVIDENCE_MISSING"
+    ]
+   }
+  },
+  {
+   "why": "codes 去重后按码位排序（含 CJK）",
+   "verdicts": [
+    {
+     "lens": "a",
+     "passed": false,
+     "findings": [
+      {
+       "severity": "medium",
+       "code": "Z",
+       "target": "t",
+       "claim": "c"
+      },
+      {
+       "severity": "medium",
+       "code": "A",
+       "target": "t2",
+       "claim": "c"
+      },
+      {
+       "severity": "medium",
+       "code": "命名",
+       "target": "t3",
+       "claim": "c"
+      }
+     ]
+    },
+    {
+     "lens": "b",
+     "passed": false,
+     "findings": [
+      {
+       "severity": "medium",
+       "code": "A",
+       "target": "t4",
+       "claim": "c"
+      },
+      {
+       "severity": "medium",
+       "code": "a",
+       "target": "t5",
+       "claim": "c"
+      }
+     ]
+    }
+   ],
+   "metrics": {
+    "review_count": 2,
+    "all_passed": false,
+    "high_findings": 0,
+    "total_findings": 5,
+    "by_lens": {
+     "a": false,
+     "b": false
+    },
+    "high_by_lens": {
+     "a": 0,
+     "b": 0
+    },
+    "findings_by_lens": {
+     "a": 3,
+     "b": 2
+    },
+    "codes": [
+     "A",
+     "Z",
+     "a",
+     "命名"
+    ]
+   }
+  },
+  {
+   "why": "同名 lens 重复：后写的覆盖（dict 语义）",
+   "verdicts": [
+    {
+     "lens": "dup",
+     "passed": true
+    },
+    {
+     "lens": "dup",
+     "passed": false
+    }
+   ],
+   "metrics": {
+    "review_count": 2,
+    "all_passed": false,
+    "high_findings": 0,
+    "total_findings": 0,
+    "by_lens": {
+     "dup": false
+    },
+    "high_by_lens": {
+     "dup": 0
+    },
+    "findings_by_lens": {
+     "dup": 0
+    },
+    "codes": []
+   }
+  }
+ ],
+ "gate": [
+  {
+   "why": "全部硬门通过",
+   "gate": "publish",
+   "require": [
+    [
+     "无高危",
+     "no_high"
+    ],
+    [
+     "全部通过",
+     "all_passed"
+    ]
+   ],
+   "on_fail": "abort",
+   "verdicts": [
+    {
+     "lens": "prov",
+     "passed": true
+    }
+   ],
+   "extra": {},
+   "metrics": {
+    "review_count": 1,
+    "all_passed": true,
+    "high_findings": 0,
+    "total_findings": 0,
+    "by_lens": {
+     "prov": true
+    },
+    "high_by_lens": {
+     "prov": 0
+    },
+    "findings_by_lens": {
+     "prov": 0
+    },
+    "codes": []
+   },
+   "result": {
+    "decision": "pass",
+    "reason": "全部硬门通过",
+    "detail": {}
+   },
+   "events": [
+    {
+     "kind": "gate.evaluated",
+     "node_id": "GATE",
+     "payload": {
+      "gate": "publish",
+      "decision": "pass",
+      "reason": "全部硬门通过",
+      "failed": []
+     }
+    }
+   ]
+  },
+  {
+   "why": "有 HIGH → 被拦，reason 里带失败的标签",
+   "gate": "交付门",
+   "require": [
+    [
+     "全部通过",
+     "all_passed"
+    ],
+    [
+     "无高危",
+     "no_high"
+    ]
+   ],
+   "on_fail": "abort",
+   "verdicts": [
+    {
+     "lens": "prov",
+     "passed": false,
+     "findings": [
+      {
+       "severity": "high",
+       "code": "CITATION_FABRICATED",
+       "target": "-",
+       "claim": "编的出处"
+      }
+     ]
+    }
+   ],
+   "extra": {},
+   "metrics": {
+    "review_count": 1,
+    "all_passed": false,
+    "high_findings": 1,
+    "total_findings": 1,
+    "by_lens": {
+     "prov": false
+    },
+    "high_by_lens": {
+     "prov": 1
+    },
+    "findings_by_lens": {
+     "prov": 1
+    },
+    "codes": [
+     "CITATION_FABRICATED"
+    ]
+   },
+   "result": {
+    "decision": "abort",
+    "reason": "未过：全部通过、无高危",
+    "detail": {}
+   },
+   "events": [
+    {
+     "kind": "gate.evaluated",
+     "node_id": "GATE",
+     "payload": {
+      "gate": "交付门",
+      "decision": "abort",
+      "reason": "未过：全部通过、无高危",
+      "failed": [
+       "全部通过",
+       "无高危"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "why": "完成度不够 → 打回业务方（on_fail 按指标路由）",
+   "gate": "publish",
+   "require": [
+    [
+     "无高危",
+     "no_high"
+    ],
+    [
+     "完成度达标",
+     "completeness_95"
+    ]
+   ],
+   "on_fail": "route_by_completeness",
+   "verdicts": [
+    {
+     "lens": "schema",
+     "passed": true
+    }
+   ],
+   "extra": {
+    "completeness": 0.68
+   },
+   "metrics": {
+    "review_count": 1,
+    "all_passed": true,
+    "high_findings": 0,
+    "total_findings": 0,
+    "by_lens": {
+     "schema": true
+    },
+    "high_by_lens": {
+     "schema": 0
+    },
+    "findings_by_lens": {
+     "schema": 0
+    },
+    "codes": [],
+    "completeness": 0.68
+   },
+   "result": {
+    "decision": "round_trip",
+    "reason": "未过：完成度达标",
+    "detail": {
+     "failed": [
+      "完成度达标"
+     ]
+    }
+   },
+   "events": [
+    {
+     "kind": "gate.evaluated",
+     "node_id": "GATE",
+     "payload": {
+      "gate": "publish",
+      "decision": "round_trip",
+      "reason": "未过：完成度达标",
+      "failed": [
+       "完成度达标"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "why": "完成度够了但另一条不过 → 问人",
+   "gate": "publish",
+   "require": [
+    [
+     "完成度达标",
+     "completeness_95"
+    ],
+    [
+     "恒假",
+     "always_false"
+    ]
+   ],
+   "on_fail": "route_by_completeness",
+   "verdicts": [
+    {
+     "lens": "schema",
+     "passed": true
+    }
+   ],
+   "extra": {
+    "completeness": 0.96
+   },
+   "metrics": {
+    "review_count": 1,
+    "all_passed": true,
+    "high_findings": 0,
+    "total_findings": 0,
+    "by_lens": {
+     "schema": true
+    },
+    "high_by_lens": {
+     "schema": 0
+    },
+    "findings_by_lens": {
+     "schema": 0
+    },
+    "codes": [],
+    "completeness": 0.96
+   },
+   "result": {
+    "decision": "ask_user",
+    "reason": "未过：恒假",
+    "detail": {
+     "failed": [
+      "恒假"
+     ]
+    }
+   },
+   "events": [
+    {
+     "kind": "gate.evaluated",
+     "node_id": "GATE",
+     "payload": {
+      "gate": "publish",
+      "decision": "ask_user",
+      "reason": "未过：恒假",
+      "failed": [
+       "恒假"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "why": "空 require：无条件通过（确定性节点用）",
+   "gate": "noop",
+   "require": [],
+   "on_fail": "abort",
+   "verdicts": [],
+   "extra": {},
+   "metrics": {
+    "review_count": 0,
+    "all_passed": false,
+    "high_findings": 0,
+    "total_findings": 0,
+    "by_lens": {},
+    "high_by_lens": {},
+    "findings_by_lens": {},
+    "codes": []
+   },
+   "result": {
+    "decision": "pass",
+    "reason": "全部硬门通过",
+    "detail": {}
+   },
+   "events": [
+    {
+     "kind": "gate.evaluated",
+     "node_id": "GATE",
+     "payload": {
+      "gate": "noop",
+      "decision": "pass",
+      "reason": "全部硬门通过",
+      "failed": []
+     }
+    }
+   ]
+  },
+  {
+   "why": "空 panel 撞上 all_passed：未评审必须拦住",
+   "gate": "publish",
+   "require": [
+    [
+     "全部通过",
+     "all_passed"
+    ]
+   ],
+   "on_fail": "abort",
+   "verdicts": [],
+   "extra": {},
+   "metrics": {
+    "review_count": 0,
+    "all_passed": false,
+    "high_findings": 0,
+    "total_findings": 0,
+    "by_lens": {},
+    "high_by_lens": {},
+    "findings_by_lens": {},
+    "codes": []
+   },
+   "result": {
+    "decision": "abort",
+    "reason": "未过：全部通过",
+    "detail": {}
+   },
+   "events": [
+    {
+     "kind": "gate.evaluated",
+     "node_id": "GATE",
+     "payload": {
+      "gate": "publish",
+      "decision": "abort",
+      "reason": "未过：全部通过",
+      "failed": [
+       "全部通过"
+      ]
+     }
+    }
+   ]
+  }
+ ],
+ "panel": [
+  {
+   "why": "多视角并行，每个都记一条 CRITIC_VERDICT",
+   "critics": [
+    {
+     "name": "schema",
+     "type": "rule",
+     "findings": []
+    },
+    {
+     "name": "naming",
+     "type": "rule",
+     "findings": [
+      {
+       "severity": "medium",
+       "code": "NAMING",
+       "target": "x",
+       "claim": "命名可优化",
+       "verifier": "dict"
+      }
+     ]
+    }
+   ],
+   "lenses": [
+    "schema",
+    "naming"
+   ],
+   "allow_llm": true,
+   "verdicts": [
+    {
+     "lens": "schema",
+     "passed": true,
+     "high": 0,
+     "findings": [],
+     "note": "规则视角 · 0 条"
+    },
+    {
+     "lens": "naming",
+     "passed": true,
+     "high": 0,
+     "findings": [
+      {
+       "severity": "medium",
+       "code": "NAMING",
+       "target": "x",
+       "claim": "命名可优化",
+       "evidence_checked": [],
+       "proposed_fix": null,
+       "verifier": "dict"
+      }
+     ],
+     "note": "规则视角 · 1 条"
+    }
+   ],
+   "events": [
+    {
+     "kind": "critic.verdict",
+     "node_id": "N",
+     "payload": {
+      "lens": "schema",
+      "passed": true,
+      "high": 0,
+      "findings": [],
+      "note": "规则视角 · 0 条"
+     }
+    },
+    {
+     "kind": "critic.verdict",
+     "node_id": "N",
+     "payload": {
+      "lens": "naming",
+      "passed": true,
+      "high": 0,
+      "findings": [
+       {
+        "severity": "medium",
+        "code": "NAMING",
+        "target": "x",
+        "claim": "命名可优化",
+        "evidence_checked": [],
+        "proposed_fix": null,
+        "verifier": "dict"
+       }
+      ],
+      "note": "规则视角 · 1 条"
+     }
+    }
+   ]
+  },
+  {
+   "why": "预算降级：需要模型的视角跳过并记 DEGRADED，绝不静默",
+   "critics": [
+    {
+     "name": "rules",
+     "type": "rule",
+     "findings": []
+    },
+    {
+     "name": "semantic",
+     "type": "llm",
+     "rubric": [
+      "口径是否一致"
+     ]
+    }
+   ],
+   "lenses": [
+    "rules",
+    "semantic"
+   ],
+   "allow_llm": false,
+   "verdicts": [
+    {
+     "lens": "rules",
+     "passed": true,
+     "high": 0,
+     "findings": [],
+     "note": "规则视角 · 0 条"
+    }
+   ],
+   "events": [
+    {
+     "kind": "critic.verdict",
+     "node_id": "N",
+     "payload": {
+      "lens": "rules",
+      "passed": true,
+      "high": 0,
+      "findings": [],
+      "note": "规则视角 · 0 条"
+     }
+    },
+    {
+     "kind": "budget.degraded",
+     "node_id": "N",
+     "payload": {
+      "skipped_critics": [
+       "semantic"
+      ],
+      "reason": "预算不足，未做语义审核"
+     }
+    }
+   ]
+  },
+  {
+   "why": "未注册的视角整盘拒绝（NodeFailure, retryable=False），一个 critic 都不跑",
+   "critics": [
+    {
+     "name": "schema",
+     "type": "rule",
+     "findings": []
+    }
+   ],
+   "lenses": [
+    "schema",
+    "nam1ng",
+    "typo",
+    "typo"
+   ],
+   "allow_llm": true,
+   "error": {
+    "type": "NodeFailure",
+    "message": "[N] 未注册的 critic: nam1ng, typo",
+    "node_id": "N",
+    "retryable": false
+   },
+   "events": []
+  },
+  {
+   "why": "lenses 里同一个视角写两遍：跑两遍、记两条（dict 不去重）",
+   "critics": [
+    {
+     "name": "schema",
+     "type": "rule",
+     "findings": []
+    }
+   ],
+   "lenses": [
+    "schema",
+    "schema"
+   ],
+   "allow_llm": true,
+   "verdicts": [
+    {
+     "lens": "schema",
+     "passed": true,
+     "high": 0,
+     "findings": [],
+     "note": "规则视角 · 0 条"
+    },
+    {
+     "lens": "schema",
+     "passed": true,
+     "high": 0,
+     "findings": [],
+     "note": "规则视角 · 0 条"
+    }
+   ],
+   "events": [
+    {
+     "kind": "critic.verdict",
+     "node_id": "N",
+     "payload": {
+      "lens": "schema",
+      "passed": true,
+      "high": 0,
+      "findings": [],
+      "note": "规则视角 · 0 条"
+     }
+    },
+    {
+     "kind": "critic.verdict",
+     "node_id": "N",
+     "payload": {
+      "lens": "schema",
+      "passed": true,
+      "high": 0,
+      "findings": [],
+      "note": "规则视角 · 0 条"
+     }
+    }
+   ]
+  }
+ ]
+}

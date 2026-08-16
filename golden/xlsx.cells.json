@@ -1,0 +1,309 @@
+{
+ "00_填写指引": {
+  "cells": [
+   {
+    "ref": "A1",
+    "value": "OntoCopilot 实体梳理模板 · golden · 第 1 轮",
+    "fill": "00000000",
+    "bold": true,
+    "comment": null
+   },
+   {
+    "ref": "A3",
+    "value": "颜色含义：",
+    "fill": "00000000",
+    "bold": false,
+    "comment": null
+   },
+   {
+    "ref": "A4",
+    "value": "  黄底  = 业务必填，本轮需要你填写或确认",
+    "fill": "00000000",
+    "bold": false,
+    "comment": null
+   },
+   {
+    "ref": "A5",
+    "value": "  灰底  = 已定，只读，请勿改动",
+    "fill": "00000000",
+    "bold": false,
+    "comment": null
+   },
+   {
+    "ref": "A6",
+    "value": "  白底  = 系统预填，如有出入可直接改",
+    "fill": "00000000",
+    "bold": false,
+    "comment": null
+   },
+   {
+    "ref": "A7",
+    "value": "  红角标 = 存在冲突，把鼠标停在格子上看批注",
+    "fill": "00000000",
+    "bold": false,
+    "comment": null
+   },
+   {
+    "ref": "A9",
+    "value": "填写要点：",
+    "fill": "00000000",
+    "bold": false,
+    "comment": null
+   },
+   {
+    "ref": "A10",
+    "value": "  1. 「口径定义」是本轮重点。请写清含税/不含税、时间粒度、口径主体。",
+    "fill": "00000000",
+    "bold": false,
+    "comment": null
+   },
+   {
+    "ref": "A11",
+    "value": "  2. 预填值不是结论。原样交回等于没审，系统会识别出来并再次打回。",
+    "fill": "00000000",
+    "bold": false,
+    "comment": null
+   },
+   {
+    "ref": "A12",
+    "value": "  3. 每张表第一行是本表的填写说明，已冻结。",
+    "fill": "00000000",
+    "bold": false,
+    "comment": null
+   },
+   {
+    "ref": "A13",
+    "value": "  4. 前两列被隐藏，是系统的对齐锚点，请勿删除或改动行结构以外的内容。",
+    "fill": "00000000",
+    "bold": false,
+    "comment": null
+   },
+   {
+    "ref": "A15",
+    "value": "本轮统计：{\"sheets\": 2, \"total_cells\": 10, \"prefilled\": 6, \"prefill_rate\": 0.6, \"business_required\": 2, \"conflicts\": 0, \"owners\": {}}",
+    "fill": "00000000",
+    "bold": false,
+    "comment": null
+   }
+  ],
+  "hidden_cols": [],
+  "freeze": null,
+  "validations": []
+ },
+ "02_待澄清问题": {
+  "cells": [
+   {
+    "ref": "A1",
+    "value": "这些是梳理过程中没法从材料里确定的事。答复栏按你了解的实际情况填，拿不准就写「不确定」——写不确定比猜一个有用。",
+    "fill": "00000000",
+    "bold": false,
+    "comment": null
+   },
+   {
+    "ref": "A2",
+    "value": "_oir_rid",
+    "fill": "00FAF9F6",
+    "bold": true,
+    "comment": null
+   },
+   {
+    "ref": "B2",
+    "value": "_oir_hash",
+    "fill": "00FAF9F6",
+    "bold": true,
+    "comment": null
+   },
+   {
+    "ref": "C2",
+    "value": "所属部分",
+    "fill": "00FAF9F6",
+    "bold": true,
+    "comment": null
+   },
+   {
+    "ref": "D2",
+    "value": "编号",
+    "fill": "00FAF9F6",
+    "bold": true,
+    "comment": null
+   },
+   {
+    "ref": "E2",
+    "value": "澄清问题",
+    "fill": "00FAF9F6",
+    "bold": true,
+    "comment": null
+   },
+   {
+    "ref": "F2",
+    "value": "参考选项",
+    "fill": "00FAF9F6",
+    "bold": true,
+    "comment": null
+   },
+   {
+    "ref": "G2",
+    "value": "答复",
+    "fill": "00FAF9F6",
+    "bold": true,
+    "comment": null
+   },
+   {
+    "ref": "A3",
+    "value": "oq1",
+    "fill": "00000000",
+    "bold": false,
+    "comment": null
+   },
+   {
+    "ref": "B3",
+    "value": "所属部分=101573f333c6|编号=6b86b273ff34|澄清问题=f74c8456ec0a|参考选项=d18028939f61",
+    "fill": "00000000",
+    "bold": false,
+    "comment": null
+   },
+   {
+    "ref": "C3",
+    "value": "口径",
+    "fill": "00F3F1ED",
+    "bold": false,
+    "comment": null
+   },
+   {
+    "ref": "D3",
+    "value": "1",
+    "fill": "00F3F1ED",
+    "bold": false,
+    "comment": null
+   },
+   {
+    "ref": "E3",
+    "value": "金额含不含税？",
+    "fill": "00F3F1ED",
+    "bold": false,
+    "comment": "（无证据支撑，系统推断）"
+   },
+   {
+    "ref": "F3",
+    "value": "1）含税　2）不含税",
+    "fill": "00F3F1ED",
+    "bold": false,
+    "comment": null
+   }
+  ],
+  "hidden_cols": [
+   "A",
+   "B"
+  ],
+  "freeze": "C3",
+  "validations": []
+ },
+ "01_对象清单": {
+  "cells": [
+   {
+    "ref": "A1",
+    "value": "本表列出系统从材料中识别出的业务对象。灰底=已定，无需改动；黄底=需要你确认或补充。",
+    "fill": "00000000",
+    "bold": false,
+    "comment": null
+   },
+   {
+    "ref": "A2",
+    "value": "_oir_rid",
+    "fill": "00FAF9F6",
+    "bold": true,
+    "comment": null
+   },
+   {
+    "ref": "B2",
+    "value": "_oir_hash",
+    "fill": "00FAF9F6",
+    "bold": true,
+    "comment": null
+   },
+   {
+    "ref": "C2",
+    "value": "apiName",
+    "fill": "00FAF9F6",
+    "bold": true,
+    "comment": null
+   },
+   {
+    "ref": "D2",
+    "value": "displayName",
+    "fill": "00FAF9F6",
+    "bold": true,
+    "comment": null
+   },
+   {
+    "ref": "E2",
+    "value": "description",
+    "fill": "00FAF9F6",
+    "bold": true,
+    "comment": null
+   },
+   {
+    "ref": "F2",
+    "value": "primaryKey",
+    "fill": "00FAF9F6",
+    "bold": true,
+    "comment": null
+   },
+   {
+    "ref": "G2",
+    "value": "owner",
+    "fill": "00FAF9F6",
+    "bold": true,
+    "comment": null
+   },
+   {
+    "ref": "A3",
+    "value": "ot_po",
+    "fill": "00000000",
+    "bold": false,
+    "comment": null
+   },
+   {
+    "ref": "B3",
+    "value": "apiName=f856a19a61e8|displayName=548cc3fbc57a",
+    "fill": "00000000",
+    "bold": false,
+    "comment": null
+   },
+   {
+    "ref": "C3",
+    "value": "poHeader",
+    "fill": "00F3F1ED",
+    "bold": false,
+    "comment": "（无证据支撑，系统推断）"
+   },
+   {
+    "ref": "D3",
+    "value": "采购订单头",
+    "fill": "00FFFFFF",
+    "bold": false,
+    "comment": "（无证据支撑，系统推断）"
+   },
+   {
+    "ref": "E3",
+    "value": null,
+    "fill": "00FDF6E3",
+    "bold": true,
+    "comment": "请一句话说明这个对象在业务里代表什么"
+   },
+   {
+    "ref": "F3",
+    "value": null,
+    "fill": "00F3F1ED",
+    "bold": false,
+    "comment": "（无证据支撑，系统推断）"
+   }
+  ],
+  "hidden_cols": [
+   "A",
+   "B"
+  ],
+  "freeze": "C3",
+  "validations": []
+ }
+}

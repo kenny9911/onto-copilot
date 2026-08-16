@@ -1,0 +1,2765 @@
+[
+ {
+  "comments": {
+   "a": "含税·年度累计"
+  },
+  "ddl": "CREATE TABLE t (a DECIMAL(18,2) -- 含税·年度累计\n);",
+  "dialect": null,
+  "doc": {
+   "chunks": [
+    {
+     "chunk_id": "f_0123456789ab:t",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "t"
+     },
+     "order": 0,
+     "raw": {
+      "columns": [
+       "a"
+      ],
+      "primary_key": [],
+      "table": "t"
+     },
+     "render": "表 t（1 列）：a",
+     "tags": [
+      "table"
+     ]
+    },
+    {
+     "chunk_id": "f_0123456789ab:t.a",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "t.a"
+     },
+     "order": 1,
+     "raw": {
+      "comment": "含税·年度累计",
+      "name": "a",
+      "nullable": true,
+      "type": "DECIMAL(18, 2)"
+     },
+     "render": "t.a DECIMAL(18, 2) -- 含税·年度累计",
+     "tags": [
+      "column"
+     ]
+    }
+   ],
+   "file_id": "f_0123456789ab",
+   "file_name": "schema.ddl",
+   "findings": [],
+   "kind": "ddl",
+   "meta": {},
+   "structured": {
+    "tables": [
+     {
+      "columns": [
+       {
+        "comment": "含税·年度累计",
+        "name": "a",
+        "nullable": true,
+        "type": "DECIMAL(18, 2)"
+       }
+      ],
+      "foreign_keys": [],
+      "name": "t",
+      "primary_key": []
+     }
+    ]
+   }
+  },
+  "file_id": "f_0123456789ab",
+  "file_name": "schema.ddl",
+  "name": "列与 CREATE TABLE 挤在同一行"
+ },
+ {
+  "comments": {
+   "a": "含税·年度累计",
+   "b": ""
+  },
+  "ddl": "CREATE TABLE t (\n  a DECIMAL(18,2), -- 含税·年度累计\n  b VARCHAR(32)\n);",
+  "dialect": null,
+  "doc": {
+   "chunks": [
+    {
+     "chunk_id": "f_0123456789ab:t",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "t"
+     },
+     "order": 0,
+     "raw": {
+      "columns": [
+       "a",
+       "b"
+      ],
+      "primary_key": [],
+      "table": "t"
+     },
+     "render": "表 t（2 列）：a、b",
+     "tags": [
+      "table"
+     ]
+    },
+    {
+     "chunk_id": "f_0123456789ab:t.a",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "t.a"
+     },
+     "order": 1,
+     "raw": {
+      "comment": "含税·年度累计",
+      "name": "a",
+      "nullable": true,
+      "type": "DECIMAL(18, 2)"
+     },
+     "render": "t.a DECIMAL(18, 2) -- 含税·年度累计",
+     "tags": [
+      "column"
+     ]
+    },
+    {
+     "chunk_id": "f_0123456789ab:t.b",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "t.b"
+     },
+     "order": 2,
+     "raw": {
+      "comment": "",
+      "name": "b",
+      "nullable": true,
+      "type": "VARCHAR(32)"
+     },
+     "render": "t.b VARCHAR(32)",
+     "tags": [
+      "column"
+     ]
+    }
+   ],
+   "file_id": "f_0123456789ab",
+   "file_name": "schema.ddl",
+   "findings": [],
+   "kind": "ddl",
+   "meta": {},
+   "structured": {
+    "tables": [
+     {
+      "columns": [
+       {
+        "comment": "含税·年度累计",
+        "name": "a",
+        "nullable": true,
+        "type": "DECIMAL(18, 2)"
+       },
+       {
+        "comment": "",
+        "name": "b",
+        "nullable": true,
+        "type": "VARCHAR(32)"
+       }
+      ],
+      "foreign_keys": [],
+      "name": "t",
+      "primary_key": []
+     }
+    ]
+   }
+  },
+  "file_id": "f_0123456789ab",
+  "file_name": "schema.ddl",
+  "name": "中间列 + 尾随逗号"
+ },
+ {
+  "comments": {
+   "a": "",
+   "b": "归口部门"
+  },
+  "ddl": "CREATE TABLE t (\n  a VARCHAR(32),\n  b DECIMAL(18,2) -- 归口部门\n);",
+  "dialect": null,
+  "doc": {
+   "chunks": [
+    {
+     "chunk_id": "f_0123456789ab:t",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "t"
+     },
+     "order": 0,
+     "raw": {
+      "columns": [
+       "a",
+       "b"
+      ],
+      "primary_key": [],
+      "table": "t"
+     },
+     "render": "表 t（2 列）：a、b",
+     "tags": [
+      "table"
+     ]
+    },
+    {
+     "chunk_id": "f_0123456789ab:t.a",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "t.a"
+     },
+     "order": 1,
+     "raw": {
+      "comment": "",
+      "name": "a",
+      "nullable": true,
+      "type": "VARCHAR(32)"
+     },
+     "render": "t.a VARCHAR(32)",
+     "tags": [
+      "column"
+     ]
+    },
+    {
+     "chunk_id": "f_0123456789ab:t.b",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "t.b"
+     },
+     "order": 2,
+     "raw": {
+      "comment": "归口部门",
+      "name": "b",
+      "nullable": true,
+      "type": "DECIMAL(18, 2)"
+     },
+     "render": "t.b DECIMAL(18, 2) -- 归口部门",
+     "tags": [
+      "column"
+     ]
+    }
+   ],
+   "file_id": "f_0123456789ab",
+   "file_name": "schema.ddl",
+   "findings": [],
+   "kind": "ddl",
+   "meta": {},
+   "structured": {
+    "tables": [
+     {
+      "columns": [
+       {
+        "comment": "",
+        "name": "a",
+        "nullable": true,
+        "type": "VARCHAR(32)"
+       },
+       {
+        "comment": "归口部门",
+        "name": "b",
+        "nullable": true,
+        "type": "DECIMAL(18, 2)"
+       }
+      ],
+      "foreign_keys": [],
+      "name": "t",
+      "primary_key": []
+     }
+    ]
+   }
+  },
+  "file_id": "f_0123456789ab",
+  "file_name": "schema.ddl",
+  "name": "末列无逗号"
+ },
+ {
+  "comments": {
+   "a": "含税·年度累计"
+  },
+  "ddl": "CREATE TABLE t (\n  a DECIMAL(18,2) COMMENT '含税·年度累计'\n);",
+  "dialect": null,
+  "doc": {
+   "chunks": [
+    {
+     "chunk_id": "f_0123456789ab:t",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "t"
+     },
+     "order": 0,
+     "raw": {
+      "columns": [
+       "a"
+      ],
+      "primary_key": [],
+      "table": "t"
+     },
+     "render": "表 t（1 列）：a",
+     "tags": [
+      "table"
+     ]
+    },
+    {
+     "chunk_id": "f_0123456789ab:t.a",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "t.a"
+     },
+     "order": 1,
+     "raw": {
+      "comment": "含税·年度累计",
+      "name": "a",
+      "nullable": true,
+      "type": "DECIMAL(18, 2)"
+     },
+     "render": "t.a DECIMAL(18, 2) -- 含税·年度累计",
+     "tags": [
+      "column"
+     ]
+    }
+   ],
+   "file_id": "f_0123456789ab",
+   "file_name": "schema.ddl",
+   "findings": [],
+   "kind": "ddl",
+   "meta": {},
+   "structured": {
+    "tables": [
+     {
+      "columns": [
+       {
+        "comment": "含税·年度累计",
+        "name": "a",
+        "nullable": true,
+        "type": "DECIMAL(18, 2)"
+       }
+      ],
+      "foreign_keys": [],
+      "name": "t",
+      "primary_key": []
+     }
+    ]
+   }
+  },
+  "file_id": "f_0123456789ab",
+  "file_name": "schema.ddl",
+  "name": "COMMENT 子句（MySQL/Oracle 写法）"
+ },
+ {
+  "comments": {
+   "a": "第一条",
+   "b": "第二条"
+  },
+  "ddl": "CREATE TABLE t (\n  a INT, -- 第一条\n  b INT -- 第二条\n);",
+  "dialect": null,
+  "doc": {
+   "chunks": [
+    {
+     "chunk_id": "f_0123456789ab:t",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "t"
+     },
+     "order": 0,
+     "raw": {
+      "columns": [
+       "a",
+       "b"
+      ],
+      "primary_key": [],
+      "table": "t"
+     },
+     "render": "表 t（2 列）：a、b",
+     "tags": [
+      "table"
+     ]
+    },
+    {
+     "chunk_id": "f_0123456789ab:t.a",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "t.a"
+     },
+     "order": 1,
+     "raw": {
+      "comment": "第一条",
+      "name": "a",
+      "nullable": true,
+      "type": "INT"
+     },
+     "render": "t.a INT -- 第一条",
+     "tags": [
+      "column"
+     ]
+    },
+    {
+     "chunk_id": "f_0123456789ab:t.b",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "t.b"
+     },
+     "order": 2,
+     "raw": {
+      "comment": "第二条",
+      "name": "b",
+      "nullable": true,
+      "type": "INT"
+     },
+     "render": "t.b INT -- 第二条",
+     "tags": [
+      "column"
+     ]
+    }
+   ],
+   "file_id": "f_0123456789ab",
+   "file_name": "schema.ddl",
+   "findings": [],
+   "kind": "ddl",
+   "meta": {},
+   "structured": {
+    "tables": [
+     {
+      "columns": [
+       {
+        "comment": "第一条",
+        "name": "a",
+        "nullable": true,
+        "type": "INT"
+       },
+       {
+        "comment": "第二条",
+        "name": "b",
+        "nullable": true,
+        "type": "INT"
+       }
+      ],
+      "foreign_keys": [],
+      "name": "t",
+      "primary_key": []
+     }
+    ]
+   }
+  },
+  "file_id": "f_0123456789ab",
+  "file_name": "schema.ddl",
+  "name": "两列各带一条"
+ },
+ {
+  "comments": {
+   "a": ""
+  },
+  "ddl": "CREATE TABLE t (\n  a INT\n);",
+  "dialect": null,
+  "doc": {
+   "chunks": [
+    {
+     "chunk_id": "f_0123456789ab:t",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "t"
+     },
+     "order": 0,
+     "raw": {
+      "columns": [
+       "a"
+      ],
+      "primary_key": [],
+      "table": "t"
+     },
+     "render": "表 t（1 列）：a",
+     "tags": [
+      "table"
+     ]
+    },
+    {
+     "chunk_id": "f_0123456789ab:t.a",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "t.a"
+     },
+     "order": 1,
+     "raw": {
+      "comment": "",
+      "name": "a",
+      "nullable": true,
+      "type": "INT"
+     },
+     "render": "t.a INT",
+     "tags": [
+      "column"
+     ]
+    }
+   ],
+   "file_id": "f_0123456789ab",
+   "file_name": "schema.ddl",
+   "findings": [],
+   "kind": "ddl",
+   "meta": {},
+   "structured": {
+    "tables": [
+     {
+      "columns": [
+       {
+        "comment": "",
+        "name": "a",
+        "nullable": true,
+        "type": "INT"
+       }
+      ],
+      "foreign_keys": [],
+      "name": "t",
+      "primary_key": []
+     }
+    ]
+   }
+  },
+  "file_id": "f_0123456789ab",
+  "file_name": "schema.ddl",
+  "name": "没有注释就是空串，不是 None"
+ },
+ {
+  "comments": {
+   "a": "编号",
+   "b": "数量"
+  },
+  "ddl": "CREATE TABLE t (a INT -- 编号\n, b INT -- 数量\n);",
+  "dialect": null,
+  "doc": {
+   "chunks": [
+    {
+     "chunk_id": "f_0123456789ab:t",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "t"
+     },
+     "order": 0,
+     "raw": {
+      "columns": [
+       "a",
+       "b"
+      ],
+      "primary_key": [],
+      "table": "t"
+     },
+     "render": "表 t（2 列）：a、b",
+     "tags": [
+      "table"
+     ]
+    },
+    {
+     "chunk_id": "f_0123456789ab:t.a",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "t.a"
+     },
+     "order": 1,
+     "raw": {
+      "comment": "编号",
+      "name": "a",
+      "nullable": true,
+      "type": "INT"
+     },
+     "render": "t.a INT -- 编号",
+     "tags": [
+      "column"
+     ]
+    },
+    {
+     "chunk_id": "f_0123456789ab:t.b",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "t.b"
+     },
+     "order": 2,
+     "raw": {
+      "comment": "数量",
+      "name": "b",
+      "nullable": true,
+      "type": "INT"
+     },
+     "render": "t.b INT -- 数量",
+     "tags": [
+      "column"
+     ]
+    }
+   ],
+   "file_id": "f_0123456789ab",
+   "file_name": "schema.ddl",
+   "findings": [],
+   "kind": "ddl",
+   "meta": {},
+   "structured": {
+    "tables": [
+     {
+      "columns": [
+       {
+        "comment": "编号",
+        "name": "a",
+        "nullable": true,
+        "type": "INT"
+       },
+       {
+        "comment": "数量",
+        "name": "b",
+        "nullable": true,
+        "type": "INT"
+       }
+      ],
+      "foreign_keys": [],
+      "name": "t",
+      "primary_key": []
+     }
+    ]
+   }
+  },
+  "file_id": "f_0123456789ab",
+  "file_name": "schema.ddl",
+  "name": "单行写完整张表"
+ },
+ {
+  "comments": {
+   "a": "含税·年度累计"
+  },
+  "ddl": "CREATE TABLE t (a INT --    含税·年度累计   \n);",
+  "dialect": null,
+  "doc": {
+   "chunks": [
+    {
+     "chunk_id": "f_0123456789ab:t",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "t"
+     },
+     "order": 0,
+     "raw": {
+      "columns": [
+       "a"
+      ],
+      "primary_key": [],
+      "table": "t"
+     },
+     "render": "表 t（1 列）：a",
+     "tags": [
+      "table"
+     ]
+    },
+    {
+     "chunk_id": "f_0123456789ab:t.a",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "t.a"
+     },
+     "order": 1,
+     "raw": {
+      "comment": "含税·年度累计",
+      "name": "a",
+      "nullable": true,
+      "type": "INT"
+     },
+     "render": "t.a INT -- 含税·年度累计",
+     "tags": [
+      "column"
+     ]
+    }
+   ],
+   "file_id": "f_0123456789ab",
+   "file_name": "schema.ddl",
+   "findings": [],
+   "kind": "ddl",
+   "meta": {},
+   "structured": {
+    "tables": [
+     {
+      "columns": [
+       {
+        "comment": "含税·年度累计",
+        "name": "a",
+        "nullable": true,
+        "type": "INT"
+       }
+      ],
+      "foreign_keys": [],
+      "name": "t",
+      "primary_key": []
+     }
+    ]
+   }
+  },
+  "file_id": "f_0123456789ab",
+  "file_name": "schema.ddl",
+  "name": "三来源同形·同一行"
+ },
+ {
+  "comments": {
+   "a": "含税·年度累计",
+   "b": ""
+  },
+  "ddl": "CREATE TABLE t (\n  a INT, --    含税·年度累计   \n  b INT\n);",
+  "dialect": null,
+  "doc": {
+   "chunks": [
+    {
+     "chunk_id": "f_0123456789ab:t",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "t"
+     },
+     "order": 0,
+     "raw": {
+      "columns": [
+       "a",
+       "b"
+      ],
+      "primary_key": [],
+      "table": "t"
+     },
+     "render": "表 t（2 列）：a、b",
+     "tags": [
+      "table"
+     ]
+    },
+    {
+     "chunk_id": "f_0123456789ab:t.a",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "t.a"
+     },
+     "order": 1,
+     "raw": {
+      "comment": "含税·年度累计",
+      "name": "a",
+      "nullable": true,
+      "type": "INT"
+     },
+     "render": "t.a INT -- 含税·年度累计",
+     "tags": [
+      "column"
+     ]
+    },
+    {
+     "chunk_id": "f_0123456789ab:t.b",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "t.b"
+     },
+     "order": 2,
+     "raw": {
+      "comment": "",
+      "name": "b",
+      "nullable": true,
+      "type": "INT"
+     },
+     "render": "t.b INT",
+     "tags": [
+      "column"
+     ]
+    }
+   ],
+   "file_id": "f_0123456789ab",
+   "file_name": "schema.ddl",
+   "findings": [],
+   "kind": "ddl",
+   "meta": {},
+   "structured": {
+    "tables": [
+     {
+      "columns": [
+       {
+        "comment": "含税·年度累计",
+        "name": "a",
+        "nullable": true,
+        "type": "INT"
+       },
+       {
+        "comment": "",
+        "name": "b",
+        "nullable": true,
+        "type": "INT"
+       }
+      ],
+      "foreign_keys": [],
+      "name": "t",
+      "primary_key": []
+     }
+    ]
+   }
+  },
+  "file_id": "f_0123456789ab",
+  "file_name": "schema.ddl",
+  "name": "三来源同形·注释独占行尾"
+ },
+ {
+  "comments": {
+   "plan_amount": "含税·年度累计"
+  },
+  "ddl": "CREATE TABLE plan_a (plan_amount DECIMAL(18,2) -- 含税·年度累计\n);",
+  "dialect": null,
+  "doc": {
+   "chunks": [
+    {
+     "chunk_id": "f_0123456789ab:plan_a",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "plan_a"
+     },
+     "order": 0,
+     "raw": {
+      "columns": [
+       "plan_amount"
+      ],
+      "primary_key": [],
+      "table": "plan_a"
+     },
+     "render": "表 plan_a（1 列）：plan_amount",
+     "tags": [
+      "table"
+     ]
+    },
+    {
+     "chunk_id": "f_0123456789ab:plan_a.plan_amount",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "plan_a.plan_amount"
+     },
+     "order": 1,
+     "raw": {
+      "comment": "含税·年度累计",
+      "name": "plan_amount",
+      "nullable": true,
+      "type": "DECIMAL(18, 2)"
+     },
+     "render": "plan_a.plan_amount DECIMAL(18, 2) -- 含税·年度累计",
+     "tags": [
+      "column"
+     ]
+    }
+   ],
+   "file_id": "f_0123456789ab",
+   "file_name": "schema.ddl",
+   "findings": [],
+   "kind": "ddl",
+   "meta": {},
+   "structured": {
+    "tables": [
+     {
+      "columns": [
+       {
+        "comment": "含税·年度累计",
+        "name": "plan_amount",
+        "nullable": true,
+        "type": "DECIMAL(18, 2)"
+       }
+      ],
+      "foreign_keys": [],
+      "name": "plan_a",
+      "primary_key": []
+     }
+    ]
+   }
+  },
+  "file_id": "f_0123456789ab",
+  "file_name": "schema.ddl",
+  "name": "只有注释不同的两张表·A"
+ },
+ {
+  "comments": {
+   "plan_amount": "不含税·单次"
+  },
+  "ddl": "CREATE TABLE plan_b (plan_amount DECIMAL(18,2) -- 不含税·单次\n);",
+  "dialect": null,
+  "doc": {
+   "chunks": [
+    {
+     "chunk_id": "f_0123456789ab:plan_b",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "plan_b"
+     },
+     "order": 0,
+     "raw": {
+      "columns": [
+       "plan_amount"
+      ],
+      "primary_key": [],
+      "table": "plan_b"
+     },
+     "render": "表 plan_b（1 列）：plan_amount",
+     "tags": [
+      "table"
+     ]
+    },
+    {
+     "chunk_id": "f_0123456789ab:plan_b.plan_amount",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "plan_b.plan_amount"
+     },
+     "order": 1,
+     "raw": {
+      "comment": "不含税·单次",
+      "name": "plan_amount",
+      "nullable": true,
+      "type": "DECIMAL(18, 2)"
+     },
+     "render": "plan_b.plan_amount DECIMAL(18, 2) -- 不含税·单次",
+     "tags": [
+      "column"
+     ]
+    }
+   ],
+   "file_id": "f_0123456789ab",
+   "file_name": "schema.ddl",
+   "findings": [],
+   "kind": "ddl",
+   "meta": {},
+   "structured": {
+    "tables": [
+     {
+      "columns": [
+       {
+        "comment": "不含税·单次",
+        "name": "plan_amount",
+        "nullable": true,
+        "type": "DECIMAL(18, 2)"
+       }
+      ],
+      "foreign_keys": [],
+      "name": "plan_b",
+      "primary_key": []
+     }
+    ]
+   }
+  },
+  "file_id": "f_0123456789ab",
+  "file_name": "schema.ddl",
+  "name": "只有注释不同的两张表·B"
+ },
+ {
+  "comments": {
+   "a": "",
+   "b": ""
+  },
+  "ddl": "CREATE TABLE t (\n  a INT,\n  -- 说明在自己那一行\n  b INT\n);",
+  "dialect": null,
+  "doc": {
+   "chunks": [
+    {
+     "chunk_id": "f_0123456789ab:t",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "t"
+     },
+     "order": 0,
+     "raw": {
+      "columns": [
+       "a",
+       "b"
+      ],
+      "primary_key": [],
+      "table": "t"
+     },
+     "render": "表 t（2 列）：a、b",
+     "tags": [
+      "table"
+     ]
+    },
+    {
+     "chunk_id": "f_0123456789ab:t.a",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "t.a"
+     },
+     "order": 1,
+     "raw": {
+      "comment": "",
+      "name": "a",
+      "nullable": true,
+      "type": "INT"
+     },
+     "render": "t.a INT",
+     "tags": [
+      "column"
+     ]
+    },
+    {
+     "chunk_id": "f_0123456789ab:t.b",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "t.b"
+     },
+     "order": 2,
+     "raw": {
+      "comment": "",
+      "name": "b",
+      "nullable": true,
+      "type": "INT"
+     },
+     "render": "t.b INT",
+     "tags": [
+      "column"
+     ]
+    }
+   ],
+   "file_id": "f_0123456789ab",
+   "file_name": "schema.ddl",
+   "findings": [],
+   "kind": "ddl",
+   "meta": {},
+   "structured": {
+    "tables": [
+     {
+      "columns": [
+       {
+        "comment": "",
+        "name": "a",
+        "nullable": true,
+        "type": "INT"
+       },
+       {
+        "comment": "",
+        "name": "b",
+        "nullable": true,
+        "type": "INT"
+       }
+      ],
+      "foreign_keys": [],
+      "name": "t",
+      "primary_key": []
+     }
+    ]
+   }
+  },
+  "file_id": "f_0123456789ab",
+  "file_name": "schema.ddl",
+  "name": "注释单独占一行（列的下一行）"
+ },
+ {
+  "comments": {
+   "a": "",
+   "b": ""
+  },
+  "ddl": "CREATE TABLE t (\n  a INT,\n  b INT,\n  PRIMARY KEY (a) -- 主键说明\n);",
+  "dialect": null,
+  "doc": {
+   "chunks": [
+    {
+     "chunk_id": "f_0123456789ab:t",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "t"
+     },
+     "order": 0,
+     "raw": {
+      "columns": [
+       "a",
+       "b"
+      ],
+      "primary_key": [
+       "a"
+      ],
+      "table": "t"
+     },
+     "render": "表 t（2 列，主键 a）：a、b",
+     "tags": [
+      "table"
+     ]
+    },
+    {
+     "chunk_id": "f_0123456789ab:t.a",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "t.a"
+     },
+     "order": 1,
+     "raw": {
+      "comment": "",
+      "name": "a",
+      "nullable": true,
+      "type": "INT"
+     },
+     "render": "t.a INT PRIMARY KEY",
+     "tags": [
+      "column"
+     ]
+    },
+    {
+     "chunk_id": "f_0123456789ab:t.b",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "t.b"
+     },
+     "order": 2,
+     "raw": {
+      "comment": "",
+      "name": "b",
+      "nullable": true,
+      "type": "INT"
+     },
+     "render": "t.b INT",
+     "tags": [
+      "column"
+     ]
+    }
+   ],
+   "file_id": "f_0123456789ab",
+   "file_name": "schema.ddl",
+   "findings": [],
+   "kind": "ddl",
+   "meta": {},
+   "structured": {
+    "tables": [
+     {
+      "columns": [
+       {
+        "comment": "",
+        "name": "a",
+        "nullable": true,
+        "type": "INT"
+       },
+       {
+        "comment": "",
+        "name": "b",
+        "nullable": true,
+        "type": "INT"
+       }
+      ],
+      "foreign_keys": [],
+      "name": "t",
+      "primary_key": [
+       "a"
+      ]
+     }
+    ]
+   }
+  },
+  "file_id": "f_0123456789ab",
+  "file_name": "schema.ddl",
+  "name": "注释跟在 PRIMARY KEY 后面（不该算到列头上）"
+ },
+ {
+  "comments": {
+   "a": ""
+  },
+  "ddl": "CREATE TABLE t (\n  a INT,\n  CONSTRAINT fk FOREIGN KEY (a) REFERENCES h(x) -- 外键说明\n);",
+  "dialect": null,
+  "doc": {
+   "chunks": [
+    {
+     "chunk_id": "f_0123456789ab:t",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "t"
+     },
+     "order": 0,
+     "raw": {
+      "columns": [
+       "a"
+      ],
+      "primary_key": [],
+      "table": "t"
+     },
+     "render": "表 t（1 列）：a",
+     "tags": [
+      "table"
+     ]
+    },
+    {
+     "chunk_id": "f_0123456789ab:t.a",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "t.a"
+     },
+     "order": 1,
+     "raw": {
+      "comment": "",
+      "name": "a",
+      "nullable": true,
+      "type": "INT"
+     },
+     "render": "t.a INT",
+     "tags": [
+      "column"
+     ]
+    },
+    {
+     "chunk_id": "f_0123456789ab:t.fk.a",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "t.fk"
+     },
+     "order": 2,
+     "raw": {
+      "column": "a",
+      "name": "fk",
+      "ref_column": "x",
+      "ref_table": "h"
+     },
+     "render": "t.a → h.x（外键，暗示 h 一对多 t）",
+     "tags": [
+      "fk"
+     ]
+    }
+   ],
+   "file_id": "f_0123456789ab",
+   "file_name": "schema.ddl",
+   "findings": [],
+   "kind": "ddl",
+   "meta": {},
+   "structured": {
+    "tables": [
+     {
+      "columns": [
+       {
+        "comment": "",
+        "name": "a",
+        "nullable": true,
+        "type": "INT"
+       }
+      ],
+      "foreign_keys": [
+       {
+        "column": "a",
+        "name": "fk",
+        "ref_column": "x",
+        "ref_table": "h"
+       }
+      ],
+      "name": "t",
+      "primary_key": []
+     }
+    ]
+   }
+  },
+  "file_id": "f_0123456789ab",
+  "file_name": "schema.ddl",
+  "name": "注释跟在 CONSTRAINT 外键后面"
+ },
+ {
+  "comments": {
+   "b": "",
+   "order": "订单号"
+  },
+  "ddl": "CREATE TABLE t (\n  `order` INT, -- 订单号\n  b INT\n);",
+  "dialect": "mysql",
+  "doc": {
+   "chunks": [
+    {
+     "chunk_id": "f_0123456789ab:t",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "t"
+     },
+     "order": 0,
+     "raw": {
+      "columns": [
+       "order",
+       "b"
+      ],
+      "primary_key": [],
+      "table": "t"
+     },
+     "render": "表 t（2 列）：order、b",
+     "tags": [
+      "table"
+     ]
+    },
+    {
+     "chunk_id": "f_0123456789ab:t.order",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "t.order"
+     },
+     "order": 1,
+     "raw": {
+      "comment": "订单号",
+      "name": "order",
+      "nullable": true,
+      "type": "INT"
+     },
+     "render": "t.order INT -- 订单号",
+     "tags": [
+      "column"
+     ]
+    },
+    {
+     "chunk_id": "f_0123456789ab:t.b",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "t.b"
+     },
+     "order": 2,
+     "raw": {
+      "comment": "",
+      "name": "b",
+      "nullable": true,
+      "type": "INT"
+     },
+     "render": "t.b INT",
+     "tags": [
+      "column"
+     ]
+    }
+   ],
+   "file_id": "f_0123456789ab",
+   "file_name": "schema.ddl",
+   "findings": [],
+   "kind": "ddl",
+   "meta": {},
+   "structured": {
+    "tables": [
+     {
+      "columns": [
+       {
+        "comment": "订单号",
+        "name": "order",
+        "nullable": true,
+        "type": "INT"
+       },
+       {
+        "comment": "",
+        "name": "b",
+        "nullable": true,
+        "type": "INT"
+       }
+      ],
+      "foreign_keys": [],
+      "name": "t",
+      "primary_key": []
+     }
+    ]
+   }
+  },
+  "file_id": "f_0123456789ab",
+  "file_name": "schema.ddl",
+  "name": "反引号列名"
+ },
+ {
+  "comments": {
+   "a": "口径：'含税' -- 再补一句"
+  },
+  "ddl": "CREATE TABLE t (\n  a INT -- 口径：'含税' -- 再补一句\n);",
+  "dialect": null,
+  "doc": {
+   "chunks": [
+    {
+     "chunk_id": "f_0123456789ab:t",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "t"
+     },
+     "order": 0,
+     "raw": {
+      "columns": [
+       "a"
+      ],
+      "primary_key": [],
+      "table": "t"
+     },
+     "render": "表 t（1 列）：a",
+     "tags": [
+      "table"
+     ]
+    },
+    {
+     "chunk_id": "f_0123456789ab:t.a",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "t.a"
+     },
+     "order": 1,
+     "raw": {
+      "comment": "口径：'含税' -- 再补一句",
+      "name": "a",
+      "nullable": true,
+      "type": "INT"
+     },
+     "render": "t.a INT -- 口径：'含税' -- 再补一句",
+     "tags": [
+      "column"
+     ]
+    }
+   ],
+   "file_id": "f_0123456789ab",
+   "file_name": "schema.ddl",
+   "findings": [],
+   "kind": "ddl",
+   "meta": {},
+   "structured": {
+    "tables": [
+     {
+      "columns": [
+       {
+        "comment": "口径：'含税' -- 再补一句",
+        "name": "a",
+        "nullable": true,
+        "type": "INT"
+       }
+      ],
+      "foreign_keys": [],
+      "name": "t",
+      "primary_key": []
+     }
+    ]
+   }
+  },
+  "file_id": "f_0123456789ab",
+  "file_name": "schema.ddl",
+  "name": "注释文本里带引号和破折号"
+ },
+ {
+  "comments": {
+   "a": "b', -- 真注释",
+   "b": ""
+  },
+  "ddl": "CREATE TABLE t (\n  a VARCHAR(8) DEFAULT 'a--b', -- 真注释\n  b INT\n);",
+  "dialect": null,
+  "doc": {
+   "chunks": [
+    {
+     "chunk_id": "f_0123456789ab:t",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "t"
+     },
+     "order": 0,
+     "raw": {
+      "columns": [
+       "a",
+       "b"
+      ],
+      "primary_key": [],
+      "table": "t"
+     },
+     "render": "表 t（2 列）：a、b",
+     "tags": [
+      "table"
+     ]
+    },
+    {
+     "chunk_id": "f_0123456789ab:t.a",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "t.a"
+     },
+     "order": 1,
+     "raw": {
+      "comment": "b', -- 真注释",
+      "name": "a",
+      "nullable": true,
+      "type": "VARCHAR(8)"
+     },
+     "render": "t.a VARCHAR(8) -- b', -- 真注释",
+     "tags": [
+      "column"
+     ]
+    },
+    {
+     "chunk_id": "f_0123456789ab:t.b",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "t.b"
+     },
+     "order": 2,
+     "raw": {
+      "comment": "",
+      "name": "b",
+      "nullable": true,
+      "type": "INT"
+     },
+     "render": "t.b INT",
+     "tags": [
+      "column"
+     ]
+    }
+   ],
+   "file_id": "f_0123456789ab",
+   "file_name": "schema.ddl",
+   "findings": [],
+   "kind": "ddl",
+   "meta": {},
+   "structured": {
+    "tables": [
+     {
+      "columns": [
+       {
+        "comment": "b', -- 真注释",
+        "name": "a",
+        "nullable": true,
+        "type": "VARCHAR(8)"
+       },
+       {
+        "comment": "",
+        "name": "b",
+        "nullable": true,
+        "type": "INT"
+       }
+      ],
+      "foreign_keys": [],
+      "name": "t",
+      "primary_key": []
+     }
+    ]
+   }
+  },
+  "file_id": "f_0123456789ab",
+  "file_name": "schema.ddl",
+  "name": "字符串字面量里出现 --"
+ },
+ {
+  "comments": {
+   "a": "块注释口径",
+   "b": ""
+  },
+  "ddl": "CREATE TABLE t (\n  a INT, /* 块注释口径 */\n  b INT\n);",
+  "dialect": null,
+  "doc": {
+   "chunks": [
+    {
+     "chunk_id": "f_0123456789ab:t",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "t"
+     },
+     "order": 0,
+     "raw": {
+      "columns": [
+       "a",
+       "b"
+      ],
+      "primary_key": [],
+      "table": "t"
+     },
+     "render": "表 t（2 列）：a、b",
+     "tags": [
+      "table"
+     ]
+    },
+    {
+     "chunk_id": "f_0123456789ab:t.a",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "t.a"
+     },
+     "order": 1,
+     "raw": {
+      "comment": "块注释口径",
+      "name": "a",
+      "nullable": true,
+      "type": "INT"
+     },
+     "render": "t.a INT -- 块注释口径",
+     "tags": [
+      "column"
+     ]
+    },
+    {
+     "chunk_id": "f_0123456789ab:t.b",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "t.b"
+     },
+     "order": 2,
+     "raw": {
+      "comment": "",
+      "name": "b",
+      "nullable": true,
+      "type": "INT"
+     },
+     "render": "t.b INT",
+     "tags": [
+      "column"
+     ]
+    }
+   ],
+   "file_id": "f_0123456789ab",
+   "file_name": "schema.ddl",
+   "findings": [],
+   "kind": "ddl",
+   "meta": {},
+   "structured": {
+    "tables": [
+     {
+      "columns": [
+       {
+        "comment": "块注释口径",
+        "name": "a",
+        "nullable": true,
+        "type": "INT"
+       },
+       {
+        "comment": "",
+        "name": "b",
+        "nullable": true,
+        "type": "INT"
+       }
+      ],
+      "foreign_keys": [],
+      "name": "t",
+      "primary_key": []
+     }
+    ]
+   }
+  },
+  "file_id": "f_0123456789ab",
+  "file_name": "schema.ddl",
+  "name": "块注释 /* */"
+ },
+ {
+  "comments": {
+   "a": "主键口径",
+   "b": ""
+  },
+  "ddl": "CREATE TABLE t (\n  a VARCHAR(32) NOT NULL PRIMARY KEY, -- 主键口径\n  b INT\n);",
+  "dialect": null,
+  "doc": {
+   "chunks": [
+    {
+     "chunk_id": "f_0123456789ab:t",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "t"
+     },
+     "order": 0,
+     "raw": {
+      "columns": [
+       "a",
+       "b"
+      ],
+      "primary_key": [
+       "a"
+      ],
+      "table": "t"
+     },
+     "render": "表 t（2 列，主键 a）：a、b",
+     "tags": [
+      "table"
+     ]
+    },
+    {
+     "chunk_id": "f_0123456789ab:t.a",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "t.a"
+     },
+     "order": 1,
+     "raw": {
+      "comment": "主键口径",
+      "name": "a",
+      "nullable": false,
+      "type": "VARCHAR(32)"
+     },
+     "render": "t.a VARCHAR(32) PRIMARY KEY NOT NULL -- 主键口径",
+     "tags": [
+      "column"
+     ]
+    },
+    {
+     "chunk_id": "f_0123456789ab:t.b",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "t.b"
+     },
+     "order": 2,
+     "raw": {
+      "comment": "",
+      "name": "b",
+      "nullable": true,
+      "type": "INT"
+     },
+     "render": "t.b INT",
+     "tags": [
+      "column"
+     ]
+    }
+   ],
+   "file_id": "f_0123456789ab",
+   "file_name": "schema.ddl",
+   "findings": [],
+   "kind": "ddl",
+   "meta": {},
+   "structured": {
+    "tables": [
+     {
+      "columns": [
+       {
+        "comment": "主键口径",
+        "name": "a",
+        "nullable": false,
+        "type": "VARCHAR(32)"
+       },
+       {
+        "comment": "",
+        "name": "b",
+        "nullable": true,
+        "type": "INT"
+       }
+      ],
+      "foreign_keys": [],
+      "name": "t",
+      "primary_key": [
+       "a"
+      ]
+     }
+    ]
+   }
+  },
+  "file_id": "f_0123456789ab",
+  "file_name": "schema.ddl",
+  "name": "NOT NULL + 内联 PRIMARY KEY + 注释"
+ },
+ {
+  "comments": {
+   "a": "说明"
+  },
+  "ddl": "CREATE TABLE dbo.t (\n  a INT -- 说明\n);",
+  "dialect": null,
+  "doc": {
+   "chunks": [
+    {
+     "chunk_id": "f_0123456789ab:t",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "t"
+     },
+     "order": 0,
+     "raw": {
+      "columns": [
+       "a"
+      ],
+      "primary_key": [],
+      "table": "t"
+     },
+     "render": "表 t（1 列）：a",
+     "tags": [
+      "table"
+     ]
+    },
+    {
+     "chunk_id": "f_0123456789ab:t.a",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "t.a"
+     },
+     "order": 1,
+     "raw": {
+      "comment": "说明",
+      "name": "a",
+      "nullable": true,
+      "type": "INT"
+     },
+     "render": "t.a INT -- 说明",
+     "tags": [
+      "column"
+     ]
+    }
+   ],
+   "file_id": "f_0123456789ab",
+   "file_name": "schema.ddl",
+   "findings": [],
+   "kind": "ddl",
+   "meta": {},
+   "structured": {
+    "tables": [
+     {
+      "columns": [
+       {
+        "comment": "说明",
+        "name": "a",
+        "nullable": true,
+        "type": "INT"
+       }
+      ],
+      "foreign_keys": [],
+      "name": "t",
+      "primary_key": []
+     }
+    ]
+   }
+  },
+  "file_id": "f_0123456789ab",
+  "file_name": "schema.ddl",
+  "name": "schema 限定表名"
+ },
+ {
+  "comments": {
+   "a": "说明"
+  },
+  "ddl": "CREATE TABLE IF NOT EXISTS t (\n  a INT -- 说明\n);",
+  "dialect": null,
+  "doc": {
+   "chunks": [
+    {
+     "chunk_id": "f_0123456789ab:t",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "t"
+     },
+     "order": 0,
+     "raw": {
+      "columns": [
+       "a"
+      ],
+      "primary_key": [],
+      "table": "t"
+     },
+     "render": "表 t（1 列）：a",
+     "tags": [
+      "table"
+     ]
+    },
+    {
+     "chunk_id": "f_0123456789ab:t.a",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "t.a"
+     },
+     "order": 1,
+     "raw": {
+      "comment": "说明",
+      "name": "a",
+      "nullable": true,
+      "type": "INT"
+     },
+     "render": "t.a INT -- 说明",
+     "tags": [
+      "column"
+     ]
+    }
+   ],
+   "file_id": "f_0123456789ab",
+   "file_name": "schema.ddl",
+   "findings": [],
+   "kind": "ddl",
+   "meta": {},
+   "structured": {
+    "tables": [
+     {
+      "columns": [
+       {
+        "comment": "说明",
+        "name": "a",
+        "nullable": true,
+        "type": "INT"
+       }
+      ],
+      "foreign_keys": [],
+      "name": "t",
+      "primary_key": []
+     }
+    ]
+   }
+  },
+  "file_id": "f_0123456789ab",
+  "file_name": "schema.ddl",
+  "name": "IF NOT EXISTS"
+ },
+ {
+  "comments": {
+   "a": "行内注释口径",
+   "b": ""
+  },
+  "ddl": "CREATE TABLE line (\n  a VARCHAR(8) COMMENT '行内注释口径',\n  b VARCHAR(8),\n  PRIMARY KEY (a, b),\n  CONSTRAINT fk_ab FOREIGN KEY (a, b) REFERENCES head(x, y)\n);",
+  "dialect": null,
+  "doc": {
+   "chunks": [
+    {
+     "chunk_id": "f_0123456789ab:line",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "line"
+     },
+     "order": 0,
+     "raw": {
+      "columns": [
+       "a",
+       "b"
+      ],
+      "primary_key": [
+       "a",
+       "b"
+      ],
+      "table": "line"
+     },
+     "render": "表 line（2 列，主键 a+b）：a、b",
+     "tags": [
+      "table"
+     ]
+    },
+    {
+     "chunk_id": "f_0123456789ab:line.a",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "line.a"
+     },
+     "order": 1,
+     "raw": {
+      "comment": "行内注释口径",
+      "name": "a",
+      "nullable": true,
+      "type": "VARCHAR(8)"
+     },
+     "render": "line.a VARCHAR(8) PRIMARY KEY -- 行内注释口径",
+     "tags": [
+      "column"
+     ]
+    },
+    {
+     "chunk_id": "f_0123456789ab:line.b",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "line.b"
+     },
+     "order": 2,
+     "raw": {
+      "comment": "",
+      "name": "b",
+      "nullable": true,
+      "type": "VARCHAR(8)"
+     },
+     "render": "line.b VARCHAR(8) PRIMARY KEY",
+     "tags": [
+      "column"
+     ]
+    },
+    {
+     "chunk_id": "f_0123456789ab:line.fk.a",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "line.fk_ab"
+     },
+     "order": 3,
+     "raw": {
+      "column": "a",
+      "name": "fk_ab",
+      "ref_column": "x",
+      "ref_table": "head"
+     },
+     "render": "line.a → head.x（外键，暗示 head 一对多 line）",
+     "tags": [
+      "fk"
+     ]
+    },
+    {
+     "chunk_id": "f_0123456789ab:line.fk.b",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "line.fk_ab"
+     },
+     "order": 4,
+     "raw": {
+      "column": "b",
+      "name": "fk_ab",
+      "ref_column": "y",
+      "ref_table": "head"
+     },
+     "render": "line.b → head.y（外键，暗示 head 一对多 line）",
+     "tags": [
+      "fk"
+     ]
+    }
+   ],
+   "file_id": "f_0123456789ab",
+   "file_name": "schema.ddl",
+   "findings": [],
+   "kind": "ddl",
+   "meta": {},
+   "structured": {
+    "tables": [
+     {
+      "columns": [
+       {
+        "comment": "行内注释口径",
+        "name": "a",
+        "nullable": true,
+        "type": "VARCHAR(8)"
+       },
+       {
+        "comment": "",
+        "name": "b",
+        "nullable": true,
+        "type": "VARCHAR(8)"
+       }
+      ],
+      "foreign_keys": [
+       {
+        "column": "a",
+        "name": "fk_ab",
+        "ref_column": "x",
+        "ref_table": "head"
+       },
+       {
+        "column": "b",
+        "name": "fk_ab",
+        "ref_column": "y",
+        "ref_table": "head"
+       }
+      ],
+      "name": "line",
+      "primary_key": [
+       "a",
+       "b"
+      ]
+     }
+    ]
+   }
+  },
+  "file_id": "f_0123456789ab",
+  "file_name": "schema.ddl",
+  "name": "复合主键 + 复合外键（按位配对）"
+ },
+ {
+  "comments": {
+   "created_at": "",
+   "plan_amount": "含税·年度累计·CNY",
+   "plan_id": "",
+   "plan_name": ""
+  },
+  "ddl": "-- 采购中台物理模型\nCREATE TABLE pbp_header (\n  plan_id      VARCHAR(32) NOT NULL PRIMARY KEY,\n  plan_name    VARCHAR(200),\n  plan_amount  DECIMAL(18,2),   -- 含税·年度累计·CNY\n  created_at   TIMESTAMP\n);\n\nCREATE TABLE clm_contract (\n  contract_id  VARCHAR(32) NOT NULL PRIMARY KEY,\n  plan_id      VARCHAR(32) NOT NULL,\n  plan_amount  DECIMAL(18,2),   -- 不含税·单次·CNY\n  CONSTRAINT fk_plan FOREIGN KEY (plan_id) REFERENCES pbp_header(plan_id)\n);\n",
+  "dialect": null,
+  "doc": {
+   "chunks": [
+    {
+     "chunk_id": "f_0123456789ab:pbp_header",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "pbp_header"
+     },
+     "order": 0,
+     "raw": {
+      "columns": [
+       "plan_id",
+       "plan_name",
+       "plan_amount",
+       "created_at"
+      ],
+      "primary_key": [
+       "plan_id"
+      ],
+      "table": "pbp_header"
+     },
+     "render": "表 pbp_header（4 列，主键 plan_id）：plan_id、plan_name、plan_amount、created_at",
+     "tags": [
+      "table"
+     ]
+    },
+    {
+     "chunk_id": "f_0123456789ab:pbp_header.plan_id",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "pbp_header.plan_id"
+     },
+     "order": 1,
+     "raw": {
+      "comment": "",
+      "name": "plan_id",
+      "nullable": false,
+      "type": "VARCHAR(32)"
+     },
+     "render": "pbp_header.plan_id VARCHAR(32) PRIMARY KEY NOT NULL",
+     "tags": [
+      "column"
+     ]
+    },
+    {
+     "chunk_id": "f_0123456789ab:pbp_header.plan_name",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "pbp_header.plan_name"
+     },
+     "order": 2,
+     "raw": {
+      "comment": "",
+      "name": "plan_name",
+      "nullable": true,
+      "type": "VARCHAR(200)"
+     },
+     "render": "pbp_header.plan_name VARCHAR(200)",
+     "tags": [
+      "column"
+     ]
+    },
+    {
+     "chunk_id": "f_0123456789ab:pbp_header.plan_amount",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "pbp_header.plan_amount"
+     },
+     "order": 3,
+     "raw": {
+      "comment": "含税·年度累计·CNY",
+      "name": "plan_amount",
+      "nullable": true,
+      "type": "DECIMAL(18, 2)"
+     },
+     "render": "pbp_header.plan_amount DECIMAL(18, 2) -- 含税·年度累计·CNY",
+     "tags": [
+      "column"
+     ]
+    },
+    {
+     "chunk_id": "f_0123456789ab:pbp_header.created_at",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "pbp_header.created_at"
+     },
+     "order": 4,
+     "raw": {
+      "comment": "",
+      "name": "created_at",
+      "nullable": true,
+      "type": "TIMESTAMP"
+     },
+     "render": "pbp_header.created_at TIMESTAMP",
+     "tags": [
+      "column"
+     ]
+    },
+    {
+     "chunk_id": "f_0123456789ab:clm_contract",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "clm_contract"
+     },
+     "order": 5,
+     "raw": {
+      "columns": [
+       "contract_id",
+       "plan_id",
+       "plan_amount"
+      ],
+      "primary_key": [
+       "contract_id"
+      ],
+      "table": "clm_contract"
+     },
+     "render": "表 clm_contract（3 列，主键 contract_id）：contract_id、plan_id、plan_amount",
+     "tags": [
+      "table"
+     ]
+    },
+    {
+     "chunk_id": "f_0123456789ab:clm_contract.contract_id",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "clm_contract.contract_id"
+     },
+     "order": 6,
+     "raw": {
+      "comment": "",
+      "name": "contract_id",
+      "nullable": false,
+      "type": "VARCHAR(32)"
+     },
+     "render": "clm_contract.contract_id VARCHAR(32) PRIMARY KEY NOT NULL",
+     "tags": [
+      "column"
+     ]
+    },
+    {
+     "chunk_id": "f_0123456789ab:clm_contract.plan_id",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "clm_contract.plan_id"
+     },
+     "order": 7,
+     "raw": {
+      "comment": "",
+      "name": "plan_id",
+      "nullable": false,
+      "type": "VARCHAR(32)"
+     },
+     "render": "clm_contract.plan_id VARCHAR(32) NOT NULL",
+     "tags": [
+      "column"
+     ]
+    },
+    {
+     "chunk_id": "f_0123456789ab:clm_contract.plan_amount",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "clm_contract.plan_amount"
+     },
+     "order": 8,
+     "raw": {
+      "comment": "不含税·单次·CNY",
+      "name": "plan_amount",
+      "nullable": true,
+      "type": "DECIMAL(18, 2)"
+     },
+     "render": "clm_contract.plan_amount DECIMAL(18, 2) -- 不含税·单次·CNY",
+     "tags": [
+      "column"
+     ]
+    },
+    {
+     "chunk_id": "f_0123456789ab:clm_contract.fk.plan_id",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "clm_contract.fk_plan"
+     },
+     "order": 9,
+     "raw": {
+      "column": "plan_id",
+      "name": "fk_plan",
+      "ref_column": "plan_id",
+      "ref_table": "pbp_header"
+     },
+     "render": "clm_contract.plan_id → pbp_header.plan_id（外键，暗示 pbp_header 一对多 clm_contract）",
+     "tags": [
+      "fk"
+     ]
+    }
+   ],
+   "file_id": "f_0123456789ab",
+   "file_name": "schema.ddl",
+   "findings": [],
+   "kind": "ddl",
+   "meta": {},
+   "structured": {
+    "tables": [
+     {
+      "columns": [
+       {
+        "comment": "",
+        "name": "plan_id",
+        "nullable": false,
+        "type": "VARCHAR(32)"
+       },
+       {
+        "comment": "",
+        "name": "plan_name",
+        "nullable": true,
+        "type": "VARCHAR(200)"
+       },
+       {
+        "comment": "含税·年度累计·CNY",
+        "name": "plan_amount",
+        "nullable": true,
+        "type": "DECIMAL(18, 2)"
+       },
+       {
+        "comment": "",
+        "name": "created_at",
+        "nullable": true,
+        "type": "TIMESTAMP"
+       }
+      ],
+      "foreign_keys": [],
+      "name": "pbp_header",
+      "primary_key": [
+       "plan_id"
+      ]
+     },
+     {
+      "columns": [
+       {
+        "comment": "",
+        "name": "contract_id",
+        "nullable": false,
+        "type": "VARCHAR(32)"
+       },
+       {
+        "comment": "",
+        "name": "plan_id",
+        "nullable": false,
+        "type": "VARCHAR(32)"
+       },
+       {
+        "comment": "不含税·单次·CNY",
+        "name": "plan_amount",
+        "nullable": true,
+        "type": "DECIMAL(18, 2)"
+       }
+      ],
+      "foreign_keys": [
+       {
+        "column": "plan_id",
+        "name": "fk_plan",
+        "ref_column": "plan_id",
+        "ref_table": "pbp_header"
+       }
+      ],
+      "name": "clm_contract",
+      "primary_key": [
+       "contract_id"
+      ]
+     }
+    ]
+   }
+  },
+  "file_id": "f_0123456789ab",
+  "file_name": "schema.ddl",
+  "name": "两张表 + 表级切片 + 外键切片"
+ },
+ {
+  "comments": {},
+  "ddl": "SELECT 1;\n",
+  "dialect": null,
+  "doc": {
+   "chunks": [],
+   "file_id": "f_0123456789ab",
+   "file_name": "schema.ddl",
+   "findings": [
+    {
+     "kind": "no_tables",
+     "locator": {},
+     "message": "文件里没有 CREATE TABLE 语句",
+     "severity": "warn"
+    }
+   ],
+   "kind": "ddl",
+   "meta": {},
+   "structured": {
+    "tables": []
+   }
+  },
+  "file_id": "f_0123456789ab",
+  "file_name": "schema.ddl",
+  "name": "没有 CREATE TABLE"
+ },
+ {
+  "comments": {},
+  "ddl": "CREATE TABLE ( ( ( ;\n",
+  "dialect": null,
+  "doc": {
+   "chunks": [],
+   "file_id": "f_0123456789ab",
+   "file_name": "schema.ddl",
+   "findings": [
+    {
+     "kind": "parse_failed",
+     "locator": {},
+     "message": "sqlglot 解析失败（方言 自动）：Expected table name but got <Token token_type: TokenType.L_PAREN, text: (, line: 1, col: 14, start: 13, end: 13, comments: []>. Line 1, Col: 14.\n  CREATE TABLE \u001b[4m(\u001b[0m ( ( ;\n",
+     "severity": "warn"
+    }
+   ],
+   "kind": "ddl",
+   "meta": {},
+   "structured": {}
+  },
+  "file_id": "f_0123456789ab",
+  "file_name": "schema.ddl",
+  "name": "解析不了的 DDL"
+ },
+ {
+  "comments": {
+   "a": "时间",
+   "b": ""
+  },
+  "ddl": "CREATE TABLE t (\n  a TIMESTAMP, -- 时间\n  b INT UNSIGNED\n);",
+  "dialect": "mysql",
+  "doc": {
+   "chunks": [
+    {
+     "chunk_id": "f_0123456789ab:t",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "t"
+     },
+     "order": 0,
+     "raw": {
+      "columns": [
+       "a",
+       "b"
+      ],
+      "primary_key": [],
+      "table": "t"
+     },
+     "render": "表 t（2 列）：a、b",
+     "tags": [
+      "table"
+     ]
+    },
+    {
+     "chunk_id": "f_0123456789ab:t.a",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "t.a"
+     },
+     "order": 1,
+     "raw": {
+      "comment": "时间",
+      "name": "a",
+      "nullable": true,
+      "type": "TIMESTAMPTZ"
+     },
+     "render": "t.a TIMESTAMPTZ -- 时间",
+     "tags": [
+      "column"
+     ]
+    },
+    {
+     "chunk_id": "f_0123456789ab:t.b",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "t.b"
+     },
+     "order": 2,
+     "raw": {
+      "comment": "",
+      "name": "b",
+      "nullable": true,
+      "type": "UINT"
+     },
+     "render": "t.b UINT",
+     "tags": [
+      "column"
+     ]
+    }
+   ],
+   "file_id": "f_0123456789ab",
+   "file_name": "schema.ddl",
+   "findings": [],
+   "kind": "ddl",
+   "meta": {},
+   "structured": {
+    "tables": [
+     {
+      "columns": [
+       {
+        "comment": "时间",
+        "name": "a",
+        "nullable": true,
+        "type": "TIMESTAMPTZ"
+       },
+       {
+        "comment": "",
+        "name": "b",
+        "nullable": true,
+        "type": "UINT"
+       }
+      ],
+      "foreign_keys": [],
+      "name": "t",
+      "primary_key": []
+     }
+    ]
+   }
+  },
+  "file_id": "f_0123456789ab",
+  "file_name": "schema.ddl",
+  "name": "方言 mysql"
+ },
+ {
+  "comments": {
+   "a": "时间",
+   "b": ""
+  },
+  "ddl": "CREATE TABLE t (\n  a TIMESTAMP WITH TIME ZONE, -- 时间\n  b SERIAL\n);",
+  "dialect": "postgres",
+  "doc": {
+   "chunks": [
+    {
+     "chunk_id": "f_0123456789ab:t",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "t"
+     },
+     "order": 0,
+     "raw": {
+      "columns": [
+       "a",
+       "b"
+      ],
+      "primary_key": [],
+      "table": "t"
+     },
+     "render": "表 t（2 列）：a、b",
+     "tags": [
+      "table"
+     ]
+    },
+    {
+     "chunk_id": "f_0123456789ab:t.a",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "t.a"
+     },
+     "order": 1,
+     "raw": {
+      "comment": "时间",
+      "name": "a",
+      "nullable": true,
+      "type": "TIMESTAMPTZ"
+     },
+     "render": "t.a TIMESTAMPTZ -- 时间",
+     "tags": [
+      "column"
+     ]
+    },
+    {
+     "chunk_id": "f_0123456789ab:t.b",
+     "context": "",
+     "file_id": "f_0123456789ab",
+     "file_name": "schema.ddl",
+     "locator": {
+      "kind": "ddl",
+      "object": "t.b"
+     },
+     "order": 2,
+     "raw": {
+      "comment": "",
+      "name": "b",
+      "nullable": true,
+      "type": "SERIAL"
+     },
+     "render": "t.b SERIAL",
+     "tags": [
+      "column"
+     ]
+    }
+   ],
+   "file_id": "f_0123456789ab",
+   "file_name": "schema.ddl",
+   "findings": [],
+   "kind": "ddl",
+   "meta": {},
+   "structured": {
+    "tables": [
+     {
+      "columns": [
+       {
+        "comment": "时间",
+        "name": "a",
+        "nullable": true,
+        "type": "TIMESTAMPTZ"
+       },
+       {
+        "comment": "",
+        "name": "b",
+        "nullable": true,
+        "type": "SERIAL"
+       }
+      ],
+      "foreign_keys": [],
+      "name": "t",
+      "primary_key": []
+     }
+    ]
+   }
+  },
+  "file_id": "f_0123456789ab",
+  "file_name": "schema.ddl",
+  "name": "方言 postgres"
+ }
+]

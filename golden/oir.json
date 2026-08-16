@@ -1,0 +1,1709 @@
+{
+ "cite": [
+  {
+   "file_name": "实体梳理.xlsx",
+   "locator": {
+    "kind": "cell",
+    "sheet": "业务对象实体梳理",
+    "row": 44,
+    "col": "F"
+   },
+   "out": "实体梳理.xlsx!业务对象实体梳理!R44CF"
+  },
+  {
+   "file_name": "实体梳理.xlsx",
+   "locator": {
+    "kind": "cell"
+   },
+   "out": "实体梳理.xlsx!!RNoneCNone"
+  },
+  {
+   "file_name": "材料.xlsx",
+   "locator": {
+    "kind": "range",
+    "sheet": "业务对象API梳理-行动",
+    "rows": [
+     2,
+     7
+    ]
+   },
+   "out": "材料.xlsx!业务对象API梳理-行动!R2-7"
+  },
+  {
+   "file_name": "材料.xlsx",
+   "locator": {
+    "kind": "range",
+    "sheet": "空表"
+   },
+   "out": "材料.xlsx!空表!R0-0"
+  },
+  {
+   "file_name": "openapi.json",
+   "locator": {
+    "kind": "json",
+    "pointer": "$.components.schemas.Plan"
+   },
+   "out": "openapi.json#$.components.schemas.Plan"
+  },
+  {
+   "file_name": "openapi.json",
+   "locator": {
+    "kind": "json"
+   },
+   "out": "openapi.json#"
+  },
+  {
+   "file_name": "schema.ddl",
+   "locator": {
+    "kind": "ddl",
+    "object": "clm_contract"
+   },
+   "out": "schema.ddl#clm_contract"
+  },
+  {
+   "file_name": "扫描件.pdf",
+   "locator": {
+    "kind": "page",
+    "page": 2,
+    "bbox": [
+     10,
+     20,
+     30,
+     40
+    ]
+   },
+   "out": "扫描件.pdf#p2"
+  },
+  {
+   "file_name": "扫描件.pdf",
+   "locator": {
+    "kind": "page"
+   },
+   "out": "扫描件.pdf#pNone"
+  },
+  {
+   "file_name": "实体梳理.xlsx",
+   "locator": {
+    "kind": "meta",
+    "field": "workbook.xml/absPath"
+   },
+   "out": "实体梳理.xlsx#workbook.xml/absPath"
+  },
+  {
+   "file_name": "流程.bpmn",
+   "locator": {
+    "kind": "xml",
+    "pointer": "/definitions/process/task[3]"
+   },
+   "out": "流程.bpmn#/definitions/process/task[3]"
+  },
+  {
+   "file_name": "会议纪要.docx",
+   "locator": {
+    "kind": "raw",
+    "ref": "第3段「计划金额」附近"
+   },
+   "out": "会议纪要.docx#第3段「计划金额」附近"
+  },
+  {
+   "file_name": "怪东西.bin",
+   "locator": {
+    "kind": "不认识的种类"
+   },
+   "out": "怪东西.bin"
+  },
+  {
+   "file_name": "裸文件",
+   "locator": {},
+   "out": "裸文件"
+  }
+ ],
+ "scalars": {
+  "round3": [
+   {
+    "in": 0.5,
+    "out": 0.5
+   },
+   {
+    "in": 0.8,
+    "out": 0.8
+   },
+   {
+    "in": 0.4,
+    "out": 0.4
+   },
+   {
+    "in": 0.98,
+    "out": 0.98
+   },
+   {
+    "in": 1.0,
+    "out": 1.0
+   },
+   {
+    "in": 0.0,
+    "out": 0.0
+   },
+   {
+    "in": 0.0625,
+    "out": 0.062
+   },
+   {
+    "in": 0.1875,
+    "out": 0.188
+   },
+   {
+    "in": 0.3125,
+    "out": 0.312
+   },
+   {
+    "in": 0.9375,
+    "out": 0.938
+   },
+   {
+    "in": -0.0625,
+    "out": -0.062
+   },
+   {
+    "in": 0.12345,
+    "out": 0.123
+   },
+   {
+    "in": 0.0005,
+    "out": 0.001
+   },
+   {
+    "in": 0.9999,
+    "out": 1.0
+   },
+   {
+    "in": 1.0005,
+    "out": 1.0
+   },
+   {
+    "in": 2.6755,
+    "out": 2.675
+   },
+   {
+    "in": 0.3333333333333333,
+    "out": 0.333
+   },
+   {
+    "in": 0.6666666666666666,
+    "out": 0.667
+   },
+   {
+    "in": 0.145,
+    "out": 0.145
+   },
+   {
+    "in": 0.155,
+    "out": 0.155
+   }
+  ],
+  "snippet_truncation": {
+   "in": "甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+   "out": "甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍"
+  },
+  "prov_to_dict": {
+   "file_id": "f1",
+   "file_name": "长文.xlsx",
+   "locator": {
+    "kind": "meta",
+    "field": "x"
+   },
+   "snippet": "甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲甲🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍🐍",
+   "extractor": "llm",
+   "confidence": 0.062,
+   "cite": "长文.xlsx#x"
+  }
+ },
+ "assertions": {
+  "extracted": {
+   "value": "planAmount",
+   "origin": "extracted",
+   "confidence": 0.8,
+   "evidence": [
+    {
+     "file_id": "f3",
+     "file_name": "实体梳理.xlsx",
+     "locator": {
+      "kind": "cell",
+      "sheet": "业务对象实体梳理",
+      "row": 44,
+      "col": "F"
+     },
+     "snippet": "计划金额（含税，年度累计）",
+     "extractor": "docling",
+     "confidence": 0.94,
+     "cite": "实体梳理.xlsx!业务对象实体梳理!R44CF"
+    }
+   ]
+  },
+  "extracted_conf": {
+   "value": "label",
+   "origin": "extracted",
+   "confidence": 1.0,
+   "evidence": [
+    {
+     "file_id": "f3",
+     "file_name": "实体梳理.xlsx",
+     "locator": {
+      "kind": "cell",
+      "sheet": "业务对象实体梳理",
+      "row": 44,
+      "col": "F"
+     },
+     "snippet": "计划金额（含税，年度累计）",
+     "extractor": "docling",
+     "confidence": 0.94,
+     "cite": "实体梳理.xlsx!业务对象实体梳理!R44CF"
+    }
+   ]
+  },
+  "inferred": {
+   "value": null,
+   "origin": "inferred",
+   "confidence": 0.4,
+   "evidence": []
+  },
+  "by_user_plain": {
+   "value": "采用含税口径",
+   "origin": "user",
+   "confidence": 0.98,
+   "evidence": []
+  },
+  "by_user_note": {
+   "value": "采用含税口径",
+   "origin": "user",
+   "confidence": 0.98,
+   "evidence": [
+    {
+     "file_id": "human",
+     "file_name": "人工决策",
+     "locator": {
+      "kind": "meta",
+      "field": "王明在评审会上拍板"
+     },
+     "snippet": "王明在评审会上拍板",
+     "extractor": "human",
+     "confidence": 1.0,
+     "cite": "人工决策#王明在评审会上拍板"
+    }
+   ]
+  },
+  "validate_bad": [
+   "pt_x.apiName: origin=EXTRACTED 但没有 evidence"
+  ],
+  "validate_ok": [],
+  "grounded": [
+   false,
+   true
+  ],
+  "cites": [
+   "实体梳理.xlsx!业务对象实体梳理!R44CF",
+   "实体梳理.xlsx!业务对象实体梳理!R44CF"
+  ]
+ },
+ "oir": {
+  "to_dict": {
+   "objects": [
+    {
+     "rid": "ot_purchase_plan_header",
+     "kind": "ObjectType",
+     "apiName": {
+      "value": "purchasePlanHeader",
+      "origin": "extracted",
+      "confidence": 0.8,
+      "evidence": [
+       {
+        "file_id": "f3",
+        "file_name": "实体梳理.xlsx",
+        "locator": {
+         "kind": "cell",
+         "sheet": "业务对象实体梳理",
+         "row": 2,
+         "col": "F"
+        },
+        "snippet": "采购业务计划头",
+        "extractor": "docling",
+        "confidence": 0.94,
+        "cite": "实体梳理.xlsx!业务对象实体梳理!R2CF"
+       }
+      ]
+     },
+     "displayName": {
+      "value": "采购业务计划头",
+      "origin": "extracted",
+      "confidence": 0.8,
+      "evidence": [
+       {
+        "file_id": "f3",
+        "file_name": "实体梳理.xlsx",
+        "locator": {
+         "kind": "cell",
+         "sheet": "业务对象实体梳理",
+         "row": 2,
+         "col": "F"
+        },
+        "snippet": "采购业务计划头",
+        "extractor": "docling",
+        "confidence": 0.94,
+        "cite": "实体梳理.xlsx!业务对象实体梳理!R2CF"
+       }
+      ]
+     },
+     "description": {
+      "value": "采购需求计划的头表",
+      "origin": "inferred",
+      "confidence": 0.4,
+      "evidence": []
+     },
+     "primaryKey": {
+      "value": [
+       "pt_plan_id"
+      ],
+      "origin": "inferred",
+      "confidence": 0.4,
+      "evidence": []
+     },
+     "properties": [
+      "pt_plan_id",
+      "pt_plan_amount_budget"
+     ],
+     "aliases": [
+      "采购需求计划"
+     ],
+     "owner": null,
+     "status": "candidate",
+     "conflicts": []
+    },
+    {
+     "rid": "ot_clm_contract",
+     "kind": "ObjectType",
+     "apiName": {
+      "value": "clmContract",
+      "origin": "extracted",
+      "confidence": 0.8,
+      "evidence": [
+       {
+        "file_id": "f5",
+        "file_name": "schema.ddl",
+        "locator": {
+         "kind": "ddl",
+         "object": "clm_contract"
+        },
+        "snippet": "CREATE TABLE clm_contract",
+        "extractor": "sqlglot",
+        "confidence": 0.9,
+        "cite": "schema.ddl#clm_contract"
+       }
+      ]
+     },
+     "displayName": {
+      "value": "采购合同",
+      "origin": "extracted",
+      "confidence": 0.8,
+      "evidence": [
+       {
+        "file_id": "f3",
+        "file_name": "实体梳理.xlsx",
+        "locator": {
+         "kind": "cell",
+         "sheet": "业务对象实体梳理",
+         "row": 44,
+         "col": "F"
+        },
+        "snippet": "采购合同",
+        "extractor": "docling",
+        "confidence": 0.94,
+        "cite": "实体梳理.xlsx!业务对象实体梳理!R44CF"
+       }
+      ]
+     },
+     "description": {
+      "value": "",
+      "origin": "inferred",
+      "confidence": 0.4,
+      "evidence": []
+     },
+     "primaryKey": {
+      "value": [
+       "pt_contract_id"
+      ],
+      "origin": "inferred",
+      "confidence": 0.4,
+      "evidence": []
+     },
+     "properties": [
+      "pt_contract_id"
+     ],
+     "aliases": [],
+     "owner": "李强",
+     "status": "confirmed",
+     "conflicts": [
+      "cf_naming_1"
+     ]
+    },
+    {
+     "rid": "ot_supplier",
+     "kind": "ObjectType",
+     "apiName": {
+      "value": "supplier",
+      "origin": "extracted",
+      "confidence": 0.8,
+      "evidence": [
+       {
+        "file_id": "f5",
+        "file_name": "schema.ddl",
+        "locator": {
+         "kind": "ddl",
+         "object": "supplier"
+        },
+        "snippet": "CREATE TABLE supplier",
+        "extractor": "sqlglot",
+        "confidence": 0.9,
+        "cite": "schema.ddl#supplier"
+       }
+      ]
+     },
+     "displayName": {
+      "value": "供应商",
+      "origin": "inferred",
+      "confidence": 0.4,
+      "evidence": []
+     },
+     "description": {
+      "value": "",
+      "origin": "inferred",
+      "confidence": 0.4,
+      "evidence": []
+     },
+     "primaryKey": {
+      "value": [],
+      "origin": "inferred",
+      "confidence": 0.4,
+      "evidence": []
+     },
+     "properties": [],
+     "aliases": [],
+     "owner": null,
+     "status": "candidate",
+     "conflicts": []
+    }
+   ],
+   "properties": [
+    {
+     "rid": "pt_plan_id",
+     "parent": "ot_purchase_plan_header",
+     "kind": "PropertyType",
+     "apiName": {
+      "value": "planId",
+      "origin": "extracted",
+      "confidence": 0.8,
+      "evidence": [
+       {
+        "file_id": "f3",
+        "file_name": "实体梳理.xlsx",
+        "locator": {
+         "kind": "cell",
+         "sheet": "业务对象实体梳理",
+         "row": 2,
+         "col": "F"
+        },
+        "snippet": "planId",
+        "extractor": "docling",
+        "confidence": 0.94,
+        "cite": "实体梳理.xlsx!业务对象实体梳理!R2CF"
+       }
+      ]
+     },
+     "displayName": {
+      "value": "计划编号",
+      "origin": "extracted",
+      "confidence": 0.8,
+      "evidence": [
+       {
+        "file_id": "f3",
+        "file_name": "实体梳理.xlsx",
+        "locator": {
+         "kind": "cell",
+         "sheet": "业务对象实体梳理",
+         "row": 2,
+         "col": "F"
+        },
+        "snippet": "计划编号",
+        "extractor": "docling",
+        "confidence": 0.94,
+        "cite": "实体梳理.xlsx!业务对象实体梳理!R2CF"
+       }
+      ]
+     },
+     "baseType": {
+      "value": "STRING",
+      "origin": "extracted",
+      "confidence": 0.8,
+      "evidence": [
+       {
+        "file_id": "f5",
+        "file_name": "schema.ddl",
+        "locator": {
+         "kind": "ddl",
+         "object": "pbp_header"
+        },
+        "snippet": "plan_id VARCHAR(32)",
+        "extractor": "sqlglot",
+        "confidence": 0.9,
+        "cite": "schema.ddl#pbp_header"
+       }
+      ]
+     },
+     "definition": {
+      "value": "主键",
+      "origin": "extracted",
+      "confidence": 0.8,
+      "evidence": [
+       {
+        "file_id": "f3",
+        "file_name": "实体梳理.xlsx",
+        "locator": {
+         "kind": "cell",
+         "sheet": "业务对象实体梳理",
+         "row": 2,
+         "col": "F"
+        },
+        "snippet": "主键",
+        "extractor": "docling",
+        "confidence": 0.94,
+        "cite": "实体梳理.xlsx!业务对象实体梳理!R2CF"
+       }
+      ]
+     },
+     "semanticType": {
+      "value": null,
+      "origin": "inferred",
+      "confidence": 0.4,
+      "evidence": []
+     },
+     "unit": {
+      "value": null,
+      "origin": "inferred",
+      "confidence": 0.4,
+      "evidence": []
+     },
+     "valueDomain": {
+      "value": null,
+      "origin": "inferred",
+      "confidence": 0.4,
+      "evidence": []
+     },
+     "required": {
+      "value": true,
+      "origin": "extracted",
+      "confidence": 0.8,
+      "evidence": [
+       {
+        "file_id": "f5",
+        "file_name": "schema.ddl",
+        "locator": {
+         "kind": "ddl",
+         "object": "pbp_header"
+        },
+        "snippet": "NOT NULL",
+        "extractor": "sqlglot",
+        "confidence": 0.9,
+        "cite": "schema.ddl#pbp_header"
+       }
+      ]
+     },
+     "owner": null,
+     "status": "candidate",
+     "conflicts": []
+    },
+    {
+     "rid": "pt_contract_id",
+     "parent": "ot_clm_contract",
+     "kind": "PropertyType",
+     "apiName": {
+      "value": "contractId",
+      "origin": "extracted",
+      "confidence": 0.8,
+      "evidence": [
+       {
+        "file_id": "f5",
+        "file_name": "schema.ddl",
+        "locator": {
+         "kind": "ddl",
+         "object": "clm_contract"
+        },
+        "snippet": "contract_id VARCHAR(32)",
+        "extractor": "sqlglot",
+        "confidence": 0.9,
+        "cite": "schema.ddl#clm_contract"
+       }
+      ]
+     },
+     "displayName": {
+      "value": "合同编号",
+      "origin": "extracted",
+      "confidence": 0.8,
+      "evidence": [
+       {
+        "file_id": "f5",
+        "file_name": "schema.ddl",
+        "locator": {
+         "kind": "ddl",
+         "object": "clm_contract"
+        },
+        "snippet": "contract_id",
+        "extractor": "sqlglot",
+        "confidence": 0.9,
+        "cite": "schema.ddl#clm_contract"
+       }
+      ]
+     },
+     "baseType": {
+      "value": "STRING",
+      "origin": "extracted",
+      "confidence": 0.8,
+      "evidence": [
+       {
+        "file_id": "f5",
+        "file_name": "schema.ddl",
+        "locator": {
+         "kind": "ddl",
+         "object": "clm_contract"
+        },
+        "snippet": "contract_id VARCHAR(32)",
+        "extractor": "sqlglot",
+        "confidence": 0.9,
+        "cite": "schema.ddl#clm_contract"
+       }
+      ]
+     },
+     "definition": {
+      "value": "主键",
+      "origin": "extracted",
+      "confidence": 0.8,
+      "evidence": [
+       {
+        "file_id": "f5",
+        "file_name": "schema.ddl",
+        "locator": {
+         "kind": "ddl",
+         "object": "clm_contract"
+        },
+        "snippet": "PRIMARY KEY",
+        "extractor": "sqlglot",
+        "confidence": 0.9,
+        "cite": "schema.ddl#clm_contract"
+       }
+      ]
+     },
+     "semanticType": {
+      "value": null,
+      "origin": "inferred",
+      "confidence": 0.4,
+      "evidence": []
+     },
+     "unit": {
+      "value": null,
+      "origin": "inferred",
+      "confidence": 0.4,
+      "evidence": []
+     },
+     "valueDomain": {
+      "value": null,
+      "origin": "inferred",
+      "confidence": 0.4,
+      "evidence": []
+     },
+     "required": {
+      "value": false,
+      "origin": "inferred",
+      "confidence": 0.4,
+      "evidence": []
+     },
+     "owner": null,
+     "status": "candidate",
+     "conflicts": []
+    },
+    {
+     "rid": "pt_plan_amount_budget",
+     "parent": "ot_purchase_plan_header",
+     "kind": "PropertyType",
+     "apiName": {
+      "value": "planAmount",
+      "origin": "extracted",
+      "confidence": 0.8,
+      "evidence": [
+       {
+        "file_id": "f3",
+        "file_name": "实体梳理.xlsx",
+        "locator": {
+         "kind": "cell",
+         "sheet": "业务对象实体梳理",
+         "row": 44,
+         "col": "F"
+        },
+        "snippet": "planAmount",
+        "extractor": "docling",
+        "confidence": 0.94,
+        "cite": "实体梳理.xlsx!业务对象实体梳理!R44CF"
+       }
+      ]
+     },
+     "displayName": {
+      "value": "计划金额",
+      "origin": "extracted",
+      "confidence": 0.8,
+      "evidence": [
+       {
+        "file_id": "f3",
+        "file_name": "实体梳理.xlsx",
+        "locator": {
+         "kind": "cell",
+         "sheet": "业务对象实体梳理",
+         "row": 44,
+         "col": "F"
+        },
+        "snippet": "计划金额",
+        "extractor": "docling",
+        "confidence": 0.94,
+        "cite": "实体梳理.xlsx!业务对象实体梳理!R44CF"
+       }
+      ]
+     },
+     "baseType": {
+      "value": "DECIMAL",
+      "origin": "extracted",
+      "confidence": 0.8,
+      "evidence": [
+       {
+        "file_id": "f3",
+        "file_name": "实体梳理.xlsx",
+        "locator": {
+         "kind": "cell",
+         "sheet": "业务对象实体梳理",
+         "row": 44,
+         "col": "F"
+        },
+        "snippet": "DECIMAL(18,2)",
+        "extractor": "docling",
+        "confidence": 0.94,
+        "cite": "实体梳理.xlsx!业务对象实体梳理!R44CF"
+       }
+      ]
+     },
+     "definition": {
+      "value": "含税，年度累计，CNY",
+      "origin": "extracted",
+      "confidence": 0.8,
+      "evidence": [
+       {
+        "file_id": "f3",
+        "file_name": "实体梳理.xlsx",
+        "locator": {
+         "kind": "cell",
+         "sheet": "业务对象实体梳理",
+         "row": 44,
+         "col": "F"
+        },
+        "snippet": "计划金额（含税，年度累计）",
+        "extractor": "docling",
+        "confidence": 0.94,
+        "cite": "实体梳理.xlsx!业务对象实体梳理!R44CF"
+       }
+      ]
+     },
+     "semanticType": {
+      "value": "money",
+      "origin": "inferred",
+      "confidence": 0.4,
+      "evidence": []
+     },
+     "unit": {
+      "value": "CNY",
+      "origin": "extracted",
+      "confidence": 0.8,
+      "evidence": [
+       {
+        "file_id": "f3",
+        "file_name": "实体梳理.xlsx",
+        "locator": {
+         "kind": "cell",
+         "sheet": "业务对象实体梳理",
+         "row": 44,
+         "col": "F"
+        },
+        "snippet": "币种=CNY",
+        "extractor": "docling",
+        "confidence": 0.94,
+        "cite": "实体梳理.xlsx!业务对象实体梳理!R44CF"
+       }
+      ]
+     },
+     "valueDomain": {
+      "value": [
+       "草稿",
+       "已提交",
+       "已审批"
+      ],
+      "origin": "extracted",
+      "confidence": 0.8,
+      "evidence": [
+       {
+        "file_id": "f3",
+        "file_name": "实体梳理.xlsx",
+        "locator": {
+         "kind": "cell",
+         "sheet": "业务对象实体梳理",
+         "row": 45,
+         "col": "F"
+        },
+        "snippet": "状态枚举",
+        "extractor": "docling",
+        "confidence": 0.94,
+        "cite": "实体梳理.xlsx!业务对象实体梳理!R45CF"
+       }
+      ]
+     },
+     "required": {
+      "value": false,
+      "origin": "inferred",
+      "confidence": 0.4,
+      "evidence": []
+     },
+     "owner": "王明",
+     "status": "proposed",
+     "conflicts": [
+      "cf_semantic_1"
+     ]
+    }
+   ],
+   "links": [
+    {
+     "rid": "lt_plan_contract",
+     "kind": "LinkType",
+     "apiName": {
+      "value": "planContracts",
+      "origin": "extracted",
+      "confidence": 0.8,
+      "evidence": [
+       {
+        "file_id": "f5",
+        "file_name": "schema.ddl",
+        "locator": {
+         "kind": "ddl",
+         "object": "clm_contract"
+        },
+        "snippet": "FOREIGN KEY (plan_id)",
+        "extractor": "sqlglot",
+        "confidence": 0.9,
+        "cite": "schema.ddl#clm_contract"
+       }
+      ]
+     },
+     "from": "ot_purchase_plan_header",
+     "to": "ot_clm_contract",
+     "cardinality": {
+      "value": "ONE_TO_MANY",
+      "origin": "extracted",
+      "confidence": 0.8,
+      "evidence": [
+       {
+        "file_id": "f5",
+        "file_name": "schema.ddl",
+        "locator": {
+         "kind": "ddl",
+         "object": "clm_contract"
+        },
+        "snippet": "FK",
+        "extractor": "sqlglot",
+        "confidence": 0.9,
+        "cite": "schema.ddl#clm_contract"
+       }
+      ]
+     },
+     "joinKey": {
+      "value": {
+       "fromProp": "pt_plan_id",
+       "toProp": "pt_contract_id"
+      },
+      "origin": "extracted",
+      "confidence": 0.8,
+      "evidence": [
+       {
+        "file_id": "f5",
+        "file_name": "schema.ddl",
+        "locator": {
+         "kind": "ddl",
+         "object": "clm_contract"
+        },
+        "snippet": "REFERENCES pbp_header(plan_id)",
+        "extractor": "sqlglot",
+        "confidence": 0.9,
+        "cite": "schema.ddl#clm_contract"
+       }
+      ]
+     },
+     "status": "candidate",
+     "conflicts": []
+    }
+   ],
+   "rules": [
+    {
+     "rid": "br_amount_gate",
+     "kind": "BusinessRule",
+     "statement": {
+      "value": "计划金额超过 100 万时必须走二级审批。",
+      "origin": "extracted",
+      "confidence": 0.8,
+      "evidence": [
+       {
+        "file_id": "f3",
+        "file_name": "实体梳理.xlsx",
+        "locator": {
+         "kind": "cell",
+         "sheet": "业务对象实体梳理",
+         "row": 88,
+         "col": "F"
+        },
+        "snippet": "计划金额超过100万时必须走二级审批",
+        "extractor": "docling",
+        "confidence": 0.94,
+        "cite": "实体梳理.xlsx!业务对象实体梳理!R88CF"
+       }
+      ]
+     },
+     "ruleKind": {
+      "value": "AUTHORITY",
+      "origin": "extracted",
+      "confidence": 0.8,
+      "evidence": [
+       {
+        "file_id": "f3",
+        "file_name": "实体梳理.xlsx",
+        "locator": {
+         "kind": "cell",
+         "sheet": "业务对象实体梳理",
+         "row": 88,
+         "col": "F"
+        },
+        "snippet": "审批权限",
+        "extractor": "docling",
+        "confidence": 0.94,
+        "cite": "实体梳理.xlsx!业务对象实体梳理!R88CF"
+       }
+      ]
+     },
+     "appliesTo": [
+      "ot_purchase_plan_header"
+     ],
+     "actor": {
+      "value": "采购计划员",
+      "origin": "extracted",
+      "confidence": 0.8,
+      "evidence": [
+       {
+        "file_id": "f3",
+        "file_name": "实体梳理.xlsx",
+        "locator": {
+         "kind": "cell",
+         "sheet": "业务对象实体梳理",
+         "row": 88,
+         "col": "F"
+        },
+        "snippet": "责任岗位=采购计划员",
+        "extractor": "docling",
+        "confidence": 0.94,
+        "cite": "实体梳理.xlsx!业务对象实体梳理!R88CF"
+       }
+      ]
+     },
+     "status": "candidate"
+    },
+    {
+     "rid": "br_orphan",
+     "kind": "BusinessRule",
+     "statement": {
+      "value": "一条没挂上对象的规则。",
+      "origin": "inferred",
+      "confidence": 0.4,
+      "evidence": []
+     },
+     "ruleKind": {
+      "value": "OTHER",
+      "origin": "inferred",
+      "confidence": 0.4,
+      "evidence": []
+     },
+     "appliesTo": [],
+     "actor": {
+      "value": "",
+      "origin": "inferred",
+      "confidence": 0.4,
+      "evidence": []
+     },
+     "status": "candidate"
+    }
+   ],
+   "questions": [
+    {
+     "rid": "oq_amount_axis",
+     "kind": "OpenQuestion",
+     "text": {
+      "value": "「计划金额」到底是含税还是不含税？",
+      "origin": "extracted",
+      "confidence": 0.8,
+      "evidence": [
+       {
+        "file_id": "f3",
+        "file_name": "实体梳理.xlsx",
+        "locator": {
+         "kind": "cell",
+         "sheet": "业务对象实体梳理",
+         "row": 44,
+         "col": "F"
+        },
+        "snippet": "计划金额",
+        "extractor": "docling",
+        "confidence": 0.94,
+        "cite": "实体梳理.xlsx!业务对象实体梳理!R44CF"
+       }
+      ]
+     },
+     "options": [
+      "含税",
+      "不含税"
+     ],
+     "answer": {
+      "value": "",
+      "origin": "inferred",
+      "confidence": 0.4,
+      "evidence": []
+     },
+     "group": "采购计划管理",
+     "code": "Q-017",
+     "appliesTo": [
+      "pt_plan_amount_budget"
+     ],
+     "askedBy": "system",
+     "owner": null,
+     "status": "candidate"
+    },
+    {
+     "rid": "oq_answered",
+     "kind": "OpenQuestion",
+     "text": {
+      "value": "一条需求能不能只安排部分数量？",
+      "origin": "extracted",
+      "confidence": 0.8,
+      "evidence": [
+       {
+        "file_id": "f3",
+        "file_name": "实体梳理.xlsx",
+        "locator": {
+         "kind": "cell",
+         "sheet": "业务对象实体梳理",
+         "row": 90,
+         "col": "F"
+        },
+        "snippet": "部分安排",
+        "extractor": "docling",
+        "confidence": 0.94,
+        "cite": "实体梳理.xlsx!业务对象实体梳理!R90CF"
+       }
+      ]
+     },
+     "options": [],
+     "answer": {
+      "value": "可以，剩余数量留在原需求上",
+      "origin": "user",
+      "confidence": 0.98,
+      "evidence": [
+       {
+        "file_id": "human",
+        "file_name": "人工决策",
+        "locator": {
+         "kind": "meta",
+         "field": "王明"
+        },
+        "snippet": "王明",
+        "extractor": "human",
+        "confidence": 1.0,
+        "cite": "人工决策#王明"
+       }
+      ]
+     },
+     "group": "采购计划管理",
+     "code": "Q-046",
+     "appliesTo": [],
+     "askedBy": "customer",
+     "owner": "王明",
+     "status": "confirmed"
+    },
+    {
+     "rid": "oq_blank_answer",
+     "kind": "OpenQuestion",
+     "text": {
+      "value": "空白答复算不算已答？",
+      "origin": "inferred",
+      "confidence": 0.4,
+      "evidence": []
+     },
+     "options": [],
+     "answer": {
+      "value": "   \n  ",
+      "origin": "extracted",
+      "confidence": 0.8,
+      "evidence": [
+       {
+        "file_id": "f3",
+        "file_name": "实体梳理.xlsx",
+        "locator": {
+         "kind": "cell",
+         "sheet": "业务对象实体梳理",
+         "row": 91,
+         "col": "F"
+        },
+        "snippet": "  ",
+        "extractor": "docling",
+        "confidence": 0.94,
+        "cite": "实体梳理.xlsx!业务对象实体梳理!R91CF"
+       }
+      ]
+     },
+     "group": "",
+     "code": "",
+     "appliesTo": [],
+     "askedBy": "customer",
+     "owner": null,
+     "status": "candidate"
+    }
+   ],
+   "actions": [
+    {
+     "rid": "at_createpbp",
+     "kind": "ActionType",
+     "apiName": {
+      "value": "createPbp",
+      "origin": "extracted",
+      "confidence": 0.8,
+      "evidence": [
+       {
+        "file_id": "f3",
+        "file_name": "实体梳理.xlsx",
+        "locator": {
+         "kind": "cell",
+         "sheet": "业务对象实体梳理",
+         "row": 2,
+         "col": "F"
+        },
+        "snippet": "创建PBP",
+        "extractor": "docling",
+        "confidence": 0.94,
+        "cite": "实体梳理.xlsx!业务对象实体梳理!R2CF"
+       }
+      ]
+     },
+     "appliesTo": [
+      "ot_purchase_plan_header"
+     ],
+     "parameters": {
+      "value": [
+       {
+        "name": "planId",
+        "baseType": "STRING"
+       }
+      ],
+      "origin": "inferred",
+      "confidence": 0.4,
+      "evidence": []
+     },
+     "effects": {
+      "value": [
+       "create:ot_purchase_plan_header"
+      ],
+      "origin": "extracted",
+      "confidence": 0.8,
+      "evidence": [
+       {
+        "file_id": "f3",
+        "file_name": "实体梳理.xlsx",
+        "locator": {
+         "kind": "cell",
+         "sheet": "业务对象实体梳理",
+         "row": 2,
+         "col": "F"
+        },
+        "snippet": "创建",
+        "extractor": "docling",
+        "confidence": 0.94,
+        "cite": "实体梳理.xlsx!业务对象实体梳理!R2CF"
+       }
+      ]
+     },
+     "sourceEndpoint": {
+      "value": {
+       "path": "/v1/createPbp",
+       "display": "创建PBP"
+      },
+      "origin": "extracted",
+      "confidence": 0.8,
+      "evidence": [
+       {
+        "file_id": "f3",
+        "file_name": "实体梳理.xlsx",
+        "locator": {
+         "kind": "cell",
+         "sheet": "业务对象实体梳理",
+         "row": 2,
+         "col": "F"
+        },
+        "snippet": "url=/v1/createPbp",
+        "extractor": "docling",
+        "confidence": 0.94,
+        "cite": "实体梳理.xlsx!业务对象实体梳理!R2CF"
+       }
+      ]
+     },
+     "status": "draft_from_api"
+    }
+   ],
+   "stats": {
+    "objects": 3,
+    "properties": 3,
+    "links": 1,
+    "actions": 1,
+    "rules": 2,
+    "questions": 3,
+    "open_questions": 2,
+    "orphans": 1,
+    "confirmed": 1
+   }
+  },
+  "validate_clean": [
+   "ot_supplier: 未声明主键"
+  ],
+  "validate_broken": [
+   "ot_purchase_plan_header: 主键引用了不存在的属性 pt_ghost",
+   "ot_clm_contract: 未声明主键",
+   "ot_supplier: 未声明主键",
+   "pt_plan_id: 父对象 ot_ghost 不存在",
+   "pt_contract_id.apiName: origin=EXTRACTED 但没有 evidence",
+   "lt_plan_contract: from 指向不存在的对象 ot_ghost",
+   "lt_plan_contract: 未声明 joinKey"
+  ],
+  "dependents": {
+   "ot_purchase_plan_header": [
+    "at_createpbp",
+    "lt_plan_contract",
+    "pt_plan_amount_budget",
+    "pt_plan_id"
+   ],
+   "ot_clm_contract": [
+    "lt_plan_contract",
+    "pt_contract_id"
+   ],
+   "pt_plan_id": [
+    "lt_plan_contract",
+    "ot_purchase_plan_header"
+   ],
+   "pt_contract_id": [
+    "lt_plan_contract",
+    "ot_clm_contract"
+   ],
+   "at_createpbp": [],
+   "不存在的rid": []
+  },
+  "props_of": {
+   "ot_purchase_plan_header": [
+    "pt_plan_id",
+    "pt_plan_amount_budget"
+   ],
+   "ot_supplier": []
+  },
+  "orphans": [
+   "ot_supplier"
+  ],
+  "objects_without_actions": [
+   "ot_clm_contract",
+   "ot_supplier"
+  ],
+  "answered": {
+   "oq_amount_axis": false,
+   "oq_answered": true,
+   "oq_blank_answer": false
+  }
+ },
+ "from_dict_dirty": {
+  "in": {
+   "objects": [
+    {
+     "rid": "ot_dirty",
+     "apiName": "dirtyObject",
+     "displayName": {
+      "value": "脏对象",
+      "origin": "外星人",
+      "confidence": 0,
+      "evidence": [
+       {
+        "file_name": "x.xlsx",
+        "locator": {
+         "kind": "page"
+        },
+        "confidence": 0
+       }
+      ]
+     },
+     "properties": null,
+     "aliases": [
+      "别名"
+     ],
+     "status": "不认识的状态",
+     "conflicts": null
+    }
+   ],
+   "properties": [
+    {
+     "rid": "pt_dirty",
+     "parent": "ot_dirty",
+     "apiName": {
+      "value": "dirty",
+      "origin": "user",
+      "confidence": 0.98
+     },
+     "baseType": {
+      "value": "WEIRD_TYPE",
+      "origin": "extracted"
+     },
+     "valueDomain": {
+      "value": [
+       "a",
+       "b"
+      ]
+     }
+    }
+   ],
+   "links": [
+    {
+     "rid": "lt_dirty",
+     "from": "ot_dirty",
+     "to": "ot_missing",
+     "cardinality": {
+      "value": "ONE_TO_MANY"
+     },
+     "joinKey": {
+      "value": {
+       "fromProp": "pt_dirty"
+      }
+     }
+    }
+   ],
+   "actions": [
+    {
+     "rid": "at_dirty",
+     "appliesTo": [
+      "ot_dirty"
+     ]
+    }
+   ],
+   "rules": [
+    {
+     "rid": "br_dirty",
+     "statement": {
+      "value": "规则"
+     },
+     "ruleKind": {
+      "value": "VALIDATION",
+      "origin": "extracted",
+      "evidence": [
+       {
+        "file_id": "f1",
+        "file_name": "x",
+        "locator": {}
+       }
+      ]
+     }
+    }
+   ],
+   "questions": [
+    {
+     "rid": "oq_dirty",
+     "text": {
+      "value": "问题？"
+     },
+     "answer": {
+      "value": "  "
+     },
+     "askedBy": null,
+     "group": null,
+     "owner": null
+    }
+   ],
+   "stats": {
+    "objects": 999
+   }
+  },
+  "out": {
+   "objects": [
+    {
+     "rid": "ot_dirty",
+     "kind": "ObjectType",
+     "apiName": {
+      "value": "dirtyObject",
+      "origin": "inferred",
+      "confidence": 0.4,
+      "evidence": []
+     },
+     "displayName": {
+      "value": "脏对象",
+      "origin": "inferred",
+      "confidence": 0.5,
+      "evidence": [
+       {
+        "file_id": "",
+        "file_name": "x.xlsx",
+        "locator": {
+         "kind": "page"
+        },
+        "snippet": "",
+        "extractor": "llm",
+        "confidence": 0.5,
+        "cite": "x.xlsx#pNone"
+       }
+      ]
+     },
+     "description": {
+      "value": null,
+      "origin": "inferred",
+      "confidence": 0.4,
+      "evidence": []
+     },
+     "primaryKey": {
+      "value": null,
+      "origin": "inferred",
+      "confidence": 0.4,
+      "evidence": []
+     },
+     "properties": [],
+     "aliases": [
+      "别名"
+     ],
+     "owner": null,
+     "status": "candidate",
+     "conflicts": []
+    }
+   ],
+   "properties": [
+    {
+     "rid": "pt_dirty",
+     "parent": "ot_dirty",
+     "kind": "PropertyType",
+     "apiName": {
+      "value": "dirty",
+      "origin": "user",
+      "confidence": 0.98,
+      "evidence": []
+     },
+     "displayName": {
+      "value": null,
+      "origin": "inferred",
+      "confidence": 0.4,
+      "evidence": []
+     },
+     "baseType": {
+      "value": "WEIRD_TYPE",
+      "origin": "extracted",
+      "confidence": 0.5,
+      "evidence": []
+     },
+     "definition": {
+      "value": null,
+      "origin": "inferred",
+      "confidence": 0.4,
+      "evidence": []
+     },
+     "semanticType": {
+      "value": null,
+      "origin": "inferred",
+      "confidence": 0.4,
+      "evidence": []
+     },
+     "unit": {
+      "value": null,
+      "origin": "inferred",
+      "confidence": 0.4,
+      "evidence": []
+     },
+     "valueDomain": {
+      "value": [
+       "a",
+       "b"
+      ],
+      "origin": "inferred",
+      "confidence": 0.5,
+      "evidence": []
+     },
+     "required": {
+      "value": null,
+      "origin": "inferred",
+      "confidence": 0.4,
+      "evidence": []
+     },
+     "owner": null,
+     "status": "candidate",
+     "conflicts": []
+    }
+   ],
+   "links": [
+    {
+     "rid": "lt_dirty",
+     "kind": "LinkType",
+     "apiName": {
+      "value": null,
+      "origin": "inferred",
+      "confidence": 0.4,
+      "evidence": []
+     },
+     "from": "ot_dirty",
+     "to": "ot_missing",
+     "cardinality": {
+      "value": "ONE_TO_MANY",
+      "origin": "inferred",
+      "confidence": 0.5,
+      "evidence": []
+     },
+     "joinKey": {
+      "value": {
+       "fromProp": "pt_dirty"
+      },
+      "origin": "inferred",
+      "confidence": 0.5,
+      "evidence": []
+     },
+     "status": "candidate",
+     "conflicts": []
+    }
+   ],
+   "rules": [
+    {
+     "rid": "br_dirty",
+     "kind": "BusinessRule",
+     "statement": {
+      "value": "规则",
+      "origin": "inferred",
+      "confidence": 0.5,
+      "evidence": []
+     },
+     "ruleKind": {
+      "value": "VALIDATION",
+      "origin": "extracted",
+      "confidence": 0.5,
+      "evidence": [
+       {
+        "file_id": "f1",
+        "file_name": "x",
+        "locator": {},
+        "snippet": "",
+        "extractor": "llm",
+        "confidence": 0.5,
+        "cite": "x"
+       }
+      ]
+     },
+     "appliesTo": [],
+     "actor": {
+      "value": null,
+      "origin": "inferred",
+      "confidence": 0.4,
+      "evidence": []
+     },
+     "status": "candidate"
+    }
+   ],
+   "questions": [
+    {
+     "rid": "oq_dirty",
+     "kind": "OpenQuestion",
+     "text": {
+      "value": "问题？",
+      "origin": "inferred",
+      "confidence": 0.5,
+      "evidence": []
+     },
+     "options": [],
+     "answer": {
+      "value": "  ",
+      "origin": "inferred",
+      "confidence": 0.5,
+      "evidence": []
+     },
+     "group": "",
+     "code": "",
+     "appliesTo": [],
+     "askedBy": "customer",
+     "owner": null,
+     "status": "candidate"
+    }
+   ],
+   "actions": [
+    {
+     "rid": "at_dirty",
+     "kind": "ActionType",
+     "apiName": {
+      "value": null,
+      "origin": "inferred",
+      "confidence": 0.4,
+      "evidence": []
+     },
+     "appliesTo": [
+      "ot_dirty"
+     ],
+     "parameters": {
+      "value": null,
+      "origin": "inferred",
+      "confidence": 0.4,
+      "evidence": []
+     },
+     "effects": {
+      "value": null,
+      "origin": "inferred",
+      "confidence": 0.4,
+      "evidence": []
+     },
+     "sourceEndpoint": {
+      "value": null,
+      "origin": "inferred",
+      "confidence": 0.4,
+      "evidence": []
+     },
+     "status": "candidate"
+    }
+   ],
+   "stats": {
+    "objects": 1,
+    "properties": 1,
+    "links": 1,
+    "actions": 1,
+    "rules": 1,
+    "questions": 1,
+    "open_questions": 1,
+    "orphans": 0,
+    "confirmed": 0
+   }
+  },
+  "missing_answer_in": {
+   "questions": [
+    {
+     "rid": "oq_no_answer",
+     "text": {
+      "value": "问？"
+     }
+    }
+   ]
+  },
+  "missing_answer_raises": "AttributeError: 'NoneType' object has no attribute 'strip'"
+ }
+}

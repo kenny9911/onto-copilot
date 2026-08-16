@@ -1,0 +1,2711 @@
+{
+ "cases": [
+  {
+   "flow": {
+    "edges": [],
+    "nodes": [],
+    "stages": [],
+    "stats": {
+     "actions": 0,
+     "dangling": 0,
+     "dead_ends": 0,
+     "edges": 0,
+     "events": 0,
+     "externals": 0,
+     "gateways": 0,
+     "inferred_edges": 0,
+     "stages": 0,
+     "terminals": 0,
+     "workflows": 0
+    },
+    "workflows": []
+   },
+   "layers": {},
+   "mermaid": "flowchart LR\n    classDef act fill:#dbeafe,stroke:#60a5fa,color:#1e3a5f;\n    classDef evt fill:#fef3c7,stroke:#fbbf24,color:#78350f;\n    classDef gw  fill:#fef9c3,stroke:#eab308,color:#713f12;\n    classDef end_ fill:#dcfce7,stroke:#4ade80,color:#14532d;\n    classDef ext fill:#f3e8ff,stroke:#c084fc,color:#581c87;",
+   "mermaid_tb_nocodes": "flowchart TB\n    classDef act fill:#dbeafe,stroke:#60a5fa,color:#1e3a5f;\n    classDef evt fill:#fef3c7,stroke:#fbbf24,color:#78350f;\n    classDef gw  fill:#fef9c3,stroke:#eab308,color:#713f12;\n    classDef end_ fill:#dcfce7,stroke:#4ade80,color:#14532d;\n    classDef ext fill:#f3e8ff,stroke:#c084fc,color:#581c87;",
+   "name": "empty",
+   "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 640 82\" width=\"640\" height=\"82\" font-family=\"-apple-system,PingFang SC,Microsoft YaHei,sans-serif\">\n<rect width=\"640\" height=\"82\" fill=\"#ffffff\"/>\n<defs><marker id=\"a\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"6\" markerHeight=\"6\" orient=\"auto-start-reverse\"><path d=\"M0,0 L10,5 L0,10 z\" fill=\"#9ca3af\"/></marker></defs>\n<text x=\"24\" y=\"38\" font-size=\"17\" font-weight=\"600\" fill=\"#1f2937\">业务流程总览</text>\n<text x=\"24\" y=\"56\" font-size=\"11\" fill=\"#6b7280\">0 个 Action ｜ 0 个 Event ｜ 0 个阶段 ｜ 0 条边为系统推断，需人工确认</text>\n<text x=\"24\" y=\"74\" font-size=\"9\" fill=\"#6b7280\">虚线 = 系统推断的顺序，材料里没有明写　·　右上角圆点 = 这一步有接口实现，悬停看路径</text>\n</svg>",
+   "svg_custom": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 640 82\" width=\"640\" height=\"82\" font-family=\"-apple-system,PingFang SC,Microsoft YaHei,sans-serif\">\n<rect width=\"640\" height=\"82\" fill=\"#ffffff\"/>\n<defs><marker id=\"a\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"6\" markerHeight=\"6\" orient=\"auto-start-reverse\"><path d=\"M0,0 L10,5 L0,10 z\" fill=\"#ffffff\"/></marker></defs>\n<text x=\"24\" y=\"38\" font-size=\"17\" font-weight=\"600\" fill=\"#dddddd\">自定义 &quot;标题&quot; &lt;&amp;&gt;</text>\n<text x=\"24\" y=\"56\" font-size=\"11\" fill=\"#eeeeee\">0 个 Action ｜ 0 个 Event ｜ 0 个阶段 ｜ 0 条边为系统推断，需人工确认</text>\n<text x=\"24\" y=\"74\" font-size=\"9\" fill=\"#eeeeee\">虚线 = 系统推断的顺序，材料里没有明写　·　右上角圆点 = 这一步有接口实现，悬停看路径</text>\n</svg>"
+  },
+  {
+   "flow": {
+    "edges": [],
+    "nodes": [
+     {
+      "actor": {
+       "confidence": 0.4,
+       "evidence": [],
+       "origin": "inferred",
+       "value": ""
+      },
+      "code": "ACT-CP-DRAFT",
+      "endpoint": "",
+      "grounded": true,
+      "kind": "action",
+      "label": {
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "cite": "材料.xlsx#R1",
+         "confidence": 1.0,
+         "extractor": "rule",
+         "file_id": "f",
+         "file_name": "材料.xlsx",
+         "locator": {
+          "kind": "raw",
+          "ref": "R1"
+         },
+         "snippet": "编制集采计划"
+        }
+       ],
+       "origin": "extracted",
+       "value": "编制集采计划"
+      },
+      "objects": [],
+      "rid": "fn_a",
+      "stage": "",
+      "status": "candidate"
+     }
+    ],
+    "stages": [],
+    "stats": {
+     "actions": 1,
+     "dangling": 1,
+     "dead_ends": 0,
+     "edges": 0,
+     "events": 0,
+     "externals": 0,
+     "gateways": 0,
+     "inferred_edges": 0,
+     "stages": 0,
+     "terminals": 0,
+     "workflows": 0
+    },
+    "workflows": []
+   },
+   "layers": {
+    "未分阶段": [
+     [
+      "fn_a"
+     ]
+    ]
+   },
+   "mermaid": "flowchart LR\n    nfn_a([\"编制集采计划<br/><small>ACT-CP-DRAFT</small>\"])\n    classDef act fill:#dbeafe,stroke:#60a5fa,color:#1e3a5f;\n    classDef evt fill:#fef3c7,stroke:#fbbf24,color:#78350f;\n    classDef gw  fill:#fef9c3,stroke:#eab308,color:#713f12;\n    classDef end_ fill:#dcfce7,stroke:#4ade80,color:#14532d;\n    classDef ext fill:#f3e8ff,stroke:#c084fc,color:#581c87;\n    class nfn_a act;",
+   "mermaid_tb_nocodes": "flowchart TB\n    nfn_a([\"编制集采计划\"])\n    classDef act fill:#dbeafe,stroke:#60a5fa,color:#1e3a5f;\n    classDef evt fill:#fef3c7,stroke:#fbbf24,color:#78350f;\n    classDef gw  fill:#fef9c3,stroke:#eab308,color:#713f12;\n    classDef end_ fill:#dcfce7,stroke:#4ade80,color:#14532d;\n    classDef ext fill:#f3e8ff,stroke:#c084fc,color:#581c87;\n    class nfn_a act;",
+   "name": "single",
+   "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 640 226\" width=\"640\" height=\"226\" font-family=\"-apple-system,PingFang SC,Microsoft YaHei,sans-serif\">\n<rect width=\"640\" height=\"226\" fill=\"#ffffff\"/>\n<defs><marker id=\"a\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"6\" markerHeight=\"6\" orient=\"auto-start-reverse\"><path d=\"M0,0 L10,5 L0,10 z\" fill=\"#9ca3af\"/></marker></defs>\n<text x=\"24\" y=\"38\" font-size=\"17\" font-weight=\"600\" fill=\"#1f2937\">业务流程总览</text>\n<text x=\"24\" y=\"56\" font-size=\"11\" fill=\"#6b7280\">1 个 Action ｜ 0 个 Event ｜ 0 个阶段 ｜ 0 条边为系统推断，需人工确认</text>\n<rect x=\"24\" y=\"58\" width=\"592\" height=\"128\" rx=\"6\" fill=\"#fafafa\" stroke=\"#e5e7eb\"/>\n<rect x=\"24\" y=\"58\" width=\"4\" height=\"128\" rx=\"2\" fill=\"#93c5fd\"/>\n<text x=\"40\" y=\"80\" font-size=\"12.5\" font-weight=\"600\" fill=\"#1f2937\">未分阶段</text>\n<rect x=\"42\" y=\"116\" width=\"168\" height=\"52\" rx=\"14\" fill=\"#dbeafe\" stroke=\"#93c5fd\"/>\n<text x=\"126\" y=\"131\" font-size=\"7.5\" fill=\"#6b7280\" text-anchor=\"middle\" letter-spacing=\"0.5\">ACTION</text>\n<text x=\"126\" y=\"143\" font-size=\"10.5\" fill=\"#1f2937\" text-anchor=\"middle\">编制集采计划</text>\n<text x=\"126\" y=\"162\" font-size=\"7\" fill=\"#6b7280\" text-anchor=\"middle\" font-family=\"ui-monospace,monospace\">ACT-CP-DRAFT</text>\n<text x=\"24\" y=\"218\" font-size=\"9\" fill=\"#6b7280\">虚线 = 系统推断的顺序，材料里没有明写　·　右上角圆点 = 这一步有接口实现，悬停看路径</text>\n</svg>",
+   "svg_custom": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 640 226\" width=\"640\" height=\"226\" font-family=\"-apple-system,PingFang SC,Microsoft YaHei,sans-serif\">\n<rect width=\"640\" height=\"226\" fill=\"#ffffff\"/>\n<defs><marker id=\"a\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"6\" markerHeight=\"6\" orient=\"auto-start-reverse\"><path d=\"M0,0 L10,5 L0,10 z\" fill=\"#ffffff\"/></marker></defs>\n<text x=\"24\" y=\"38\" font-size=\"17\" font-weight=\"600\" fill=\"#dddddd\">自定义 &quot;标题&quot; &lt;&amp;&gt;</text>\n<text x=\"24\" y=\"56\" font-size=\"11\" fill=\"#eeeeee\">1 个 Action ｜ 0 个 Event ｜ 0 个阶段 ｜ 0 条边为系统推断，需人工确认</text>\n<rect x=\"24\" y=\"58\" width=\"592\" height=\"128\" rx=\"6\" fill=\"#bbbbbb\" stroke=\"#cccccc\"/>\n<rect x=\"24\" y=\"58\" width=\"4\" height=\"128\" rx=\"2\" fill=\"#222222\"/>\n<text x=\"40\" y=\"80\" font-size=\"12.5\" font-weight=\"600\" fill=\"#dddddd\">未分阶段</text>\n<rect x=\"42\" y=\"116\" width=\"168\" height=\"52\" rx=\"14\" fill=\"#111111\" stroke=\"#222222\"/>\n<text x=\"126\" y=\"131\" font-size=\"7.5\" fill=\"#eeeeee\" text-anchor=\"middle\" letter-spacing=\"0.5\">ACTION</text>\n<text x=\"126\" y=\"143\" font-size=\"10.5\" fill=\"#dddddd\" text-anchor=\"middle\">编制集采计划</text>\n<text x=\"24\" y=\"218\" font-size=\"9\" fill=\"#eeeeee\">虚线 = 系统推断的顺序，材料里没有明写　·　右上角圆点 = 这一步有接口实现，悬停看路径</text>\n</svg>"
+  },
+  {
+   "flow": {
+    "edges": [],
+    "nodes": [
+     {
+      "actor": {
+       "confidence": 0.4,
+       "evidence": [],
+       "origin": "inferred",
+       "value": ""
+      },
+      "code": "EVT-CP-GENERATED",
+      "endpoint": "",
+      "grounded": false,
+      "kind": "event",
+      "label": {
+       "confidence": 0.4,
+       "evidence": [],
+       "origin": "inferred",
+       "value": "计划已生成"
+      },
+      "objects": [],
+      "rid": "fn_a",
+      "stage": "",
+      "status": "candidate"
+     }
+    ],
+    "stages": [],
+    "stats": {
+     "actions": 0,
+     "dangling": 1,
+     "dead_ends": 0,
+     "edges": 0,
+     "events": 1,
+     "externals": 0,
+     "gateways": 0,
+     "inferred_edges": 0,
+     "stages": 0,
+     "terminals": 0,
+     "workflows": 0
+    },
+    "workflows": []
+   },
+   "layers": {
+    "未分阶段": [
+     [
+      "fn_a"
+     ]
+    ]
+   },
+   "mermaid": "flowchart LR\n    nfn_a[\"计划已生成<br/><small>EVT-CP-GENERATED</small><br/><small>· 推断 ·</small>\"]\n    classDef act fill:#dbeafe,stroke:#60a5fa,color:#1e3a5f;\n    classDef evt fill:#fef3c7,stroke:#fbbf24,color:#78350f;\n    classDef gw  fill:#fef9c3,stroke:#eab308,color:#713f12;\n    classDef end_ fill:#dcfce7,stroke:#4ade80,color:#14532d;\n    classDef ext fill:#f3e8ff,stroke:#c084fc,color:#581c87;\n    class nfn_a evt;",
+   "mermaid_tb_nocodes": "flowchart TB\n    nfn_a[\"计划已生成<br/><small>· 推断 ·</small>\"]\n    classDef act fill:#dbeafe,stroke:#60a5fa,color:#1e3a5f;\n    classDef evt fill:#fef3c7,stroke:#fbbf24,color:#78350f;\n    classDef gw  fill:#fef9c3,stroke:#eab308,color:#713f12;\n    classDef end_ fill:#dcfce7,stroke:#4ade80,color:#14532d;\n    classDef ext fill:#f3e8ff,stroke:#c084fc,color:#581c87;\n    class nfn_a evt;",
+   "name": "single_ungrounded",
+   "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 640 226\" width=\"640\" height=\"226\" font-family=\"-apple-system,PingFang SC,Microsoft YaHei,sans-serif\">\n<rect width=\"640\" height=\"226\" fill=\"#ffffff\"/>\n<defs><marker id=\"a\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"6\" markerHeight=\"6\" orient=\"auto-start-reverse\"><path d=\"M0,0 L10,5 L0,10 z\" fill=\"#9ca3af\"/></marker></defs>\n<text x=\"24\" y=\"38\" font-size=\"17\" font-weight=\"600\" fill=\"#1f2937\">业务流程总览</text>\n<text x=\"24\" y=\"56\" font-size=\"11\" fill=\"#6b7280\">0 个 Action ｜ 1 个 Event ｜ 0 个阶段 ｜ 0 条边为系统推断，需人工确认</text>\n<rect x=\"24\" y=\"58\" width=\"592\" height=\"128\" rx=\"6\" fill=\"#fafafa\" stroke=\"#e5e7eb\"/>\n<rect x=\"24\" y=\"58\" width=\"4\" height=\"128\" rx=\"2\" fill=\"#93c5fd\"/>\n<text x=\"40\" y=\"80\" font-size=\"12.5\" font-weight=\"600\" fill=\"#1f2937\">未分阶段</text>\n<rect x=\"42\" y=\"116\" width=\"168\" height=\"52\" rx=\"4\" fill=\"#fef3c7\" stroke=\"#fcd34d\" stroke-dasharray=\"4 3\"/>\n<text x=\"126\" y=\"131\" font-size=\"7.5\" fill=\"#6b7280\" text-anchor=\"middle\" letter-spacing=\"0.5\">EVENT</text>\n<text x=\"126\" y=\"143\" font-size=\"10.5\" fill=\"#1f2937\" text-anchor=\"middle\">计划已生成</text>\n<text x=\"126\" y=\"162\" font-size=\"7\" fill=\"#6b7280\" text-anchor=\"middle\" font-family=\"ui-monospace,monospace\">EVT-CP-GENERATED</text>\n<text x=\"24\" y=\"218\" font-size=\"9\" fill=\"#6b7280\">虚线 = 系统推断的顺序，材料里没有明写　·　右上角圆点 = 这一步有接口实现，悬停看路径</text>\n</svg>",
+   "svg_custom": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 640 226\" width=\"640\" height=\"226\" font-family=\"-apple-system,PingFang SC,Microsoft YaHei,sans-serif\">\n<rect width=\"640\" height=\"226\" fill=\"#ffffff\"/>\n<defs><marker id=\"a\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"6\" markerHeight=\"6\" orient=\"auto-start-reverse\"><path d=\"M0,0 L10,5 L0,10 z\" fill=\"#ffffff\"/></marker></defs>\n<text x=\"24\" y=\"38\" font-size=\"17\" font-weight=\"600\" fill=\"#dddddd\">自定义 &quot;标题&quot; &lt;&amp;&gt;</text>\n<text x=\"24\" y=\"56\" font-size=\"11\" fill=\"#eeeeee\">0 个 Action ｜ 1 个 Event ｜ 0 个阶段 ｜ 0 条边为系统推断，需人工确认</text>\n<rect x=\"24\" y=\"58\" width=\"592\" height=\"128\" rx=\"6\" fill=\"#bbbbbb\" stroke=\"#cccccc\"/>\n<rect x=\"24\" y=\"58\" width=\"4\" height=\"128\" rx=\"2\" fill=\"#222222\"/>\n<text x=\"40\" y=\"80\" font-size=\"12.5\" font-weight=\"600\" fill=\"#dddddd\">未分阶段</text>\n<rect x=\"42\" y=\"116\" width=\"168\" height=\"52\" rx=\"4\" fill=\"#333333\" stroke=\"#444444\" stroke-dasharray=\"4 3\"/>\n<text x=\"126\" y=\"131\" font-size=\"7.5\" fill=\"#eeeeee\" text-anchor=\"middle\" letter-spacing=\"0.5\">EVENT</text>\n<text x=\"126\" y=\"143\" font-size=\"10.5\" fill=\"#dddddd\" text-anchor=\"middle\">计划已生成</text>\n<text x=\"24\" y=\"218\" font-size=\"9\" fill=\"#eeeeee\">虚线 = 系统推断的顺序，材料里没有明写　·　右上角圆点 = 这一步有接口实现，悬停看路径</text>\n</svg>"
+  },
+  {
+   "flow": {
+    "edges": [
+     {
+      "evidence": [
+       {
+        "cite": "材料.xlsx#R1",
+        "confidence": 1.0,
+        "extractor": "rule",
+        "file_id": "f",
+        "file_name": "材料.xlsx",
+        "locator": {
+         "kind": "raw",
+         "ref": "R1"
+        },
+        "snippet": "fn_draft->fn_approve"
+       }
+      ],
+      "from": "fn_draft",
+      "grounded": true,
+      "kind": "flow",
+      "label": "",
+      "rid": "fe1",
+      "to": "fn_approve"
+     },
+     {
+      "evidence": [
+       {
+        "cite": "材料.xlsx#R1",
+        "confidence": 1.0,
+        "extractor": "rule",
+        "file_id": "f",
+        "file_name": "材料.xlsx",
+        "locator": {
+         "kind": "raw",
+         "ref": "R1"
+        },
+        "snippet": "fn_approve->fn_gw"
+       }
+      ],
+      "from": "fn_approve",
+      "grounded": true,
+      "kind": "flow",
+      "label": "",
+      "rid": "fe2",
+      "to": "fn_gw"
+     },
+     {
+      "evidence": [
+       {
+        "cite": "材料.xlsx#R1",
+        "confidence": 1.0,
+        "extractor": "rule",
+        "file_id": "f",
+        "file_name": "材料.xlsx",
+        "locator": {
+         "kind": "raw",
+         "ref": "R1"
+        },
+        "snippet": "fn_gw->fn_draft"
+       }
+      ],
+      "from": "fn_gw",
+      "grounded": true,
+      "kind": "cond",
+      "label": "驳回",
+      "rid": "fe3",
+      "to": "fn_draft"
+     }
+    ],
+    "nodes": [
+     {
+      "actor": {
+       "confidence": 0.4,
+       "evidence": [],
+       "origin": "inferred",
+       "value": ""
+      },
+      "code": "",
+      "endpoint": "",
+      "grounded": true,
+      "kind": "action",
+      "label": {
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "cite": "材料.xlsx#R1",
+         "confidence": 1.0,
+         "extractor": "rule",
+         "file_id": "f",
+         "file_name": "材料.xlsx",
+         "locator": {
+          "kind": "raw",
+          "ref": "R1"
+         },
+         "snippet": "编制集采计划"
+        }
+       ],
+       "origin": "extracted",
+       "value": "编制集采计划"
+      },
+      "objects": [],
+      "rid": "fn_draft",
+      "stage": "s1",
+      "status": "candidate"
+     },
+     {
+      "actor": {
+       "confidence": 0.4,
+       "evidence": [],
+       "origin": "inferred",
+       "value": ""
+      },
+      "code": "",
+      "endpoint": "",
+      "grounded": true,
+      "kind": "action",
+      "label": {
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "cite": "材料.xlsx#R1",
+         "confidence": 1.0,
+         "extractor": "rule",
+         "file_id": "f",
+         "file_name": "材料.xlsx",
+         "locator": {
+          "kind": "raw",
+          "ref": "R1"
+         },
+         "snippet": "审批集采计划"
+        }
+       ],
+       "origin": "extracted",
+       "value": "审批集采计划"
+      },
+      "objects": [],
+      "rid": "fn_approve",
+      "stage": "s1",
+      "status": "candidate"
+     },
+     {
+      "actor": {
+       "confidence": 0.4,
+       "evidence": [],
+       "origin": "inferred",
+       "value": ""
+      },
+      "code": "",
+      "endpoint": "",
+      "grounded": true,
+      "kind": "gateway",
+      "label": {
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "cite": "材料.xlsx#R1",
+         "confidence": 1.0,
+         "extractor": "rule",
+         "file_id": "f",
+         "file_name": "材料.xlsx",
+         "locator": {
+          "kind": "raw",
+          "ref": "R1"
+         },
+         "snippet": "审批结果"
+        }
+       ],
+       "origin": "extracted",
+       "value": "审批结果"
+      },
+      "objects": [],
+      "rid": "fn_gw",
+      "stage": "s1",
+      "status": "candidate"
+     }
+    ],
+    "stages": [
+     {
+      "key": "s1",
+      "order": 1,
+      "subtitle": "材料：业务规则 sheet",
+      "title": "阶段一｜集采计划编制与审批"
+     }
+    ],
+    "stats": {
+     "actions": 2,
+     "dangling": 0,
+     "dead_ends": 0,
+     "edges": 3,
+     "events": 0,
+     "externals": 0,
+     "gateways": 1,
+     "inferred_edges": 0,
+     "stages": 1,
+     "terminals": 0,
+     "workflows": 0
+    },
+    "workflows": []
+   },
+   "layers": {
+    "s1": [
+     [
+      "fn_draft",
+      "fn_approve",
+      "fn_gw"
+     ]
+    ]
+   },
+   "mermaid": "flowchart LR\n    subgraph ns1[\"阶段一｜集采计划编制与审批\"]\n        direction LR\n    nfn_draft([\"编制集采计划\"])\n    nfn_approve([\"审批集采计划\"])\n    nfn_gw{\"审批结果\"}\n    end\n    nfn_draft --> nfn_approve\n    nfn_approve --> nfn_gw\n    nfn_gw -->|驳回| nfn_draft\n    classDef act fill:#dbeafe,stroke:#60a5fa,color:#1e3a5f;\n    classDef evt fill:#fef3c7,stroke:#fbbf24,color:#78350f;\n    classDef gw  fill:#fef9c3,stroke:#eab308,color:#713f12;\n    classDef end_ fill:#dcfce7,stroke:#4ade80,color:#14532d;\n    classDef ext fill:#f3e8ff,stroke:#c084fc,color:#581c87;\n    class nfn_draft,nfn_approve act;\n    class nfn_gw gw;",
+   "mermaid_tb_nocodes": "flowchart TB\n    subgraph ns1[\"阶段一｜集采计划编制与审批\"]\n        direction LR\n    nfn_draft([\"编制集采计划\"])\n    nfn_approve([\"审批集采计划\"])\n    nfn_gw{\"审批结果\"}\n    end\n    nfn_draft --> nfn_approve\n    nfn_approve --> nfn_gw\n    nfn_gw -->|驳回| nfn_draft\n    classDef act fill:#dbeafe,stroke:#60a5fa,color:#1e3a5f;\n    classDef evt fill:#fef3c7,stroke:#fbbf24,color:#78350f;\n    classDef gw  fill:#fef9c3,stroke:#eab308,color:#713f12;\n    classDef end_ fill:#dcfce7,stroke:#4ade80,color:#14532d;\n    classDef ext fill:#f3e8ff,stroke:#c084fc,color:#581c87;\n    class nfn_draft,nfn_approve act;\n    class nfn_gw gw;",
+   "name": "cycle",
+   "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 640 382\" width=\"640\" height=\"382\" font-family=\"-apple-system,PingFang SC,Microsoft YaHei,sans-serif\">\n<rect width=\"640\" height=\"382\" fill=\"#ffffff\"/>\n<defs><marker id=\"a\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"6\" markerHeight=\"6\" orient=\"auto-start-reverse\"><path d=\"M0,0 L10,5 L0,10 z\" fill=\"#9ca3af\"/></marker></defs>\n<text x=\"24\" y=\"38\" font-size=\"17\" font-weight=\"600\" fill=\"#1f2937\">业务流程总览</text>\n<text x=\"24\" y=\"56\" font-size=\"11\" fill=\"#6b7280\">2 个 Action ｜ 0 个 Event ｜ 1 个阶段 ｜ 0 条边为系统推断，需人工确认</text>\n<rect x=\"24\" y=\"58\" width=\"592\" height=\"284\" rx=\"6\" fill=\"#fafafa\" stroke=\"#e5e7eb\"/>\n<rect x=\"24\" y=\"58\" width=\"4\" height=\"284\" rx=\"2\" fill=\"#93c5fd\"/>\n<text x=\"40\" y=\"80\" font-size=\"12.5\" font-weight=\"600\" fill=\"#1f2937\">阶段一｜集采计划编制与审批</text>\n<text x=\"40\" y=\"94\" font-size=\"10\" fill=\"#6b7280\">材料：业务规则 sheet</text>\n<path d=\"M210,142 C250,256 2,256 42,220\" fill=\"none\" stroke=\"#9ca3af\" stroke-width=\"1.3\" marker-end=\"url(#a)\"/>\n<path d=\"M210,220 C250,334 2,334 42,298\" fill=\"none\" stroke=\"#9ca3af\" stroke-width=\"1.3\" marker-end=\"url(#a)\"/>\n<path d=\"M210,298 C250,334 2,334 42,142\" fill=\"none\" stroke=\"#9ca3af\" stroke-width=\"1.3\" marker-end=\"url(#a)\"/>\n<text x=\"126\" y=\"215\" font-size=\"9.5\" fill=\"#6b7280\" text-anchor=\"middle\">驳回</text>\n<rect x=\"42\" y=\"116\" width=\"168\" height=\"52\" rx=\"14\" fill=\"#dbeafe\" stroke=\"#93c5fd\"/>\n<text x=\"126\" y=\"131\" font-size=\"7.5\" fill=\"#6b7280\" text-anchor=\"middle\" letter-spacing=\"0.5\">ACTION</text>\n<text x=\"126\" y=\"143\" font-size=\"10.5\" fill=\"#1f2937\" text-anchor=\"middle\">编制集采计划</text>\n<rect x=\"42\" y=\"194\" width=\"168\" height=\"52\" rx=\"14\" fill=\"#dbeafe\" stroke=\"#93c5fd\"/>\n<text x=\"126\" y=\"209\" font-size=\"7.5\" fill=\"#6b7280\" text-anchor=\"middle\" letter-spacing=\"0.5\">ACTION</text>\n<text x=\"126\" y=\"221\" font-size=\"10.5\" fill=\"#1f2937\" text-anchor=\"middle\">审批集采计划</text>\n<polygon points=\"126,272 210,298 126,324 42,298\" fill=\"#fefce8\" stroke=\"#eab308\"/>\n<text x=\"126\" y=\"287\" font-size=\"10.5\" fill=\"#1f2937\" text-anchor=\"middle\">审批结果</text>\n<text x=\"24\" y=\"374\" font-size=\"9\" fill=\"#6b7280\">虚线 = 系统推断的顺序，材料里没有明写　·　右上角圆点 = 这一步有接口实现，悬停看路径</text>\n</svg>",
+   "svg_custom": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 640 382\" width=\"640\" height=\"382\" font-family=\"-apple-system,PingFang SC,Microsoft YaHei,sans-serif\">\n<rect width=\"640\" height=\"382\" fill=\"#ffffff\"/>\n<defs><marker id=\"a\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"6\" markerHeight=\"6\" orient=\"auto-start-reverse\"><path d=\"M0,0 L10,5 L0,10 z\" fill=\"#ffffff\"/></marker></defs>\n<text x=\"24\" y=\"38\" font-size=\"17\" font-weight=\"600\" fill=\"#dddddd\">自定义 &quot;标题&quot; &lt;&amp;&gt;</text>\n<text x=\"24\" y=\"56\" font-size=\"11\" fill=\"#eeeeee\">2 个 Action ｜ 0 个 Event ｜ 1 个阶段 ｜ 0 条边为系统推断，需人工确认</text>\n<rect x=\"24\" y=\"58\" width=\"592\" height=\"284\" rx=\"6\" fill=\"#bbbbbb\" stroke=\"#cccccc\"/>\n<rect x=\"24\" y=\"58\" width=\"4\" height=\"284\" rx=\"2\" fill=\"#222222\"/>\n<text x=\"40\" y=\"80\" font-size=\"12.5\" font-weight=\"600\" fill=\"#dddddd\">阶段一｜集采计划编制与审批</text>\n<text x=\"40\" y=\"94\" font-size=\"10\" fill=\"#eeeeee\">材料：业务规则 sheet</text>\n<path d=\"M210,142 C250,256 2,256 42,220\" fill=\"none\" stroke=\"#ffffff\" stroke-width=\"1.3\" marker-end=\"url(#a)\"/>\n<path d=\"M210,220 C250,334 2,334 42,298\" fill=\"none\" stroke=\"#ffffff\" stroke-width=\"1.3\" marker-end=\"url(#a)\"/>\n<path d=\"M210,298 C250,334 2,334 42,142\" fill=\"none\" stroke=\"#ffffff\" stroke-width=\"1.3\" marker-end=\"url(#a)\"/>\n<text x=\"126\" y=\"215\" font-size=\"9.5\" fill=\"#eeeeee\" text-anchor=\"middle\">驳回</text>\n<rect x=\"42\" y=\"116\" width=\"168\" height=\"52\" rx=\"14\" fill=\"#111111\" stroke=\"#222222\"/>\n<text x=\"126\" y=\"131\" font-size=\"7.5\" fill=\"#eeeeee\" text-anchor=\"middle\" letter-spacing=\"0.5\">ACTION</text>\n<text x=\"126\" y=\"143\" font-size=\"10.5\" fill=\"#dddddd\" text-anchor=\"middle\">编制集采计划</text>\n<rect x=\"42\" y=\"194\" width=\"168\" height=\"52\" rx=\"14\" fill=\"#111111\" stroke=\"#222222\"/>\n<text x=\"126\" y=\"209\" font-size=\"7.5\" fill=\"#eeeeee\" text-anchor=\"middle\" letter-spacing=\"0.5\">ACTION</text>\n<text x=\"126\" y=\"221\" font-size=\"10.5\" fill=\"#dddddd\" text-anchor=\"middle\">审批集采计划</text>\n<polygon points=\"126,272 210,298 126,324 42,298\" fill=\"#555555\" stroke=\"#666666\"/>\n<text x=\"126\" y=\"287\" font-size=\"10.5\" fill=\"#dddddd\" text-anchor=\"middle\">审批结果</text>\n<text x=\"24\" y=\"374\" font-size=\"9\" fill=\"#eeeeee\">虚线 = 系统推断的顺序，材料里没有明写　·　右上角圆点 = 这一步有接口实现，悬停看路径</text>\n</svg>"
+  },
+  {
+   "flow": {
+    "edges": [
+     {
+      "evidence": [
+       {
+        "cite": "材料.xlsx#R1",
+        "confidence": 1.0,
+        "extractor": "rule",
+        "file_id": "f",
+        "file_name": "材料.xlsx",
+        "locator": {
+         "kind": "raw",
+         "ref": "R1"
+        },
+        "snippet": "fn_a->fn_b"
+       }
+      ],
+      "from": "fn_a",
+      "grounded": true,
+      "kind": "cond",
+      "label": "这是一条非常长的条件标签",
+      "rid": "fe1",
+      "to": "fn_b"
+     }
+    ],
+    "nodes": [
+     {
+      "actor": {
+       "confidence": 0.4,
+       "evidence": [],
+       "origin": "inferred",
+       "value": ""
+      },
+      "code": "ACT-PBP-DRAFT-A-VERY-LONG-CODE",
+      "endpoint": "POST /api/v1/procurement/purchase-budget-plan/submit-for-approval",
+      "grounded": true,
+      "kind": "action",
+      "label": {
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "cite": "材料.xlsx#R1",
+         "confidence": 1.0,
+         "extractor": "rule",
+         "file_id": "f",
+         "file_name": "材料.xlsx",
+         "locator": {
+          "kind": "raw",
+          "ref": "R1"
+         },
+         "snippet": "编制采购需求计划并提交审批同时通知相关方确认口径"
+        }
+       ],
+       "origin": "extracted",
+       "value": "编制采购需求计划并提交审批同时通知相关方确认口径"
+      },
+      "objects": [],
+      "rid": "fn_a",
+      "stage": "s1",
+      "status": "candidate"
+     },
+     {
+      "actor": {
+       "confidence": 0.4,
+       "evidence": [],
+       "origin": "inferred",
+       "value": ""
+      },
+      "code": "",
+      "endpoint": "",
+      "grounded": true,
+      "kind": "event",
+      "label": {
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "cite": "材料.xlsx#R1",
+         "confidence": 1.0,
+         "extractor": "rule",
+         "file_id": "f",
+         "file_name": "材料.xlsx",
+         "locator": {
+          "kind": "raw",
+          "ref": "R1"
+         },
+         "snippet": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀"
+        }
+       ],
+       "origin": "extracted",
+       "value": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀"
+      },
+      "objects": [],
+      "rid": "fn_b",
+      "stage": "s1",
+      "status": "candidate"
+     }
+    ],
+    "stages": [
+     {
+      "key": "s1",
+      "order": 1,
+      "subtitle": "副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题",
+      "title": "阶段一｜很长的阶段名很长的阶段名很长的阶段名很长的阶段名很长的阶段名很长的阶段名很长的阶段名很长的阶段名很长的阶段名很长的阶段名"
+     }
+    ],
+    "stats": {
+     "actions": 1,
+     "dangling": 0,
+     "dead_ends": 1,
+     "edges": 1,
+     "events": 1,
+     "externals": 0,
+     "gateways": 0,
+     "inferred_edges": 0,
+     "stages": 1,
+     "terminals": 0,
+     "workflows": 0
+    },
+    "workflows": []
+   },
+   "layers": {
+    "s1": [
+     [
+      "fn_a"
+     ],
+     [
+      "fn_b"
+     ]
+    ]
+   },
+   "mermaid": "flowchart LR\n    subgraph ns1[\"阶段一｜很长的阶段名很长的阶段名很长的阶段名很长的阶段名很长的阶段名很长的阶段名很长的阶段名很长的阶段名很长的阶段名很长的阶段名\"]\n        direction LR\n    nfn_a([\"编制采购需求计划并提交审批同时通知相关方确认口径<br/><small>ACT-PBP-DRAFT-A-VERY-LONG-CODE</small><br/><small>POST /api/v1/procurement/purchase-budget-plan/submit-for-approval</small>\"])\n    nfn_b[\"😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀\"]\n    end\n    nfn_a -->|这是一条非常长的条件标签| nfn_b\n    classDef act fill:#dbeafe,stroke:#60a5fa,color:#1e3a5f;\n    classDef evt fill:#fef3c7,stroke:#fbbf24,color:#78350f;\n    classDef gw  fill:#fef9c3,stroke:#eab308,color:#713f12;\n    classDef end_ fill:#dcfce7,stroke:#4ade80,color:#14532d;\n    classDef ext fill:#f3e8ff,stroke:#c084fc,color:#581c87;\n    class nfn_a act;\n    class nfn_b evt;",
+   "mermaid_tb_nocodes": "flowchart TB\n    subgraph ns1[\"阶段一｜很长的阶段名很长的阶段名很长的阶段名很长的阶段名很长的阶段名很长的阶段名很长的阶段名很长的阶段名很长的阶段名很长的阶段名\"]\n        direction LR\n    nfn_a([\"编制采购需求计划并提交审批同时通知相关方确认口径<br/><small>POST /api/v1/procurement/purchase-budget-plan/submit-for-approval</small>\"])\n    nfn_b[\"😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀\"]\n    end\n    nfn_a -->|这是一条非常长的条件标签| nfn_b\n    classDef act fill:#dbeafe,stroke:#60a5fa,color:#1e3a5f;\n    classDef evt fill:#fef3c7,stroke:#fbbf24,color:#78350f;\n    classDef gw  fill:#fef9c3,stroke:#eab308,color:#713f12;\n    classDef end_ fill:#dcfce7,stroke:#4ade80,color:#14532d;\n    classDef ext fill:#f3e8ff,stroke:#c084fc,color:#581c87;\n    class nfn_a act;\n    class nfn_b evt;",
+   "name": "long_label",
+   "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 640 226\" width=\"640\" height=\"226\" font-family=\"-apple-system,PingFang SC,Microsoft YaHei,sans-serif\">\n<rect width=\"640\" height=\"226\" fill=\"#ffffff\"/>\n<defs><marker id=\"a\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"6\" markerHeight=\"6\" orient=\"auto-start-reverse\"><path d=\"M0,0 L10,5 L0,10 z\" fill=\"#9ca3af\"/></marker></defs>\n<text x=\"24\" y=\"38\" font-size=\"17\" font-weight=\"600\" fill=\"#1f2937\">业务流程总览</text>\n<text x=\"24\" y=\"56\" font-size=\"11\" fill=\"#6b7280\">1 个 Action ｜ 1 个 Event ｜ 1 个阶段 ｜ 0 条边为系统推断，需人工确认 ｜ 1/1 个环节已对上接口</text>\n<rect x=\"24\" y=\"58\" width=\"592\" height=\"128\" rx=\"6\" fill=\"#fafafa\" stroke=\"#e5e7eb\"/>\n<rect x=\"24\" y=\"58\" width=\"4\" height=\"128\" rx=\"2\" fill=\"#93c5fd\"/>\n<text x=\"40\" y=\"80\" font-size=\"12.5\" font-weight=\"600\" fill=\"#1f2937\">阶段一｜很长的阶段名很长的阶段名很长的阶段名很长的阶段名很长的阶段名很长的阶段名很长的阶段名很长的阶段名很长的阶段名很长的阶段名</text>\n<text x=\"40\" y=\"94\" font-size=\"10\" fill=\"#6b7280\">副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标</text>\n<path d=\"M210,142 C233,142 233,142 256,142\" fill=\"none\" stroke=\"#9ca3af\" stroke-width=\"1.3\" marker-end=\"url(#a)\"/>\n<text x=\"233\" y=\"137\" font-size=\"9.5\" fill=\"#6b7280\" text-anchor=\"middle\">这是一条非常长的</text>\n<rect x=\"42\" y=\"116\" width=\"168\" height=\"52\" rx=\"14\" fill=\"#dbeafe\" stroke=\"#93c5fd\"/>\n<text x=\"126\" y=\"131\" font-size=\"7.5\" fill=\"#6b7280\" text-anchor=\"middle\" letter-spacing=\"0.5\">ACTION</text>\n<text x=\"126\" y=\"143\" font-size=\"10.5\" fill=\"#1f2937\" text-anchor=\"middle\">编制采购需求计划并提交审</text>\n<text x=\"126\" y=\"155\" font-size=\"10.5\" fill=\"#1f2937\" text-anchor=\"middle\">批同时通知相关方确认口径</text>\n<text x=\"126\" y=\"162\" font-size=\"7\" fill=\"#6b7280\" text-anchor=\"middle\" font-family=\"ui-monospace,monospace\">ACT-PBP-DRAFT-A-VERY-LONG-CODE</text>\n<circle cx=\"201\" cy=\"125\" r=\"3.5\" fill=\"#93c5fd\"><title>POST /api/v1/procurement/purchase-budget-plan/submit-for-approval</title></circle>\n<rect x=\"256\" y=\"116\" width=\"168\" height=\"52\" rx=\"4\" fill=\"#fef3c7\" stroke=\"#fcd34d\"/>\n<text x=\"340\" y=\"131\" font-size=\"7.5\" fill=\"#6b7280\" text-anchor=\"middle\" letter-spacing=\"0.5\">EVENT</text>\n<text x=\"340\" y=\"143\" font-size=\"10.5\" fill=\"#1f2937\" text-anchor=\"middle\">😀😀😀😀😀😀😀😀😀😀😀😀</text>\n<text x=\"340\" y=\"155\" font-size=\"10.5\" fill=\"#1f2937\" text-anchor=\"middle\">😀😀😀😀😀😀😀😀😀😀😀…</text>\n<text x=\"24\" y=\"218\" font-size=\"9\" fill=\"#6b7280\">虚线 = 系统推断的顺序，材料里没有明写　·　右上角圆点 = 这一步有接口实现，悬停看路径</text>\n</svg>",
+   "svg_custom": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 640 226\" width=\"640\" height=\"226\" font-family=\"-apple-system,PingFang SC,Microsoft YaHei,sans-serif\">\n<rect width=\"640\" height=\"226\" fill=\"#ffffff\"/>\n<defs><marker id=\"a\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"6\" markerHeight=\"6\" orient=\"auto-start-reverse\"><path d=\"M0,0 L10,5 L0,10 z\" fill=\"#ffffff\"/></marker></defs>\n<text x=\"24\" y=\"38\" font-size=\"17\" font-weight=\"600\" fill=\"#dddddd\">自定义 &quot;标题&quot; &lt;&amp;&gt;</text>\n<text x=\"24\" y=\"56\" font-size=\"11\" fill=\"#eeeeee\">1 个 Action ｜ 1 个 Event ｜ 1 个阶段 ｜ 0 条边为系统推断，需人工确认 ｜ 1/1 个环节已对上接口</text>\n<rect x=\"24\" y=\"58\" width=\"592\" height=\"128\" rx=\"6\" fill=\"#bbbbbb\" stroke=\"#cccccc\"/>\n<rect x=\"24\" y=\"58\" width=\"4\" height=\"128\" rx=\"2\" fill=\"#222222\"/>\n<text x=\"40\" y=\"80\" font-size=\"12.5\" font-weight=\"600\" fill=\"#dddddd\">阶段一｜很长的阶段名很长的阶段名很长的阶段名很长的阶段名很长的阶段名很长的阶段名很长的阶段名很长的阶段名很长的阶段名很长的阶段名</text>\n<text x=\"40\" y=\"94\" font-size=\"10\" fill=\"#eeeeee\">副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标题副标</text>\n<path d=\"M210,142 C233,142 233,142 256,142\" fill=\"none\" stroke=\"#ffffff\" stroke-width=\"1.3\" marker-end=\"url(#a)\"/>\n<text x=\"233\" y=\"137\" font-size=\"9.5\" fill=\"#eeeeee\" text-anchor=\"middle\">这是一条非常长的</text>\n<rect x=\"42\" y=\"116\" width=\"168\" height=\"52\" rx=\"14\" fill=\"#111111\" stroke=\"#222222\"/>\n<text x=\"126\" y=\"131\" font-size=\"7.5\" fill=\"#eeeeee\" text-anchor=\"middle\" letter-spacing=\"0.5\">ACTION</text>\n<text x=\"126\" y=\"143\" font-size=\"10.5\" fill=\"#dddddd\" text-anchor=\"middle\">编制采购需求计划并提交审</text>\n<text x=\"126\" y=\"155\" font-size=\"10.5\" fill=\"#dddddd\" text-anchor=\"middle\">批同时通知相关方确认口径</text>\n<circle cx=\"201\" cy=\"125\" r=\"3.5\" fill=\"#222222\"><title>POST /api/v1/procurement/purchase-budget-plan/submit-for-approval</title></circle>\n<rect x=\"256\" y=\"116\" width=\"168\" height=\"52\" rx=\"4\" fill=\"#333333\" stroke=\"#444444\"/>\n<text x=\"340\" y=\"131\" font-size=\"7.5\" fill=\"#eeeeee\" text-anchor=\"middle\" letter-spacing=\"0.5\">EVENT</text>\n<text x=\"340\" y=\"143\" font-size=\"10.5\" fill=\"#dddddd\" text-anchor=\"middle\">😀😀😀😀😀😀😀😀😀😀😀😀</text>\n<text x=\"340\" y=\"155\" font-size=\"10.5\" fill=\"#dddddd\" text-anchor=\"middle\">😀😀😀😀😀😀😀😀😀😀😀…</text>\n<text x=\"24\" y=\"218\" font-size=\"9\" fill=\"#eeeeee\">虚线 = 系统推断的顺序，材料里没有明写　·　右上角圆点 = 这一步有接口实现，悬停看路径</text>\n</svg>"
+  },
+  {
+   "flow": {
+    "edges": [
+     {
+      "evidence": [
+       {
+        "cite": "材料.xlsx#R1",
+        "confidence": 1.0,
+        "extractor": "rule",
+        "file_id": "f",
+        "file_name": "材料.xlsx",
+        "locator": {
+         "kind": "raw",
+         "ref": "R1"
+        },
+        "snippet": "fn_act->fn_evt"
+       }
+      ],
+      "from": "fn_act",
+      "grounded": true,
+      "kind": "flow",
+      "label": "",
+      "rid": "fe_flow",
+      "to": "fn_evt"
+     },
+     {
+      "evidence": [
+       {
+        "cite": "材料.xlsx#R1",
+        "confidence": 1.0,
+        "extractor": "rule",
+        "file_id": "f",
+        "file_name": "材料.xlsx",
+        "locator": {
+         "kind": "raw",
+         "ref": "R1"
+        },
+        "snippet": "fn_evt->fn_gw"
+       }
+      ],
+      "from": "fn_evt",
+      "grounded": true,
+      "kind": "cond",
+      "label": "通过",
+      "rid": "fe_cond",
+      "to": "fn_gw"
+     },
+     {
+      "evidence": [
+       {
+        "cite": "材料.xlsx#R1",
+        "confidence": 1.0,
+        "extractor": "rule",
+        "file_id": "f",
+        "file_name": "材料.xlsx",
+        "locator": {
+         "kind": "raw",
+         "ref": "R1"
+        },
+        "snippet": "fn_gw->fn_act"
+       }
+      ],
+      "from": "fn_gw",
+      "grounded": true,
+      "kind": "comp",
+      "label": "撤销",
+      "rid": "fe_comp",
+      "to": "fn_act"
+     },
+     {
+      "evidence": [
+       {
+        "cite": "材料.xlsx#R1",
+        "confidence": 1.0,
+        "extractor": "rule",
+        "file_id": "f",
+        "file_name": "材料.xlsx",
+        "locator": {
+         "kind": "raw",
+         "ref": "R1"
+        },
+        "snippet": "fn_gw->fn_ext"
+       }
+      ],
+      "from": "fn_gw",
+      "grounded": true,
+      "kind": "external",
+      "label": "标签\"含引号\"",
+      "rid": "fe_ext",
+      "to": "fn_ext"
+     },
+     {
+      "evidence": [],
+      "from": "fn_gw",
+      "grounded": false,
+      "kind": "inferred",
+      "label": "",
+      "rid": "fe_inf",
+      "to": "fn_end"
+     }
+    ],
+    "nodes": [
+     {
+      "actor": {
+       "confidence": 0.4,
+       "evidence": [],
+       "origin": "inferred",
+       "value": ""
+      },
+      "code": "ACT-CP-SUBMIT",
+      "endpoint": "POST /api/plan?a=1&b=2",
+      "grounded": true,
+      "kind": "action",
+      "label": {
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "cite": "材料.xlsx#R1",
+         "confidence": 1.0,
+         "extractor": "rule",
+         "file_id": "f",
+         "file_name": "材料.xlsx",
+         "locator": {
+          "kind": "raw",
+          "ref": "R1"
+         },
+         "snippet": "提交\"计划\""
+        }
+       ],
+       "origin": "extracted",
+       "value": "提交\"计划\""
+      },
+      "objects": [],
+      "rid": "fn_act",
+      "stage": "s1",
+      "status": "candidate"
+     },
+     {
+      "actor": {
+       "confidence": 0.4,
+       "evidence": [],
+       "origin": "inferred",
+       "value": ""
+      },
+      "code": "EVT-CP-SUBMITTED",
+      "endpoint": "",
+      "grounded": true,
+      "kind": "event",
+      "label": {
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "cite": "材料.xlsx#R1",
+         "confidence": 1.0,
+         "extractor": "rule",
+         "file_id": "f",
+         "file_name": "材料.xlsx",
+         "locator": {
+          "kind": "raw",
+          "ref": "R1"
+         },
+         "snippet": "计划[已提交]"
+        }
+       ],
+       "origin": "extracted",
+       "value": "计划[已提交]"
+      },
+      "objects": [],
+      "rid": "fn_evt",
+      "stage": "s1",
+      "status": "candidate"
+     },
+     {
+      "actor": {
+       "confidence": 0.4,
+       "evidence": [],
+       "origin": "inferred",
+       "value": ""
+      },
+      "code": "GW-APR-X",
+      "endpoint": "",
+      "grounded": true,
+      "kind": "gateway",
+      "label": {
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "cite": "材料.xlsx#R1",
+         "confidence": 1.0,
+         "extractor": "rule",
+         "file_id": "f",
+         "file_name": "材料.xlsx",
+         "locator": {
+          "kind": "raw",
+          "ref": "R1"
+         },
+         "snippet": "审批结果 <?>"
+        }
+       ],
+       "origin": "extracted",
+       "value": "审批结果 <?>"
+      },
+      "objects": [],
+      "rid": "fn_gw",
+      "stage": "s1",
+      "status": "candidate"
+     },
+     {
+      "actor": {
+       "confidence": 0.4,
+       "evidence": [],
+       "origin": "inferred",
+       "value": ""
+      },
+      "code": "END-CP-DONE",
+      "endpoint": "",
+      "grounded": true,
+      "kind": "terminal",
+      "label": {
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "cite": "材料.xlsx#R1",
+         "confidence": 1.0,
+         "extractor": "rule",
+         "file_id": "f",
+         "file_name": "材料.xlsx",
+         "locator": {
+          "kind": "raw",
+          "ref": "R1"
+         },
+         "snippet": "流程结束"
+        }
+       ],
+       "origin": "extracted",
+       "value": "流程结束"
+      },
+      "objects": [],
+      "rid": "fn_end",
+      "stage": "s1",
+      "status": "candidate"
+     },
+     {
+      "actor": {
+       "confidence": 0.4,
+       "evidence": [],
+       "origin": "inferred",
+       "value": ""
+      },
+      "code": "EXT-SUP-1",
+      "endpoint": "GET /ext/supplier",
+      "grounded": false,
+      "kind": "external",
+      "label": {
+       "confidence": 0.4,
+       "evidence": [],
+       "origin": "inferred",
+       "value": "外部平台 & 接口"
+      },
+      "objects": [],
+      "rid": "fn_ext",
+      "stage": "s1",
+      "status": "candidate"
+     }
+    ],
+    "stages": [
+     {
+      "key": "s1",
+      "order": 1,
+      "subtitle": "小字 & 说明",
+      "title": "阶段 \"一\" <A&B>"
+     }
+    ],
+    "stats": {
+     "actions": 1,
+     "dangling": 0,
+     "dead_ends": 1,
+     "edges": 5,
+     "events": 1,
+     "externals": 1,
+     "gateways": 1,
+     "inferred_edges": 1,
+     "stages": 1,
+     "terminals": 1,
+     "workflows": 1
+    },
+    "workflows": [
+     {
+      "description": "",
+      "entry": "fn_act",
+      "exits": [],
+      "key": "w1",
+      "title": "主流程"
+     }
+    ]
+   },
+   "layers": {
+    "s1": [
+     [
+      "fn_act",
+      "fn_evt",
+      "fn_gw",
+      "fn_end",
+      "fn_ext"
+     ]
+    ]
+   },
+   "mermaid": "flowchart LR\n    subgraph ns1[\"阶段 '一' <A&B>\"]\n        direction LR\n    nfn_act([\"提交'计划'<br/><small>ACT-CP-SUBMIT</small><br/><small>POST /api/plan?a=1&b=2</small>\"])\n    nfn_evt[\"计划(已提交)<br/><small>EVT-CP-SUBMITTED</small>\"]\n    nfn_gw{\"审批结果 <?><br/><small>GW-APR-X</small>\"}\n    nfn_end[[\"流程结束<br/><small>END-CP-DONE</small>\"]]\n    nfn_ext[/\"外部平台 & 接口<br/><small>EXT-SUP-1</small><br/><small>GET /ext/supplier</small><br/><small>· 推断 ·</small>\"/]\n    end\n    nfn_act --> nfn_evt\n    nfn_evt -->|通过| nfn_gw\n    nfn_gw -.->|撤销| nfn_act\n    nfn_gw -.->|标签'含引号'| nfn_ext\n    nfn_gw -.-> nfn_end\n    classDef act fill:#dbeafe,stroke:#60a5fa,color:#1e3a5f;\n    classDef evt fill:#fef3c7,stroke:#fbbf24,color:#78350f;\n    classDef gw  fill:#fef9c3,stroke:#eab308,color:#713f12;\n    classDef end_ fill:#dcfce7,stroke:#4ade80,color:#14532d;\n    classDef ext fill:#f3e8ff,stroke:#c084fc,color:#581c87;\n    class nfn_act act;\n    class nfn_evt evt;\n    class nfn_gw gw;\n    class nfn_end end_;\n    class nfn_ext ext;",
+   "mermaid_tb_nocodes": "flowchart TB\n    subgraph ns1[\"阶段 '一' <A&B>\"]\n        direction LR\n    nfn_act([\"提交'计划'<br/><small>POST /api/plan?a=1&b=2</small>\"])\n    nfn_evt[\"计划(已提交)\"]\n    nfn_gw{\"审批结果 <?>\"}\n    nfn_end[[\"流程结束\"]]\n    nfn_ext[/\"外部平台 & 接口<br/><small>GET /ext/supplier</small><br/><small>· 推断 ·</small>\"/]\n    end\n    nfn_act --> nfn_evt\n    nfn_evt -->|通过| nfn_gw\n    nfn_gw -.->|撤销| nfn_act\n    nfn_gw -.->|标签'含引号'| nfn_ext\n    nfn_gw -.-> nfn_end\n    classDef act fill:#dbeafe,stroke:#60a5fa,color:#1e3a5f;\n    classDef evt fill:#fef3c7,stroke:#fbbf24,color:#78350f;\n    classDef gw  fill:#fef9c3,stroke:#eab308,color:#713f12;\n    classDef end_ fill:#dcfce7,stroke:#4ade80,color:#14532d;\n    classDef ext fill:#f3e8ff,stroke:#c084fc,color:#581c87;\n    class nfn_act act;\n    class nfn_evt evt;\n    class nfn_gw gw;\n    class nfn_end end_;\n    class nfn_ext ext;",
+   "name": "all_kinds",
+   "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 640 538\" width=\"640\" height=\"538\" font-family=\"-apple-system,PingFang SC,Microsoft YaHei,sans-serif\">\n<rect width=\"640\" height=\"538\" fill=\"#ffffff\"/>\n<defs><marker id=\"a\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"6\" markerHeight=\"6\" orient=\"auto-start-reverse\"><path d=\"M0,0 L10,5 L0,10 z\" fill=\"#9ca3af\"/></marker></defs>\n<text x=\"24\" y=\"38\" font-size=\"17\" font-weight=\"600\" fill=\"#1f2937\">业务流程总览</text>\n<text x=\"24\" y=\"56\" font-size=\"11\" fill=\"#6b7280\">1 个 Action ｜ 1 个 Event ｜ 1 个阶段 ｜ 1 条边为系统推断，需人工确认 ｜ 1/1 个环节已对上接口</text>\n<rect x=\"24\" y=\"58\" width=\"592\" height=\"440\" rx=\"6\" fill=\"#fafafa\" stroke=\"#e5e7eb\"/>\n<rect x=\"24\" y=\"58\" width=\"4\" height=\"440\" rx=\"2\" fill=\"#93c5fd\"/>\n<text x=\"40\" y=\"80\" font-size=\"12.5\" font-weight=\"600\" fill=\"#1f2937\">阶段 &quot;一&quot; &lt;A&amp;B&gt;</text>\n<text x=\"40\" y=\"94\" font-size=\"10\" fill=\"#6b7280\">小字 &amp; 说明</text>\n<path d=\"M210,142 C250,256 2,256 42,220\" fill=\"none\" stroke=\"#9ca3af\" stroke-width=\"1.3\" marker-end=\"url(#a)\"/>\n<path d=\"M210,220 C250,334 2,334 42,298\" fill=\"none\" stroke=\"#9ca3af\" stroke-width=\"1.3\" marker-end=\"url(#a)\"/>\n<text x=\"126\" y=\"254\" font-size=\"9.5\" fill=\"#6b7280\" text-anchor=\"middle\">通过</text>\n<path d=\"M210,298 C250,334 2,334 42,142\" fill=\"none\" stroke=\"#c4b5fd\" stroke-width=\"1.3\" stroke-dasharray=\"5 4\" marker-end=\"url(#a)\"/>\n<text x=\"126\" y=\"215\" font-size=\"9.5\" fill=\"#6b7280\" text-anchor=\"middle\">撤销</text>\n<path d=\"M210,298 C250,490 2,490 42,454\" fill=\"none\" stroke=\"#9ca3af\" stroke-width=\"1.3\" stroke-dasharray=\"5 4\" marker-end=\"url(#a)\"/>\n<text x=\"126\" y=\"371\" font-size=\"9.5\" fill=\"#6b7280\" text-anchor=\"middle\">标签&quot;含引号&quot;</text>\n<path d=\"M210,298 C250,412 2,412 42,376\" fill=\"none\" stroke=\"#9ca3af\" stroke-width=\"1.3\" stroke-dasharray=\"5 4\" marker-end=\"url(#a)\"/>\n<rect x=\"42\" y=\"116\" width=\"168\" height=\"52\" rx=\"14\" fill=\"#dbeafe\" stroke=\"#93c5fd\"/>\n<text x=\"126\" y=\"131\" font-size=\"7.5\" fill=\"#6b7280\" text-anchor=\"middle\" letter-spacing=\"0.5\">ACTION</text>\n<text x=\"126\" y=\"143\" font-size=\"10.5\" fill=\"#1f2937\" text-anchor=\"middle\">提交&quot;计划&quot;</text>\n<text x=\"126\" y=\"162\" font-size=\"7\" fill=\"#6b7280\" text-anchor=\"middle\" font-family=\"ui-monospace,monospace\">ACT-CP-SUBMIT</text>\n<circle cx=\"201\" cy=\"125\" r=\"3.5\" fill=\"#93c5fd\"><title>POST /api/plan?a=1&amp;b=2</title></circle>\n<rect x=\"42\" y=\"194\" width=\"168\" height=\"52\" rx=\"4\" fill=\"#fef3c7\" stroke=\"#fcd34d\"/>\n<text x=\"126\" y=\"209\" font-size=\"7.5\" fill=\"#6b7280\" text-anchor=\"middle\" letter-spacing=\"0.5\">EVENT</text>\n<text x=\"126\" y=\"221\" font-size=\"10.5\" fill=\"#1f2937\" text-anchor=\"middle\">计划[已提交]</text>\n<text x=\"126\" y=\"240\" font-size=\"7\" fill=\"#6b7280\" text-anchor=\"middle\" font-family=\"ui-monospace,monospace\">EVT-CP-SUBMITTED</text>\n<polygon points=\"126,272 210,298 126,324 42,298\" fill=\"#fefce8\" stroke=\"#eab308\"/>\n<text x=\"126\" y=\"287\" font-size=\"10.5\" fill=\"#1f2937\" text-anchor=\"middle\">审批结果 &lt;?&gt;</text>\n<text x=\"126\" y=\"318\" font-size=\"7\" fill=\"#6b7280\" text-anchor=\"middle\" font-family=\"ui-monospace,monospace\">GW-APR-X</text>\n<rect x=\"42\" y=\"350\" width=\"168\" height=\"52\" rx=\"4\" fill=\"#dcfce7\" stroke=\"#86efac\"/>\n<text x=\"126\" y=\"365\" font-size=\"10.5\" fill=\"#1f2937\" text-anchor=\"middle\">流程结束</text>\n<text x=\"126\" y=\"396\" font-size=\"7\" fill=\"#6b7280\" text-anchor=\"middle\" font-family=\"ui-monospace,monospace\">END-CP-DONE</text>\n<rect x=\"42\" y=\"428\" width=\"168\" height=\"52\" rx=\"4\" fill=\"#f5f3ff\" stroke=\"#c4b5fd\" stroke-dasharray=\"4 3\"/>\n<text x=\"126\" y=\"443\" font-size=\"7.5\" fill=\"#6b7280\" text-anchor=\"middle\" letter-spacing=\"0.5\">外部</text>\n<text x=\"126\" y=\"455\" font-size=\"10.5\" fill=\"#1f2937\" text-anchor=\"middle\">外部平台 &amp; 接口</text>\n<text x=\"126\" y=\"474\" font-size=\"7\" fill=\"#6b7280\" text-anchor=\"middle\" font-family=\"ui-monospace,monospace\">EXT-SUP-1</text>\n<circle cx=\"201\" cy=\"437\" r=\"3.5\" fill=\"#93c5fd\"><title>GET /ext/supplier</title></circle>\n<text x=\"24\" y=\"530\" font-size=\"9\" fill=\"#6b7280\">虚线 = 系统推断的顺序，材料里没有明写　·　右上角圆点 = 这一步有接口实现，悬停看路径</text>\n</svg>",
+   "svg_custom": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 640 538\" width=\"640\" height=\"538\" font-family=\"-apple-system,PingFang SC,Microsoft YaHei,sans-serif\">\n<rect width=\"640\" height=\"538\" fill=\"#ffffff\"/>\n<defs><marker id=\"a\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"6\" markerHeight=\"6\" orient=\"auto-start-reverse\"><path d=\"M0,0 L10,5 L0,10 z\" fill=\"#ffffff\"/></marker></defs>\n<text x=\"24\" y=\"38\" font-size=\"17\" font-weight=\"600\" fill=\"#dddddd\">自定义 &quot;标题&quot; &lt;&amp;&gt;</text>\n<text x=\"24\" y=\"56\" font-size=\"11\" fill=\"#eeeeee\">1 个 Action ｜ 1 个 Event ｜ 1 个阶段 ｜ 1 条边为系统推断，需人工确认 ｜ 1/1 个环节已对上接口</text>\n<rect x=\"24\" y=\"58\" width=\"592\" height=\"440\" rx=\"6\" fill=\"#bbbbbb\" stroke=\"#cccccc\"/>\n<rect x=\"24\" y=\"58\" width=\"4\" height=\"440\" rx=\"2\" fill=\"#222222\"/>\n<text x=\"40\" y=\"80\" font-size=\"12.5\" font-weight=\"600\" fill=\"#dddddd\">阶段 &quot;一&quot; &lt;A&amp;B&gt;</text>\n<text x=\"40\" y=\"94\" font-size=\"10\" fill=\"#eeeeee\">小字 &amp; 说明</text>\n<path d=\"M210,142 C250,256 2,256 42,220\" fill=\"none\" stroke=\"#ffffff\" stroke-width=\"1.3\" marker-end=\"url(#a)\"/>\n<path d=\"M210,220 C250,334 2,334 42,298\" fill=\"none\" stroke=\"#ffffff\" stroke-width=\"1.3\" marker-end=\"url(#a)\"/>\n<text x=\"126\" y=\"254\" font-size=\"9.5\" fill=\"#eeeeee\" text-anchor=\"middle\">通过</text>\n<path d=\"M210,298 C250,334 2,334 42,142\" fill=\"none\" stroke=\"#c4b5fd\" stroke-width=\"1.3\" stroke-dasharray=\"5 4\" marker-end=\"url(#a)\"/>\n<text x=\"126\" y=\"215\" font-size=\"9.5\" fill=\"#eeeeee\" text-anchor=\"middle\">撤销</text>\n<path d=\"M210,298 C250,490 2,490 42,454\" fill=\"none\" stroke=\"#ffffff\" stroke-width=\"1.3\" stroke-dasharray=\"5 4\" marker-end=\"url(#a)\"/>\n<text x=\"126\" y=\"371\" font-size=\"9.5\" fill=\"#eeeeee\" text-anchor=\"middle\">标签&quot;含引号&quot;</text>\n<path d=\"M210,298 C250,412 2,412 42,376\" fill=\"none\" stroke=\"#ffffff\" stroke-width=\"1.3\" stroke-dasharray=\"5 4\" marker-end=\"url(#a)\"/>\n<rect x=\"42\" y=\"116\" width=\"168\" height=\"52\" rx=\"14\" fill=\"#111111\" stroke=\"#222222\"/>\n<text x=\"126\" y=\"131\" font-size=\"7.5\" fill=\"#eeeeee\" text-anchor=\"middle\" letter-spacing=\"0.5\">ACTION</text>\n<text x=\"126\" y=\"143\" font-size=\"10.5\" fill=\"#dddddd\" text-anchor=\"middle\">提交&quot;计划&quot;</text>\n<circle cx=\"201\" cy=\"125\" r=\"3.5\" fill=\"#222222\"><title>POST /api/plan?a=1&amp;b=2</title></circle>\n<rect x=\"42\" y=\"194\" width=\"168\" height=\"52\" rx=\"4\" fill=\"#333333\" stroke=\"#444444\"/>\n<text x=\"126\" y=\"209\" font-size=\"7.5\" fill=\"#eeeeee\" text-anchor=\"middle\" letter-spacing=\"0.5\">EVENT</text>\n<text x=\"126\" y=\"221\" font-size=\"10.5\" fill=\"#dddddd\" text-anchor=\"middle\">计划[已提交]</text>\n<polygon points=\"126,272 210,298 126,324 42,298\" fill=\"#555555\" stroke=\"#666666\"/>\n<text x=\"126\" y=\"287\" font-size=\"10.5\" fill=\"#dddddd\" text-anchor=\"middle\">审批结果 &lt;?&gt;</text>\n<rect x=\"42\" y=\"350\" width=\"168\" height=\"52\" rx=\"4\" fill=\"#777777\" stroke=\"#888888\"/>\n<text x=\"126\" y=\"365\" font-size=\"10.5\" fill=\"#dddddd\" text-anchor=\"middle\">流程结束</text>\n<rect x=\"42\" y=\"428\" width=\"168\" height=\"52\" rx=\"4\" fill=\"#999999\" stroke=\"#aaaaaa\" stroke-dasharray=\"4 3\"/>\n<text x=\"126\" y=\"443\" font-size=\"7.5\" fill=\"#eeeeee\" text-anchor=\"middle\" letter-spacing=\"0.5\">外部</text>\n<text x=\"126\" y=\"455\" font-size=\"10.5\" fill=\"#dddddd\" text-anchor=\"middle\">外部平台 &amp; 接口</text>\n<circle cx=\"201\" cy=\"437\" r=\"3.5\" fill=\"#222222\"><title>GET /ext/supplier</title></circle>\n<text x=\"24\" y=\"530\" font-size=\"9\" fill=\"#eeeeee\">虚线 = 系统推断的顺序，材料里没有明写　·　右上角圆点 = 这一步有接口实现，悬停看路径</text>\n</svg>"
+  },
+  {
+   "flow": {
+    "edges": [
+     {
+      "evidence": [
+       {
+        "cite": "材料.xlsx#R1",
+        "confidence": 1.0,
+        "extractor": "rule",
+        "file_id": "f",
+        "file_name": "材料.xlsx",
+        "locator": {
+         "kind": "raw",
+         "ref": "R1"
+        },
+        "snippet": "fn_a->fn_b"
+       }
+      ],
+      "from": "fn_a",
+      "grounded": true,
+      "kind": "flow",
+      "label": "",
+      "rid": "fe1",
+      "to": "fn_b"
+     }
+    ],
+    "nodes": [
+     {
+      "actor": {
+       "confidence": 0.4,
+       "evidence": [],
+       "origin": "inferred",
+       "value": ""
+      },
+      "code": "",
+      "endpoint": "",
+      "grounded": true,
+      "kind": "action",
+      "label": {
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "cite": "材料.xlsx#R1",
+         "confidence": 1.0,
+         "extractor": "rule",
+         "file_id": "f",
+         "file_name": "材料.xlsx",
+         "locator": {
+          "kind": "raw",
+          "ref": "R1"
+         },
+         "snippet": "在已注册阶段里"
+        }
+       ],
+       "origin": "extracted",
+       "value": "在已注册阶段里"
+      },
+      "objects": [],
+      "rid": "fn_a",
+      "stage": "s1",
+      "status": "candidate"
+     },
+     {
+      "actor": {
+       "confidence": 0.4,
+       "evidence": [],
+       "origin": "inferred",
+       "value": ""
+      },
+      "code": "",
+      "endpoint": "",
+      "grounded": true,
+      "kind": "action",
+      "label": {
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "cite": "材料.xlsx#R1",
+         "confidence": 1.0,
+         "extractor": "rule",
+         "file_id": "f",
+         "file_name": "材料.xlsx",
+         "locator": {
+          "kind": "raw",
+          "ref": "R1"
+         },
+         "snippet": "阶段没注册"
+        }
+       ],
+       "origin": "extracted",
+       "value": "阶段没注册"
+      },
+      "objects": [],
+      "rid": "fn_b",
+      "stage": "ghost",
+      "status": "candidate"
+     },
+     {
+      "actor": {
+       "confidence": 0.4,
+       "evidence": [],
+       "origin": "inferred",
+       "value": ""
+      },
+      "code": "",
+      "endpoint": "",
+      "grounded": true,
+      "kind": "event",
+      "label": {
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "cite": "材料.xlsx#R1",
+         "confidence": 1.0,
+         "extractor": "rule",
+         "file_id": "f",
+         "file_name": "材料.xlsx",
+         "locator": {
+          "kind": "raw",
+          "ref": "R1"
+         },
+         "snippet": "干脆没有阶段"
+        }
+       ],
+       "origin": "extracted",
+       "value": "干脆没有阶段"
+      },
+      "objects": [],
+      "rid": "fn_c",
+      "stage": "",
+      "status": "candidate"
+     }
+    ],
+    "stages": [
+     {
+      "key": "s1",
+      "order": 1,
+      "subtitle": "",
+      "title": "已注册阶段"
+     }
+    ],
+    "stats": {
+     "actions": 2,
+     "dangling": 1,
+     "dead_ends": 1,
+     "edges": 1,
+     "events": 1,
+     "externals": 0,
+     "gateways": 0,
+     "inferred_edges": 0,
+     "stages": 1,
+     "terminals": 0,
+     "workflows": 0
+    },
+    "workflows": []
+   },
+   "layers": {
+    "ghost": [
+     [
+      "fn_b"
+     ]
+    ],
+    "s1": [
+     [
+      "fn_a"
+     ]
+    ],
+    "未分阶段": [
+     [
+      "fn_c"
+     ]
+    ]
+   },
+   "mermaid": "flowchart LR\n    subgraph ns1[\"已注册阶段\"]\n        direction LR\n    nfn_a([\"在已注册阶段里\"])\n    end\n    nfn_b([\"阶段没注册\"])\n    nfn_c[\"干脆没有阶段\"]\n    nfn_a --> nfn_b\n    classDef act fill:#dbeafe,stroke:#60a5fa,color:#1e3a5f;\n    classDef evt fill:#fef3c7,stroke:#fbbf24,color:#78350f;\n    classDef gw  fill:#fef9c3,stroke:#eab308,color:#713f12;\n    classDef end_ fill:#dcfce7,stroke:#4ade80,color:#14532d;\n    classDef ext fill:#f3e8ff,stroke:#c084fc,color:#581c87;\n    class nfn_a,nfn_b act;\n    class nfn_c evt;",
+   "mermaid_tb_nocodes": "flowchart TB\n    subgraph ns1[\"已注册阶段\"]\n        direction LR\n    nfn_a([\"在已注册阶段里\"])\n    end\n    nfn_b([\"阶段没注册\"])\n    nfn_c[\"干脆没有阶段\"]\n    nfn_a --> nfn_b\n    classDef act fill:#dbeafe,stroke:#60a5fa,color:#1e3a5f;\n    classDef evt fill:#fef3c7,stroke:#fbbf24,color:#78350f;\n    classDef gw  fill:#fef9c3,stroke:#eab308,color:#713f12;\n    classDef end_ fill:#dcfce7,stroke:#4ade80,color:#14532d;\n    classDef ext fill:#f3e8ff,stroke:#c084fc,color:#581c87;\n    class nfn_a,nfn_b act;\n    class nfn_c evt;",
+   "name": "unregistered_stage",
+   "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 640 514\" width=\"640\" height=\"514\" font-family=\"-apple-system,PingFang SC,Microsoft YaHei,sans-serif\">\n<rect width=\"640\" height=\"514\" fill=\"#ffffff\"/>\n<defs><marker id=\"a\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"6\" markerHeight=\"6\" orient=\"auto-start-reverse\"><path d=\"M0,0 L10,5 L0,10 z\" fill=\"#9ca3af\"/></marker></defs>\n<text x=\"24\" y=\"38\" font-size=\"17\" font-weight=\"600\" fill=\"#1f2937\">业务流程总览</text>\n<text x=\"24\" y=\"56\" font-size=\"11\" fill=\"#6b7280\">2 个 Action ｜ 1 个 Event ｜ 1 个阶段 ｜ 0 条边为系统推断，需人工确认</text>\n<rect x=\"24\" y=\"58\" width=\"592\" height=\"128\" rx=\"6\" fill=\"#fafafa\" stroke=\"#e5e7eb\"/>\n<rect x=\"24\" y=\"58\" width=\"4\" height=\"128\" rx=\"2\" fill=\"#93c5fd\"/>\n<text x=\"40\" y=\"80\" font-size=\"12.5\" font-weight=\"600\" fill=\"#1f2937\">已注册阶段</text>\n<rect x=\"24\" y=\"202\" width=\"592\" height=\"128\" rx=\"6\" fill=\"#fafafa\" stroke=\"#e5e7eb\"/>\n<rect x=\"24\" y=\"202\" width=\"4\" height=\"128\" rx=\"2\" fill=\"#93c5fd\"/>\n<text x=\"40\" y=\"224\" font-size=\"12.5\" font-weight=\"600\" fill=\"#1f2937\">ghost</text>\n<rect x=\"24\" y=\"346\" width=\"592\" height=\"128\" rx=\"6\" fill=\"#fafafa\" stroke=\"#e5e7eb\"/>\n<rect x=\"24\" y=\"346\" width=\"4\" height=\"128\" rx=\"2\" fill=\"#93c5fd\"/>\n<text x=\"40\" y=\"368\" font-size=\"12.5\" font-weight=\"600\" fill=\"#1f2937\">未分阶段</text>\n<path d=\"M210,142 C250,322 2,322 42,286\" fill=\"none\" stroke=\"#9ca3af\" stroke-width=\"1.3\" marker-end=\"url(#a)\"/>\n<rect x=\"42\" y=\"116\" width=\"168\" height=\"52\" rx=\"14\" fill=\"#dbeafe\" stroke=\"#93c5fd\"/>\n<text x=\"126\" y=\"131\" font-size=\"7.5\" fill=\"#6b7280\" text-anchor=\"middle\" letter-spacing=\"0.5\">ACTION</text>\n<text x=\"126\" y=\"143\" font-size=\"10.5\" fill=\"#1f2937\" text-anchor=\"middle\">在已注册阶段里</text>\n<rect x=\"42\" y=\"260\" width=\"168\" height=\"52\" rx=\"14\" fill=\"#dbeafe\" stroke=\"#93c5fd\"/>\n<text x=\"126\" y=\"275\" font-size=\"7.5\" fill=\"#6b7280\" text-anchor=\"middle\" letter-spacing=\"0.5\">ACTION</text>\n<text x=\"126\" y=\"287\" font-size=\"10.5\" fill=\"#1f2937\" text-anchor=\"middle\">阶段没注册</text>\n<rect x=\"42\" y=\"404\" width=\"168\" height=\"52\" rx=\"4\" fill=\"#fef3c7\" stroke=\"#fcd34d\"/>\n<text x=\"126\" y=\"419\" font-size=\"7.5\" fill=\"#6b7280\" text-anchor=\"middle\" letter-spacing=\"0.5\">EVENT</text>\n<text x=\"126\" y=\"431\" font-size=\"10.5\" fill=\"#1f2937\" text-anchor=\"middle\">干脆没有阶段</text>\n<text x=\"24\" y=\"506\" font-size=\"9\" fill=\"#6b7280\">虚线 = 系统推断的顺序，材料里没有明写　·　右上角圆点 = 这一步有接口实现，悬停看路径</text>\n</svg>",
+   "svg_custom": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 640 514\" width=\"640\" height=\"514\" font-family=\"-apple-system,PingFang SC,Microsoft YaHei,sans-serif\">\n<rect width=\"640\" height=\"514\" fill=\"#ffffff\"/>\n<defs><marker id=\"a\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"6\" markerHeight=\"6\" orient=\"auto-start-reverse\"><path d=\"M0,0 L10,5 L0,10 z\" fill=\"#ffffff\"/></marker></defs>\n<text x=\"24\" y=\"38\" font-size=\"17\" font-weight=\"600\" fill=\"#dddddd\">自定义 &quot;标题&quot; &lt;&amp;&gt;</text>\n<text x=\"24\" y=\"56\" font-size=\"11\" fill=\"#eeeeee\">2 个 Action ｜ 1 个 Event ｜ 1 个阶段 ｜ 0 条边为系统推断，需人工确认</text>\n<rect x=\"24\" y=\"58\" width=\"592\" height=\"128\" rx=\"6\" fill=\"#bbbbbb\" stroke=\"#cccccc\"/>\n<rect x=\"24\" y=\"58\" width=\"4\" height=\"128\" rx=\"2\" fill=\"#222222\"/>\n<text x=\"40\" y=\"80\" font-size=\"12.5\" font-weight=\"600\" fill=\"#dddddd\">已注册阶段</text>\n<rect x=\"24\" y=\"202\" width=\"592\" height=\"128\" rx=\"6\" fill=\"#bbbbbb\" stroke=\"#cccccc\"/>\n<rect x=\"24\" y=\"202\" width=\"4\" height=\"128\" rx=\"2\" fill=\"#222222\"/>\n<text x=\"40\" y=\"224\" font-size=\"12.5\" font-weight=\"600\" fill=\"#dddddd\">ghost</text>\n<rect x=\"24\" y=\"346\" width=\"592\" height=\"128\" rx=\"6\" fill=\"#bbbbbb\" stroke=\"#cccccc\"/>\n<rect x=\"24\" y=\"346\" width=\"4\" height=\"128\" rx=\"2\" fill=\"#222222\"/>\n<text x=\"40\" y=\"368\" font-size=\"12.5\" font-weight=\"600\" fill=\"#dddddd\">未分阶段</text>\n<path d=\"M210,142 C250,322 2,322 42,286\" fill=\"none\" stroke=\"#ffffff\" stroke-width=\"1.3\" marker-end=\"url(#a)\"/>\n<rect x=\"42\" y=\"116\" width=\"168\" height=\"52\" rx=\"14\" fill=\"#111111\" stroke=\"#222222\"/>\n<text x=\"126\" y=\"131\" font-size=\"7.5\" fill=\"#eeeeee\" text-anchor=\"middle\" letter-spacing=\"0.5\">ACTION</text>\n<text x=\"126\" y=\"143\" font-size=\"10.5\" fill=\"#dddddd\" text-anchor=\"middle\">在已注册阶段里</text>\n<rect x=\"42\" y=\"260\" width=\"168\" height=\"52\" rx=\"14\" fill=\"#111111\" stroke=\"#222222\"/>\n<text x=\"126\" y=\"275\" font-size=\"7.5\" fill=\"#eeeeee\" text-anchor=\"middle\" letter-spacing=\"0.5\">ACTION</text>\n<text x=\"126\" y=\"287\" font-size=\"10.5\" fill=\"#dddddd\" text-anchor=\"middle\">阶段没注册</text>\n<rect x=\"42\" y=\"404\" width=\"168\" height=\"52\" rx=\"4\" fill=\"#333333\" stroke=\"#444444\"/>\n<text x=\"126\" y=\"419\" font-size=\"7.5\" fill=\"#eeeeee\" text-anchor=\"middle\" letter-spacing=\"0.5\">EVENT</text>\n<text x=\"126\" y=\"431\" font-size=\"10.5\" fill=\"#dddddd\" text-anchor=\"middle\">干脆没有阶段</text>\n<text x=\"24\" y=\"506\" font-size=\"9\" fill=\"#eeeeee\">虚线 = 系统推断的顺序，材料里没有明写　·　右上角圆点 = 这一步有接口实现，悬停看路径</text>\n</svg>"
+  },
+  {
+   "flow": {
+    "edges": [],
+    "nodes": [
+     {
+      "actor": {
+       "confidence": 0.4,
+       "evidence": [],
+       "origin": "inferred",
+       "value": ""
+      },
+      "code": "",
+      "endpoint": "",
+      "grounded": true,
+      "kind": "action",
+      "label": {
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "cite": "材料.xlsx#R1",
+         "confidence": 1.0,
+         "extractor": "rule",
+         "file_id": "f",
+         "file_name": "材料.xlsx",
+         "locator": {
+          "kind": "raw",
+          "ref": "R1"
+         },
+         "snippet": "唯一节点"
+        }
+       ],
+       "origin": "extracted",
+       "value": "唯一节点"
+      },
+      "objects": [],
+      "rid": "fn_a",
+      "stage": "s2",
+      "status": "candidate"
+     }
+    ],
+    "stages": [
+     {
+      "key": "s1",
+      "order": 1,
+      "subtitle": "",
+      "title": "空阶段"
+     },
+     {
+      "key": "s2",
+      "order": 2,
+      "subtitle": "",
+      "title": "有节点的阶段"
+     }
+    ],
+    "stats": {
+     "actions": 1,
+     "dangling": 1,
+     "dead_ends": 0,
+     "edges": 0,
+     "events": 0,
+     "externals": 0,
+     "gateways": 0,
+     "inferred_edges": 0,
+     "stages": 2,
+     "terminals": 0,
+     "workflows": 0
+    },
+    "workflows": []
+   },
+   "layers": {
+    "s2": [
+     [
+      "fn_a"
+     ]
+    ]
+   },
+   "mermaid": "flowchart LR\n    subgraph ns2[\"有节点的阶段\"]\n        direction LR\n    nfn_a([\"唯一节点\"])\n    end\n    classDef act fill:#dbeafe,stroke:#60a5fa,color:#1e3a5f;\n    classDef evt fill:#fef3c7,stroke:#fbbf24,color:#78350f;\n    classDef gw  fill:#fef9c3,stroke:#eab308,color:#713f12;\n    classDef end_ fill:#dcfce7,stroke:#4ade80,color:#14532d;\n    classDef ext fill:#f3e8ff,stroke:#c084fc,color:#581c87;\n    class nfn_a act;",
+   "mermaid_tb_nocodes": "flowchart TB\n    subgraph ns2[\"有节点的阶段\"]\n        direction LR\n    nfn_a([\"唯一节点\"])\n    end\n    classDef act fill:#dbeafe,stroke:#60a5fa,color:#1e3a5f;\n    classDef evt fill:#fef3c7,stroke:#fbbf24,color:#78350f;\n    classDef gw  fill:#fef9c3,stroke:#eab308,color:#713f12;\n    classDef end_ fill:#dcfce7,stroke:#4ade80,color:#14532d;\n    classDef ext fill:#f3e8ff,stroke:#c084fc,color:#581c87;\n    class nfn_a act;",
+   "name": "stage_empty",
+   "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 640 226\" width=\"640\" height=\"226\" font-family=\"-apple-system,PingFang SC,Microsoft YaHei,sans-serif\">\n<rect width=\"640\" height=\"226\" fill=\"#ffffff\"/>\n<defs><marker id=\"a\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"6\" markerHeight=\"6\" orient=\"auto-start-reverse\"><path d=\"M0,0 L10,5 L0,10 z\" fill=\"#9ca3af\"/></marker></defs>\n<text x=\"24\" y=\"38\" font-size=\"17\" font-weight=\"600\" fill=\"#1f2937\">业务流程总览</text>\n<text x=\"24\" y=\"56\" font-size=\"11\" fill=\"#6b7280\">1 个 Action ｜ 0 个 Event ｜ 2 个阶段 ｜ 0 条边为系统推断，需人工确认</text>\n<rect x=\"24\" y=\"58\" width=\"592\" height=\"128\" rx=\"6\" fill=\"#fafafa\" stroke=\"#e5e7eb\"/>\n<rect x=\"24\" y=\"58\" width=\"4\" height=\"128\" rx=\"2\" fill=\"#93c5fd\"/>\n<text x=\"40\" y=\"80\" font-size=\"12.5\" font-weight=\"600\" fill=\"#1f2937\">有节点的阶段</text>\n<rect x=\"42\" y=\"116\" width=\"168\" height=\"52\" rx=\"14\" fill=\"#dbeafe\" stroke=\"#93c5fd\"/>\n<text x=\"126\" y=\"131\" font-size=\"7.5\" fill=\"#6b7280\" text-anchor=\"middle\" letter-spacing=\"0.5\">ACTION</text>\n<text x=\"126\" y=\"143\" font-size=\"10.5\" fill=\"#1f2937\" text-anchor=\"middle\">唯一节点</text>\n<text x=\"24\" y=\"218\" font-size=\"9\" fill=\"#6b7280\">虚线 = 系统推断的顺序，材料里没有明写　·　右上角圆点 = 这一步有接口实现，悬停看路径</text>\n</svg>",
+   "svg_custom": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 640 226\" width=\"640\" height=\"226\" font-family=\"-apple-system,PingFang SC,Microsoft YaHei,sans-serif\">\n<rect width=\"640\" height=\"226\" fill=\"#ffffff\"/>\n<defs><marker id=\"a\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"6\" markerHeight=\"6\" orient=\"auto-start-reverse\"><path d=\"M0,0 L10,5 L0,10 z\" fill=\"#ffffff\"/></marker></defs>\n<text x=\"24\" y=\"38\" font-size=\"17\" font-weight=\"600\" fill=\"#dddddd\">自定义 &quot;标题&quot; &lt;&amp;&gt;</text>\n<text x=\"24\" y=\"56\" font-size=\"11\" fill=\"#eeeeee\">1 个 Action ｜ 0 个 Event ｜ 2 个阶段 ｜ 0 条边为系统推断，需人工确认</text>\n<rect x=\"24\" y=\"58\" width=\"592\" height=\"128\" rx=\"6\" fill=\"#bbbbbb\" stroke=\"#cccccc\"/>\n<rect x=\"24\" y=\"58\" width=\"4\" height=\"128\" rx=\"2\" fill=\"#222222\"/>\n<text x=\"40\" y=\"80\" font-size=\"12.5\" font-weight=\"600\" fill=\"#dddddd\">有节点的阶段</text>\n<rect x=\"42\" y=\"116\" width=\"168\" height=\"52\" rx=\"14\" fill=\"#111111\" stroke=\"#222222\"/>\n<text x=\"126\" y=\"131\" font-size=\"7.5\" fill=\"#eeeeee\" text-anchor=\"middle\" letter-spacing=\"0.5\">ACTION</text>\n<text x=\"126\" y=\"143\" font-size=\"10.5\" fill=\"#dddddd\" text-anchor=\"middle\">唯一节点</text>\n<text x=\"24\" y=\"218\" font-size=\"9\" fill=\"#eeeeee\">虚线 = 系统推断的顺序，材料里没有明写　·　右上角圆点 = 这一步有接口实现，悬停看路径</text>\n</svg>"
+  },
+  {
+   "flow": {
+    "edges": [],
+    "nodes": [
+     {
+      "actor": {
+       "confidence": 0.4,
+       "evidence": [],
+       "origin": "inferred",
+       "value": ""
+      },
+      "code": "",
+      "endpoint": "",
+      "grounded": true,
+      "kind": "action",
+      "label": {
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "cite": "材料.xlsx#R1",
+         "confidence": 1.0,
+         "extractor": "rule",
+         "file_id": "f",
+         "file_name": "材料.xlsx",
+         "locator": {
+          "kind": "raw",
+          "ref": "R1"
+         },
+         "snippet": "s3 的节点"
+        }
+       ],
+       "origin": "extracted",
+       "value": "s3 的节点"
+      },
+      "objects": [],
+      "rid": "fn_s3",
+      "stage": "s3",
+      "status": "candidate"
+     },
+     {
+      "actor": {
+       "confidence": 0.4,
+       "evidence": [],
+       "origin": "inferred",
+       "value": ""
+      },
+      "code": "",
+      "endpoint": "",
+      "grounded": true,
+      "kind": "action",
+      "label": {
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "cite": "材料.xlsx#R1",
+         "confidence": 1.0,
+         "extractor": "rule",
+         "file_id": "f",
+         "file_name": "材料.xlsx",
+         "locator": {
+          "kind": "raw",
+          "ref": "R1"
+         },
+         "snippet": "s1b 的节点"
+        }
+       ],
+       "origin": "extracted",
+       "value": "s1b 的节点"
+      },
+      "objects": [],
+      "rid": "fn_s1b",
+      "stage": "s1b",
+      "status": "candidate"
+     },
+     {
+      "actor": {
+       "confidence": 0.4,
+       "evidence": [],
+       "origin": "inferred",
+       "value": ""
+      },
+      "code": "",
+      "endpoint": "",
+      "grounded": true,
+      "kind": "action",
+      "label": {
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "cite": "材料.xlsx#R1",
+         "confidence": 1.0,
+         "extractor": "rule",
+         "file_id": "f",
+         "file_name": "材料.xlsx",
+         "locator": {
+          "kind": "raw",
+          "ref": "R1"
+         },
+         "snippet": "s1a 的节点"
+        }
+       ],
+       "origin": "extracted",
+       "value": "s1a 的节点"
+      },
+      "objects": [],
+      "rid": "fn_s1a",
+      "stage": "s1a",
+      "status": "candidate"
+     },
+     {
+      "actor": {
+       "confidence": 0.4,
+       "evidence": [],
+       "origin": "inferred",
+       "value": ""
+      },
+      "code": "",
+      "endpoint": "",
+      "grounded": true,
+      "kind": "action",
+      "label": {
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "cite": "材料.xlsx#R1",
+         "confidence": 1.0,
+         "extractor": "rule",
+         "file_id": "f",
+         "file_name": "材料.xlsx",
+         "locator": {
+          "kind": "raw",
+          "ref": "R1"
+         },
+         "snippet": "s0 的节点"
+        }
+       ],
+       "origin": "extracted",
+       "value": "s0 的节点"
+      },
+      "objects": [],
+      "rid": "fn_s0",
+      "stage": "s0",
+      "status": "candidate"
+     }
+    ],
+    "stages": [
+     {
+      "key": "s0",
+      "order": 0,
+      "subtitle": "",
+      "title": "第零"
+     },
+     {
+      "key": "s1b",
+      "order": 1,
+      "subtitle": "",
+      "title": "并列一 B"
+     },
+     {
+      "key": "s1a",
+      "order": 1,
+      "subtitle": "",
+      "title": "并列一 A"
+     },
+     {
+      "key": "s3",
+      "order": 3,
+      "subtitle": "",
+      "title": "第三"
+     }
+    ],
+    "stats": {
+     "actions": 4,
+     "dangling": 4,
+     "dead_ends": 0,
+     "edges": 0,
+     "events": 0,
+     "externals": 0,
+     "gateways": 0,
+     "inferred_edges": 0,
+     "stages": 4,
+     "terminals": 0,
+     "workflows": 0
+    },
+    "workflows": []
+   },
+   "layers": {
+    "s0": [
+     [
+      "fn_s0"
+     ]
+    ],
+    "s1a": [
+     [
+      "fn_s1a"
+     ]
+    ],
+    "s1b": [
+     [
+      "fn_s1b"
+     ]
+    ],
+    "s3": [
+     [
+      "fn_s3"
+     ]
+    ]
+   },
+   "mermaid": "flowchart LR\n    subgraph ns0[\"第零\"]\n        direction LR\n    nfn_s0([\"s0 的节点\"])\n    end\n    subgraph ns1b[\"并列一 B\"]\n        direction LR\n    nfn_s1b([\"s1b 的节点\"])\n    end\n    subgraph ns1a[\"并列一 A\"]\n        direction LR\n    nfn_s1a([\"s1a 的节点\"])\n    end\n    subgraph ns3[\"第三\"]\n        direction LR\n    nfn_s3([\"s3 的节点\"])\n    end\n    classDef act fill:#dbeafe,stroke:#60a5fa,color:#1e3a5f;\n    classDef evt fill:#fef3c7,stroke:#fbbf24,color:#78350f;\n    classDef gw  fill:#fef9c3,stroke:#eab308,color:#713f12;\n    classDef end_ fill:#dcfce7,stroke:#4ade80,color:#14532d;\n    classDef ext fill:#f3e8ff,stroke:#c084fc,color:#581c87;\n    class nfn_s3,nfn_s1b,nfn_s1a,nfn_s0 act;",
+   "mermaid_tb_nocodes": "flowchart TB\n    subgraph ns0[\"第零\"]\n        direction LR\n    nfn_s0([\"s0 的节点\"])\n    end\n    subgraph ns1b[\"并列一 B\"]\n        direction LR\n    nfn_s1b([\"s1b 的节点\"])\n    end\n    subgraph ns1a[\"并列一 A\"]\n        direction LR\n    nfn_s1a([\"s1a 的节点\"])\n    end\n    subgraph ns3[\"第三\"]\n        direction LR\n    nfn_s3([\"s3 的节点\"])\n    end\n    classDef act fill:#dbeafe,stroke:#60a5fa,color:#1e3a5f;\n    classDef evt fill:#fef3c7,stroke:#fbbf24,color:#78350f;\n    classDef gw  fill:#fef9c3,stroke:#eab308,color:#713f12;\n    classDef end_ fill:#dcfce7,stroke:#4ade80,color:#14532d;\n    classDef ext fill:#f3e8ff,stroke:#c084fc,color:#581c87;\n    class nfn_s3,nfn_s1b,nfn_s1a,nfn_s0 act;",
+   "name": "stage_order",
+   "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 640 658\" width=\"640\" height=\"658\" font-family=\"-apple-system,PingFang SC,Microsoft YaHei,sans-serif\">\n<rect width=\"640\" height=\"658\" fill=\"#ffffff\"/>\n<defs><marker id=\"a\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"6\" markerHeight=\"6\" orient=\"auto-start-reverse\"><path d=\"M0,0 L10,5 L0,10 z\" fill=\"#9ca3af\"/></marker></defs>\n<text x=\"24\" y=\"38\" font-size=\"17\" font-weight=\"600\" fill=\"#1f2937\">业务流程总览</text>\n<text x=\"24\" y=\"56\" font-size=\"11\" fill=\"#6b7280\">4 个 Action ｜ 0 个 Event ｜ 4 个阶段 ｜ 0 条边为系统推断，需人工确认</text>\n<rect x=\"24\" y=\"58\" width=\"592\" height=\"128\" rx=\"6\" fill=\"#fafafa\" stroke=\"#e5e7eb\"/>\n<rect x=\"24\" y=\"58\" width=\"4\" height=\"128\" rx=\"2\" fill=\"#93c5fd\"/>\n<text x=\"40\" y=\"80\" font-size=\"12.5\" font-weight=\"600\" fill=\"#1f2937\">第零</text>\n<rect x=\"24\" y=\"202\" width=\"592\" height=\"128\" rx=\"6\" fill=\"#fafafa\" stroke=\"#e5e7eb\"/>\n<rect x=\"24\" y=\"202\" width=\"4\" height=\"128\" rx=\"2\" fill=\"#93c5fd\"/>\n<text x=\"40\" y=\"224\" font-size=\"12.5\" font-weight=\"600\" fill=\"#1f2937\">并列一 B</text>\n<rect x=\"24\" y=\"346\" width=\"592\" height=\"128\" rx=\"6\" fill=\"#fafafa\" stroke=\"#e5e7eb\"/>\n<rect x=\"24\" y=\"346\" width=\"4\" height=\"128\" rx=\"2\" fill=\"#93c5fd\"/>\n<text x=\"40\" y=\"368\" font-size=\"12.5\" font-weight=\"600\" fill=\"#1f2937\">并列一 A</text>\n<rect x=\"24\" y=\"490\" width=\"592\" height=\"128\" rx=\"6\" fill=\"#fafafa\" stroke=\"#e5e7eb\"/>\n<rect x=\"24\" y=\"490\" width=\"4\" height=\"128\" rx=\"2\" fill=\"#93c5fd\"/>\n<text x=\"40\" y=\"512\" font-size=\"12.5\" font-weight=\"600\" fill=\"#1f2937\">第三</text>\n<rect x=\"42\" y=\"548\" width=\"168\" height=\"52\" rx=\"14\" fill=\"#dbeafe\" stroke=\"#93c5fd\"/>\n<text x=\"126\" y=\"563\" font-size=\"7.5\" fill=\"#6b7280\" text-anchor=\"middle\" letter-spacing=\"0.5\">ACTION</text>\n<text x=\"126\" y=\"575\" font-size=\"10.5\" fill=\"#1f2937\" text-anchor=\"middle\">s3 的节点</text>\n<rect x=\"42\" y=\"260\" width=\"168\" height=\"52\" rx=\"14\" fill=\"#dbeafe\" stroke=\"#93c5fd\"/>\n<text x=\"126\" y=\"275\" font-size=\"7.5\" fill=\"#6b7280\" text-anchor=\"middle\" letter-spacing=\"0.5\">ACTION</text>\n<text x=\"126\" y=\"287\" font-size=\"10.5\" fill=\"#1f2937\" text-anchor=\"middle\">s1b 的节点</text>\n<rect x=\"42\" y=\"404\" width=\"168\" height=\"52\" rx=\"14\" fill=\"#dbeafe\" stroke=\"#93c5fd\"/>\n<text x=\"126\" y=\"419\" font-size=\"7.5\" fill=\"#6b7280\" text-anchor=\"middle\" letter-spacing=\"0.5\">ACTION</text>\n<text x=\"126\" y=\"431\" font-size=\"10.5\" fill=\"#1f2937\" text-anchor=\"middle\">s1a 的节点</text>\n<rect x=\"42\" y=\"116\" width=\"168\" height=\"52\" rx=\"14\" fill=\"#dbeafe\" stroke=\"#93c5fd\"/>\n<text x=\"126\" y=\"131\" font-size=\"7.5\" fill=\"#6b7280\" text-anchor=\"middle\" letter-spacing=\"0.5\">ACTION</text>\n<text x=\"126\" y=\"143\" font-size=\"10.5\" fill=\"#1f2937\" text-anchor=\"middle\">s0 的节点</text>\n<text x=\"24\" y=\"650\" font-size=\"9\" fill=\"#6b7280\">虚线 = 系统推断的顺序，材料里没有明写　·　右上角圆点 = 这一步有接口实现，悬停看路径</text>\n</svg>",
+   "svg_custom": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 640 658\" width=\"640\" height=\"658\" font-family=\"-apple-system,PingFang SC,Microsoft YaHei,sans-serif\">\n<rect width=\"640\" height=\"658\" fill=\"#ffffff\"/>\n<defs><marker id=\"a\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"6\" markerHeight=\"6\" orient=\"auto-start-reverse\"><path d=\"M0,0 L10,5 L0,10 z\" fill=\"#ffffff\"/></marker></defs>\n<text x=\"24\" y=\"38\" font-size=\"17\" font-weight=\"600\" fill=\"#dddddd\">自定义 &quot;标题&quot; &lt;&amp;&gt;</text>\n<text x=\"24\" y=\"56\" font-size=\"11\" fill=\"#eeeeee\">4 个 Action ｜ 0 个 Event ｜ 4 个阶段 ｜ 0 条边为系统推断，需人工确认</text>\n<rect x=\"24\" y=\"58\" width=\"592\" height=\"128\" rx=\"6\" fill=\"#bbbbbb\" stroke=\"#cccccc\"/>\n<rect x=\"24\" y=\"58\" width=\"4\" height=\"128\" rx=\"2\" fill=\"#222222\"/>\n<text x=\"40\" y=\"80\" font-size=\"12.5\" font-weight=\"600\" fill=\"#dddddd\">第零</text>\n<rect x=\"24\" y=\"202\" width=\"592\" height=\"128\" rx=\"6\" fill=\"#bbbbbb\" stroke=\"#cccccc\"/>\n<rect x=\"24\" y=\"202\" width=\"4\" height=\"128\" rx=\"2\" fill=\"#222222\"/>\n<text x=\"40\" y=\"224\" font-size=\"12.5\" font-weight=\"600\" fill=\"#dddddd\">并列一 B</text>\n<rect x=\"24\" y=\"346\" width=\"592\" height=\"128\" rx=\"6\" fill=\"#bbbbbb\" stroke=\"#cccccc\"/>\n<rect x=\"24\" y=\"346\" width=\"4\" height=\"128\" rx=\"2\" fill=\"#222222\"/>\n<text x=\"40\" y=\"368\" font-size=\"12.5\" font-weight=\"600\" fill=\"#dddddd\">并列一 A</text>\n<rect x=\"24\" y=\"490\" width=\"592\" height=\"128\" rx=\"6\" fill=\"#bbbbbb\" stroke=\"#cccccc\"/>\n<rect x=\"24\" y=\"490\" width=\"4\" height=\"128\" rx=\"2\" fill=\"#222222\"/>\n<text x=\"40\" y=\"512\" font-size=\"12.5\" font-weight=\"600\" fill=\"#dddddd\">第三</text>\n<rect x=\"42\" y=\"548\" width=\"168\" height=\"52\" rx=\"14\" fill=\"#111111\" stroke=\"#222222\"/>\n<text x=\"126\" y=\"563\" font-size=\"7.5\" fill=\"#eeeeee\" text-anchor=\"middle\" letter-spacing=\"0.5\">ACTION</text>\n<text x=\"126\" y=\"575\" font-size=\"10.5\" fill=\"#dddddd\" text-anchor=\"middle\">s3 的节点</text>\n<rect x=\"42\" y=\"260\" width=\"168\" height=\"52\" rx=\"14\" fill=\"#111111\" stroke=\"#222222\"/>\n<text x=\"126\" y=\"275\" font-size=\"7.5\" fill=\"#eeeeee\" text-anchor=\"middle\" letter-spacing=\"0.5\">ACTION</text>\n<text x=\"126\" y=\"287\" font-size=\"10.5\" fill=\"#dddddd\" text-anchor=\"middle\">s1b 的节点</text>\n<rect x=\"42\" y=\"404\" width=\"168\" height=\"52\" rx=\"14\" fill=\"#111111\" stroke=\"#222222\"/>\n<text x=\"126\" y=\"419\" font-size=\"7.5\" fill=\"#eeeeee\" text-anchor=\"middle\" letter-spacing=\"0.5\">ACTION</text>\n<text x=\"126\" y=\"431\" font-size=\"10.5\" fill=\"#dddddd\" text-anchor=\"middle\">s1a 的节点</text>\n<rect x=\"42\" y=\"116\" width=\"168\" height=\"52\" rx=\"14\" fill=\"#111111\" stroke=\"#222222\"/>\n<text x=\"126\" y=\"131\" font-size=\"7.5\" fill=\"#eeeeee\" text-anchor=\"middle\" letter-spacing=\"0.5\">ACTION</text>\n<text x=\"126\" y=\"143\" font-size=\"10.5\" fill=\"#dddddd\" text-anchor=\"middle\">s0 的节点</text>\n<text x=\"24\" y=\"650\" font-size=\"9\" fill=\"#eeeeee\">虚线 = 系统推断的顺序，材料里没有明写　·　右上角圆点 = 这一步有接口实现，悬停看路径</text>\n</svg>"
+  },
+  {
+   "flow": {
+    "edges": [
+     {
+      "evidence": [
+       {
+        "cite": "材料.xlsx#R1",
+        "confidence": 1.0,
+        "extractor": "rule",
+        "file_id": "f",
+        "file_name": "材料.xlsx",
+        "locator": {
+         "kind": "raw",
+         "ref": "R1"
+        },
+        "snippet": "fn_a->fn_ghost"
+       }
+      ],
+      "from": "fn_a",
+      "grounded": true,
+      "kind": "flow",
+      "label": "",
+      "rid": "fe1",
+      "to": "fn_ghost"
+     },
+     {
+      "evidence": [
+       {
+        "cite": "材料.xlsx#R1",
+        "confidence": 1.0,
+        "extractor": "rule",
+        "file_id": "f",
+        "file_name": "材料.xlsx",
+        "locator": {
+         "kind": "raw",
+         "ref": "R1"
+        },
+        "snippet": "fn_ghost->fn_a"
+       }
+      ],
+      "from": "fn_ghost",
+      "grounded": true,
+      "kind": "flow",
+      "label": "",
+      "rid": "fe2",
+      "to": "fn_a"
+     },
+     {
+      "evidence": [
+       {
+        "cite": "材料.xlsx#R1",
+        "confidence": 1.0,
+        "extractor": "rule",
+        "file_id": "f",
+        "file_name": "材料.xlsx",
+        "locator": {
+         "kind": "raw",
+         "ref": "R1"
+        },
+        "snippet": "fn_ghost->fn_ghost2"
+       }
+      ],
+      "from": "fn_ghost",
+      "grounded": true,
+      "kind": "flow",
+      "label": "",
+      "rid": "fe3",
+      "to": "fn_ghost2"
+     }
+    ],
+    "nodes": [
+     {
+      "actor": {
+       "confidence": 0.4,
+       "evidence": [],
+       "origin": "inferred",
+       "value": ""
+      },
+      "code": "",
+      "endpoint": "",
+      "grounded": true,
+      "kind": "action",
+      "label": {
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "cite": "材料.xlsx#R1",
+         "confidence": 1.0,
+         "extractor": "rule",
+         "file_id": "f",
+         "file_name": "材料.xlsx",
+         "locator": {
+          "kind": "raw",
+          "ref": "R1"
+         },
+         "snippet": "存在的节点"
+        }
+       ],
+       "origin": "extracted",
+       "value": "存在的节点"
+      },
+      "objects": [],
+      "rid": "fn_a",
+      "stage": "",
+      "status": "candidate"
+     }
+    ],
+    "stages": [],
+    "stats": {
+     "actions": 1,
+     "dangling": 0,
+     "dead_ends": 0,
+     "edges": 3,
+     "events": 0,
+     "externals": 0,
+     "gateways": 0,
+     "inferred_edges": 0,
+     "stages": 0,
+     "terminals": 0,
+     "workflows": 0
+    },
+    "workflows": []
+   },
+   "layers": {
+    "未分阶段": [
+     [
+      "fn_a"
+     ]
+    ]
+   },
+   "mermaid": "flowchart LR\n    nfn_a([\"存在的节点\"])\n    classDef act fill:#dbeafe,stroke:#60a5fa,color:#1e3a5f;\n    classDef evt fill:#fef3c7,stroke:#fbbf24,color:#78350f;\n    classDef gw  fill:#fef9c3,stroke:#eab308,color:#713f12;\n    classDef end_ fill:#dcfce7,stroke:#4ade80,color:#14532d;\n    classDef ext fill:#f3e8ff,stroke:#c084fc,color:#581c87;\n    class nfn_a act;",
+   "mermaid_tb_nocodes": "flowchart TB\n    nfn_a([\"存在的节点\"])\n    classDef act fill:#dbeafe,stroke:#60a5fa,color:#1e3a5f;\n    classDef evt fill:#fef3c7,stroke:#fbbf24,color:#78350f;\n    classDef gw  fill:#fef9c3,stroke:#eab308,color:#713f12;\n    classDef end_ fill:#dcfce7,stroke:#4ade80,color:#14532d;\n    classDef ext fill:#f3e8ff,stroke:#c084fc,color:#581c87;\n    class nfn_a act;",
+   "name": "dangling_edges",
+   "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 640 226\" width=\"640\" height=\"226\" font-family=\"-apple-system,PingFang SC,Microsoft YaHei,sans-serif\">\n<rect width=\"640\" height=\"226\" fill=\"#ffffff\"/>\n<defs><marker id=\"a\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"6\" markerHeight=\"6\" orient=\"auto-start-reverse\"><path d=\"M0,0 L10,5 L0,10 z\" fill=\"#9ca3af\"/></marker></defs>\n<text x=\"24\" y=\"38\" font-size=\"17\" font-weight=\"600\" fill=\"#1f2937\">业务流程总览</text>\n<text x=\"24\" y=\"56\" font-size=\"11\" fill=\"#6b7280\">1 个 Action ｜ 0 个 Event ｜ 0 个阶段 ｜ 0 条边为系统推断，需人工确认</text>\n<rect x=\"24\" y=\"58\" width=\"592\" height=\"128\" rx=\"6\" fill=\"#fafafa\" stroke=\"#e5e7eb\"/>\n<rect x=\"24\" y=\"58\" width=\"4\" height=\"128\" rx=\"2\" fill=\"#93c5fd\"/>\n<text x=\"40\" y=\"80\" font-size=\"12.5\" font-weight=\"600\" fill=\"#1f2937\">未分阶段</text>\n<rect x=\"42\" y=\"116\" width=\"168\" height=\"52\" rx=\"14\" fill=\"#dbeafe\" stroke=\"#93c5fd\"/>\n<text x=\"126\" y=\"131\" font-size=\"7.5\" fill=\"#6b7280\" text-anchor=\"middle\" letter-spacing=\"0.5\">ACTION</text>\n<text x=\"126\" y=\"143\" font-size=\"10.5\" fill=\"#1f2937\" text-anchor=\"middle\">存在的节点</text>\n<text x=\"24\" y=\"218\" font-size=\"9\" fill=\"#6b7280\">虚线 = 系统推断的顺序，材料里没有明写　·　右上角圆点 = 这一步有接口实现，悬停看路径</text>\n</svg>",
+   "svg_custom": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 640 226\" width=\"640\" height=\"226\" font-family=\"-apple-system,PingFang SC,Microsoft YaHei,sans-serif\">\n<rect width=\"640\" height=\"226\" fill=\"#ffffff\"/>\n<defs><marker id=\"a\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"6\" markerHeight=\"6\" orient=\"auto-start-reverse\"><path d=\"M0,0 L10,5 L0,10 z\" fill=\"#ffffff\"/></marker></defs>\n<text x=\"24\" y=\"38\" font-size=\"17\" font-weight=\"600\" fill=\"#dddddd\">自定义 &quot;标题&quot; &lt;&amp;&gt;</text>\n<text x=\"24\" y=\"56\" font-size=\"11\" fill=\"#eeeeee\">1 个 Action ｜ 0 个 Event ｜ 0 个阶段 ｜ 0 条边为系统推断，需人工确认</text>\n<rect x=\"24\" y=\"58\" width=\"592\" height=\"128\" rx=\"6\" fill=\"#bbbbbb\" stroke=\"#cccccc\"/>\n<rect x=\"24\" y=\"58\" width=\"4\" height=\"128\" rx=\"2\" fill=\"#222222\"/>\n<text x=\"40\" y=\"80\" font-size=\"12.5\" font-weight=\"600\" fill=\"#dddddd\">未分阶段</text>\n<rect x=\"42\" y=\"116\" width=\"168\" height=\"52\" rx=\"14\" fill=\"#111111\" stroke=\"#222222\"/>\n<text x=\"126\" y=\"131\" font-size=\"7.5\" fill=\"#eeeeee\" text-anchor=\"middle\" letter-spacing=\"0.5\">ACTION</text>\n<text x=\"126\" y=\"143\" font-size=\"10.5\" fill=\"#dddddd\" text-anchor=\"middle\">存在的节点</text>\n<text x=\"24\" y=\"218\" font-size=\"9\" fill=\"#eeeeee\">虚线 = 系统推断的顺序，材料里没有明写　·　右上角圆点 = 这一步有接口实现，悬停看路径</text>\n</svg>"
+  },
+  {
+   "flow": {
+    "edges": [
+     {
+      "evidence": [
+       {
+        "cite": "材料.xlsx#R1",
+        "confidence": 1.0,
+        "extractor": "rule",
+        "file_id": "f",
+        "file_name": "材料.xlsx",
+        "locator": {
+         "kind": "raw",
+         "ref": "R1"
+        },
+        "snippet": "fn_1->fn_2"
+       }
+      ],
+      "from": "fn_1",
+      "grounded": true,
+      "kind": "flow",
+      "label": "",
+      "rid": "fe1",
+      "to": "fn_2"
+     },
+     {
+      "evidence": [
+       {
+        "cite": "材料.xlsx#R1",
+        "confidence": 1.0,
+        "extractor": "rule",
+        "file_id": "f",
+        "file_name": "材料.xlsx",
+        "locator": {
+         "kind": "raw",
+         "ref": "R1"
+        },
+        "snippet": "fn_2->fn_3"
+       }
+      ],
+      "from": "fn_2",
+      "grounded": true,
+      "kind": "flow",
+      "label": "",
+      "rid": "fe2",
+      "to": "fn_3"
+     },
+     {
+      "evidence": [
+       {
+        "cite": "材料.xlsx#R1",
+        "confidence": 1.0,
+        "extractor": "rule",
+        "file_id": "f",
+        "file_name": "材料.xlsx",
+        "locator": {
+         "kind": "raw",
+         "ref": "R1"
+        },
+        "snippet": "fn_3->fn_1"
+       }
+      ],
+      "from": "fn_3",
+      "grounded": true,
+      "kind": "comp",
+      "label": "整体回退",
+      "rid": "fe3",
+      "to": "fn_1"
+     }
+    ],
+    "nodes": [
+     {
+      "actor": {
+       "confidence": 0.4,
+       "evidence": [],
+       "origin": "inferred",
+       "value": ""
+      },
+      "code": "",
+      "endpoint": "",
+      "grounded": true,
+      "kind": "action",
+      "label": {
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "cite": "材料.xlsx#R1",
+         "confidence": 1.0,
+         "extractor": "rule",
+         "file_id": "f",
+         "file_name": "材料.xlsx",
+         "locator": {
+          "kind": "raw",
+          "ref": "R1"
+         },
+         "snippet": "第一步"
+        }
+       ],
+       "origin": "extracted",
+       "value": "第一步"
+      },
+      "objects": [],
+      "rid": "fn_1",
+      "stage": "s1",
+      "status": "candidate"
+     },
+     {
+      "actor": {
+       "confidence": 0.4,
+       "evidence": [],
+       "origin": "inferred",
+       "value": ""
+      },
+      "code": "",
+      "endpoint": "",
+      "grounded": true,
+      "kind": "action",
+      "label": {
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "cite": "材料.xlsx#R1",
+         "confidence": 1.0,
+         "extractor": "rule",
+         "file_id": "f",
+         "file_name": "材料.xlsx",
+         "locator": {
+          "kind": "raw",
+          "ref": "R1"
+         },
+         "snippet": "第二步"
+        }
+       ],
+       "origin": "extracted",
+       "value": "第二步"
+      },
+      "objects": [],
+      "rid": "fn_2",
+      "stage": "s1",
+      "status": "candidate"
+     },
+     {
+      "actor": {
+       "confidence": 0.4,
+       "evidence": [],
+       "origin": "inferred",
+       "value": ""
+      },
+      "code": "",
+      "endpoint": "",
+      "grounded": true,
+      "kind": "action",
+      "label": {
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "cite": "材料.xlsx#R1",
+         "confidence": 1.0,
+         "extractor": "rule",
+         "file_id": "f",
+         "file_name": "材料.xlsx",
+         "locator": {
+          "kind": "raw",
+          "ref": "R1"
+         },
+         "snippet": "第三步"
+        }
+       ],
+       "origin": "extracted",
+       "value": "第三步"
+      },
+      "objects": [],
+      "rid": "fn_3",
+      "stage": "s1",
+      "status": "candidate"
+     }
+    ],
+    "stages": [
+     {
+      "key": "s1",
+      "order": 1,
+      "subtitle": "",
+      "title": "单泳道"
+     }
+    ],
+    "stats": {
+     "actions": 3,
+     "dangling": 0,
+     "dead_ends": 0,
+     "edges": 3,
+     "events": 0,
+     "externals": 0,
+     "gateways": 0,
+     "inferred_edges": 0,
+     "stages": 1,
+     "terminals": 0,
+     "workflows": 0
+    },
+    "workflows": []
+   },
+   "layers": {
+    "s1": [
+     [
+      "fn_1",
+      "fn_2",
+      "fn_3"
+     ]
+    ]
+   },
+   "mermaid": "flowchart LR\n    subgraph ns1[\"单泳道\"]\n        direction LR\n    nfn_1([\"第一步\"])\n    nfn_2([\"第二步\"])\n    nfn_3([\"第三步\"])\n    end\n    nfn_1 --> nfn_2\n    nfn_2 --> nfn_3\n    nfn_3 -.->|整体回退| nfn_1\n    classDef act fill:#dbeafe,stroke:#60a5fa,color:#1e3a5f;\n    classDef evt fill:#fef3c7,stroke:#fbbf24,color:#78350f;\n    classDef gw  fill:#fef9c3,stroke:#eab308,color:#713f12;\n    classDef end_ fill:#dcfce7,stroke:#4ade80,color:#14532d;\n    classDef ext fill:#f3e8ff,stroke:#c084fc,color:#581c87;\n    class nfn_1,nfn_2,nfn_3 act;",
+   "mermaid_tb_nocodes": "flowchart TB\n    subgraph ns1[\"单泳道\"]\n        direction LR\n    nfn_1([\"第一步\"])\n    nfn_2([\"第二步\"])\n    nfn_3([\"第三步\"])\n    end\n    nfn_1 --> nfn_2\n    nfn_2 --> nfn_3\n    nfn_3 -.->|整体回退| nfn_1\n    classDef act fill:#dbeafe,stroke:#60a5fa,color:#1e3a5f;\n    classDef evt fill:#fef3c7,stroke:#fbbf24,color:#78350f;\n    classDef gw  fill:#fef9c3,stroke:#eab308,color:#713f12;\n    classDef end_ fill:#dcfce7,stroke:#4ade80,color:#14532d;\n    classDef ext fill:#f3e8ff,stroke:#c084fc,color:#581c87;\n    class nfn_1,nfn_2,nfn_3 act;",
+   "name": "backward",
+   "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 640 382\" width=\"640\" height=\"382\" font-family=\"-apple-system,PingFang SC,Microsoft YaHei,sans-serif\">\n<rect width=\"640\" height=\"382\" fill=\"#ffffff\"/>\n<defs><marker id=\"a\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"6\" markerHeight=\"6\" orient=\"auto-start-reverse\"><path d=\"M0,0 L10,5 L0,10 z\" fill=\"#9ca3af\"/></marker></defs>\n<text x=\"24\" y=\"38\" font-size=\"17\" font-weight=\"600\" fill=\"#1f2937\">业务流程总览</text>\n<text x=\"24\" y=\"56\" font-size=\"11\" fill=\"#6b7280\">3 个 Action ｜ 0 个 Event ｜ 1 个阶段 ｜ 0 条边为系统推断，需人工确认</text>\n<rect x=\"24\" y=\"58\" width=\"592\" height=\"284\" rx=\"6\" fill=\"#fafafa\" stroke=\"#e5e7eb\"/>\n<rect x=\"24\" y=\"58\" width=\"4\" height=\"284\" rx=\"2\" fill=\"#93c5fd\"/>\n<text x=\"40\" y=\"80\" font-size=\"12.5\" font-weight=\"600\" fill=\"#1f2937\">单泳道</text>\n<path d=\"M210,142 C250,256 2,256 42,220\" fill=\"none\" stroke=\"#9ca3af\" stroke-width=\"1.3\" marker-end=\"url(#a)\"/>\n<path d=\"M210,220 C250,334 2,334 42,298\" fill=\"none\" stroke=\"#9ca3af\" stroke-width=\"1.3\" marker-end=\"url(#a)\"/>\n<path d=\"M210,298 C250,334 2,334 42,142\" fill=\"none\" stroke=\"#c4b5fd\" stroke-width=\"1.3\" stroke-dasharray=\"5 4\" marker-end=\"url(#a)\"/>\n<text x=\"126\" y=\"215\" font-size=\"9.5\" fill=\"#6b7280\" text-anchor=\"middle\">整体回退</text>\n<rect x=\"42\" y=\"116\" width=\"168\" height=\"52\" rx=\"14\" fill=\"#dbeafe\" stroke=\"#93c5fd\"/>\n<text x=\"126\" y=\"131\" font-size=\"7.5\" fill=\"#6b7280\" text-anchor=\"middle\" letter-spacing=\"0.5\">ACTION</text>\n<text x=\"126\" y=\"143\" font-size=\"10.5\" fill=\"#1f2937\" text-anchor=\"middle\">第一步</text>\n<rect x=\"42\" y=\"194\" width=\"168\" height=\"52\" rx=\"14\" fill=\"#dbeafe\" stroke=\"#93c5fd\"/>\n<text x=\"126\" y=\"209\" font-size=\"7.5\" fill=\"#6b7280\" text-anchor=\"middle\" letter-spacing=\"0.5\">ACTION</text>\n<text x=\"126\" y=\"221\" font-size=\"10.5\" fill=\"#1f2937\" text-anchor=\"middle\">第二步</text>\n<rect x=\"42\" y=\"272\" width=\"168\" height=\"52\" rx=\"14\" fill=\"#dbeafe\" stroke=\"#93c5fd\"/>\n<text x=\"126\" y=\"287\" font-size=\"7.5\" fill=\"#6b7280\" text-anchor=\"middle\" letter-spacing=\"0.5\">ACTION</text>\n<text x=\"126\" y=\"299\" font-size=\"10.5\" fill=\"#1f2937\" text-anchor=\"middle\">第三步</text>\n<text x=\"24\" y=\"374\" font-size=\"9\" fill=\"#6b7280\">虚线 = 系统推断的顺序，材料里没有明写　·　右上角圆点 = 这一步有接口实现，悬停看路径</text>\n</svg>",
+   "svg_custom": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 640 382\" width=\"640\" height=\"382\" font-family=\"-apple-system,PingFang SC,Microsoft YaHei,sans-serif\">\n<rect width=\"640\" height=\"382\" fill=\"#ffffff\"/>\n<defs><marker id=\"a\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"6\" markerHeight=\"6\" orient=\"auto-start-reverse\"><path d=\"M0,0 L10,5 L0,10 z\" fill=\"#ffffff\"/></marker></defs>\n<text x=\"24\" y=\"38\" font-size=\"17\" font-weight=\"600\" fill=\"#dddddd\">自定义 &quot;标题&quot; &lt;&amp;&gt;</text>\n<text x=\"24\" y=\"56\" font-size=\"11\" fill=\"#eeeeee\">3 个 Action ｜ 0 个 Event ｜ 1 个阶段 ｜ 0 条边为系统推断，需人工确认</text>\n<rect x=\"24\" y=\"58\" width=\"592\" height=\"284\" rx=\"6\" fill=\"#bbbbbb\" stroke=\"#cccccc\"/>\n<rect x=\"24\" y=\"58\" width=\"4\" height=\"284\" rx=\"2\" fill=\"#222222\"/>\n<text x=\"40\" y=\"80\" font-size=\"12.5\" font-weight=\"600\" fill=\"#dddddd\">单泳道</text>\n<path d=\"M210,142 C250,256 2,256 42,220\" fill=\"none\" stroke=\"#ffffff\" stroke-width=\"1.3\" marker-end=\"url(#a)\"/>\n<path d=\"M210,220 C250,334 2,334 42,298\" fill=\"none\" stroke=\"#ffffff\" stroke-width=\"1.3\" marker-end=\"url(#a)\"/>\n<path d=\"M210,298 C250,334 2,334 42,142\" fill=\"none\" stroke=\"#c4b5fd\" stroke-width=\"1.3\" stroke-dasharray=\"5 4\" marker-end=\"url(#a)\"/>\n<text x=\"126\" y=\"215\" font-size=\"9.5\" fill=\"#eeeeee\" text-anchor=\"middle\">整体回退</text>\n<rect x=\"42\" y=\"116\" width=\"168\" height=\"52\" rx=\"14\" fill=\"#111111\" stroke=\"#222222\"/>\n<text x=\"126\" y=\"131\" font-size=\"7.5\" fill=\"#eeeeee\" text-anchor=\"middle\" letter-spacing=\"0.5\">ACTION</text>\n<text x=\"126\" y=\"143\" font-size=\"10.5\" fill=\"#dddddd\" text-anchor=\"middle\">第一步</text>\n<rect x=\"42\" y=\"194\" width=\"168\" height=\"52\" rx=\"14\" fill=\"#111111\" stroke=\"#222222\"/>\n<text x=\"126\" y=\"209\" font-size=\"7.5\" fill=\"#eeeeee\" text-anchor=\"middle\" letter-spacing=\"0.5\">ACTION</text>\n<text x=\"126\" y=\"221\" font-size=\"10.5\" fill=\"#dddddd\" text-anchor=\"middle\">第二步</text>\n<rect x=\"42\" y=\"272\" width=\"168\" height=\"52\" rx=\"14\" fill=\"#111111\" stroke=\"#222222\"/>\n<text x=\"126\" y=\"287\" font-size=\"7.5\" fill=\"#eeeeee\" text-anchor=\"middle\" letter-spacing=\"0.5\">ACTION</text>\n<text x=\"126\" y=\"299\" font-size=\"10.5\" fill=\"#dddddd\" text-anchor=\"middle\">第三步</text>\n<text x=\"24\" y=\"374\" font-size=\"9\" fill=\"#eeeeee\">虚线 = 系统推断的顺序，材料里没有明写　·　右上角圆点 = 这一步有接口实现，悬停看路径</text>\n</svg>"
+  },
+  {
+   "flow": {
+    "edges": [],
+    "nodes": [
+     {
+      "actor": {
+       "confidence": 0.4,
+       "evidence": [],
+       "origin": "inferred",
+       "value": ""
+      },
+      "code": "",
+      "endpoint": "POST /api/a",
+      "grounded": true,
+      "kind": "action",
+      "label": {
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "cite": "材料.xlsx#R1",
+         "confidence": 1.0,
+         "extractor": "rule",
+         "file_id": "f",
+         "file_name": "材料.xlsx",
+         "locator": {
+          "kind": "raw",
+          "ref": "R1"
+         },
+         "snippet": "有接口的动作"
+        }
+       ],
+       "origin": "extracted",
+       "value": "有接口的动作"
+      },
+      "objects": [],
+      "rid": "fn_1",
+      "stage": "",
+      "status": "candidate"
+     },
+     {
+      "actor": {
+       "confidence": 0.4,
+       "evidence": [],
+       "origin": "inferred",
+       "value": ""
+      },
+      "code": "",
+      "endpoint": "",
+      "grounded": true,
+      "kind": "action",
+      "label": {
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "cite": "材料.xlsx#R1",
+         "confidence": 1.0,
+         "extractor": "rule",
+         "file_id": "f",
+         "file_name": "材料.xlsx",
+         "locator": {
+          "kind": "raw",
+          "ref": "R1"
+         },
+         "snippet": "没接口的动作"
+        }
+       ],
+       "origin": "extracted",
+       "value": "没接口的动作"
+      },
+      "objects": [],
+      "rid": "fn_2",
+      "stage": "",
+      "status": "candidate"
+     },
+     {
+      "actor": {
+       "confidence": 0.4,
+       "evidence": [],
+       "origin": "inferred",
+       "value": ""
+      },
+      "code": "",
+      "endpoint": "GET /api/b",
+      "grounded": true,
+      "kind": "event",
+      "label": {
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "cite": "材料.xlsx#R1",
+         "confidence": 1.0,
+         "extractor": "rule",
+         "file_id": "f",
+         "file_name": "材料.xlsx",
+         "locator": {
+          "kind": "raw",
+          "ref": "R1"
+         },
+         "snippet": "事件也带 endpoint"
+        }
+       ],
+       "origin": "extracted",
+       "value": "事件也带 endpoint"
+      },
+      "objects": [],
+      "rid": "fn_3",
+      "stage": "",
+      "status": "candidate"
+     }
+    ],
+    "stages": [],
+    "stats": {
+     "actions": 2,
+     "dangling": 3,
+     "dead_ends": 0,
+     "edges": 0,
+     "events": 1,
+     "externals": 0,
+     "gateways": 0,
+     "inferred_edges": 0,
+     "stages": 0,
+     "terminals": 0,
+     "workflows": 0
+    },
+    "workflows": []
+   },
+   "layers": {
+    "未分阶段": [
+     [
+      "fn_1",
+      "fn_2",
+      "fn_3"
+     ]
+    ]
+   },
+   "mermaid": "flowchart LR\n    nfn_1([\"有接口的动作<br/><small>POST /api/a</small>\"])\n    nfn_2([\"没接口的动作\"])\n    nfn_3[\"事件也带 endpoint<br/><small>GET /api/b</small>\"]\n    classDef act fill:#dbeafe,stroke:#60a5fa,color:#1e3a5f;\n    classDef evt fill:#fef3c7,stroke:#fbbf24,color:#78350f;\n    classDef gw  fill:#fef9c3,stroke:#eab308,color:#713f12;\n    classDef end_ fill:#dcfce7,stroke:#4ade80,color:#14532d;\n    classDef ext fill:#f3e8ff,stroke:#c084fc,color:#581c87;\n    class nfn_1,nfn_2 act;\n    class nfn_3 evt;",
+   "mermaid_tb_nocodes": "flowchart TB\n    nfn_1([\"有接口的动作<br/><small>POST /api/a</small>\"])\n    nfn_2([\"没接口的动作\"])\n    nfn_3[\"事件也带 endpoint<br/><small>GET /api/b</small>\"]\n    classDef act fill:#dbeafe,stroke:#60a5fa,color:#1e3a5f;\n    classDef evt fill:#fef3c7,stroke:#fbbf24,color:#78350f;\n    classDef gw  fill:#fef9c3,stroke:#eab308,color:#713f12;\n    classDef end_ fill:#dcfce7,stroke:#4ade80,color:#14532d;\n    classDef ext fill:#f3e8ff,stroke:#c084fc,color:#581c87;\n    class nfn_1,nfn_2 act;\n    class nfn_3 evt;",
+   "name": "wired",
+   "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 640 382\" width=\"640\" height=\"382\" font-family=\"-apple-system,PingFang SC,Microsoft YaHei,sans-serif\">\n<rect width=\"640\" height=\"382\" fill=\"#ffffff\"/>\n<defs><marker id=\"a\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"6\" markerHeight=\"6\" orient=\"auto-start-reverse\"><path d=\"M0,0 L10,5 L0,10 z\" fill=\"#9ca3af\"/></marker></defs>\n<text x=\"24\" y=\"38\" font-size=\"17\" font-weight=\"600\" fill=\"#1f2937\">业务流程总览</text>\n<text x=\"24\" y=\"56\" font-size=\"11\" fill=\"#6b7280\">2 个 Action ｜ 1 个 Event ｜ 0 个阶段 ｜ 0 条边为系统推断，需人工确认 ｜ 1/2 个环节已对上接口</text>\n<rect x=\"24\" y=\"58\" width=\"592\" height=\"284\" rx=\"6\" fill=\"#fafafa\" stroke=\"#e5e7eb\"/>\n<rect x=\"24\" y=\"58\" width=\"4\" height=\"284\" rx=\"2\" fill=\"#93c5fd\"/>\n<text x=\"40\" y=\"80\" font-size=\"12.5\" font-weight=\"600\" fill=\"#1f2937\">未分阶段</text>\n<rect x=\"42\" y=\"116\" width=\"168\" height=\"52\" rx=\"14\" fill=\"#dbeafe\" stroke=\"#93c5fd\"/>\n<text x=\"126\" y=\"131\" font-size=\"7.5\" fill=\"#6b7280\" text-anchor=\"middle\" letter-spacing=\"0.5\">ACTION</text>\n<text x=\"126\" y=\"143\" font-size=\"10.5\" fill=\"#1f2937\" text-anchor=\"middle\">有接口的动作</text>\n<circle cx=\"201\" cy=\"125\" r=\"3.5\" fill=\"#93c5fd\"><title>POST /api/a</title></circle>\n<rect x=\"42\" y=\"194\" width=\"168\" height=\"52\" rx=\"14\" fill=\"#dbeafe\" stroke=\"#93c5fd\"/>\n<text x=\"126\" y=\"209\" font-size=\"7.5\" fill=\"#6b7280\" text-anchor=\"middle\" letter-spacing=\"0.5\">ACTION</text>\n<text x=\"126\" y=\"221\" font-size=\"10.5\" fill=\"#1f2937\" text-anchor=\"middle\">没接口的动作</text>\n<rect x=\"42\" y=\"272\" width=\"168\" height=\"52\" rx=\"4\" fill=\"#fef3c7\" stroke=\"#fcd34d\"/>\n<text x=\"126\" y=\"287\" font-size=\"7.5\" fill=\"#6b7280\" text-anchor=\"middle\" letter-spacing=\"0.5\">EVENT</text>\n<text x=\"126\" y=\"299\" font-size=\"10.5\" fill=\"#1f2937\" text-anchor=\"middle\">事件也带 endpoin</text>\n<text x=\"126\" y=\"311\" font-size=\"10.5\" fill=\"#1f2937\" text-anchor=\"middle\">t</text>\n<circle cx=\"201\" cy=\"281\" r=\"3.5\" fill=\"#93c5fd\"><title>GET /api/b</title></circle>\n<text x=\"24\" y=\"374\" font-size=\"9\" fill=\"#6b7280\">虚线 = 系统推断的顺序，材料里没有明写　·　右上角圆点 = 这一步有接口实现，悬停看路径</text>\n</svg>",
+   "svg_custom": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 640 382\" width=\"640\" height=\"382\" font-family=\"-apple-system,PingFang SC,Microsoft YaHei,sans-serif\">\n<rect width=\"640\" height=\"382\" fill=\"#ffffff\"/>\n<defs><marker id=\"a\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"6\" markerHeight=\"6\" orient=\"auto-start-reverse\"><path d=\"M0,0 L10,5 L0,10 z\" fill=\"#ffffff\"/></marker></defs>\n<text x=\"24\" y=\"38\" font-size=\"17\" font-weight=\"600\" fill=\"#dddddd\">自定义 &quot;标题&quot; &lt;&amp;&gt;</text>\n<text x=\"24\" y=\"56\" font-size=\"11\" fill=\"#eeeeee\">2 个 Action ｜ 1 个 Event ｜ 0 个阶段 ｜ 0 条边为系统推断，需人工确认 ｜ 1/2 个环节已对上接口</text>\n<rect x=\"24\" y=\"58\" width=\"592\" height=\"284\" rx=\"6\" fill=\"#bbbbbb\" stroke=\"#cccccc\"/>\n<rect x=\"24\" y=\"58\" width=\"4\" height=\"284\" rx=\"2\" fill=\"#222222\"/>\n<text x=\"40\" y=\"80\" font-size=\"12.5\" font-weight=\"600\" fill=\"#dddddd\">未分阶段</text>\n<rect x=\"42\" y=\"116\" width=\"168\" height=\"52\" rx=\"14\" fill=\"#111111\" stroke=\"#222222\"/>\n<text x=\"126\" y=\"131\" font-size=\"7.5\" fill=\"#eeeeee\" text-anchor=\"middle\" letter-spacing=\"0.5\">ACTION</text>\n<text x=\"126\" y=\"143\" font-size=\"10.5\" fill=\"#dddddd\" text-anchor=\"middle\">有接口的动作</text>\n<circle cx=\"201\" cy=\"125\" r=\"3.5\" fill=\"#222222\"><title>POST /api/a</title></circle>\n<rect x=\"42\" y=\"194\" width=\"168\" height=\"52\" rx=\"14\" fill=\"#111111\" stroke=\"#222222\"/>\n<text x=\"126\" y=\"209\" font-size=\"7.5\" fill=\"#eeeeee\" text-anchor=\"middle\" letter-spacing=\"0.5\">ACTION</text>\n<text x=\"126\" y=\"221\" font-size=\"10.5\" fill=\"#dddddd\" text-anchor=\"middle\">没接口的动作</text>\n<rect x=\"42\" y=\"272\" width=\"168\" height=\"52\" rx=\"4\" fill=\"#333333\" stroke=\"#444444\"/>\n<text x=\"126\" y=\"287\" font-size=\"7.5\" fill=\"#eeeeee\" text-anchor=\"middle\" letter-spacing=\"0.5\">EVENT</text>\n<text x=\"126\" y=\"299\" font-size=\"10.5\" fill=\"#dddddd\" text-anchor=\"middle\">事件也带 endpoin</text>\n<text x=\"126\" y=\"311\" font-size=\"10.5\" fill=\"#dddddd\" text-anchor=\"middle\">t</text>\n<circle cx=\"201\" cy=\"281\" r=\"3.5\" fill=\"#222222\"><title>GET /api/b</title></circle>\n<text x=\"24\" y=\"374\" font-size=\"9\" fill=\"#eeeeee\">虚线 = 系统推断的顺序，材料里没有明写　·　右上角圆点 = 这一步有接口实现，悬停看路径</text>\n</svg>"
+  },
+  {
+   "flow": {
+    "edges": [
+     {
+      "evidence": [
+       {
+        "cite": "材料.xlsx#R1",
+        "confidence": 1.0,
+        "extractor": "rule",
+        "file_id": "f",
+        "file_name": "材料.xlsx",
+        "locator": {
+         "kind": "raw",
+         "ref": "R1"
+        },
+        "snippet": "fn_0->fn_1"
+       }
+      ],
+      "from": "fn_0",
+      "grounded": true,
+      "kind": "flow",
+      "label": "",
+      "rid": "fe_0",
+      "to": "fn_1"
+     },
+     {
+      "evidence": [
+       {
+        "cite": "材料.xlsx#R1",
+        "confidence": 1.0,
+        "extractor": "rule",
+        "file_id": "f",
+        "file_name": "材料.xlsx",
+        "locator": {
+         "kind": "raw",
+         "ref": "R1"
+        },
+        "snippet": "fn_1->fn_2"
+       }
+      ],
+      "from": "fn_1",
+      "grounded": true,
+      "kind": "flow",
+      "label": "",
+      "rid": "fe_1",
+      "to": "fn_2"
+     },
+     {
+      "evidence": [
+       {
+        "cite": "材料.xlsx#R1",
+        "confidence": 1.0,
+        "extractor": "rule",
+        "file_id": "f",
+        "file_name": "材料.xlsx",
+        "locator": {
+         "kind": "raw",
+         "ref": "R1"
+        },
+        "snippet": "fn_2->fn_3"
+       }
+      ],
+      "from": "fn_2",
+      "grounded": true,
+      "kind": "flow",
+      "label": "",
+      "rid": "fe_2",
+      "to": "fn_3"
+     }
+    ],
+    "nodes": [
+     {
+      "actor": {
+       "confidence": 0.4,
+       "evidence": [],
+       "origin": "inferred",
+       "value": ""
+      },
+      "code": "",
+      "endpoint": "",
+      "grounded": true,
+      "kind": "action",
+      "label": {
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "cite": "材料.xlsx#R1",
+         "confidence": 1.0,
+         "extractor": "rule",
+         "file_id": "f",
+         "file_name": "材料.xlsx",
+         "locator": {
+          "kind": "raw",
+          "ref": "R1"
+         },
+         "snippet": "第0步"
+        }
+       ],
+       "origin": "extracted",
+       "value": "第0步"
+      },
+      "objects": [],
+      "rid": "fn_0",
+      "stage": "s1",
+      "status": "candidate"
+     },
+     {
+      "actor": {
+       "confidence": 0.4,
+       "evidence": [],
+       "origin": "inferred",
+       "value": ""
+      },
+      "code": "",
+      "endpoint": "",
+      "grounded": true,
+      "kind": "action",
+      "label": {
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "cite": "材料.xlsx#R1",
+         "confidence": 1.0,
+         "extractor": "rule",
+         "file_id": "f",
+         "file_name": "材料.xlsx",
+         "locator": {
+          "kind": "raw",
+          "ref": "R1"
+         },
+         "snippet": "第1步"
+        }
+       ],
+       "origin": "extracted",
+       "value": "第1步"
+      },
+      "objects": [],
+      "rid": "fn_1",
+      "stage": "s1",
+      "status": "candidate"
+     },
+     {
+      "actor": {
+       "confidence": 0.4,
+       "evidence": [],
+       "origin": "inferred",
+       "value": ""
+      },
+      "code": "",
+      "endpoint": "",
+      "grounded": true,
+      "kind": "action",
+      "label": {
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "cite": "材料.xlsx#R1",
+         "confidence": 1.0,
+         "extractor": "rule",
+         "file_id": "f",
+         "file_name": "材料.xlsx",
+         "locator": {
+          "kind": "raw",
+          "ref": "R1"
+         },
+         "snippet": "第2步"
+        }
+       ],
+       "origin": "extracted",
+       "value": "第2步"
+      },
+      "objects": [],
+      "rid": "fn_2",
+      "stage": "s1",
+      "status": "candidate"
+     },
+     {
+      "actor": {
+       "confidence": 0.4,
+       "evidence": [],
+       "origin": "inferred",
+       "value": ""
+      },
+      "code": "",
+      "endpoint": "",
+      "grounded": true,
+      "kind": "action",
+      "label": {
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "cite": "材料.xlsx#R1",
+         "confidence": 1.0,
+         "extractor": "rule",
+         "file_id": "f",
+         "file_name": "材料.xlsx",
+         "locator": {
+          "kind": "raw",
+          "ref": "R1"
+         },
+         "snippet": "第3步"
+        }
+       ],
+       "origin": "extracted",
+       "value": "第3步"
+      },
+      "objects": [],
+      "rid": "fn_3",
+      "stage": "s1",
+      "status": "candidate"
+     },
+     {
+      "actor": {
+       "confidence": 0.4,
+       "evidence": [],
+       "origin": "inferred",
+       "value": ""
+      },
+      "code": "",
+      "endpoint": "",
+      "grounded": true,
+      "kind": "action",
+      "label": {
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "cite": "材料.xlsx#R1",
+         "confidence": 1.0,
+         "extractor": "rule",
+         "file_id": "f",
+         "file_name": "材料.xlsx",
+         "locator": {
+          "kind": "raw",
+          "ref": "R1"
+         },
+         "snippet": "第4步"
+        }
+       ],
+       "origin": "extracted",
+       "value": "第4步"
+      },
+      "objects": [],
+      "rid": "fn_4",
+      "stage": "s1",
+      "status": "candidate"
+     },
+     {
+      "actor": {
+       "confidence": 0.4,
+       "evidence": [],
+       "origin": "inferred",
+       "value": ""
+      },
+      "code": "",
+      "endpoint": "",
+      "grounded": true,
+      "kind": "action",
+      "label": {
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "cite": "材料.xlsx#R1",
+         "confidence": 1.0,
+         "extractor": "rule",
+         "file_id": "f",
+         "file_name": "材料.xlsx",
+         "locator": {
+          "kind": "raw",
+          "ref": "R1"
+         },
+         "snippet": "第5步"
+        }
+       ],
+       "origin": "extracted",
+       "value": "第5步"
+      },
+      "objects": [],
+      "rid": "fn_5",
+      "stage": "s1",
+      "status": "candidate"
+     }
+    ],
+    "stages": [
+     {
+      "key": "s1",
+      "order": 1,
+      "subtitle": "",
+      "title": "宽泳道"
+     }
+    ],
+    "stats": {
+     "actions": 6,
+     "dangling": 2,
+     "dead_ends": 1,
+     "edges": 3,
+     "events": 0,
+     "externals": 0,
+     "gateways": 0,
+     "inferred_edges": 0,
+     "stages": 1,
+     "terminals": 0,
+     "workflows": 0
+    },
+    "workflows": []
+   },
+   "layers": {
+    "s1": [
+     [
+      "fn_0",
+      "fn_4",
+      "fn_5"
+     ],
+     [
+      "fn_1"
+     ],
+     [
+      "fn_2"
+     ],
+     [
+      "fn_3"
+     ]
+    ]
+   },
+   "mermaid": "flowchart LR\n    subgraph ns1[\"宽泳道\"]\n        direction LR\n    nfn_0([\"第0步\"])\n    nfn_1([\"第1步\"])\n    nfn_2([\"第2步\"])\n    nfn_3([\"第3步\"])\n    nfn_4([\"第4步\"])\n    nfn_5([\"第5步\"])\n    end\n    nfn_0 --> nfn_1\n    nfn_1 --> nfn_2\n    nfn_2 --> nfn_3\n    classDef act fill:#dbeafe,stroke:#60a5fa,color:#1e3a5f;\n    classDef evt fill:#fef3c7,stroke:#fbbf24,color:#78350f;\n    classDef gw  fill:#fef9c3,stroke:#eab308,color:#713f12;\n    classDef end_ fill:#dcfce7,stroke:#4ade80,color:#14532d;\n    classDef ext fill:#f3e8ff,stroke:#c084fc,color:#581c87;\n    class nfn_0,nfn_1,nfn_2,nfn_3,nfn_4,nfn_5 act;",
+   "mermaid_tb_nocodes": "flowchart TB\n    subgraph ns1[\"宽泳道\"]\n        direction LR\n    nfn_0([\"第0步\"])\n    nfn_1([\"第1步\"])\n    nfn_2([\"第2步\"])\n    nfn_3([\"第3步\"])\n    nfn_4([\"第4步\"])\n    nfn_5([\"第5步\"])\n    end\n    nfn_0 --> nfn_1\n    nfn_1 --> nfn_2\n    nfn_2 --> nfn_3\n    classDef act fill:#dbeafe,stroke:#60a5fa,color:#1e3a5f;\n    classDef evt fill:#fef3c7,stroke:#fbbf24,color:#78350f;\n    classDef gw  fill:#fef9c3,stroke:#eab308,color:#713f12;\n    classDef end_ fill:#dcfce7,stroke:#4ade80,color:#14532d;\n    classDef ext fill:#f3e8ff,stroke:#c084fc,color:#581c87;\n    class nfn_0,nfn_1,nfn_2,nfn_3,nfn_4,nfn_5 act;",
+   "name": "wide",
+   "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 940 382\" width=\"940\" height=\"382\" font-family=\"-apple-system,PingFang SC,Microsoft YaHei,sans-serif\">\n<rect width=\"940\" height=\"382\" fill=\"#ffffff\"/>\n<defs><marker id=\"a\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"6\" markerHeight=\"6\" orient=\"auto-start-reverse\"><path d=\"M0,0 L10,5 L0,10 z\" fill=\"#9ca3af\"/></marker></defs>\n<text x=\"24\" y=\"38\" font-size=\"17\" font-weight=\"600\" fill=\"#1f2937\">业务流程总览</text>\n<text x=\"24\" y=\"56\" font-size=\"11\" fill=\"#6b7280\">6 个 Action ｜ 0 个 Event ｜ 1 个阶段 ｜ 0 条边为系统推断，需人工确认</text>\n<rect x=\"24\" y=\"58\" width=\"892\" height=\"284\" rx=\"6\" fill=\"#fafafa\" stroke=\"#e5e7eb\"/>\n<rect x=\"24\" y=\"58\" width=\"4\" height=\"284\" rx=\"2\" fill=\"#93c5fd\"/>\n<text x=\"40\" y=\"80\" font-size=\"12.5\" font-weight=\"600\" fill=\"#1f2937\">宽泳道</text>\n<path d=\"M210,142 C233,142 233,142 256,142\" fill=\"none\" stroke=\"#9ca3af\" stroke-width=\"1.3\" marker-end=\"url(#a)\"/>\n<path d=\"M424,142 C447,142 447,142 470,142\" fill=\"none\" stroke=\"#9ca3af\" stroke-width=\"1.3\" marker-end=\"url(#a)\"/>\n<path d=\"M638,142 C661,142 661,142 684,142\" fill=\"none\" stroke=\"#9ca3af\" stroke-width=\"1.3\" marker-end=\"url(#a)\"/>\n<rect x=\"42\" y=\"116\" width=\"168\" height=\"52\" rx=\"14\" fill=\"#dbeafe\" stroke=\"#93c5fd\"/>\n<text x=\"126\" y=\"131\" font-size=\"7.5\" fill=\"#6b7280\" text-anchor=\"middle\" letter-spacing=\"0.5\">ACTION</text>\n<text x=\"126\" y=\"143\" font-size=\"10.5\" fill=\"#1f2937\" text-anchor=\"middle\">第0步</text>\n<rect x=\"256\" y=\"116\" width=\"168\" height=\"52\" rx=\"14\" fill=\"#dbeafe\" stroke=\"#93c5fd\"/>\n<text x=\"340\" y=\"131\" font-size=\"7.5\" fill=\"#6b7280\" text-anchor=\"middle\" letter-spacing=\"0.5\">ACTION</text>\n<text x=\"340\" y=\"143\" font-size=\"10.5\" fill=\"#1f2937\" text-anchor=\"middle\">第1步</text>\n<rect x=\"470\" y=\"116\" width=\"168\" height=\"52\" rx=\"14\" fill=\"#dbeafe\" stroke=\"#93c5fd\"/>\n<text x=\"554\" y=\"131\" font-size=\"7.5\" fill=\"#6b7280\" text-anchor=\"middle\" letter-spacing=\"0.5\">ACTION</text>\n<text x=\"554\" y=\"143\" font-size=\"10.5\" fill=\"#1f2937\" text-anchor=\"middle\">第2步</text>\n<rect x=\"684\" y=\"116\" width=\"168\" height=\"52\" rx=\"14\" fill=\"#dbeafe\" stroke=\"#93c5fd\"/>\n<text x=\"768\" y=\"131\" font-size=\"7.5\" fill=\"#6b7280\" text-anchor=\"middle\" letter-spacing=\"0.5\">ACTION</text>\n<text x=\"768\" y=\"143\" font-size=\"10.5\" fill=\"#1f2937\" text-anchor=\"middle\">第3步</text>\n<rect x=\"42\" y=\"194\" width=\"168\" height=\"52\" rx=\"14\" fill=\"#dbeafe\" stroke=\"#93c5fd\"/>\n<text x=\"126\" y=\"209\" font-size=\"7.5\" fill=\"#6b7280\" text-anchor=\"middle\" letter-spacing=\"0.5\">ACTION</text>\n<text x=\"126\" y=\"221\" font-size=\"10.5\" fill=\"#1f2937\" text-anchor=\"middle\">第4步</text>\n<rect x=\"42\" y=\"272\" width=\"168\" height=\"52\" rx=\"14\" fill=\"#dbeafe\" stroke=\"#93c5fd\"/>\n<text x=\"126\" y=\"287\" font-size=\"7.5\" fill=\"#6b7280\" text-anchor=\"middle\" letter-spacing=\"0.5\">ACTION</text>\n<text x=\"126\" y=\"299\" font-size=\"10.5\" fill=\"#1f2937\" text-anchor=\"middle\">第5步</text>\n<text x=\"24\" y=\"374\" font-size=\"9\" fill=\"#6b7280\">虚线 = 系统推断的顺序，材料里没有明写　·　右上角圆点 = 这一步有接口实现，悬停看路径</text>\n</svg>",
+   "svg_custom": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 940 382\" width=\"940\" height=\"382\" font-family=\"-apple-system,PingFang SC,Microsoft YaHei,sans-serif\">\n<rect width=\"940\" height=\"382\" fill=\"#ffffff\"/>\n<defs><marker id=\"a\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"6\" markerHeight=\"6\" orient=\"auto-start-reverse\"><path d=\"M0,0 L10,5 L0,10 z\" fill=\"#ffffff\"/></marker></defs>\n<text x=\"24\" y=\"38\" font-size=\"17\" font-weight=\"600\" fill=\"#dddddd\">自定义 &quot;标题&quot; &lt;&amp;&gt;</text>\n<text x=\"24\" y=\"56\" font-size=\"11\" fill=\"#eeeeee\">6 个 Action ｜ 0 个 Event ｜ 1 个阶段 ｜ 0 条边为系统推断，需人工确认</text>\n<rect x=\"24\" y=\"58\" width=\"892\" height=\"284\" rx=\"6\" fill=\"#bbbbbb\" stroke=\"#cccccc\"/>\n<rect x=\"24\" y=\"58\" width=\"4\" height=\"284\" rx=\"2\" fill=\"#222222\"/>\n<text x=\"40\" y=\"80\" font-size=\"12.5\" font-weight=\"600\" fill=\"#dddddd\">宽泳道</text>\n<path d=\"M210,142 C233,142 233,142 256,142\" fill=\"none\" stroke=\"#ffffff\" stroke-width=\"1.3\" marker-end=\"url(#a)\"/>\n<path d=\"M424,142 C447,142 447,142 470,142\" fill=\"none\" stroke=\"#ffffff\" stroke-width=\"1.3\" marker-end=\"url(#a)\"/>\n<path d=\"M638,142 C661,142 661,142 684,142\" fill=\"none\" stroke=\"#ffffff\" stroke-width=\"1.3\" marker-end=\"url(#a)\"/>\n<rect x=\"42\" y=\"116\" width=\"168\" height=\"52\" rx=\"14\" fill=\"#111111\" stroke=\"#222222\"/>\n<text x=\"126\" y=\"131\" font-size=\"7.5\" fill=\"#eeeeee\" text-anchor=\"middle\" letter-spacing=\"0.5\">ACTION</text>\n<text x=\"126\" y=\"143\" font-size=\"10.5\" fill=\"#dddddd\" text-anchor=\"middle\">第0步</text>\n<rect x=\"256\" y=\"116\" width=\"168\" height=\"52\" rx=\"14\" fill=\"#111111\" stroke=\"#222222\"/>\n<text x=\"340\" y=\"131\" font-size=\"7.5\" fill=\"#eeeeee\" text-anchor=\"middle\" letter-spacing=\"0.5\">ACTION</text>\n<text x=\"340\" y=\"143\" font-size=\"10.5\" fill=\"#dddddd\" text-anchor=\"middle\">第1步</text>\n<rect x=\"470\" y=\"116\" width=\"168\" height=\"52\" rx=\"14\" fill=\"#111111\" stroke=\"#222222\"/>\n<text x=\"554\" y=\"131\" font-size=\"7.5\" fill=\"#eeeeee\" text-anchor=\"middle\" letter-spacing=\"0.5\">ACTION</text>\n<text x=\"554\" y=\"143\" font-size=\"10.5\" fill=\"#dddddd\" text-anchor=\"middle\">第2步</text>\n<rect x=\"684\" y=\"116\" width=\"168\" height=\"52\" rx=\"14\" fill=\"#111111\" stroke=\"#222222\"/>\n<text x=\"768\" y=\"131\" font-size=\"7.5\" fill=\"#eeeeee\" text-anchor=\"middle\" letter-spacing=\"0.5\">ACTION</text>\n<text x=\"768\" y=\"143\" font-size=\"10.5\" fill=\"#dddddd\" text-anchor=\"middle\">第3步</text>\n<rect x=\"42\" y=\"194\" width=\"168\" height=\"52\" rx=\"14\" fill=\"#111111\" stroke=\"#222222\"/>\n<text x=\"126\" y=\"209\" font-size=\"7.5\" fill=\"#eeeeee\" text-anchor=\"middle\" letter-spacing=\"0.5\">ACTION</text>\n<text x=\"126\" y=\"221\" font-size=\"10.5\" fill=\"#dddddd\" text-anchor=\"middle\">第4步</text>\n<rect x=\"42\" y=\"272\" width=\"168\" height=\"52\" rx=\"14\" fill=\"#111111\" stroke=\"#222222\"/>\n<text x=\"126\" y=\"287\" font-size=\"7.5\" fill=\"#eeeeee\" text-anchor=\"middle\" letter-spacing=\"0.5\">ACTION</text>\n<text x=\"126\" y=\"299\" font-size=\"10.5\" fill=\"#dddddd\" text-anchor=\"middle\">第5步</text>\n<text x=\"24\" y=\"374\" font-size=\"9\" fill=\"#eeeeee\">虚线 = 系统推断的顺序，材料里没有明写　·　右上角圆点 = 这一步有接口实现，悬停看路径</text>\n</svg>"
+  },
+  {
+   "flow": {
+    "edges": [
+     {
+      "evidence": [
+       {
+        "cite": "材料.xlsx#业务规则!R0-0",
+        "confidence": 1.0,
+        "extractor": "rule",
+        "file_id": "f",
+        "file_name": "材料.xlsx",
+        "locator": {
+         "kind": "raw",
+         "ref": "业务规则!R0-0"
+        },
+        "snippet": "（1）创建采购需求计划：基于已审批集采计划自动注入；\\n"
+       }
+      ],
+      "from": "fn_act1_创建采购需求计划",
+      "grounded": true,
+      "kind": "flow",
+      "label": "",
+      "rid": "fe_fn_act1_创建采购需求计划_fn_evt1_未审批采购需求计划",
+      "to": "fn_evt1_未审批采购需求计划"
+     },
+     {
+      "evidence": [
+       {
+        "cite": "材料.xlsx#业务规则!R0-0",
+        "confidence": 1.0,
+        "extractor": "rule",
+        "file_id": "f",
+        "file_name": "材料.xlsx",
+        "locator": {
+         "kind": "raw",
+         "ref": "业务规则!R0-0"
+        },
+        "snippet": "（2）审批采购需求计划：对已编制的采购需求计划进行审批；\\n"
+       }
+      ],
+      "from": "fn_act2_审批采购需求计划",
+      "grounded": true,
+      "kind": "flow",
+      "label": "",
+      "rid": "fe_fn_act2_审批采购需求计划_fn_evt2_已审批采购需求计划",
+      "to": "fn_evt2_已审批采购需求计划"
+     },
+     {
+      "evidence": [
+       {
+        "cite": "材料.xlsx#业务规则!R0-0",
+        "confidence": 1.0,
+        "extractor": "rule",
+        "file_id": "f",
+        "file_name": "材料.xlsx",
+        "locator": {
+         "kind": "raw",
+         "ref": "业务规则!R0-0"
+        },
+        "snippet": "（3）取消采购需求计划：执行采购需求计划取消流程；\\n"
+       }
+      ],
+      "from": "fn_act3_取消采购需求计划",
+      "grounded": true,
+      "kind": "flow",
+      "label": "",
+      "rid": "fe_fn_act3_取消采购需求计划_fn_evt3_已取消采购需求计划",
+      "to": "fn_evt3_已取消采购需求计划"
+     },
+     {
+      "evidence": [],
+      "from": "fn_evt1_未审批采购需求计划",
+      "grounded": false,
+      "kind": "inferred",
+      "label": "推断顺序",
+      "rid": "fe_fn_evt1_未审批采购需求计划_fn_act2_审批采购需求计划_推断顺序",
+      "to": "fn_act2_审批采购需求计划"
+     },
+     {
+      "evidence": [],
+      "from": "fn_evt2_已审批采购需求计划",
+      "grounded": false,
+      "kind": "inferred",
+      "label": "推断顺序",
+      "rid": "fe_fn_evt2_已审批采购需求计划_fn_act3_取消采购需求计划_推断顺序",
+      "to": "fn_act3_取消采购需求计划"
+     }
+    ],
+    "nodes": [
+     {
+      "actor": {
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "cite": "材料.xlsx#业务规则!R0-0",
+         "confidence": 1.0,
+         "extractor": "rule",
+         "file_id": "f",
+         "file_name": "材料.xlsx",
+         "locator": {
+          "kind": "raw",
+          "ref": "业务规则!R0-0"
+         },
+         "snippet": "（1）创建采购需求计划：基于已审批集采计划自动注入；\\n"
+        }
+       ],
+       "origin": "extracted",
+       "value": "需求申请人\\n"
+      },
+      "code": "ACT-PBP-CREATE",
+      "endpoint": "",
+      "grounded": true,
+      "kind": "action",
+      "label": {
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "cite": "材料.xlsx#业务规则!R0-0",
+         "confidence": 1.0,
+         "extractor": "rule",
+         "file_id": "f",
+         "file_name": "材料.xlsx",
+         "locator": {
+          "kind": "raw",
+          "ref": "业务规则!R0-0"
+         },
+         "snippet": "（1）创建采购需求计划：基于已审批集采计划自动注入；\\n"
+        }
+       ],
+       "origin": "extracted",
+       "value": "创建采购需求计划"
+      },
+      "objects": [],
+      "rid": "fn_act1_创建采购需求计划",
+      "stage": "main",
+      "status": "candidate"
+     },
+     {
+      "actor": {
+       "confidence": 0.4,
+       "evidence": [],
+       "origin": "inferred",
+       "value": ""
+      },
+      "code": "EVT-PBP-43D4",
+      "endpoint": "",
+      "grounded": true,
+      "kind": "event",
+      "label": {
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "cite": "材料.xlsx#业务规则!R0-0",
+         "confidence": 1.0,
+         "extractor": "rule",
+         "file_id": "f",
+         "file_name": "材料.xlsx",
+         "locator": {
+          "kind": "raw",
+          "ref": "业务规则!R0-0"
+         },
+         "snippet": "（1）创建采购需求计划：基于已审批集采计划自动注入；\\n"
+        }
+       ],
+       "origin": "extracted",
+       "value": "未审批采购需求计划"
+      },
+      "objects": [
+       "\\n"
+      ],
+      "rid": "fn_evt1_未审批采购需求计划",
+      "stage": "main",
+      "status": "candidate"
+     },
+     {
+      "actor": {
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "cite": "材料.xlsx#业务规则!R0-0",
+         "confidence": 1.0,
+         "extractor": "rule",
+         "file_id": "f",
+         "file_name": "材料.xlsx",
+         "locator": {
+          "kind": "raw",
+          "ref": "业务规则!R0-0"
+         },
+         "snippet": "（2）审批采购需求计划：对已编制的采购需求计划进行审批；\\n"
+        }
+       ],
+       "origin": "extracted",
+       "value": "部门领导\\n"
+      },
+      "code": "ACT-PBP-APPROVE",
+      "endpoint": "",
+      "grounded": true,
+      "kind": "action",
+      "label": {
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "cite": "材料.xlsx#业务规则!R0-0",
+         "confidence": 1.0,
+         "extractor": "rule",
+         "file_id": "f",
+         "file_name": "材料.xlsx",
+         "locator": {
+          "kind": "raw",
+          "ref": "业务规则!R0-0"
+         },
+         "snippet": "（2）审批采购需求计划：对已编制的采购需求计划进行审批；\\n"
+        }
+       ],
+       "origin": "extracted",
+       "value": "审批采购需求计划"
+      },
+      "objects": [],
+      "rid": "fn_act2_审批采购需求计划",
+      "stage": "main",
+      "status": "candidate"
+     },
+     {
+      "actor": {
+       "confidence": 0.4,
+       "evidence": [],
+       "origin": "inferred",
+       "value": ""
+      },
+      "code": "EVT-PBP-C043",
+      "endpoint": "",
+      "grounded": true,
+      "kind": "event",
+      "label": {
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "cite": "材料.xlsx#业务规则!R0-0",
+         "confidence": 1.0,
+         "extractor": "rule",
+         "file_id": "f",
+         "file_name": "材料.xlsx",
+         "locator": {
+          "kind": "raw",
+          "ref": "业务规则!R0-0"
+         },
+         "snippet": "（2）审批采购需求计划：对已编制的采购需求计划进行审批；\\n"
+        }
+       ],
+       "origin": "extracted",
+       "value": "已审批采购需求计划"
+      },
+      "objects": [
+       "\\n"
+      ],
+      "rid": "fn_evt2_已审批采购需求计划",
+      "stage": "main",
+      "status": "candidate"
+     },
+     {
+      "actor": {
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "cite": "材料.xlsx#业务规则!R0-0",
+         "confidence": 1.0,
+         "extractor": "rule",
+         "file_id": "f",
+         "file_name": "材料.xlsx",
+         "locator": {
+          "kind": "raw",
+          "ref": "业务规则!R0-0"
+         },
+         "snippet": "（3）取消采购需求计划：执行采购需求计划取消流程；\\n"
+        }
+       ],
+       "origin": "extracted",
+       "value": "需求申请人', '业务规则：\\n1、需进行采购包总金额上线控制，如超出XX金额，则采购包创建失败；\\n2、实际与计划基线对比，如提前XX天需要进行预警提醒；\\n3、进度状态标准：未开始、执行中、部分完成、已完成、已暂停、已取消；']}"
+      },
+      "code": "ACT-PBP-CANCEL",
+      "endpoint": "",
+      "grounded": true,
+      "kind": "action",
+      "label": {
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "cite": "材料.xlsx#业务规则!R0-0",
+         "confidence": 1.0,
+         "extractor": "rule",
+         "file_id": "f",
+         "file_name": "材料.xlsx",
+         "locator": {
+          "kind": "raw",
+          "ref": "业务规则!R0-0"
+         },
+         "snippet": "（3）取消采购需求计划：执行采购需求计划取消流程；\\n"
+        }
+       ],
+       "origin": "extracted",
+       "value": "取消采购需求计划"
+      },
+      "objects": [],
+      "rid": "fn_act3_取消采购需求计划",
+      "stage": "main",
+      "status": "candidate"
+     },
+     {
+      "actor": {
+       "confidence": 0.4,
+       "evidence": [],
+       "origin": "inferred",
+       "value": ""
+      },
+      "code": "EVT-PBP-CANCELLED",
+      "endpoint": "",
+      "grounded": true,
+      "kind": "event",
+      "label": {
+       "confidence": 0.8,
+       "evidence": [
+        {
+         "cite": "材料.xlsx#业务规则!R0-0",
+         "confidence": 1.0,
+         "extractor": "rule",
+         "file_id": "f",
+         "file_name": "材料.xlsx",
+         "locator": {
+          "kind": "raw",
+          "ref": "业务规则!R0-0"
+         },
+         "snippet": "（3）取消采购需求计划：执行采购需求计划取消流程；\\n"
+        }
+       ],
+       "origin": "extracted",
+       "value": "已取消采购需求计划"
+      },
+      "objects": [
+       "\\n"
+      ],
+      "rid": "fn_evt3_已取消采购需求计划",
+      "stage": "main",
+      "status": "candidate"
+     }
+    ],
+    "stages": [
+     {
+      "key": "main",
+      "order": 1,
+      "subtitle": "材料里没有说明这些环节属于哪个阶段",
+      "title": "其它环节"
+     }
+    ],
+    "stats": {
+     "actions": 3,
+     "dangling": 0,
+     "dead_ends": 1,
+     "edges": 5,
+     "events": 3,
+     "externals": 0,
+     "gateways": 0,
+     "inferred_edges": 2,
+     "stages": 1,
+     "terminals": 0,
+     "workflows": 0
+    },
+    "workflows": []
+   },
+   "layers": {
+    "main": [
+     [
+      "fn_act1_创建采购需求计划"
+     ],
+     [
+      "fn_evt1_未审批采购需求计划"
+     ],
+     [
+      "fn_act2_审批采购需求计划"
+     ],
+     [
+      "fn_evt2_已审批采购需求计划"
+     ],
+     [
+      "fn_act3_取消采购需求计划"
+     ],
+     [
+      "fn_evt3_已取消采购需求计划"
+     ]
+    ]
+   },
+   "mermaid": "flowchart LR\n    subgraph nmain[\"其它环节\"]\n        direction LR\n    nfn_act1_创建采购需求计划([\"创建采购需求计划<br/><small>ACT-PBP-CREATE</small>\"])\n    nfn_evt1_未审批采购需求计划[\"未审批采购需求计划<br/><small>EVT-PBP-43D4</small>\"]\n    nfn_act2_审批采购需求计划([\"审批采购需求计划<br/><small>ACT-PBP-APPROVE</small>\"])\n    nfn_evt2_已审批采购需求计划[\"已审批采购需求计划<br/><small>EVT-PBP-C043</small>\"]\n    nfn_act3_取消采购需求计划([\"取消采购需求计划<br/><small>ACT-PBP-CANCEL</small>\"])\n    nfn_evt3_已取消采购需求计划[\"已取消采购需求计划<br/><small>EVT-PBP-CANCELLED</small>\"]\n    end\n    nfn_act1_创建采购需求计划 --> nfn_evt1_未审批采购需求计划\n    nfn_act2_审批采购需求计划 --> nfn_evt2_已审批采购需求计划\n    nfn_act3_取消采购需求计划 --> nfn_evt3_已取消采购需求计划\n    nfn_evt1_未审批采购需求计划 -.->|推断顺序| nfn_act2_审批采购需求计划\n    nfn_evt2_已审批采购需求计划 -.->|推断顺序| nfn_act3_取消采购需求计划\n    classDef act fill:#dbeafe,stroke:#60a5fa,color:#1e3a5f;\n    classDef evt fill:#fef3c7,stroke:#fbbf24,color:#78350f;\n    classDef gw  fill:#fef9c3,stroke:#eab308,color:#713f12;\n    classDef end_ fill:#dcfce7,stroke:#4ade80,color:#14532d;\n    classDef ext fill:#f3e8ff,stroke:#c084fc,color:#581c87;\n    class nfn_act1_创建采购需求计划,nfn_act2_审批采购需求计划,nfn_act3_取消采购需求计划 act;\n    class nfn_evt1_未审批采购需求计划,nfn_evt2_已审批采购需求计划,nfn_evt3_已取消采购需求计划 evt;",
+   "mermaid_tb_nocodes": "flowchart TB\n    subgraph nmain[\"其它环节\"]\n        direction LR\n    nfn_act1_创建采购需求计划([\"创建采购需求计划\"])\n    nfn_evt1_未审批采购需求计划[\"未审批采购需求计划\"]\n    nfn_act2_审批采购需求计划([\"审批采购需求计划\"])\n    nfn_evt2_已审批采购需求计划[\"已审批采购需求计划\"]\n    nfn_act3_取消采购需求计划([\"取消采购需求计划\"])\n    nfn_evt3_已取消采购需求计划[\"已取消采购需求计划\"]\n    end\n    nfn_act1_创建采购需求计划 --> nfn_evt1_未审批采购需求计划\n    nfn_act2_审批采购需求计划 --> nfn_evt2_已审批采购需求计划\n    nfn_act3_取消采购需求计划 --> nfn_evt3_已取消采购需求计划\n    nfn_evt1_未审批采购需求计划 -.->|推断顺序| nfn_act2_审批采购需求计划\n    nfn_evt2_已审批采购需求计划 -.->|推断顺序| nfn_act3_取消采购需求计划\n    classDef act fill:#dbeafe,stroke:#60a5fa,color:#1e3a5f;\n    classDef evt fill:#fef3c7,stroke:#fbbf24,color:#78350f;\n    classDef gw  fill:#fef9c3,stroke:#eab308,color:#713f12;\n    classDef end_ fill:#dcfce7,stroke:#4ade80,color:#14532d;\n    classDef ext fill:#f3e8ff,stroke:#c084fc,color:#581c87;\n    class nfn_act1_创建采购需求计划,nfn_act2_审批采购需求计划,nfn_act3_取消采购需求计划 act;\n    class nfn_evt1_未审批采购需求计划,nfn_evt2_已审批采购需求计划,nfn_evt3_已取消采购需求计划 evt;",
+   "name": "pipeline",
+   "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1368 226\" width=\"1368\" height=\"226\" font-family=\"-apple-system,PingFang SC,Microsoft YaHei,sans-serif\">\n<rect width=\"1368\" height=\"226\" fill=\"#ffffff\"/>\n<defs><marker id=\"a\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"6\" markerHeight=\"6\" orient=\"auto-start-reverse\"><path d=\"M0,0 L10,5 L0,10 z\" fill=\"#9ca3af\"/></marker></defs>\n<text x=\"24\" y=\"38\" font-size=\"17\" font-weight=\"600\" fill=\"#1f2937\">业务流程总览</text>\n<text x=\"24\" y=\"56\" font-size=\"11\" fill=\"#6b7280\">3 个 Action ｜ 3 个 Event ｜ 1 个阶段 ｜ 2 条边为系统推断，需人工确认</text>\n<rect x=\"24\" y=\"58\" width=\"1320\" height=\"128\" rx=\"6\" fill=\"#fafafa\" stroke=\"#e5e7eb\"/>\n<rect x=\"24\" y=\"58\" width=\"4\" height=\"128\" rx=\"2\" fill=\"#93c5fd\"/>\n<text x=\"40\" y=\"80\" font-size=\"12.5\" font-weight=\"600\" fill=\"#1f2937\">其它环节</text>\n<text x=\"40\" y=\"94\" font-size=\"10\" fill=\"#6b7280\">材料里没有说明这些环节属于哪个阶段</text>\n<path d=\"M210,142 C233,142 233,142 256,142\" fill=\"none\" stroke=\"#9ca3af\" stroke-width=\"1.3\" marker-end=\"url(#a)\"/>\n<path d=\"M638,142 C661,142 661,142 684,142\" fill=\"none\" stroke=\"#9ca3af\" stroke-width=\"1.3\" marker-end=\"url(#a)\"/>\n<path d=\"M1066,142 C1089,142 1089,142 1112,142\" fill=\"none\" stroke=\"#9ca3af\" stroke-width=\"1.3\" marker-end=\"url(#a)\"/>\n<path d=\"M424,142 C447,142 447,142 470,142\" fill=\"none\" stroke=\"#9ca3af\" stroke-width=\"1.3\" stroke-dasharray=\"5 4\" marker-end=\"url(#a)\"/>\n<text x=\"447\" y=\"137\" font-size=\"9.5\" fill=\"#6b7280\" text-anchor=\"middle\">推断顺序</text>\n<path d=\"M852,142 C875,142 875,142 898,142\" fill=\"none\" stroke=\"#9ca3af\" stroke-width=\"1.3\" stroke-dasharray=\"5 4\" marker-end=\"url(#a)\"/>\n<text x=\"875\" y=\"137\" font-size=\"9.5\" fill=\"#6b7280\" text-anchor=\"middle\">推断顺序</text>\n<rect x=\"42\" y=\"116\" width=\"168\" height=\"52\" rx=\"14\" fill=\"#dbeafe\" stroke=\"#93c5fd\"/>\n<text x=\"126\" y=\"131\" font-size=\"7.5\" fill=\"#6b7280\" text-anchor=\"middle\" letter-spacing=\"0.5\">ACTION</text>\n<text x=\"126\" y=\"143\" font-size=\"10.5\" fill=\"#1f2937\" text-anchor=\"middle\">创建采购需求计划</text>\n<text x=\"126\" y=\"162\" font-size=\"7\" fill=\"#6b7280\" text-anchor=\"middle\" font-family=\"ui-monospace,monospace\">ACT-PBP-CREATE</text>\n<rect x=\"256\" y=\"116\" width=\"168\" height=\"52\" rx=\"4\" fill=\"#fef3c7\" stroke=\"#fcd34d\"/>\n<text x=\"340\" y=\"131\" font-size=\"7.5\" fill=\"#6b7280\" text-anchor=\"middle\" letter-spacing=\"0.5\">EVENT</text>\n<text x=\"340\" y=\"143\" font-size=\"10.5\" fill=\"#1f2937\" text-anchor=\"middle\">未审批采购需求计划</text>\n<text x=\"340\" y=\"162\" font-size=\"7\" fill=\"#6b7280\" text-anchor=\"middle\" font-family=\"ui-monospace,monospace\">EVT-PBP-43D4</text>\n<rect x=\"470\" y=\"116\" width=\"168\" height=\"52\" rx=\"14\" fill=\"#dbeafe\" stroke=\"#93c5fd\"/>\n<text x=\"554\" y=\"131\" font-size=\"7.5\" fill=\"#6b7280\" text-anchor=\"middle\" letter-spacing=\"0.5\">ACTION</text>\n<text x=\"554\" y=\"143\" font-size=\"10.5\" fill=\"#1f2937\" text-anchor=\"middle\">审批采购需求计划</text>\n<text x=\"554\" y=\"162\" font-size=\"7\" fill=\"#6b7280\" text-anchor=\"middle\" font-family=\"ui-monospace,monospace\">ACT-PBP-APPROVE</text>\n<rect x=\"684\" y=\"116\" width=\"168\" height=\"52\" rx=\"4\" fill=\"#fef3c7\" stroke=\"#fcd34d\"/>\n<text x=\"768\" y=\"131\" font-size=\"7.5\" fill=\"#6b7280\" text-anchor=\"middle\" letter-spacing=\"0.5\">EVENT</text>\n<text x=\"768\" y=\"143\" font-size=\"10.5\" fill=\"#1f2937\" text-anchor=\"middle\">已审批采购需求计划</text>\n<text x=\"768\" y=\"162\" font-size=\"7\" fill=\"#6b7280\" text-anchor=\"middle\" font-family=\"ui-monospace,monospace\">EVT-PBP-C043</text>\n<rect x=\"898\" y=\"116\" width=\"168\" height=\"52\" rx=\"14\" fill=\"#dbeafe\" stroke=\"#93c5fd\"/>\n<text x=\"982\" y=\"131\" font-size=\"7.5\" fill=\"#6b7280\" text-anchor=\"middle\" letter-spacing=\"0.5\">ACTION</text>\n<text x=\"982\" y=\"143\" font-size=\"10.5\" fill=\"#1f2937\" text-anchor=\"middle\">取消采购需求计划</text>\n<text x=\"982\" y=\"162\" font-size=\"7\" fill=\"#6b7280\" text-anchor=\"middle\" font-family=\"ui-monospace,monospace\">ACT-PBP-CANCEL</text>\n<rect x=\"1112\" y=\"116\" width=\"168\" height=\"52\" rx=\"4\" fill=\"#fef3c7\" stroke=\"#fcd34d\"/>\n<text x=\"1196\" y=\"131\" font-size=\"7.5\" fill=\"#6b7280\" text-anchor=\"middle\" letter-spacing=\"0.5\">EVENT</text>\n<text x=\"1196\" y=\"143\" font-size=\"10.5\" fill=\"#1f2937\" text-anchor=\"middle\">已取消采购需求计划</text>\n<text x=\"1196\" y=\"162\" font-size=\"7\" fill=\"#6b7280\" text-anchor=\"middle\" font-family=\"ui-monospace,monospace\">EVT-PBP-CANCELLED</text>\n<text x=\"24\" y=\"218\" font-size=\"9\" fill=\"#6b7280\">虚线 = 系统推断的顺序，材料里没有明写　·　右上角圆点 = 这一步有接口实现，悬停看路径</text>\n</svg>",
+   "svg_custom": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1368 226\" width=\"1368\" height=\"226\" font-family=\"-apple-system,PingFang SC,Microsoft YaHei,sans-serif\">\n<rect width=\"1368\" height=\"226\" fill=\"#ffffff\"/>\n<defs><marker id=\"a\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"6\" markerHeight=\"6\" orient=\"auto-start-reverse\"><path d=\"M0,0 L10,5 L0,10 z\" fill=\"#ffffff\"/></marker></defs>\n<text x=\"24\" y=\"38\" font-size=\"17\" font-weight=\"600\" fill=\"#dddddd\">自定义 &quot;标题&quot; &lt;&amp;&gt;</text>\n<text x=\"24\" y=\"56\" font-size=\"11\" fill=\"#eeeeee\">3 个 Action ｜ 3 个 Event ｜ 1 个阶段 ｜ 2 条边为系统推断，需人工确认</text>\n<rect x=\"24\" y=\"58\" width=\"1320\" height=\"128\" rx=\"6\" fill=\"#bbbbbb\" stroke=\"#cccccc\"/>\n<rect x=\"24\" y=\"58\" width=\"4\" height=\"128\" rx=\"2\" fill=\"#222222\"/>\n<text x=\"40\" y=\"80\" font-size=\"12.5\" font-weight=\"600\" fill=\"#dddddd\">其它环节</text>\n<text x=\"40\" y=\"94\" font-size=\"10\" fill=\"#eeeeee\">材料里没有说明这些环节属于哪个阶段</text>\n<path d=\"M210,142 C233,142 233,142 256,142\" fill=\"none\" stroke=\"#ffffff\" stroke-width=\"1.3\" marker-end=\"url(#a)\"/>\n<path d=\"M638,142 C661,142 661,142 684,142\" fill=\"none\" stroke=\"#ffffff\" stroke-width=\"1.3\" marker-end=\"url(#a)\"/>\n<path d=\"M1066,142 C1089,142 1089,142 1112,142\" fill=\"none\" stroke=\"#ffffff\" stroke-width=\"1.3\" marker-end=\"url(#a)\"/>\n<path d=\"M424,142 C447,142 447,142 470,142\" fill=\"none\" stroke=\"#ffffff\" stroke-width=\"1.3\" stroke-dasharray=\"5 4\" marker-end=\"url(#a)\"/>\n<text x=\"447\" y=\"137\" font-size=\"9.5\" fill=\"#eeeeee\" text-anchor=\"middle\">推断顺序</text>\n<path d=\"M852,142 C875,142 875,142 898,142\" fill=\"none\" stroke=\"#ffffff\" stroke-width=\"1.3\" stroke-dasharray=\"5 4\" marker-end=\"url(#a)\"/>\n<text x=\"875\" y=\"137\" font-size=\"9.5\" fill=\"#eeeeee\" text-anchor=\"middle\">推断顺序</text>\n<rect x=\"42\" y=\"116\" width=\"168\" height=\"52\" rx=\"14\" fill=\"#111111\" stroke=\"#222222\"/>\n<text x=\"126\" y=\"131\" font-size=\"7.5\" fill=\"#eeeeee\" text-anchor=\"middle\" letter-spacing=\"0.5\">ACTION</text>\n<text x=\"126\" y=\"143\" font-size=\"10.5\" fill=\"#dddddd\" text-anchor=\"middle\">创建采购需求计划</text>\n<rect x=\"256\" y=\"116\" width=\"168\" height=\"52\" rx=\"4\" fill=\"#333333\" stroke=\"#444444\"/>\n<text x=\"340\" y=\"131\" font-size=\"7.5\" fill=\"#eeeeee\" text-anchor=\"middle\" letter-spacing=\"0.5\">EVENT</text>\n<text x=\"340\" y=\"143\" font-size=\"10.5\" fill=\"#dddddd\" text-anchor=\"middle\">未审批采购需求计划</text>\n<rect x=\"470\" y=\"116\" width=\"168\" height=\"52\" rx=\"14\" fill=\"#111111\" stroke=\"#222222\"/>\n<text x=\"554\" y=\"131\" font-size=\"7.5\" fill=\"#eeeeee\" text-anchor=\"middle\" letter-spacing=\"0.5\">ACTION</text>\n<text x=\"554\" y=\"143\" font-size=\"10.5\" fill=\"#dddddd\" text-anchor=\"middle\">审批采购需求计划</text>\n<rect x=\"684\" y=\"116\" width=\"168\" height=\"52\" rx=\"4\" fill=\"#333333\" stroke=\"#444444\"/>\n<text x=\"768\" y=\"131\" font-size=\"7.5\" fill=\"#eeeeee\" text-anchor=\"middle\" letter-spacing=\"0.5\">EVENT</text>\n<text x=\"768\" y=\"143\" font-size=\"10.5\" fill=\"#dddddd\" text-anchor=\"middle\">已审批采购需求计划</text>\n<rect x=\"898\" y=\"116\" width=\"168\" height=\"52\" rx=\"14\" fill=\"#111111\" stroke=\"#222222\"/>\n<text x=\"982\" y=\"131\" font-size=\"7.5\" fill=\"#eeeeee\" text-anchor=\"middle\" letter-spacing=\"0.5\">ACTION</text>\n<text x=\"982\" y=\"143\" font-size=\"10.5\" fill=\"#dddddd\" text-anchor=\"middle\">取消采购需求计划</text>\n<rect x=\"1112\" y=\"116\" width=\"168\" height=\"52\" rx=\"4\" fill=\"#333333\" stroke=\"#444444\"/>\n<text x=\"1196\" y=\"131\" font-size=\"7.5\" fill=\"#eeeeee\" text-anchor=\"middle\" letter-spacing=\"0.5\">EVENT</text>\n<text x=\"1196\" y=\"143\" font-size=\"10.5\" fill=\"#dddddd\" text-anchor=\"middle\">已取消采购需求计划</text>\n<text x=\"24\" y=\"218\" font-size=\"9\" fill=\"#eeeeee\">虚线 = 系统推断的顺序，材料里没有明写　·　右上角圆点 = 这一步有接口实现，悬停看路径</text>\n</svg>"
+  }
+ ],
+ "mid": [
+  [
+   "fn_act1_创建采购需求计划",
+   "nfn_act1_创建采购需求计划"
+  ],
+  [
+   "fn_evt_已提交",
+   "nfn_evt_已提交"
+  ],
+  [
+   "ab-cd.ef",
+   "nab_cd_ef"
+  ],
+  [
+   "",
+   "n"
+  ],
+  [
+   "①②③",
+   "n①②③"
+  ],
+  [
+   "ＡＢ１２",
+   "nＡＢ１２"
+  ],
+  [
+   "Ⅷ",
+   "nⅧ"
+  ],
+  [
+   "٣",
+   "n٣"
+  ],
+  [
+   "😀x",
+   "n_x"
+  ],
+  [
+   "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "naaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  ],
+  [
+   "中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中",
+   "n中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中"
+  ],
+  [
+   "𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀",
+   "n𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀"
+  ],
+  [
+   "a😀𠀀b",
+   "na_𠀀b"
+  ],
+  [
+   "!@#$%^&*()",
+   "n__________"
+  ]
+ ],
+ "mlabel": [
+  [
+   "",
+   ""
+  ],
+  [
+   "含\"引号\"的标签",
+   "含'引号'的标签"
+  ],
+  [
+   "含[方括号]的标签",
+   "含(方括号)的标签"
+  ],
+  [
+   "[\"混合\"]",
+   "('混合')"
+  ],
+  [
+   "正常标签",
+   "正常标签"
+  ]
+ ],
+ "wrap": [
+  {
+   "max_lines": 3,
+   "out": [
+    ""
+   ],
+   "per_line": 11,
+   "text": ""
+  },
+  {
+   "max_lines": 3,
+   "out": [
+    ""
+   ],
+   "per_line": 11,
+   "text": "   "
+  },
+  {
+   "max_lines": 3,
+   "out": [
+    "短"
+   ],
+   "per_line": 11,
+   "text": "短"
+  },
+  {
+   "max_lines": 3,
+   "out": [
+    "前后有空格"
+   ],
+   "per_line": 11,
+   "text": "  前后有空格  "
+  },
+  {
+   "max_lines": 3,
+   "out": [
+    "一二三四五六七八九十甲",
+    "乙丙丁"
+   ],
+   "per_line": 11,
+   "text": "一二三四五六七八九十甲乙丙丁"
+  },
+  {
+   "max_lines": 2,
+   "out": [
+    "一二三四五六七八九十甲乙",
+    "丙丁"
+   ],
+   "per_line": 12,
+   "text": "一二三四五六七八九十甲乙丙丁"
+  },
+  {
+   "max_lines": 3,
+   "out": [
+    "xxxxxxxxxxx",
+    "xxxxxxxxxxx",
+    "xxxxxxxxxx…"
+   ],
+   "per_line": 11,
+   "text": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  },
+  {
+   "max_lines": 2,
+   "out": [
+    "xxxxxxxxxxxx",
+    "xxxxxxxxxxx…"
+   ],
+   "per_line": 12,
+   "text": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  },
+  {
+   "max_lines": 3,
+   "out": [
+    "😀😀😀😀😀😀😀😀😀😀😀",
+    "😀😀😀😀😀😀😀😀😀😀😀",
+    "😀😀😀😀😀😀😀😀😀😀…"
+   ],
+   "per_line": 11,
+   "text": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀"
+  },
+  {
+   "max_lines": 2,
+   "out": [
+    "😀😀😀😀😀😀😀😀😀😀😀😀",
+    "😀😀😀😀😀😀😀😀😀😀😀…"
+   ],
+   "per_line": 12,
+   "text": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀"
+  },
+  {
+   "max_lines": 2,
+   "out": [
+    "𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀",
+    "𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀…"
+   ],
+   "per_line": 12,
+   "text": "𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀𠀀"
+  },
+  {
+   "max_lines": 3,
+   "out": [
+    "a",
+    "b",
+    "c"
+   ],
+   "per_line": 1,
+   "text": "abc"
+  },
+  {
+   "max_lines": 2,
+   "out": [
+    "ab",
+    "c…"
+   ],
+   "per_line": 2,
+   "text": "abcdefgh"
+  }
+ ]
+}

@@ -1,0 +1,2045 @@
+{
+ "catalog": [
+  {
+   "bytes": 18647,
+   "chars": 13371,
+   "checksum": "27a17e96e05bb858a73011136b1806b7",
+   "filename": "0001_init.sql",
+   "name": "init",
+   "sha256_full": "27a17e96e05bb858a73011136b1806b7fe85d01a6ede21a154982a2481142a0f",
+   "version": 1
+  },
+  {
+   "bytes": 2269,
+   "chars": 1743,
+   "checksum": "46ffe645946faedad43d94f45e597b38",
+   "filename": "0002_accounts.sql",
+   "name": "accounts",
+   "sha256_full": "46ffe645946faedad43d94f45e597b38f1bb7b18b6c0139ff1852d1cf642dea9",
+   "version": 2
+  },
+  {
+   "bytes": 640,
+   "chars": 494,
+   "checksum": "14845d6e0bff9e3e04348a388bca5cd0",
+   "filename": "0003_app_settings.sql",
+   "name": "app_settings",
+   "sha256_full": "14845d6e0bff9e3e04348a388bca5cd05b810a710a51a64aab6b86af0ef21f2c",
+   "version": 3
+  },
+  {
+   "bytes": 687,
+   "chars": 407,
+   "checksum": "038d2a9f433702d02e615d608633fda1",
+   "filename": "0004_session_owner.sql",
+   "name": "session_owner",
+   "sha256_full": "038d2a9f433702d02e615d608633fda1fdfcc9e5e632440637d0c1f33477ed17",
+   "version": 4
+  },
+  {
+   "bytes": 3980,
+   "chars": 3854,
+   "checksum": "064970b39b5eca9d0736390bb8c8c447",
+   "filename": "0005_question_decision_revision.sql",
+   "name": "question_decision_revision",
+   "sha256_full": "064970b39b5eca9d0736390bb8c8c447f9c50ffed29259af8d0ca4ac3ac5c77f",
+   "version": 5
+  },
+  {
+   "bytes": 553,
+   "chars": 405,
+   "checksum": "770a704a20ef04a4ae4d1f82b7d9948b",
+   "filename": "0006_session_status.sql",
+   "name": "session_status",
+   "sha256_full": "770a704a20ef04a4ae4d1f82b7d9948b0b73a3bf5019907787ffd3eabb7d6cbe",
+   "version": 6
+  },
+  {
+   "bytes": 437,
+   "chars": 331,
+   "checksum": "824749f15d1ed492f5d3bb3c80daeae2",
+   "filename": "0007_session_event_idempotency.sql",
+   "name": "session_event_idempotency",
+   "sha256_full": "824749f15d1ed492f5d3bb3c80daeae2019cfc328ee979ddebfd0ace6517138b",
+   "version": 7
+  },
+  {
+   "bytes": 787,
+   "chars": 627,
+   "checksum": "5425cd63c3294dbdb1004ec7a7ef380b",
+   "filename": "0008_build_lease.sql",
+   "name": "build_lease",
+   "sha256_full": "5425cd63c3294dbdb1004ec7a7ef380b03dfce9f15dc762611230ff5d256b31d",
+   "version": 8
+  },
+  {
+   "bytes": 782,
+   "chars": 652,
+   "checksum": "e8fe8e8b73c278500d5beb4f91843adc",
+   "filename": "0009_chat_lease.sql",
+   "name": "chat_lease",
+   "sha256_full": "e8fe8e8b73c278500d5beb4f91843adc175be4d765eb61f26c8783998d0d5435",
+   "version": 9
+  },
+  {
+   "bytes": 2845,
+   "chars": 2289,
+   "checksum": "773cd8deb06e68460884214938be6322",
+   "filename": "0010_llm_usage.sql",
+   "name": "llm_usage",
+   "sha256_full": "773cd8deb06e68460884214938be632280f1f832842b1a4d330f422cb330b49b",
+   "version": 10
+  },
+  {
+   "bytes": 728,
+   "chars": 612,
+   "checksum": "43912930aff919eb59e7490c6c507fbc",
+   "filename": "0011_mutation_lease.sql",
+   "name": "mutation_lease",
+   "sha256_full": "43912930aff919eb59e7490c6c507fbc761fb3201f492d162c79e80f568143aa",
+   "version": 11
+  },
+  {
+   "bytes": 793,
+   "chars": 431,
+   "checksum": "951df186ba8557a536b7dc659574dc8a",
+   "filename": "0012_user_display_name.sql",
+   "name": "user_display_name",
+   "sha256_full": "951df186ba8557a536b7dc659574dc8aacc1f2fe7be7158f37e4494489dadddc",
+   "version": 12
+  },
+  {
+   "bytes": 3457,
+   "chars": 2467,
+   "checksum": "23192ac3f42b16b864bb16f70b5c82d2",
+   "filename": "0013_project_folders.sql",
+   "name": "project_folders",
+   "sha256_full": "23192ac3f42b16b864bb16f70b5c82d27898f2de9fc955c3912f4c284b2cb009",
+   "version": 13
+  }
+ ],
+ "checksum_cases": [
+  {
+   "bytes_b64": "QkVHSU47ClNFTEVDVCAxOwpDT01NSVQ7Cg==",
+   "checksum": "d0d802e8a15e6cf272875ae76ed502e8",
+   "label": "lf",
+   "sha256_full": "d0d802e8a15e6cf272875ae76ed502e82db67cb240e1f2be9a08a4061ac2c9be",
+   "text": "BEGIN;\nSELECT 1;\nCOMMIT;\n"
+  },
+  {
+   "bytes_b64": "QkVHSU47DQpTRUxFQ1QgMTsNCkNPTU1JVDsNCg==",
+   "checksum": "d0d802e8a15e6cf272875ae76ed502e8",
+   "label": "crlf",
+   "sha256_full": "d0d802e8a15e6cf272875ae76ed502e82db67cb240e1f2be9a08a4061ac2c9be",
+   "text": "BEGIN;\nSELECT 1;\nCOMMIT;\n"
+  },
+  {
+   "bytes_b64": "QkVHSU47DVNFTEVDVCAxOw1DT01NSVQ7DQ==",
+   "checksum": "d0d802e8a15e6cf272875ae76ed502e8",
+   "label": "cr_only",
+   "sha256_full": "d0d802e8a15e6cf272875ae76ed502e82db67cb240e1f2be9a08a4061ac2c9be",
+   "text": "BEGIN;\nSELECT 1;\nCOMMIT;\n"
+  },
+  {
+   "bytes_b64": "QQ0KQg1DCkQ=",
+   "checksum": "babbfc637186b9ba22c6eda008b95370",
+   "label": "mixed",
+   "sha256_full": "babbfc637186b9ba22c6eda008b9537048032a6bbdfb4187535b4cceeb45c1cb",
+   "text": "A\nB\nC\nD"
+  },
+  {
+   "bytes_b64": "",
+   "checksum": "e3b0c44298fc1c149afbf4c8996fb924",
+   "label": "empty",
+   "sha256_full": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "text": ""
+  },
+  {
+   "bytes_b64": "77u/U0VMRUNUIDE7Cg==",
+   "checksum": "34b0bcbe990d70cd4adde7a8005ade43",
+   "label": "bom",
+   "sha256_full": "34b0bcbe990d70cd4adde7a8005ade4334f170e0625d767d78872a66515dec8a",
+   "text": "﻿SELECT 1;\n"
+  },
+  {
+   "bytes_b64": "LS0g5Lya6K+d6KGoCkNSRUFURSBUQUJMRSBzZXNzaW9uICgpOwo=",
+   "checksum": "0fa2d377b0b226397df05f21c39156ee",
+   "label": "cjk",
+   "sha256_full": "0fa2d377b0b226397df05f21c39156ee1427baea32108cda43771115a1f3d883",
+   "text": "-- 会话表\nCREATE TABLE session ();\n"
+  },
+  {
+   "bytes_b64": "U0VMRUNUIDE7",
+   "checksum": "17db4fd369edb9244b9f91d9aeed145c",
+   "label": "no_trailing_newline",
+   "sha256_full": "17db4fd369edb9244b9f91d9aeed145c3d04ad8ba6e95d06247f07a63527d11a",
+   "text": "SELECT 1;"
+  }
+ ],
+ "cli_cases": [
+  {
+   "argv": [
+    "--status"
+   ],
+   "input": {
+    "rows": [],
+    "table_exists": false,
+    "url": "postgresql+asyncpg://x/y"
+   },
+   "label": "status_none",
+   "rc": 0,
+   "stderr": "",
+   "stdout": "[ ] 0001_init\n[ ] 0002_accounts\n[ ] 0003_app_settings\n[ ] 0004_session_owner\n[ ] 0005_question_decision_revision\n[ ] 0006_session_status\n[ ] 0007_session_event_idempotency\n[ ] 0008_build_lease\n[ ] 0009_chat_lease\n[ ] 0010_llm_usage\n[ ] 0011_mutation_lease\n[ ] 0012_user_display_name\n[ ] 0013_project_folders\n"
+  },
+  {
+   "argv": [
+    "--status"
+   ],
+   "input": {
+    "rows": [
+     [
+      1,
+      "27a17e96e05bb858a73011136b1806b7"
+     ],
+     [
+      2,
+      "46ffe645946faedad43d94f45e597b38"
+     ],
+     [
+      3,
+      "14845d6e0bff9e3e04348a388bca5cd0"
+     ],
+     [
+      4,
+      "038d2a9f433702d02e615d608633fda1"
+     ],
+     [
+      5,
+      "064970b39b5eca9d0736390bb8c8c447"
+     ]
+    ],
+    "table_exists": true,
+    "url": "postgresql+asyncpg://x/y"
+   },
+   "label": "status_partial",
+   "rc": 0,
+   "stderr": "",
+   "stdout": "[✓] 0001_init\n[✓] 0002_accounts\n[✓] 0003_app_settings\n[✓] 0004_session_owner\n[✓] 0005_question_decision_revision\n[ ] 0006_session_status\n[ ] 0007_session_event_idempotency\n[ ] 0008_build_lease\n[ ] 0009_chat_lease\n[ ] 0010_llm_usage\n[ ] 0011_mutation_lease\n[ ] 0012_user_display_name\n[ ] 0013_project_folders\n"
+  },
+  {
+   "argv": [
+    "--status"
+   ],
+   "input": {
+    "rows": [
+     [
+      1,
+      "27a17e96e05bb858a73011136b1806b7"
+     ],
+     [
+      2,
+      "46ffe645946faedad43d94f45e597b38"
+     ],
+     [
+      3,
+      "14845d6e0bff9e3e04348a388bca5cd0"
+     ],
+     [
+      4,
+      "038d2a9f433702d02e615d608633fda1"
+     ],
+     [
+      5,
+      "064970b39b5eca9d0736390bb8c8c447"
+     ],
+     [
+      6,
+      "770a704a20ef04a4ae4d1f82b7d9948b"
+     ],
+     [
+      7,
+      "824749f15d1ed492f5d3bb3c80daeae2"
+     ],
+     [
+      8,
+      "5425cd63c3294dbdb1004ec7a7ef380b"
+     ],
+     [
+      9,
+      "e8fe8e8b73c278500d5beb4f91843adc"
+     ],
+     [
+      10,
+      "773cd8deb06e68460884214938be6322"
+     ],
+     [
+      11,
+      "43912930aff919eb59e7490c6c507fbc"
+     ],
+     [
+      12,
+      "951df186ba8557a536b7dc659574dc8a"
+     ],
+     [
+      13,
+      "23192ac3f42b16b864bb16f70b5c82d2"
+     ]
+    ],
+    "table_exists": true,
+    "url": "postgresql+asyncpg://x/y"
+   },
+   "label": "status_all",
+   "rc": 0,
+   "stderr": "",
+   "stdout": "[✓] 0001_init\n[✓] 0002_accounts\n[✓] 0003_app_settings\n[✓] 0004_session_owner\n[✓] 0005_question_decision_revision\n[✓] 0006_session_status\n[✓] 0007_session_event_idempotency\n[✓] 0008_build_lease\n[✓] 0009_chat_lease\n[✓] 0010_llm_usage\n[✓] 0011_mutation_lease\n[✓] 0012_user_display_name\n[✓] 0013_project_folders\n"
+  },
+  {
+   "argv": [],
+   "input": {
+    "rows": [
+     [
+      1,
+      "27a17e96e05bb858a73011136b1806b7"
+     ],
+     [
+      2,
+      "46ffe645946faedad43d94f45e597b38"
+     ],
+     [
+      3,
+      "14845d6e0bff9e3e04348a388bca5cd0"
+     ],
+     [
+      4,
+      "038d2a9f433702d02e615d608633fda1"
+     ],
+     [
+      5,
+      "064970b39b5eca9d0736390bb8c8c447"
+     ],
+     [
+      6,
+      "770a704a20ef04a4ae4d1f82b7d9948b"
+     ],
+     [
+      7,
+      "824749f15d1ed492f5d3bb3c80daeae2"
+     ],
+     [
+      8,
+      "5425cd63c3294dbdb1004ec7a7ef380b"
+     ],
+     [
+      9,
+      "e8fe8e8b73c278500d5beb4f91843adc"
+     ],
+     [
+      10,
+      "773cd8deb06e68460884214938be6322"
+     ],
+     [
+      11,
+      "43912930aff919eb59e7490c6c507fbc"
+     ],
+     [
+      12,
+      "951df186ba8557a536b7dc659574dc8a"
+     ],
+     [
+      13,
+      "23192ac3f42b16b864bb16f70b5c82d2"
+     ]
+    ],
+    "table_exists": true,
+    "url": "postgresql+asyncpg://x/y"
+   },
+   "label": "upgrade_up_to_date",
+   "rc": 0,
+   "stderr": "",
+   "stdout": "应用了 0 个迁移: （已是最新）\n"
+  },
+  {
+   "argv": [
+    "--dry-run"
+   ],
+   "input": {
+    "rows": [
+     [
+      1,
+      "27a17e96e05bb858a73011136b1806b7"
+     ],
+     [
+      2,
+      "46ffe645946faedad43d94f45e597b38"
+     ],
+     [
+      3,
+      "14845d6e0bff9e3e04348a388bca5cd0"
+     ],
+     [
+      4,
+      "038d2a9f433702d02e615d608633fda1"
+     ],
+     [
+      5,
+      "064970b39b5eca9d0736390bb8c8c447"
+     ]
+    ],
+    "table_exists": true,
+    "url": "postgresql+asyncpg://x/y"
+   },
+   "label": "upgrade_partial",
+   "rc": 0,
+   "stderr": "",
+   "stdout": "应用了 8 个迁移: [6, 7, 8, 9, 10, 11, 12, 13]\n"
+  },
+  {
+   "argv": [
+    "--dry-run"
+   ],
+   "input": {
+    "rows": [
+     [
+      1,
+      "27a17e96e05bb858a73011136b1806b7"
+     ],
+     [
+      2,
+      "46ffe645946faedad43d94f45e597b38"
+     ],
+     [
+      3,
+      "14845d6e0bff9e3e04348a388bca5cd0"
+     ],
+     [
+      4,
+      "038d2a9f433702d02e615d608633fda1"
+     ],
+     [
+      5,
+      "064970b39b5eca9d0736390bb8c8c447"
+     ],
+     [
+      6,
+      "770a704a20ef04a4ae4d1f82b7d9948b"
+     ],
+     [
+      7,
+      "824749f15d1ed492f5d3bb3c80daeae2"
+     ],
+     [
+      8,
+      "5425cd63c3294dbdb1004ec7a7ef380b"
+     ],
+     [
+      9,
+      "e8fe8e8b73c278500d5beb4f91843adc"
+     ],
+     [
+      10,
+      "773cd8deb06e68460884214938be6322"
+     ],
+     [
+      11,
+      "43912930aff919eb59e7490c6c507fbc"
+     ],
+     [
+      12,
+      "951df186ba8557a536b7dc659574dc8a"
+     ]
+    ],
+    "table_exists": true,
+    "url": "postgresql+asyncpg://x/y"
+   },
+   "label": "upgrade_one",
+   "rc": 0,
+   "stderr": "",
+   "stdout": "应用了 1 个迁移: [13]\n"
+  },
+  {
+   "argv": [],
+   "input": {
+    "rows": [],
+    "table_exists": false,
+    "url": ""
+   },
+   "label": "no_database_url",
+   "rc": 0,
+   "stderr": "DATABASE_URL 未配置 —— 内存模式不需要迁移。\n",
+   "stdout": ""
+  }
+ ],
+ "discover_cases": [
+  {
+   "files": [],
+   "label": "empty",
+   "names": [],
+   "versions": []
+  },
+  {
+   "files": [
+    "0001_init.sql",
+    "0002_accounts_v2.sql"
+   ],
+   "label": "ok",
+   "names": [
+    "init",
+    "accounts_v2"
+   ],
+   "versions": [
+    1,
+    2
+   ]
+  },
+  {
+   "files": [
+    "0001_init.sql",
+    "0002_x.txt",
+    "README.md"
+   ],
+   "label": "ignores_non_sql",
+   "names": [
+    "init"
+   ],
+   "versions": [
+    1
+   ]
+  },
+  {
+   "error": {
+    "message": "迁移文件名不合规（要 NNNN_name.sql）: .keep.sql",
+    "type": "ValueError"
+   },
+   "files": [
+    ".keep.sql",
+    "0001_init.sql"
+   ],
+   "label": "dotfile_is_not_ignored"
+  },
+  {
+   "error": {
+    "message": "迁移文件名不合规（要 NNNN_name.sql）: 1_init.sql",
+    "type": "ValueError"
+   },
+   "files": [
+    "1_init.sql"
+   ],
+   "label": "bad_no_padding"
+  },
+  {
+   "error": {
+    "message": "迁移文件名不合规（要 NNNN_name.sql）: 0001_Init.sql",
+    "type": "ValueError"
+   },
+   "files": [
+    "0001_Init.sql"
+   ],
+   "label": "bad_uppercase"
+  },
+  {
+   "error": {
+    "message": "迁移文件名不合规（要 NNNN_name.sql）: 0001-init.sql",
+    "type": "ValueError"
+   },
+   "files": [
+    "0001-init.sql"
+   ],
+   "label": "bad_dash"
+  },
+  {
+   "error": {
+    "message": "迁移文件名不合规（要 NNNN_name.sql）: init.sql",
+    "type": "ValueError"
+   },
+   "files": [
+    "init.sql"
+   ],
+   "label": "bad_no_number"
+  },
+  {
+   "error": {
+    "message": "迁移文件名不合规（要 NNNN_name.sql）: 00001_init.sql",
+    "type": "ValueError"
+   },
+   "files": [
+    "00001_init.sql"
+   ],
+   "label": "bad_five_digits"
+  },
+  {
+   "error": {
+    "message": "迁移文件名不合规（要 NNNN_name.sql）: 0001_.sql",
+    "type": "ValueError"
+   },
+   "files": [
+    "0001_.sql"
+   ],
+   "label": "bad_empty_name"
+  },
+  {
+   "error": {
+    "message": "迁移编号重复: [1, 1]",
+    "type": "ValueError"
+   },
+   "files": [
+    "0001_a.sql",
+    "0001_b.sql"
+   ],
+   "label": "dup"
+  },
+  {
+   "error": {
+    "message": "迁移编号不连续: [1, 3]",
+    "type": "ValueError"
+   },
+   "files": [
+    "0001_a.sql",
+    "0003_c.sql"
+   ],
+   "label": "gap"
+  },
+  {
+   "error": {
+    "message": "迁移编号不连续: [0]",
+    "type": "ValueError"
+   },
+   "files": [
+    "0000_a.sql"
+   ],
+   "label": "starts_at_zero"
+  },
+  {
+   "error": {
+    "message": "迁移编号不连续: [2]",
+    "type": "ValueError"
+   },
+   "files": [
+    "0002_a.sql"
+   ],
+   "label": "starts_at_two"
+  },
+  {
+   "error": {
+    "message": "迁移文件名不合规（要 NNNN_name.sql）: bad.sql",
+    "type": "ValueError"
+   },
+   "files": [
+    "0003_a.sql",
+    "bad.sql"
+   ],
+   "label": "bad_name_wins_over_gap"
+  }
+ ],
+ "lock_key": 1330533455,
+ "migrations_dir": "migrations",
+ "migrations_is_source_checkout": true,
+ "upgrade_scenarios": [
+  {
+   "applied": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13
+   ],
+   "dry_run": false,
+   "input": {
+    "dialect": "postgresql",
+    "root_kind": "default",
+    "rows": [],
+    "table_exists": false
+   },
+   "scenario": "fresh",
+   "trace": [
+    {
+     "op": "connect"
+    },
+    {
+     "kw": {
+      "isolation_level": "AUTOCOMMIT"
+     },
+     "op": "execution_options"
+    },
+    {
+     "op": "execute",
+     "params": {
+      "k": 1330533455
+     },
+     "sql": "SELECT pg_advisory_lock(:k)"
+    },
+    {
+     "op": "execute",
+     "params": null,
+     "sql": "SELECT to_regclass('public.schema_migration') IS NOT NULL"
+    },
+    {
+     "chars": 13371,
+     "op": "script",
+     "sha256": "27a17e96e05bb858a73011136b1806b7fe85d01a6ede21a154982a2481142a0f"
+    },
+    {
+     "op": "execute",
+     "params": {
+      "c": "27a17e96e05bb858a73011136b1806b7",
+      "n": "init",
+      "v": 1
+     },
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+    },
+    {
+     "chars": 1743,
+     "op": "script",
+     "sha256": "46ffe645946faedad43d94f45e597b38f1bb7b18b6c0139ff1852d1cf642dea9"
+    },
+    {
+     "op": "execute",
+     "params": {
+      "c": "46ffe645946faedad43d94f45e597b38",
+      "n": "accounts",
+      "v": 2
+     },
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+    },
+    {
+     "chars": 494,
+     "op": "script",
+     "sha256": "14845d6e0bff9e3e04348a388bca5cd05b810a710a51a64aab6b86af0ef21f2c"
+    },
+    {
+     "op": "execute",
+     "params": {
+      "c": "14845d6e0bff9e3e04348a388bca5cd0",
+      "n": "app_settings",
+      "v": 3
+     },
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+    },
+    {
+     "chars": 407,
+     "op": "script",
+     "sha256": "038d2a9f433702d02e615d608633fda1fdfcc9e5e632440637d0c1f33477ed17"
+    },
+    {
+     "op": "execute",
+     "params": {
+      "c": "038d2a9f433702d02e615d608633fda1",
+      "n": "session_owner",
+      "v": 4
+     },
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+    },
+    {
+     "chars": 3854,
+     "op": "script",
+     "sha256": "064970b39b5eca9d0736390bb8c8c447f9c50ffed29259af8d0ca4ac3ac5c77f"
+    },
+    {
+     "op": "execute",
+     "params": {
+      "c": "064970b39b5eca9d0736390bb8c8c447",
+      "n": "question_decision_revision",
+      "v": 5
+     },
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+    },
+    {
+     "chars": 405,
+     "op": "script",
+     "sha256": "770a704a20ef04a4ae4d1f82b7d9948b0b73a3bf5019907787ffd3eabb7d6cbe"
+    },
+    {
+     "op": "execute",
+     "params": {
+      "c": "770a704a20ef04a4ae4d1f82b7d9948b",
+      "n": "session_status",
+      "v": 6
+     },
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+    },
+    {
+     "chars": 331,
+     "op": "script",
+     "sha256": "824749f15d1ed492f5d3bb3c80daeae2019cfc328ee979ddebfd0ace6517138b"
+    },
+    {
+     "op": "execute",
+     "params": {
+      "c": "824749f15d1ed492f5d3bb3c80daeae2",
+      "n": "session_event_idempotency",
+      "v": 7
+     },
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+    },
+    {
+     "chars": 627,
+     "op": "script",
+     "sha256": "5425cd63c3294dbdb1004ec7a7ef380b03dfce9f15dc762611230ff5d256b31d"
+    },
+    {
+     "op": "execute",
+     "params": {
+      "c": "5425cd63c3294dbdb1004ec7a7ef380b",
+      "n": "build_lease",
+      "v": 8
+     },
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+    },
+    {
+     "chars": 652,
+     "op": "script",
+     "sha256": "e8fe8e8b73c278500d5beb4f91843adc175be4d765eb61f26c8783998d0d5435"
+    },
+    {
+     "op": "execute",
+     "params": {
+      "c": "e8fe8e8b73c278500d5beb4f91843adc",
+      "n": "chat_lease",
+      "v": 9
+     },
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+    },
+    {
+     "chars": 2289,
+     "op": "script",
+     "sha256": "773cd8deb06e68460884214938be632280f1f832842b1a4d330f422cb330b49b"
+    },
+    {
+     "op": "execute",
+     "params": {
+      "c": "773cd8deb06e68460884214938be6322",
+      "n": "llm_usage",
+      "v": 10
+     },
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+    },
+    {
+     "chars": 612,
+     "op": "script",
+     "sha256": "43912930aff919eb59e7490c6c507fbc761fb3201f492d162c79e80f568143aa"
+    },
+    {
+     "op": "execute",
+     "params": {
+      "c": "43912930aff919eb59e7490c6c507fbc",
+      "n": "mutation_lease",
+      "v": 11
+     },
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+    },
+    {
+     "chars": 431,
+     "op": "script",
+     "sha256": "951df186ba8557a536b7dc659574dc8aacc1f2fe7be7158f37e4494489dadddc"
+    },
+    {
+     "op": "execute",
+     "params": {
+      "c": "951df186ba8557a536b7dc659574dc8a",
+      "n": "user_display_name",
+      "v": 12
+     },
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+    },
+    {
+     "chars": 2467,
+     "op": "script",
+     "sha256": "23192ac3f42b16b864bb16f70b5c82d27898f2de9fc955c3912f4c284b2cb009"
+    },
+    {
+     "op": "execute",
+     "params": {
+      "c": "23192ac3f42b16b864bb16f70b5c82d2",
+      "n": "project_folders",
+      "v": 13
+     },
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+    },
+    {
+     "op": "execute",
+     "params": {
+      "k": 1330533455
+     },
+     "sql": "SELECT pg_advisory_unlock(:k)"
+    },
+    {
+     "op": "close"
+    }
+   ]
+  },
+  {
+   "applied": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13
+   ],
+   "dry_run": true,
+   "input": {
+    "dialect": "postgresql",
+    "root_kind": "default",
+    "rows": [],
+    "table_exists": false
+   },
+   "scenario": "fresh_dry_run",
+   "trace": [
+    {
+     "op": "connect"
+    },
+    {
+     "kw": {
+      "isolation_level": "AUTOCOMMIT"
+     },
+     "op": "execution_options"
+    },
+    {
+     "op": "execute",
+     "params": {
+      "k": 1330533455
+     },
+     "sql": "SELECT pg_advisory_lock(:k)"
+    },
+    {
+     "op": "execute",
+     "params": null,
+     "sql": "SELECT to_regclass('public.schema_migration') IS NOT NULL"
+    },
+    {
+     "op": "execute",
+     "params": {
+      "k": 1330533455
+     },
+     "sql": "SELECT pg_advisory_unlock(:k)"
+    },
+    {
+     "op": "close"
+    }
+   ]
+  },
+  {
+   "applied": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13
+   ],
+   "dry_run": false,
+   "input": {
+    "dialect": "postgresql",
+    "root_kind": "default",
+    "rows": [],
+    "table_exists": true
+   },
+   "scenario": "table_exists_but_empty",
+   "trace": [
+    {
+     "op": "connect"
+    },
+    {
+     "kw": {
+      "isolation_level": "AUTOCOMMIT"
+     },
+     "op": "execution_options"
+    },
+    {
+     "op": "execute",
+     "params": {
+      "k": 1330533455
+     },
+     "sql": "SELECT pg_advisory_lock(:k)"
+    },
+    {
+     "op": "execute",
+     "params": null,
+     "sql": "SELECT to_regclass('public.schema_migration') IS NOT NULL"
+    },
+    {
+     "op": "execute",
+     "params": null,
+     "sql": "SELECT version, checksum FROM schema_migration"
+    },
+    {
+     "chars": 13371,
+     "op": "script",
+     "sha256": "27a17e96e05bb858a73011136b1806b7fe85d01a6ede21a154982a2481142a0f"
+    },
+    {
+     "op": "execute",
+     "params": {
+      "c": "27a17e96e05bb858a73011136b1806b7",
+      "n": "init",
+      "v": 1
+     },
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+    },
+    {
+     "chars": 1743,
+     "op": "script",
+     "sha256": "46ffe645946faedad43d94f45e597b38f1bb7b18b6c0139ff1852d1cf642dea9"
+    },
+    {
+     "op": "execute",
+     "params": {
+      "c": "46ffe645946faedad43d94f45e597b38",
+      "n": "accounts",
+      "v": 2
+     },
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+    },
+    {
+     "chars": 494,
+     "op": "script",
+     "sha256": "14845d6e0bff9e3e04348a388bca5cd05b810a710a51a64aab6b86af0ef21f2c"
+    },
+    {
+     "op": "execute",
+     "params": {
+      "c": "14845d6e0bff9e3e04348a388bca5cd0",
+      "n": "app_settings",
+      "v": 3
+     },
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+    },
+    {
+     "chars": 407,
+     "op": "script",
+     "sha256": "038d2a9f433702d02e615d608633fda1fdfcc9e5e632440637d0c1f33477ed17"
+    },
+    {
+     "op": "execute",
+     "params": {
+      "c": "038d2a9f433702d02e615d608633fda1",
+      "n": "session_owner",
+      "v": 4
+     },
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+    },
+    {
+     "chars": 3854,
+     "op": "script",
+     "sha256": "064970b39b5eca9d0736390bb8c8c447f9c50ffed29259af8d0ca4ac3ac5c77f"
+    },
+    {
+     "op": "execute",
+     "params": {
+      "c": "064970b39b5eca9d0736390bb8c8c447",
+      "n": "question_decision_revision",
+      "v": 5
+     },
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+    },
+    {
+     "chars": 405,
+     "op": "script",
+     "sha256": "770a704a20ef04a4ae4d1f82b7d9948b0b73a3bf5019907787ffd3eabb7d6cbe"
+    },
+    {
+     "op": "execute",
+     "params": {
+      "c": "770a704a20ef04a4ae4d1f82b7d9948b",
+      "n": "session_status",
+      "v": 6
+     },
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+    },
+    {
+     "chars": 331,
+     "op": "script",
+     "sha256": "824749f15d1ed492f5d3bb3c80daeae2019cfc328ee979ddebfd0ace6517138b"
+    },
+    {
+     "op": "execute",
+     "params": {
+      "c": "824749f15d1ed492f5d3bb3c80daeae2",
+      "n": "session_event_idempotency",
+      "v": 7
+     },
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+    },
+    {
+     "chars": 627,
+     "op": "script",
+     "sha256": "5425cd63c3294dbdb1004ec7a7ef380b03dfce9f15dc762611230ff5d256b31d"
+    },
+    {
+     "op": "execute",
+     "params": {
+      "c": "5425cd63c3294dbdb1004ec7a7ef380b",
+      "n": "build_lease",
+      "v": 8
+     },
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+    },
+    {
+     "chars": 652,
+     "op": "script",
+     "sha256": "e8fe8e8b73c278500d5beb4f91843adc175be4d765eb61f26c8783998d0d5435"
+    },
+    {
+     "op": "execute",
+     "params": {
+      "c": "e8fe8e8b73c278500d5beb4f91843adc",
+      "n": "chat_lease",
+      "v": 9
+     },
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+    },
+    {
+     "chars": 2289,
+     "op": "script",
+     "sha256": "773cd8deb06e68460884214938be632280f1f832842b1a4d330f422cb330b49b"
+    },
+    {
+     "op": "execute",
+     "params": {
+      "c": "773cd8deb06e68460884214938be6322",
+      "n": "llm_usage",
+      "v": 10
+     },
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+    },
+    {
+     "chars": 612,
+     "op": "script",
+     "sha256": "43912930aff919eb59e7490c6c507fbc761fb3201f492d162c79e80f568143aa"
+    },
+    {
+     "op": "execute",
+     "params": {
+      "c": "43912930aff919eb59e7490c6c507fbc",
+      "n": "mutation_lease",
+      "v": 11
+     },
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+    },
+    {
+     "chars": 431,
+     "op": "script",
+     "sha256": "951df186ba8557a536b7dc659574dc8aacc1f2fe7be7158f37e4494489dadddc"
+    },
+    {
+     "op": "execute",
+     "params": {
+      "c": "951df186ba8557a536b7dc659574dc8a",
+      "n": "user_display_name",
+      "v": 12
+     },
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+    },
+    {
+     "chars": 2467,
+     "op": "script",
+     "sha256": "23192ac3f42b16b864bb16f70b5c82d27898f2de9fc955c3912f4c284b2cb009"
+    },
+    {
+     "op": "execute",
+     "params": {
+      "c": "23192ac3f42b16b864bb16f70b5c82d2",
+      "n": "project_folders",
+      "v": 13
+     },
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+    },
+    {
+     "op": "execute",
+     "params": {
+      "k": 1330533455
+     },
+     "sql": "SELECT pg_advisory_unlock(:k)"
+    },
+    {
+     "op": "close"
+    }
+   ]
+  },
+  {
+   "applied": [
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13
+   ],
+   "dry_run": false,
+   "input": {
+    "dialect": "postgresql",
+    "root_kind": "default",
+    "rows": [
+     [
+      1,
+      "27a17e96e05bb858a73011136b1806b7"
+     ],
+     [
+      2,
+      "46ffe645946faedad43d94f45e597b38"
+     ],
+     [
+      3,
+      "14845d6e0bff9e3e04348a388bca5cd0"
+     ],
+     [
+      4,
+      "038d2a9f433702d02e615d608633fda1"
+     ],
+     [
+      5,
+      "064970b39b5eca9d0736390bb8c8c447"
+     ]
+    ],
+    "table_exists": true
+   },
+   "scenario": "partial",
+   "trace": [
+    {
+     "op": "connect"
+    },
+    {
+     "kw": {
+      "isolation_level": "AUTOCOMMIT"
+     },
+     "op": "execution_options"
+    },
+    {
+     "op": "execute",
+     "params": {
+      "k": 1330533455
+     },
+     "sql": "SELECT pg_advisory_lock(:k)"
+    },
+    {
+     "op": "execute",
+     "params": null,
+     "sql": "SELECT to_regclass('public.schema_migration') IS NOT NULL"
+    },
+    {
+     "op": "execute",
+     "params": null,
+     "sql": "SELECT version, checksum FROM schema_migration"
+    },
+    {
+     "chars": 405,
+     "op": "script",
+     "sha256": "770a704a20ef04a4ae4d1f82b7d9948b0b73a3bf5019907787ffd3eabb7d6cbe"
+    },
+    {
+     "op": "execute",
+     "params": {
+      "c": "770a704a20ef04a4ae4d1f82b7d9948b",
+      "n": "session_status",
+      "v": 6
+     },
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+    },
+    {
+     "chars": 331,
+     "op": "script",
+     "sha256": "824749f15d1ed492f5d3bb3c80daeae2019cfc328ee979ddebfd0ace6517138b"
+    },
+    {
+     "op": "execute",
+     "params": {
+      "c": "824749f15d1ed492f5d3bb3c80daeae2",
+      "n": "session_event_idempotency",
+      "v": 7
+     },
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+    },
+    {
+     "chars": 627,
+     "op": "script",
+     "sha256": "5425cd63c3294dbdb1004ec7a7ef380b03dfce9f15dc762611230ff5d256b31d"
+    },
+    {
+     "op": "execute",
+     "params": {
+      "c": "5425cd63c3294dbdb1004ec7a7ef380b",
+      "n": "build_lease",
+      "v": 8
+     },
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+    },
+    {
+     "chars": 652,
+     "op": "script",
+     "sha256": "e8fe8e8b73c278500d5beb4f91843adc175be4d765eb61f26c8783998d0d5435"
+    },
+    {
+     "op": "execute",
+     "params": {
+      "c": "e8fe8e8b73c278500d5beb4f91843adc",
+      "n": "chat_lease",
+      "v": 9
+     },
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+    },
+    {
+     "chars": 2289,
+     "op": "script",
+     "sha256": "773cd8deb06e68460884214938be632280f1f832842b1a4d330f422cb330b49b"
+    },
+    {
+     "op": "execute",
+     "params": {
+      "c": "773cd8deb06e68460884214938be6322",
+      "n": "llm_usage",
+      "v": 10
+     },
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+    },
+    {
+     "chars": 612,
+     "op": "script",
+     "sha256": "43912930aff919eb59e7490c6c507fbc761fb3201f492d162c79e80f568143aa"
+    },
+    {
+     "op": "execute",
+     "params": {
+      "c": "43912930aff919eb59e7490c6c507fbc",
+      "n": "mutation_lease",
+      "v": 11
+     },
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+    },
+    {
+     "chars": 431,
+     "op": "script",
+     "sha256": "951df186ba8557a536b7dc659574dc8aacc1f2fe7be7158f37e4494489dadddc"
+    },
+    {
+     "op": "execute",
+     "params": {
+      "c": "951df186ba8557a536b7dc659574dc8a",
+      "n": "user_display_name",
+      "v": 12
+     },
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+    },
+    {
+     "chars": 2467,
+     "op": "script",
+     "sha256": "23192ac3f42b16b864bb16f70b5c82d27898f2de9fc955c3912f4c284b2cb009"
+    },
+    {
+     "op": "execute",
+     "params": {
+      "c": "23192ac3f42b16b864bb16f70b5c82d2",
+      "n": "project_folders",
+      "v": 13
+     },
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+    },
+    {
+     "op": "execute",
+     "params": {
+      "k": 1330533455
+     },
+     "sql": "SELECT pg_advisory_unlock(:k)"
+    },
+    {
+     "op": "close"
+    }
+   ]
+  },
+  {
+   "applied": [],
+   "dry_run": false,
+   "input": {
+    "dialect": "postgresql",
+    "root_kind": "default",
+    "rows": [
+     [
+      1,
+      "27a17e96e05bb858a73011136b1806b7"
+     ],
+     [
+      2,
+      "46ffe645946faedad43d94f45e597b38"
+     ],
+     [
+      3,
+      "14845d6e0bff9e3e04348a388bca5cd0"
+     ],
+     [
+      4,
+      "038d2a9f433702d02e615d608633fda1"
+     ],
+     [
+      5,
+      "064970b39b5eca9d0736390bb8c8c447"
+     ],
+     [
+      6,
+      "770a704a20ef04a4ae4d1f82b7d9948b"
+     ],
+     [
+      7,
+      "824749f15d1ed492f5d3bb3c80daeae2"
+     ],
+     [
+      8,
+      "5425cd63c3294dbdb1004ec7a7ef380b"
+     ],
+     [
+      9,
+      "e8fe8e8b73c278500d5beb4f91843adc"
+     ],
+     [
+      10,
+      "773cd8deb06e68460884214938be6322"
+     ],
+     [
+      11,
+      "43912930aff919eb59e7490c6c507fbc"
+     ],
+     [
+      12,
+      "951df186ba8557a536b7dc659574dc8a"
+     ],
+     [
+      13,
+      "23192ac3f42b16b864bb16f70b5c82d2"
+     ]
+    ],
+    "table_exists": true
+   },
+   "scenario": "up_to_date",
+   "trace": [
+    {
+     "op": "connect"
+    },
+    {
+     "kw": {
+      "isolation_level": "AUTOCOMMIT"
+     },
+     "op": "execution_options"
+    },
+    {
+     "op": "execute",
+     "params": {
+      "k": 1330533455
+     },
+     "sql": "SELECT pg_advisory_lock(:k)"
+    },
+    {
+     "op": "execute",
+     "params": null,
+     "sql": "SELECT to_regclass('public.schema_migration') IS NOT NULL"
+    },
+    {
+     "op": "execute",
+     "params": null,
+     "sql": "SELECT version, checksum FROM schema_migration"
+    },
+    {
+     "op": "execute",
+     "params": {
+      "k": 1330533455
+     },
+     "sql": "SELECT pg_advisory_unlock(:k)"
+    },
+    {
+     "op": "close"
+    }
+   ]
+  },
+  {
+   "applied": [],
+   "dry_run": true,
+   "input": {
+    "dialect": "postgresql",
+    "root_kind": "default",
+    "rows": [
+     [
+      1,
+      "27a17e96e05bb858a73011136b1806b7"
+     ],
+     [
+      2,
+      "46ffe645946faedad43d94f45e597b38"
+     ],
+     [
+      3,
+      "14845d6e0bff9e3e04348a388bca5cd0"
+     ],
+     [
+      4,
+      "038d2a9f433702d02e615d608633fda1"
+     ],
+     [
+      5,
+      "064970b39b5eca9d0736390bb8c8c447"
+     ],
+     [
+      6,
+      "770a704a20ef04a4ae4d1f82b7d9948b"
+     ],
+     [
+      7,
+      "824749f15d1ed492f5d3bb3c80daeae2"
+     ],
+     [
+      8,
+      "5425cd63c3294dbdb1004ec7a7ef380b"
+     ],
+     [
+      9,
+      "e8fe8e8b73c278500d5beb4f91843adc"
+     ],
+     [
+      10,
+      "773cd8deb06e68460884214938be6322"
+     ],
+     [
+      11,
+      "43912930aff919eb59e7490c6c507fbc"
+     ],
+     [
+      12,
+      "951df186ba8557a536b7dc659574dc8a"
+     ],
+     [
+      13,
+      "23192ac3f42b16b864bb16f70b5c82d2"
+     ]
+    ],
+    "table_exists": true
+   },
+   "scenario": "up_to_date_dry_run",
+   "trace": [
+    {
+     "op": "connect"
+    },
+    {
+     "kw": {
+      "isolation_level": "AUTOCOMMIT"
+     },
+     "op": "execution_options"
+    },
+    {
+     "op": "execute",
+     "params": {
+      "k": 1330533455
+     },
+     "sql": "SELECT pg_advisory_lock(:k)"
+    },
+    {
+     "op": "execute",
+     "params": null,
+     "sql": "SELECT to_regclass('public.schema_migration') IS NOT NULL"
+    },
+    {
+     "op": "execute",
+     "params": null,
+     "sql": "SELECT version, checksum FROM schema_migration"
+    },
+    {
+     "op": "execute",
+     "params": {
+      "k": 1330533455
+     },
+     "sql": "SELECT pg_advisory_unlock(:k)"
+    },
+    {
+     "op": "close"
+    }
+   ]
+  },
+  {
+   "dry_run": false,
+   "error": {
+    "message": "迁移 0003_app_settings 的内容变了 （库里 00000000000000000000000000000000，文件 14845d6e0bff9e3e04348a388bca5cd0）。已应用的迁移不许改 —— 新写一个前向迁移。",
+    "type": "RuntimeError"
+   },
+   "input": {
+    "dialect": "postgresql",
+    "root_kind": "default",
+    "rows": [
+     [
+      1,
+      "27a17e96e05bb858a73011136b1806b7"
+     ],
+     [
+      2,
+      "46ffe645946faedad43d94f45e597b38"
+     ],
+     [
+      3,
+      "00000000000000000000000000000000"
+     ],
+     [
+      4,
+      "038d2a9f433702d02e615d608633fda1"
+     ],
+     [
+      5,
+      "064970b39b5eca9d0736390bb8c8c447"
+     ]
+    ],
+    "table_exists": true
+   },
+   "scenario": "tampered_middle",
+   "trace": [
+    {
+     "op": "connect"
+    },
+    {
+     "kw": {
+      "isolation_level": "AUTOCOMMIT"
+     },
+     "op": "execution_options"
+    },
+    {
+     "op": "execute",
+     "params": {
+      "k": 1330533455
+     },
+     "sql": "SELECT pg_advisory_lock(:k)"
+    },
+    {
+     "op": "execute",
+     "params": null,
+     "sql": "SELECT to_regclass('public.schema_migration') IS NOT NULL"
+    },
+    {
+     "op": "execute",
+     "params": null,
+     "sql": "SELECT version, checksum FROM schema_migration"
+    },
+    {
+     "op": "execute",
+     "params": {
+      "k": 1330533455
+     },
+     "sql": "SELECT pg_advisory_unlock(:k)"
+    },
+    {
+     "op": "close"
+    }
+   ]
+  },
+  {
+   "dry_run": false,
+   "error": {
+    "message": "迁移 0001_init 的内容变了 （库里 00000000000000000000000000000000，文件 27a17e96e05bb858a73011136b1806b7）。已应用的迁移不许改 —— 新写一个前向迁移。",
+    "type": "RuntimeError"
+   },
+   "input": {
+    "dialect": "postgresql",
+    "root_kind": "default",
+    "rows": [
+     [
+      1,
+      "00000000000000000000000000000000"
+     ]
+    ],
+    "table_exists": true
+   },
+   "scenario": "tampered_first",
+   "trace": [
+    {
+     "op": "connect"
+    },
+    {
+     "kw": {
+      "isolation_level": "AUTOCOMMIT"
+     },
+     "op": "execution_options"
+    },
+    {
+     "op": "execute",
+     "params": {
+      "k": 1330533455
+     },
+     "sql": "SELECT pg_advisory_lock(:k)"
+    },
+    {
+     "op": "execute",
+     "params": null,
+     "sql": "SELECT to_regclass('public.schema_migration') IS NOT NULL"
+    },
+    {
+     "op": "execute",
+     "params": null,
+     "sql": "SELECT version, checksum FROM schema_migration"
+    },
+    {
+     "op": "execute",
+     "params": {
+      "k": 1330533455
+     },
+     "sql": "SELECT pg_advisory_unlock(:k)"
+    },
+    {
+     "op": "close"
+    }
+   ]
+  },
+  {
+   "dry_run": true,
+   "error": {
+    "message": "迁移 0001_init 的内容变了 （库里 00000000000000000000000000000000，文件 27a17e96e05bb858a73011136b1806b7）。已应用的迁移不许改 —— 新写一个前向迁移。",
+    "type": "RuntimeError"
+   },
+   "input": {
+    "dialect": "postgresql",
+    "root_kind": "default",
+    "rows": [
+     [
+      1,
+      "00000000000000000000000000000000"
+     ]
+    ],
+    "table_exists": true
+   },
+   "scenario": "tampered_dry_run",
+   "trace": [
+    {
+     "op": "connect"
+    },
+    {
+     "kw": {
+      "isolation_level": "AUTOCOMMIT"
+     },
+     "op": "execution_options"
+    },
+    {
+     "op": "execute",
+     "params": {
+      "k": 1330533455
+     },
+     "sql": "SELECT pg_advisory_lock(:k)"
+    },
+    {
+     "op": "execute",
+     "params": null,
+     "sql": "SELECT to_regclass('public.schema_migration') IS NOT NULL"
+    },
+    {
+     "op": "execute",
+     "params": null,
+     "sql": "SELECT version, checksum FROM schema_migration"
+    },
+    {
+     "op": "execute",
+     "params": {
+      "k": 1330533455
+     },
+     "sql": "SELECT pg_advisory_unlock(:k)"
+    },
+    {
+     "op": "close"
+    }
+   ]
+  },
+  {
+   "applied": [],
+   "dry_run": false,
+   "input": {
+    "dialect": "postgresql",
+    "root_kind": "default",
+    "rows": [
+     [
+      1,
+      "27a17e96e05bb858a73011136b1806b7"
+     ],
+     [
+      2,
+      "46ffe645946faedad43d94f45e597b38"
+     ],
+     [
+      3,
+      "14845d6e0bff9e3e04348a388bca5cd0"
+     ],
+     [
+      4,
+      "038d2a9f433702d02e615d608633fda1"
+     ],
+     [
+      5,
+      "064970b39b5eca9d0736390bb8c8c447"
+     ],
+     [
+      6,
+      "770a704a20ef04a4ae4d1f82b7d9948b"
+     ],
+     [
+      7,
+      "824749f15d1ed492f5d3bb3c80daeae2"
+     ],
+     [
+      8,
+      "5425cd63c3294dbdb1004ec7a7ef380b"
+     ],
+     [
+      9,
+      "e8fe8e8b73c278500d5beb4f91843adc"
+     ],
+     [
+      10,
+      "773cd8deb06e68460884214938be6322"
+     ],
+     [
+      11,
+      "43912930aff919eb59e7490c6c507fbc"
+     ],
+     [
+      12,
+      "951df186ba8557a536b7dc659574dc8a"
+     ],
+     [
+      13,
+      "23192ac3f42b16b864bb16f70b5c82d2"
+     ],
+     [
+      103,
+      "ffffffffffffffffffffffffffffffff"
+     ]
+    ],
+    "table_exists": true
+   },
+   "scenario": "unknown_version_in_db",
+   "trace": [
+    {
+     "op": "connect"
+    },
+    {
+     "kw": {
+      "isolation_level": "AUTOCOMMIT"
+     },
+     "op": "execution_options"
+    },
+    {
+     "op": "execute",
+     "params": {
+      "k": 1330533455
+     },
+     "sql": "SELECT pg_advisory_lock(:k)"
+    },
+    {
+     "op": "execute",
+     "params": null,
+     "sql": "SELECT to_regclass('public.schema_migration') IS NOT NULL"
+    },
+    {
+     "op": "execute",
+     "params": null,
+     "sql": "SELECT version, checksum FROM schema_migration"
+    },
+    {
+     "op": "execute",
+     "params": {
+      "k": 1330533455
+     },
+     "sql": "SELECT pg_advisory_unlock(:k)"
+    },
+    {
+     "op": "close"
+    }
+   ]
+  },
+  {
+   "applied": [],
+   "dry_run": false,
+   "input": {
+    "dialect": "postgresql",
+    "root_kind": "default",
+    "rows": [
+     [
+      "1",
+      "27a17e96e05bb858a73011136b1806b7"
+     ],
+     [
+      "2",
+      "46ffe645946faedad43d94f45e597b38"
+     ],
+     [
+      "3",
+      "14845d6e0bff9e3e04348a388bca5cd0"
+     ],
+     [
+      "4",
+      "038d2a9f433702d02e615d608633fda1"
+     ],
+     [
+      "5",
+      "064970b39b5eca9d0736390bb8c8c447"
+     ],
+     [
+      "6",
+      "770a704a20ef04a4ae4d1f82b7d9948b"
+     ],
+     [
+      "7",
+      "824749f15d1ed492f5d3bb3c80daeae2"
+     ],
+     [
+      "8",
+      "5425cd63c3294dbdb1004ec7a7ef380b"
+     ],
+     [
+      "9",
+      "e8fe8e8b73c278500d5beb4f91843adc"
+     ],
+     [
+      "10",
+      "773cd8deb06e68460884214938be6322"
+     ],
+     [
+      "11",
+      "43912930aff919eb59e7490c6c507fbc"
+     ],
+     [
+      "12",
+      "951df186ba8557a536b7dc659574dc8a"
+     ],
+     [
+      "13",
+      "23192ac3f42b16b864bb16f70b5c82d2"
+     ]
+    ],
+    "table_exists": true
+   },
+   "scenario": "version_as_text",
+   "trace": [
+    {
+     "op": "connect"
+    },
+    {
+     "kw": {
+      "isolation_level": "AUTOCOMMIT"
+     },
+     "op": "execution_options"
+    },
+    {
+     "op": "execute",
+     "params": {
+      "k": 1330533455
+     },
+     "sql": "SELECT pg_advisory_lock(:k)"
+    },
+    {
+     "op": "execute",
+     "params": null,
+     "sql": "SELECT to_regclass('public.schema_migration') IS NOT NULL"
+    },
+    {
+     "op": "execute",
+     "params": null,
+     "sql": "SELECT version, checksum FROM schema_migration"
+    },
+    {
+     "op": "execute",
+     "params": {
+      "k": 1330533455
+     },
+     "sql": "SELECT pg_advisory_unlock(:k)"
+    },
+    {
+     "op": "close"
+    }
+   ]
+  },
+  {
+   "dry_run": false,
+   "error": {
+    "message": "迁移只跑 Postgres，当前方言 sqlite；SQLite 请用 Store.open(create_all=True)",
+    "type": "RuntimeError"
+   },
+   "input": {
+    "dialect": "sqlite",
+    "root_kind": "default",
+    "rows": [],
+    "table_exists": false
+   },
+   "scenario": "sqlite_dialect",
+   "trace": []
+  },
+  {
+   "dry_run": false,
+   "error": {
+    "message": "迁移只跑 Postgres，当前方言 mysql；SQLite 请用 Store.open(create_all=True)",
+    "type": "RuntimeError"
+   },
+   "input": {
+    "dialect": "mysql",
+    "root_kind": "default",
+    "rows": [],
+    "table_exists": false
+   },
+   "scenario": "mysql_dialect",
+   "trace": []
+  },
+  {
+   "applied": [],
+   "dry_run": false,
+   "input": {
+    "dialect": "postgresql",
+    "root_kind": "empty",
+    "rows": [],
+    "table_exists": false
+   },
+   "scenario": "empty_catalog",
+   "trace": [
+    {
+     "op": "connect"
+    },
+    {
+     "kw": {
+      "isolation_level": "AUTOCOMMIT"
+     },
+     "op": "execution_options"
+    },
+    {
+     "op": "execute",
+     "params": {
+      "k": 1330533455
+     },
+     "sql": "SELECT pg_advisory_lock(:k)"
+    },
+    {
+     "op": "execute",
+     "params": null,
+     "sql": "SELECT to_regclass('public.schema_migration') IS NOT NULL"
+    },
+    {
+     "op": "execute",
+     "params": {
+      "k": 1330533455
+     },
+     "sql": "SELECT pg_advisory_unlock(:k)"
+    },
+    {
+     "op": "close"
+    }
+   ]
+  }
+ ]
+}

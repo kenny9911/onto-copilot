@@ -1,0 +1,7985 @@
+{
+ "infer_type": [
+  {
+   "values": [],
+   "type": "STRING"
+  },
+  {
+   "values": [
+    "",
+    "  ",
+    "\t"
+   ],
+   "type": "STRING"
+  },
+  {
+   "values": [
+    "1",
+    "2",
+    "-3"
+   ],
+   "type": "INTEGER"
+  },
+  {
+   "values": [
+    "1",
+    "2.5"
+   ],
+   "type": "DECIMAL"
+  },
+  {
+   "values": [
+    "1.0",
+    "-0.5"
+   ],
+   "type": "DECIMAL"
+  },
+  {
+   "values": [
+    "0x1f",
+    "1"
+   ],
+   "type": "STRING"
+  },
+  {
+   "values": [
+    "1_0",
+    "20"
+   ],
+   "type": "STRING"
+  },
+  {
+   "values": [
+    "１２３",
+    "４５６"
+   ],
+   "type": "INTEGER"
+  },
+  {
+   "values": [
+    "1",
+    " 2 ",
+    "3"
+   ],
+   "type": "INTEGER"
+  },
+  {
+   "values": [
+    "1\n",
+    "2"
+   ],
+   "type": "INTEGER"
+  },
+  {
+   "values": [
+    "+1",
+    "2"
+   ],
+   "type": "STRING"
+  },
+  {
+   "values": [
+    "1e3",
+    "2"
+   ],
+   "type": "STRING"
+  },
+  {
+   "values": [
+    "2024-01-15",
+    "2024/2/3"
+   ],
+   "type": "DATE"
+  },
+  {
+   "values": [
+    "2024-01-15 10:00:00",
+    "2024-1-2 xx"
+   ],
+   "type": "DATE"
+  },
+  {
+   "values": [
+    "24-01-15"
+   ],
+   "type": "STRING"
+  },
+  {
+   "values": [
+    "是",
+    "否",
+    "是"
+   ],
+   "type": "BOOLEAN"
+  },
+  {
+   "values": [
+    "Y",
+    "n",
+    "YES",
+    "No",
+    "TRUE",
+    "false"
+   ],
+   "type": "BOOLEAN"
+  },
+  {
+   "values": [
+    "是",
+    "否",
+    "也许"
+   ],
+   "type": "STRING"
+  },
+  {
+   "values": [
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A"
+   ],
+   "type": "ENUM"
+  },
+  {
+   "values": [
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A"
+   ],
+   "type": "STRING"
+  },
+  {
+   "values": [
+    "A",
+    "B",
+    "A",
+    "B",
+    "A",
+    "B",
+    "A",
+    "B"
+   ],
+   "type": "ENUM"
+  },
+  {
+   "values": [
+    "A",
+    "B",
+    "C",
+    "A",
+    "B",
+    "C",
+    "A",
+    "B",
+    "C"
+   ],
+   "type": "STRING"
+  },
+  {
+   "values": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8"
+   ],
+   "type": "INTEGER"
+  },
+  {
+   "values": [
+    "含税",
+    "不含税",
+    "含税",
+    "不含税",
+    "含税",
+    "不含税",
+    "含税",
+    "不含税"
+   ],
+   "type": "ENUM"
+  },
+  {
+   "values": [
+    "Ａ",
+    "Ｂ"
+   ],
+   "type": "STRING"
+  },
+  {
+   "values": [
+    "🐍",
+    "🐍",
+    "🐍"
+   ],
+   "type": "STRING"
+  },
+  {
+   "values": [
+    "　是",
+    "否"
+   ],
+   "type": "BOOLEAN"
+  },
+  {
+   "values": [
+    "﻿是",
+    "否"
+   ],
+   "type": "STRING"
+  }
+ ],
+ "profile_column": [
+  {
+   "name": "空列",
+   "values": [],
+   "profile": {
+    "name": "空列",
+    "count": 0,
+    "non_null": 0,
+    "null_rate": 1.0,
+    "distinct": 0,
+    "distinct_ratio": 0.0,
+    "unique": false,
+    "inferred_type": "STRING",
+    "samples": []
+   }
+  },
+  {
+   "name": "全空",
+   "values": [
+    "",
+    "  ",
+    "　"
+   ],
+   "profile": {
+    "name": "全空",
+    "count": 3,
+    "non_null": 0,
+    "null_rate": 1.0,
+    "distinct": 0,
+    "distinct_ratio": 0.0,
+    "unique": false,
+    "inferred_type": "STRING",
+    "samples": []
+   }
+  },
+  {
+   "name": "唯一",
+   "values": [
+    "a",
+    "b",
+    "c"
+   ],
+   "profile": {
+    "name": "唯一",
+    "count": 3,
+    "non_null": 3,
+    "null_rate": 0.0,
+    "distinct": 3,
+    "distinct_ratio": 1.0,
+    "unique": true,
+    "inferred_type": "STRING",
+    "samples": [
+     "a",
+     "b",
+     "c"
+    ]
+   }
+  },
+  {
+   "name": "有重复",
+   "values": [
+    "a",
+    "a",
+    "b",
+    ""
+   ],
+   "profile": {
+    "name": "有重复",
+    "count": 4,
+    "non_null": 3,
+    "null_rate": 0.25,
+    "distinct": 2,
+    "distinct_ratio": 0.6667,
+    "unique": false,
+    "inferred_type": "STRING",
+    "samples": [
+     "a",
+     "b"
+    ]
+   }
+  },
+  {
+   "name": "三分之一",
+   "values": [
+    "a",
+    "",
+    ""
+   ],
+   "profile": {
+    "name": "三分之一",
+    "count": 3,
+    "non_null": 1,
+    "null_rate": 0.6667,
+    "distinct": 1,
+    "distinct_ratio": 1.0,
+    "unique": true,
+    "inferred_type": "STRING",
+    "samples": [
+     "a"
+    ]
+   }
+  },
+  {
+   "name": "七分之一",
+   "values": [
+    "x",
+    "",
+    "",
+    "",
+    "",
+    "",
+    ""
+   ],
+   "profile": {
+    "name": "七分之一",
+    "count": 7,
+    "non_null": 1,
+    "null_rate": 0.8571,
+    "distinct": 1,
+    "distinct_ratio": 1.0,
+    "unique": true,
+    "inferred_type": "STRING",
+    "samples": [
+     "x"
+    ]
+   }
+  },
+  {
+   "name": "十六分之一",
+   "values": [
+    "x",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    ""
+   ],
+   "profile": {
+    "name": "十六分之一",
+    "count": 16,
+    "non_null": 1,
+    "null_rate": 0.9375,
+    "distinct": 1,
+    "distinct_ratio": 1.0,
+    "unique": true,
+    "inferred_type": "STRING",
+    "samples": [
+     "x"
+    ]
+   }
+  },
+  {
+   "name": "样本超五",
+   "values": [
+    "v1",
+    "v2",
+    "v3",
+    "v4",
+    "v5",
+    "v6",
+    "v1"
+   ],
+   "profile": {
+    "name": "样本超五",
+    "count": 7,
+    "non_null": 7,
+    "null_rate": 0.0,
+    "distinct": 6,
+    "distinct_ratio": 0.8571,
+    "unique": false,
+    "inferred_type": "STRING",
+    "samples": [
+     "v1",
+     "v2",
+     "v3",
+     "v4",
+     "v5"
+    ]
+   }
+  },
+  {
+   "name": "数字列",
+   "values": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8"
+   ],
+   "profile": {
+    "name": "数字列",
+    "count": 8,
+    "non_null": 8,
+    "null_rate": 0.0,
+    "distinct": 8,
+    "distinct_ratio": 1.0,
+    "unique": true,
+    "inferred_type": "INTEGER",
+    "samples": [
+     "1",
+     "2",
+     "3",
+     "4",
+     "5"
+    ]
+   }
+  },
+  {
+   "name": "枚举列",
+   "values": [
+    "含税",
+    "不含税",
+    "含税",
+    "不含税",
+    "含税",
+    "不含税",
+    "含税",
+    "不含税",
+    "含税",
+    "不含税"
+   ],
+   "profile": {
+    "name": "枚举列",
+    "count": 10,
+    "non_null": 10,
+    "null_rate": 0.0,
+    "distinct": 2,
+    "distinct_ratio": 0.2,
+    "unique": false,
+    "inferred_type": "ENUM",
+    "samples": [
+     "含税",
+     "不含税"
+    ]
+   }
+  },
+  {
+   "name": "带空白",
+   "values": [
+    " a ",
+    "a",
+    "　a　"
+   ],
+   "profile": {
+    "name": "带空白",
+    "count": 3,
+    "non_null": 3,
+    "null_rate": 0.0,
+    "distinct": 3,
+    "distinct_ratio": 1.0,
+    "unique": true,
+    "inferred_type": "STRING",
+    "samples": [
+     " a ",
+     "a",
+     "　a　"
+    ]
+   }
+  },
+  {
+   "name": "BOM",
+   "values": [
+    "﻿a",
+    "a"
+   ],
+   "profile": {
+    "name": "BOM",
+    "count": 2,
+    "non_null": 2,
+    "null_rate": 0.0,
+    "distinct": 2,
+    "distinct_ratio": 1.0,
+    "unique": true,
+    "inferred_type": "STRING",
+    "samples": [
+     "﻿a",
+     "a"
+    ]
+   }
+  },
+  {
+   "name": "三分之二",
+   "values": [
+    "a",
+    "b",
+    ""
+   ],
+   "profile": {
+    "name": "三分之二",
+    "count": 3,
+    "non_null": 2,
+    "null_rate": 0.3333,
+    "distinct": 2,
+    "distinct_ratio": 1.0,
+    "unique": true,
+    "inferred_type": "STRING",
+    "samples": [
+     "a",
+     "b"
+    ]
+   }
+  }
+ ],
+ "detect_header_row": [
+  {
+   "rows": [],
+   "header": -1
+  },
+  {
+   "rows": [
+    []
+   ],
+   "header": -1
+  },
+  {
+   "rows": [
+    [
+     "姓名",
+     "年龄",
+     "城市"
+    ],
+    [
+     "张三",
+     "18",
+     "北京"
+    ],
+    [
+     "李四",
+     "20",
+     "上海"
+    ]
+   ],
+   "header": 0
+  },
+  {
+   "rows": [
+    [
+     "某某集团采购中台梳理表"
+    ],
+    [],
+    [
+     "姓名",
+     "年龄",
+     "城市"
+    ],
+    [
+     "张三",
+     "18",
+     "北京"
+    ]
+   ],
+   "header": 2
+  },
+  {
+   "rows": [
+    [
+     "1、需进行采购包总金额上线控制，如超出XX金额，则采购包创建失败；2、实际与计划基线对比，如提前XX天需要进行预警提醒；3、进度状态标准：未开始、执行中、部分完成、已完成、已暂停、已取消。"
+    ],
+    [
+     "（1）创建；（2）审批。"
+    ]
+   ],
+   "header": 1
+  },
+  {
+   "rows": [
+    [
+     "a",
+     "",
+     "",
+     ""
+    ],
+    [
+     "1",
+     "2",
+     "3",
+     "4"
+    ]
+   ],
+   "header": -1
+  },
+  {
+   "rows": [
+    [
+     "1",
+     "2",
+     "3"
+    ],
+    [
+     "4",
+     "5",
+     "6"
+    ]
+   ],
+   "header": -1
+  },
+  {
+   "rows": [
+    [
+     "名称",
+     "编码"
+    ],
+    [
+     "甲",
+     "乙"
+    ],
+    [
+     "丙",
+     "丁"
+    ]
+   ],
+   "header": 0
+  },
+  {
+   "rows": [
+    [
+     "x",
+     "x"
+    ],
+    [
+     "1",
+     "2"
+    ]
+   ],
+   "header": 0
+  },
+  {
+   "rows": [
+    [
+     "col",
+     "col",
+     "col"
+    ],
+    [
+     "col",
+     "col",
+     "col"
+    ],
+    [
+     "col",
+     "col",
+     "col"
+    ],
+    [
+     "col",
+     "col",
+     "col"
+    ],
+    [
+     "col",
+     "col",
+     "col"
+    ],
+    [
+     "col",
+     "col",
+     "col"
+    ],
+    [
+     "col",
+     "col",
+     "col"
+    ],
+    [
+     "col",
+     "col",
+     "col"
+    ],
+    [
+     "col",
+     "col",
+     "col"
+    ],
+    [
+     "col",
+     "col",
+     "col"
+    ],
+    [
+     "col",
+     "col",
+     "col"
+    ],
+    [
+     "col",
+     "col",
+     "col"
+    ],
+    [
+     "col",
+     "col",
+     "col"
+    ],
+    [
+     "col",
+     "col",
+     "col"
+    ],
+    [
+     "1",
+     "2",
+     "3"
+    ]
+   ],
+   "header": 0
+  },
+  {
+   "rows": [
+    [
+     "名称",
+     "编码",
+     "2024-01-01"
+    ],
+    [
+     "甲",
+     "乙",
+     "1"
+    ]
+   ],
+   "header": 0
+  },
+  {
+   "rows": [
+    [
+     "很长的表头很长的表头很长的表头很长的表头很长的表头很长的表头",
+     "编码"
+    ],
+    [
+     "甲",
+     "1"
+    ]
+   ],
+   "header": 0
+  },
+  {
+   "rows": [
+    [
+     "表",
+     "格",
+     "标"
+    ],
+    [
+     "名称",
+     "名称",
+     "编码"
+    ],
+    [
+     "甲",
+     "乙",
+     "丙"
+    ],
+    [
+     "丁",
+     "戊",
+     "己"
+    ]
+   ],
+   "header": 1
+  }
+ ],
+ "dedupe_headers": [
+  {
+   "header": [],
+   "out": []
+  },
+  {
+   "header": [
+    "a",
+    "b"
+   ],
+   "out": [
+    "a",
+    "b"
+   ]
+  },
+  {
+   "header": [
+    "a",
+    "a",
+    "a"
+   ],
+   "out": [
+    "a",
+    "a#2",
+    "a#3"
+   ]
+  },
+  {
+   "header": [
+    "",
+    " ",
+    "x"
+   ],
+   "out": [
+    "col1",
+    "col2",
+    "x"
+   ]
+  },
+  {
+   "header": [
+    "a",
+    "a#2",
+    "a"
+   ],
+   "out": [
+    "a",
+    "a#2",
+    "a#2"
+   ]
+  },
+  {
+   "header": [
+    "  名称  ",
+    "名称"
+   ],
+   "out": [
+    "名称",
+    "名称#2"
+   ]
+  }
+ ],
+ "render_pairs": [
+  {
+   "header": [
+    "A",
+    "B",
+    "C"
+   ],
+   "row": [
+    "1",
+    "2",
+    "3"
+   ],
+   "comments": {},
+   "out": [
+    "A=1",
+    "B=2",
+    "C=3"
+   ]
+  },
+  {
+   "header": [
+    "A",
+    "B",
+    "C"
+   ],
+   "row": [
+    "x",
+    "x",
+    "x"
+   ],
+   "comments": {},
+   "out": [
+    "A~C=x"
+   ]
+  },
+  {
+   "header": [
+    "A",
+    "B",
+    "C"
+   ],
+   "row": [
+    "x",
+    "x",
+    "y"
+   ],
+   "comments": {},
+   "out": [
+    "A~B=x",
+    "C=y"
+   ]
+  },
+  {
+   "header": [
+    "A",
+    "B",
+    "C"
+   ],
+   "row": [
+    "",
+    "",
+    ""
+   ],
+   "comments": {},
+   "out": []
+  },
+  {
+   "header": [
+    "A",
+    "B",
+    "C"
+   ],
+   "row": [
+    "1",
+    "",
+    "3"
+   ],
+   "comments": {
+    "1": "口径在这"
+   },
+   "out": [
+    "A=1",
+    "C=3",
+    "〔批注·B〕口径在这"
+   ]
+  },
+  {
+   "header": [
+    "A",
+    "B",
+    "C"
+   ],
+   "row": [
+    "x",
+    "x",
+    ""
+   ],
+   "comments": {
+    "1": "绑在合并段"
+   },
+   "out": [
+    "A~B=x　〔批注〕绑在合并段"
+   ]
+  },
+  {
+   "header": [
+    "A",
+    "B"
+   ],
+   "row": [
+    "1",
+    "2",
+    "3"
+   ],
+   "comments": {},
+   "out": [
+    "A=1",
+    "B=2"
+   ]
+  },
+  {
+   "header": [
+    "A",
+    "B",
+    "C"
+   ],
+   "row": [
+    "1"
+   ],
+   "comments": {
+    "2": "越过行尾"
+   },
+   "out": [
+    "A=1",
+    "〔批注·C〕越过行尾"
+   ]
+  },
+  {
+   "header": [
+    "A",
+    "B",
+    "C"
+   ],
+   "row": [
+    " 1 ",
+    "1",
+    "2"
+   ],
+   "comments": {},
+   "out": [
+    "A~B=1",
+    "C=2"
+   ]
+  },
+  {
+   "header": [
+    "A",
+    "B",
+    "C"
+   ],
+   "row": [
+    "1",
+    "2",
+    "3"
+   ],
+   "comments": {
+    "0": "甲",
+    "2": "乙",
+    "5": "越界丢弃"
+   },
+   "out": [
+    "A=1　〔批注〕甲",
+    "B=2",
+    "C=3　〔批注〕乙"
+   ]
+  }
+ ],
+ "fill_hierarchy": [
+  {
+   "header": [
+    "应用模块",
+    "业务对象",
+    "字段",
+    "类型",
+    "口径"
+   ],
+   "body": [
+    [
+     "采购计划管理",
+     "采购需求计划",
+     "planNo",
+     "string",
+     "计划编号"
+    ],
+    [
+     "",
+     "",
+     "planAmount",
+     "decimal",
+     "含税金额"
+    ],
+    [
+     "",
+     "",
+     "planDate",
+     "date",
+     ""
+    ],
+    [
+     "采购订单管理",
+     "采购订单",
+     "poNo",
+     "string",
+     "订单编号"
+    ],
+    [
+     "",
+     "",
+     "poAmount",
+     "decimal",
+     ""
+    ],
+    [
+     "",
+     "",
+     "poDate",
+     "date",
+     "下单日期"
+    ],
+    [
+     "",
+     "",
+     "poStatus",
+     "string",
+     "状态"
+    ]
+   ],
+   "out": [
+    [
+     "采购计划管理",
+     "采购需求计划",
+     "planNo",
+     "string",
+     "计划编号"
+    ],
+    [
+     "采购计划管理",
+     "采购需求计划",
+     "planAmount",
+     "decimal",
+     "含税金额"
+    ],
+    [
+     "采购计划管理",
+     "采购需求计划",
+     "planDate",
+     "date",
+     ""
+    ],
+    [
+     "采购订单管理",
+     "采购订单",
+     "poNo",
+     "string",
+     "订单编号"
+    ],
+    [
+     "采购订单管理",
+     "采购订单",
+     "poAmount",
+     "decimal",
+     ""
+    ],
+    [
+     "采购订单管理",
+     "采购订单",
+     "poDate",
+     "date",
+     "下单日期"
+    ],
+    [
+     "采购订单管理",
+     "采购订单",
+     "poStatus",
+     "string",
+     "状态"
+    ]
+   ]
+  },
+  {
+   "header": [],
+   "body": [
+    [
+     "采购计划管理",
+     "采购需求计划",
+     "planNo",
+     "string",
+     "计划编号"
+    ],
+    [
+     "",
+     "",
+     "planAmount",
+     "decimal",
+     "含税金额"
+    ],
+    [
+     "",
+     "",
+     "planDate",
+     "date",
+     ""
+    ],
+    [
+     "采购订单管理",
+     "采购订单",
+     "poNo",
+     "string",
+     "订单编号"
+    ],
+    [
+     "",
+     "",
+     "poAmount",
+     "decimal",
+     ""
+    ],
+    [
+     "",
+     "",
+     "poDate",
+     "date",
+     "下单日期"
+    ],
+    [
+     "",
+     "",
+     "poStatus",
+     "string",
+     "状态"
+    ]
+   ],
+   "out": [
+    [
+     "采购计划管理",
+     "采购需求计划",
+     "planNo",
+     "string",
+     "计划编号"
+    ],
+    [
+     "",
+     "",
+     "planAmount",
+     "decimal",
+     "含税金额"
+    ],
+    [
+     "",
+     "",
+     "planDate",
+     "date",
+     ""
+    ],
+    [
+     "采购订单管理",
+     "采购订单",
+     "poNo",
+     "string",
+     "订单编号"
+    ],
+    [
+     "",
+     "",
+     "poAmount",
+     "decimal",
+     ""
+    ],
+    [
+     "",
+     "",
+     "poDate",
+     "date",
+     "下单日期"
+    ],
+    [
+     "",
+     "",
+     "poStatus",
+     "string",
+     "状态"
+    ]
+   ]
+  },
+  {
+   "header": [
+    "A",
+    "B"
+   ],
+   "body": [
+    [
+     "1",
+     "2"
+    ]
+   ],
+   "out": [
+    [
+     "1",
+     "2"
+    ]
+   ]
+  },
+  {
+   "header": [
+    "A",
+    "B",
+    "C"
+   ],
+   "body": [
+    [
+     "x",
+     "",
+     ""
+    ],
+    [
+     "",
+     "y",
+     ""
+    ],
+    [
+     "",
+     "",
+     "z"
+    ]
+   ],
+   "out": [
+    [
+     "x",
+     "",
+     ""
+    ],
+    [
+     "",
+     "y",
+     ""
+    ],
+    [
+     "",
+     "",
+     "z"
+    ]
+   ]
+  },
+  {
+   "header": [
+    "键",
+    "值"
+   ],
+   "body": [
+    [
+     "k1",
+     "v1"
+    ],
+    [
+     "k2",
+     ""
+    ],
+    [
+     "k3",
+     "v3"
+    ]
+   ],
+   "out": [
+    [
+     "k1",
+     "v1"
+    ],
+    [
+     "k2",
+     ""
+    ],
+    [
+     "k3",
+     "v3"
+    ]
+   ]
+  },
+  {
+   "header": [
+    "说明",
+    "字段"
+   ],
+   "body": [
+    [
+     "这是一段超过二十四个字的很长很长的说明文字，不该被当成分组列",
+     "f1"
+    ],
+    [
+     "",
+     "f2"
+    ],
+    [
+     "",
+     "f3"
+    ],
+    [
+     "",
+     "f4"
+    ]
+   ],
+   "out": [
+    [
+     "这是一段超过二十四个字的很长很长的说明文字，不该被当成分组列",
+     "f1"
+    ],
+    [
+     "",
+     "f2"
+    ],
+    [
+     "",
+     "f3"
+    ],
+    [
+     "",
+     "f4"
+    ]
+   ]
+  },
+  {
+   "header": [
+    "组",
+    "键",
+    "值"
+   ],
+   "body": [
+    [
+     "G1",
+     "k1",
+     "v1"
+    ],
+    [
+     "",
+     "k2"
+    ],
+    [
+     "",
+     "k3",
+     "v3"
+    ],
+    [
+     "G2",
+     "k4",
+     "v4"
+    ]
+   ],
+   "out": [
+    [
+     "G1",
+     "k1",
+     "v1"
+    ],
+    [
+     "G1",
+     "k2",
+     ""
+    ],
+    [
+     "G1",
+     "k3",
+     "v3"
+    ],
+    [
+     "G2",
+     "k4",
+     "v4"
+    ]
+   ]
+  },
+  {
+   "header": [
+    "组",
+    "键"
+   ],
+   "body": [
+    [
+     "G1",
+     "k1"
+    ],
+    [
+     "",
+     "k2"
+    ],
+    [
+     "",
+     ""
+    ],
+    [
+     "",
+     "k3"
+    ]
+   ],
+   "out": [
+    [
+     "G1",
+     "k1"
+    ],
+    [
+     "",
+     "k2"
+    ],
+    [
+     "",
+     ""
+    ],
+    [
+     "",
+     "k3"
+    ]
+   ]
+  },
+  {
+   "header": [
+    "组",
+    "键",
+    "值"
+   ],
+   "body": [
+    [
+     "G1",
+     "k1",
+     "v1"
+    ],
+    [
+     "",
+     "k2",
+     "v2"
+    ],
+    [
+     "",
+     "k3",
+     "v3"
+    ],
+    [
+     "G2",
+     "",
+     "v4"
+    ],
+    [
+     "",
+     "k5",
+     "v5"
+    ],
+    [
+     "",
+     "k6",
+     "v6"
+    ]
+   ],
+   "out": [
+    [
+     "G1",
+     "k1",
+     "v1"
+    ],
+    [
+     "G1",
+     "k2",
+     "v2"
+    ],
+    [
+     "G1",
+     "k3",
+     "v3"
+    ],
+    [
+     "G2",
+     "k3",
+     "v4"
+    ],
+    [
+     "G2",
+     "k5",
+     "v5"
+    ],
+    [
+     "G2",
+     "k6",
+     "v6"
+    ]
+   ]
+  }
+ ],
+ "pct_format": [
+  {
+   "x": 0.0,
+   "out": "0%"
+  },
+  {
+   "x": 1.0,
+   "out": "100%"
+  },
+  {
+   "x": 0.125,
+   "out": "12%"
+  },
+  {
+   "x": 0.375,
+   "out": "38%"
+  },
+  {
+   "x": 0.625,
+   "out": "62%"
+  },
+  {
+   "x": 0.875,
+   "out": "88%"
+  },
+  {
+   "x": 0.005,
+   "out": "0%"
+  },
+  {
+   "x": 0.015,
+   "out": "2%"
+  },
+  {
+   "x": 0.9375,
+   "out": "94%"
+  },
+  {
+   "x": 0.0625,
+   "out": "6%"
+  },
+  {
+   "x": 0.3333,
+   "out": "33%"
+  },
+  {
+   "x": 0.6667,
+   "out": "67%"
+  },
+  {
+   "x": 0.4286,
+   "out": "43%"
+  },
+  {
+   "x": 0.2857,
+   "out": "29%"
+  },
+  {
+   "x": -0.125,
+   "out": "-12%"
+  },
+  {
+   "x": 0.999,
+   "out": "100%"
+  },
+  {
+   "x": 0.995,
+   "out": "100%"
+  }
+ ],
+ "read_text": [
+  {
+   "bytes_b64": "5aeT5ZCNLOW5tOm+hArlvKDkuIksMTgK",
+   "text": "姓名,年龄\n张三,18\n",
+   "encoding": "utf-8"
+  },
+  {
+   "bytes_b64": "77u/5aeT5ZCNLOW5tOm+hArlvKDkuIksMTgK",
+   "text": "姓名,年龄\n张三,18\n",
+   "encoding": "utf-8"
+  },
+  {
+   "bytes_b64": "0NXD+yzE6sHkCtXFyP0sMTgK",
+   "text": "姓名,年龄\n张三,18\n",
+   "encoding": "gb18030"
+  },
+  {
+   "bytes_b64": "gIFuYW1lLGFnZQo=",
+   "text": "name,age\n",
+   "encoding": "latin-1"
+  },
+  {
+   "bytes_b64": "",
+   "text": "",
+   "encoding": "utf-8"
+  }
+ ],
+ "xlsx": {
+  "材料.xlsx": {
+   "sha256_b64": "zZcpY5fw5/93Y719LVAP4qZcaxaESZseSC5GP6qXbEI=",
+   "sheets": [
+    {
+     "title": "业务对象实体梳理",
+     "min_row": 1,
+     "max_row": 8,
+     "min_col": 1,
+     "max_col": 4,
+     "grid": [
+      [
+       "应用模块",
+       "业务对象",
+       "实体编码",
+       "实体名称"
+      ],
+      [
+       "采购计划管理",
+       "采购需求计划",
+       "pbpHeader",
+       "采购业务计划头"
+      ],
+      [
+       "",
+       "",
+       "pbpLine",
+       "采购业务计划行"
+      ],
+      [
+       "",
+       "",
+       "pbpRel",
+       "采购业务计划头行关系"
+      ],
+      [
+       "采购订单管理",
+       "采购订单",
+       "poHeader",
+       "采购订单头"
+      ],
+      [
+       "",
+       "",
+       "poLine",
+       "采购订单行"
+      ],
+      [
+       "",
+       "",
+       "poTaxLine",
+       "采购订单税行"
+      ],
+      [
+       "",
+       "",
+       "poActionLog",
+       "采购订单操作日志"
+      ]
+     ],
+     "comments": []
+    },
+    {
+     "title": "业务对象API梳理-行动",
+     "min_row": 1,
+     "max_row": 7,
+     "min_col": 1,
+     "max_col": 5,
+     "grid": [
+      [
+       "应用模块",
+       "业务对象",
+       "实体编码",
+       "实体名称",
+       "url"
+      ],
+      [
+       "采购计划管理",
+       "采购需求计划",
+       "createPbp",
+       "创建PBP",
+       "/v1/createPbp"
+      ],
+      [
+       "",
+       "",
+       "cancelOpenPbp",
+       "取消PBP",
+       "/v1/cancelPbp"
+      ],
+      [
+       "",
+       "",
+       "queryOpenPbpHeader",
+       "查询PBP头",
+       "/v1/queryPbpHeader"
+      ],
+      [
+       "采购订单管理",
+       "采购订单",
+       "createPo",
+       "创建采购订单",
+       "/v1/createPo"
+      ],
+      [
+       "",
+       "",
+       "updatePo",
+       "修改采购订单",
+       "/v1/updatePo"
+      ],
+      [
+       "",
+       "",
+       "queryPoHeader",
+       "查询采购订单头",
+       "/v1/queryPoHeader"
+      ]
+     ],
+     "comments": []
+    },
+    {
+     "title": "业务规则",
+     "min_row": 1,
+     "max_row": 2,
+     "min_col": 1,
+     "max_col": 1,
+     "grid": [
+      [
+       "（1）创建采购需求计划：基于已审批集采计划自动注入；\n触发条件：集采计划审批完成；\n输入：已审批集采计划；\n输出：未审批采购需求计划；\n执行者：需求申请人\n（2）审批采购需求计划：对已编制的采购需求计划进行审批；\n触发条件：采购需求计划已编制；\n输入：采购需求计划；\n输出：已审批采购需求计划；\n执行着：部门领导\n（3）取消采购需求计划：执行采购需求计划取消流程；\n触发条件：无需继续采购；\n输入：需求取消；\n输出：已取消采购需求计划；\n执行者：需求申请人"
+      ],
+      [
+       "业务规则：\n1、需进行采购包总金额上线控制，如超出XX金额，则采购包创建失败；\n2、实际与计划基线对比，如提前XX天需要进行预警提醒；\n3、进度状态标准：未开始、执行中、部分完成、已完成、已暂停、已取消；"
+      ]
+     ],
+     "comments": []
+    },
+    {
+     "title": "实体间关系-待梳理",
+     "min_row": 1,
+     "max_row": 1,
+     "min_col": 1,
+     "max_col": 1,
+     "grid": [],
+     "comments": []
+    }
+   ],
+   "doc": {
+    "file_id": "f_fixed",
+    "file_name": "材料.xlsx",
+    "kind": "xlsx",
+    "meta": {
+     "creator": "openpyxl",
+     "modified": "2026-01-01T00:00:00Z"
+    },
+    "structured": {
+     "sheets": [
+      {
+       "name": "业务对象实体梳理",
+       "header_row": 1,
+       "columns": [
+        "应用模块",
+        "业务对象",
+        "实体编码",
+        "实体名称"
+       ],
+       "rows": 7,
+       "profile": {
+        "应用模块": {
+         "name": "应用模块",
+         "count": 7,
+         "non_null": 2,
+         "null_rate": 0.7143,
+         "distinct": 2,
+         "distinct_ratio": 1.0,
+         "unique": true,
+         "inferred_type": "STRING",
+         "samples": [
+          "采购计划管理",
+          "采购订单管理"
+         ]
+        },
+        "业务对象": {
+         "name": "业务对象",
+         "count": 7,
+         "non_null": 2,
+         "null_rate": 0.7143,
+         "distinct": 2,
+         "distinct_ratio": 1.0,
+         "unique": true,
+         "inferred_type": "STRING",
+         "samples": [
+          "采购需求计划",
+          "采购订单"
+         ]
+        },
+        "实体编码": {
+         "name": "实体编码",
+         "count": 7,
+         "non_null": 7,
+         "null_rate": 0.0,
+         "distinct": 7,
+         "distinct_ratio": 1.0,
+         "unique": true,
+         "inferred_type": "STRING",
+         "samples": [
+          "pbpHeader",
+          "pbpLine",
+          "pbpRel",
+          "poHeader",
+          "poLine"
+         ]
+        },
+        "实体名称": {
+         "name": "实体名称",
+         "count": 7,
+         "non_null": 7,
+         "null_rate": 0.0,
+         "distinct": 7,
+         "distinct_ratio": 1.0,
+         "unique": true,
+         "inferred_type": "STRING",
+         "samples": [
+          "采购业务计划头",
+          "采购业务计划行",
+          "采购业务计划头行关系",
+          "采购订单头",
+          "采购订单行"
+         ]
+        }
+       }
+      },
+      {
+       "name": "业务对象API梳理-行动",
+       "header_row": 1,
+       "columns": [
+        "应用模块",
+        "业务对象",
+        "实体编码",
+        "实体名称",
+        "url"
+       ],
+       "rows": 6,
+       "profile": {
+        "应用模块": {
+         "name": "应用模块",
+         "count": 6,
+         "non_null": 2,
+         "null_rate": 0.6667,
+         "distinct": 2,
+         "distinct_ratio": 1.0,
+         "unique": true,
+         "inferred_type": "STRING",
+         "samples": [
+          "采购计划管理",
+          "采购订单管理"
+         ]
+        },
+        "业务对象": {
+         "name": "业务对象",
+         "count": 6,
+         "non_null": 2,
+         "null_rate": 0.6667,
+         "distinct": 2,
+         "distinct_ratio": 1.0,
+         "unique": true,
+         "inferred_type": "STRING",
+         "samples": [
+          "采购需求计划",
+          "采购订单"
+         ]
+        },
+        "实体编码": {
+         "name": "实体编码",
+         "count": 6,
+         "non_null": 6,
+         "null_rate": 0.0,
+         "distinct": 6,
+         "distinct_ratio": 1.0,
+         "unique": true,
+         "inferred_type": "STRING",
+         "samples": [
+          "createPbp",
+          "cancelOpenPbp",
+          "queryOpenPbpHeader",
+          "createPo",
+          "updatePo"
+         ]
+        },
+        "实体名称": {
+         "name": "实体名称",
+         "count": 6,
+         "non_null": 6,
+         "null_rate": 0.0,
+         "distinct": 6,
+         "distinct_ratio": 1.0,
+         "unique": true,
+         "inferred_type": "STRING",
+         "samples": [
+          "创建PBP",
+          "取消PBP",
+          "查询PBP头",
+          "创建采购订单",
+          "修改采购订单"
+         ]
+        },
+        "url": {
+         "name": "url",
+         "count": 6,
+         "non_null": 6,
+         "null_rate": 0.0,
+         "distinct": 6,
+         "distinct_ratio": 1.0,
+         "unique": true,
+         "inferred_type": "STRING",
+         "samples": [
+          "/v1/createPbp",
+          "/v1/cancelPbp",
+          "/v1/queryPbpHeader",
+          "/v1/createPo",
+          "/v1/updatePo"
+         ]
+        }
+       }
+      },
+      {
+       "name": "业务规则",
+       "header_row": 0,
+       "columns": [
+        "col1"
+       ],
+       "rows": 2,
+       "profile": {
+        "col1": {
+         "name": "col1",
+         "count": 2,
+         "non_null": 2,
+         "null_rate": 0.0,
+         "distinct": 2,
+         "distinct_ratio": 1.0,
+         "unique": true,
+         "inferred_type": "STRING",
+         "samples": [
+          "（1）创建采购需求计划：基于已审批集采计划自动注入；\n触发条件：集采计划审批完成；\n输入：已审批集采计划；\n输出：未审批采购需求计划；\n执行者：需求申请人\n（2）审批采购需求计划：对已编制的采购需求计划进行审批；\n触发条件：采购需求计划已编制；\n输入：采购需求计划；\n输出：已审批采购需求计划；\n执行着：部门领导\n（3）取消采购需求计划：执行采购需求计划取消流程；\n触发条件：无需继续采购；\n输入：需求取消；\n输出：已取消采购需求计划；\n执行者：需求申请人",
+          "业务规则：\n1、需进行采购包总金额上线控制，如超出XX金额，则采购包创建失败；\n2、实际与计划基线对比，如提前XX天需要进行预警提醒；\n3、进度状态标准：未开始、执行中、部分完成、已完成、已暂停、已取消；"
+         ]
+        }
+       }
+      }
+     ]
+    },
+    "findings": [
+     {
+      "kind": "metadata_leak",
+      "message": "文档元数据里带着作者与保存路径（creator=openpyxl）。这些不在表格内容里，但对外发布前建议清理，或把项目名换成中性代号。",
+      "locator": {
+       "kind": "meta",
+       "field": "workbook.xml/docProps"
+      },
+      "severity": "warn"
+     },
+     {
+      "kind": "no_header",
+      "message": "「业务规则」没有可识别的表头，已按位置列名处理、正文从第 1 行起",
+      "locator": {
+       "sheet": "业务规则"
+      },
+      "severity": "info"
+     },
+     {
+      "kind": "empty_sheet",
+      "message": "工作表「实体间关系-待梳理」是空的，已跳过",
+      "locator": {
+       "sheet": "实体间关系-待梳理"
+      },
+      "severity": "info"
+     }
+    ],
+    "chunks": [
+     {
+      "chunk_id": "f_fixed:meta",
+      "file_id": "f_fixed",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "meta",
+       "field": "workbook.xml/absPath"
+      },
+      "render": "〔文档元数据〕creator=openpyxl",
+      "raw": {
+       "creator": "openpyxl",
+       "modified": "2026-01-01T00:00:00Z"
+      },
+      "order": -1,
+      "tags": [
+       "meta"
+      ],
+      "context": "",
+      "cite": "材料.xlsx#workbook.xml/absPath"
+     },
+     {
+      "chunk_id": "f_fixed:业务对象实体梳理:schema",
+      "file_id": "f_fixed",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务对象实体梳理",
+       "rows": [
+        1,
+        1
+       ]
+      },
+      "render": "表「业务对象实体梳理」列：应用模块（STRING，唯一率100%） | 业务对象（STRING，唯一率100%） | 实体编码（STRING，唯一率100%） | 实体名称（STRING，唯一率100%）",
+      "raw": {
+       "应用模块": {
+        "name": "应用模块",
+        "count": 7,
+        "non_null": 2,
+        "null_rate": 0.7143,
+        "distinct": 2,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "采购计划管理",
+         "采购订单管理"
+        ]
+       },
+       "业务对象": {
+        "name": "业务对象",
+        "count": 7,
+        "non_null": 2,
+        "null_rate": 0.7143,
+        "distinct": 2,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "采购需求计划",
+         "采购订单"
+        ]
+       },
+       "实体编码": {
+        "name": "实体编码",
+        "count": 7,
+        "non_null": 7,
+        "null_rate": 0.0,
+        "distinct": 7,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "pbpHeader",
+         "pbpLine",
+         "pbpRel",
+         "poHeader",
+         "poLine"
+        ]
+       },
+       "实体名称": {
+        "name": "实体名称",
+        "count": 7,
+        "non_null": 7,
+        "null_rate": 0.0,
+        "distinct": 7,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "采购业务计划头",
+         "采购业务计划行",
+         "采购业务计划头行关系",
+         "采购订单头",
+         "采购订单行"
+        ]
+       }
+      },
+      "order": 0,
+      "tags": [
+       "schema"
+      ],
+      "context": "",
+      "cite": "材料.xlsx!业务对象实体梳理!R1-1"
+     },
+     {
+      "chunk_id": "f_fixed:业务对象实体梳理:r2",
+      "file_id": "f_fixed",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务对象实体梳理",
+       "rows": [
+        2,
+        2
+       ]
+      },
+      "render": "应用模块=采购计划管理 | 业务对象=采购需求计划 | 实体编码=pbpHeader | 实体名称=采购业务计划头",
+      "raw": {
+       "应用模块": "采购计划管理",
+       "业务对象": "采购需求计划",
+       "实体编码": "pbpHeader",
+       "实体名称": "采购业务计划头"
+      },
+      "order": 1,
+      "tags": [
+       "row"
+      ],
+      "context": "",
+      "cite": "材料.xlsx!业务对象实体梳理!R2-2"
+     },
+     {
+      "chunk_id": "f_fixed:业务对象实体梳理:r3",
+      "file_id": "f_fixed",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务对象实体梳理",
+       "rows": [
+        3,
+        3
+       ]
+      },
+      "render": "应用模块=采购计划管理 | 业务对象=采购需求计划 | 实体编码=pbpLine | 实体名称=采购业务计划行",
+      "raw": {
+       "应用模块": "",
+       "业务对象": "",
+       "实体编码": "pbpLine",
+       "实体名称": "采购业务计划行"
+      },
+      "order": 2,
+      "tags": [
+       "row"
+      ],
+      "context": "",
+      "cite": "材料.xlsx!业务对象实体梳理!R3-3"
+     },
+     {
+      "chunk_id": "f_fixed:业务对象实体梳理:r4",
+      "file_id": "f_fixed",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务对象实体梳理",
+       "rows": [
+        4,
+        4
+       ]
+      },
+      "render": "应用模块=采购计划管理 | 业务对象=采购需求计划 | 实体编码=pbpRel | 实体名称=采购业务计划头行关系",
+      "raw": {
+       "应用模块": "",
+       "业务对象": "",
+       "实体编码": "pbpRel",
+       "实体名称": "采购业务计划头行关系"
+      },
+      "order": 3,
+      "tags": [
+       "row"
+      ],
+      "context": "",
+      "cite": "材料.xlsx!业务对象实体梳理!R4-4"
+     },
+     {
+      "chunk_id": "f_fixed:业务对象实体梳理:r5",
+      "file_id": "f_fixed",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务对象实体梳理",
+       "rows": [
+        5,
+        5
+       ]
+      },
+      "render": "应用模块=采购订单管理 | 业务对象=采购订单 | 实体编码=poHeader | 实体名称=采购订单头",
+      "raw": {
+       "应用模块": "采购订单管理",
+       "业务对象": "采购订单",
+       "实体编码": "poHeader",
+       "实体名称": "采购订单头"
+      },
+      "order": 4,
+      "tags": [
+       "row"
+      ],
+      "context": "",
+      "cite": "材料.xlsx!业务对象实体梳理!R5-5"
+     },
+     {
+      "chunk_id": "f_fixed:业务对象实体梳理:r6",
+      "file_id": "f_fixed",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务对象实体梳理",
+       "rows": [
+        6,
+        6
+       ]
+      },
+      "render": "应用模块=采购订单管理 | 业务对象=采购订单 | 实体编码=poLine | 实体名称=采购订单行",
+      "raw": {
+       "应用模块": "",
+       "业务对象": "",
+       "实体编码": "poLine",
+       "实体名称": "采购订单行"
+      },
+      "order": 5,
+      "tags": [
+       "row"
+      ],
+      "context": "",
+      "cite": "材料.xlsx!业务对象实体梳理!R6-6"
+     },
+     {
+      "chunk_id": "f_fixed:业务对象实体梳理:r7",
+      "file_id": "f_fixed",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务对象实体梳理",
+       "rows": [
+        7,
+        7
+       ]
+      },
+      "render": "应用模块=采购订单管理 | 业务对象=采购订单 | 实体编码=poTaxLine | 实体名称=采购订单税行",
+      "raw": {
+       "应用模块": "",
+       "业务对象": "",
+       "实体编码": "poTaxLine",
+       "实体名称": "采购订单税行"
+      },
+      "order": 6,
+      "tags": [
+       "row"
+      ],
+      "context": "",
+      "cite": "材料.xlsx!业务对象实体梳理!R7-7"
+     },
+     {
+      "chunk_id": "f_fixed:业务对象实体梳理:r8",
+      "file_id": "f_fixed",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务对象实体梳理",
+       "rows": [
+        8,
+        8
+       ]
+      },
+      "render": "应用模块=采购订单管理 | 业务对象=采购订单 | 实体编码=poActionLog | 实体名称=采购订单操作日志",
+      "raw": {
+       "应用模块": "",
+       "业务对象": "",
+       "实体编码": "poActionLog",
+       "实体名称": "采购订单操作日志"
+      },
+      "order": 7,
+      "tags": [
+       "row"
+      ],
+      "context": "",
+      "cite": "材料.xlsx!业务对象实体梳理!R8-8"
+     },
+     {
+      "chunk_id": "f_fixed:业务对象API梳理-行动:schema",
+      "file_id": "f_fixed",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务对象API梳理-行动",
+       "rows": [
+        1,
+        1
+       ]
+      },
+      "render": "表「业务对象API梳理-行动」列：应用模块（STRING，唯一率100%） | 业务对象（STRING，唯一率100%） | 实体编码（STRING，唯一率100%） | 实体名称（STRING，唯一率100%） | url（STRING，唯一率100%）",
+      "raw": {
+       "应用模块": {
+        "name": "应用模块",
+        "count": 6,
+        "non_null": 2,
+        "null_rate": 0.6667,
+        "distinct": 2,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "采购计划管理",
+         "采购订单管理"
+        ]
+       },
+       "业务对象": {
+        "name": "业务对象",
+        "count": 6,
+        "non_null": 2,
+        "null_rate": 0.6667,
+        "distinct": 2,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "采购需求计划",
+         "采购订单"
+        ]
+       },
+       "实体编码": {
+        "name": "实体编码",
+        "count": 6,
+        "non_null": 6,
+        "null_rate": 0.0,
+        "distinct": 6,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "createPbp",
+         "cancelOpenPbp",
+         "queryOpenPbpHeader",
+         "createPo",
+         "updatePo"
+        ]
+       },
+       "实体名称": {
+        "name": "实体名称",
+        "count": 6,
+        "non_null": 6,
+        "null_rate": 0.0,
+        "distinct": 6,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "创建PBP",
+         "取消PBP",
+         "查询PBP头",
+         "创建采购订单",
+         "修改采购订单"
+        ]
+       },
+       "url": {
+        "name": "url",
+        "count": 6,
+        "non_null": 6,
+        "null_rate": 0.0,
+        "distinct": 6,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "/v1/createPbp",
+         "/v1/cancelPbp",
+         "/v1/queryPbpHeader",
+         "/v1/createPo",
+         "/v1/updatePo"
+        ]
+       }
+      },
+      "order": 8,
+      "tags": [
+       "schema"
+      ],
+      "context": "",
+      "cite": "材料.xlsx!业务对象API梳理-行动!R1-1"
+     },
+     {
+      "chunk_id": "f_fixed:业务对象API梳理-行动:r2",
+      "file_id": "f_fixed",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务对象API梳理-行动",
+       "rows": [
+        2,
+        2
+       ]
+      },
+      "render": "应用模块=采购计划管理 | 业务对象=采购需求计划 | 实体编码=createPbp | 实体名称=创建PBP | url=/v1/createPbp",
+      "raw": {
+       "应用模块": "采购计划管理",
+       "业务对象": "采购需求计划",
+       "实体编码": "createPbp",
+       "实体名称": "创建PBP",
+       "url": "/v1/createPbp"
+      },
+      "order": 9,
+      "tags": [
+       "row"
+      ],
+      "context": "",
+      "cite": "材料.xlsx!业务对象API梳理-行动!R2-2"
+     },
+     {
+      "chunk_id": "f_fixed:业务对象API梳理-行动:r3",
+      "file_id": "f_fixed",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务对象API梳理-行动",
+       "rows": [
+        3,
+        3
+       ]
+      },
+      "render": "应用模块=采购计划管理 | 业务对象=采购需求计划 | 实体编码=cancelOpenPbp | 实体名称=取消PBP | url=/v1/cancelPbp",
+      "raw": {
+       "应用模块": "",
+       "业务对象": "",
+       "实体编码": "cancelOpenPbp",
+       "实体名称": "取消PBP",
+       "url": "/v1/cancelPbp"
+      },
+      "order": 10,
+      "tags": [
+       "row"
+      ],
+      "context": "",
+      "cite": "材料.xlsx!业务对象API梳理-行动!R3-3"
+     },
+     {
+      "chunk_id": "f_fixed:业务对象API梳理-行动:r4",
+      "file_id": "f_fixed",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务对象API梳理-行动",
+       "rows": [
+        4,
+        4
+       ]
+      },
+      "render": "应用模块=采购计划管理 | 业务对象=采购需求计划 | 实体编码=queryOpenPbpHeader | 实体名称=查询PBP头 | url=/v1/queryPbpHeader",
+      "raw": {
+       "应用模块": "",
+       "业务对象": "",
+       "实体编码": "queryOpenPbpHeader",
+       "实体名称": "查询PBP头",
+       "url": "/v1/queryPbpHeader"
+      },
+      "order": 11,
+      "tags": [
+       "row"
+      ],
+      "context": "",
+      "cite": "材料.xlsx!业务对象API梳理-行动!R4-4"
+     },
+     {
+      "chunk_id": "f_fixed:业务对象API梳理-行动:r5",
+      "file_id": "f_fixed",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务对象API梳理-行动",
+       "rows": [
+        5,
+        5
+       ]
+      },
+      "render": "应用模块=采购订单管理 | 业务对象=采购订单 | 实体编码=createPo | 实体名称=创建采购订单 | url=/v1/createPo",
+      "raw": {
+       "应用模块": "采购订单管理",
+       "业务对象": "采购订单",
+       "实体编码": "createPo",
+       "实体名称": "创建采购订单",
+       "url": "/v1/createPo"
+      },
+      "order": 12,
+      "tags": [
+       "row"
+      ],
+      "context": "",
+      "cite": "材料.xlsx!业务对象API梳理-行动!R5-5"
+     },
+     {
+      "chunk_id": "f_fixed:业务对象API梳理-行动:r6",
+      "file_id": "f_fixed",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务对象API梳理-行动",
+       "rows": [
+        6,
+        6
+       ]
+      },
+      "render": "应用模块=采购订单管理 | 业务对象=采购订单 | 实体编码=updatePo | 实体名称=修改采购订单 | url=/v1/updatePo",
+      "raw": {
+       "应用模块": "",
+       "业务对象": "",
+       "实体编码": "updatePo",
+       "实体名称": "修改采购订单",
+       "url": "/v1/updatePo"
+      },
+      "order": 13,
+      "tags": [
+       "row"
+      ],
+      "context": "",
+      "cite": "材料.xlsx!业务对象API梳理-行动!R6-6"
+     },
+     {
+      "chunk_id": "f_fixed:业务对象API梳理-行动:r7",
+      "file_id": "f_fixed",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务对象API梳理-行动",
+       "rows": [
+        7,
+        7
+       ]
+      },
+      "render": "应用模块=采购订单管理 | 业务对象=采购订单 | 实体编码=queryPoHeader | 实体名称=查询采购订单头 | url=/v1/queryPoHeader",
+      "raw": {
+       "应用模块": "",
+       "业务对象": "",
+       "实体编码": "queryPoHeader",
+       "实体名称": "查询采购订单头",
+       "url": "/v1/queryPoHeader"
+      },
+      "order": 14,
+      "tags": [
+       "row"
+      ],
+      "context": "",
+      "cite": "材料.xlsx!业务对象API梳理-行动!R7-7"
+     },
+     {
+      "chunk_id": "f_fixed:业务规则:schema",
+      "file_id": "f_fixed",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务规则",
+       "rows": [
+        0,
+        0
+       ]
+      },
+      "render": "表「业务规则」列：col1（STRING，唯一率100%）",
+      "raw": {
+       "col1": {
+        "name": "col1",
+        "count": 2,
+        "non_null": 2,
+        "null_rate": 0.0,
+        "distinct": 2,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "（1）创建采购需求计划：基于已审批集采计划自动注入；\n触发条件：集采计划审批完成；\n输入：已审批集采计划；\n输出：未审批采购需求计划；\n执行者：需求申请人\n（2）审批采购需求计划：对已编制的采购需求计划进行审批；\n触发条件：采购需求计划已编制；\n输入：采购需求计划；\n输出：已审批采购需求计划；\n执行着：部门领导\n（3）取消采购需求计划：执行采购需求计划取消流程；\n触发条件：无需继续采购；\n输入：需求取消；\n输出：已取消采购需求计划；\n执行者：需求申请人",
+         "业务规则：\n1、需进行采购包总金额上线控制，如超出XX金额，则采购包创建失败；\n2、实际与计划基线对比，如提前XX天需要进行预警提醒；\n3、进度状态标准：未开始、执行中、部分完成、已完成、已暂停、已取消；"
+        ]
+       }
+      },
+      "order": 15,
+      "tags": [
+       "schema"
+      ],
+      "context": "",
+      "cite": "材料.xlsx!业务规则!R0-0"
+     },
+     {
+      "chunk_id": "f_fixed:业务规则:r1",
+      "file_id": "f_fixed",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务规则",
+       "rows": [
+        1,
+        1
+       ]
+      },
+      "render": "col1=（1）创建采购需求计划：基于已审批集采计划自动注入；\n触发条件：集采计划审批完成；\n输入：已审批集采计划；\n输出：未审批采购需求计划；\n执行者：需求申请人\n（2）审批采购需求计划：对已编制的采购需求计划进行审批；\n触发条件：采购需求计划已编制；\n输入：采购需求计划；\n输出：已审批采购需求计划；\n执行着：部门领导\n（3）取消采购需求计划：执行采购需求计划取消流程；\n触发条件：无需继续采购；\n输入：需求取消；\n输出：已取消采购需求计划；\n执行者：需求申请人",
+      "raw": {
+       "col1": "（1）创建采购需求计划：基于已审批集采计划自动注入；\n触发条件：集采计划审批完成；\n输入：已审批集采计划；\n输出：未审批采购需求计划；\n执行者：需求申请人\n（2）审批采购需求计划：对已编制的采购需求计划进行审批；\n触发条件：采购需求计划已编制；\n输入：采购需求计划；\n输出：已审批采购需求计划；\n执行着：部门领导\n（3）取消采购需求计划：执行采购需求计划取消流程；\n触发条件：无需继续采购；\n输入：需求取消；\n输出：已取消采购需求计划；\n执行者：需求申请人"
+      },
+      "order": 16,
+      "tags": [
+       "row"
+      ],
+      "context": "",
+      "cite": "材料.xlsx!业务规则!R1-1"
+     },
+     {
+      "chunk_id": "f_fixed:业务规则:r2",
+      "file_id": "f_fixed",
+      "file_name": "材料.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "业务规则",
+       "rows": [
+        2,
+        2
+       ]
+      },
+      "render": "col1=业务规则：\n1、需进行采购包总金额上线控制，如超出XX金额，则采购包创建失败；\n2、实际与计划基线对比，如提前XX天需要进行预警提醒；\n3、进度状态标准：未开始、执行中、部分完成、已完成、已暂停、已取消；",
+      "raw": {
+       "col1": "业务规则：\n1、需进行采购包总金额上线控制，如超出XX金额，则采购包创建失败；\n2、实际与计划基线对比，如提前XX天需要进行预警提醒；\n3、进度状态标准：未开始、执行中、部分完成、已完成、已暂停、已取消；"
+      },
+      "order": 17,
+      "tags": [
+       "row"
+      ],
+      "context": "",
+      "cite": "材料.xlsx!业务规则!R2-2"
+     }
+    ],
+    "stats": {
+     "file": "材料.xlsx",
+     "kind": "xlsx",
+     "chunks": 19,
+     "findings": 3,
+     "sheets": 3
+    }
+   }
+  },
+  "tabular.hard.xlsx": {
+   "sha256_b64": "9Qd0UMa0EuXGptl8jMCOJt6NJ4tVb4lgJceWN5yzzcM=",
+   "sheets": [
+    {
+     "title": "混合类型",
+     "min_row": 1,
+     "max_row": 4,
+     "min_col": 1,
+     "max_col": 8,
+     "grid": [
+      [
+       "实体编码",
+       "实体名称",
+       "口径说明",
+       "行内串表头",
+       "应用模块",
+       "业务对象",
+       "富文本拼接",
+       ""
+      ],
+      [
+       "1",
+       "1.0",
+       "True",
+       "2023-03-15 00:00:00",
+       "2023-03-15 12:00:00",
+       "12:00:00",
+       "1 day, 12:00:00",
+       ""
+      ],
+      [
+       "3",
+       "含税",
+       "#DIV/0!",
+       "",
+       "0.13",
+       "含税",
+       "2023-03-15 00:00:00",
+       ""
+      ],
+      [
+       "全角空格开头",
+       "﻿带 BOM 的值",
+       "",
+       "-42",
+       "-3.5",
+       "1e-05",
+       "12345678901234567890",
+       ""
+      ]
+     ],
+     "comments": []
+    },
+    {
+     "title": "合并与空行",
+     "min_row": 1,
+     "max_row": 6,
+     "min_col": 1,
+     "max_col": 4,
+     "grid": [
+      [
+       "口径说明",
+       "口径说明",
+       "口径说明",
+       ""
+      ],
+      [
+       "应用模块",
+       "业务对象",
+       "实体编码",
+       ""
+      ],
+      [
+       "采购计划管理",
+       "采购需求计划",
+       "pbpHeader",
+       ""
+      ],
+      [
+       "采购计划管理",
+       "",
+       "",
+       ""
+      ],
+      [
+       "采购计划管理",
+       "",
+       "采购业务计划头",
+       ""
+      ],
+      [
+       "",
+       "含税",
+       "含税",
+       ""
+      ]
+     ],
+     "comments": [
+      [
+       3,
+       0,
+       "这一列指的是应用模块，不是系统模块"
+      ],
+      [
+       3,
+       2,
+       "含税口径；\n跨年累计"
+      ],
+      [
+       6,
+       3,
+       "这一格没值，但口径在这儿"
+      ]
+     ]
+    },
+    {
+     "title": "偏移",
+     "min_row": 5,
+     "max_row": 7,
+     "min_col": 3,
+     "max_col": 4,
+     "grid": [
+      [
+       "",
+       "",
+       "",
+       ""
+      ],
+      [
+       "",
+       "",
+       "",
+       ""
+      ],
+      [
+       "",
+       "",
+       "",
+       ""
+      ],
+      [
+       "",
+       "",
+       "",
+       ""
+      ],
+      [
+       "",
+       "",
+       "实体编码",
+       "实体名称"
+      ],
+      [
+       "",
+       "",
+       "pbpHeader",
+       "采购业务计划头"
+      ],
+      [
+       "",
+       "",
+       "7",
+       "8"
+      ]
+     ],
+     "comments": []
+    },
+    {
+     "title": "空表",
+     "min_row": 1,
+     "max_row": 1,
+     "min_col": 1,
+     "max_col": 1,
+     "grid": [],
+     "comments": []
+    },
+    {
+     "title": "层级",
+     "min_row": 1,
+     "max_row": 8,
+     "min_col": 1,
+     "max_col": 5,
+     "grid": [
+      [
+       "应用模块",
+       "业务对象",
+       "字段",
+       "类型",
+       "口径"
+      ],
+      [
+       "采购计划管理",
+       "采购需求计划",
+       "planNo",
+       "string",
+       "计划编号"
+      ],
+      [
+       "",
+       "",
+       "planAmount",
+       "decimal",
+       "含税金额"
+      ],
+      [
+       "",
+       "",
+       "planDate",
+       "date",
+       ""
+      ],
+      [
+       "采购订单管理",
+       "采购订单",
+       "poNo",
+       "string",
+       "订单编号"
+      ],
+      [
+       "",
+       "",
+       "poAmount",
+       "decimal",
+       ""
+      ],
+      [
+       "",
+       "",
+       "poDate",
+       "date",
+       "下单日期"
+      ],
+      [
+       "",
+       "",
+       "poStatus",
+       "string",
+       "状态"
+      ]
+     ],
+     "comments": []
+    },
+    {
+     "title": "散文",
+     "min_row": 1,
+     "max_row": 2,
+     "min_col": 1,
+     "max_col": 1,
+     "grid": [
+      [
+       "1、需进行采购包总金额上线控制，如超出XX金额，则采购包创建失败；2、实际与计划基线对比，如提前XX天需要进行预警提醒；3、进度状态标准：未开始、执行中、部分完成、已完成、已暂停、已取消。"
+      ],
+      [
+       "（1）创建采购包；（2）审批；（3）下发。"
+      ]
+     ],
+     "comments": []
+    },
+    {
+     "title": "无坐标",
+     "min_row": 1,
+     "max_row": 3,
+     "min_col": 1,
+     "max_col": 2,
+     "grid": [
+      [
+       "实体编码",
+       "实体名称"
+      ],
+      [
+       "pbpHeader",
+       "采购业务计划头"
+      ],
+      [
+       "1",
+       "2"
+      ]
+     ],
+     "comments": []
+    }
+   ],
+   "doc": {
+    "file_id": "f_fixed",
+    "file_name": "tabular.hard.xlsx",
+    "kind": "xlsx",
+    "meta": {
+     "abs_path": "D:\\客户资料\\某某集团\\采购中台\\",
+     "creator": "张三（甲方IT）",
+     "last_modified_by": "李四",
+     "modified": "2026-01-01T00:00:00Z"
+    },
+    "structured": {
+     "sheets": [
+      {
+       "name": "混合类型",
+       "header_row": 1,
+       "columns": [
+        "实体编码",
+        "实体名称",
+        "口径说明",
+        "行内串表头",
+        "应用模块",
+        "业务对象",
+        "富文本拼接",
+        "col8"
+       ],
+       "rows": 3,
+       "profile": {
+        "实体编码": {
+         "name": "实体编码",
+         "count": 3,
+         "non_null": 3,
+         "null_rate": 0.0,
+         "distinct": 3,
+         "distinct_ratio": 1.0,
+         "unique": true,
+         "inferred_type": "STRING",
+         "samples": [
+          "1",
+          "3",
+          "全角空格开头"
+         ]
+        },
+        "实体名称": {
+         "name": "实体名称",
+         "count": 3,
+         "non_null": 3,
+         "null_rate": 0.0,
+         "distinct": 3,
+         "distinct_ratio": 1.0,
+         "unique": true,
+         "inferred_type": "STRING",
+         "samples": [
+          "1.0",
+          "含税",
+          "﻿带 BOM 的值"
+         ]
+        },
+        "口径说明": {
+         "name": "口径说明",
+         "count": 3,
+         "non_null": 2,
+         "null_rate": 0.3333,
+         "distinct": 2,
+         "distinct_ratio": 1.0,
+         "unique": true,
+         "inferred_type": "STRING",
+         "samples": [
+          "True",
+          "#DIV/0!"
+         ]
+        },
+        "行内串表头": {
+         "name": "行内串表头",
+         "count": 3,
+         "non_null": 2,
+         "null_rate": 0.3333,
+         "distinct": 2,
+         "distinct_ratio": 1.0,
+         "unique": true,
+         "inferred_type": "STRING",
+         "samples": [
+          "2023-03-15 00:00:00",
+          "-42"
+         ]
+        },
+        "应用模块": {
+         "name": "应用模块",
+         "count": 3,
+         "non_null": 3,
+         "null_rate": 0.0,
+         "distinct": 3,
+         "distinct_ratio": 1.0,
+         "unique": true,
+         "inferred_type": "STRING",
+         "samples": [
+          "2023-03-15 12:00:00",
+          "0.13",
+          "-3.5"
+         ]
+        },
+        "业务对象": {
+         "name": "业务对象",
+         "count": 3,
+         "non_null": 3,
+         "null_rate": 0.0,
+         "distinct": 3,
+         "distinct_ratio": 1.0,
+         "unique": true,
+         "inferred_type": "STRING",
+         "samples": [
+          "12:00:00",
+          "含税",
+          "1e-05"
+         ]
+        },
+        "富文本拼接": {
+         "name": "富文本拼接",
+         "count": 3,
+         "non_null": 3,
+         "null_rate": 0.0,
+         "distinct": 3,
+         "distinct_ratio": 1.0,
+         "unique": true,
+         "inferred_type": "STRING",
+         "samples": [
+          "1 day, 12:00:00",
+          "2023-03-15 00:00:00",
+          "12345678901234567890"
+         ]
+        },
+        "col8": {
+         "name": "col8",
+         "count": 3,
+         "non_null": 0,
+         "null_rate": 1.0,
+         "distinct": 0,
+         "distinct_ratio": 0.0,
+         "unique": false,
+         "inferred_type": "STRING",
+         "samples": []
+        }
+       }
+      },
+      {
+       "name": "合并与空行",
+       "header_row": 1,
+       "columns": [
+        "口径说明",
+        "口径说明#2",
+        "口径说明#3",
+        "col4"
+       ],
+       "rows": 5,
+       "profile": {
+        "口径说明": {
+         "name": "口径说明",
+         "count": 5,
+         "non_null": 4,
+         "null_rate": 0.2,
+         "distinct": 2,
+         "distinct_ratio": 0.5,
+         "unique": false,
+         "inferred_type": "STRING",
+         "samples": [
+          "应用模块",
+          "采购计划管理"
+         ]
+        },
+        "口径说明#2": {
+         "name": "口径说明#2",
+         "count": 5,
+         "non_null": 3,
+         "null_rate": 0.4,
+         "distinct": 3,
+         "distinct_ratio": 1.0,
+         "unique": true,
+         "inferred_type": "STRING",
+         "samples": [
+          "业务对象",
+          "采购需求计划",
+          "含税"
+         ]
+        },
+        "口径说明#3": {
+         "name": "口径说明#3",
+         "count": 5,
+         "non_null": 4,
+         "null_rate": 0.2,
+         "distinct": 4,
+         "distinct_ratio": 1.0,
+         "unique": true,
+         "inferred_type": "STRING",
+         "samples": [
+          "实体编码",
+          "pbpHeader",
+          "采购业务计划头",
+          "含税"
+         ]
+        },
+        "col4": {
+         "name": "col4",
+         "count": 5,
+         "non_null": 0,
+         "null_rate": 1.0,
+         "distinct": 0,
+         "distinct_ratio": 0.0,
+         "unique": false,
+         "inferred_type": "STRING",
+         "samples": []
+        }
+       }
+      },
+      {
+       "name": "偏移",
+       "header_row": 6,
+       "columns": [
+        "col1",
+        "col2",
+        "pbpHeader",
+        "采购业务计划头"
+       ],
+       "rows": 1,
+       "profile": {
+        "col1": {
+         "name": "col1",
+         "count": 1,
+         "non_null": 0,
+         "null_rate": 1.0,
+         "distinct": 0,
+         "distinct_ratio": 0.0,
+         "unique": false,
+         "inferred_type": "STRING",
+         "samples": []
+        },
+        "col2": {
+         "name": "col2",
+         "count": 1,
+         "non_null": 0,
+         "null_rate": 1.0,
+         "distinct": 0,
+         "distinct_ratio": 0.0,
+         "unique": false,
+         "inferred_type": "STRING",
+         "samples": []
+        },
+        "pbpHeader": {
+         "name": "pbpHeader",
+         "count": 1,
+         "non_null": 1,
+         "null_rate": 0.0,
+         "distinct": 1,
+         "distinct_ratio": 1.0,
+         "unique": true,
+         "inferred_type": "INTEGER",
+         "samples": [
+          "7"
+         ]
+        },
+        "采购业务计划头": {
+         "name": "采购业务计划头",
+         "count": 1,
+         "non_null": 1,
+         "null_rate": 0.0,
+         "distinct": 1,
+         "distinct_ratio": 1.0,
+         "unique": true,
+         "inferred_type": "INTEGER",
+         "samples": [
+          "8"
+         ]
+        }
+       }
+      },
+      {
+       "name": "层级",
+       "header_row": 1,
+       "columns": [
+        "应用模块",
+        "业务对象",
+        "字段",
+        "类型",
+        "口径"
+       ],
+       "rows": 7,
+       "profile": {
+        "应用模块": {
+         "name": "应用模块",
+         "count": 7,
+         "non_null": 2,
+         "null_rate": 0.7143,
+         "distinct": 2,
+         "distinct_ratio": 1.0,
+         "unique": true,
+         "inferred_type": "STRING",
+         "samples": [
+          "采购计划管理",
+          "采购订单管理"
+         ]
+        },
+        "业务对象": {
+         "name": "业务对象",
+         "count": 7,
+         "non_null": 2,
+         "null_rate": 0.7143,
+         "distinct": 2,
+         "distinct_ratio": 1.0,
+         "unique": true,
+         "inferred_type": "STRING",
+         "samples": [
+          "采购需求计划",
+          "采购订单"
+         ]
+        },
+        "字段": {
+         "name": "字段",
+         "count": 7,
+         "non_null": 7,
+         "null_rate": 0.0,
+         "distinct": 7,
+         "distinct_ratio": 1.0,
+         "unique": true,
+         "inferred_type": "STRING",
+         "samples": [
+          "planNo",
+          "planAmount",
+          "planDate",
+          "poNo",
+          "poAmount"
+         ]
+        },
+        "类型": {
+         "name": "类型",
+         "count": 7,
+         "non_null": 7,
+         "null_rate": 0.0,
+         "distinct": 3,
+         "distinct_ratio": 0.4286,
+         "unique": false,
+         "inferred_type": "STRING",
+         "samples": [
+          "string",
+          "decimal",
+          "date"
+         ]
+        },
+        "口径": {
+         "name": "口径",
+         "count": 7,
+         "non_null": 5,
+         "null_rate": 0.2857,
+         "distinct": 5,
+         "distinct_ratio": 1.0,
+         "unique": true,
+         "inferred_type": "STRING",
+         "samples": [
+          "计划编号",
+          "含税金额",
+          "订单编号",
+          "下单日期",
+          "状态"
+         ]
+        }
+       }
+      },
+      {
+       "name": "散文",
+       "header_row": 2,
+       "columns": [
+        "（1）创建采购包；（2）审批；（3）下发。"
+       ],
+       "rows": 0,
+       "profile": {
+        "（1）创建采购包；（2）审批；（3）下发。": {
+         "name": "（1）创建采购包；（2）审批；（3）下发。",
+         "count": 0,
+         "non_null": 0,
+         "null_rate": 1.0,
+         "distinct": 0,
+         "distinct_ratio": 0.0,
+         "unique": false,
+         "inferred_type": "STRING",
+         "samples": []
+        }
+       }
+      },
+      {
+       "name": "无坐标",
+       "header_row": 2,
+       "columns": [
+        "pbpHeader",
+        "采购业务计划头"
+       ],
+       "rows": 1,
+       "profile": {
+        "pbpHeader": {
+         "name": "pbpHeader",
+         "count": 1,
+         "non_null": 1,
+         "null_rate": 0.0,
+         "distinct": 1,
+         "distinct_ratio": 1.0,
+         "unique": true,
+         "inferred_type": "INTEGER",
+         "samples": [
+          "1"
+         ]
+        },
+        "采购业务计划头": {
+         "name": "采购业务计划头",
+         "count": 1,
+         "non_null": 1,
+         "null_rate": 0.0,
+         "distinct": 1,
+         "distinct_ratio": 1.0,
+         "unique": true,
+         "inferred_type": "INTEGER",
+         "samples": [
+          "2"
+         ]
+        }
+       }
+      }
+     ]
+    },
+    "findings": [
+     {
+      "kind": "metadata_leak",
+      "message": "文档元数据里带着作者与保存路径（abs_path=D:\\客户资料\\某某集团\\采购中台\\；creator=张三（甲方IT）；last_modified_by=李四）。这些不在表格内容里，但对外发布前建议清理，或把项目名换成中性代号。",
+      "locator": {
+       "kind": "meta",
+       "field": "workbook.xml/docProps"
+      },
+      "severity": "warn"
+     },
+     {
+      "kind": "header_offset",
+      "message": "「偏移」表头在第 6 行，不是第 1 行",
+      "locator": {
+       "sheet": "偏移",
+       "row": 6
+      },
+      "severity": "info"
+     },
+     {
+      "kind": "empty_sheet",
+      "message": "工作表「空表」是空的，已跳过",
+      "locator": {
+       "sheet": "空表"
+      },
+      "severity": "info"
+     },
+     {
+      "kind": "header_offset",
+      "message": "「散文」表头在第 2 行，不是第 1 行",
+      "locator": {
+       "sheet": "散文",
+       "row": 2
+      },
+      "severity": "info"
+     },
+     {
+      "kind": "header_offset",
+      "message": "「无坐标」表头在第 2 行，不是第 1 行",
+      "locator": {
+       "sheet": "无坐标",
+       "row": 2
+      },
+      "severity": "info"
+     }
+    ],
+    "chunks": [
+     {
+      "chunk_id": "f_fixed:meta",
+      "file_id": "f_fixed",
+      "file_name": "tabular.hard.xlsx",
+      "locator": {
+       "kind": "meta",
+       "field": "workbook.xml/absPath"
+      },
+      "render": "〔文档元数据〕abs_path=D:\\客户资料\\某某集团\\采购中台\\；creator=张三（甲方IT）；last_modified_by=李四",
+      "raw": {
+       "abs_path": "D:\\客户资料\\某某集团\\采购中台\\",
+       "creator": "张三（甲方IT）",
+       "last_modified_by": "李四",
+       "modified": "2026-01-01T00:00:00Z"
+      },
+      "order": -1,
+      "tags": [
+       "meta"
+      ],
+      "context": "",
+      "cite": "tabular.hard.xlsx#workbook.xml/absPath"
+     },
+     {
+      "chunk_id": "f_fixed:混合类型:schema",
+      "file_id": "f_fixed",
+      "file_name": "tabular.hard.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "混合类型",
+       "rows": [
+        1,
+        1
+       ]
+      },
+      "render": "表「混合类型」列：实体编码（STRING，唯一率100%） | 实体名称（STRING，唯一率100%） | 口径说明（STRING，唯一率100%） | 行内串表头（STRING，唯一率100%） | 应用模块（STRING，唯一率100%） | 业务对象（STRING，唯一率100%） | 富文本拼接（STRING，唯一率100%） | col8（STRING，唯一率0%）",
+      "raw": {
+       "实体编码": {
+        "name": "实体编码",
+        "count": 3,
+        "non_null": 3,
+        "null_rate": 0.0,
+        "distinct": 3,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "1",
+         "3",
+         "全角空格开头"
+        ]
+       },
+       "实体名称": {
+        "name": "实体名称",
+        "count": 3,
+        "non_null": 3,
+        "null_rate": 0.0,
+        "distinct": 3,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "1.0",
+         "含税",
+         "﻿带 BOM 的值"
+        ]
+       },
+       "口径说明": {
+        "name": "口径说明",
+        "count": 3,
+        "non_null": 2,
+        "null_rate": 0.3333,
+        "distinct": 2,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "True",
+         "#DIV/0!"
+        ]
+       },
+       "行内串表头": {
+        "name": "行内串表头",
+        "count": 3,
+        "non_null": 2,
+        "null_rate": 0.3333,
+        "distinct": 2,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "2023-03-15 00:00:00",
+         "-42"
+        ]
+       },
+       "应用模块": {
+        "name": "应用模块",
+        "count": 3,
+        "non_null": 3,
+        "null_rate": 0.0,
+        "distinct": 3,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "2023-03-15 12:00:00",
+         "0.13",
+         "-3.5"
+        ]
+       },
+       "业务对象": {
+        "name": "业务对象",
+        "count": 3,
+        "non_null": 3,
+        "null_rate": 0.0,
+        "distinct": 3,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "12:00:00",
+         "含税",
+         "1e-05"
+        ]
+       },
+       "富文本拼接": {
+        "name": "富文本拼接",
+        "count": 3,
+        "non_null": 3,
+        "null_rate": 0.0,
+        "distinct": 3,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "1 day, 12:00:00",
+         "2023-03-15 00:00:00",
+         "12345678901234567890"
+        ]
+       },
+       "col8": {
+        "name": "col8",
+        "count": 3,
+        "non_null": 0,
+        "null_rate": 1.0,
+        "distinct": 0,
+        "distinct_ratio": 0.0,
+        "unique": false,
+        "inferred_type": "STRING",
+        "samples": []
+       }
+      },
+      "order": 0,
+      "tags": [
+       "schema"
+      ],
+      "context": "",
+      "cite": "tabular.hard.xlsx!混合类型!R1-1"
+     },
+     {
+      "chunk_id": "f_fixed:混合类型:r2",
+      "file_id": "f_fixed",
+      "file_name": "tabular.hard.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "混合类型",
+       "rows": [
+        2,
+        2
+       ]
+      },
+      "render": "实体编码=1 | 实体名称=1.0 | 口径说明=True | 行内串表头=2023-03-15 00:00:00 | 应用模块=2023-03-15 12:00:00 | 业务对象=12:00:00 | 富文本拼接=1 day, 12:00:00",
+      "raw": {
+       "实体编码": "1",
+       "实体名称": "1.0",
+       "口径说明": "True",
+       "行内串表头": "2023-03-15 00:00:00",
+       "应用模块": "2023-03-15 12:00:00",
+       "业务对象": "12:00:00",
+       "富文本拼接": "1 day, 12:00:00",
+       "col8": ""
+      },
+      "order": 1,
+      "tags": [
+       "row"
+      ],
+      "context": "",
+      "cite": "tabular.hard.xlsx!混合类型!R2-2"
+     },
+     {
+      "chunk_id": "f_fixed:混合类型:r3",
+      "file_id": "f_fixed",
+      "file_name": "tabular.hard.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "混合类型",
+       "rows": [
+        3,
+        3
+       ]
+      },
+      "render": "实体编码=3 | 实体名称=含税 | 口径说明=#DIV/0! | 应用模块=0.13 | 业务对象=含税 | 富文本拼接=2023-03-15 00:00:00",
+      "raw": {
+       "实体编码": "3",
+       "实体名称": "含税",
+       "口径说明": "#DIV/0!",
+       "行内串表头": "",
+       "应用模块": "0.13",
+       "业务对象": "含税",
+       "富文本拼接": "2023-03-15 00:00:00",
+       "col8": ""
+      },
+      "order": 2,
+      "tags": [
+       "row"
+      ],
+      "context": "",
+      "cite": "tabular.hard.xlsx!混合类型!R3-3"
+     },
+     {
+      "chunk_id": "f_fixed:混合类型:r4",
+      "file_id": "f_fixed",
+      "file_name": "tabular.hard.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "混合类型",
+       "rows": [
+        4,
+        4
+       ]
+      },
+      "render": "实体编码=全角空格开头 | 实体名称=﻿带 BOM 的值 | 行内串表头=-42 | 应用模块=-3.5 | 业务对象=1e-05 | 富文本拼接=12345678901234567890",
+      "raw": {
+       "实体编码": "全角空格开头",
+       "实体名称": "﻿带 BOM 的值",
+       "口径说明": "",
+       "行内串表头": "-42",
+       "应用模块": "-3.5",
+       "业务对象": "1e-05",
+       "富文本拼接": "12345678901234567890",
+       "col8": ""
+      },
+      "order": 3,
+      "tags": [
+       "row"
+      ],
+      "context": "",
+      "cite": "tabular.hard.xlsx!混合类型!R4-4"
+     },
+     {
+      "chunk_id": "f_fixed:合并与空行:schema",
+      "file_id": "f_fixed",
+      "file_name": "tabular.hard.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "合并与空行",
+       "rows": [
+        1,
+        1
+       ]
+      },
+      "render": "表「合并与空行」列：口径说明（STRING，唯一率50%） | 口径说明#2（STRING，唯一率100%） | 口径说明#3（STRING，唯一率100%） | col4（STRING，唯一率0%）",
+      "raw": {
+       "口径说明": {
+        "name": "口径说明",
+        "count": 5,
+        "non_null": 4,
+        "null_rate": 0.2,
+        "distinct": 2,
+        "distinct_ratio": 0.5,
+        "unique": false,
+        "inferred_type": "STRING",
+        "samples": [
+         "应用模块",
+         "采购计划管理"
+        ]
+       },
+       "口径说明#2": {
+        "name": "口径说明#2",
+        "count": 5,
+        "non_null": 3,
+        "null_rate": 0.4,
+        "distinct": 3,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "业务对象",
+         "采购需求计划",
+         "含税"
+        ]
+       },
+       "口径说明#3": {
+        "name": "口径说明#3",
+        "count": 5,
+        "non_null": 4,
+        "null_rate": 0.2,
+        "distinct": 4,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "实体编码",
+         "pbpHeader",
+         "采购业务计划头",
+         "含税"
+        ]
+       },
+       "col4": {
+        "name": "col4",
+        "count": 5,
+        "non_null": 0,
+        "null_rate": 1.0,
+        "distinct": 0,
+        "distinct_ratio": 0.0,
+        "unique": false,
+        "inferred_type": "STRING",
+        "samples": []
+       }
+      },
+      "order": 4,
+      "tags": [
+       "schema"
+      ],
+      "context": "",
+      "cite": "tabular.hard.xlsx!合并与空行!R1-1"
+     },
+     {
+      "chunk_id": "f_fixed:合并与空行:r2",
+      "file_id": "f_fixed",
+      "file_name": "tabular.hard.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "合并与空行",
+       "rows": [
+        2,
+        2
+       ]
+      },
+      "render": "口径说明=应用模块 | 口径说明#2=业务对象 | 口径说明#3=实体编码",
+      "raw": {
+       "口径说明": "应用模块",
+       "口径说明#2": "业务对象",
+       "口径说明#3": "实体编码",
+       "col4": ""
+      },
+      "order": 5,
+      "tags": [
+       "row"
+      ],
+      "context": "",
+      "cite": "tabular.hard.xlsx!合并与空行!R2-2"
+     },
+     {
+      "chunk_id": "f_fixed:合并与空行:r3",
+      "file_id": "f_fixed",
+      "file_name": "tabular.hard.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "合并与空行",
+       "rows": [
+        3,
+        3
+       ]
+      },
+      "render": "口径说明=采购计划管理　〔批注〕这一列指的是应用模块，不是系统模块 | 口径说明#2=采购需求计划 | 口径说明#3=pbpHeader　〔批注〕含税口径；\n跨年累计",
+      "raw": {
+       "口径说明": "采购计划管理",
+       "口径说明#2": "采购需求计划",
+       "口径说明#3": "pbpHeader",
+       "col4": ""
+      },
+      "order": 6,
+      "tags": [
+       "row"
+      ],
+      "context": "",
+      "cite": "tabular.hard.xlsx!合并与空行!R3-3"
+     },
+     {
+      "chunk_id": "f_fixed:合并与空行:r4",
+      "file_id": "f_fixed",
+      "file_name": "tabular.hard.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "合并与空行",
+       "rows": [
+        4,
+        4
+       ]
+      },
+      "render": "口径说明=采购计划管理",
+      "raw": {
+       "口径说明": "采购计划管理",
+       "口径说明#2": "",
+       "口径说明#3": "",
+       "col4": ""
+      },
+      "order": 7,
+      "tags": [
+       "row"
+      ],
+      "context": "",
+      "cite": "tabular.hard.xlsx!合并与空行!R4-4"
+     },
+     {
+      "chunk_id": "f_fixed:合并与空行:r5",
+      "file_id": "f_fixed",
+      "file_name": "tabular.hard.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "合并与空行",
+       "rows": [
+        5,
+        5
+       ]
+      },
+      "render": "口径说明=采购计划管理 | 口径说明#3=采购业务计划头",
+      "raw": {
+       "口径说明": "采购计划管理",
+       "口径说明#2": "",
+       "口径说明#3": "采购业务计划头",
+       "col4": ""
+      },
+      "order": 8,
+      "tags": [
+       "row"
+      ],
+      "context": "",
+      "cite": "tabular.hard.xlsx!合并与空行!R5-5"
+     },
+     {
+      "chunk_id": "f_fixed:合并与空行:r6",
+      "file_id": "f_fixed",
+      "file_name": "tabular.hard.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "合并与空行",
+       "rows": [
+        6,
+        6
+       ]
+      },
+      "render": "口径说明#2~口径说明#3=含税 | 〔批注·col4〕这一格没值，但口径在这儿",
+      "raw": {
+       "口径说明": "",
+       "口径说明#2": "含税",
+       "口径说明#3": "含税",
+       "col4": ""
+      },
+      "order": 9,
+      "tags": [
+       "row"
+      ],
+      "context": "",
+      "cite": "tabular.hard.xlsx!合并与空行!R6-6"
+     },
+     {
+      "chunk_id": "f_fixed:偏移:schema",
+      "file_id": "f_fixed",
+      "file_name": "tabular.hard.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "偏移",
+       "rows": [
+        6,
+        6
+       ]
+      },
+      "render": "表「偏移」列：col1（STRING，唯一率0%） | col2（STRING，唯一率0%） | pbpHeader（INTEGER，唯一率100%） | 采购业务计划头（INTEGER，唯一率100%）",
+      "raw": {
+       "col1": {
+        "name": "col1",
+        "count": 1,
+        "non_null": 0,
+        "null_rate": 1.0,
+        "distinct": 0,
+        "distinct_ratio": 0.0,
+        "unique": false,
+        "inferred_type": "STRING",
+        "samples": []
+       },
+       "col2": {
+        "name": "col2",
+        "count": 1,
+        "non_null": 0,
+        "null_rate": 1.0,
+        "distinct": 0,
+        "distinct_ratio": 0.0,
+        "unique": false,
+        "inferred_type": "STRING",
+        "samples": []
+       },
+       "pbpHeader": {
+        "name": "pbpHeader",
+        "count": 1,
+        "non_null": 1,
+        "null_rate": 0.0,
+        "distinct": 1,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "INTEGER",
+        "samples": [
+         "7"
+        ]
+       },
+       "采购业务计划头": {
+        "name": "采购业务计划头",
+        "count": 1,
+        "non_null": 1,
+        "null_rate": 0.0,
+        "distinct": 1,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "INTEGER",
+        "samples": [
+         "8"
+        ]
+       }
+      },
+      "order": 10,
+      "tags": [
+       "schema"
+      ],
+      "context": "",
+      "cite": "tabular.hard.xlsx!偏移!R6-6"
+     },
+     {
+      "chunk_id": "f_fixed:偏移:r7",
+      "file_id": "f_fixed",
+      "file_name": "tabular.hard.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "偏移",
+       "rows": [
+        7,
+        7
+       ]
+      },
+      "render": "pbpHeader=7 | 采购业务计划头=8",
+      "raw": {
+       "col1": "",
+       "col2": "",
+       "pbpHeader": "7",
+       "采购业务计划头": "8"
+      },
+      "order": 11,
+      "tags": [
+       "row"
+      ],
+      "context": "",
+      "cite": "tabular.hard.xlsx!偏移!R7-7"
+     },
+     {
+      "chunk_id": "f_fixed:层级:schema",
+      "file_id": "f_fixed",
+      "file_name": "tabular.hard.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "层级",
+       "rows": [
+        1,
+        1
+       ]
+      },
+      "render": "表「层级」列：应用模块（STRING，唯一率100%） | 业务对象（STRING，唯一率100%） | 字段（STRING，唯一率100%） | 类型（STRING，唯一率43%） | 口径（STRING，唯一率100%）",
+      "raw": {
+       "应用模块": {
+        "name": "应用模块",
+        "count": 7,
+        "non_null": 2,
+        "null_rate": 0.7143,
+        "distinct": 2,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "采购计划管理",
+         "采购订单管理"
+        ]
+       },
+       "业务对象": {
+        "name": "业务对象",
+        "count": 7,
+        "non_null": 2,
+        "null_rate": 0.7143,
+        "distinct": 2,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "采购需求计划",
+         "采购订单"
+        ]
+       },
+       "字段": {
+        "name": "字段",
+        "count": 7,
+        "non_null": 7,
+        "null_rate": 0.0,
+        "distinct": 7,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "planNo",
+         "planAmount",
+         "planDate",
+         "poNo",
+         "poAmount"
+        ]
+       },
+       "类型": {
+        "name": "类型",
+        "count": 7,
+        "non_null": 7,
+        "null_rate": 0.0,
+        "distinct": 3,
+        "distinct_ratio": 0.4286,
+        "unique": false,
+        "inferred_type": "STRING",
+        "samples": [
+         "string",
+         "decimal",
+         "date"
+        ]
+       },
+       "口径": {
+        "name": "口径",
+        "count": 7,
+        "non_null": 5,
+        "null_rate": 0.2857,
+        "distinct": 5,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "计划编号",
+         "含税金额",
+         "订单编号",
+         "下单日期",
+         "状态"
+        ]
+       }
+      },
+      "order": 12,
+      "tags": [
+       "schema"
+      ],
+      "context": "",
+      "cite": "tabular.hard.xlsx!层级!R1-1"
+     },
+     {
+      "chunk_id": "f_fixed:层级:r2",
+      "file_id": "f_fixed",
+      "file_name": "tabular.hard.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "层级",
+       "rows": [
+        2,
+        2
+       ]
+      },
+      "render": "应用模块=采购计划管理 | 业务对象=采购需求计划 | 字段=planNo | 类型=string | 口径=计划编号",
+      "raw": {
+       "应用模块": "采购计划管理",
+       "业务对象": "采购需求计划",
+       "字段": "planNo",
+       "类型": "string",
+       "口径": "计划编号"
+      },
+      "order": 13,
+      "tags": [
+       "row"
+      ],
+      "context": "",
+      "cite": "tabular.hard.xlsx!层级!R2-2"
+     },
+     {
+      "chunk_id": "f_fixed:层级:r3",
+      "file_id": "f_fixed",
+      "file_name": "tabular.hard.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "层级",
+       "rows": [
+        3,
+        3
+       ]
+      },
+      "render": "应用模块=采购计划管理 | 业务对象=采购需求计划 | 字段=planAmount | 类型=decimal | 口径=含税金额",
+      "raw": {
+       "应用模块": "",
+       "业务对象": "",
+       "字段": "planAmount",
+       "类型": "decimal",
+       "口径": "含税金额"
+      },
+      "order": 14,
+      "tags": [
+       "row"
+      ],
+      "context": "",
+      "cite": "tabular.hard.xlsx!层级!R3-3"
+     },
+     {
+      "chunk_id": "f_fixed:层级:r4",
+      "file_id": "f_fixed",
+      "file_name": "tabular.hard.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "层级",
+       "rows": [
+        4,
+        4
+       ]
+      },
+      "render": "应用模块=采购计划管理 | 业务对象=采购需求计划 | 字段=planDate | 类型=date",
+      "raw": {
+       "应用模块": "",
+       "业务对象": "",
+       "字段": "planDate",
+       "类型": "date",
+       "口径": ""
+      },
+      "order": 15,
+      "tags": [
+       "row"
+      ],
+      "context": "",
+      "cite": "tabular.hard.xlsx!层级!R4-4"
+     },
+     {
+      "chunk_id": "f_fixed:层级:r5",
+      "file_id": "f_fixed",
+      "file_name": "tabular.hard.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "层级",
+       "rows": [
+        5,
+        5
+       ]
+      },
+      "render": "应用模块=采购订单管理 | 业务对象=采购订单 | 字段=poNo | 类型=string | 口径=订单编号",
+      "raw": {
+       "应用模块": "采购订单管理",
+       "业务对象": "采购订单",
+       "字段": "poNo",
+       "类型": "string",
+       "口径": "订单编号"
+      },
+      "order": 16,
+      "tags": [
+       "row"
+      ],
+      "context": "",
+      "cite": "tabular.hard.xlsx!层级!R5-5"
+     },
+     {
+      "chunk_id": "f_fixed:层级:r6",
+      "file_id": "f_fixed",
+      "file_name": "tabular.hard.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "层级",
+       "rows": [
+        6,
+        6
+       ]
+      },
+      "render": "应用模块=采购订单管理 | 业务对象=采购订单 | 字段=poAmount | 类型=decimal",
+      "raw": {
+       "应用模块": "",
+       "业务对象": "",
+       "字段": "poAmount",
+       "类型": "decimal",
+       "口径": ""
+      },
+      "order": 17,
+      "tags": [
+       "row"
+      ],
+      "context": "",
+      "cite": "tabular.hard.xlsx!层级!R6-6"
+     },
+     {
+      "chunk_id": "f_fixed:层级:r7",
+      "file_id": "f_fixed",
+      "file_name": "tabular.hard.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "层级",
+       "rows": [
+        7,
+        7
+       ]
+      },
+      "render": "应用模块=采购订单管理 | 业务对象=采购订单 | 字段=poDate | 类型=date | 口径=下单日期",
+      "raw": {
+       "应用模块": "",
+       "业务对象": "",
+       "字段": "poDate",
+       "类型": "date",
+       "口径": "下单日期"
+      },
+      "order": 18,
+      "tags": [
+       "row"
+      ],
+      "context": "",
+      "cite": "tabular.hard.xlsx!层级!R7-7"
+     },
+     {
+      "chunk_id": "f_fixed:层级:r8",
+      "file_id": "f_fixed",
+      "file_name": "tabular.hard.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "层级",
+       "rows": [
+        8,
+        8
+       ]
+      },
+      "render": "应用模块=采购订单管理 | 业务对象=采购订单 | 字段=poStatus | 类型=string | 口径=状态",
+      "raw": {
+       "应用模块": "",
+       "业务对象": "",
+       "字段": "poStatus",
+       "类型": "string",
+       "口径": "状态"
+      },
+      "order": 19,
+      "tags": [
+       "row"
+      ],
+      "context": "",
+      "cite": "tabular.hard.xlsx!层级!R8-8"
+     },
+     {
+      "chunk_id": "f_fixed:散文:schema",
+      "file_id": "f_fixed",
+      "file_name": "tabular.hard.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "散文",
+       "rows": [
+        2,
+        2
+       ]
+      },
+      "render": "表「散文」列：（1）创建采购包；（2）审批；（3）下发。（STRING，唯一率0%）",
+      "raw": {
+       "（1）创建采购包；（2）审批；（3）下发。": {
+        "name": "（1）创建采购包；（2）审批；（3）下发。",
+        "count": 0,
+        "non_null": 0,
+        "null_rate": 1.0,
+        "distinct": 0,
+        "distinct_ratio": 0.0,
+        "unique": false,
+        "inferred_type": "STRING",
+        "samples": []
+       }
+      },
+      "order": 20,
+      "tags": [
+       "schema"
+      ],
+      "context": "",
+      "cite": "tabular.hard.xlsx!散文!R2-2"
+     },
+     {
+      "chunk_id": "f_fixed:无坐标:schema",
+      "file_id": "f_fixed",
+      "file_name": "tabular.hard.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "无坐标",
+       "rows": [
+        2,
+        2
+       ]
+      },
+      "render": "表「无坐标」列：pbpHeader（INTEGER，唯一率100%） | 采购业务计划头（INTEGER，唯一率100%）",
+      "raw": {
+       "pbpHeader": {
+        "name": "pbpHeader",
+        "count": 1,
+        "non_null": 1,
+        "null_rate": 0.0,
+        "distinct": 1,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "INTEGER",
+        "samples": [
+         "1"
+        ]
+       },
+       "采购业务计划头": {
+        "name": "采购业务计划头",
+        "count": 1,
+        "non_null": 1,
+        "null_rate": 0.0,
+        "distinct": 1,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "INTEGER",
+        "samples": [
+         "2"
+        ]
+       }
+      },
+      "order": 21,
+      "tags": [
+       "schema"
+      ],
+      "context": "",
+      "cite": "tabular.hard.xlsx!无坐标!R2-2"
+     },
+     {
+      "chunk_id": "f_fixed:无坐标:r3",
+      "file_id": "f_fixed",
+      "file_name": "tabular.hard.xlsx",
+      "locator": {
+       "kind": "range",
+       "sheet": "无坐标",
+       "rows": [
+        3,
+        3
+       ]
+      },
+      "render": "pbpHeader=1 | 采购业务计划头=2",
+      "raw": {
+       "pbpHeader": "1",
+       "采购业务计划头": "2"
+      },
+      "order": 22,
+      "tags": [
+       "row"
+      ],
+      "context": "",
+      "cite": "tabular.hard.xlsx!无坐标!R3-3"
+     }
+    ],
+    "stats": {
+     "file": "tabular.hard.xlsx",
+     "kind": "xlsx",
+     "chunks": 24,
+     "findings": 5,
+     "sheets": 6
+    }
+   }
+  }
+ },
+ "csv": [
+  {
+   "name": "逗号.csv",
+   "bytes_b64": "5aeT5ZCNLOW5tOm+hCzln47luIIK5byg5LiJLDE4LOWMl+S6rArmnY7lm5ssMjAs5LiK5rW3CueOi+S6lCws5bm/5beeCg==",
+   "doc": {
+    "file_id": "f_fixed",
+    "file_name": "逗号.csv",
+    "kind": "csv",
+    "meta": {},
+    "structured": {
+     "columns": [
+      "姓名",
+      "年龄",
+      "城市"
+     ],
+     "rows": 3,
+     "delimiter": ",",
+     "profile": {
+      "姓名": {
+       "name": "姓名",
+       "count": 3,
+       "non_null": 3,
+       "null_rate": 0.0,
+       "distinct": 3,
+       "distinct_ratio": 1.0,
+       "unique": true,
+       "inferred_type": "STRING",
+       "samples": [
+        "张三",
+        "李四",
+        "王五"
+       ]
+      },
+      "年龄": {
+       "name": "年龄",
+       "count": 3,
+       "non_null": 2,
+       "null_rate": 0.3333,
+       "distinct": 2,
+       "distinct_ratio": 1.0,
+       "unique": true,
+       "inferred_type": "INTEGER",
+       "samples": [
+        "18",
+        "20"
+       ]
+      },
+      "城市": {
+       "name": "城市",
+       "count": 3,
+       "non_null": 3,
+       "null_rate": 0.0,
+       "distinct": 3,
+       "distinct_ratio": 1.0,
+       "unique": true,
+       "inferred_type": "STRING",
+       "samples": [
+        "北京",
+        "上海",
+        "广州"
+       ]
+      }
+     }
+    },
+    "findings": [],
+    "chunks": [
+     {
+      "chunk_id": "f_fixed:schema",
+      "file_id": "f_fixed",
+      "file_name": "逗号.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "逗号",
+       "rows": [
+        1,
+        1
+       ]
+      },
+      "render": "列：姓名(STRING，唯一率100%，空值率0%) | 年龄(INTEGER，唯一率100%，空值率33%) | 城市(STRING，唯一率100%，空值率0%)",
+      "raw": {
+       "姓名": {
+        "name": "姓名",
+        "count": 3,
+        "non_null": 3,
+        "null_rate": 0.0,
+        "distinct": 3,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "张三",
+         "李四",
+         "王五"
+        ]
+       },
+       "年龄": {
+        "name": "年龄",
+        "count": 3,
+        "non_null": 2,
+        "null_rate": 0.3333,
+        "distinct": 2,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "INTEGER",
+        "samples": [
+         "18",
+         "20"
+        ]
+       },
+       "城市": {
+        "name": "城市",
+        "count": 3,
+        "non_null": 3,
+        "null_rate": 0.0,
+        "distinct": 3,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "北京",
+         "上海",
+         "广州"
+        ]
+       }
+      },
+      "order": 0,
+      "tags": [
+       "schema"
+      ],
+      "context": "",
+      "cite": "逗号.csv!逗号!R1-1"
+     },
+     {
+      "chunk_id": "f_fixed:r2",
+      "file_id": "f_fixed",
+      "file_name": "逗号.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "逗号",
+       "rows": [
+        2,
+        2
+       ]
+      },
+      "render": "姓名=张三 | 年龄=18 | 城市=北京",
+      "raw": null,
+      "order": 1,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "逗号.csv!逗号!R2-2"
+     },
+     {
+      "chunk_id": "f_fixed:r3",
+      "file_id": "f_fixed",
+      "file_name": "逗号.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "逗号",
+       "rows": [
+        3,
+        3
+       ]
+      },
+      "render": "姓名=李四 | 年龄=20 | 城市=上海",
+      "raw": null,
+      "order": 2,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "逗号.csv!逗号!R3-3"
+     },
+     {
+      "chunk_id": "f_fixed:r4",
+      "file_id": "f_fixed",
+      "file_name": "逗号.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "逗号",
+       "rows": [
+        4,
+        4
+       ]
+      },
+      "render": "姓名=王五 | 城市=广州",
+      "raw": null,
+      "order": 3,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "逗号.csv!逗号!R4-4"
+     }
+    ],
+    "stats": {
+     "file": "逗号.csv",
+     "kind": "csv",
+     "chunks": 4,
+     "findings": 0,
+     "columns": 3,
+     "rows": 3,
+     "delimiter": ",",
+     "profile": 3
+    }
+   }
+  },
+  {
+   "name": "分号.csv",
+   "bytes_b64": "5aeT5ZCNO+W5tOm+hDvln47luIIK5byg5LiJOzE4O+WMl+S6rArmnY7lm5s7MjA75LiK5rW3Cg==",
+   "doc": {
+    "file_id": "f_fixed",
+    "file_name": "分号.csv",
+    "kind": "csv",
+    "meta": {},
+    "structured": {
+     "columns": [
+      "姓名",
+      "年龄",
+      "城市"
+     ],
+     "rows": 2,
+     "delimiter": ";",
+     "profile": {
+      "姓名": {
+       "name": "姓名",
+       "count": 2,
+       "non_null": 2,
+       "null_rate": 0.0,
+       "distinct": 2,
+       "distinct_ratio": 1.0,
+       "unique": true,
+       "inferred_type": "STRING",
+       "samples": [
+        "张三",
+        "李四"
+       ]
+      },
+      "年龄": {
+       "name": "年龄",
+       "count": 2,
+       "non_null": 2,
+       "null_rate": 0.0,
+       "distinct": 2,
+       "distinct_ratio": 1.0,
+       "unique": true,
+       "inferred_type": "INTEGER",
+       "samples": [
+        "18",
+        "20"
+       ]
+      },
+      "城市": {
+       "name": "城市",
+       "count": 2,
+       "non_null": 2,
+       "null_rate": 0.0,
+       "distinct": 2,
+       "distinct_ratio": 1.0,
+       "unique": true,
+       "inferred_type": "STRING",
+       "samples": [
+        "北京",
+        "上海"
+       ]
+      }
+     }
+    },
+    "findings": [],
+    "chunks": [
+     {
+      "chunk_id": "f_fixed:schema",
+      "file_id": "f_fixed",
+      "file_name": "分号.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "分号",
+       "rows": [
+        1,
+        1
+       ]
+      },
+      "render": "列：姓名(STRING，唯一率100%，空值率0%) | 年龄(INTEGER，唯一率100%，空值率0%) | 城市(STRING，唯一率100%，空值率0%)",
+      "raw": {
+       "姓名": {
+        "name": "姓名",
+        "count": 2,
+        "non_null": 2,
+        "null_rate": 0.0,
+        "distinct": 2,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "张三",
+         "李四"
+        ]
+       },
+       "年龄": {
+        "name": "年龄",
+        "count": 2,
+        "non_null": 2,
+        "null_rate": 0.0,
+        "distinct": 2,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "INTEGER",
+        "samples": [
+         "18",
+         "20"
+        ]
+       },
+       "城市": {
+        "name": "城市",
+        "count": 2,
+        "non_null": 2,
+        "null_rate": 0.0,
+        "distinct": 2,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "北京",
+         "上海"
+        ]
+       }
+      },
+      "order": 0,
+      "tags": [
+       "schema"
+      ],
+      "context": "",
+      "cite": "分号.csv!分号!R1-1"
+     },
+     {
+      "chunk_id": "f_fixed:r2",
+      "file_id": "f_fixed",
+      "file_name": "分号.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "分号",
+       "rows": [
+        2,
+        2
+       ]
+      },
+      "render": "姓名=张三 | 年龄=18 | 城市=北京",
+      "raw": null,
+      "order": 1,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "分号.csv!分号!R2-2"
+     },
+     {
+      "chunk_id": "f_fixed:r3",
+      "file_id": "f_fixed",
+      "file_name": "分号.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "分号",
+       "rows": [
+        3,
+        3
+       ]
+      },
+      "render": "姓名=李四 | 年龄=20 | 城市=上海",
+      "raw": null,
+      "order": 2,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "分号.csv!分号!R3-3"
+     }
+    ],
+    "stats": {
+     "file": "分号.csv",
+     "kind": "csv",
+     "chunks": 3,
+     "findings": 0,
+     "columns": 3,
+     "rows": 2,
+     "delimiter": ";",
+     "profile": 3
+    }
+   }
+  },
+  {
+   "name": "制表.tsv",
+   "bytes_b64": "5aeT5ZCNCeW5tOm+hAnln47luIIK5byg5LiJCTE4CeWMl+S6rArmnY7lm5sJMjAJ5LiK5rW3Cg==",
+   "doc": {
+    "file_id": "f_fixed",
+    "file_name": "制表.tsv",
+    "kind": "csv",
+    "meta": {},
+    "structured": {
+     "columns": [
+      "姓名",
+      "年龄",
+      "城市"
+     ],
+     "rows": 2,
+     "delimiter": "\t",
+     "profile": {
+      "姓名": {
+       "name": "姓名",
+       "count": 2,
+       "non_null": 2,
+       "null_rate": 0.0,
+       "distinct": 2,
+       "distinct_ratio": 1.0,
+       "unique": true,
+       "inferred_type": "STRING",
+       "samples": [
+        "张三",
+        "李四"
+       ]
+      },
+      "年龄": {
+       "name": "年龄",
+       "count": 2,
+       "non_null": 2,
+       "null_rate": 0.0,
+       "distinct": 2,
+       "distinct_ratio": 1.0,
+       "unique": true,
+       "inferred_type": "INTEGER",
+       "samples": [
+        "18",
+        "20"
+       ]
+      },
+      "城市": {
+       "name": "城市",
+       "count": 2,
+       "non_null": 2,
+       "null_rate": 0.0,
+       "distinct": 2,
+       "distinct_ratio": 1.0,
+       "unique": true,
+       "inferred_type": "STRING",
+       "samples": [
+        "北京",
+        "上海"
+       ]
+      }
+     }
+    },
+    "findings": [],
+    "chunks": [
+     {
+      "chunk_id": "f_fixed:schema",
+      "file_id": "f_fixed",
+      "file_name": "制表.tsv",
+      "locator": {
+       "kind": "range",
+       "sheet": "制表",
+       "rows": [
+        1,
+        1
+       ]
+      },
+      "render": "列：姓名(STRING，唯一率100%，空值率0%) | 年龄(INTEGER，唯一率100%，空值率0%) | 城市(STRING，唯一率100%，空值率0%)",
+      "raw": {
+       "姓名": {
+        "name": "姓名",
+        "count": 2,
+        "non_null": 2,
+        "null_rate": 0.0,
+        "distinct": 2,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "张三",
+         "李四"
+        ]
+       },
+       "年龄": {
+        "name": "年龄",
+        "count": 2,
+        "non_null": 2,
+        "null_rate": 0.0,
+        "distinct": 2,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "INTEGER",
+        "samples": [
+         "18",
+         "20"
+        ]
+       },
+       "城市": {
+        "name": "城市",
+        "count": 2,
+        "non_null": 2,
+        "null_rate": 0.0,
+        "distinct": 2,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "北京",
+         "上海"
+        ]
+       }
+      },
+      "order": 0,
+      "tags": [
+       "schema"
+      ],
+      "context": "",
+      "cite": "制表.tsv!制表!R1-1"
+     },
+     {
+      "chunk_id": "f_fixed:r2",
+      "file_id": "f_fixed",
+      "file_name": "制表.tsv",
+      "locator": {
+       "kind": "range",
+       "sheet": "制表",
+       "rows": [
+        2,
+        2
+       ]
+      },
+      "render": "姓名=张三 | 年龄=18 | 城市=北京",
+      "raw": null,
+      "order": 1,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "制表.tsv!制表!R2-2"
+     },
+     {
+      "chunk_id": "f_fixed:r3",
+      "file_id": "f_fixed",
+      "file_name": "制表.tsv",
+      "locator": {
+       "kind": "range",
+       "sheet": "制表",
+       "rows": [
+        3,
+        3
+       ]
+      },
+      "render": "姓名=李四 | 年龄=20 | 城市=上海",
+      "raw": null,
+      "order": 2,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "制表.tsv!制表!R3-3"
+     }
+    ],
+    "stats": {
+     "file": "制表.tsv",
+     "kind": "csv",
+     "chunks": 3,
+     "findings": 0,
+     "columns": 3,
+     "rows": 2,
+     "delimiter": "\t",
+     "profile": 3
+    }
+   }
+  },
+  {
+   "name": "竖线.csv",
+   "bytes_b64": "5aeT5ZCNfOW5tOm+hHzln47luIIK5byg5LiJfDE4fOWMl+S6rArmnY7lm5t8MjB85LiK5rW3Cg==",
+   "doc": {
+    "file_id": "f_fixed",
+    "file_name": "竖线.csv",
+    "kind": "csv",
+    "meta": {},
+    "structured": {
+     "columns": [
+      "姓名",
+      "年龄",
+      "城市"
+     ],
+     "rows": 2,
+     "delimiter": "|",
+     "profile": {
+      "姓名": {
+       "name": "姓名",
+       "count": 2,
+       "non_null": 2,
+       "null_rate": 0.0,
+       "distinct": 2,
+       "distinct_ratio": 1.0,
+       "unique": true,
+       "inferred_type": "STRING",
+       "samples": [
+        "张三",
+        "李四"
+       ]
+      },
+      "年龄": {
+       "name": "年龄",
+       "count": 2,
+       "non_null": 2,
+       "null_rate": 0.0,
+       "distinct": 2,
+       "distinct_ratio": 1.0,
+       "unique": true,
+       "inferred_type": "INTEGER",
+       "samples": [
+        "18",
+        "20"
+       ]
+      },
+      "城市": {
+       "name": "城市",
+       "count": 2,
+       "non_null": 2,
+       "null_rate": 0.0,
+       "distinct": 2,
+       "distinct_ratio": 1.0,
+       "unique": true,
+       "inferred_type": "STRING",
+       "samples": [
+        "北京",
+        "上海"
+       ]
+      }
+     }
+    },
+    "findings": [],
+    "chunks": [
+     {
+      "chunk_id": "f_fixed:schema",
+      "file_id": "f_fixed",
+      "file_name": "竖线.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "竖线",
+       "rows": [
+        1,
+        1
+       ]
+      },
+      "render": "列：姓名(STRING，唯一率100%，空值率0%) | 年龄(INTEGER，唯一率100%，空值率0%) | 城市(STRING，唯一率100%，空值率0%)",
+      "raw": {
+       "姓名": {
+        "name": "姓名",
+        "count": 2,
+        "non_null": 2,
+        "null_rate": 0.0,
+        "distinct": 2,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "张三",
+         "李四"
+        ]
+       },
+       "年龄": {
+        "name": "年龄",
+        "count": 2,
+        "non_null": 2,
+        "null_rate": 0.0,
+        "distinct": 2,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "INTEGER",
+        "samples": [
+         "18",
+         "20"
+        ]
+       },
+       "城市": {
+        "name": "城市",
+        "count": 2,
+        "non_null": 2,
+        "null_rate": 0.0,
+        "distinct": 2,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "北京",
+         "上海"
+        ]
+       }
+      },
+      "order": 0,
+      "tags": [
+       "schema"
+      ],
+      "context": "",
+      "cite": "竖线.csv!竖线!R1-1"
+     },
+     {
+      "chunk_id": "f_fixed:r2",
+      "file_id": "f_fixed",
+      "file_name": "竖线.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "竖线",
+       "rows": [
+        2,
+        2
+       ]
+      },
+      "render": "姓名=张三 | 年龄=18 | 城市=北京",
+      "raw": null,
+      "order": 1,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "竖线.csv!竖线!R2-2"
+     },
+     {
+      "chunk_id": "f_fixed:r3",
+      "file_id": "f_fixed",
+      "file_name": "竖线.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "竖线",
+       "rows": [
+        3,
+        3
+       ]
+      },
+      "render": "姓名=李四 | 年龄=20 | 城市=上海",
+      "raw": null,
+      "order": 2,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "竖线.csv!竖线!R3-3"
+     }
+    ],
+    "stats": {
+     "file": "竖线.csv",
+     "kind": "csv",
+     "chunks": 3,
+     "findings": 0,
+     "columns": 3,
+     "rows": 2,
+     "delimiter": "|",
+     "profile": 3
+    }
+   }
+  },
+  {
+   "name": "单列.csv",
+   "bytes_b64": "5Y+q5pyJ5LiA5YiXCuWAvOS4gArlgLzkuowK",
+   "doc": {
+    "file_id": "f_fixed",
+    "file_name": "单列.csv",
+    "kind": "csv",
+    "meta": {},
+    "structured": {
+     "columns": [
+      "只有一列"
+     ],
+     "rows": 2,
+     "delimiter": ",",
+     "profile": {
+      "只有一列": {
+       "name": "只有一列",
+       "count": 2,
+       "non_null": 2,
+       "null_rate": 0.0,
+       "distinct": 2,
+       "distinct_ratio": 1.0,
+       "unique": true,
+       "inferred_type": "STRING",
+       "samples": [
+        "值一",
+        "值二"
+       ]
+      }
+     }
+    },
+    "findings": [],
+    "chunks": [
+     {
+      "chunk_id": "f_fixed:schema",
+      "file_id": "f_fixed",
+      "file_name": "单列.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "单列",
+       "rows": [
+        1,
+        1
+       ]
+      },
+      "render": "列：只有一列(STRING，唯一率100%，空值率0%)",
+      "raw": {
+       "只有一列": {
+        "name": "只有一列",
+        "count": 2,
+        "non_null": 2,
+        "null_rate": 0.0,
+        "distinct": 2,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "值一",
+         "值二"
+        ]
+       }
+      },
+      "order": 0,
+      "tags": [
+       "schema"
+      ],
+      "context": "",
+      "cite": "单列.csv!单列!R1-1"
+     },
+     {
+      "chunk_id": "f_fixed:r2",
+      "file_id": "f_fixed",
+      "file_name": "单列.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "单列",
+       "rows": [
+        2,
+        2
+       ]
+      },
+      "render": "只有一列=值一",
+      "raw": null,
+      "order": 1,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "单列.csv!单列!R2-2"
+     },
+     {
+      "chunk_id": "f_fixed:r3",
+      "file_id": "f_fixed",
+      "file_name": "单列.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "单列",
+       "rows": [
+        3,
+        3
+       ]
+      },
+      "render": "只有一列=值二",
+      "raw": null,
+      "order": 2,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "单列.csv!单列!R3-3"
+     }
+    ],
+    "stats": {
+     "file": "单列.csv",
+     "kind": "csv",
+     "chunks": 3,
+     "findings": 0,
+     "columns": 1,
+     "rows": 2,
+     "delimiter": ",",
+     "profile": 1
+    }
+   }
+  },
+  {
+   "name": "单列.tsv",
+   "bytes_b64": "5Y+q5pyJ5LiA5YiXCuWAvOS4gArlgLzkuowK",
+   "doc": {
+    "file_id": "f_fixed",
+    "file_name": "单列.tsv",
+    "kind": "csv",
+    "meta": {},
+    "structured": {
+     "columns": [
+      "只有一列"
+     ],
+     "rows": 2,
+     "delimiter": "\t",
+     "profile": {
+      "只有一列": {
+       "name": "只有一列",
+       "count": 2,
+       "non_null": 2,
+       "null_rate": 0.0,
+       "distinct": 2,
+       "distinct_ratio": 1.0,
+       "unique": true,
+       "inferred_type": "STRING",
+       "samples": [
+        "值一",
+        "值二"
+       ]
+      }
+     }
+    },
+    "findings": [],
+    "chunks": [
+     {
+      "chunk_id": "f_fixed:schema",
+      "file_id": "f_fixed",
+      "file_name": "单列.tsv",
+      "locator": {
+       "kind": "range",
+       "sheet": "单列",
+       "rows": [
+        1,
+        1
+       ]
+      },
+      "render": "列：只有一列(STRING，唯一率100%，空值率0%)",
+      "raw": {
+       "只有一列": {
+        "name": "只有一列",
+        "count": 2,
+        "non_null": 2,
+        "null_rate": 0.0,
+        "distinct": 2,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "值一",
+         "值二"
+        ]
+       }
+      },
+      "order": 0,
+      "tags": [
+       "schema"
+      ],
+      "context": "",
+      "cite": "单列.tsv!单列!R1-1"
+     },
+     {
+      "chunk_id": "f_fixed:r2",
+      "file_id": "f_fixed",
+      "file_name": "单列.tsv",
+      "locator": {
+       "kind": "range",
+       "sheet": "单列",
+       "rows": [
+        2,
+        2
+       ]
+      },
+      "render": "只有一列=值一",
+      "raw": null,
+      "order": 1,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "单列.tsv!单列!R2-2"
+     },
+     {
+      "chunk_id": "f_fixed:r3",
+      "file_id": "f_fixed",
+      "file_name": "单列.tsv",
+      "locator": {
+       "kind": "range",
+       "sheet": "单列",
+       "rows": [
+        3,
+        3
+       ]
+      },
+      "render": "只有一列=值二",
+      "raw": null,
+      "order": 2,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "单列.tsv!单列!R3-3"
+     }
+    ],
+    "stats": {
+     "file": "单列.tsv",
+     "kind": "csv",
+     "chunks": 3,
+     "findings": 0,
+     "columns": 1,
+     "rows": 2,
+     "delimiter": "\t",
+     "profile": 1
+    }
+   }
+  },
+  {
+   "name": "引号.csv",
+   "bytes_b64": "5aeT5ZCNLOWkh+azqAoi5byg5LiJIiwi5ZCr56iOLCDkuI3lkKvnqI4iCiLmnY7lm5siLCLku5bor7QiIuWlvSIiIgo=",
+   "doc": {
+    "file_id": "f_fixed",
+    "file_name": "引号.csv",
+    "kind": "csv",
+    "meta": {},
+    "structured": {
+     "columns": [
+      "姓名",
+      "备注"
+     ],
+     "rows": 2,
+     "delimiter": ",",
+     "profile": {
+      "姓名": {
+       "name": "姓名",
+       "count": 2,
+       "non_null": 2,
+       "null_rate": 0.0,
+       "distinct": 2,
+       "distinct_ratio": 1.0,
+       "unique": true,
+       "inferred_type": "STRING",
+       "samples": [
+        "张三",
+        "李四"
+       ]
+      },
+      "备注": {
+       "name": "备注",
+       "count": 2,
+       "non_null": 2,
+       "null_rate": 0.0,
+       "distinct": 2,
+       "distinct_ratio": 1.0,
+       "unique": true,
+       "inferred_type": "STRING",
+       "samples": [
+        "含税, 不含税",
+        "他说\"好\""
+       ]
+      }
+     }
+    },
+    "findings": [],
+    "chunks": [
+     {
+      "chunk_id": "f_fixed:schema",
+      "file_id": "f_fixed",
+      "file_name": "引号.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "引号",
+       "rows": [
+        1,
+        1
+       ]
+      },
+      "render": "列：姓名(STRING，唯一率100%，空值率0%) | 备注(STRING，唯一率100%，空值率0%)",
+      "raw": {
+       "姓名": {
+        "name": "姓名",
+        "count": 2,
+        "non_null": 2,
+        "null_rate": 0.0,
+        "distinct": 2,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "张三",
+         "李四"
+        ]
+       },
+       "备注": {
+        "name": "备注",
+        "count": 2,
+        "non_null": 2,
+        "null_rate": 0.0,
+        "distinct": 2,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "含税, 不含税",
+         "他说\"好\""
+        ]
+       }
+      },
+      "order": 0,
+      "tags": [
+       "schema"
+      ],
+      "context": "",
+      "cite": "引号.csv!引号!R1-1"
+     },
+     {
+      "chunk_id": "f_fixed:r2",
+      "file_id": "f_fixed",
+      "file_name": "引号.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "引号",
+       "rows": [
+        2,
+        2
+       ]
+      },
+      "render": "姓名=张三 | 备注=含税, 不含税",
+      "raw": null,
+      "order": 1,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "引号.csv!引号!R2-2"
+     },
+     {
+      "chunk_id": "f_fixed:r3",
+      "file_id": "f_fixed",
+      "file_name": "引号.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "引号",
+       "rows": [
+        3,
+        3
+       ]
+      },
+      "render": "姓名=李四 | 备注=他说\"好\"",
+      "raw": null,
+      "order": 2,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "引号.csv!引号!R3-3"
+     }
+    ],
+    "stats": {
+     "file": "引号.csv",
+     "kind": "csv",
+     "chunks": 3,
+     "findings": 0,
+     "columns": 2,
+     "rows": 2,
+     "delimiter": ",",
+     "profile": 2
+    }
+   }
+  },
+  {
+   "name": "gbk.csv",
+   "bytes_b64": "0NXD+yzE6sHkCtXFyP0sMTgKwO7LxCwyMAo=",
+   "doc": {
+    "file_id": "f_fixed",
+    "file_name": "gbk.csv",
+    "kind": "csv",
+    "meta": {},
+    "structured": {
+     "columns": [
+      "姓名",
+      "年龄"
+     ],
+     "rows": 2,
+     "delimiter": ",",
+     "profile": {
+      "姓名": {
+       "name": "姓名",
+       "count": 2,
+       "non_null": 2,
+       "null_rate": 0.0,
+       "distinct": 2,
+       "distinct_ratio": 1.0,
+       "unique": true,
+       "inferred_type": "STRING",
+       "samples": [
+        "张三",
+        "李四"
+       ]
+      },
+      "年龄": {
+       "name": "年龄",
+       "count": 2,
+       "non_null": 2,
+       "null_rate": 0.0,
+       "distinct": 2,
+       "distinct_ratio": 1.0,
+       "unique": true,
+       "inferred_type": "INTEGER",
+       "samples": [
+        "18",
+        "20"
+       ]
+      }
+     }
+    },
+    "findings": [
+     {
+      "kind": "encoding_guess",
+      "message": "文件不是 UTF-8，按 gb18030 解码（中文 CSV 常见 GBK）",
+      "locator": {},
+      "severity": "warn"
+     }
+    ],
+    "chunks": [
+     {
+      "chunk_id": "f_fixed:schema",
+      "file_id": "f_fixed",
+      "file_name": "gbk.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "gbk",
+       "rows": [
+        1,
+        1
+       ]
+      },
+      "render": "列：姓名(STRING，唯一率100%，空值率0%) | 年龄(INTEGER，唯一率100%，空值率0%)",
+      "raw": {
+       "姓名": {
+        "name": "姓名",
+        "count": 2,
+        "non_null": 2,
+        "null_rate": 0.0,
+        "distinct": 2,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "张三",
+         "李四"
+        ]
+       },
+       "年龄": {
+        "name": "年龄",
+        "count": 2,
+        "non_null": 2,
+        "null_rate": 0.0,
+        "distinct": 2,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "INTEGER",
+        "samples": [
+         "18",
+         "20"
+        ]
+       }
+      },
+      "order": 0,
+      "tags": [
+       "schema"
+      ],
+      "context": "",
+      "cite": "gbk.csv!gbk!R1-1"
+     },
+     {
+      "chunk_id": "f_fixed:r2",
+      "file_id": "f_fixed",
+      "file_name": "gbk.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "gbk",
+       "rows": [
+        2,
+        2
+       ]
+      },
+      "render": "姓名=张三 | 年龄=18",
+      "raw": null,
+      "order": 1,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "gbk.csv!gbk!R2-2"
+     },
+     {
+      "chunk_id": "f_fixed:r3",
+      "file_id": "f_fixed",
+      "file_name": "gbk.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "gbk",
+       "rows": [
+        3,
+        3
+       ]
+      },
+      "render": "姓名=李四 | 年龄=20",
+      "raw": null,
+      "order": 2,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "gbk.csv!gbk!R3-3"
+     }
+    ],
+    "stats": {
+     "file": "gbk.csv",
+     "kind": "csv",
+     "chunks": 3,
+     "findings": 1,
+     "columns": 2,
+     "rows": 2,
+     "delimiter": ",",
+     "profile": 2
+    }
+   }
+  },
+  {
+   "name": "空文件.csv",
+   "bytes_b64": "",
+   "doc": {
+    "file_id": "f_fixed",
+    "file_name": "空文件.csv",
+    "kind": "csv",
+    "meta": {},
+    "structured": {
+     "columns": [],
+     "rows": 0,
+     "profile": {}
+    },
+    "findings": [],
+    "chunks": [],
+    "stats": {
+     "file": "空文件.csv",
+     "kind": "csv",
+     "chunks": 0,
+     "findings": 0,
+     "columns": 0,
+     "rows": 0,
+     "profile": 0
+    }
+   }
+  },
+  {
+   "name": "只有空行.csv",
+   "bytes_b64": "CgogIAo=",
+   "doc": {
+    "file_id": "f_fixed",
+    "file_name": "只有空行.csv",
+    "kind": "csv",
+    "meta": {},
+    "structured": {
+     "columns": [],
+     "rows": 0,
+     "profile": {}
+    },
+    "findings": [],
+    "chunks": [],
+    "stats": {
+     "file": "只有空行.csv",
+     "kind": "csv",
+     "chunks": 0,
+     "findings": 0,
+     "columns": 0,
+     "rows": 0,
+     "profile": 0
+    }
+   }
+  },
+  {
+   "name": "表头偏移.csv",
+   "bytes_b64": "5p+Q5p+Q6ZuG5Zui5qKz55CG6KGoCgrlp5PlkI0s5bm06b6ELOWfjuW4ggrlvKDkuIksMTgs5YyX5LqsCuadjuWbmywyMCzkuIrmtbcK",
+   "doc": {
+    "file_id": "f_fixed",
+    "file_name": "表头偏移.csv",
+    "kind": "csv",
+    "meta": {},
+    "structured": {
+     "columns": [
+      "姓名",
+      "年龄",
+      "城市"
+     ],
+     "rows": 2,
+     "delimiter": ",",
+     "profile": {
+      "姓名": {
+       "name": "姓名",
+       "count": 2,
+       "non_null": 2,
+       "null_rate": 0.0,
+       "distinct": 2,
+       "distinct_ratio": 1.0,
+       "unique": true,
+       "inferred_type": "STRING",
+       "samples": [
+        "张三",
+        "李四"
+       ]
+      },
+      "年龄": {
+       "name": "年龄",
+       "count": 2,
+       "non_null": 2,
+       "null_rate": 0.0,
+       "distinct": 2,
+       "distinct_ratio": 1.0,
+       "unique": true,
+       "inferred_type": "INTEGER",
+       "samples": [
+        "18",
+        "20"
+       ]
+      },
+      "城市": {
+       "name": "城市",
+       "count": 2,
+       "non_null": 2,
+       "null_rate": 0.0,
+       "distinct": 2,
+       "distinct_ratio": 1.0,
+       "unique": true,
+       "inferred_type": "STRING",
+       "samples": [
+        "北京",
+        "上海"
+       ]
+      }
+     }
+    },
+    "findings": [],
+    "chunks": [
+     {
+      "chunk_id": "f_fixed:schema",
+      "file_id": "f_fixed",
+      "file_name": "表头偏移.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "表头偏移",
+       "rows": [
+        2,
+        2
+       ]
+      },
+      "render": "列：姓名(STRING，唯一率100%，空值率0%) | 年龄(INTEGER，唯一率100%，空值率0%) | 城市(STRING，唯一率100%，空值率0%)",
+      "raw": {
+       "姓名": {
+        "name": "姓名",
+        "count": 2,
+        "non_null": 2,
+        "null_rate": 0.0,
+        "distinct": 2,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "张三",
+         "李四"
+        ]
+       },
+       "年龄": {
+        "name": "年龄",
+        "count": 2,
+        "non_null": 2,
+        "null_rate": 0.0,
+        "distinct": 2,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "INTEGER",
+        "samples": [
+         "18",
+         "20"
+        ]
+       },
+       "城市": {
+        "name": "城市",
+        "count": 2,
+        "non_null": 2,
+        "null_rate": 0.0,
+        "distinct": 2,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "北京",
+         "上海"
+        ]
+       }
+      },
+      "order": 0,
+      "tags": [
+       "schema"
+      ],
+      "context": "",
+      "cite": "表头偏移.csv!表头偏移!R2-2"
+     },
+     {
+      "chunk_id": "f_fixed:r3",
+      "file_id": "f_fixed",
+      "file_name": "表头偏移.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "表头偏移",
+       "rows": [
+        3,
+        3
+       ]
+      },
+      "render": "姓名=张三 | 年龄=18 | 城市=北京",
+      "raw": null,
+      "order": 1,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "表头偏移.csv!表头偏移!R3-3"
+     },
+     {
+      "chunk_id": "f_fixed:r4",
+      "file_id": "f_fixed",
+      "file_name": "表头偏移.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "表头偏移",
+       "rows": [
+        4,
+        4
+       ]
+      },
+      "render": "姓名=李四 | 年龄=20 | 城市=上海",
+      "raw": null,
+      "order": 2,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "表头偏移.csv!表头偏移!R4-4"
+     }
+    ],
+    "stats": {
+     "file": "表头偏移.csv",
+     "kind": "csv",
+     "chunks": 3,
+     "findings": 0,
+     "columns": 3,
+     "rows": 2,
+     "delimiter": ",",
+     "profile": 3
+    }
+   }
+  },
+  {
+   "name": "大表.csv",
+   "bytes_b64": "57yW56CBLOWQjeensCzmlbDph48KYzAs5ZCN56ewMCwwCmMxLOWQjeensDEsMQpjMizlkI3np7AyLDIKYzMs5ZCN56ewMywzCmM0LOWQjeensDQsNApjNSzlkI3np7A1LDUKYzYs5ZCN56ewNiw2CmM3LOWQjeensDcsNwpjOCzlkI3np7A4LDgKYzks5ZCN56ewOSw5CmMxMCzlkI3np7AxMCwxMApjMTEs5ZCN56ewMTEsMTEKYzEyLOWQjeensDEyLDEyCmMxMyzlkI3np7AxMywxMwpjMTQs5ZCN56ewMTQsMTQKYzE1LOWQjeensDE1LDE1CmMxNizlkI3np7AxNiwxNgpjMTcs5ZCN56ewMTcsMTcKYzE4LOWQjeensDE4LDE4CmMxOSzlkI3np7AxOSwxOQpjMjAs5ZCN56ewMjAsMjAKYzIxLOWQjeensDIxLDIxCmMyMizlkI3np7AyMiwyMgpjMjMs5ZCN56ewMjMsMjMKYzI0LOWQjeensDI0LDI0CmMyNSzlkI3np7AyNSwyNQpjMjYs5ZCN56ewMjYsMjYKYzI3LOWQjeensDI3LDI3CmMyOCzlkI3np7AyOCwyOApjMjks5ZCN56ewMjksMjkK",
+   "doc": {
+    "file_id": "f_fixed",
+    "file_name": "大表.csv",
+    "kind": "csv",
+    "meta": {},
+    "structured": {
+     "columns": [
+      "编码",
+      "名称",
+      "数量"
+     ],
+     "rows": 30,
+     "delimiter": ",",
+     "profile": {
+      "编码": {
+       "name": "编码",
+       "count": 30,
+       "non_null": 30,
+       "null_rate": 0.0,
+       "distinct": 30,
+       "distinct_ratio": 1.0,
+       "unique": true,
+       "inferred_type": "STRING",
+       "samples": [
+        "c0",
+        "c1",
+        "c2",
+        "c3",
+        "c4"
+       ]
+      },
+      "名称": {
+       "name": "名称",
+       "count": 30,
+       "non_null": 30,
+       "null_rate": 0.0,
+       "distinct": 30,
+       "distinct_ratio": 1.0,
+       "unique": true,
+       "inferred_type": "STRING",
+       "samples": [
+        "名称0",
+        "名称1",
+        "名称2",
+        "名称3",
+        "名称4"
+       ]
+      },
+      "数量": {
+       "name": "数量",
+       "count": 30,
+       "non_null": 30,
+       "null_rate": 0.0,
+       "distinct": 30,
+       "distinct_ratio": 1.0,
+       "unique": true,
+       "inferred_type": "INTEGER",
+       "samples": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4"
+       ]
+      }
+     }
+    },
+    "findings": [
+     {
+      "kind": "sampled",
+      "message": "共 30 行，索引里只放了前 20 行样本 + 全量列画像",
+      "locator": {},
+      "severity": "info"
+     }
+    ],
+    "chunks": [
+     {
+      "chunk_id": "f_fixed:schema",
+      "file_id": "f_fixed",
+      "file_name": "大表.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "大表",
+       "rows": [
+        1,
+        1
+       ]
+      },
+      "render": "列：编码(STRING，唯一率100%，空值率0%) | 名称(STRING，唯一率100%，空值率0%) | 数量(INTEGER，唯一率100%，空值率0%)",
+      "raw": {
+       "编码": {
+        "name": "编码",
+        "count": 30,
+        "non_null": 30,
+        "null_rate": 0.0,
+        "distinct": 30,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "c0",
+         "c1",
+         "c2",
+         "c3",
+         "c4"
+        ]
+       },
+       "名称": {
+        "name": "名称",
+        "count": 30,
+        "non_null": 30,
+        "null_rate": 0.0,
+        "distinct": 30,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "名称0",
+         "名称1",
+         "名称2",
+         "名称3",
+         "名称4"
+        ]
+       },
+       "数量": {
+        "name": "数量",
+        "count": 30,
+        "non_null": 30,
+        "null_rate": 0.0,
+        "distinct": 30,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "INTEGER",
+        "samples": [
+         "0",
+         "1",
+         "2",
+         "3",
+         "4"
+        ]
+       }
+      },
+      "order": 0,
+      "tags": [
+       "schema"
+      ],
+      "context": "",
+      "cite": "大表.csv!大表!R1-1"
+     },
+     {
+      "chunk_id": "f_fixed:r2",
+      "file_id": "f_fixed",
+      "file_name": "大表.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "大表",
+       "rows": [
+        2,
+        2
+       ]
+      },
+      "render": "编码=c0 | 名称=名称0 | 数量=0",
+      "raw": null,
+      "order": 1,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "大表.csv!大表!R2-2"
+     },
+     {
+      "chunk_id": "f_fixed:r3",
+      "file_id": "f_fixed",
+      "file_name": "大表.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "大表",
+       "rows": [
+        3,
+        3
+       ]
+      },
+      "render": "编码=c1 | 名称=名称1 | 数量=1",
+      "raw": null,
+      "order": 2,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "大表.csv!大表!R3-3"
+     },
+     {
+      "chunk_id": "f_fixed:r4",
+      "file_id": "f_fixed",
+      "file_name": "大表.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "大表",
+       "rows": [
+        4,
+        4
+       ]
+      },
+      "render": "编码=c2 | 名称=名称2 | 数量=2",
+      "raw": null,
+      "order": 3,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "大表.csv!大表!R4-4"
+     },
+     {
+      "chunk_id": "f_fixed:r5",
+      "file_id": "f_fixed",
+      "file_name": "大表.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "大表",
+       "rows": [
+        5,
+        5
+       ]
+      },
+      "render": "编码=c3 | 名称=名称3 | 数量=3",
+      "raw": null,
+      "order": 4,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "大表.csv!大表!R5-5"
+     },
+     {
+      "chunk_id": "f_fixed:r6",
+      "file_id": "f_fixed",
+      "file_name": "大表.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "大表",
+       "rows": [
+        6,
+        6
+       ]
+      },
+      "render": "编码=c4 | 名称=名称4 | 数量=4",
+      "raw": null,
+      "order": 5,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "大表.csv!大表!R6-6"
+     },
+     {
+      "chunk_id": "f_fixed:r7",
+      "file_id": "f_fixed",
+      "file_name": "大表.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "大表",
+       "rows": [
+        7,
+        7
+       ]
+      },
+      "render": "编码=c5 | 名称=名称5 | 数量=5",
+      "raw": null,
+      "order": 6,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "大表.csv!大表!R7-7"
+     },
+     {
+      "chunk_id": "f_fixed:r8",
+      "file_id": "f_fixed",
+      "file_name": "大表.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "大表",
+       "rows": [
+        8,
+        8
+       ]
+      },
+      "render": "编码=c6 | 名称=名称6 | 数量=6",
+      "raw": null,
+      "order": 7,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "大表.csv!大表!R8-8"
+     },
+     {
+      "chunk_id": "f_fixed:r9",
+      "file_id": "f_fixed",
+      "file_name": "大表.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "大表",
+       "rows": [
+        9,
+        9
+       ]
+      },
+      "render": "编码=c7 | 名称=名称7 | 数量=7",
+      "raw": null,
+      "order": 8,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "大表.csv!大表!R9-9"
+     },
+     {
+      "chunk_id": "f_fixed:r10",
+      "file_id": "f_fixed",
+      "file_name": "大表.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "大表",
+       "rows": [
+        10,
+        10
+       ]
+      },
+      "render": "编码=c8 | 名称=名称8 | 数量=8",
+      "raw": null,
+      "order": 9,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "大表.csv!大表!R10-10"
+     },
+     {
+      "chunk_id": "f_fixed:r11",
+      "file_id": "f_fixed",
+      "file_name": "大表.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "大表",
+       "rows": [
+        11,
+        11
+       ]
+      },
+      "render": "编码=c9 | 名称=名称9 | 数量=9",
+      "raw": null,
+      "order": 10,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "大表.csv!大表!R11-11"
+     },
+     {
+      "chunk_id": "f_fixed:r12",
+      "file_id": "f_fixed",
+      "file_name": "大表.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "大表",
+       "rows": [
+        12,
+        12
+       ]
+      },
+      "render": "编码=c10 | 名称=名称10 | 数量=10",
+      "raw": null,
+      "order": 11,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "大表.csv!大表!R12-12"
+     },
+     {
+      "chunk_id": "f_fixed:r13",
+      "file_id": "f_fixed",
+      "file_name": "大表.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "大表",
+       "rows": [
+        13,
+        13
+       ]
+      },
+      "render": "编码=c11 | 名称=名称11 | 数量=11",
+      "raw": null,
+      "order": 12,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "大表.csv!大表!R13-13"
+     },
+     {
+      "chunk_id": "f_fixed:r14",
+      "file_id": "f_fixed",
+      "file_name": "大表.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "大表",
+       "rows": [
+        14,
+        14
+       ]
+      },
+      "render": "编码=c12 | 名称=名称12 | 数量=12",
+      "raw": null,
+      "order": 13,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "大表.csv!大表!R14-14"
+     },
+     {
+      "chunk_id": "f_fixed:r15",
+      "file_id": "f_fixed",
+      "file_name": "大表.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "大表",
+       "rows": [
+        15,
+        15
+       ]
+      },
+      "render": "编码=c13 | 名称=名称13 | 数量=13",
+      "raw": null,
+      "order": 14,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "大表.csv!大表!R15-15"
+     },
+     {
+      "chunk_id": "f_fixed:r16",
+      "file_id": "f_fixed",
+      "file_name": "大表.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "大表",
+       "rows": [
+        16,
+        16
+       ]
+      },
+      "render": "编码=c14 | 名称=名称14 | 数量=14",
+      "raw": null,
+      "order": 15,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "大表.csv!大表!R16-16"
+     },
+     {
+      "chunk_id": "f_fixed:r17",
+      "file_id": "f_fixed",
+      "file_name": "大表.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "大表",
+       "rows": [
+        17,
+        17
+       ]
+      },
+      "render": "编码=c15 | 名称=名称15 | 数量=15",
+      "raw": null,
+      "order": 16,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "大表.csv!大表!R17-17"
+     },
+     {
+      "chunk_id": "f_fixed:r18",
+      "file_id": "f_fixed",
+      "file_name": "大表.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "大表",
+       "rows": [
+        18,
+        18
+       ]
+      },
+      "render": "编码=c16 | 名称=名称16 | 数量=16",
+      "raw": null,
+      "order": 17,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "大表.csv!大表!R18-18"
+     },
+     {
+      "chunk_id": "f_fixed:r19",
+      "file_id": "f_fixed",
+      "file_name": "大表.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "大表",
+       "rows": [
+        19,
+        19
+       ]
+      },
+      "render": "编码=c17 | 名称=名称17 | 数量=17",
+      "raw": null,
+      "order": 18,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "大表.csv!大表!R19-19"
+     },
+     {
+      "chunk_id": "f_fixed:r20",
+      "file_id": "f_fixed",
+      "file_name": "大表.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "大表",
+       "rows": [
+        20,
+        20
+       ]
+      },
+      "render": "编码=c18 | 名称=名称18 | 数量=18",
+      "raw": null,
+      "order": 19,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "大表.csv!大表!R20-20"
+     },
+     {
+      "chunk_id": "f_fixed:r21",
+      "file_id": "f_fixed",
+      "file_name": "大表.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "大表",
+       "rows": [
+        21,
+        21
+       ]
+      },
+      "render": "编码=c19 | 名称=名称19 | 数量=19",
+      "raw": null,
+      "order": 20,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "大表.csv!大表!R21-21"
+     }
+    ],
+    "stats": {
+     "file": "大表.csv",
+     "kind": "csv",
+     "chunks": 21,
+     "findings": 1,
+     "columns": 3,
+     "rows": 30,
+     "delimiter": ",",
+     "profile": 3
+    }
+   }
+  },
+  {
+   "name": "参差.csv",
+   "bytes_b64": "YSxiLGMKMSwyCjMsNCw1LDYK",
+   "doc": {
+    "file_id": "f_fixed",
+    "file_name": "参差.csv",
+    "kind": "csv",
+    "meta": {},
+    "structured": {
+     "columns": [
+      "a",
+      "b",
+      "c"
+     ],
+     "rows": 2,
+     "delimiter": ",",
+     "profile": {
+      "a": {
+       "name": "a",
+       "count": 2,
+       "non_null": 2,
+       "null_rate": 0.0,
+       "distinct": 2,
+       "distinct_ratio": 1.0,
+       "unique": true,
+       "inferred_type": "INTEGER",
+       "samples": [
+        "1",
+        "3"
+       ]
+      },
+      "b": {
+       "name": "b",
+       "count": 2,
+       "non_null": 2,
+       "null_rate": 0.0,
+       "distinct": 2,
+       "distinct_ratio": 1.0,
+       "unique": true,
+       "inferred_type": "INTEGER",
+       "samples": [
+        "2",
+        "4"
+       ]
+      },
+      "c": {
+       "name": "c",
+       "count": 2,
+       "non_null": 1,
+       "null_rate": 0.5,
+       "distinct": 1,
+       "distinct_ratio": 1.0,
+       "unique": true,
+       "inferred_type": "INTEGER",
+       "samples": [
+        "5"
+       ]
+      }
+     }
+    },
+    "findings": [],
+    "chunks": [
+     {
+      "chunk_id": "f_fixed:schema",
+      "file_id": "f_fixed",
+      "file_name": "参差.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "参差",
+       "rows": [
+        1,
+        1
+       ]
+      },
+      "render": "列：a(INTEGER，唯一率100%，空值率0%) | b(INTEGER，唯一率100%，空值率0%) | c(INTEGER，唯一率100%，空值率50%)",
+      "raw": {
+       "a": {
+        "name": "a",
+        "count": 2,
+        "non_null": 2,
+        "null_rate": 0.0,
+        "distinct": 2,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "INTEGER",
+        "samples": [
+         "1",
+         "3"
+        ]
+       },
+       "b": {
+        "name": "b",
+        "count": 2,
+        "non_null": 2,
+        "null_rate": 0.0,
+        "distinct": 2,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "INTEGER",
+        "samples": [
+         "2",
+         "4"
+        ]
+       },
+       "c": {
+        "name": "c",
+        "count": 2,
+        "non_null": 1,
+        "null_rate": 0.5,
+        "distinct": 1,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "INTEGER",
+        "samples": [
+         "5"
+        ]
+       }
+      },
+      "order": 0,
+      "tags": [
+       "schema"
+      ],
+      "context": "",
+      "cite": "参差.csv!参差!R1-1"
+     },
+     {
+      "chunk_id": "f_fixed:r2",
+      "file_id": "f_fixed",
+      "file_name": "参差.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "参差",
+       "rows": [
+        2,
+        2
+       ]
+      },
+      "render": "a=1 | b=2",
+      "raw": null,
+      "order": 1,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "参差.csv!参差!R2-2"
+     },
+     {
+      "chunk_id": "f_fixed:r3",
+      "file_id": "f_fixed",
+      "file_name": "参差.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "参差",
+       "rows": [
+        3,
+        3
+       ]
+      },
+      "render": "a=3 | b=4 | c=5",
+      "raw": null,
+      "order": 2,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "参差.csv!参差!R3-3"
+     }
+    ],
+    "stats": {
+     "file": "参差.csv",
+     "kind": "csv",
+     "chunks": 3,
+     "findings": 0,
+     "columns": 3,
+     "rows": 2,
+     "delimiter": ",",
+     "profile": 3
+    }
+   }
+  },
+  {
+   "name": "多行引号.csv",
+   "bytes_b64": "5aeT5ZCNLOWkh+azqAoi5byg5LiJIiwi56ys5LiA6KGMCuesrOS6jOihjCIK",
+   "doc": {
+    "file_id": "f_fixed",
+    "file_name": "多行引号.csv",
+    "kind": "csv",
+    "meta": {},
+    "structured": {
+     "columns": [
+      "姓名",
+      "备注"
+     ],
+     "rows": 1,
+     "delimiter": ",",
+     "profile": {
+      "姓名": {
+       "name": "姓名",
+       "count": 1,
+       "non_null": 1,
+       "null_rate": 0.0,
+       "distinct": 1,
+       "distinct_ratio": 1.0,
+       "unique": true,
+       "inferred_type": "STRING",
+       "samples": [
+        "张三"
+       ]
+      },
+      "备注": {
+       "name": "备注",
+       "count": 1,
+       "non_null": 1,
+       "null_rate": 0.0,
+       "distinct": 1,
+       "distinct_ratio": 1.0,
+       "unique": true,
+       "inferred_type": "STRING",
+       "samples": [
+        "第一行第二行"
+       ]
+      }
+     }
+    },
+    "findings": [],
+    "chunks": [
+     {
+      "chunk_id": "f_fixed:schema",
+      "file_id": "f_fixed",
+      "file_name": "多行引号.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "多行引号",
+       "rows": [
+        1,
+        1
+       ]
+      },
+      "render": "列：姓名(STRING，唯一率100%，空值率0%) | 备注(STRING，唯一率100%，空值率0%)",
+      "raw": {
+       "姓名": {
+        "name": "姓名",
+        "count": 1,
+        "non_null": 1,
+        "null_rate": 0.0,
+        "distinct": 1,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "张三"
+        ]
+       },
+       "备注": {
+        "name": "备注",
+        "count": 1,
+        "non_null": 1,
+        "null_rate": 0.0,
+        "distinct": 1,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "第一行第二行"
+        ]
+       }
+      },
+      "order": 0,
+      "tags": [
+       "schema"
+      ],
+      "context": "",
+      "cite": "多行引号.csv!多行引号!R1-1"
+     },
+     {
+      "chunk_id": "f_fixed:r2",
+      "file_id": "f_fixed",
+      "file_name": "多行引号.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "多行引号",
+       "rows": [
+        2,
+        2
+       ]
+      },
+      "render": "姓名=张三 | 备注=第一行第二行",
+      "raw": null,
+      "order": 1,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "多行引号.csv!多行引号!R2-2"
+     }
+    ],
+    "stats": {
+     "file": "多行引号.csv",
+     "kind": "csv",
+     "chunks": 2,
+     "findings": 0,
+     "columns": 2,
+     "rows": 1,
+     "delimiter": ",",
+     "profile": 2
+    }
+   }
+  },
+  {
+   "name": "未闭引号.csv",
+   "bytes_b64": "5aeT5ZCNLOWkh+azqAoi5byg5LiJLOWkh+azqOS4gOebtOayoemXreWQiAo=",
+   "doc": {
+    "file_id": "f_fixed",
+    "file_name": "未闭引号.csv",
+    "kind": "csv",
+    "meta": {},
+    "structured": {
+     "columns": [
+      "姓名",
+      "备注"
+     ],
+     "rows": 1,
+     "delimiter": ",",
+     "profile": {
+      "姓名": {
+       "name": "姓名",
+       "count": 1,
+       "non_null": 1,
+       "null_rate": 0.0,
+       "distinct": 1,
+       "distinct_ratio": 1.0,
+       "unique": true,
+       "inferred_type": "STRING",
+       "samples": [
+        "张三,备注一直没闭合"
+       ]
+      },
+      "备注": {
+       "name": "备注",
+       "count": 1,
+       "non_null": 0,
+       "null_rate": 1.0,
+       "distinct": 0,
+       "distinct_ratio": 0.0,
+       "unique": false,
+       "inferred_type": "STRING",
+       "samples": []
+      }
+     }
+    },
+    "findings": [],
+    "chunks": [
+     {
+      "chunk_id": "f_fixed:schema",
+      "file_id": "f_fixed",
+      "file_name": "未闭引号.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "未闭引号",
+       "rows": [
+        1,
+        1
+       ]
+      },
+      "render": "列：姓名(STRING，唯一率100%，空值率0%) | 备注(STRING，唯一率0%，空值率100%)",
+      "raw": {
+       "姓名": {
+        "name": "姓名",
+        "count": 1,
+        "non_null": 1,
+        "null_rate": 0.0,
+        "distinct": 1,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "张三,备注一直没闭合"
+        ]
+       },
+       "备注": {
+        "name": "备注",
+        "count": 1,
+        "non_null": 0,
+        "null_rate": 1.0,
+        "distinct": 0,
+        "distinct_ratio": 0.0,
+        "unique": false,
+        "inferred_type": "STRING",
+        "samples": []
+       }
+      },
+      "order": 0,
+      "tags": [
+       "schema"
+      ],
+      "context": "",
+      "cite": "未闭引号.csv!未闭引号!R1-1"
+     },
+     {
+      "chunk_id": "f_fixed:r2",
+      "file_id": "f_fixed",
+      "file_name": "未闭引号.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "未闭引号",
+       "rows": [
+        2,
+        2
+       ]
+      },
+      "render": "姓名=张三,备注一直没闭合",
+      "raw": null,
+      "order": 1,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "未闭引号.csv!未闭引号!R2-2"
+     }
+    ],
+    "stats": {
+     "file": "未闭引号.csv",
+     "kind": "csv",
+     "chunks": 2,
+     "findings": 0,
+     "columns": 2,
+     "rows": 1,
+     "delimiter": ",",
+     "profile": 2
+    }
+   }
+  },
+  {
+   "name": "引号后有字.csv",
+   "bytes_b64": "YSwgYiAsImMiIHgsZCJlCjEsMiwzLDQKNSw2LDcsOAo=",
+   "doc": {
+    "file_id": "f_fixed",
+    "file_name": "引号后有字.csv",
+    "kind": "csv",
+    "meta": {},
+    "structured": {
+     "columns": [
+      "a",
+      "b",
+      "c x",
+      "d\"e"
+     ],
+     "rows": 2,
+     "delimiter": ",",
+     "profile": {
+      "a": {
+       "name": "a",
+       "count": 2,
+       "non_null": 2,
+       "null_rate": 0.0,
+       "distinct": 2,
+       "distinct_ratio": 1.0,
+       "unique": true,
+       "inferred_type": "INTEGER",
+       "samples": [
+        "1",
+        "5"
+       ]
+      },
+      "b": {
+       "name": "b",
+       "count": 2,
+       "non_null": 2,
+       "null_rate": 0.0,
+       "distinct": 2,
+       "distinct_ratio": 1.0,
+       "unique": true,
+       "inferred_type": "INTEGER",
+       "samples": [
+        "2",
+        "6"
+       ]
+      },
+      "c x": {
+       "name": "c x",
+       "count": 2,
+       "non_null": 2,
+       "null_rate": 0.0,
+       "distinct": 2,
+       "distinct_ratio": 1.0,
+       "unique": true,
+       "inferred_type": "INTEGER",
+       "samples": [
+        "3",
+        "7"
+       ]
+      },
+      "d\"e": {
+       "name": "d\"e",
+       "count": 2,
+       "non_null": 2,
+       "null_rate": 0.0,
+       "distinct": 2,
+       "distinct_ratio": 1.0,
+       "unique": true,
+       "inferred_type": "INTEGER",
+       "samples": [
+        "4",
+        "8"
+       ]
+      }
+     }
+    },
+    "findings": [],
+    "chunks": [
+     {
+      "chunk_id": "f_fixed:schema",
+      "file_id": "f_fixed",
+      "file_name": "引号后有字.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "引号后有字",
+       "rows": [
+        1,
+        1
+       ]
+      },
+      "render": "列：a(INTEGER，唯一率100%，空值率0%) | b(INTEGER，唯一率100%，空值率0%) | c x(INTEGER，唯一率100%，空值率0%) | d\"e(INTEGER，唯一率100%，空值率0%)",
+      "raw": {
+       "a": {
+        "name": "a",
+        "count": 2,
+        "non_null": 2,
+        "null_rate": 0.0,
+        "distinct": 2,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "INTEGER",
+        "samples": [
+         "1",
+         "5"
+        ]
+       },
+       "b": {
+        "name": "b",
+        "count": 2,
+        "non_null": 2,
+        "null_rate": 0.0,
+        "distinct": 2,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "INTEGER",
+        "samples": [
+         "2",
+         "6"
+        ]
+       },
+       "c x": {
+        "name": "c x",
+        "count": 2,
+        "non_null": 2,
+        "null_rate": 0.0,
+        "distinct": 2,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "INTEGER",
+        "samples": [
+         "3",
+         "7"
+        ]
+       },
+       "d\"e": {
+        "name": "d\"e",
+        "count": 2,
+        "non_null": 2,
+        "null_rate": 0.0,
+        "distinct": 2,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "INTEGER",
+        "samples": [
+         "4",
+         "8"
+        ]
+       }
+      },
+      "order": 0,
+      "tags": [
+       "schema"
+      ],
+      "context": "",
+      "cite": "引号后有字.csv!引号后有字!R1-1"
+     },
+     {
+      "chunk_id": "f_fixed:r2",
+      "file_id": "f_fixed",
+      "file_name": "引号后有字.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "引号后有字",
+       "rows": [
+        2,
+        2
+       ]
+      },
+      "render": "a=1 | b=2 | c x=3 | d\"e=4",
+      "raw": null,
+      "order": 1,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "引号后有字.csv!引号后有字!R2-2"
+     },
+     {
+      "chunk_id": "f_fixed:r3",
+      "file_id": "f_fixed",
+      "file_name": "引号后有字.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "引号后有字",
+       "rows": [
+        3,
+        3
+       ]
+      },
+      "render": "a=5 | b=6 | c x=7 | d\"e=8",
+      "raw": null,
+      "order": 2,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "引号后有字.csv!引号后有字!R3-3"
+     }
+    ],
+    "stats": {
+     "file": "引号后有字.csv",
+     "kind": "csv",
+     "chunks": 3,
+     "findings": 0,
+     "columns": 4,
+     "rows": 2,
+     "delimiter": ",",
+     "profile": 4
+    }
+   }
+  },
+  {
+   "name": "回车换行.csv",
+   "bytes_b64": "5aeT5ZCNLOW5tOm+hCzln47luIINCuW8oOS4iSwxOCzljJfkuqwNCuadjuWbmywyMCzkuIrmtbcNCg==",
+   "doc": {
+    "file_id": "f_fixed",
+    "file_name": "回车换行.csv",
+    "kind": "csv",
+    "meta": {},
+    "structured": {
+     "columns": [
+      "姓名",
+      "年龄",
+      "城市"
+     ],
+     "rows": 2,
+     "delimiter": ",",
+     "profile": {
+      "姓名": {
+       "name": "姓名",
+       "count": 2,
+       "non_null": 2,
+       "null_rate": 0.0,
+       "distinct": 2,
+       "distinct_ratio": 1.0,
+       "unique": true,
+       "inferred_type": "STRING",
+       "samples": [
+        "张三",
+        "李四"
+       ]
+      },
+      "年龄": {
+       "name": "年龄",
+       "count": 2,
+       "non_null": 2,
+       "null_rate": 0.0,
+       "distinct": 2,
+       "distinct_ratio": 1.0,
+       "unique": true,
+       "inferred_type": "INTEGER",
+       "samples": [
+        "18",
+        "20"
+       ]
+      },
+      "城市": {
+       "name": "城市",
+       "count": 2,
+       "non_null": 2,
+       "null_rate": 0.0,
+       "distinct": 2,
+       "distinct_ratio": 1.0,
+       "unique": true,
+       "inferred_type": "STRING",
+       "samples": [
+        "北京",
+        "上海"
+       ]
+      }
+     }
+    },
+    "findings": [],
+    "chunks": [
+     {
+      "chunk_id": "f_fixed:schema",
+      "file_id": "f_fixed",
+      "file_name": "回车换行.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "回车换行",
+       "rows": [
+        1,
+        1
+       ]
+      },
+      "render": "列：姓名(STRING，唯一率100%，空值率0%) | 年龄(INTEGER，唯一率100%，空值率0%) | 城市(STRING，唯一率100%，空值率0%)",
+      "raw": {
+       "姓名": {
+        "name": "姓名",
+        "count": 2,
+        "non_null": 2,
+        "null_rate": 0.0,
+        "distinct": 2,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "张三",
+         "李四"
+        ]
+       },
+       "年龄": {
+        "name": "年龄",
+        "count": 2,
+        "non_null": 2,
+        "null_rate": 0.0,
+        "distinct": 2,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "INTEGER",
+        "samples": [
+         "18",
+         "20"
+        ]
+       },
+       "城市": {
+        "name": "城市",
+        "count": 2,
+        "non_null": 2,
+        "null_rate": 0.0,
+        "distinct": 2,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "北京",
+         "上海"
+        ]
+       }
+      },
+      "order": 0,
+      "tags": [
+       "schema"
+      ],
+      "context": "",
+      "cite": "回车换行.csv!回车换行!R1-1"
+     },
+     {
+      "chunk_id": "f_fixed:r2",
+      "file_id": "f_fixed",
+      "file_name": "回车换行.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "回车换行",
+       "rows": [
+        2,
+        2
+       ]
+      },
+      "render": "姓名=张三 | 年龄=18 | 城市=北京",
+      "raw": null,
+      "order": 1,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "回车换行.csv!回车换行!R2-2"
+     },
+     {
+      "chunk_id": "f_fixed:r3",
+      "file_id": "f_fixed",
+      "file_name": "回车换行.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "回车换行",
+       "rows": [
+        3,
+        3
+       ]
+      },
+      "render": "姓名=李四 | 年龄=20 | 城市=上海",
+      "raw": null,
+      "order": 2,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "回车换行.csv!回车换行!R3-3"
+     }
+    ],
+    "stats": {
+     "file": "回车换行.csv",
+     "kind": "csv",
+     "chunks": 3,
+     "findings": 0,
+     "columns": 3,
+     "rows": 2,
+     "delimiter": ",",
+     "profile": 3
+    }
+   }
+  },
+  {
+   "name": "引号定界.tsv",
+   "bytes_b64": "5ZCN56ewLOWkh+azqAoi55SyMCIsImEwO2IwIgoi55SyMSzkuZkiLCJhMTtiMSIKIueUsjIs5LmZIiwiYTI7YjIiCiLnlLIzIiwiYTM7YjMiCiLnlLI0LOS5mSIsImE0O2I0Igoi55SyNSzkuZkiLCJhNTtiNSIKIueUsjYiLCJhNjtiNiIKIueUsjcs5LmZIiwiYTc7YjciCiLnlLI4LOS5mSIsImE4O2I4Igo=",
+   "doc": {
+    "file_id": "f_fixed",
+    "file_name": "引号定界.tsv",
+    "kind": "csv",
+    "meta": {},
+    "structured": {
+     "columns": [
+      "名称",
+      "备注"
+     ],
+     "rows": 9,
+     "delimiter": ",",
+     "profile": {
+      "名称": {
+       "name": "名称",
+       "count": 9,
+       "non_null": 9,
+       "null_rate": 0.0,
+       "distinct": 9,
+       "distinct_ratio": 1.0,
+       "unique": true,
+       "inferred_type": "STRING",
+       "samples": [
+        "甲0",
+        "甲1,乙",
+        "甲2,乙",
+        "甲3",
+        "甲4,乙"
+       ]
+      },
+      "备注": {
+       "name": "备注",
+       "count": 9,
+       "non_null": 9,
+       "null_rate": 0.0,
+       "distinct": 9,
+       "distinct_ratio": 1.0,
+       "unique": true,
+       "inferred_type": "STRING",
+       "samples": [
+        "a0;b0",
+        "a1;b1",
+        "a2;b2",
+        "a3;b3",
+        "a4;b4"
+       ]
+      }
+     }
+    },
+    "findings": [],
+    "chunks": [
+     {
+      "chunk_id": "f_fixed:schema",
+      "file_id": "f_fixed",
+      "file_name": "引号定界.tsv",
+      "locator": {
+       "kind": "range",
+       "sheet": "引号定界",
+       "rows": [
+        1,
+        1
+       ]
+      },
+      "render": "列：名称(STRING，唯一率100%，空值率0%) | 备注(STRING，唯一率100%，空值率0%)",
+      "raw": {
+       "名称": {
+        "name": "名称",
+        "count": 9,
+        "non_null": 9,
+        "null_rate": 0.0,
+        "distinct": 9,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "甲0",
+         "甲1,乙",
+         "甲2,乙",
+         "甲3",
+         "甲4,乙"
+        ]
+       },
+       "备注": {
+        "name": "备注",
+        "count": 9,
+        "non_null": 9,
+        "null_rate": 0.0,
+        "distinct": 9,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "a0;b0",
+         "a1;b1",
+         "a2;b2",
+         "a3;b3",
+         "a4;b4"
+        ]
+       }
+      },
+      "order": 0,
+      "tags": [
+       "schema"
+      ],
+      "context": "",
+      "cite": "引号定界.tsv!引号定界!R1-1"
+     },
+     {
+      "chunk_id": "f_fixed:r2",
+      "file_id": "f_fixed",
+      "file_name": "引号定界.tsv",
+      "locator": {
+       "kind": "range",
+       "sheet": "引号定界",
+       "rows": [
+        2,
+        2
+       ]
+      },
+      "render": "名称=甲0 | 备注=a0;b0",
+      "raw": null,
+      "order": 1,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "引号定界.tsv!引号定界!R2-2"
+     },
+     {
+      "chunk_id": "f_fixed:r3",
+      "file_id": "f_fixed",
+      "file_name": "引号定界.tsv",
+      "locator": {
+       "kind": "range",
+       "sheet": "引号定界",
+       "rows": [
+        3,
+        3
+       ]
+      },
+      "render": "名称=甲1,乙 | 备注=a1;b1",
+      "raw": null,
+      "order": 2,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "引号定界.tsv!引号定界!R3-3"
+     },
+     {
+      "chunk_id": "f_fixed:r4",
+      "file_id": "f_fixed",
+      "file_name": "引号定界.tsv",
+      "locator": {
+       "kind": "range",
+       "sheet": "引号定界",
+       "rows": [
+        4,
+        4
+       ]
+      },
+      "render": "名称=甲2,乙 | 备注=a2;b2",
+      "raw": null,
+      "order": 3,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "引号定界.tsv!引号定界!R4-4"
+     },
+     {
+      "chunk_id": "f_fixed:r5",
+      "file_id": "f_fixed",
+      "file_name": "引号定界.tsv",
+      "locator": {
+       "kind": "range",
+       "sheet": "引号定界",
+       "rows": [
+        5,
+        5
+       ]
+      },
+      "render": "名称=甲3 | 备注=a3;b3",
+      "raw": null,
+      "order": 4,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "引号定界.tsv!引号定界!R5-5"
+     },
+     {
+      "chunk_id": "f_fixed:r6",
+      "file_id": "f_fixed",
+      "file_name": "引号定界.tsv",
+      "locator": {
+       "kind": "range",
+       "sheet": "引号定界",
+       "rows": [
+        6,
+        6
+       ]
+      },
+      "render": "名称=甲4,乙 | 备注=a4;b4",
+      "raw": null,
+      "order": 5,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "引号定界.tsv!引号定界!R6-6"
+     },
+     {
+      "chunk_id": "f_fixed:r7",
+      "file_id": "f_fixed",
+      "file_name": "引号定界.tsv",
+      "locator": {
+       "kind": "range",
+       "sheet": "引号定界",
+       "rows": [
+        7,
+        7
+       ]
+      },
+      "render": "名称=甲5,乙 | 备注=a5;b5",
+      "raw": null,
+      "order": 6,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "引号定界.tsv!引号定界!R7-7"
+     },
+     {
+      "chunk_id": "f_fixed:r8",
+      "file_id": "f_fixed",
+      "file_name": "引号定界.tsv",
+      "locator": {
+       "kind": "range",
+       "sheet": "引号定界",
+       "rows": [
+        8,
+        8
+       ]
+      },
+      "render": "名称=甲6 | 备注=a6;b6",
+      "raw": null,
+      "order": 7,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "引号定界.tsv!引号定界!R8-8"
+     },
+     {
+      "chunk_id": "f_fixed:r9",
+      "file_id": "f_fixed",
+      "file_name": "引号定界.tsv",
+      "locator": {
+       "kind": "range",
+       "sheet": "引号定界",
+       "rows": [
+        9,
+        9
+       ]
+      },
+      "render": "名称=甲7,乙 | 备注=a7;b7",
+      "raw": null,
+      "order": 8,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "引号定界.tsv!引号定界!R9-9"
+     },
+     {
+      "chunk_id": "f_fixed:r10",
+      "file_id": "f_fixed",
+      "file_name": "引号定界.tsv",
+      "locator": {
+       "kind": "range",
+       "sheet": "引号定界",
+       "rows": [
+        10,
+        10
+       ]
+      },
+      "render": "名称=甲8,乙 | 备注=a8;b8",
+      "raw": null,
+      "order": 9,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "引号定界.tsv!引号定界!R10-10"
+     }
+    ],
+    "stats": {
+     "file": "引号定界.tsv",
+     "kind": "csv",
+     "chunks": 10,
+     "findings": 0,
+     "columns": 2,
+     "rows": 9,
+     "delimiter": ",",
+     "profile": 2
+    }
+   }
+  },
+  {
+   "name": "百分比平局.csv",
+   "bytes_b64": "57yW56CBLOeKtuaAgSzlpIfms6gKYzAs5ZCMLHIwCmMxLOWQjCxyMQpjMizlkIwscjIKYzMs5ZCMLHIzCmM0LOWQjCxyNApjNSzlkIwscjUKYzYs5ZCMLHI2CmM3LOWQjCwK",
+   "doc": {
+    "file_id": "f_fixed",
+    "file_name": "百分比平局.csv",
+    "kind": "csv",
+    "meta": {},
+    "structured": {
+     "columns": [
+      "编码",
+      "状态",
+      "备注"
+     ],
+     "rows": 8,
+     "delimiter": ",",
+     "profile": {
+      "编码": {
+       "name": "编码",
+       "count": 8,
+       "non_null": 8,
+       "null_rate": 0.0,
+       "distinct": 8,
+       "distinct_ratio": 1.0,
+       "unique": true,
+       "inferred_type": "STRING",
+       "samples": [
+        "c0",
+        "c1",
+        "c2",
+        "c3",
+        "c4"
+       ]
+      },
+      "状态": {
+       "name": "状态",
+       "count": 8,
+       "non_null": 8,
+       "null_rate": 0.0,
+       "distinct": 1,
+       "distinct_ratio": 0.125,
+       "unique": false,
+       "inferred_type": "ENUM",
+       "samples": [
+        "同"
+       ]
+      },
+      "备注": {
+       "name": "备注",
+       "count": 8,
+       "non_null": 7,
+       "null_rate": 0.125,
+       "distinct": 7,
+       "distinct_ratio": 1.0,
+       "unique": true,
+       "inferred_type": "STRING",
+       "samples": [
+        "r0",
+        "r1",
+        "r2",
+        "r3",
+        "r4"
+       ]
+      }
+     }
+    },
+    "findings": [],
+    "chunks": [
+     {
+      "chunk_id": "f_fixed:schema",
+      "file_id": "f_fixed",
+      "file_name": "百分比平局.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "百分比平局",
+       "rows": [
+        1,
+        1
+       ]
+      },
+      "render": "列：编码(STRING，唯一率100%，空值率0%) | 状态(ENUM，唯一率12%，空值率0%) | 备注(STRING，唯一率100%，空值率12%)",
+      "raw": {
+       "编码": {
+        "name": "编码",
+        "count": 8,
+        "non_null": 8,
+        "null_rate": 0.0,
+        "distinct": 8,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "c0",
+         "c1",
+         "c2",
+         "c3",
+         "c4"
+        ]
+       },
+       "状态": {
+        "name": "状态",
+        "count": 8,
+        "non_null": 8,
+        "null_rate": 0.0,
+        "distinct": 1,
+        "distinct_ratio": 0.125,
+        "unique": false,
+        "inferred_type": "ENUM",
+        "samples": [
+         "同"
+        ]
+       },
+       "备注": {
+        "name": "备注",
+        "count": 8,
+        "non_null": 7,
+        "null_rate": 0.125,
+        "distinct": 7,
+        "distinct_ratio": 1.0,
+        "unique": true,
+        "inferred_type": "STRING",
+        "samples": [
+         "r0",
+         "r1",
+         "r2",
+         "r3",
+         "r4"
+        ]
+       }
+      },
+      "order": 0,
+      "tags": [
+       "schema"
+      ],
+      "context": "",
+      "cite": "百分比平局.csv!百分比平局!R1-1"
+     },
+     {
+      "chunk_id": "f_fixed:r2",
+      "file_id": "f_fixed",
+      "file_name": "百分比平局.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "百分比平局",
+       "rows": [
+        2,
+        2
+       ]
+      },
+      "render": "编码=c0 | 状态=同 | 备注=r0",
+      "raw": null,
+      "order": 1,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "百分比平局.csv!百分比平局!R2-2"
+     },
+     {
+      "chunk_id": "f_fixed:r3",
+      "file_id": "f_fixed",
+      "file_name": "百分比平局.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "百分比平局",
+       "rows": [
+        3,
+        3
+       ]
+      },
+      "render": "编码=c1 | 状态=同 | 备注=r1",
+      "raw": null,
+      "order": 2,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "百分比平局.csv!百分比平局!R3-3"
+     },
+     {
+      "chunk_id": "f_fixed:r4",
+      "file_id": "f_fixed",
+      "file_name": "百分比平局.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "百分比平局",
+       "rows": [
+        4,
+        4
+       ]
+      },
+      "render": "编码=c2 | 状态=同 | 备注=r2",
+      "raw": null,
+      "order": 3,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "百分比平局.csv!百分比平局!R4-4"
+     },
+     {
+      "chunk_id": "f_fixed:r5",
+      "file_id": "f_fixed",
+      "file_name": "百分比平局.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "百分比平局",
+       "rows": [
+        5,
+        5
+       ]
+      },
+      "render": "编码=c3 | 状态=同 | 备注=r3",
+      "raw": null,
+      "order": 4,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "百分比平局.csv!百分比平局!R5-5"
+     },
+     {
+      "chunk_id": "f_fixed:r6",
+      "file_id": "f_fixed",
+      "file_name": "百分比平局.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "百分比平局",
+       "rows": [
+        6,
+        6
+       ]
+      },
+      "render": "编码=c4 | 状态=同 | 备注=r4",
+      "raw": null,
+      "order": 5,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "百分比平局.csv!百分比平局!R6-6"
+     },
+     {
+      "chunk_id": "f_fixed:r7",
+      "file_id": "f_fixed",
+      "file_name": "百分比平局.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "百分比平局",
+       "rows": [
+        7,
+        7
+       ]
+      },
+      "render": "编码=c5 | 状态=同 | 备注=r5",
+      "raw": null,
+      "order": 6,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "百分比平局.csv!百分比平局!R7-7"
+     },
+     {
+      "chunk_id": "f_fixed:r8",
+      "file_id": "f_fixed",
+      "file_name": "百分比平局.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "百分比平局",
+       "rows": [
+        8,
+        8
+       ]
+      },
+      "render": "编码=c6 | 状态=同 | 备注=r6",
+      "raw": null,
+      "order": 7,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "百分比平局.csv!百分比平局!R8-8"
+     },
+     {
+      "chunk_id": "f_fixed:r9",
+      "file_id": "f_fixed",
+      "file_name": "百分比平局.csv",
+      "locator": {
+       "kind": "range",
+       "sheet": "百分比平局",
+       "rows": [
+        9,
+        9
+       ]
+      },
+      "render": "编码=c7 | 状态=同",
+      "raw": null,
+      "order": 8,
+      "tags": [
+       "sample"
+      ],
+      "context": "",
+      "cite": "百分比平局.csv!百分比平局!R9-9"
+     }
+    ],
+    "stats": {
+     "file": "百分比平局.csv",
+     "kind": "csv",
+     "chunks": 9,
+     "findings": 0,
+     "columns": 3,
+     "rows": 8,
+     "delimiter": ",",
+     "profile": 3
+    }
+   }
+  }
+ ]
+}

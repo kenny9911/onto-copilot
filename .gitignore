@@ -1,0 +1,31 @@
+# Secrets & local env — NEVER commit
+.env
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+
+# Runtime data & generated outputs (not source)
+workspace/
+out/
+artifacts/
+*.db
+*.sqlite
+*.sqlite3
+
+# OS cruft
+.DS_Store
+
+# TS 迁移：依赖与构建产物不进版本库。
+# 不写死 ts/ 前缀 —— 在仓库根误跑一次 npx 就会在根上刨出一个 node_modules，
+# 而它一旦被 add 进来就是十万个文件的提交（这事已经发生过一次）。
+node_modules/
+dist/
+
+# tsc 误开 emit 时会在 test/ 里落一堆 .js —— 它们会被 vitest 当成第二份测试跑
+# （同一个用例红两次，排查时以为是两个问题）。
+ts/test/*.js
+ts/src/**/*.js

@@ -1,0 +1,35 @@
+{
+ "oir": {
+  "objects": 7,
+  "properties": 0,
+  "links": 0,
+  "actions": 6,
+  "rules": 0,
+  "questions": 5,
+  "open_questions": 5,
+  "orphans": 7,
+  "confirmed": 0
+ },
+ "flow": {
+  "stages": 1,
+  "workflows": 0,
+  "actions": 3,
+  "events": 3,
+  "gateways": 0,
+  "terminals": 0,
+  "externals": 0,
+  "edges": 5,
+  "inferred_edges": 2,
+  "dangling": 0,
+  "dead_ends": 1
+ },
+ "template": {
+  "sheets": 4,
+  "total_cells": 96,
+  "prefilled": 59,
+  "prefill_rate": 0.615,
+  "business_required": 18,
+  "conflicts": 7,
+  "owners": {}
+ }
+}

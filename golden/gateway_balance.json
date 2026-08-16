@@ -1,0 +1,2342 @@
+{
+ "balances": [
+  {
+   "human": "未知",
+   "in": {},
+   "is_low": false,
+   "is_low_strict": false,
+   "known": false,
+   "to_dict": {
+    "known": false
+   }
+  },
+  {
+   "human": "未知",
+   "in": {
+    "total": 100.0
+   },
+   "is_low": false,
+   "is_low_strict": false,
+   "known": false,
+   "to_dict": {
+    "known": false
+   }
+  },
+  {
+   "human": "未知",
+   "in": {
+    "total": 100.0,
+    "used": null
+   },
+   "is_low": false,
+   "is_low_strict": false,
+   "known": false,
+   "to_dict": {
+    "known": false
+   }
+  },
+  {
+   "human": "未知",
+   "in": {
+    "used": 3.0
+   },
+   "is_low": false,
+   "is_low_strict": false,
+   "known": false,
+   "to_dict": {
+    "known": false
+   }
+  },
+  {
+   "human": "$0.00",
+   "in": {
+    "remaining": 0.0
+   },
+   "is_low": true,
+   "is_low_strict": true,
+   "known": true,
+   "to_dict": {
+    "currency": "USD",
+    "known": true,
+    "remaining": 0.0,
+    "source": "",
+    "text": "$0.00",
+    "total": null,
+    "used": null
+   }
+  },
+  {
+   "human": "$17.50",
+   "in": {
+    "remaining": 17.5,
+    "source": "dashboard/billing",
+    "total": 20.0,
+    "used": 2.5
+   },
+   "is_low": false,
+   "is_low_strict": true,
+   "known": true,
+   "to_dict": {
+    "currency": "USD",
+    "known": true,
+    "remaining": 17.5,
+    "source": "dashboard/billing",
+    "text": "$17.50",
+    "total": 20.0,
+    "used": 2.5
+   }
+  },
+  {
+   "human": "500,000 额度",
+   "in": {
+    "currency": "quota",
+    "remaining": 500000.0,
+    "source": "api/user/self",
+    "total": 600000.0,
+    "used": 100000.0
+   },
+   "is_low": false,
+   "is_low_strict": false,
+   "known": true,
+   "to_dict": {
+    "currency": "quota",
+    "known": true,
+    "remaining": 500000.0,
+    "source": "api/user/self",
+    "text": "500,000 额度",
+    "total": 600000.0,
+    "used": 100000.0
+   }
+  },
+  {
+   "human": "$-5.00",
+   "in": {
+    "remaining": -5.0,
+    "total": 10.0,
+    "used": 15.0
+   },
+   "is_low": true,
+   "is_low_strict": true,
+   "known": true,
+   "to_dict": {
+    "currency": "USD",
+    "known": true,
+    "remaining": -5.0,
+    "source": "",
+    "text": "$-5.00",
+    "total": 10.0,
+    "used": 15.0
+   }
+  },
+  {
+   "human": "$1.50",
+   "in": {
+    "currency": "USD",
+    "remaining": 1.5
+   },
+   "is_low": true,
+   "is_low_strict": true,
+   "known": true,
+   "to_dict": {
+    "currency": "USD",
+    "known": true,
+    "remaining": 1.5,
+    "source": "",
+    "text": "$1.50",
+    "total": null,
+    "used": null
+   }
+  },
+  {
+   "human": "$42.00",
+   "in": {
+    "currency": "USD",
+    "remaining": 42.0
+   },
+   "is_low": false,
+   "is_low_strict": false,
+   "known": true,
+   "to_dict": {
+    "currency": "USD",
+    "known": true,
+    "remaining": 42.0,
+    "source": "",
+    "text": "$42.00",
+    "total": null,
+    "used": null
+   }
+  },
+  {
+   "human": "$5.00",
+   "in": {
+    "currency": "USD",
+    "remaining": 5.0
+   },
+   "is_low": true,
+   "is_low_strict": true,
+   "known": true,
+   "to_dict": {
+    "currency": "USD",
+    "known": true,
+    "remaining": 5.0,
+    "source": "",
+    "text": "$5.00",
+    "total": null,
+    "used": null
+   }
+  },
+  {
+   "human": "$5.00",
+   "in": {
+    "currency": "USD",
+    "remaining": 5.000001
+   },
+   "is_low": false,
+   "is_low_strict": true,
+   "known": true,
+   "to_dict": {
+    "currency": "USD",
+    "known": true,
+    "remaining": 5.000001,
+    "source": "",
+    "text": "$5.00",
+    "total": null,
+    "used": null
+   }
+  },
+  {
+   "human": "50,000 额度",
+   "in": {
+    "currency": "quota",
+    "remaining": 50000.0,
+    "total": 1000000.0
+   },
+   "is_low": true,
+   "is_low_strict": true,
+   "known": true,
+   "to_dict": {
+    "currency": "quota",
+    "known": true,
+    "remaining": 50000.0,
+    "source": "",
+    "text": "50,000 额度",
+    "total": 1000000.0,
+    "used": null
+   }
+  },
+  {
+   "human": "500,000 额度",
+   "in": {
+    "currency": "quota",
+    "remaining": 500000.0,
+    "total": 1000000.0
+   },
+   "is_low": false,
+   "is_low_strict": true,
+   "known": true,
+   "to_dict": {
+    "currency": "quota",
+    "known": true,
+    "remaining": 500000.0,
+    "source": "",
+    "text": "500,000 额度",
+    "total": 1000000.0,
+    "used": null
+   }
+  },
+  {
+   "human": "100,000 额度",
+   "in": {
+    "currency": "quota",
+    "remaining": 100000.0,
+    "total": 1000000.0
+   },
+   "is_low": true,
+   "is_low_strict": true,
+   "known": true,
+   "to_dict": {
+    "currency": "quota",
+    "known": true,
+    "remaining": 100000.0,
+    "source": "",
+    "text": "100,000 额度",
+    "total": 1000000.0,
+    "used": null
+   }
+  },
+  {
+   "human": "0 额度",
+   "in": {
+    "currency": "quota",
+    "remaining": 0.0,
+    "total": 0.0
+   },
+   "is_low": false,
+   "is_low_strict": false,
+   "known": true,
+   "to_dict": {
+    "currency": "quota",
+    "known": true,
+    "remaining": 0.0,
+    "source": "",
+    "text": "0 额度",
+    "total": 0.0,
+    "used": null
+   }
+  },
+  {
+   "human": "-1 额度",
+   "in": {
+    "currency": "quota",
+    "remaining": -1.0,
+    "total": -10.0
+   },
+   "is_low": false,
+   "is_low_strict": false,
+   "known": true,
+   "to_dict": {
+    "currency": "quota",
+    "known": true,
+    "remaining": -1.0,
+    "source": "",
+    "text": "-1 额度",
+    "total": -10.0,
+    "used": null
+   }
+  },
+  {
+   "human": "$50,000.00",
+   "in": {
+    "currency": "USD",
+    "remaining": 50000.0,
+    "total": 1000000.0
+   },
+   "is_low": true,
+   "is_low_strict": true,
+   "known": true,
+   "to_dict": {
+    "currency": "USD",
+    "known": true,
+    "remaining": 50000.0,
+    "source": "",
+    "text": "$50,000.00",
+    "total": 1000000.0,
+    "used": null
+   }
+  }
+ ],
+ "budget_capped_text": [
+  {
+   "cap": 15.0,
+   "out": "本次梳理的花费上限 $15.00 用满了（已花 $15.20）。这是你在设置里定的上限，网关账户本身没有问题；要继续就去「设置 → 预算」调高，或者新建会话。",
+   "scope": "build",
+   "spent": 15.2
+  },
+  {
+   "cap": 15.0,
+   "out": "这个会话的对话的花费上限 $15.00 用满了（已花 $15.20）。这是你在设置里定的上限，网关账户本身没有问题；要继续就去「设置 → 预算」调高，或者新建会话。",
+   "scope": "chat",
+   "spent": 15.2
+  },
+  {
+   "cap": 1.0,
+   "out": "本次梳理的花费上限 $1.00 用满了（已花 $1.00）。这是你在设置里定的上限，网关账户本身没有问题；要继续就去「设置 → 预算」调高，或者新建会话。",
+   "scope": "build",
+   "spent": 1.0
+  },
+  {
+   "cap": 0.125,
+   "out": "本次梳理的花费上限 $0.12 用满了（已花 $0.12）。这是你在设置里定的上限，网关账户本身没有问题；要继续就去「设置 → 预算」调高，或者新建会话。",
+   "scope": "build",
+   "spent": 0.125
+  },
+  {
+   "cap": 2.675,
+   "out": "本次梳理的花费上限 $2.67 用满了（已花 $0.01）。这是你在设置里定的上限，网关账户本身没有问题；要继续就去「设置 → 预算」调高，或者新建会话。",
+   "scope": "build",
+   "spent": 0.005
+  },
+  {
+   "cap": 1000.0,
+   "out": "本次梳理的花费上限 $1000.00 用满了（已花 $1234.50）。这是你在设置里定的上限，网关账户本身没有问题；要继续就去「设置 → 预算」调高，或者新建会话。",
+   "scope": "build",
+   "spent": 1234.5
+  },
+  {
+   "cap": 0.0,
+   "out": "本次梳理的花费上限 $0.00 用满了（已花 $0.00）。这是你在设置里定的上限，网关账户本身没有问题；要继续就去「设置 → 预算」调高，或者新建会话。",
+   "scope": "unknown-scope",
+   "spent": 0.0
+  },
+  {
+   "cap": 20.0,
+   "out": "这个会话的对话的花费上限 $20.00 用满了（已花 $-0.00）。这是你在设置里定的上限，网关账户本身没有问题；要继续就去「设置 → 预算」调高，或者新建会话。",
+   "scope": "chat",
+   "spent": -0.0
+  }
+ ],
+ "consts": {
+  "CACHE_TTL": 60.0,
+  "LOW_RATIO": 0.1,
+  "LOW_USD": 5.0,
+  "QUOTA_UNIT": "quota"
+ },
+ "human": [
+  {
+   "currency": "USD",
+   "out": "$0.00",
+   "remaining": 0.0
+  },
+  {
+   "currency": "USD",
+   "out": "$-0.00",
+   "remaining": -0.0
+  },
+  {
+   "currency": "USD",
+   "out": "$0.01",
+   "remaining": 0.005
+  },
+  {
+   "currency": "USD",
+   "out": "$0.12",
+   "remaining": 0.125
+  },
+  {
+   "currency": "USD",
+   "out": "$0.38",
+   "remaining": 0.375
+  },
+  {
+   "currency": "USD",
+   "out": "$0.62",
+   "remaining": 0.625
+  },
+  {
+   "currency": "USD",
+   "out": "$0.88",
+   "remaining": 0.875
+  },
+  {
+   "currency": "USD",
+   "out": "$19.12",
+   "remaining": 19.125
+  },
+  {
+   "currency": "USD",
+   "out": "$17.50",
+   "remaining": 17.5
+  },
+  {
+   "currency": "USD",
+   "out": "$1.50",
+   "remaining": 1.5
+  },
+  {
+   "currency": "USD",
+   "out": "$2.00",
+   "remaining": 2.0
+  },
+  {
+   "currency": "USD",
+   "out": "$-0.00",
+   "remaining": -0.001
+  },
+  {
+   "currency": "USD",
+   "out": "$-1.50",
+   "remaining": -1.5
+  },
+  {
+   "currency": "USD",
+   "out": "$-1,234.50",
+   "remaining": -1234.5
+  },
+  {
+   "currency": "USD",
+   "out": "$1,234.50",
+   "remaining": 1234.5
+  },
+  {
+   "currency": "USD",
+   "out": "$1,234,567.89",
+   "remaining": 1234567.891
+  },
+  {
+   "currency": "USD",
+   "out": "$1,000,000.00",
+   "remaining": 1000000.0
+  },
+  {
+   "currency": "USD",
+   "out": "$999,999.99",
+   "remaining": 999999.995
+  },
+  {
+   "currency": "USD",
+   "out": "$0.30",
+   "remaining": 0.30000000000000004
+  },
+  {
+   "currency": "USD",
+   "out": "$0.33",
+   "remaining": 0.3333333333333333
+  },
+  {
+   "currency": "USD",
+   "out": "$1,000,000,000,000,000.00",
+   "remaining": 1000000000000000.0
+  },
+  {
+   "currency": "USD",
+   "out": "$100,000,000,000,000,000,000.00",
+   "remaining": 1e+20
+  },
+  {
+   "currency": "USD",
+   "out": "$1,000,000,000,000,000,000,000.00",
+   "remaining": 1e+21
+  },
+  {
+   "currency": "USD",
+   "out": "$12,345,678,901,234,567,168.00",
+   "remaining": 1.2345678901234567e+19
+  },
+  {
+   "currency": "quota",
+   "out": "0 额度",
+   "remaining": 0.0
+  },
+  {
+   "currency": "quota",
+   "out": "-0 额度",
+   "remaining": -0.0
+  },
+  {
+   "currency": "quota",
+   "out": "0 额度",
+   "remaining": 0.5
+  },
+  {
+   "currency": "quota",
+   "out": "2 额度",
+   "remaining": 1.5
+  },
+  {
+   "currency": "quota",
+   "out": "2 额度",
+   "remaining": 2.5
+  },
+  {
+   "currency": "quota",
+   "out": "4 额度",
+   "remaining": 3.5
+  },
+  {
+   "currency": "quota",
+   "out": "-0 额度",
+   "remaining": -0.5
+  },
+  {
+   "currency": "quota",
+   "out": "-2 额度",
+   "remaining": -1.5
+  },
+  {
+   "currency": "quota",
+   "out": "500 额度",
+   "remaining": 499.5
+  },
+  {
+   "currency": "quota",
+   "out": "500,000 额度",
+   "remaining": 500000.0
+  },
+  {
+   "currency": "quota",
+   "out": "1,000,000 额度",
+   "remaining": 1000000.0
+  },
+  {
+   "currency": "quota",
+   "out": "1,234 额度",
+   "remaining": 1234.5
+  },
+  {
+   "currency": "quota",
+   "out": "1,000,000 额度",
+   "remaining": 999999.5
+  },
+  {
+   "currency": "quota",
+   "out": "1,000,000,000,000,000 额度",
+   "remaining": 1000000000000000.0
+  },
+  {
+   "currency": "quota",
+   "out": "1,000,000,000,000,000,000,000 额度",
+   "remaining": 1e+21
+  },
+  {
+   "currency": "quota",
+   "out": "12,345,678,901,234,567,168 额度",
+   "remaining": 1.2345678901234567e+19
+  },
+  {
+   "currency": "CNY",
+   "out": "12 额度",
+   "remaining": 12.5
+  },
+  {
+   "currency": "usd",
+   "out": "12 额度",
+   "remaining": 12.5
+  }
+ ],
+ "human_special": [
+  {
+   "currency": "USD",
+   "lit": "nan",
+   "out": "$nan"
+  },
+  {
+   "currency": "quota",
+   "lit": "nan",
+   "out": "nan 额度"
+  },
+  {
+   "currency": "USD",
+   "lit": "inf",
+   "out": "$inf"
+  },
+  {
+   "currency": "quota",
+   "lit": "inf",
+   "out": "inf 额度"
+  },
+  {
+   "currency": "USD",
+   "lit": "-inf",
+   "out": "$-inf"
+  },
+  {
+   "currency": "quota",
+   "lit": "-inf",
+   "out": "-inf 额度"
+  }
+ ],
+ "looks_like_quota_exhausted": [
+  {
+   "body": "",
+   "out": true,
+   "status": 402
+  },
+  {
+   "body": "Payment Required",
+   "out": true,
+   "status": 402
+  },
+  {
+   "body": "随便什么 body 都不看",
+   "out": true,
+   "status": 402
+  },
+  {
+   "body": "insufficient_quota",
+   "out": true,
+   "status": 429
+  },
+  {
+   "body": "INSUFFICIENT_QUOTA",
+   "out": true,
+   "status": 429
+  },
+  {
+   "body": "insufficient_user_quota",
+   "out": true,
+   "status": 429
+  },
+  {
+   "body": "exceeded_current_quota",
+   "out": true,
+   "status": 429
+  },
+  {
+   "body": "quota_exceeded",
+   "out": true,
+   "status": 429
+  },
+  {
+   "body": "billing_hard_limit_reached",
+   "out": true,
+   "status": 429
+  },
+  {
+   "body": "Your credit balance is too low to access the API",
+   "out": true,
+   "status": 429
+  },
+  {
+   "body": "CREDIT balance",
+   "out": true,
+   "status": 429
+  },
+  {
+   "body": "网关余额不足",
+   "out": true,
+   "status": 429
+  },
+  {
+   "body": "额度已用尽",
+   "out": true,
+   "status": 429
+  },
+  {
+   "body": "账户欠费，请充值",
+   "out": true,
+   "status": 429
+  },
+  {
+   "body": "{\"error\":{\"message\":\"当前分组上游负载已饱和，请稍后再试\",\"type\":\"insufficient_quota\",\"code\":\"insufficient_user_quota\"}}",
+   "out": true,
+   "status": 429
+  },
+  {
+   "body": "",
+   "out": false,
+   "status": 429
+  },
+  {
+   "body": "Rate limit reached for gpt-4 in organization org-x. Limit: 200000 TPM",
+   "out": false,
+   "status": 429
+  },
+  {
+   "body": "Too Many Requests",
+   "out": false,
+   "status": 429
+  },
+  {
+   "body": "请求过于频繁，请稍后重试",
+   "out": false,
+   "status": 429
+  },
+  {
+   "body": "requests per minute",
+   "out": false,
+   "status": 429
+  },
+  {
+   "body": "上游负载已饱和",
+   "out": false,
+   "status": 429
+  },
+  {
+   "body": "insufficient_quota",
+   "out": false,
+   "status": 500
+  },
+  {
+   "body": "余额不足",
+   "out": false,
+   "status": 503
+  },
+  {
+   "body": "insufficient_quota",
+   "out": false,
+   "status": 200
+  },
+  {
+   "body": "insufficient_quota",
+   "out": false,
+   "status": 401
+  },
+  {
+   "body": "quota_exceeded",
+   "out": false,
+   "status": 400
+  },
+  {
+   "body": "欠费",
+   "out": false,
+   "status": 404
+  },
+  {
+   "body": "",
+   "out": false,
+   "status": 0
+  },
+  {
+   "body": "insufficient_quota",
+   "out": false,
+   "status": 0
+  },
+  {
+   "body": "额度",
+   "out": false,
+   "status": 408
+  },
+  {
+   "body": "credit",
+   "out": false,
+   "status": 529
+  },
+  {
+   "body": "This endpoint is only for accredited partners",
+   "out": true,
+   "status": 429
+  }
+ ],
+ "num": [
+  {
+   "in": 1,
+   "out": 1.0
+  },
+  {
+   "in": 0,
+   "out": 0.0
+  },
+  {
+   "in": -3,
+   "out": -3.0
+  },
+  {
+   "in": 1.5,
+   "out": 1.5
+  },
+  {
+   "in": 0.0,
+   "out": 0.0
+  },
+  {
+   "in": -0.0,
+   "out": -0.0
+  },
+  {
+   "in": 1e+21,
+   "out": 1e+21
+  },
+  {
+   "in": true,
+   "out": null
+  },
+  {
+   "in": false,
+   "out": null
+  },
+  {
+   "in": null,
+   "out": null
+  },
+  {
+   "in": "20.00",
+   "out": null
+  },
+  {
+   "in": "",
+   "out": null
+  },
+  {
+   "in": [
+    1,
+    2
+   ],
+   "out": null
+  },
+  {
+   "in": {},
+   "out": null
+  },
+  {
+   "in": {
+    "a": 1
+   },
+   "out": null
+  },
+  {
+   "in": [],
+   "out": null
+  }
+ ],
+ "probe": [
+  {
+   "base": "http://gw.test/v1",
+   "fields": {
+    "currency": "USD",
+    "remaining": 17.5,
+    "source": "dashboard/billing",
+    "total": 20.0,
+    "used": 2.5
+   },
+   "human": "$17.50",
+   "is_low": false,
+   "key": "sk-test-key",
+   "known": true,
+   "name": "openai-billing",
+   "out": {
+    "currency": "USD",
+    "known": true,
+    "remaining": 17.5,
+    "source": "dashboard/billing",
+    "text": "$17.50",
+    "total": 20.0,
+    "used": 2.5
+   },
+   "routes": {
+    "/dashboard/billing/subscription": {
+     "body": "{\"hard_limit_usd\": 20.0}",
+     "content_type": "application/json",
+     "status": 200
+    },
+    "/dashboard/billing/usage": {
+     "body": "{\"total_usage\": 250.0}",
+     "content_type": "application/json",
+     "status": 200
+    }
+   },
+   "seen": [
+    "/v1/dashboard/billing/subscription",
+    "/v1/dashboard/billing/usage"
+   ]
+  },
+  {
+   "base": "http://gw.test/v1",
+   "fields": {
+    "currency": "USD",
+    "remaining": 11.0,
+    "source": "dashboard/billing",
+    "total": 12.0,
+    "used": 1.0
+   },
+   "human": "$11.00",
+   "is_low": false,
+   "key": "sk-test-key",
+   "known": true,
+   "name": "openai-billing-system-limit",
+   "out": {
+    "currency": "USD",
+    "known": true,
+    "remaining": 11.0,
+    "source": "dashboard/billing",
+    "text": "$11.00",
+    "total": 12.0,
+    "used": 1.0
+   },
+   "routes": {
+    "/dashboard/billing/subscription": {
+     "body": "{\"system_hard_limit_usd\": 12.0}",
+     "content_type": "application/json",
+     "status": 200
+    },
+    "/dashboard/billing/usage": {
+     "body": "{\"total_usage\": 100.0}",
+     "content_type": "application/json",
+     "status": 200
+    }
+   },
+   "seen": [
+    "/v1/dashboard/billing/subscription",
+    "/v1/dashboard/billing/usage"
+   ]
+  },
+  {
+   "base": "http://gw.test/v1",
+   "fields": {
+    "currency": "USD",
+    "remaining": 7.5,
+    "source": "dashboard/billing",
+    "total": 8.0,
+    "used": 0.5
+   },
+   "human": "$7.50",
+   "is_low": false,
+   "key": "sk-test-key",
+   "known": true,
+   "name": "openai-billing-null-then-system",
+   "out": {
+    "currency": "USD",
+    "known": true,
+    "remaining": 7.5,
+    "source": "dashboard/billing",
+    "text": "$7.50",
+    "total": 8.0,
+    "used": 0.5
+   },
+   "routes": {
+    "/dashboard/billing/subscription": {
+     "body": "{\"hard_limit_usd\": null, \"system_hard_limit_usd\": 8.0}",
+     "content_type": "application/json",
+     "status": 200
+    },
+    "/dashboard/billing/usage": {
+     "body": "{\"total_usage\": 50.0}",
+     "content_type": "application/json",
+     "status": 200
+    }
+   },
+   "seen": [
+    "/v1/dashboard/billing/subscription",
+    "/v1/dashboard/billing/usage"
+   ]
+  },
+  {
+   "base": "http://gw.test/v1",
+   "fields": {
+    "currency": "USD",
+    "remaining": 20.0,
+    "source": "dashboard/billing",
+    "total": 20.0,
+    "used": 0.0
+   },
+   "human": "$20.00",
+   "is_low": false,
+   "key": "sk-test-key",
+   "known": true,
+   "name": "openai-billing-zero-usage",
+   "out": {
+    "currency": "USD",
+    "known": true,
+    "remaining": 20.0,
+    "source": "dashboard/billing",
+    "text": "$20.00",
+    "total": 20.0,
+    "used": 0.0
+   },
+   "routes": {
+    "/dashboard/billing/subscription": {
+     "body": "{\"hard_limit_usd\": 20.0}",
+     "content_type": "application/json",
+     "status": 200
+    },
+    "/dashboard/billing/usage": {
+     "body": "{\"total_usage\": 0}",
+     "content_type": "application/json",
+     "status": 200
+    }
+   },
+   "seen": [
+    "/v1/dashboard/billing/subscription",
+    "/v1/dashboard/billing/usage"
+   ]
+  },
+  {
+   "base": "http://gw.test/v1",
+   "fields": {
+    "currency": "USD",
+    "remaining": 0.0,
+    "source": "dashboard/billing",
+    "total": 10.0,
+    "used": 20.0
+   },
+   "human": "$0.00",
+   "is_low": true,
+   "key": "sk-test-key",
+   "known": true,
+   "name": "openai-billing-overspent",
+   "out": {
+    "currency": "USD",
+    "known": true,
+    "remaining": 0.0,
+    "source": "dashboard/billing",
+    "text": "$0.00",
+    "total": 10.0,
+    "used": 20.0
+   },
+   "routes": {
+    "/dashboard/billing/subscription": {
+     "body": "{\"hard_limit_usd\": 10.0}",
+     "content_type": "application/json",
+     "status": 200
+    },
+    "/dashboard/billing/usage": {
+     "body": "{\"total_usage\": 2000.0}",
+     "content_type": "application/json",
+     "status": 200
+    }
+   },
+   "seen": [
+    "/v1/dashboard/billing/subscription",
+    "/v1/dashboard/billing/usage"
+   ]
+  },
+  {
+   "base": "http://gw.test/v1",
+   "fields": {
+    "currency": "quota",
+    "remaining": 500000.0,
+    "source": "api/user/self",
+    "total": 600000.0,
+    "used": 100000.0
+   },
+   "human": "500,000 额度",
+   "is_low": false,
+   "key": "sk-test-key",
+   "known": true,
+   "name": "newapi-self",
+   "out": {
+    "currency": "quota",
+    "known": true,
+    "remaining": 500000.0,
+    "source": "api/user/self",
+    "text": "500,000 额度",
+    "total": 600000.0,
+    "used": 100000.0
+   },
+   "routes": {
+    "/api/user/self": {
+     "body": "{\"data\": {\"quota\": 500000, \"used_quota\": 100000}}",
+     "content_type": "application/json",
+     "status": 200
+    },
+    "/dashboard/billing/subscription": {
+     "body": "not found",
+     "content_type": "text/plain",
+     "status": 404
+    }
+   },
+   "seen": [
+    "/v1/dashboard/billing/subscription",
+    "/api/user/self"
+   ]
+  },
+  {
+   "base": "http://gw.test/v1",
+   "fields": {
+    "currency": "quota",
+    "remaining": 42.0,
+    "source": "api/user/self",
+    "total": null,
+    "used": null
+   },
+   "human": "42 额度",
+   "is_low": false,
+   "key": "sk-test-key",
+   "known": true,
+   "name": "newapi-self-no-used",
+   "out": {
+    "currency": "quota",
+    "known": true,
+    "remaining": 42.0,
+    "source": "api/user/self",
+    "text": "42 额度",
+    "total": null,
+    "used": null
+   },
+   "routes": {
+    "/api/user/self": {
+     "body": "{\"data\": {\"quota\": 42}}",
+     "content_type": "application/json",
+     "status": 200
+    },
+    "/dashboard/billing/subscription": {
+     "body": "not found",
+     "content_type": "text/plain",
+     "status": 404
+    }
+   },
+   "seen": [
+    "/v1/dashboard/billing/subscription",
+    "/api/user/self"
+   ]
+  },
+  {
+   "base": "http://gw.test/v1",
+   "fields": {
+    "currency": "quota",
+    "remaining": -3000.0,
+    "source": "api/user/self",
+    "total": 100000.0,
+    "used": 103000.0
+   },
+   "human": "-3,000 额度",
+   "is_low": true,
+   "key": "sk-test-key",
+   "known": true,
+   "name": "newapi-self-negative",
+   "out": {
+    "currency": "quota",
+    "known": true,
+    "remaining": -3000.0,
+    "source": "api/user/self",
+    "text": "-3,000 额度",
+    "total": 100000.0,
+    "used": 103000.0
+   },
+   "routes": {
+    "/api/user/self": {
+     "body": "{\"data\": {\"quota\": -3000, \"used_quota\": 103000}}",
+     "content_type": "application/json",
+     "status": 200
+    },
+    "/dashboard/billing/subscription": {
+     "body": "not found",
+     "content_type": "text/plain",
+     "status": 404
+    }
+   },
+   "seen": [
+    "/v1/dashboard/billing/subscription",
+    "/api/user/self"
+   ]
+  },
+  {
+   "base": "http://gw.test",
+   "fields": {
+    "currency": "quota",
+    "remaining": 7.0,
+    "source": "api/user/self",
+    "total": null,
+    "used": null
+   },
+   "human": "7 额度",
+   "is_low": false,
+   "key": "sk-test-key",
+   "known": true,
+   "name": "newapi-base-without-v1",
+   "out": {
+    "currency": "quota",
+    "known": true,
+    "remaining": 7.0,
+    "source": "api/user/self",
+    "text": "7 额度",
+    "total": null,
+    "used": null
+   },
+   "routes": {
+    "/api/user/self": {
+     "body": "{\"data\": {\"quota\": 7}}",
+     "content_type": "application/json",
+     "status": 200
+    },
+    "/dashboard/billing/subscription": {
+     "body": "not found",
+     "content_type": "text/plain",
+     "status": 404
+    }
+   },
+   "seen": [
+    "/dashboard/billing/subscription",
+    "/api/user/self"
+   ]
+  },
+  {
+   "base": "http://gw.test/v1/",
+   "fields": {
+    "currency": "quota",
+    "remaining": 7.0,
+    "source": "api/user/self",
+    "total": null,
+    "used": null
+   },
+   "human": "7 额度",
+   "is_low": false,
+   "key": "sk-test-key",
+   "known": true,
+   "name": "newapi-base-trailing-slash",
+   "out": {
+    "currency": "quota",
+    "known": true,
+    "remaining": 7.0,
+    "source": "api/user/self",
+    "text": "7 额度",
+    "total": null,
+    "used": null
+   },
+   "routes": {
+    "/api/user/self": {
+     "body": "{\"data\": {\"quota\": 7}}",
+     "content_type": "application/json",
+     "status": 200
+    },
+    "/dashboard/billing/subscription": {
+     "body": "not found",
+     "content_type": "text/plain",
+     "status": 404
+    }
+   },
+   "seen": [
+    "/v1/dashboard/billing/subscription",
+    "/api/user/self"
+   ]
+  },
+  {
+   "base": "  http://gw.test/v1  ",
+   "fields": {
+    "currency": "quota",
+    "remaining": 7.0,
+    "source": "api/user/self",
+    "total": null,
+    "used": null
+   },
+   "human": "7 额度",
+   "is_low": false,
+   "key": "sk-test-key",
+   "known": true,
+   "name": "base-with-spaces",
+   "out": {
+    "currency": "quota",
+    "known": true,
+    "remaining": 7.0,
+    "source": "api/user/self",
+    "text": "7 额度",
+    "total": null,
+    "used": null
+   },
+   "routes": {
+    "/api/user/self": {
+     "body": "{\"data\": {\"quota\": 7}}",
+     "content_type": "application/json",
+     "status": 200
+    },
+    "/dashboard/billing/subscription": {
+     "body": "not found",
+     "content_type": "text/plain",
+     "status": 404
+    }
+   },
+   "seen": [
+    "/v1/dashboard/billing/subscription",
+    "/api/user/self"
+   ]
+  },
+  {
+   "base": "http://gw.test/v1",
+   "fields": {
+    "currency": "USD",
+    "remaining": 9.0,
+    "source": "dashboard/billing",
+    "total": 10.0,
+    "used": 1.0
+   },
+   "human": "$9.00",
+   "is_low": false,
+   "key": "sk-test-key",
+   "known": true,
+   "name": "first-endpoint-wins",
+   "out": {
+    "currency": "USD",
+    "known": true,
+    "remaining": 9.0,
+    "source": "dashboard/billing",
+    "text": "$9.00",
+    "total": 10.0,
+    "used": 1.0
+   },
+   "routes": {
+    "/api/user/self": {
+     "body": "{\"data\": {\"quota\": 999}}",
+     "content_type": "application/json",
+     "status": 200
+    },
+    "/dashboard/billing/subscription": {
+     "body": "{\"hard_limit_usd\": 10.0}",
+     "content_type": "application/json",
+     "status": 200
+    },
+    "/dashboard/billing/usage": {
+     "body": "{\"total_usage\": 100.0}",
+     "content_type": "application/json",
+     "status": 200
+    }
+   },
+   "seen": [
+    "/v1/dashboard/billing/subscription",
+    "/v1/dashboard/billing/usage"
+   ]
+  },
+  {
+   "base": "http://gw.test/v1",
+   "fields": {
+    "currency": "USD",
+    "remaining": null,
+    "source": "",
+    "total": null,
+    "used": null
+   },
+   "human": "未知",
+   "is_low": false,
+   "key": "sk-test-key",
+   "known": false,
+   "name": "all-404",
+   "out": {
+    "known": false
+   },
+   "routes": {},
+   "seen": [
+    "/v1/dashboard/billing/subscription",
+    "/api/user/self"
+   ]
+  },
+  {
+   "base": "http://gw.test/v1",
+   "fields": {
+    "currency": "USD",
+    "remaining": null,
+    "source": "",
+    "total": null,
+    "used": null
+   },
+   "human": "未知",
+   "is_low": false,
+   "key": "sk-test-key",
+   "known": false,
+   "name": "401",
+   "out": {
+    "known": false
+   },
+   "routes": {
+    "": {
+     "body": "{\"error\": \"unauthorized\"}",
+     "content_type": "application/json",
+     "status": 401
+    }
+   },
+   "seen": [
+    "/v1/dashboard/billing/subscription",
+    "/api/user/self"
+   ]
+  },
+  {
+   "base": "http://gw.test/v1",
+   "fields": {
+    "currency": "USD",
+    "remaining": null,
+    "source": "",
+    "total": null,
+    "used": null
+   },
+   "human": "未知",
+   "is_low": false,
+   "key": "sk-test-key",
+   "known": false,
+   "name": "403",
+   "out": {
+    "known": false
+   },
+   "routes": {
+    "": {
+     "body": "forbidden",
+     "content_type": "text/plain",
+     "status": 403
+    }
+   },
+   "seen": [
+    "/v1/dashboard/billing/subscription",
+    "/api/user/self"
+   ]
+  },
+  {
+   "base": "http://gw.test/v1",
+   "fields": {
+    "currency": "USD",
+    "remaining": null,
+    "source": "",
+    "total": null,
+    "used": null
+   },
+   "human": "未知",
+   "is_low": false,
+   "key": "sk-test-key",
+   "known": false,
+   "name": "500",
+   "out": {
+    "known": false
+   },
+   "routes": {
+    "": {
+     "body": "internal error",
+     "content_type": "text/plain",
+     "status": 500
+    }
+   },
+   "seen": [
+    "/v1/dashboard/billing/subscription",
+    "/api/user/self"
+   ]
+  },
+  {
+   "base": "http://gw.test/v1",
+   "fields": {
+    "currency": "USD",
+    "remaining": null,
+    "source": "",
+    "total": null,
+    "used": null
+   },
+   "human": "未知",
+   "is_low": false,
+   "key": "sk-test-key",
+   "known": false,
+   "name": "login-html-200",
+   "out": {
+    "known": false
+   },
+   "routes": {
+    "": {
+     "body": "<!doctype html><html><body>please sign in</body></html>",
+     "content_type": "text/html",
+     "status": 200
+    }
+   },
+   "seen": [
+    "/v1/dashboard/billing/subscription",
+    "/api/user/self"
+   ]
+  },
+  {
+   "base": "http://gw.test/v1",
+   "fields": {
+    "currency": "USD",
+    "remaining": null,
+    "source": "",
+    "total": null,
+    "used": null
+   },
+   "human": "未知",
+   "is_low": false,
+   "key": "sk-test-key",
+   "known": false,
+   "name": "json-no-fields",
+   "out": {
+    "known": false
+   },
+   "routes": {
+    "": {
+     "body": "{\"object\": \"billing_subscription\"}",
+     "content_type": "application/json",
+     "status": 200
+    }
+   },
+   "seen": [
+    "/v1/dashboard/billing/subscription",
+    "/api/user/self"
+   ]
+  },
+  {
+   "base": "http://gw.test/v1",
+   "fields": {
+    "currency": "USD",
+    "remaining": null,
+    "source": "",
+    "total": null,
+    "used": null
+   },
+   "human": "未知",
+   "is_low": false,
+   "key": "sk-test-key",
+   "known": false,
+   "name": "json-null-fields",
+   "out": {
+    "known": false
+   },
+   "routes": {
+    "": {
+     "body": "{\"hard_limit_usd\": null, \"data\": {\"quota\": null}}",
+     "content_type": "application/json",
+     "status": 200
+    }
+   },
+   "seen": [
+    "/v1/dashboard/billing/subscription",
+    "/api/user/self"
+   ]
+  },
+  {
+   "base": "http://gw.test/v1",
+   "fields": {
+    "currency": "USD",
+    "remaining": null,
+    "source": "",
+    "total": null,
+    "used": null
+   },
+   "human": "未知",
+   "is_low": false,
+   "key": "sk-test-key",
+   "known": false,
+   "name": "json-string-fields",
+   "out": {
+    "known": false
+   },
+   "routes": {
+    "": {
+     "body": "{\"hard_limit_usd\": \"20.00\"}",
+     "content_type": "application/json",
+     "status": 200
+    }
+   },
+   "seen": [
+    "/v1/dashboard/billing/subscription",
+    "/api/user/self"
+   ]
+  },
+  {
+   "base": "http://gw.test/v1",
+   "fields": {
+    "currency": "USD",
+    "remaining": null,
+    "source": "",
+    "total": null,
+    "used": null
+   },
+   "human": "未知",
+   "is_low": false,
+   "key": "sk-test-key",
+   "known": false,
+   "name": "json-bool-fields",
+   "out": {
+    "known": false
+   },
+   "routes": {
+    "": {
+     "body": "{\"hard_limit_usd\": true, \"data\": {\"quota\": true}}",
+     "content_type": "application/json",
+     "status": 200
+    }
+   },
+   "seen": [
+    "/v1/dashboard/billing/subscription",
+    "/api/user/self"
+   ]
+  },
+  {
+   "base": "http://gw.test/v1",
+   "fields": {
+    "currency": "USD",
+    "remaining": null,
+    "source": "",
+    "total": null,
+    "used": null
+   },
+   "human": "未知",
+   "is_low": false,
+   "key": "sk-test-key",
+   "known": false,
+   "name": "json-list",
+   "out": {
+    "known": false
+   },
+   "routes": {
+    "": {
+     "body": "[1, 2, 3]",
+     "content_type": "application/json",
+     "status": 200
+    }
+   },
+   "seen": [
+    "/v1/dashboard/billing/subscription",
+    "/api/user/self"
+   ]
+  },
+  {
+   "base": "http://gw.test/v1",
+   "fields": {
+    "currency": "USD",
+    "remaining": null,
+    "source": "",
+    "total": null,
+    "used": null
+   },
+   "human": "未知",
+   "is_low": false,
+   "key": "sk-test-key",
+   "known": false,
+   "name": "json-scalar",
+   "out": {
+    "known": false
+   },
+   "routes": {
+    "": {
+     "body": "\"hello\"",
+     "content_type": "application/json",
+     "status": 200
+    }
+   },
+   "seen": [
+    "/v1/dashboard/billing/subscription",
+    "/api/user/self"
+   ]
+  },
+  {
+   "base": "http://gw.test/v1",
+   "fields": {
+    "currency": "USD",
+    "remaining": null,
+    "source": "",
+    "total": null,
+    "used": null
+   },
+   "human": "未知",
+   "is_low": false,
+   "key": "sk-test-key",
+   "known": false,
+   "name": "json-empty-object",
+   "out": {
+    "known": false
+   },
+   "routes": {
+    "": {
+     "body": "{}",
+     "content_type": "application/json",
+     "status": 200
+    }
+   },
+   "seen": [
+    "/v1/dashboard/billing/subscription",
+    "/api/user/self"
+   ]
+  },
+  {
+   "base": "http://gw.test/v1",
+   "fields": {
+    "currency": "USD",
+    "remaining": null,
+    "source": "",
+    "total": null,
+    "used": null
+   },
+   "human": "未知",
+   "is_low": false,
+   "key": "sk-test-key",
+   "known": false,
+   "name": "json-truncated",
+   "out": {
+    "known": false
+   },
+   "routes": {
+    "": {
+     "body": "{\"hard_limit_usd\": 20.",
+     "content_type": "application/json",
+     "status": 200
+    }
+   },
+   "seen": [
+    "/v1/dashboard/billing/subscription",
+    "/api/user/self"
+   ]
+  },
+  {
+   "base": "http://gw.test/v1",
+   "fields": {
+    "currency": "USD",
+    "remaining": null,
+    "source": "",
+    "total": null,
+    "used": null
+   },
+   "human": "未知",
+   "is_low": false,
+   "key": "sk-test-key",
+   "known": false,
+   "name": "empty-body-200",
+   "out": {
+    "known": false
+   },
+   "routes": {
+    "": {
+     "body": "",
+     "content_type": "application/json",
+     "status": 200
+    }
+   },
+   "seen": [
+    "/v1/dashboard/billing/subscription",
+    "/api/user/self"
+   ]
+  },
+  {
+   "base": "http://gw.test/v1",
+   "fields": {
+    "currency": "USD",
+    "remaining": null,
+    "source": "",
+    "total": null,
+    "used": null
+   },
+   "human": "未知",
+   "is_low": false,
+   "key": "sk-test-key",
+   "known": false,
+   "name": "newapi-data-not-object",
+   "out": {
+    "known": false
+   },
+   "routes": {
+    "/api/user/self": {
+     "body": "{\"data\": [1, 2]}",
+     "content_type": "application/json",
+     "status": 200
+    },
+    "/dashboard/billing/subscription": {
+     "body": "not found",
+     "content_type": "text/plain",
+     "status": 404
+    }
+   },
+   "seen": [
+    "/v1/dashboard/billing/subscription",
+    "/api/user/self"
+   ]
+  },
+  {
+   "base": "http://gw.test/v1",
+   "fields": {
+    "currency": "USD",
+    "remaining": null,
+    "source": "",
+    "total": null,
+    "used": null
+   },
+   "human": "未知",
+   "is_low": false,
+   "key": "sk-test-key",
+   "known": false,
+   "name": "newapi-data-null",
+   "out": {
+    "known": false
+   },
+   "routes": {
+    "/api/user/self": {
+     "body": "{\"data\": null}",
+     "content_type": "application/json",
+     "status": 200
+    },
+    "/dashboard/billing/subscription": {
+     "body": "not found",
+     "content_type": "text/plain",
+     "status": 404
+    }
+   },
+   "seen": [
+    "/v1/dashboard/billing/subscription",
+    "/api/user/self"
+   ]
+  },
+  {
+   "base": "http://gw.test/v1",
+   "fields": {
+    "currency": "USD",
+    "remaining": null,
+    "source": "",
+    "total": null,
+    "used": null
+   },
+   "human": "未知",
+   "is_low": false,
+   "key": "sk-test-key",
+   "known": false,
+   "name": "limit-without-usage",
+   "out": {
+    "known": false
+   },
+   "routes": {
+    "/api/user/self": {
+     "body": "not found",
+     "content_type": "text/plain",
+     "status": 404
+    },
+    "/dashboard/billing/subscription": {
+     "body": "{\"hard_limit_usd\": 20.0}",
+     "content_type": "application/json",
+     "status": 200
+    },
+    "/dashboard/billing/usage": {
+     "body": "not found",
+     "content_type": "text/plain",
+     "status": 404
+    }
+   },
+   "seen": [
+    "/v1/dashboard/billing/subscription",
+    "/v1/dashboard/billing/usage",
+    "/api/user/self"
+   ]
+  },
+  {
+   "base": "http://gw.test/v1",
+   "fields": {
+    "currency": "USD",
+    "remaining": null,
+    "source": "",
+    "total": null,
+    "used": null
+   },
+   "human": "未知",
+   "is_low": false,
+   "key": "sk-test-key",
+   "known": false,
+   "name": "limit-with-string-usage",
+   "out": {
+    "known": false
+   },
+   "routes": {
+    "/api/user/self": {
+     "body": "not found",
+     "content_type": "text/plain",
+     "status": 404
+    },
+    "/dashboard/billing/subscription": {
+     "body": "{\"hard_limit_usd\": 20.0}",
+     "content_type": "application/json",
+     "status": 200
+    },
+    "/dashboard/billing/usage": {
+     "body": "{\"total_usage\": \"250\"}",
+     "content_type": "application/json",
+     "status": 200
+    }
+   },
+   "seen": [
+    "/v1/dashboard/billing/subscription",
+    "/v1/dashboard/billing/usage",
+    "/api/user/self"
+   ]
+  },
+  {
+   "base": "http://gw.test/v1",
+   "fields": {
+    "currency": "USD",
+    "remaining": null,
+    "source": "",
+    "total": null,
+    "used": null
+   },
+   "human": "未知",
+   "is_low": false,
+   "key": "sk-test-key",
+   "known": false,
+   "name": "read-timeout",
+   "out": {
+    "known": false
+   },
+   "routes": {
+    "": {
+     "raise": "timeout"
+    }
+   },
+   "seen": [
+    "/v1/dashboard/billing/subscription",
+    "/api/user/self"
+   ]
+  },
+  {
+   "base": "http://gw.test/v1",
+   "fields": {
+    "currency": "USD",
+    "remaining": null,
+    "source": "",
+    "total": null,
+    "used": null
+   },
+   "human": "未知",
+   "is_low": false,
+   "key": "sk-test-key",
+   "known": false,
+   "name": "connect-error",
+   "out": {
+    "known": false
+   },
+   "routes": {
+    "": {
+     "raise": "connect"
+    }
+   },
+   "seen": [
+    "/v1/dashboard/billing/subscription",
+    "/api/user/self"
+   ]
+  },
+  {
+   "base": "http://gw.test/v1",
+   "fields": {
+    "currency": "USD",
+    "remaining": null,
+    "source": "",
+    "total": null,
+    "used": null
+   },
+   "human": "未知",
+   "is_low": false,
+   "key": "sk-test-key",
+   "known": false,
+   "name": "protocol-error",
+   "out": {
+    "known": false
+   },
+   "routes": {
+    "": {
+     "raise": "protocol"
+    }
+   },
+   "seen": [
+    "/v1/dashboard/billing/subscription",
+    "/api/user/self"
+   ]
+  },
+  {
+   "base": "http://gw.test/v1",
+   "fields": {
+    "currency": "quota",
+    "remaining": 88.0,
+    "source": "api/user/self",
+    "total": null,
+    "used": null
+   },
+   "human": "88 额度",
+   "is_low": false,
+   "key": "sk-test-key",
+   "known": true,
+   "name": "first-blows-up-second-answers",
+   "out": {
+    "currency": "quota",
+    "known": true,
+    "remaining": 88.0,
+    "source": "api/user/self",
+    "text": "88 额度",
+    "total": null,
+    "used": null
+   },
+   "routes": {
+    "/api/user/self": {
+     "body": "{\"data\": {\"quota\": 88}}",
+     "content_type": "application/json",
+     "status": 200
+    },
+    "/dashboard/billing/subscription": {
+     "raise": "connect"
+    },
+    "/dashboard/billing/usage": {
+     "raise": "connect"
+    }
+   },
+   "seen": [
+    "/v1/dashboard/billing/subscription",
+    "/api/user/self"
+   ]
+  },
+  {
+   "base": "http://gw.test/v1",
+   "fields": {
+    "currency": "USD",
+    "remaining": null,
+    "source": "",
+    "total": null,
+    "used": null
+   },
+   "human": "未知",
+   "is_low": false,
+   "key": "",
+   "known": false,
+   "name": "no-key",
+   "out": {
+    "known": false
+   },
+   "routes": {
+    "/dashboard/billing/subscription": {
+     "body": "{\"hard_limit_usd\": 20.0}",
+     "content_type": "application/json",
+     "status": 200
+    }
+   },
+   "seen": []
+  },
+  {
+   "base": "",
+   "fields": {
+    "currency": "USD",
+    "remaining": null,
+    "source": "",
+    "total": null,
+    "used": null
+   },
+   "human": "未知",
+   "is_low": false,
+   "key": "sk-test-key",
+   "known": false,
+   "name": "no-base",
+   "out": {
+    "known": false
+   },
+   "routes": {
+    "/dashboard/billing/subscription": {
+     "body": "{\"hard_limit_usd\": 20.0}",
+     "content_type": "application/json",
+     "status": 200
+    }
+   },
+   "seen": []
+  },
+  {
+   "base": "",
+   "fields": {
+    "currency": "USD",
+    "remaining": null,
+    "source": "",
+    "total": null,
+    "used": null
+   },
+   "human": "未知",
+   "is_low": false,
+   "key": "",
+   "known": false,
+   "name": "no-both",
+   "out": {
+    "known": false
+   },
+   "routes": {
+    "/dashboard/billing/subscription": {
+     "body": "{\"hard_limit_usd\": 20.0}",
+     "content_type": "application/json",
+     "status": 200
+    }
+   },
+   "seen": []
+  },
+  {
+   "base": "   ",
+   "fields": {
+    "currency": "USD",
+    "remaining": null,
+    "source": "",
+    "total": null,
+    "used": null
+   },
+   "human": "未知",
+   "is_low": false,
+   "key": "sk-test-key",
+   "known": false,
+   "name": "blank-base",
+   "out": {
+    "known": false
+   },
+   "routes": {
+    "/dashboard/billing/subscription": {
+     "body": "{\"hard_limit_usd\": 20.0}",
+     "content_type": "application/json",
+     "status": 200
+    }
+   },
+   "seen": []
+  }
+ ],
+ "quota_exhausted_text": [
+  {
+   "detail": "insufficient_user_quota",
+   "out": "网关账户余额不足，梳理没法继续。去网关充值后重跑即可，已经跑完的部分会接着用。网关原文：insufficient_user_quota"
+  },
+  {
+   "detail": "",
+   "out": "网关账户余额不足，梳理没法继续。去网关充值后重跑即可，已经跑完的部分会接着用。"
+  },
+  {
+   "detail": "   ",
+   "out": "网关账户余额不足，梳理没法继续。去网关充值后重跑即可，已经跑完的部分会接着用。"
+  },
+  {
+   "detail": "  当前分组上游负载已饱和  ",
+   "out": "网关账户余额不足，梳理没法继续。去网关充值后重跑即可，已经跑完的部分会接着用。网关原文：当前分组上游负载已饱和"
+  },
+  {
+   "detail": "{\"error\":{\"type\":\"insufficient_quota\"}}",
+   "out": "网关账户余额不足，梳理没法继续。去网关充值后重跑即可，已经跑完的部分会接着用。网关原文：{\"error\":{\"type\":\"insufficient_quota\"}}"
+  },
+  {
+   "detail": "\n余额不足\n",
+   "out": "网关账户余额不足，梳理没法继续。去网关充值后重跑即可，已经跑完的部分会接着用。网关原文：余额不足"
+  }
+ ],
+ "quota_low_text": [
+  {
+   "in": {},
+   "out": "网关余额只剩 未知，这次梳理可能跑不完。"
+  },
+  {
+   "in": {
+    "total": 100.0
+   },
+   "out": "网关余额只剩 未知，这次梳理可能跑不完。"
+  },
+  {
+   "in": {
+    "total": 100.0,
+    "used": null
+   },
+   "out": "网关余额只剩 未知，这次梳理可能跑不完。"
+  },
+  {
+   "in": {
+    "used": 3.0
+   },
+   "out": "网关余额只剩 未知，这次梳理可能跑不完。"
+  },
+  {
+   "in": {
+    "remaining": 0.0
+   },
+   "out": "网关余额只剩 $0.00，这次梳理可能跑不完。"
+  },
+  {
+   "in": {
+    "remaining": 17.5,
+    "source": "dashboard/billing",
+    "total": 20.0,
+    "used": 2.5
+   },
+   "out": "网关余额只剩 $17.50，这次梳理可能跑不完。"
+  },
+  {
+   "in": {
+    "currency": "quota",
+    "remaining": 500000.0,
+    "source": "api/user/self",
+    "total": 600000.0,
+    "used": 100000.0
+   },
+   "out": "网关余额只剩 500,000 额度，这次梳理可能跑不完。"
+  },
+  {
+   "in": {
+    "remaining": -5.0,
+    "total": 10.0,
+    "used": 15.0
+   },
+   "out": "网关余额只剩 $-5.00，这次梳理可能跑不完。"
+  },
+  {
+   "in": {
+    "currency": "USD",
+    "remaining": 1.5
+   },
+   "out": "网关余额只剩 $1.50，这次梳理可能跑不完。"
+  },
+  {
+   "in": {
+    "currency": "USD",
+    "remaining": 42.0
+   },
+   "out": "网关余额只剩 $42.00，这次梳理可能跑不完。"
+  },
+  {
+   "in": {
+    "currency": "USD",
+    "remaining": 5.0
+   },
+   "out": "网关余额只剩 $5.00，这次梳理可能跑不完。"
+  },
+  {
+   "in": {
+    "currency": "USD",
+    "remaining": 5.000001
+   },
+   "out": "网关余额只剩 $5.00，这次梳理可能跑不完。"
+  },
+  {
+   "in": {
+    "currency": "quota",
+    "remaining": 50000.0,
+    "total": 1000000.0
+   },
+   "out": "网关余额只剩 50,000 额度，这次梳理可能跑不完。"
+  },
+  {
+   "in": {
+    "currency": "quota",
+    "remaining": 500000.0,
+    "total": 1000000.0
+   },
+   "out": "网关余额只剩 500,000 额度，这次梳理可能跑不完。"
+  },
+  {
+   "in": {
+    "currency": "quota",
+    "remaining": 100000.0,
+    "total": 1000000.0
+   },
+   "out": "网关余额只剩 100,000 额度，这次梳理可能跑不完。"
+  },
+  {
+   "in": {
+    "currency": "quota",
+    "remaining": 0.0,
+    "total": 0.0
+   },
+   "out": "网关余额只剩 0 额度，这次梳理可能跑不完。"
+  },
+  {
+   "in": {
+    "currency": "quota",
+    "remaining": -1.0,
+    "total": -10.0
+   },
+   "out": "网关余额只剩 -1 额度，这次梳理可能跑不完。"
+  },
+  {
+   "in": {
+    "currency": "USD",
+    "remaining": 50000.0,
+    "total": 1000000.0
+   },
+   "out": "网关余额只剩 $50,000.00，这次梳理可能跑不完。"
+  }
+ ],
+ "site_root": [
+  {
+   "in": "http://gw.test/v1",
+   "out": "http://gw.test"
+  },
+  {
+   "in": "http://gw.test/v1/",
+   "out": "http://gw.test/v1/"
+  },
+  {
+   "in": "http://gw.test",
+   "out": "http://gw.test"
+  },
+  {
+   "in": "https://api.openai.com/v1",
+   "out": "https://api.openai.com"
+  },
+  {
+   "in": "http://gw.test/api/v1",
+   "out": "http://gw.test/api"
+  },
+  {
+   "in": "http://gw.test/v1/v1",
+   "out": "http://gw.test/v1"
+  },
+  {
+   "in": "/v1",
+   "out": ""
+  },
+  {
+   "in": "v1",
+   "out": "v1"
+  },
+  {
+   "in": "",
+   "out": ""
+  },
+  {
+   "in": "http://gw.test/V1",
+   "out": "http://gw.test/V1"
+  },
+  {
+   "in": "http://gw.test/v1x",
+   "out": "http://gw.test/v1x"
+  },
+  {
+   "in": "http://gw.test///v1",
+   "out": "http://gw.test"
+  }
+ ],
+ "usage_params": {
+  "end_days_after_today": 1,
+  "format": "%Y-%m-%d",
+  "keys": [
+   "end_date",
+   "start_date"
+  ],
+  "span_days": 100,
+  "start_days_before_today": 99
+ }
+}

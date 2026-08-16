@@ -1,0 +1,925 @@
+{
+ "classify": [
+  {
+   "name": "oir.json",
+   "out": [
+    "oir_json",
+    "Ontology 中间表示（对象/属性/关系/动作/规则/问题）",
+    "mixed"
+   ]
+  },
+  {
+   "name": "flow.json",
+   "out": [
+    "flow_json",
+    "业务流程图数据（Action+Event+Workflow）",
+    "mixed"
+   ]
+  },
+  {
+   "name": "流程图_主干.svg",
+   "out": [
+    "flow_svg_main",
+    "主干业务流程图（仅有依据的环节）",
+    "grounded"
+   ]
+  },
+  {
+   "name": "流程图.svg",
+   "out": [
+    "flow_svg_full",
+    "完整业务流程图（含推断环节）",
+    "mixed"
+   ]
+  },
+  {
+   "name": "流程图.mmd",
+   "out": [
+    "flow_mermaid",
+    "业务流程图 Mermaid 源码",
+    "mixed"
+   ]
+  },
+  {
+   "name": "template.spec.json",
+   "out": [
+    "template_spec",
+    "填写模板结构定义（含回读锚点）",
+    "mixed"
+   ]
+  },
+  {
+   "name": "回传_审核.xlsx",
+   "out": [
+    "audit_return",
+    "回传审核表",
+    "n/a"
+   ]
+  },
+  {
+   "name": "回传.xlsx",
+   "out": [
+    "audit_return",
+    "回传审核表",
+    "n/a"
+   ]
+  },
+  {
+   "name": "回传.csv",
+   "out": [
+    "other",
+    "回传.csv",
+    "n/a"
+   ]
+  },
+  {
+   "name": "模板_v1.xlsx",
+   "out": [
+    "template_xlsx",
+    "业务方填写模板",
+    "mixed"
+   ]
+  },
+  {
+   "name": "随便.txt",
+   "out": [
+    "other",
+    "随便.txt",
+    "n/a"
+   ]
+  },
+  {
+   "name": "",
+   "out": [
+    "other",
+    "",
+    "n/a"
+   ]
+  },
+  {
+   "name": "xlsx",
+   "out": [
+    "other",
+    "xlsx",
+    "n/a"
+   ]
+  },
+  {
+   "name": "materials/回传x.xlsx",
+   "out": [
+    "template_xlsx",
+    "业务方填写模板",
+    "mixed"
+   ]
+  }
+ ],
+ "flow_provenance": [
+  {
+   "label": "none",
+   "in": null,
+   "out": {
+    "nodes": 0,
+    "grounded_nodes": 0,
+    "inferred_nodes": 0,
+    "edges": 0,
+    "grounded_edges": 0,
+    "inferred_edges": 0,
+    "dead_ends": 0,
+    "dangling": 0,
+    "human_edited": 0
+   }
+  },
+  {
+   "label": "empty",
+   "in": {},
+   "out": {
+    "nodes": 0,
+    "grounded_nodes": 0,
+    "inferred_nodes": 0,
+    "edges": 0,
+    "grounded_edges": 0,
+    "inferred_edges": 0,
+    "dead_ends": 0,
+    "dangling": 0,
+    "human_edited": 0
+   }
+  },
+  {
+   "label": "synthetic",
+   "in": {
+    "nodes": [
+     {
+      "grounded": true,
+      "label": {
+       "evidence": []
+      }
+     },
+     {
+      "grounded": false,
+      "label": {
+       "evidence": [
+        {
+         "extractor": "human"
+        }
+       ]
+      }
+     },
+     {
+      "grounded": false,
+      "label": {}
+     },
+     {
+      "label": {
+       "evidence": [
+        {
+         "extractor": "human"
+        },
+        {
+         "extractor": "llm"
+        }
+       ]
+      }
+     }
+    ],
+    "edges": [
+     {
+      "grounded": true,
+      "evidence": []
+     },
+     {
+      "grounded": false,
+      "evidence": [
+       {
+        "extractor": "human"
+       }
+      ]
+     },
+     {
+      "grounded": 0,
+      "evidence": null
+     }
+    ],
+    "stats": {
+     "inferred_edges": 0,
+     "dead_ends": 2,
+     "dangling": "3"
+    }
+   },
+   "out": {
+    "nodes": 4,
+    "grounded_nodes": 1,
+    "inferred_nodes": 3,
+    "edges": 3,
+    "grounded_edges": 1,
+    "inferred_edges": 2,
+    "dead_ends": 2,
+    "dangling": 3,
+    "human_edited": 3
+   }
+  },
+  {
+   "label": "pipeline.flow.json",
+   "in": null,
+   "out": {
+    "nodes": 6,
+    "grounded_nodes": 6,
+    "inferred_nodes": 0,
+    "edges": 5,
+    "grounded_edges": 3,
+    "inferred_edges": 2,
+    "dead_ends": 1,
+    "dangling": 0,
+    "human_edited": 0
+   }
+  }
+ ],
+ "oir_provenance": [
+  {
+   "label": "none",
+   "in": null,
+   "out": {
+    "objects": 0,
+    "properties": 0,
+    "links": 0,
+    "actions": 0,
+    "rules": 0,
+    "questions": 0,
+    "open_questions": 0,
+    "confirmed": 0,
+    "grounded_objects": 0,
+    "inferred_objects": 0,
+    "by_extractor": {}
+   }
+  },
+  {
+   "label": "empty",
+   "in": {},
+   "out": {
+    "objects": 0,
+    "properties": 0,
+    "links": 0,
+    "actions": 0,
+    "rules": 0,
+    "questions": 0,
+    "open_questions": 0,
+    "confirmed": 0,
+    "grounded_objects": 0,
+    "inferred_objects": 0,
+    "by_extractor": {}
+   }
+  },
+  {
+   "label": "synthetic",
+   "in": {
+    "objects": [
+     {
+      "displayName": {
+       "value": "采购包",
+       "origin": "extracted",
+       "evidence": [
+        {
+         "extractor": "docling"
+        }
+       ]
+      }
+     },
+     {
+      "displayName": {
+       "value": "X",
+       "origin": "inferred",
+       "evidence": []
+      }
+     },
+     {
+      "apiName": {
+       "value": "y",
+       "evidence": [
+        {
+         "extractor": "ocr"
+        },
+        {}
+       ]
+      }
+     }
+    ],
+    "rules": [
+     {
+      "statement": {
+       "evidence": [
+        {
+         "extractor": "human"
+        }
+       ]
+      }
+     }
+    ],
+    "questions": [
+     {
+      "text": {
+       "evidence": []
+      }
+     },
+     {}
+    ],
+    "stats": {
+     "open_questions": 2,
+     "confirmed": 1
+    }
+   },
+   "out": {
+    "objects": 3,
+    "properties": 0,
+    "links": 0,
+    "actions": 0,
+    "rules": 1,
+    "questions": 2,
+    "open_questions": 2,
+    "confirmed": 1,
+    "grounded_objects": 2,
+    "inferred_objects": 1,
+    "by_extractor": {
+     "docling": 1,
+     "ocr": 1,
+     "llm": 1,
+     "human": 1
+    }
+   }
+  },
+  {
+   "label": "pipeline.oir.json",
+   "in": null,
+   "out": {
+    "objects": 7,
+    "properties": 0,
+    "links": 0,
+    "actions": 6,
+    "rules": 0,
+    "questions": 5,
+    "open_questions": 5,
+    "confirmed": 0,
+    "grounded_objects": 7,
+    "inferred_objects": 0,
+    "by_extractor": {
+     "rule": 17
+    }
+   }
+  }
+ ],
+ "bundle_id": [
+  {
+   "files": [
+    {
+     "path": "oir.json",
+     "sha256": "aa"
+    },
+    {
+     "path": "flow.json",
+     "sha256": "bb"
+    }
+   ],
+   "pv": "0.1.0",
+   "rs": "",
+   "id": "4d58def6c78a"
+  },
+  {
+   "files": [
+    {
+     "path": "flow.json",
+     "sha256": "bb"
+    },
+    {
+     "path": "oir.json",
+     "sha256": "aa"
+    }
+   ],
+   "pv": "0.1.0",
+   "rs": "",
+   "id": "4d58def6c78a"
+  },
+  {
+   "files": [
+    {
+     "path": "oir.json",
+     "sha256": "aa"
+    },
+    {
+     "path": "flow.json",
+     "sha256": "bb"
+    }
+   ],
+   "pv": "0.2.0",
+   "rs": "",
+   "id": "38b0145050d8"
+  },
+  {
+   "files": [
+    {
+     "path": "oir.json",
+     "sha256": "aa"
+    },
+    {
+     "path": "flow.json",
+     "sha256": "bb"
+    }
+   ],
+   "pv": "0.1.0",
+   "rs": "DRAFT",
+   "id": "0d83ef1e0e6b"
+  },
+  {
+   "files": [
+    {
+     "path": "oir.json",
+     "sha256": "aa"
+    },
+    {
+     "path": "flow.json",
+     "sha256": "bb"
+    }
+   ],
+   "pv": "0.1.0",
+   "rs": "RELEASED",
+   "id": "fc09dc6f2fc1"
+  },
+  {
+   "files": [
+    {
+     "path": "流程图.svg",
+     "sha256": "11"
+    },
+    {
+     "path": "Zz.svg",
+     "sha256": "22"
+    },
+    {
+     "path": "oir.json"
+    }
+   ],
+   "pv": "0.1.0",
+   "rs": "",
+   "id": "256ffe259773"
+  }
+ ],
+ "manifest_cases": [
+  {
+   "label": "draft",
+   "session": {
+    "id": "s1",
+    "title": "T",
+    "project": "P",
+    "status": "done"
+   },
+   "flow": {
+    "nodes": [
+     {
+      "grounded": true,
+      "label": {
+       "evidence": []
+      }
+     },
+     {
+      "grounded": false,
+      "label": {
+       "evidence": [
+        {
+         "extractor": "human"
+        }
+       ]
+      }
+     },
+     {
+      "grounded": false,
+      "label": {}
+     },
+     {
+      "label": {
+       "evidence": [
+        {
+         "extractor": "human"
+        },
+        {
+         "extractor": "llm"
+        }
+       ]
+      }
+     }
+    ],
+    "edges": [
+     {
+      "grounded": true,
+      "evidence": []
+     },
+     {
+      "grounded": false,
+      "evidence": [
+       {
+        "extractor": "human"
+       }
+      ]
+     },
+     {
+      "grounded": 0,
+      "evidence": null
+     }
+    ],
+    "stats": {
+     "inferred_edges": 0,
+     "dead_ends": 2,
+     "dangling": "3"
+    }
+   },
+   "oir": {
+    "objects": [
+     {
+      "displayName": {
+       "value": "采购包",
+       "origin": "extracted",
+       "evidence": [
+        {
+         "extractor": "docling"
+        }
+       ]
+      }
+     },
+     {
+      "displayName": {
+       "value": "X",
+       "origin": "inferred",
+       "evidence": []
+      }
+     },
+     {
+      "apiName": {
+       "value": "y",
+       "evidence": [
+        {
+         "extractor": "ocr"
+        },
+        {}
+       ]
+      }
+     }
+    ],
+    "rules": [
+     {
+      "statement": {
+       "evidence": [
+        {
+         "extractor": "human"
+        }
+       ]
+      }
+     }
+    ],
+    "questions": [
+     {
+      "text": {
+       "evidence": []
+      }
+     },
+     {}
+    ],
+    "stats": {
+     "open_questions": 2,
+     "confirmed": 1
+    }
+   },
+   "open_questions": [
+    {
+     "q": "缺主键"
+    },
+    {
+     "text": "谁负责"
+    },
+    {}
+   ],
+   "manifest": {
+    "schema": "ontocopilot.bundle/1",
+    "product_version": "0.1.0",
+    "bundle_id": "7e93ca5ef583",
+    "release_state": "DRAFT",
+    "generated_at": 1723540123.457,
+    "generated_at_iso": "2026-08-13T12:00:00Z",
+    "session": {
+     "id": "s1",
+     "title": "T",
+     "project": "P",
+     "status": "done"
+    },
+    "materials": [
+     {
+      "name": "材料.xlsx",
+      "size": 3
+     },
+     {
+      "name": "b.pdf"
+     }
+    ],
+    "files": [
+     {
+      "path": "flow.json",
+      "size": 13,
+      "sha256": "256c953c306fee0a6246ac063ceca4864c008a963de826fdaa4bbd75228411cb",
+      "kind": "flow_json",
+      "title": "流程图数据",
+      "provenance": "mixed"
+     },
+     {
+      "path": "流程图_主干.svg",
+      "size": 3,
+      "sha256": "cc",
+      "kind": "flow_svg_main",
+      "title": "主干",
+      "provenance": "grounded"
+     },
+     {
+      "path": "readme.txt",
+      "size": 0
+     }
+    ],
+    "provenance_summary": {
+     "flow": {
+      "nodes": 4,
+      "grounded_nodes": 1,
+      "inferred_nodes": 3,
+      "edges": 3,
+      "grounded_edges": 1,
+      "inferred_edges": 2,
+      "dead_ends": 2,
+      "dangling": 3,
+      "human_edited": 3
+     },
+     "oir": {
+      "objects": 3,
+      "properties": 0,
+      "links": 0,
+      "actions": 0,
+      "rules": 1,
+      "questions": 2,
+      "open_questions": 2,
+      "confirmed": 1,
+      "grounded_objects": 2,
+      "inferred_objects": 1,
+      "by_extractor": {
+       "docling": 1,
+       "ocr": 1,
+       "llm": 1,
+       "human": 1
+      }
+     }
+    },
+    "open_questions": [
+     {
+      "q": "缺主键"
+     },
+     {
+      "text": "谁负责"
+     },
+     {}
+    ],
+    "notes": "灰色/虚线元素为系统推断（材料中无直接依据），交付前请与业务方确认。人工口述/人工编辑的内容标记为 human 来源，同样不是材料证据。"
+   },
+   "manifest_json": "{\n  \"schema\": \"ontocopilot.bundle/1\",\n  \"product_version\": \"0.1.0\",\n  \"bundle_id\": \"7e93ca5ef583\",\n  \"release_state\": \"DRAFT\",\n  \"generated_at\": 1723540123.457,\n  \"generated_at_iso\": \"2026-08-13T12:00:00Z\",\n  \"session\": {\n    \"id\": \"s1\",\n    \"title\": \"T\",\n    \"project\": \"P\",\n    \"status\": \"done\"\n  },\n  \"materials\": [\n    {\n      \"name\": \"材料.xlsx\",\n      \"size\": 3\n    },\n    {\n      \"name\": \"b.pdf\"\n    }\n  ],\n  \"files\": [\n    {\n      \"path\": \"flow.json\",\n      \"size\": 13,\n      \"sha256\": \"256c953c306fee0a6246ac063ceca4864c008a963de826fdaa4bbd75228411cb\",\n      \"kind\": \"flow_json\",\n      \"title\": \"流程图数据\",\n      \"provenance\": \"mixed\"\n    },\n    {\n      \"path\": \"流程图_主干.svg\",\n      \"size\": 3,\n      \"sha256\": \"cc\",\n      \"kind\": \"flow_svg_main\",\n      \"title\": \"主干\",\n      \"provenance\": \"grounded\"\n    },\n    {\n      \"path\": \"readme.txt\",\n      \"size\": 0\n    }\n  ],\n  \"provenance_summary\": {\n    \"flow\": {\n      \"nodes\": 4,\n      \"grounded_nodes\": 1,\n      \"inferred_nodes\": 3,\n      \"edges\": 3,\n      \"grounded_edges\": 1,\n      \"inferred_edges\": 2,\n      \"dead_ends\": 2,\n      \"dangling\": 3,\n      \"human_edited\": 3\n    },\n    \"oir\": {\n      \"objects\": 3,\n      \"properties\": 0,\n      \"links\": 0,\n      \"actions\": 0,\n      \"rules\": 1,\n      \"questions\": 2,\n      \"open_questions\": 2,\n      \"confirmed\": 1,\n      \"grounded_objects\": 2,\n      \"inferred_objects\": 1,\n      \"by_extractor\": {\n        \"docling\": 1,\n        \"ocr\": 1,\n        \"llm\": 1,\n        \"human\": 1\n      }\n    }\n  },\n  \"open_questions\": [\n    {\n      \"q\": \"缺主键\"\n    },\n    {\n      \"text\": \"谁负责\"\n    },\n    {}\n  ],\n  \"notes\": \"灰色/虚线元素为系统推断（材料中无直接依据），交付前请与业务方确认。人工口述/人工编辑的内容标记为 human 来源，同样不是材料证据。\"\n}",
+   "readme": "# 交付包 · P\n\n- 产品版本：0.1.0\n- 包版本戳（bundle_id）：7e93ca5ef583\n- 发布状态：DRAFT\n- 生成时间：2026-08-13T12:00:00Z\n- 会话：s1（done）\n\n> **草稿提示：此包仍有非阻塞问题待澄清，不得视为正式发布版本。**\n\n## 产物清单\n- `flow.json` · 流程图数据（有据+推断，13 字节）\n- `流程图_主干.svg` · 主干（有据，3 字节）\n- `readme.txt` · （—，0 字节）\n\n## 原始材料（输入）\n- `materials/材料.xlsx`（3 字节）\n- `materials/b.pdf`（0 字节）\n\n## 溯源概览\n- 流程图：4 节点（1 有据 / 3 推断），3 条边（2 推断），人工修改 3 处，死路 2。\n- 本体：3 对象（2 有据 / 1 推断）、0 属性、0 关系、1 规则，待澄清 2 条。\n\n## 待澄清（交付前建议先问业务方）\n- 缺主键\n- 谁负责\n- \n\n---\n灰色/虚线元素为系统推断（材料中无直接依据），交付前请与业务方确认。人工口述/人工编辑的内容标记为 human 来源，同样不是材料证据。"
+  },
+  {
+   "label": "released",
+   "session": {
+    "id": "s2",
+    "status": "done",
+    "release_state": "released"
+   },
+   "flow": null,
+   "oir": null,
+   "open_questions": [],
+   "manifest": {
+    "schema": "ontocopilot.bundle/1",
+    "product_version": "0.1.0",
+    "bundle_id": "6c8938a00469",
+    "release_state": "RELEASED",
+    "generated_at": 1723540123.457,
+    "generated_at_iso": "2026-08-13T12:00:00Z",
+    "session": {
+     "id": "s2",
+     "status": "done",
+     "release_state": "released"
+    },
+    "materials": [
+     {
+      "name": "材料.xlsx",
+      "size": 3
+     },
+     {
+      "name": "b.pdf"
+     }
+    ],
+    "files": [
+     {
+      "path": "flow.json",
+      "size": 13,
+      "sha256": "256c953c306fee0a6246ac063ceca4864c008a963de826fdaa4bbd75228411cb",
+      "kind": "flow_json",
+      "title": "流程图数据",
+      "provenance": "mixed"
+     },
+     {
+      "path": "流程图_主干.svg",
+      "size": 3,
+      "sha256": "cc",
+      "kind": "flow_svg_main",
+      "title": "主干",
+      "provenance": "grounded"
+     },
+     {
+      "path": "readme.txt",
+      "size": 0
+     }
+    ],
+    "provenance_summary": {
+     "flow": {
+      "nodes": 0,
+      "grounded_nodes": 0,
+      "inferred_nodes": 0,
+      "edges": 0,
+      "grounded_edges": 0,
+      "inferred_edges": 0,
+      "dead_ends": 0,
+      "dangling": 0,
+      "human_edited": 0
+     },
+     "oir": {
+      "objects": 0,
+      "properties": 0,
+      "links": 0,
+      "actions": 0,
+      "rules": 0,
+      "questions": 0,
+      "open_questions": 0,
+      "confirmed": 0,
+      "grounded_objects": 0,
+      "inferred_objects": 0,
+      "by_extractor": {}
+     }
+    },
+    "open_questions": [],
+    "notes": "灰色/虚线元素为系统推断（材料中无直接依据），交付前请与业务方确认。人工口述/人工编辑的内容标记为 human 来源，同样不是材料证据。"
+   },
+   "manifest_json": "{\n  \"schema\": \"ontocopilot.bundle/1\",\n  \"product_version\": \"0.1.0\",\n  \"bundle_id\": \"6c8938a00469\",\n  \"release_state\": \"RELEASED\",\n  \"generated_at\": 1723540123.457,\n  \"generated_at_iso\": \"2026-08-13T12:00:00Z\",\n  \"session\": {\n    \"id\": \"s2\",\n    \"status\": \"done\",\n    \"release_state\": \"released\"\n  },\n  \"materials\": [\n    {\n      \"name\": \"材料.xlsx\",\n      \"size\": 3\n    },\n    {\n      \"name\": \"b.pdf\"\n    }\n  ],\n  \"files\": [\n    {\n      \"path\": \"flow.json\",\n      \"size\": 13,\n      \"sha256\": \"256c953c306fee0a6246ac063ceca4864c008a963de826fdaa4bbd75228411cb\",\n      \"kind\": \"flow_json\",\n      \"title\": \"流程图数据\",\n      \"provenance\": \"mixed\"\n    },\n    {\n      \"path\": \"流程图_主干.svg\",\n      \"size\": 3,\n      \"sha256\": \"cc\",\n      \"kind\": \"flow_svg_main\",\n      \"title\": \"主干\",\n      \"provenance\": \"grounded\"\n    },\n    {\n      \"path\": \"readme.txt\",\n      \"size\": 0\n    }\n  ],\n  \"provenance_summary\": {\n    \"flow\": {\n      \"nodes\": 0,\n      \"grounded_nodes\": 0,\n      \"inferred_nodes\": 0,\n      \"edges\": 0,\n      \"grounded_edges\": 0,\n      \"inferred_edges\": 0,\n      \"dead_ends\": 0,\n      \"dangling\": 0,\n      \"human_edited\": 0\n    },\n    \"oir\": {\n      \"objects\": 0,\n      \"properties\": 0,\n      \"links\": 0,\n      \"actions\": 0,\n      \"rules\": 0,\n      \"questions\": 0,\n      \"open_questions\": 0,\n      \"confirmed\": 0,\n      \"grounded_objects\": 0,\n      \"inferred_objects\": 0,\n      \"by_extractor\": {}\n    }\n  },\n  \"open_questions\": [],\n  \"notes\": \"灰色/虚线元素为系统推断（材料中无直接依据），交付前请与业务方确认。人工口述/人工编辑的内容标记为 human 来源，同样不是材料证据。\"\n}",
+   "readme": "# 交付包 · s2\n\n- 产品版本：0.1.0\n- 包版本戳（bundle_id）：6c8938a00469\n- 发布状态：RELEASED\n- 生成时间：2026-08-13T12:00:00Z\n- 会话：s2（done）\n\n## 产物清单\n- `flow.json` · 流程图数据（有据+推断，13 字节）\n- `流程图_主干.svg` · 主干（有据，3 字节）\n- `readme.txt` · （—，0 字节）\n\n## 原始材料（输入）\n- `materials/材料.xlsx`（3 字节）\n- `materials/b.pdf`（0 字节）\n\n## 溯源概览\n- 流程图：0 节点（0 有据 / 0 推断），0 条边（0 推断），人工修改 0 处，死路 0。\n- 本体：0 对象（0 有据 / 0 推断）、0 属性、0 关系、0 规则，待澄清 0 条。\n\n---\n灰色/虚线元素为系统推断（材料中无直接依据），交付前请与业务方确认。人工口述/人工编辑的内容标记为 human 来源，同样不是材料证据。"
+  },
+  {
+   "label": "bogus_state",
+   "session": {
+    "id": "s3",
+    "status": "x",
+    "release_state": "WEIRD"
+   },
+   "flow": null,
+   "oir": null,
+   "open_questions": [],
+   "manifest": {
+    "schema": "ontocopilot.bundle/1",
+    "product_version": "0.1.0",
+    "bundle_id": "7e93ca5ef583",
+    "release_state": "DRAFT",
+    "generated_at": 1723540123.457,
+    "generated_at_iso": "2026-08-13T12:00:00Z",
+    "session": {
+     "id": "s3",
+     "status": "x",
+     "release_state": "WEIRD"
+    },
+    "materials": [
+     {
+      "name": "材料.xlsx",
+      "size": 3
+     },
+     {
+      "name": "b.pdf"
+     }
+    ],
+    "files": [
+     {
+      "path": "flow.json",
+      "size": 13,
+      "sha256": "256c953c306fee0a6246ac063ceca4864c008a963de826fdaa4bbd75228411cb",
+      "kind": "flow_json",
+      "title": "流程图数据",
+      "provenance": "mixed"
+     },
+     {
+      "path": "流程图_主干.svg",
+      "size": 3,
+      "sha256": "cc",
+      "kind": "flow_svg_main",
+      "title": "主干",
+      "provenance": "grounded"
+     },
+     {
+      "path": "readme.txt",
+      "size": 0
+     }
+    ],
+    "provenance_summary": {
+     "flow": {
+      "nodes": 0,
+      "grounded_nodes": 0,
+      "inferred_nodes": 0,
+      "edges": 0,
+      "grounded_edges": 0,
+      "inferred_edges": 0,
+      "dead_ends": 0,
+      "dangling": 0,
+      "human_edited": 0
+     },
+     "oir": {
+      "objects": 0,
+      "properties": 0,
+      "links": 0,
+      "actions": 0,
+      "rules": 0,
+      "questions": 0,
+      "open_questions": 0,
+      "confirmed": 0,
+      "grounded_objects": 0,
+      "inferred_objects": 0,
+      "by_extractor": {}
+     }
+    },
+    "open_questions": [],
+    "notes": "灰色/虚线元素为系统推断（材料中无直接依据），交付前请与业务方确认。人工口述/人工编辑的内容标记为 human 来源，同样不是材料证据。"
+   },
+   "manifest_json": "{\n  \"schema\": \"ontocopilot.bundle/1\",\n  \"product_version\": \"0.1.0\",\n  \"bundle_id\": \"7e93ca5ef583\",\n  \"release_state\": \"DRAFT\",\n  \"generated_at\": 1723540123.457,\n  \"generated_at_iso\": \"2026-08-13T12:00:00Z\",\n  \"session\": {\n    \"id\": \"s3\",\n    \"status\": \"x\",\n    \"release_state\": \"WEIRD\"\n  },\n  \"materials\": [\n    {\n      \"name\": \"材料.xlsx\",\n      \"size\": 3\n    },\n    {\n      \"name\": \"b.pdf\"\n    }\n  ],\n  \"files\": [\n    {\n      \"path\": \"flow.json\",\n      \"size\": 13,\n      \"sha256\": \"256c953c306fee0a6246ac063ceca4864c008a963de826fdaa4bbd75228411cb\",\n      \"kind\": \"flow_json\",\n      \"title\": \"流程图数据\",\n      \"provenance\": \"mixed\"\n    },\n    {\n      \"path\": \"流程图_主干.svg\",\n      \"size\": 3,\n      \"sha256\": \"cc\",\n      \"kind\": \"flow_svg_main\",\n      \"title\": \"主干\",\n      \"provenance\": \"grounded\"\n    },\n    {\n      \"path\": \"readme.txt\",\n      \"size\": 0\n    }\n  ],\n  \"provenance_summary\": {\n    \"flow\": {\n      \"nodes\": 0,\n      \"grounded_nodes\": 0,\n      \"inferred_nodes\": 0,\n      \"edges\": 0,\n      \"grounded_edges\": 0,\n      \"inferred_edges\": 0,\n      \"dead_ends\": 0,\n      \"dangling\": 0,\n      \"human_edited\": 0\n    },\n    \"oir\": {\n      \"objects\": 0,\n      \"properties\": 0,\n      \"links\": 0,\n      \"actions\": 0,\n      \"rules\": 0,\n      \"questions\": 0,\n      \"open_questions\": 0,\n      \"confirmed\": 0,\n      \"grounded_objects\": 0,\n      \"inferred_objects\": 0,\n      \"by_extractor\": {}\n    }\n  },\n  \"open_questions\": [],\n  \"notes\": \"灰色/虚线元素为系统推断（材料中无直接依据），交付前请与业务方确认。人工口述/人工编辑的内容标记为 human 来源，同样不是材料证据。\"\n}",
+   "readme": "# 交付包 · s3\n\n- 产品版本：0.1.0\n- 包版本戳（bundle_id）：7e93ca5ef583\n- 发布状态：DRAFT\n- 生成时间：2026-08-13T12:00:00Z\n- 会话：s3（x）\n\n> **草稿提示：此包仍有非阻塞问题待澄清，不得视为正式发布版本。**\n\n## 产物清单\n- `flow.json` · 流程图数据（有据+推断，13 字节）\n- `流程图_主干.svg` · 主干（有据，3 字节）\n- `readme.txt` · （—，0 字节）\n\n## 原始材料（输入）\n- `materials/材料.xlsx`（3 字节）\n- `materials/b.pdf`（0 字节）\n\n## 溯源概览\n- 流程图：0 节点（0 有据 / 0 推断），0 条边（0 推断），人工修改 0 处，死路 0。\n- 本体：0 对象（0 有据 / 0 推断）、0 属性、0 关系、0 规则，待澄清 0 条。\n\n---\n灰色/虚线元素为系统推断（材料中无直接依据），交付前请与业务方确认。人工口述/人工编辑的内容标记为 human 来源，同样不是材料证据。"
+  }
+ ],
+ "manifest_files": [
+  {
+   "path": "flow.json",
+   "size": 13,
+   "sha256": "256c953c306fee0a6246ac063ceca4864c008a963de826fdaa4bbd75228411cb",
+   "kind": "flow_json",
+   "title": "流程图数据",
+   "provenance": "mixed"
+  },
+  {
+   "path": "流程图_主干.svg",
+   "size": 3,
+   "sha256": "cc",
+   "kind": "flow_svg_main",
+   "title": "主干",
+   "provenance": "grounded"
+  },
+  {
+   "path": "readme.txt",
+   "size": 0
+  }
+ ],
+ "manifest_materials": [
+  {
+   "name": "材料.xlsx",
+   "size": 3
+  },
+  {
+   "name": "b.pdf"
+  }
+ ],
+ "zip": {
+  "date_time": [
+   2026,
+   8,
+   13,
+   20,
+   27,
+   35
+  ],
+  "entries": [
+   {
+    "name": "flow.json",
+    "b64": "eyJub2RlcyI6IFtdfQ=="
+   },
+   {
+    "name": "materials/材料.xlsx",
+    "b64": "YWJj"
+   },
+   {
+    "name": "空.bin",
+    "b64": ""
+   },
+   {
+    "name": "big.txt",
+    "b64": "eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHg="
+   }
+  ],
+  "manifest_case": "draft",
+  "b64": "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",
+  "namelist": [
+   "flow.json",
+   "materials/材料.xlsx",
+   "空.bin",
+   "big.txt",
+   "manifest.json",
+   "交付说明.md"
+  ]
+ }
+}
