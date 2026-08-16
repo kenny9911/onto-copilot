@@ -3,16 +3,15 @@
   "configurations": [
     {
       "name": "ontocopilot",
-      "runtimeExecutable": ".venv/bin/python",
-      "runtimeArgs": ["-m", "uvicorn", "ontocopilot.server:app", "--host", "127.0.0.1", "--port", "8080"],
-      "port": 8080
+      "runtimeExecutable": "ts/node_modules/.bin/tsx",
+      "runtimeArgs": ["ts/src/main.ts"],
+      "port": 3594
     },
     {
-      "name": "ontocopilot-8000",
-      "runtimeExecutable": ".venv/bin/python",
-      "runtimeArgs": ["-m", "uvicorn", "ontocopilot.server:app",
-                      "--host", "127.0.0.1", "--port", "8000", "--reload"],
-      "port": 8000
+      "name": "ontocopilot-watch",
+      "runtimeExecutable": "ts/node_modules/.bin/tsx",
+      "runtimeArgs": ["watch", "ts/src/main.ts", "--port", "3595"],
+      "port": 3595
     }
   ]
 }

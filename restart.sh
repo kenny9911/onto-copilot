@@ -1,7 +1,7 @@
 #!/bin/zsh
 # OntoCopilot 重启 —— 前后端是**同一个进程**（TS 服务在 / 直接吐前端），所以只有一个。
 #
-#   ./restart.sh              # 默认 8000
+#   ./restart.sh              # 默认 3594
 #   ./restart.sh 8010         # 换端口
 #   PORT=8010 ./restart.sh    # 同上
 #
@@ -14,7 +14,7 @@
 set -u
 
 ROOT="${0:A:h}"
-PORT="${1:-${PORT:-8000}}"
+PORT="${1:-${PORT:-3594}}"
 
 echo "==> 停掉占用 :$PORT 的进程"
 pids=$(lsof -ti "tcp:$PORT" 2>/dev/null)

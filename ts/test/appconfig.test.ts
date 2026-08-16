@@ -377,7 +377,7 @@ describe("/api/config", () => {
 // ══════════════════════════════════════════════════════════════════
 describe("serve", () => {
   it("argparse 的那一小块", () => {
-    expect(parseArgs([])).toEqual({ host: "127.0.0.1", port: 8000, reload: false });
+    expect(parseArgs([])).toEqual({ host: "127.0.0.1", port: 3594, reload: false });
     expect(parseArgs(["--host", "0.0.0.0", "--port", "9000", "--reload"])).toEqual({
       host: "0.0.0.0",
       port: 9000,

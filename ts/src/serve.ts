@@ -806,7 +806,7 @@ export async function startServer(
     // 一个看起来毫不相干的 EADDRNOTAVAIL。
     ({ server, port } = await new Promise<{ server: ReturnType<typeof serve>; port: number }>(
       (resolve, reject) => {
-        const s = serve({ fetch: app.fetch, hostname: host, port: opts.port ?? 8000 }, (info) =>
+        const s = serve({ fetch: app.fetch, hostname: host, port: opts.port ?? DEFAULT_PORT }, (info) =>
           resolve({ server: s, port: info.port }),
         );
         // **关掉 Node 的 5 分钟请求超时。** uvicorn 没有这个限制，所以 Python 时代
@@ -843,6 +843,15 @@ export async function startServer(
   };
 }
 
+/**
+ * 不给 `--port` 时监听哪个口。
+ *
+ * **只此一处。** 之前这个数字在 `parseArgs` 和 `serve()` 的兜底里各写了一遍，
+ * 改端口时漏掉任何一边都不会报错 —— 命令行进来的路径和内部直接调 `main()` 的
+ * 路径会听在两个不同的口上，而两边都"能起来"。
+ */
+export const DEFAULT_PORT = 3594;
+
 /** `argparse` 的那一小块：`--host` / `--port` / `--reload`。 */
 export interface ServeArgs {
   host: string;
@@ -859,7 +868,7 @@ export class ArgError extends Error {
 }
 
 export function parseArgs(argv: readonly string[]): ServeArgs {
-  const out: ServeArgs = { host: "127.0.0.1", port: 8000, reload: false };
+  const out: ServeArgs = { host: "127.0.0.1", port: DEFAULT_PORT, reload: false };
   for (let i = 0; i < argv.length; i += 1) {
     const a = argv[i]!;
     const eq = a.indexOf("=");
