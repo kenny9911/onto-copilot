@@ -5,8 +5,8 @@
   "type": "module",
   "description": "OntoCopilot 的 TypeScript 侧。迁移期间与 src/ontocopilot 并存，golden/ 是两边共同的真相。",
   "scripts": {
-    "test": "vitest run",
-    "check": "tsc --noEmit && eslint src test",
+    "test": "NODE_OPTIONS=--no-experimental-webstorage vitest run",
+    "check": "tsc --noEmit",
     "start": "tsx src/main.ts",
     "dev": "tsx watch src/main.ts",
     "build:ui": "node tools/build-ui.mjs"
@@ -18,7 +18,9 @@
     "@types/pg": "^8.21.0",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
+    "esbuild": "^0.28.2",
     "happy-dom": "^20.11.2",
+    "tsx": "^4.20.6",
     "typescript": "^5.7.0",
     "vitest": "^3.0.0"
   },

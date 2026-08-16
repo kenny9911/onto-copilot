@@ -546,6 +546,17 @@ function exitCodeFor(code: number | null, signal: NodeJS.Signals | null): number
 }
 
 /**
+ * 本机这个 Node 认不认 `--allow-net`（Node 26 起的 Net 权限档）。认就是这个串，
+ * 不认就是 null —— 见 `nodeArgs` 里为什么必须先探测。
+ *
+ * `allowedNodeEnvironmentFlags` 是 Node 自己那份完整的参数名集合，比对版本号靠谱：
+ * 发行版可能回补，而我们要问的从来是「这个二进制认不认」。
+ */
+const ALLOW_NET: string | null = process.allowedNodeEnvironmentFlags.has("--allow-net")
+  ? "--allow-net"
+  : null;
+
+/**
  * 独立进程 + Node 权限模型 + 资源上限 + 环境清洗 + 出网拦截。
  *
  * ⚠️ **无内核隔离。** 挡得住失控循环、内存爆炸、误删宿主文件、顺手出网；挡不住
@@ -582,6 +593,15 @@ export class LocalSubprocessSandbox extends SandboxExecutor {
       // 但模型写的数据变换（数组、对象、字符串）全在老生代里。
       `--max-old-space-size=${l.memoryMb}`,
     ];
+    // Node 26 起权限模型多了 **Net** 这一档：开着 `--permission` 时出网默认就是
+    // 拒绝的（`ERR_ACCESS_DENIED` / `permission: 'Net'`），不再需要谁去拦。
+    // 对 `network: false` 这是白捡的一层——preload 照打不误，两道锁而已。
+    // 但 `network: true` 的语义是「沙箱不管出网，交给上面的人管」，在新 Node 上
+    // 会被权限模型连坐掐死，所以这里要显式放行。
+    //
+    // 之所以先探测再加：不认识的参数会让 node **起都起不来**（`node: bad option`），
+    // 而不是忽略掉。旧 Node 上没有 Net 这一档，出网本来就是通的，不加正好。
+    if (l.network && ALLOW_NET !== null) args.push(ALLOW_NET);
     if (preload !== null) args.push(`--import=${pathToFileURL(preload).href}`);
     args.push(codeFile);
     return args;
