@@ -1,65 +1,77 @@
 {
- "ladder": [
-  {
-   "spent_frac": 0.0,
-   "level": 0,
-   "critic_rounds_of_2": 2,
-   "allow_self_consistency": true,
-   "allow_llm_critic": true,
-   "must_halt": false
-  },
-  {
-   "spent_frac": 0.5,
-   "level": 0,
-   "critic_rounds_of_2": 2,
-   "allow_self_consistency": true,
-   "allow_llm_critic": true,
-   "must_halt": false
-  },
-  {
-   "spent_frac": 0.61,
-   "level": 1,
-   "critic_rounds_of_2": 2,
-   "allow_self_consistency": false,
-   "allow_llm_critic": true,
-   "must_halt": false
-  },
-  {
-   "spent_frac": 0.76,
-   "level": 2,
-   "critic_rounds_of_2": 1,
-   "allow_self_consistency": false,
-   "allow_llm_critic": true,
-   "must_halt": false
-  },
-  {
-   "spent_frac": 0.86,
-   "level": 3,
-   "critic_rounds_of_2": 0,
-   "allow_self_consistency": false,
-   "allow_llm_critic": false,
-   "must_halt": false
-  },
-  {
-   "spent_frac": 0.9601,
-   "level": 4,
-   "critic_rounds_of_2": 0,
-   "allow_self_consistency": false,
-   "allow_llm_critic": false,
-   "must_halt": true
-  },
-  {
-   "spent_frac": 1.0,
-   "level": 4,
-   "critic_rounds_of_2": 0,
-   "allow_self_consistency": false,
-   "allow_llm_critic": false,
-   "must_halt": true
-  },
-  {
-   "case": "latch",
-   "after_spend_900": 3,
-   "after_rollback_to_100": 3
-  }
- ]
+  "ladder": [
+    {
+      "spent_frac": 0.0,
+      "level": 0,
+      "critic_rounds_of_2": 2,
+      "allow_self_consistency": true,
+      "allow_llm_critic": true,
+      "must_halt": false
+    },
+    {
+      "spent_frac": 0.5,
+      "level": 0,
+      "critic_rounds_of_2": 2,
+      "allow_self_consistency": true,
+      "allow_llm_critic": true,
+      "must_halt": false
+    },
+    {
+      "spent_frac": 0.61,
+      "level": 1,
+      "critic_rounds_of_2": 2,
+      "allow_self_consistency": false,
+      "allow_llm_critic": true,
+      "must_halt": false
+    },
+    {
+      "spent_frac": 0.76,
+      "level": 2,
+      "critic_rounds_of_2": 1,
+      "allow_self_consistency": false,
+      "allow_llm_critic": true,
+      "must_halt": false
+    },
+    {
+      "spent_frac": 0.86,
+      "level": 3,
+      "critic_rounds_of_2": 1,
+      "allow_self_consistency": false,
+      "allow_llm_critic": false,
+      "must_halt": false
+    },
+    {
+      "spent_frac": 0.9601,
+      "level": 4,
+      "critic_rounds_of_2": 0,
+      "allow_self_consistency": false,
+      "allow_llm_critic": false,
+      "must_halt": true
+    },
+    {
+      "spent_frac": 1.0,
+      "level": 4,
+      "critic_rounds_of_2": 0,
+      "allow_self_consistency": false,
+      "allow_llm_critic": false,
+      "must_halt": true
+    },
+    {
+      "case": "latch",
+      "after_spend_900": 3,
+      "after_rollback_to_100": 3
+    }
+  ],
+  "deliberate_changes": [
+    {
+      "id": "critic-floor-at-rules-only",
+      "what": "DegradeLevel.RULES_ONLY 档 criticRounds(requested>0) 由 0 改为 1",
+      "python_was": 0,
+      "ts_is": 1,
+      "why": "这一档的枚举注释自陈语义是「跳过 LLM critic，产物标『未经语义审核』」、描述文案是「仅规则评审」—— 规则档 critic 本来就该继续跑。返回 0 会让 loop.ts 的 rounds !== 0 守卫把整个 critic 环连同 refine 一起跳过。同档的 allowLlmCritic() 已返回 false，两个方法互相矛盾，且 allowLlmCritic 在这一档的分支因此永远不可达。",
+      "risk_if_unchanged": "currentLevel() 是 latch 且本档 mustHalt() 仍为 false —— 梳理继续进行，但从此没有任何 critic 看过，产物上也没有标记。失败方向是「静默发布未经审核的产物」。",
+      "not_changed": "HALT 档（4）仍返回 0 —— 那一档本来就没有工作在跑。",
+      "note": "与 known_divergence 类的条目**性质不同**：那些是 JS 表示不了 Python 的语义，这一条是我们主动选择与 Python 不同。Python 侧源码已删除，「与 Python 保持一致」不再是一条有效理由。"
+    }
+  ]
 }

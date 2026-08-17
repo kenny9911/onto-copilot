@@ -294,9 +294,31 @@ export class Budget {
   }
 
   // ── 节点级派生 ──────────────────────────────────────────────
+  /**
+   * 本节点实际要跑几轮 critic。
+   *
+   * **降级不许把审查降到零** —— 这是与 Python golden 的一处**故意分叉**
+   * （`golden/budget.json` 的 level 3 原值是 0）。
+   *
+   * 理由是本枚举自己写的语义：`RULES_ONLY` 的注释是「跳过 LLM critic，产物标
+   * 『未经语义审核』」，描述文案是「仅规则评审」—— **规则档 critic 本来就该
+   * 继续跑**。返回 0 会让 `loop.ts` 的 `rounds !== 0` 守卫把整个 critic 环连同
+   * refine 一起跳过，规则档也一并没了。同一档的 `allowLlmCritic()` 已经返回
+   * false，两个方法对同一档给出互相矛盾的指令，而且让 `allowLlmCritic` 在这一
+   * 档的分支永远不可达。
+   *
+   * 为什么这条比省钱重要：`currentLevel()` 是 latch，而 `RULES_ONLY` 档
+   * `mustHalt()` 仍是 false —— **梳理继续进行，只是从此没有任何 critic 看过**。
+   * 失败方向是"静默发布未经审核的产物"，不是"明确失败"。规则档 critic 不花
+   * 模型的钱，省它省不出什么，代价却是审查断档。
+   *
+   * `HALT` 档返回 0 是对的：那一档本来就不该有工作在跑。
+   * `requested === 0`（节点自己声明不要 critic）也照旧是 0 —— 下限护的是降级
+   * 这个动作，不是去覆盖节点自己的声明。
+   */
   criticRounds(requested: number): number {
     const lvl = this.currentLevel(); // 注意：latch
-    if (lvl >= DegradeLevel.RULES_ONLY) return 0;
+    if (lvl >= DegradeLevel.HALT) return 0;
     if (lvl >= DegradeLevel.FEWER_CRITIC_ROUNDS) return Math.min(requested, 1);
     return requested;
   }
