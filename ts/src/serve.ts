@@ -81,6 +81,7 @@ import {
   type QuestionDeps,
 } from "./server/routes/questions.js";
 import { registerStreamRoutes } from "./server/routes/stream.js";
+import { registerForkRoutes } from "./server/routes/fork.js";
 import type { CatalogLike, ServerEnv } from "./server/routes/sessions.js";
 import type { Session } from "./server/session.js";
 
@@ -676,6 +677,7 @@ export function serverEnv(): ServerEnv {
       return h as unknown as Record<string, never>;
     },
     skillNames: () => PARTS.skillNames(),
+    restoreDialogue: (s) => restoreDialogue(s),
     fdeEngagementDag: () => PARTS.fdeEngagementDag(),
   } as ServerEnv;
 }
@@ -757,6 +759,7 @@ export function wireServer(): void {
   registerFileRoutes(app, env);
   registerProjectRoutes(app);
   registerStreamRoutes(app);
+  registerForkRoutes(app, env);
   registerArtifactRoutes(seam(app), {
     exportModule: {
       resolveFormat: exportApi.resolveFormat,

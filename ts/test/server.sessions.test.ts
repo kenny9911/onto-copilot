@@ -101,6 +101,7 @@ const ENV: ServerEnv = {
   }),
   storeHealthcheck: async () => ({ mode: "memory", ok: true }),
   skillNames: () => ["sql.read"],
+  restoreDialogue: async () => {},
   fdeEngagementDag: () => ({
     frozen: true,
     topoOrder: () => ["INTAKE", "PROCESS", "INTERVIEW", "EXPORT"],

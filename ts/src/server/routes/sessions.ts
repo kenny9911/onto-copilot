@@ -131,6 +131,9 @@ export interface ServerEnv {
   skillNames(): string[];
   /** `build_fde_engagement_dag()`。 */
   fdeEngagementDag(): EngagementDagLike;
+  /** `_restore_dialogue`：把 repo 里的决策行并进对话记忆。fork 复制完决策后要
+   *  立刻调它 —— 不然「已拍板」要等下一次冷加载才看得见。 */
+  restoreDialogue(s: Session): Promise<void>;
 }
 
 // ══════════════════════════════════════════════════════════════════

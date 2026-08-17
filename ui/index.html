@@ -13923,6 +13923,9 @@ body.dragging .preview{transition:none}
     const cur = s.project_id || "";
     const items = [
       { label: t("session.rename"), run: () => renameSession(sid) },
+      // 分叉：复制材料+已拍板的决策到新会话，重新梳理。放在改名旁边 ——
+      // 它们同属「对这个会话本身的操作」，项目归属那一段是另一类。
+      { label: t("session.fork"), run: () => forkSession(sid) },
       { sec: t("project.moveTo") }
     ];
     if (G.PROJECTS.length) {
@@ -15132,6 +15135,19 @@ body.dragging .preview{transition:none}
     if ((!G.S || (G.S.mode || "work") !== G.MODE) && G.SESSION_LIST.length) openSession(G.SESSION_LIST[0].id);
     else if (!G.S) render();
   }
+  async function forkSession(sid) {
+    try {
+      const out = await j(`/api/sessions/${encodeURIComponent(sid)}/fork`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: "{}"
+      });
+      await loadSessions();
+      if (out && out.id) await openSession(String(out.id));
+    } catch (e) {
+      alert(t("fork.failed", "分叉失败") + ": " + (e?.message || e));
+    }
+  }
   function paintSessions() {
     syncProjectChrome();
     bumpUi();
@@ -15444,6 +15460,8 @@ body.dragging .preview{transition:none}
       "session.newWork": "新会话",
       "session.rename": "重命名",
       "session.renamePrompt": "给这个会话起个名字",
+      "session.fork": "从拍板点分叉",
+      "fork.failed": "分叉失败",
       "session.renameTip": "双击可以改名",
       "session.renameFailed": "没能改名，稍后再试",
       "login.title": "登录",
@@ -15669,6 +15687,8 @@ body.dragging .preview{transition:none}
       "session.newWork": "New session",
       "session.rename": "Rename",
       "session.renamePrompt": "Name this session",
+      "session.fork": "Fork at decision",
+      "fork.failed": "Fork failed",
       "session.renameTip": "Double-click to rename",
       "session.renameFailed": "Couldn’t rename, try again later",
       "login.title": "Sign in",

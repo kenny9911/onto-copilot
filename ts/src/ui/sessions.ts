@@ -37,6 +37,25 @@ export async function loadSessions(){
  *
  * 单独拆出来的原因没变：折叠项目、切语言这类**纯重画**不用再跑一次网络请求。
  */
+/**
+ * 从拍板点分叉 —— 借 pi 的会话树：复制材料 + 前 N 条已拍板决策，产物由「重新梳理」重建。
+ *
+ * v1 只提供「从最新拍板点分叉」这一个入口（菜单一条）。按任意 ordinal 分叉的
+ * 能力后端已有（POST body 里给 at_ordinal），等决策历史在界面上有了自己的列表，
+ * 每一条挂一个入口才有意义 —— 在那之前挂在哪都像是藏起来的。
+ */
+export async function forkSession(sid: string): Promise<void> {
+  try {
+    const out = await j(`/api/sessions/${encodeURIComponent(sid)}/fork`, { method: "POST",
+      headers: { "content-type": "application/json" }, body: "{}" });
+    await loadSessions();
+    if (out && out.id) await openSession(String(out.id));
+  } catch (e: any) {
+    // 与其它会话操作同一个失败出口：说人话，不吞
+    alert(t("fork.failed", "分叉失败") + ": " + (e?.message || e));
+  }
+}
+
 export function paintSessions(){
   syncProjectChrome();
   bumpUi();

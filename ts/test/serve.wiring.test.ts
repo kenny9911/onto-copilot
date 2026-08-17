@@ -111,7 +111,17 @@ describe("wireServer", () => {
       "GET /api/config",
       "PUT /api/config",
     ];
-    const known = new Set([...PYTHON_ROUTES.map(([m, p]) => `${m} ${p}`), ...ROUTER_ROUTES]);
+    // 迁移完成后**新增**的路由 —— 它们没有 Python 对应物（Python 已经不存在了），
+    // 但同样必须逐条列出：这张清单的价值就在于"多一条路由必须有人显式认领"。
+    const POST_MIGRATION_ROUTES = [
+      // 会话分叉（借 pi 的会话树交互）：从拍板点 ordinal 复制材料+决策，重新梳理
+      "POST /api/sessions/:sid/fork",
+    ];
+    const known = new Set([
+      ...PYTHON_ROUTES.map(([m, p]) => `${m} ${p}`),
+      ...ROUTER_ROUTES,
+      ...POST_MIGRATION_ROUTES,
+    ]);
     expect(handlerRoutes().filter((k) => !known.has(k))).toEqual([]);
   });
 
