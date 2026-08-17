@@ -380,3 +380,35 @@ describe("审查下限：降级不许把 critic 降到零", () => {
     expect(b.criticRounds(2)).toBe(2);
   });
 });
+
+describe("降级标记：Budget 要说得出什么没跑", () => {
+  it("未降级 → 空数组，调用方据此一个键都不往产物里加", () => {
+    expect(new Budget().skippedReviews()).toEqual([]);
+  });
+
+  it("RULES_ONLY → 报出 llm_critic 没跑，带级别与中文标签", () => {
+    const b = new Budget();
+    b.pinLevel(DegradeLevel.RULES_ONLY);
+    const s = b.skippedReviews();
+    expect(s).toHaveLength(1);
+    expect(s[0]!.what).toBe("llm_critic");
+    expect(s[0]!.level).toBe(DegradeLevel.RULES_ONLY);
+    expect(s[0]!.label).toContain("仅规则评审");
+    // 措辞要说清规则档**仍然跑了** —— 否则读的人会以为一点审查都没有
+    expect(s[0]!.why).toContain("规则档评审仍已执行");
+  });
+
+  it("轻度降级（FEWER_CRITIC_ROUNDS）不算跳过语义评审", () => {
+    const b = new Budget();
+    b.pinLevel(DegradeLevel.FEWER_CRITIC_ROUNDS);
+    expect(b.skippedReviews()).toEqual([]);
+  });
+
+  it("跟着 latch 走：曾经降到过就一直报 —— 贴标依据是这次运行发生过什么", () => {
+    const b = new Budget({ tokens: 1000 });
+    b.spend({ tokens: 900 }); // 剩 10% → RULES_ONLY
+    expect(b.skippedReviews()).toHaveLength(1);
+    b.spend({ tokens: -800 }); // 「退款」，剩余回到 90%
+    expect(b.skippedReviews()).toHaveLength(1); // 仍然报
+  });
+});

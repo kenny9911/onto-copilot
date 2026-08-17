@@ -152,6 +152,8 @@ export async function resumeEngagementRelease(
       generatedAt: pyIsoUtc(s.created),
       // `os.access(s.dir, os.W_OK)` —— 目录不可写就不该说产物"可下载"。
       releaseDownloadable: writable(s.dir),
+      // 降级过就让产物自己说出来（budget.ts 的注释承诺过的那个标记）
+      skippedReviews: budget.skippedReviews(),
     });
     const loop = new AgentLoop({
       gateway: gw,

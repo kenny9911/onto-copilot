@@ -18,6 +18,7 @@
  *   any server-side artifact writer is called.
  */
 
+import type { SkippedReview } from "./canonical.js";
 import { buildPackage, pyStr, pyStrip, validatePackage } from "./canonical.js";
 import { cmpCodePoint } from "./difflib.js";
 import type { OIR } from "./oir.js";
@@ -203,6 +204,7 @@ export interface EngagementRuntimeInputInit {
   artifactRevision?: number;
   generatedAt?: string;
   releaseDownloadable?: boolean;
+  skippedReviews?: readonly SkippedReview[] | undefined;
 }
 
 /** Materialized inputs for one engagement execution/replay. */
@@ -217,12 +219,15 @@ export class EngagementRuntimeInput {
   readonly artifactRevision: number;
   readonly generatedAt: string;
   readonly releaseDownloadable: boolean;
+  /** 本次运行没有跑的评审（`Budget.skippedReviews()`）。空 = 全跑了。 */
+  readonly skippedReviews: readonly SkippedReview[];
 
   // 默认值写在构造函数体里而不是 class field —— 见 CONTRACT §1。
   constructor(init: EngagementRuntimeInputInit) {
     this.sessionId = init.sessionId;
     this.project = init.project;
     this.oir = init.oir;
+    this.skippedReviews = [...(init.skippedReviews ?? [])];
     this.flow = init.flow ?? null;
     this.backlog = init.backlog ?? new QuestionBacklog();
     this.decisions = init.decisions ?? new DecisionLedger();
@@ -612,6 +617,9 @@ export class CanonicalizeHandler extends NodeHandler {
         generatedAt: this.runtime.generatedAt,
         decisions: this.runtime.decisionRows(),
         backlog: this.runtime.questionBacklog(),
+        // 降级过就让产物自己说出来 —— 这是 budget.ts 的注释承诺过、
+        // 而实现里一直不存在的那个「未经语义审核」标记。
+        skippedReviews: this.runtime.skippedReviews,
       },
     );
     const report = validatePackage(pkg);

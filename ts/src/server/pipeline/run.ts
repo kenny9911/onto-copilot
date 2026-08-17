@@ -670,6 +670,8 @@ export async function runPipeline(
       // Recorder 重放要求输出确定。会话创建时刻对同一语料 run 始终稳定。
       generatedAt: pyIsoUtc(s.created),
       releaseDownloadable: await writable(s.dir),
+      // 降级过就让产物自己说出来（budget.ts 的注释承诺过的那个标记）
+      skippedReviews: gws.budget.skippedReviews(),
     };
     // The question/decision API must resume this exact content-addressed
     // Recorder after INTERVIEW.  Persist the identity with the suspended

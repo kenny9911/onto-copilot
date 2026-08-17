@@ -323,6 +323,32 @@ export class Budget {
     return requested;
   }
 
+  /**
+   * 本次运行**没有跑**的评审，给产物贴标用。
+   *
+   * 兑现两处注释一直在承诺、而实现里一直不存在的东西：本枚举 `RULES_ONLY` 的
+   * 注释"产物标「未经语义审核」"，以及 `currentLevel()` 的"产物上的
+   * 「未经语义审核」标记也不该悄悄消失"。
+   *
+   * 返回空数组 = 全跑了；调用方据此**一个键都不往产物里加**，未降级的产物
+   * 逐字节不变。
+   *
+   * 注意它读 `currentLevel()`，因而**会 latch** —— 这正是想要的：贴标的依据
+   * 是"这次运行期间曾经降到过哪一档"，不是"此刻还剩多少钱"。
+   */
+  skippedReviews(): { what: string; why: string; level: number; label: string }[] {
+    const lvl = this.currentLevel();
+    if (lvl < DegradeLevel.RULES_ONLY) return [];
+    return [
+      {
+        what: "llm_critic",
+        why: "预算降级：剩余额度不足，语义评审未执行（规则档评审仍已执行）",
+        level: lvl,
+        label: degradeLabel(lvl),
+      },
+    ];
+  }
+
   allowSelfConsistency(): boolean {
     return this.currentLevel() < DegradeLevel.NO_SELF_CONSISTENCY;
   }
