@@ -38,6 +38,7 @@
  * 停止，会话却被标成 failed 并写了一次不该写的检查点」。
  */
 
+import type { Question as ClarifyQuestion } from "../../onto/clarify.js";
 import type { Budget } from "../../kernel/budget.js";
 import type { AgentBus } from "../../kernel/bus/bus.js";
 import type { Recorder } from "../../kernel/recorder.js";
@@ -227,8 +228,15 @@ export interface FinishResult {
   readonly uncertain: unknown;
   readonly auto_repaired: unknown;
   /** `onto/clarify.ts` 的 `ClarificationSet`。**纯数据** —— 摘要走
-   *  `clarificationSummary(cs)`，不是 `cs.summary()`。 */
-  readonly clarify: { readonly questions: unknown[] };
+   *  `clarificationSummary(cs)`，不是 `cs.summary()`；单个问句转 dict 走
+   *  `questionToDict(q)`，不是 `q.toDict()`。
+   *
+   *  元素类型从 `unknown[]` 收紧成真类型（本文件开头说的"等模块落地了换成
+   *  直连 import"，clarify.ts 早就落地了）。`unknown[]` 的代价不是理论上的：
+   *  它让 `cs.questions.map((q) => (q as { toDict(): unknown }).toDict())`
+   *  编译通过，然后在**真材料**上炸成 `q.toDict is not a function` ——
+   *  空数组时 map 不执行，所以它在所有测试里都是绿的。 */
+  readonly clarify: { readonly questions: readonly ClarifyQuestion[] };
   /** `onto/gaps.ts` 的 `Gap`。**纯数据** —— 转问题走 `gapToQuestion(g)`。 */
   readonly align_gaps?: readonly unknown[];
   readonly suggestions?: unknown[];

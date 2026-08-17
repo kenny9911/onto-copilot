@@ -62,7 +62,8 @@ import type {
 } from "../src/server/pipeline.js";
 import type { SessionEvent } from "../src/session_events.js";
 import { ConflictKind, makeConflict } from "../src/onto/conflict.js";
-import { makeClarificationSet } from "../src/onto/clarify.js";
+import { makeClarificationSet, questionToDict } from "../src/onto/clarify.js";
+import { makeOption } from "../src/onto/conflict.js";
 
 // ══════════════════════════════════════════════════════════════════
 //  golden
@@ -136,6 +137,20 @@ const OIR: Record<string, unknown> = JSON.parse(
     ],
   }) as string,
 ) as Record<string, unknown>;
+
+/**
+ * 一个真实形状的 `clarify.Question`。**普通对象，没有 toDict 方法** ——
+ * 它跟 `onto/questions.ts` 那个 Question 类同名不同物，这正是踩过的坑。
+ */
+const CLARIFY_Q = {
+  id: "q_1_abcd1234",
+  conflictRid: "c_采购方式取值不一致",
+  title: "「采购方式」在两份材料里取值不一致",
+  options: [makeOption("以制度为准", "以《采购管理制度》的取值为准", "制度是权威口径")],
+  impact: 3,
+  score: 0.82,
+  reversible: true,
+};
 
 const CSV_FIXTURES: Record<string, string> = {
   "简单.csv": "编号,名称,备注\n1,客户,\n2,订单,加急\n",
@@ -1227,7 +1242,12 @@ function rig(over: Partial<PipelineDeps> = {}, outcomes: Record<string, unknown>
       // 真的 ClarificationSet（纯数据）。原本这里是 `{ questions: [], summary: () => ({}) }`，
       // 照的是**错误的端口声明** —— 真身没有 summary() 方法，摘要走
       // `clarificationSummary(cs)`。夹具形状错了，真跑就炸。
-      clarify: makeClarificationSet(),
+      //
+      // **questions 必须非空**：空数组时 `cs.questions.map(...)` 根本不执行，
+      // 这一段在所有测试里都是绿的，然后在真材料上炸成
+      // `q.toDict is not a function`（真跑抓到过一次，抽取花完钱之后才失败）。
+      // 同理，单个问句转 dict 走 `questionToDict(q)`，不是 `q.toDict()`。
+      clarify: { ...makeClarificationSet(), questions: [CLARIFY_Q] },
       suggestions: [],
     }),
     mineQuestions: () => [],
@@ -1375,6 +1395,21 @@ describe("runPipeline · full（付费档）", () => {
       "engagement.stage",   // EXPORT
     ]);
     expect(s.state["release_state"]).toBe("RELEASED");
+  });
+
+  it("澄清问句落进 state 的是 questionToDict 的 snake_case dict，不是调 q.toDict()", async () => {
+    // clarify.Question 是**普通对象**，没有 toDict 方法 —— 写成 `q.toDict()` 时
+    // tsc 曾被 `as` 骗过、端口又把元素声明成 unknown[]，于是一路潜伏到真材料上
+    // 才炸（抽取的钱都花完了）。这里钉住两件事：不抛，且键名是下游认的那套。
+    const r = rig();
+    const s = fakeSession({ files: [{ name: "a.csv", path: "/x/a.csv" }], buildLeaseOwner: "L" });
+    await runPipeline(s, r.deps, { tier: "full", controller: new AbortController() });
+    const qs = s.state["questions"] as Record<string, unknown>[];
+    expect(qs).toEqual([questionToDict(CLARIFY_Q)]);
+    // 下游 `Question.fromDict` 认 conflict_rid —— camelCase 的 conflictRid 漏出去
+    // 不会报错，只会让问题丢掉冲突出处。
+    expect(qs[0]!["conflict_rid"]).toBe("c_采购方式取值不一致");
+    expect(qs[0]).not.toHaveProperty("conflictRid");
   });
 
   it("engagement 挂起 = awaiting_answer + run.suspended，并且 checkpoint 在收尾之前", async () => {

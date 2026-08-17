@@ -51,7 +51,7 @@ import { access, constants as FS } from "node:fs/promises";
 import { join } from "node:path";
 import { existsSync } from "node:fs";
 import { conflictToDict, type Conflict } from "../../onto/conflict.js";
-import { clarificationSummary, type ClarificationSet } from "../../onto/clarify.js";
+import { clarificationSummary, questionToDict, type ClarificationSet } from "../../onto/clarify.js";
 import { gapToQuestion, type Gap } from "../../onto/gaps.js";
 
 // ══════════════════════════════════════════════════════════════════
@@ -628,7 +628,13 @@ export async function runPipeline(
     }
     s.state["oir"] = oir.toDict();
     s.state["conflicts"] = conflicts.map((c) => conflictToDict(c as Conflict));
-    s.state["questions"] = cs.questions.map((q) => (q as { toDict(): unknown }).toDict());
+    // `clarify.Question` 是**普通接口**，转换器是模块级的 questionToDict ——
+    // 它跟 `onto/questions.ts` 那个有 toDict 方法的 Question 类同名不同物。
+    // 这里原来写的是 `(q as { toDict(): unknown }).toDict()`：tsc 被 as 骗过，
+    // 而只要这批冲突里真有 ask_user 的（材料够复杂时必然有），运行时就是
+    // `TypeError: q.toDict is not a function`，整条梳理在抽取完成之后炸掉 ——
+    // 钱已经花完了才失败。空数组时 map 不执行，所以它能一路潜伏到真材料上。
+    s.state["questions"] = cs.questions.map((q) => questionToDict(q));
     s.state["routing"] = clarificationSummary(cs as ClarificationSet);
     s.state["budget"] = snapshotOf(gws.budget);
     s.state["_oir"] = oir;
