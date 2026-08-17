@@ -115,6 +115,23 @@ export function buildFdeEngagementDag(agents?: AgentLibrary | null): Dag {
       scope: makeScopeSpec({ evidenceTopK: 0 }),
       budget: makeNodeBudget({ tokens: 0, iterations: 1, wallclockS: 604_800, toolCalls: 0 }),
       difficulty: Difficulty.LOW,
+      // **唯一的人类环节不能是唯一没有门的节点。**
+      //
+      // 在此之前 INTERVIEW 一条 require 都没有，而 REVIEW 带 4 条、EXPORT 带 3 条。
+      // 门读的是节点自己的产出（scheduler.applyGate 把 result.output 的顶层键并进
+      // metrics），所以这里断的是 InterviewHandler 的输出契约本身。
+      //
+      // 故意**不**用 `blocker_count == 0`：REVIEW 门要的就是它，而
+      // `InterviewHandler.skipModel` 判的也是同一个 `blockers()` —— 拿它当
+      // INTERVIEW 的门，等于让同一个判据自己给自己发通行证，两道门一起空过。
+      //
+      // 值不大但不是摆设：`requirementPasses` 遇到未知指标路径抛 NodeFailure
+      // （scheduler.ts:1052），所以 handler 哪天返回一个缺字段的东西会当场失败，
+      // 而不是让一个形状不对的 DecisionLedger 一路流到 CANONICALIZE。
+      gate: makeGateSpec({
+        kind: "auto",
+        require: ["contract == 'DecisionLedger'", "resolved == true"],
+      }),
       params: {
         input_contract: "QuestionBacklog",
         output_contract: "DecisionLedger",

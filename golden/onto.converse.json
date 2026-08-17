@@ -2554,7 +2554,7 @@
         "deps": [
           "GAP"
         ],
-        "gate": null,
+        "gate": "auto",
         "id": "INTERVIEW",
         "mode": "hitl"
       },
@@ -3510,7 +3510,13 @@
         ],
         "difficulty": "low",
         "fanout_over": null,
-        "gate": null,
+        "gate": {
+          "kind": "auto",
+          "require": [
+            "contract == 'DecisionLedger'",
+            "resolved == true"
+          ]
+        },
         "handler": "engagement.interview",
         "id": "INTERVIEW",
         "mode": "hitl",
@@ -3788,6 +3794,16 @@
       "CANONICALIZE",
       "REVIEW",
       "EXPORT"
+    ],
+    "deliberate_changes": [
+      {
+        "id": "interview-gate",
+        "what": "INTERVIEW 从 gate: null 改为带两条 require 的 auto 门",
+        "python_was": null,
+        "why": "唯一的人类环节此前是唯一没有门的节点：REVIEW 带 4 条 require、EXPORT 带 3 条，INTERVIEW 一条都没有。而 InterviewHandler.skipModel 在 blockers() 为空时返回非 null，AgentLoop.produce() 里的 askHuman 因此不可达 —— 一份内部自洽、写得干净的制度文档就能让零个人类看过这次交付，DAG 上却显示 INTERVIEW 已完成。",
+        "why_not_blocker_count": "故意不用 REVIEW 那条 `blocker_count == 0`：它与 skipModel 判的是同一个 blockers()，拿它当 INTERVIEW 的门等于让同一个判据自己给自己发通行证，两道门一起空过。",
+        "note": "与 known_divergence 类条目性质不同：那些是 JS 表示不了 Python 的语义，这一条是我们主动选择与 Python 不同。另见 golden/budget.json 的 deliberate_changes。"
+      }
     ]
   },
   "engagement_runtime": {

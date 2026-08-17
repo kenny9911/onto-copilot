@@ -593,6 +593,34 @@ export class InterviewHandler extends NodeHandler {
   }
 }
 
+/**
+ * 「这次梳理没有任何人工拍板记录」——推导出来的一条 SkippedReview。
+ *
+ * 为什么必须有它：`InterviewHandler.skipModel` 在 `blockers().length === 0` 时
+ * 返回非 null，于是 `AgentLoop.produce()` 里的 `askHuman` 不可达。而 BLOCKING
+ * 的唯一来源是"材料里检出了冲突"—— **一份内部自洽、写得干净的制度文档就能让
+ * 零个人类看过这次交付**，而 DAG 上显示 INTERVIEW 已完成。这比写出互相矛盾的
+ * 文档容易得多，所以它不是边角情况。
+ *
+ * 为什么是**推导**而不是让 InterviewHandler 往 runtime 上累加：重放时已完成的
+ * 节点整个跳过（`Recorder.nodeIsComplete`），INTERVIEW 不会重跑，累加上去的标记
+ * 会在续跑的产物里凭空消失。从 `decisionRows()` 推则无状态、可重放、连造两次
+ * 结果一致。
+ *
+ * 措辞只说"没有拍板记录"，不说"人没看过"——我们能证明的只有前者。
+ */
+function humanReviewGap(runtime: EngagementRuntimeInput): SkippedReview[] {
+  if (runtime.decisionRows().length > 0) return [];
+  return [
+    {
+      what: "human_review",
+      why: "本次梳理没有任何人工拍板记录：材料里没有检出待澄清的冲突，HITL 环节自动放行",
+      level: 0,
+      label: "未经人工确认",
+    },
+  ];
+}
+
 export class CanonicalizeHandler extends NodeHandler {
   readonly runtime: EngagementRuntimeInput;
 
@@ -607,6 +635,7 @@ export class CanonicalizeHandler extends NodeHandler {
 
   override async execute(_inputs: Dict, ctx: RunContext): Promise<Dict> {
     const current = Math.trunc(this.runtime.artifactRevision);
+    const skipped = [...this.runtime.skippedReviews, ...humanReviewGap(this.runtime)];
     const pkg = buildPackage(
       this.runtime.oir as Dict,
       (this.runtime.flow ?? null) as Dict | null,
@@ -617,12 +646,14 @@ export class CanonicalizeHandler extends NodeHandler {
         generatedAt: this.runtime.generatedAt,
         decisions: this.runtime.decisionRows(),
         backlog: this.runtime.questionBacklog(),
-        // 降级过就让产物自己说出来 —— 这是 budget.ts 的注释承诺过、
-        // 而实现里一直不存在的那个「未经语义审核」标记。
-        skippedReviews: this.runtime.skippedReviews,
+        // 降级过、或者根本没人拍过板，都让产物自己说出来。
+        skippedReviews: skipped,
       },
     );
-    const report = validatePackage(pkg);
+    // 复验一遍拿 findings 做失败文案。**必须把 skippedReviews 一起带上** ——
+    // 下面 `data["validation"] = report.toDict()` 会整个覆盖 buildPackage 装好的
+    // 那份，漏传这里等于把标记又冲掉，而且冲得悄无声息。
+    const report = validatePackage(pkg, skipped);
     if (!report.passed) {
       const summary = report.findings
         .filter((f) => f.severity === "error")
