@@ -77,6 +77,19 @@ export interface EffectOptions {
 
 export interface RecorderOptions {
   readonly resume?: boolean;
+  /**
+   * 事件旁路。每条 emit 出去的事件都会**在 journal.append 之后**再喂给它一份，
+   * 用于可观测性（见 otel.ts）。
+   *
+   * 三条约束，缺一条这个钩子就从"帮助排障"变成"制造故障"：
+   *   1. **顺序在 append 之后**：append 是同步序列化的，observer 事后再怎么折腾
+   *      也改不了已经排进落盘队列的字节。
+   *   2. **异常被吞掉**：一个上报后端挂了不该让梳理失败。
+   *   3. **返回值被忽略**：它无法影响执行，所以重放不会因为挂没挂 observer 而分叉。
+   *
+   * `loadHistory` 走的是 journal.read，不经过 emit —— 重放不会重复上报。
+   */
+  readonly observer?: (event: Event) => void;
 }
 
 /** `inspect.isawaitable` 的 JS 对应物。 */
@@ -196,10 +209,13 @@ export class Recorder {
   /** node_id → 已尝试次数 */
   private readonly attempts = new Map<string, number>();
 
+  private readonly observer: ((event: Event) => void) | null;
+
   constructor(runId: string, journal: Journal, blobs: BlobStore, opts: RecorderOptions = {}) {
     this.runId = runId;
     this.journal = journal;
     this.blobs = blobs;
+    this.observer = opts.observer ?? null;
     if (opts.resume === true) this.loadHistory();
   }
 
@@ -264,6 +280,13 @@ export class Recorder {
       tsMs: nowMs(),
     });
     this.journal.append(ev);
+    if (this.observer !== null) {
+      try {
+        this.observer(ev);
+      } catch {
+        // 旁路不许影响执行（见 RecorderOptions.observer 的第 2 条约束）。
+      }
+    }
     return ev;
   }
 

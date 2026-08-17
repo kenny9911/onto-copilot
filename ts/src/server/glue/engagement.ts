@@ -28,6 +28,8 @@ import { AgentLoop } from "../../kernel/loop.js";
 import { ContextManager } from "../../kernel/memory/context.js";
 import { Scratchpad } from "../../kernel/memory/short_term.js";
 import type { EvidenceIndex } from "../../kernel/memory/evidence.js";
+import type { Event } from "../../kernel/events.js";
+import { bridgeFromEnv } from "../../kernel/otel.js";
 import { Recorder } from "../../kernel/recorder.js";
 import { RunStatus, Scheduler, runOutcomeOk } from "../../kernel/scheduler.js";
 import { buildFdeEngagementDag } from "../../onto/engagement.js";
@@ -111,8 +113,10 @@ export async function resumeEngagementRelease(
     // Every engagement handler and critic is deterministic/skip_model.  Resume
     // needs a Recorder, not an API key or a paid backend—even when its journal
     // also contains the mature extraction checkpoints.
+    const engBridge = bridgeFromEnv(runId);
     const rec = new Recorder(runId, journalStore, new FileBlobStore(join(s.dir, "blobs")), {
       resume,
+      ...(engBridge !== null ? { observer: (e: Event) => engBridge.observe(e) } : {}),
     });
     const budget = new Budget({ tokens: 1_000_000, usd: 1 });
     const offlineBackend = new ScriptedBackend();

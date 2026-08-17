@@ -33,6 +33,8 @@ import type { CatalogLike, UsageSinkRow } from "../kernel/llm.js";
 import type { LLMConfig } from "../kernel/config.js";
 import { makeLLMConfig } from "../kernel/config.js";
 import { FileBlobStore, FileJournal } from "../kernel/journal.js";
+import type { Event } from "../kernel/events.js";
+import { bridgeFromEnv } from "../kernel/otel.js";
 import { Recorder } from "../kernel/recorder.js";
 import { makeUsageRow, usageTotal } from "../store/types.js";
 import type { UsageRow } from "../store/types.js";
@@ -353,11 +355,17 @@ export function gateways(
   o: { resume?: boolean; sessionId?: string; kind?: string; owner?: string } = {},
 ): Gateways {
   const cfg = _appConfig.resolvedLlmConfig(); // 设置 → env → 抛错
+  // OTel 旁路：没配 OTEL_EXPORTER_OTLP_ENDPOINT 时 bridgeFromEnv 返回 null，
+  // observer 整个不挂 —— 关掉就是真的零开销，不是"发到本地然后每条都失败"。
+  const bridge = bridgeFromEnv(runId);
   const rec = new Recorder(
     runId,
     new FileJournal(join(out, "journal")),
     new FileBlobStore(join(out, "blobs")),
-    { resume: o.resume ?? false },
+    {
+      resume: o.resume ?? false,
+      ...(bridge !== null ? { observer: (e: Event) => bridge.observe(e) } : {}),
+    },
   );
   const budget = new Budget({ tokens: 4_000_000, usd: _appConfig.usdCap() });
   const backend = new OpenAICompatBackend(cfg.baseUrl, cfg.apiKey);
