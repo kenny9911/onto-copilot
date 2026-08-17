@@ -26,9 +26,8 @@ import type { EvidenceIndex } from "../../kernel/memory/evidence.js";
 import { Danger, ToolRegistry, type ToolCallCtx } from "../../kernel/tools.js";
 import { cpSlice } from "../../onto/parse/base.js";
 import {
-  ContainerSandbox,
   asSandboxLike,
-  defaultSandbox,
+  bestContainerSandbox,
   type ExecResultDict,
 } from "../../kernel/sandbox.js";
 import { pyReprList, pyUnquote } from "../pipeline/tables.js";
@@ -581,11 +580,20 @@ export async function sandboxForTools(
   const flag = String(env["ONTOCOPILOT_ENABLE_CODEACT"] ?? "").toLowerCase();
   if (!["1", "true", "yes"].includes(flag)) return null;
   try {
-    const executor = defaultSandbox({ production: true });
-    // **探一次再注册。** 容器沙箱要外部运行时；`docker` 不在 PATH 上时它每次
-    // 调用都抛 SandboxError —— 那正是文件头说的"模型反复重试一个永远不会成功
-    // 的工具"。
-    if (executor instanceof ContainerSandbox && !onPath(executor.docker, env)) return null;
+    // **探一次再注册，而且要探到运行时那一层。**
+    //
+    // 原来这里是 `defaultSandbox({production:true})`（写死 gVisor）+ 只查
+    // `docker` 在不在 PATH。实测下来这个组合有个洞：Docker Desktop 装了、
+    // docker 在 PATH 上、探活通过，但 `docker run --runtime runsc` 报
+    // `unknown or invalid runtime name: runsc` —— 于是 code.exec 进了动作空间、
+    // 每次调用必然失败，正是文件头说的"模型反复重试一个永远不会成功的工具"。
+    //
+    // 现在按**实际可用的运行时**挑最强的那一档（microvm > gvisor > runc），
+    // 一个都没有就返回 null。runc 档不冒充 production_safe（那个判据只认
+    // gvisor/microvm），但它是真的容器边界，好过完全没有。
+    const executor = bestContainerSandbox({});
+    if (executor === null) return null;
+    if (!onPath(executor.docker, env)) return null;
     return asSandboxLike(executor);
   } catch {
     // 装配失败等同于"没有沙箱"。抛上去会让整条对话/梳理起不来，

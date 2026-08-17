@@ -37,7 +37,8 @@
  *    但它和静态扫描一样是**用户态的**：真正的边界是容器的 `--network none`。
  */
 
-import { spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
+import * as os from "node:os";
 import { constants as osConstants, tmpdir } from "node:os";
 import { createRequire } from "node:module";
 import * as fs from "node:fs";
@@ -422,7 +423,7 @@ export abstract class SandboxExecutor {
       );
     }
 
-    const work = fs.mkdtempSync(path.join(fs.realpathSync(tmpdir()), "oc-sbx-"));
+    const work = fs.mkdtempSync(path.join(sandboxTmpRoot(), "oc-sbx-"));
     try {
       const inDir = path.join(work, "in");
       const outDir = path.join(work, "out");
@@ -724,6 +725,20 @@ export interface ContainerSandboxOptions {
 
 /** 通过外部运行时执行。gVisor / Firecracker 的共同实现。 */
 export class ContainerSandbox extends SandboxExecutor {
+  /**
+   * 容器里 arquero 的**绝对路径**，不是裸名。
+   *
+   * 基类返回 `"arquero"`（本地档靠把宿主 node_modules 只读挂进去 + 绝对 file: URL
+   * 解析）。容器里没有那份挂载，而 `NODE_PATH` 是 **CJS 时代的机制，对 ESM 的
+   * `import` 完全不生效** —— 实测报 `Cannot find package 'arquero' imported from
+   * /main.mts`，还贴心地建议 `arquero/src/index.js`。所以这里直接给镜像里的
+   * 绝对路径（arquero 的 package.json 里 main/module 都是 ./src/index.js，
+   * 没有 exports 字段，所以这条路径就是它的真入口）；镜像换布局时改这一处。
+   */
+  protected override arqueroSpecifier(): string {
+    return "/sbx/node_modules/arquero/src/index.js";
+  }
+
   readonly runtime: string;
   readonly image: string;
   readonly docker: string;
@@ -842,6 +857,21 @@ export function GVisorSandbox(
   return new ContainerSandbox({ ...kw, runtime: "runsc", isolation: "gvisor" });
 }
 
+/**
+ * 本地开发档：普通 `runc`。**明确标 `isolation = "container"`，不是 gvisor** ——
+ * `production_safe` 的判据只认 gvisor/microvm，所以这一档如实地报"不安全到可以
+ * 生产"。它给的是容器边界（`--network none`、只读根、cap-drop ALL、非 root），
+ * 比 `node --permission` 的用户态补丁强，但共享宿主内核，挡不住内核漏洞。
+ *
+ * 存在的理由：绝大多数开发机（尤其 macOS Docker Desktop）**没有 runsc**。
+ * 没有这一档的话，本地只能在"完全没有容器隔离"和"配一套 gVisor"之间二选一。
+ */
+export function RuncSandbox(
+  kw: Omit<ContainerSandboxOptions, "runtime" | "isolation"> = {},
+): ContainerSandbox {
+  return new ContainerSandbox({ ...kw, runtime: "runc", isolation: "container" });
+}
+
 /** S2：未知来源二进制、扫描件 OCR。独立内核，隔离最强，启动慢。 */
 export function FirecrackerSandbox(
   kw: Omit<ContainerSandboxOptions, "runtime" | "isolation"> = {},
@@ -855,6 +885,89 @@ export function FirecrackerSandbox(
  * 反过来（默认容器、找不到就悄悄降级到子进程）更危险 —— 部署时没人会注意到
  * 隔离已经没了。
  */
+/**
+ * `docker info` 报出来的运行时名字集合。
+ *
+ * **必须问运行时，不能只问 `docker` 在不在 PATH 上。** 这台机器上
+ * `docker run --runtime runsc` 的结果是
+ * `unknown or invalid runtime name: runsc` —— 探活过了、每次调用却必然失败，
+ * 正是"模型反复重试一个永远不会成功的工具、把预算烧光"的那个形状。
+ *
+ * 结果缓存：装配工具表在对话每一轮都会发生，而起一次 `docker info` 要几十毫秒。
+ */
+const RUNTIME_CACHE = new Map<string, ReadonlySet<string>>();
+
+export function dockerRuntimes(docker = "docker", refresh = false): ReadonlySet<string> {
+  // 按二进制名分键：换个 docker 路径（测试注入、或换 podman shim）必须重新探，
+  // 否则拿到的是上一个二进制的答案 —— 那种错只会在换环境时现形。
+  const cached = RUNTIME_CACHE.get(docker);
+  if (cached !== undefined && !refresh) return cached;
+  let found = new Set<string>();
+  try {
+    const out = spawnSync(docker, ["info", "--format", "{{range $k,$v := .Runtimes}}{{$k}}\n{{end}}"], {
+      encoding: "utf-8",
+      timeout: 5_000,
+    });
+    if (out.status === 0) {
+      found = new Set(
+        String(out.stdout ?? "")
+          .split("\n")
+          .map((s) => s.trim())
+          .filter(Boolean),
+      );
+    }
+  } catch {
+    // docker 不在 / daemon 没起 —— 空集合，调用方据此不注册 code.exec
+  }
+  RUNTIME_CACHE.set(docker, found);
+  return found;
+}
+
+/** 测试用：清掉运行时探测的缓存。 */
+export function resetRuntimeCache(): void {
+  RUNTIME_CACHE.clear();
+}
+
+/**
+ * 按**实际可用的运行时**挑最强的那一档；一个都没有就返回 null。
+ *
+ * 顺序即优先级：microvm > gvisor > 普通容器。前两个 `production_safe`，
+ * 第三个不是 —— 但它仍然是真正的容器边界，好过完全没有。
+ */
+export function bestContainerSandbox(
+  kw: Omit<ContainerSandboxOptions, "runtime" | "isolation"> = {},
+): ContainerSandbox | null {
+  const rts = dockerRuntimes(kw.docker ?? "docker");
+  if (rts.has("kata-runtime")) return FirecrackerSandbox(kw);
+  if (rts.has("runsc")) return GVisorSandbox(kw);
+  if (rts.has("runc")) return RuncSandbox(kw);
+  return null;
+}
+
+/**
+ * 沙箱工作目录的父目录。
+ *
+ * 默认 `os.tmpdir()`，但**容器档下它经常挂不进去**：macOS 的 Docker Desktop
+ * 默认只共享 `/Users`、`/Volumes`、`/private` 里的一部分，实测把
+ * `/private/tmp` 挂进容器得到的是一个**空目录** —— 不是报错，是静默为空。
+ * 于是 `docker run … -v <work>/main.mts:/main.mts:ro` 挂上去的是个不存在的文件，
+ * 容器里报 `Cannot find module '/main.mts'`，而宿主这边一切正常。
+ *
+ * 所以给一个环境变量出口，并在 macOS 上默认落到 `~/.ontocopilot/sandbox` ——
+ * 家目录是 Docker Desktop 默认共享的。
+ */
+export function sandboxTmpRoot(env: NodeJS.ProcessEnv = process.env): string {
+  const override = env["ONTOCOPILOT_SANDBOX_TMP"];
+  const base =
+    override !== undefined && override !== ""
+      ? override
+      : process.platform === "darwin"
+        ? path.join(os.homedir(), ".ontocopilot", "sandbox")
+        : tmpdir();
+  fs.mkdirSync(base, { recursive: true });
+  return fs.realpathSync(base);
+}
+
 export function defaultSandbox(
   opts: { production?: boolean } & Omit<ContainerSandboxOptions, "runtime" | "isolation"> = {},
 ): SandboxExecutor {
