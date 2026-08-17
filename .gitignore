@@ -29,3 +29,6 @@ dist/
 # （同一个用例红两次，排查时以为是两个问题）。
 ts/test/*.js
 ts/src/**/*.js
+
+# EvalOps 报告是每次真跑的产物，不是源码
+eval/reports/

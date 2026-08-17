@@ -9,7 +9,8 @@
     "check": "tsc --noEmit && eslint src test",
     "start": "tsx src/main.ts",
     "dev": "tsx watch src/main.ts",
-    "build:ui": "node tools/build-ui.mjs"
+    "build:ui": "node tools/build-ui.mjs",
+    "eval": "tsx src/eval/cli.ts"
   },
   "devDependencies": {
     "@testing-library/dom": "^10.4.1",
