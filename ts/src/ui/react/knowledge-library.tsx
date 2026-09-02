@@ -221,8 +221,9 @@ function VersionList({
   </div>;
 }
 
-interface DocumentCardProps {
+interface DocumentPreviewProps {
   sessionId: string;
+  onClose: () => void;
   /** 从 Library 传下来，测试才能注入桩；阅读器要用它取正文。 */
   api: Pick<KnowledgeLibraryApi, "read">;
   document: KnowledgeDocument;
@@ -249,6 +250,60 @@ interface DocumentCardProps {
  * 每一段都带「引用到对话」：段落复用的就是检索命中的形状，自带 evidence_ref
  * 和引用文案，所以读到哪一段就能把哪一段原样送进对话，中间不丢出处。
  */
+/** 搜索结果占据预览区：找东西和读东西是同一个位置，不额外开一块。 */
+function SearchPane({ result, openedEvidence, evidenceError, lang, onOpen, onClear }: {
+  result: KnowledgeSearchResult;
+  openedEvidence: KnowledgeOpenResult | null;
+  evidenceError: string;
+  lang: string;
+  onOpen: (evidenceRef: string) => void;
+  onClear: () => void;
+}): ReactElement {
+  const total = (result as { total?: number }).total ?? result.hits.length;
+  return <>
+    <header className="od-preview-head">
+      <div>
+        <strong>{result.hits.length
+          ? words(`找到 ${total} 处`, `${total} passages`, lang)
+          : words("没有找到可直接支持这项内容的材料", "No material directly supports this", lang)}</strong>
+        {result.coverage?.missingTerms?.length
+          ? <small>{words("未命中：", "Not found: ", lang)}{result.coverage.missingTerms.join("、")}</small>
+          : null}
+      </div>
+      <button type="button" className="od-link" onClick={onClear}>{words("清除搜索", "Clear", lang)}</button>
+    </header>
+    {!result.hits.length ? <p className="od-no-evidence">{words(
+      "搜索只返回能定位到文件版本和原文位置的片段。这不代表业务上一定不存在，只表示当前知识库没有证据。",
+      "Search only returns passages tied to a file version and location; a miss is not proof the fact is false.",
+      lang,
+    )}</p> : <div className="od-hit-list">
+      {result.hits.map((hit) => <button type="button" className="od-hit" key={hit.evidence_ref}
+        onClick={() => onOpen(hit.evidence_ref)}>
+        <span>
+          <strong>{hit.document_title} · v{hit.version_no}</strong>
+          {hit.level === "global" ? <span className="od-badge current">{words("总库", "Shared", lang)}</span> : null}
+          <small>{hit.cite}</small>
+        </span>
+        <p>{hit.text}</p>
+      </button>)}
+    </div>}
+    {evidenceError ? <div className="od-inline-error">{evidenceError}</div> : null}
+    {openedEvidence ? <article className="od-open-evidence">
+      <div><strong>{openedEvidence.document_title} · v{openedEvidence.version_no}</strong><span>{openedEvidence.cite}</span></div>
+      {openedEvidence.context ? <p className="od-evidence-context">{openedEvidence.context}</p> : null}
+      <blockquote>{openedEvidence.text}</blockquote>
+      {/* 原文校验值是可追溯链条的一环：它证明这段字和库里那一版逐字节一致。
+          改版时差点弄丢，测试把它钉住了。 */}
+      <small title={openedEvidence.text_sha256}>
+        {words("原文校验值", "Source text checksum", lang)}：{shortId(openedEvidence.text_sha256)}
+      </small>
+      <button type="button" className="od-link" onClick={() => {
+        prefillComposer(`关于「${openedEvidence.cite}」这一段：\n\n${openedEvidence.text}\n\n`, { mode: "insert" });
+      }}>{words("引用到对话", "Quote in chat", lang)}</button>
+    </article> : null}
+  </>;
+}
+
 function DocumentReader({ sessionId, documentId, versionId, lang, api = knowledgeLibraryApi }: {
   sessionId: string;
   documentId: string;
@@ -334,13 +389,12 @@ function DocumentReader({ sessionId, documentId, versionId, lang, api = knowledg
 
 const PAGE = 50;
 
-function DocumentCard({
-  sessionId, api, document, versions, attachment, sessionFiles, busy, lang,
+function DocumentPreview({
+  sessionId, api, onClose, document, versions, attachment, sessionFiles, busy, lang,
   onUpdate, onArchive, onAttach, onDetach, onAdopt, onAddVersion,
-}: DocumentCardProps): ReactElement {
-  const [expanded, setExpanded] = useState(Boolean(attachment));
+}: DocumentPreviewProps): ReactElement {
+  const [expanded, setExpanded] = useState(false);
   const [editing, setEditing] = useState(false);
-  const [reading, setReading] = useState(false);
   const pinnedVersion = versions?.find((item) => item.id === attachment?.version_id);
   const adoptedVersion = versions?.find((item) => item.id === document.adopted_version_id);
   const currentVersion = versions?.find((item) => item.id === document.current_version_id);
@@ -349,50 +403,38 @@ function DocumentCard({
     && document.current_version_id !== document.adopted_version_id);
   const isBusy = busy.startsWith(`${document.id}:`);
 
-  return <article className={`od-row ${document.status} ${attachment ? "attached" : ""}`} role="row">
-    {/* 一行就是一个文件，像文件管理器：名称 / 版本 / 状态 / 更新时间。
-        点文件名 = 打开读 —— 那是这个页面上用户最常想干的事，也是文件管理器的手势。
-        版本历史、固定版本、归档这些低频操作收进右侧的「⋯ 更多」，不占列。 */}
-    <div className="od-row-main">
-      <button type="button" className="od-row-name" aria-expanded={reading}
-        onClick={() => setReading((value) => !value)}
-        title={words("打开读全文", "Open and read", lang)}>
-        <span className="od-row-icon" aria-hidden="true">{reading ? "▾" : "▸"}</span>
-        <span className="od-row-title">{document.title}</span>
+  return <>
+    <header className="od-preview-head">
+      <div>
+        <strong>{document.title}</strong>
+        <small>
+          {version
+            ? `v${version.version_no} · ${versionParseStatusLabel(version, lang)}`
+            : words("读取版本…", "Loading version…", lang)}
+          {hasUnadoptedVersion && currentVersion
+            ? words(` · 最新上传 v${currentVersion.version_no}`, ` · latest v${currentVersion.version_no}`, lang)
+            : ""}
+          {` · ${words("更新于", "Updated", lang)} ${when(document.updated_at, lang)}`}
+        </small>
+      </div>
+      {/* 操作作用于**当前选中的文件** —— 文件管理器就是这么做的，
+          不需要每一行都挂一排按钮。 */}
+      <div className="od-preview-acts">
         {document.status === "archived" ? <span className="od-badge archived">{words("已归档", "Archived", lang)}</span> : null}
         {attachment ? <span className="od-badge attached">{words("本次在用", "In use", lang)}</span> : null}
-        {hasUnadoptedVersion ? <span className="od-badge pending">{words("有新版本", "New version", lang)}</span> : null}
-        {/* 标签直接显示在名称后面，像 Finder 的标记 —— 它回答「这是什么」，属于列表本身。 */}
-        {document.tags.slice(0, 3).map((tag) => <span className="od-row-tag" key={tag}>{tag}</span>)}
-      </button>
-      <span className="od-row-col od-row-ver">{version ? `v${version.version_no}` : "—"}</span>
-      <span className="od-row-col od-row-state">{version ? versionParseStatusLabel(version, lang) : words("读取中", "Loading", lang)}</span>
-      <span className="od-row-col od-row-time">{when(document.updated_at, lang)}</span>
-      <span className="od-row-actions">
         <button type="button" className="od-link" disabled={isBusy}
-          onClick={() => setExpanded((value) => !value)}
-          aria-expanded={expanded}>{words("⋯ 更多", "⋯ More", lang)}</button>
-      </span>
-    </div>
+          onClick={() => { setEditing((v) => !v); setExpanded(false); }}>{words("编辑", "Edit", lang)}</button>
+        <button type="button" className="od-link" disabled={isBusy}
+          onClick={() => { setExpanded((v) => !v); setEditing(false); }}>{words("版本", "Versions", lang)}</button>
+        <button type="button" className="od-link" disabled={isBusy} onClick={() => void onArchive()}>
+          {document.status === "archived" ? words("恢复", "Restore", lang) : words("归档", "Archive", lang)}
+        </button>
+        <button type="button" className="od-link" onClick={onClose}>{words("关闭", "Close", lang)}</button>
+      </div>
+    </header>
 
-    {expanded ? <div className="od-row-more">
-      <button type="button" className="act" disabled={isBusy} onClick={() => setEditing((value) => !value)}>{words("编辑", "Edit", lang)}</button>
-      <button type="button" className="od-link" disabled={isBusy} onClick={() => void onArchive()}>
-        {document.status === "archived" ? words("恢复", "Restore", lang) : words("归档", "Archive", lang)}
-      </button>
-      <span className="od-muted">{sourceClassLabel(document.source_class, lang)}</span>
-    </div> : null}
-
-    {editing ? <MetadataEditor document={document} busy={isBusy} lang={lang} onCancel={() => setEditing(false)}
-      onSave={onUpdate} /> : null}
-
-    {reading ? <DocumentReader
-      sessionId={sessionId}
-      api={api}
-      documentId={document.id}
-      {...(version === undefined ? {} : { versionId: version.id })}
-      lang={lang}
-    /> : null}
+    {editing ? <MetadataEditor document={document} busy={isBusy} lang={lang}
+      onCancel={() => setEditing(false)} onSave={onUpdate} /> : null}
 
     {expanded ? <VersionList
       document={document}
@@ -407,7 +449,15 @@ function DocumentCard({
       onAddVersion={onAddVersion}
     /> : null}
 
-  </article>;
+    {/* 默认就是正文。打开一份材料最常想干的事是读它。 */}
+    {!editing && !expanded ? <DocumentReader
+      sessionId={sessionId}
+      api={api}
+      documentId={document.id}
+      {...(version === undefined ? {} : { versionId: version.id })}
+      lang={lang}
+    /> : null}
+  </>;
 }
 
 /**
@@ -433,6 +483,10 @@ export function KnowledgeLibrary({
   const [selectedUpload, setSelectedUpload] = useState(sessionFiles[0]?.name || "");
   const [query, setQuery] = useState("");
   const [attachedOnly, setAttachedOnly] = useState(false);
+  /** 当前在右侧预览的文档。文件树 + 预览是这一页的主界面。 */
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  /** 收起的分组。默认全展开 —— 材料不多，先让人看见东西。 */
+  const [closedFolders, setClosedFolders] = useState<Set<string>>(new Set());
   const [searching, setSearching] = useState(false);
   const [searchResult, setSearchResult] = useState<KnowledgeSearchResult | null>(null);
   const [openedEvidence, setOpenedEvidence] = useState<KnowledgeOpenResult | null>(null);
@@ -526,149 +580,150 @@ export function KnowledgeLibrary({
     }
   };
 
+  // 按标签分组成文件夹。标签是这个产品里材料本来就有的语义（采购/制度/台账…），
+  // 用它当文件夹，比按上传时间或文件类型分更贴近「我在找什么」。
+  // 没有标签的归「未分类」，永远排在最后。
+  const UNFILED = words("未分类", "Untagged", lang);
+  const folders = new Map<string, KnowledgeDocument[]>();
+  for (const item of documents) {
+    const keys = item.tags.length ? item.tags : [UNFILED];
+    for (const key of keys) {
+      const bucket = folders.get(key);
+      if (bucket) bucket.push(item);
+      else folders.set(key, [item]);
+    }
+  }
+  const folderNames = [...folders.keys()].sort((a, b) => {
+    if (a === UNFILED) return 1;
+    if (b === UNFILED) return -1;
+    return a.localeCompare(b, "zh-Hans-CN");
+  });
+  const selected = documents.find((item) => item.id === selectedId) ?? null;
+
   return <section className="od-library od-fm" aria-label={words("知识库", "Knowledge library", lang)}>
-    {/* 工具栏就一行：搜索 + 添加 + 刷新。
-        原来这上面堆着标题段、一句产品说明、一条「材料事实有出处」的提示条、
-        一个「只搜本次分析版本」勾选框，以及一整块「把本次上传文件保存到项目库」
-        —— 用户在看到第一个文件之前要先读四段字。文件管理器不这么干。
-        那条信任提示没有删，它挪到了真正需要它的地方：搜索零命中的时候。 */}
-    <div className="od-fm-bar">
-      <form className="od-fm-search" onSubmit={(event) => void submitSearch(event)} role="search">
-        <input type="search" value={query} maxLength={2_000}
-          placeholder={words("搜索材料内容…", "Search material…", lang)}
-          aria-label={words("搜索材料内容", "Search material", lang)}
-          onChange={(event) => setQuery(event.target.value)} />
-        {query ? <button type="button" className="od-link" onClick={() => { setQuery(""); setSearchResult(null); }}>
-          {words("清除", "Clear", lang)}
-        </button> : null}
-        <button type="submit" className="act" disabled={searching || !query.trim()}>
-          {searching ? words("查找中…", "Searching…", lang) : words("搜索", "Search", lang)}
-        </button>
-      </form>
-      <div className="od-fm-tools">
-        {/* 公共库不挂「添加材料」：入库的输入是「本次会话上传的文件」，公共库没有会话。
-            材料进公共库要走另一条显式动作（把项目材料设为通用知识）。
-            与其给一个点了会报错的按钮，不如不给。 */}
-        {level === "global" ? null : sessionFiles.length ? <>
-          <select aria-label={words("选择要添加的文件", "Choose a file to add", lang)} value={selectedUpload}
-            onChange={(event) => setSelectedUpload(event.target.value)}>
-            {sessionFiles.map((file) => <option key={file.name} value={file.name}>{file.name}</option>)}
-          </select>
-          <button type="button" className="act pri" disabled={Boolean(busy) || !selectedUpload}
-            onClick={() => void runMutation("promote:new", async () => await api.promote(sessionId, { session_file_name: selectedUpload }))}>
-            {busy === "promote:new" ? words("添加中…", "Adding…", lang) : words("＋ 添加材料", "＋ Add", lang)}
-          </button>
-        </> : <button type="button" className="act pri"
-          onClick={() => document.getElementById("picker")?.click()}>
-          {words("＋ 添加材料", "＋ Add material", lang)}
-        </button>}
-        <button type="button" className="act" disabled={status === "loading" || Boolean(busy)}
-          onClick={() => void refresh()}>{words("刷新", "Refresh", lang)}</button>
-      </div>
-    </div>
-
-    {searchResult ? <section className="od-search-results" aria-label={words("知识库搜索结果", "Library search results", lang)}>
-      <div className="od-results-head">
-        <strong>{searchResult.hits.length
-          ? words(`找到 ${searchResult.hits.length} 处材料片段`, `${searchResult.hits.length} source passages found`, lang)
-          : words("没有找到可直接支持这项内容的材料", "No material directly supports this", lang)}</strong>
-        {searchResult.coverage?.missingTerms?.length ? <span>{words("未命中：", "Not found: ", lang)}{searchResult.coverage.missingTerms.join("、")}</span> : null}
-      </div>
-      {!searchResult.hits.length ? <p className="od-no-evidence">{words(
-        "搜索只返回能定位到文件版本和原文位置的片段。",
-        "Search only returns passages tied to a file version and location. ",
-        lang,
-      )}{words(
-        "这不代表业务上一定不存在，只表示当前知识库没有证据。请补充材料或向业务方确认。",
-        "This does not prove the business fact is false; it means the current library has no evidence. Add material or ask the business owner.",
-        lang,
-      )}</p> : <div className="od-hit-list">
-        {searchResult.hits.map((hit) => <button type="button" className="od-hit" key={hit.evidence_ref} onClick={() => void openEvidence(hit.evidence_ref)}>
-          <span><strong>{hit.document_title} · v{hit.version_no}</strong><small>{hit.cite}</small></span>
-          <p>{hit.text}</p>
-          <i aria-hidden="true">{words("查看定位", "Open source", lang)} →</i>
-        </button>)}
-      </div>}
-      {evidenceError ? <div className="od-inline-error">{evidenceError}</div> : null}
-      {openedEvidence ? <article className="od-open-evidence">
-        <div><strong>{openedEvidence.document_title} · v{openedEvidence.version_no}</strong><span>{openedEvidence.cite}</span></div>
-        {openedEvidence.context ? <p className="od-evidence-context">{openedEvidence.context}</p> : null}
-        <blockquote>{openedEvidence.text}</blockquote>
-        <small title={openedEvidence.text_sha256}>{words("原文校验值", "Source text checksum", lang)}：{shortId(openedEvidence.text_sha256)}</small>
-      </article> : null}
-    </section> : null}
-
-    <div className="od-fm-status">
-      <span>{status === "ready"
-        ? words(`${documents.length} 份材料`, `${documents.length} files`, lang)
-        : words("读取中…", "Loading…", lang)}</span>
-      <label className="od-check"><input type="checkbox" checked={includeArchived}
-        onChange={(event) => setIncludeArchived(event.target.checked)} /> {words("显示已归档", "Show archived", lang)}</label>
-    </div>
-
-    <div className="od-feedback" aria-live="polite">
-      {notice ? <div className="od-notice">{notice}</div> : null}
-      {mutationError ? <div className="od-inline-error">{mutationError}</div> : null}
-    </div>
-
-    {status === "error" ? <div className="od-library-error">
-      <strong>{words("项目知识库暂时不可用", "Project library is temporarily unavailable", lang)}</strong>
-      <p>{loadError}</p>
-      <button type="button" className="act" onClick={() => void refresh()}>{words("再试一次", "Try again", lang)}</button>
-      <small>{words("本次会话里已上传的材料仍可在下方查看和使用。", "Files already uploaded to this session remain available below.", lang)}</small>
-    </div> : status === "loading" && documents.length === 0 ? <div className="od-library-loading">{words("正在读取项目文件和固定版本…", "Loading project files and pinned versions…", lang)}</div>
-      : documents.length === 0 ? <div className="od-library-empty">
-        <strong>{level === "global"
-          ? words("公共知识库还是空的", "The shared library is empty", lang)
-          : words("这个项目还没有保存的材料", "No material saved in this project yet", lang)}</strong>
-        <p>{level === "global"
-          ? words(
-            "这里放跨项目通用的东西：行业标准、通用制度、模板。把某个项目里的材料设为通用知识后，它会出现在这里。",
-            "This holds cross-project material: standards, generic policies, templates.",
-            lang,
-          )
-          : sessionFiles.length
-            ? words("用上面的「添加材料」把本次上传的文件存进来。", "Use “Add” above to save an uploaded file here.", lang)
-            : words("先上传一份业务材料，再把它添加进来。", "Upload business material first, then add it here.", lang)}</p>
-      </div> : <div className="od-fm-list" role="table">
-        <div className="od-fm-head" role="row" aria-hidden="true">
-          <span>{words("名称", "Name", lang)}</span>
-          <span className="od-row-ver">{words("版本", "Version", lang)}</span>
-          <span className="od-row-state">{words("状态", "Status", lang)}</span>
-          <span className="od-row-time">{words("更新", "Updated", lang)}</span>
-          <span className="od-row-actions" />
+    <div className="od-explorer">
+      {/* 左边：文件树。图标条 + 分组 + 文件，没有别的。 */}
+      <aside className="od-tree" aria-label={words("材料目录", "Material tree", lang)}>
+        <div className="od-tree-bar">
+          {level === "global" ? null : sessionFiles.length ? <>
+            <select className="od-tree-pick" aria-label={words("选择要添加的文件", "Choose a file to add", lang)}
+              value={selectedUpload} onChange={(event) => setSelectedUpload(event.target.value)}>
+              {sessionFiles.map((file) => <option key={file.name} value={file.name}>{file.name}</option>)}
+            </select>
+            <button type="button" title={words("把这份文件加入知识库", "Add this file", lang)}
+              disabled={Boolean(busy) || !selectedUpload}
+              onClick={() => void runMutation("promote:new", async () => await api.promote(sessionId, { session_file_name: selectedUpload }))}>＋</button>
+          </> : <button type="button" title={words("上传材料", "Upload material", lang)}
+            onClick={() => document.getElementById("picker")?.click()}>＋</button>}
+          <button type="button" title={words("全部收起", "Collapse all", lang)}
+            onClick={() => setClosedFolders(new Set(folderNames))}>⌄</button>
+          <button type="button" title={words("刷新", "Refresh", lang)}
+            disabled={status === "loading" || Boolean(busy)} onClick={() => void refresh()}>↻</button>
+          <label className="od-tree-archived" title={words("显示已归档", "Show archived", lang)}>
+            <input type="checkbox" checked={includeArchived}
+              onChange={(event) => setIncludeArchived(event.target.checked)} />
+          </label>
         </div>
-        {documents.map((item) => {
-          return <DocumentCard
-            key={item.id}
-            sessionId={sessionId}
-            api={api}
-            document={item}
-            versions={histories[item.id]}
-            attachment={attachedVersion(item.id, attachments)}
-            sessionFiles={sessionFiles}
-            busy={busy}
-            lang={lang}
-            onUpdate={async (input) => await runMutation(`${item.id}:metadata`, async () => await api.update(sessionId, item.id, input))}
-            onArchive={async () => await runMutation(`${item.id}:archive`, async () => await api.archive(
-              sessionId, item.id, item.status !== "archived", item.revision,
-            ))}
-            onAttach={async (version) => await runMutation(`${item.id}:attach`, async () => await api.attach(
-              sessionId, item.id, version.id,
-            ))}
-            onDetach={async () => await runMutation(`${item.id}:detach`, async () => await api.detach(sessionId, item.id))}
-            onAdopt={async (version) => await runMutation(`${item.id}:adopt`, async () => await api.adopt(
-              sessionId, item.id, version.id, item.revision,
-            ))}
-            onAddVersion={async (fileName) => await runMutation(`${item.id}:version`, async () => await api.promote(sessionId, {
-              session_file_name: fileName,
-              target_document_id: item.id,
-              base_version_id: item.current_version_id,
-            }))}
-          />;
-        })}
-      </div>}
 
+        <form className="od-tree-search" onSubmit={(event) => void submitSearch(event)} role="search">
+          <input type="search" value={query} maxLength={2_000}
+            placeholder={words("搜索原文…", "Search text…", lang)}
+            aria-label={words("搜索材料内容", "Search material", lang)}
+            onChange={(event) => setQuery(event.target.value)} />
+        </form>
+
+        {status === "error" ? <div className="od-library-error">
+          <strong>{words("知识库暂时不可用", "Library unavailable", lang)}</strong>
+          <p>{loadError}</p>
+          <button type="button" className="act" onClick={() => void refresh()}>{words("再试一次", "Try again", lang)}</button>
+        </div> : status === "loading" && documents.length === 0
+          ? <div className="od-library-loading">{words("读取中…", "Loading…", lang)}</div>
+          : documents.length === 0 ? <div className="od-library-empty">
+            <strong>{level === "global"
+              ? words("公共知识库还是空的", "The shared library is empty", lang)
+              : words("这个项目还没有材料", "No material yet", lang)}</strong>
+            <p>{level === "global"
+              ? words("这里放跨项目通用的东西：行业标准、通用制度、模板。", "Cross-project material lives here.", lang)
+              : words("用左上角的 ＋ 把材料加进来。", "Use ＋ above to add material.", lang)}</p>
+          </div> : <div className="od-tree-body" role="tree">
+            {folderNames.map((name) => {
+              const closed = closedFolders.has(name);
+              const items = folders.get(name) ?? [];
+              return <div className="od-folder" key={name}>
+                <button type="button" className="od-folder-head" aria-expanded={!closed}
+                  onClick={() => setClosedFolders((prev) => {
+                    const next = new Set(prev);
+                    if (next.has(name)) next.delete(name); else next.add(name);
+                    return next;
+                  })}>
+                  <span className="od-folder-caret" aria-hidden="true">{closed ? "›" : "⌄"}</span>
+                  <span className="od-folder-name">{name}</span>
+                  <span className="od-folder-n">{items.length}</span>
+                </button>
+                {closed ? null : <div className="od-folder-body" role="group">
+                  {items.map((item) => <button type="button" key={item.id}
+                    className={`od-file${item.id === selectedId ? " on" : ""}${item.status === "archived" ? " archived" : ""}`}
+                    onClick={() => setSelectedId(item.id)}>
+                    <span className="od-file-name">{item.title}</span>
+                    {attachedVersion(item.id, attachments)
+                      ? <span className="od-file-dot" title={words("本次分析在用", "In use this run", lang)} /> : null}
+                  </button>)}
+                </div>}
+              </div>;
+            })}
+          </div>}
+        <div className="od-fm-status">
+          <span>{status === "ready"
+            ? words(`${documents.length} 份材料`, `${documents.length} files`, lang)
+            : ""}</span>
+        </div>
+      </aside>
+
+      {/* 右边：预览。点树里任意一份材料，正文就在这里，每段带出处、能引用到对话。 */}
+      <div className="od-preview-pane">
+        {searchResult ? <SearchPane
+          result={searchResult}
+          openedEvidence={openedEvidence}
+          evidenceError={evidenceError}
+          lang={lang}
+          onOpen={(ref: string) => void openEvidence(ref)}
+          onClear={() => { setQuery(""); setSearchResult(null); }}
+        /> : selected ? <DocumentPreview
+          key={selected.id}
+          sessionId={sessionId}
+          api={api}
+          onClose={() => setSelectedId(null)}
+          document={selected}
+          versions={histories[selected.id]}
+          attachment={attachedVersion(selected.id, attachments)}
+          sessionFiles={sessionFiles}
+          busy={busy}
+          lang={lang}
+          onUpdate={async (input) => await runMutation(`${selected.id}:metadata`, async () => await api.update(sessionId, selected.id, input))}
+          onArchive={async () => await runMutation(`${selected.id}:archive`, async () => await api.archive(
+            sessionId, selected.id, selected.status !== "archived", selected.revision,
+          ))}
+          onAttach={async (version) => await runMutation(`${selected.id}:attach`, async () => await api.attach(
+            sessionId, selected.id, version.id,
+          ))}
+          onDetach={async () => await runMutation(`${selected.id}:detach`, async () => await api.detach(sessionId, selected.id))}
+          onAdopt={async (version) => await runMutation(`${selected.id}:adopt`, async () => await api.adopt(
+            sessionId, selected.id, version.id, selected.revision,
+          ))}
+          onAddVersion={async (fileName) => await runMutation(`${selected.id}:version`, async () => await api.promote(sessionId, {
+            session_file_name: fileName,
+            target_document_id: selected.id,
+            base_version_id: selected.current_version_id,
+          }))}
+        /> : <div className="od-preview-idle">
+          {words("在左边选一份材料，正文就显示在这里。", "Pick a file on the left to read it here.", lang)}
+        </div>}
+        <div className="od-feedback" aria-live="polite">
+          {notice ? <div className="od-notice">{notice}</div> : null}
+          {mutationError ? <div className="od-inline-error">{mutationError}</div> : null}
+        </div>
+      </div>
+    </div>
   </section>;
 }
 

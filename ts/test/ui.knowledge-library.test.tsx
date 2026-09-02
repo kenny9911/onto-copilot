@@ -144,18 +144,16 @@ describe("OntoDocument 项目知识库", () => {
     />);
 
     await waitFor(() => expect(container.textContent).toContain("采购管理制度"));
-    // 页面不再以说明文字开场：文件管理器就该直接给一张表。
+    // 页面不再以说明文字开场：直接给一棵材料树 + 一块预览区。
     expect(container.textContent).not.toContain("长期保留项目文件和版本");
-    expect(container.querySelector(".od-fm-list")).not.toBeNull();
-    expect(container.querySelector(".od-fm-head")?.textContent).toContain("名称");
-    expect(container.querySelector(".od-row-title")?.textContent).toBe("采购管理制度");
-    expect(container.textContent).toContain("采购");
-    expect(container.textContent).toContain("已评审");
-    // 版本和解析状态现在是表格里的两列，不再是一句拼出来的长句。
-    expect(container.querySelector(".od-row .od-row-ver")?.textContent).toBe("v1");
-    expect(container.querySelector(".od-row .od-row-state")?.textContent).toContain("已读入");
-    // 「保存到项目库」那一整块（标题 + 说明 + 下拉 + 按钮）收成了工具栏上的一个按钮。
-    expect(container.textContent).toContain("＋ 添加材料");
+    expect(container.querySelector(".od-explorer")).not.toBeNull();
+    expect(container.querySelector(".od-tree")).not.toBeNull();
+    // 文件夹＝标签。标签是这个产品里材料本来就有的语义，比按上传时间分更贴近「我在找什么」。
+    const folders = [...container.querySelectorAll(".od-folder-name")].map((n) => n.textContent);
+    expect(folders).toContain("采购");
+    expect(container.querySelector(".od-file-name")?.textContent).toBe("采购管理制度");
+    // 还没选中任何一份时，右边说清楚该干什么，而不是空着。
+    expect(container.querySelector(".od-preview-idle")?.textContent).toContain("在左边选一份材料");
     expect(container.textContent).not.toContain("永久删除");
     expect(api.list).toHaveBeenCalledWith("session-1", false);
     expect(api.history).toHaveBeenCalledWith("session-1", "doc-1");
@@ -168,12 +166,11 @@ describe("OntoDocument 项目知识库", () => {
       sessionFiles={[{ name: "新采购制度.docx" }]}
       api={api}
     />);
-    // 版本历史属于低频操作，收进「⋯ 更多」，不再占列表的一列。
-    await waitFor(() => expect(view.container.querySelector(".od-row-name")).not.toBeNull());
-    // 版本历史属于低频操作，收进「⋯ 更多」，不再占列表的一列。
-    fireEvent.click(view.getAllByRole("button", { name: "⋯ 更多" })[0]!);
-    await waitFor(() => expect(view.container.querySelector(".od-row-more")).not.toBeNull());
-    fireEvent.click(view.getByRole("button", { name: /采购管理制度/ }));
+    // 操作作用于**当前选中的文件**：先在树里选中，再在预览面板头部操作。
+    await waitFor(() => expect(view.container.querySelector(".od-file")).not.toBeNull());
+    fireEvent.click(view.container.querySelector(".od-file") as any);
+    await waitFor(() => expect(view.container.querySelector(".od-preview-acts")).not.toBeNull());
+    fireEvent.click(view.getByRole("button", { name: "版本" }));
     await waitFor(() => expect(view.container.textContent).toContain("v2 · 采购制度-修订版.docx"));
 
     const latest = view.getByText("v2 · 采购制度-修订版.docx").closest("li") as HTMLElement;
@@ -199,7 +196,8 @@ describe("OntoDocument 项目知识库", () => {
     const view = render(<KnowledgeLibrary sessionId="session-1" sessionFiles={[]} api={api} />);
     await waitFor(() => expect(view.container.textContent).toContain("采购管理制度"));
 
-    fireEvent.click(view.getAllByRole("button", { name: "⋯ 更多" })[0]!);
+    fireEvent.click(view.container.querySelector(".od-file") as any);
+    await waitFor(() => expect(view.container.querySelector(".od-preview-acts")).not.toBeNull());
     fireEvent.click(view.getByRole("button", { name: "编辑" }));
     fireEvent.change(view.getByLabelText("显示标题"), { target: { value: "采购制度（正式）" } });
     fireEvent.change(view.getByLabelText("标签（用逗号分开）"), { target: { value: "采购，正式，采购" } });
@@ -220,13 +218,17 @@ describe("OntoDocument 项目知识库", () => {
     await waitFor(() => expect(view.container.textContent).toContain("采购管理制度"));
 
     expect(api.read).not.toHaveBeenCalled();
-    // 点文件名就是打开读：这是文件管理器的手势，不需要再多一个按钮。
-    fireEvent.click(view.container.querySelector(".od-row-name") as any);
+    // 点树里的文件就是打开预览：文件管理器的手势，不需要再多一个按钮。
+    fireEvent.click(view.container.querySelector(".od-file") as any);
 
     await waitFor(() => expect(api.read).toHaveBeenCalled());
     // 读的是这份文档，且带分页参数——不是把整本一次性倒出来。
     expect((api.read as any).mock.calls[0][0]).toBe("session-1");
     expect((api.read as any).mock.calls[0][2]).toMatchObject({ offset: 0, limit: 50 });
+    // 预览面板的操作条也在 —— 编辑/版本/归档没有随着改版消失。
+    expect(view.getByRole("button", { name: "编辑" })).not.toBeNull();
+    expect(view.getByRole("button", { name: "版本" })).not.toBeNull();
+    expect(view.getByRole("button", { name: "归档" })).not.toBeNull();
 
     // 正文和出处都要在，段落级的「引用到对话」也要在。
     await waitFor(() => expect(view.container.querySelector(".od-reader")).not.toBeNull());
@@ -240,8 +242,9 @@ describe("OntoDocument 项目知识库", () => {
     await waitFor(() => expect(view.container.textContent).toContain("采购管理制度"));
 
     fireEvent.change(view.getByRole("searchbox"), { target: { value: "计划金额" } });
-    fireEvent.click(view.getByRole("button", { name: "搜索" }));
-    await waitFor(() => expect(view.container.textContent).toContain("找到 1 处材料片段"));
+    // 树里的搜索框回车即搜 —— 少一颗按钮。
+    fireEvent.submit(view.container.querySelector(".od-tree-search") as any);
+    await waitFor(() => expect(view.container.textContent).toContain("找到 1 处"));
     expect(view.container.textContent).toContain("采购制度.docx#p3");
     expect(view.container.textContent).toContain("计划金额按不含税采购预算计算");
 
@@ -257,11 +260,12 @@ describe("OntoDocument 项目知识库", () => {
     const view = render(<KnowledgeLibrary sessionId="session-1" sessionFiles={[]} api={api} />);
     await waitFor(() => expect(view.container.textContent).toContain("采购管理制度"));
     fireEvent.change(view.getByRole("searchbox"), { target: { value: "计划金额" } });
-    fireEvent.click(view.getByRole("button", { name: "搜索" }));
+    // 树里的搜索框回车即搜 —— 少一颗按钮。
+    fireEvent.submit(view.container.querySelector(".od-tree-search") as any);
 
     await waitFor(() => expect(view.container.textContent).toContain("没有找到可直接支持这项内容的材料"));
     expect(view.container.textContent).toContain("当前知识库没有证据");
-    expect(view.container.textContent).toContain("请补充材料或向业务方确认");
+    expect(view.container.textContent).toContain("这不代表业务上一定不存在");
   });
 
   it("标签拆分会去重并兼容中英文分隔符", () => {

@@ -156,41 +156,52 @@ body.knowledge-page-open .main{min-width:0;border-right:0}
 .odm-advanced-toggle{padding:4px 0;color:var(--ink-3);font-size:.7407rem}
 .odm-advanced-toggle:hover{color:var(--ink-2)}
 .odm-advanced-body{display:flex;flex-direction:column;gap:16px;padding-top:14px}
-/* ── 文件管理器式列表 ─────────────────────────────────────────────
-   原来这一屏在看到第一个文件之前堆了：标题段、产品说明、信任提示条、
-   带勾选框的搜索表单、一整块「保存到项目库」。那是说明书不是文件管理器。
-   现在：一条工具栏 + 一张表。列宽固定，扫一眼就知道有什么。 */
+/* 页头的层级切换：公共 / 当前项目。两个胶囊，没有别的。 */
 .kp-title{display:flex;align-items:center;gap:12px}
 .kp-level{display:flex;gap:3px;padding:2px;border:1px solid var(--line);border-radius:99px;background:var(--panel)}
 .kp-level button{padding:3px 12px;border-radius:99px;color:var(--ink-2);font-size:.7407rem}
 .kp-level button:hover:not(:disabled){background:var(--hover)}
 .kp-level button.on{background:var(--accent-tint);color:var(--accent);font-weight:600}
 .kp-level button:disabled{color:var(--ink-3);cursor:default}
-.od-fm-bar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:2px 0 14px}
-.od-fm-search{display:flex;flex:1;min-width:220px;align-items:center;gap:8px}
-.od-fm-search input{flex:1;min-width:0;padding:7px 11px;border:1px solid var(--line);border-radius:8px;background:var(--panel);font-size:.8519rem}
-.od-fm-search input:focus{border-color:var(--accent-line);outline:0}
-.od-fm-tools{display:flex;align-items:center;gap:8px}
-.od-fm-tools select{max-width:180px;padding:6px 9px;border:1px solid var(--line);border-radius:8px;background:var(--panel);font-size:.7778rem}
-.od-fm-list{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--panel)}
-.od-fm-head,.od-row-main{display:grid;grid-template-columns:minmax(0,1fr) 62px 96px 116px 74px;align-items:center;gap:10px;padding:8px 14px}
-.od-fm-head{border-bottom:1px solid var(--line);background:var(--hover);color:var(--ink-3);font-size:.7037rem;letter-spacing:.03em}
-.od-row{border-bottom:1px solid var(--line-soft)}
-.od-row:last-child{border-bottom:0}
-.od-row.attached{background:var(--accent-tint)}
-.od-row.archived .od-row-title{color:var(--ink-3);text-decoration:line-through}
-.od-row-main:hover{background:var(--hover)}
-.od-row-name{display:flex;min-width:0;align-items:center;gap:7px;padding:0;background:none;text-align:left}
-.od-row-icon{width:12px;color:var(--ink-3);font-size:.7037rem}
-.od-row-title{overflow:hidden;color:var(--ink);font-size:.8519rem;text-overflow:ellipsis;white-space:nowrap}
-.od-row-tag{flex:none;padding:1px 6px;border-radius:99px;background:var(--hover-2);color:var(--ink-3);font-size:.6667rem}
-.od-row-col{color:var(--ink-2);font-size:.7407rem;white-space:nowrap}
-.od-row-time{color:var(--ink-3)}
-.od-row-actions{display:flex;justify-content:flex-end}
-.od-row-more{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:0 14px 10px 33px}
-.od-fm-status{display:flex;align-items:center;justify-content:space-between;padding:8px 2px;color:var(--ink-3);font-size:.7407rem}
+/* ── 文件树 + 预览 ───────────────────────────────────────────────
+   两栏：左边是材料目录（分组＝标签，这是这个产品里材料本来就有的语义），
+   右边是预览。点树里任意一份材料，正文和出处就在右边 —— 找东西和读东西
+   共用同一个位置，不再多开一块。
+   这一版之前是一张扁平表，再之前是一屏说明书。 */
+.od-explorer{display:grid;grid-template-columns:250px minmax(0,1fr);min-height:440px;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--panel)}
+.od-tree{display:flex;min-width:0;flex-direction:column;border-right:1px solid var(--line);background:var(--panel-soft)}
+.od-tree-bar{display:flex;align-items:center;gap:2px;padding:8px 8px 4px}
+.od-tree-bar button{width:26px;height:26px;border-radius:6px;color:var(--ink-2);font-size:.8519rem}
+.od-tree-bar button:hover:not(:disabled){background:var(--hover);color:var(--ink)}
+.od-tree-bar button:disabled{color:var(--ink-3)}
+.od-tree-pick{flex:1;min-width:0;max-width:118px;padding:3px 6px;border:1px solid var(--line);border-radius:6px;background:var(--panel);font-size:.7037rem}
+.od-tree-archived{display:flex;align-items:center;margin-left:auto}
+.od-tree-search{padding:2px 8px 8px}
+.od-tree-search input{width:100%;padding:5px 9px;border:1px solid var(--line);border-radius:7px;background:var(--panel);font-size:.7778rem}
+.od-tree-search input:focus{border-color:var(--accent-line);outline:0}
+.od-tree-body{flex:1;overflow:auto;padding:2px 0 8px}
+.od-folder-head{display:flex;width:100%;align-items:center;gap:7px;padding:5px 10px;text-align:left}
+.od-folder-head:hover{background:var(--hover)}
+.od-folder-caret{width:10px;color:var(--ink-3);font-size:.7407rem}
+.od-folder-name{flex:1;overflow:hidden;color:var(--ink);font-size:.8519rem;text-overflow:ellipsis;white-space:nowrap}
+.od-folder-n{color:var(--ink-3);font-size:.6667rem}
+.od-file{display:flex;width:100%;align-items:center;gap:7px;padding:4px 10px 4px 27px;text-align:left}
+.od-file:hover{background:var(--hover)}
+.od-file.on{background:var(--accent-tint)}
+.od-file.on .od-file-name{color:var(--accent);font-weight:600}
+.od-file.archived .od-file-name{color:var(--ink-3);text-decoration:line-through}
+.od-file-name{flex:1;overflow:hidden;color:var(--ink-2);font-size:.8148rem;text-overflow:ellipsis;white-space:nowrap}
+.od-file-dot{width:6px;height:6px;flex:none;border-radius:50%;background:var(--accent)}
+.od-preview-pane{display:flex;min-width:0;flex-direction:column;overflow:auto;padding:14px 18px 18px}
+.od-preview-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding-bottom:10px;border-bottom:1px solid var(--line-soft)}
+.od-preview-head strong{display:block;color:var(--ink);font-size:.9259rem}
+.od-preview-head small{display:block;margin-top:2px;color:var(--ink-3);font-size:.7407rem}
+.od-preview-acts{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.od-preview-idle{display:flex;flex:1;align-items:center;justify-content:center;color:var(--ink-3);font-size:.8148rem}
+.od-fm-status{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;border-top:1px solid var(--line-soft);color:var(--ink-3);font-size:.7037rem}
+@media (max-width:900px){.od-explorer{grid-template-columns:minmax(0,1fr)}.od-tree{border-right:0;border-bottom:1px solid var(--line)}}
 /* 就地读全文。这是此前完全没有的入口。 */
-.od-reader{display:flex;flex-direction:column;gap:10px;margin:0 14px 12px 33px;padding:12px 14px;border:1px solid var(--line-soft);border-radius:9px;background:var(--panel-soft)}
+.od-reader{display:flex;flex-direction:column;gap:12px;padding:12px 0 0}
 .od-reader-chunk{display:flex;flex-direction:column;gap:4px;padding-bottom:10px;border-bottom:1px dashed var(--line-soft)}
 .od-reader-chunk:last-of-type{border-bottom:0;padding-bottom:0}
 .od-reader-text{margin:0;color:var(--ink);font-size:.8519rem;line-height:1.65;white-space:pre-wrap}
@@ -20155,6 +20166,71 @@ ${receipt.summary}` : header;
       ] })
     ] });
   }
+  function SearchPane({ result, openedEvidence, evidenceError, lang, onOpen, onClear }) {
+    const total = result.total ?? result.hits.length;
+    return /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)(import_jsx_runtime7.Fragment, { children: [
+      /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("header", { className: "od-preview-head", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { children: [
+          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("strong", { children: result.hits.length ? words(`找到 ${total} 处`, `${total} passages`, lang) : words("没有找到可直接支持这项内容的材料", "No material directly supports this", lang) }),
+          result.coverage?.missingTerms?.length ? /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("small", { children: [
+            words("未命中：", "Not found: ", lang),
+            result.coverage.missingTerms.join("、")
+          ] }) : null
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("button", { type: "button", className: "od-link", onClick: onClear, children: words("清除搜索", "Clear", lang) })
+      ] }),
+      !result.hits.length ? /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("p", { className: "od-no-evidence", children: words(
+        "搜索只返回能定位到文件版本和原文位置的片段。这不代表业务上一定不存在，只表示当前知识库没有证据。",
+        "Search only returns passages tied to a file version and location; a miss is not proof the fact is false.",
+        lang
+      ) }) : /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "od-hit-list", children: result.hits.map((hit) => /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)(
+        "button",
+        {
+          type: "button",
+          className: "od-hit",
+          onClick: () => onOpen(hit.evidence_ref),
+          children: [
+            /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("span", { children: [
+              /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("strong", { children: [
+                hit.document_title,
+                " · v",
+                hit.version_no
+              ] }),
+              hit.level === "global" ? /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "od-badge current", children: words("总库", "Shared", lang) }) : null,
+              /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("small", { children: hit.cite })
+            ] }),
+            /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("p", { children: hit.text })
+          ]
+        },
+        hit.evidence_ref
+      )) }),
+      evidenceError ? /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "od-inline-error", children: evidenceError }) : null,
+      openedEvidence ? /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("article", { className: "od-open-evidence", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { children: [
+          /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("strong", { children: [
+            openedEvidence.document_title,
+            " · v",
+            openedEvidence.version_no
+          ] }),
+          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { children: openedEvidence.cite })
+        ] }),
+        openedEvidence.context ? /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("p", { className: "od-evidence-context", children: openedEvidence.context }) : null,
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("blockquote", { children: openedEvidence.text }),
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("small", { title: openedEvidence.text_sha256, children: [
+          words("原文校验值", "Source text checksum", lang),
+          "：",
+          shortId(openedEvidence.text_sha256)
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("button", { type: "button", className: "od-link", onClick: () => {
+          prefillComposer(`关于「${openedEvidence.cite}」这一段：
+
+${openedEvidence.text}
+
+`, { mode: "insert" });
+        }, children: words("引用到对话", "Quote in chat", lang) })
+      ] }) : null
+    ] });
+  }
   function DocumentReader({ sessionId, documentId, versionId, lang, api = knowledgeLibraryApi }) {
     const [state, setState] = (0, import_react5.useState)("loading");
     const [error, setError] = (0, import_react5.useState)("");
@@ -20229,9 +20305,10 @@ ${chunk.text}
     ] });
   }
   var PAGE = 50;
-  function DocumentCard({
+  function DocumentPreview({
     sessionId,
     api,
+    onClose,
     document: document2,
     versions,
     attachment,
@@ -20245,55 +20322,57 @@ ${chunk.text}
     onAdopt,
     onAddVersion
   }) {
-    const [expanded, setExpanded] = (0, import_react5.useState)(Boolean(attachment));
+    const [expanded, setExpanded] = (0, import_react5.useState)(false);
     const [editing, setEditing] = (0, import_react5.useState)(false);
-    const [reading, setReading] = (0, import_react5.useState)(false);
     const pinnedVersion = versions?.find((item) => item.id === attachment?.version_id);
     const adoptedVersion = versions?.find((item) => item.id === document2.adopted_version_id);
     const currentVersion = versions?.find((item) => item.id === document2.current_version_id);
     const version = pinnedVersion || adoptedVersion || currentVersion;
     const hasUnadoptedVersion = Boolean(document2.adopted_version_id && document2.current_version_id !== document2.adopted_version_id);
     const isBusy = busy.startsWith(`${document2.id}:`);
-    return /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("article", { className: `od-row ${document2.status} ${attachment ? "attached" : ""}`, role: "row", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "od-row-main", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)(
-          "button",
-          {
-            type: "button",
-            className: "od-row-name",
-            "aria-expanded": reading,
-            onClick: () => setReading((value2) => !value2),
-            title: words("打开读全文", "Open and read", lang),
-            children: [
-              /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "od-row-icon", "aria-hidden": "true", children: reading ? "▾" : "▸" }),
-              /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "od-row-title", children: document2.title }),
-              document2.status === "archived" ? /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "od-badge archived", children: words("已归档", "Archived", lang) }) : null,
-              attachment ? /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "od-badge attached", children: words("本次在用", "In use", lang) }) : null,
-              hasUnadoptedVersion ? /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "od-badge pending", children: words("有新版本", "New version", lang) }) : null,
-              document2.tags.slice(0, 3).map((tag) => /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "od-row-tag", children: tag }, tag))
-            ]
-          }
-        ),
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "od-row-col od-row-ver", children: version ? `v${version.version_no}` : "—" }),
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "od-row-col od-row-state", children: version ? versionParseStatusLabel(version, lang) : words("读取中", "Loading", lang) }),
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "od-row-col od-row-time", children: when2(document2.updated_at, lang) }),
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "od-row-actions", children: /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
-          "button",
-          {
-            type: "button",
-            className: "od-link",
-            disabled: isBusy,
-            onClick: () => setExpanded((value2) => !value2),
-            "aria-expanded": expanded,
-            children: words("⋯ 更多", "⋯ More", lang)
-          }
-        ) })
+    return /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)(import_jsx_runtime7.Fragment, { children: [
+      /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("header", { className: "od-preview-head", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { children: [
+          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("strong", { children: document2.title }),
+          /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("small", { children: [
+            version ? `v${version.version_no} · ${versionParseStatusLabel(version, lang)}` : words("读取版本…", "Loading version…", lang),
+            hasUnadoptedVersion && currentVersion ? words(` · 最新上传 v${currentVersion.version_no}`, ` · latest v${currentVersion.version_no}`, lang) : "",
+            ` · ${words("更新于", "Updated", lang)} ${when2(document2.updated_at, lang)}`
+          ] })
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "od-preview-acts", children: [
+          document2.status === "archived" ? /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "od-badge archived", children: words("已归档", "Archived", lang) }) : null,
+          attachment ? /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "od-badge attached", children: words("本次在用", "In use", lang) }) : null,
+          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
+            "button",
+            {
+              type: "button",
+              className: "od-link",
+              disabled: isBusy,
+              onClick: () => {
+                setEditing((v) => !v);
+                setExpanded(false);
+              },
+              children: words("编辑", "Edit", lang)
+            }
+          ),
+          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
+            "button",
+            {
+              type: "button",
+              className: "od-link",
+              disabled: isBusy,
+              onClick: () => {
+                setExpanded((v) => !v);
+                setEditing(false);
+              },
+              children: words("版本", "Versions", lang)
+            }
+          ),
+          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("button", { type: "button", className: "od-link", disabled: isBusy, onClick: () => void onArchive(), children: document2.status === "archived" ? words("恢复", "Restore", lang) : words("归档", "Archive", lang) }),
+          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("button", { type: "button", className: "od-link", onClick: onClose, children: words("关闭", "Close", lang) })
+        ] })
       ] }),
-      expanded ? /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "od-row-more", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("button", { type: "button", className: "act", disabled: isBusy, onClick: () => setEditing((value2) => !value2), children: words("编辑", "Edit", lang) }),
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("button", { type: "button", className: "od-link", disabled: isBusy, onClick: () => void onArchive(), children: document2.status === "archived" ? words("恢复", "Restore", lang) : words("归档", "Archive", lang) }),
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "od-muted", children: sourceClassLabel(document2.source_class, lang) })
-      ] }) : null,
       editing ? /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
         MetadataEditor,
         {
@@ -20302,16 +20381,6 @@ ${chunk.text}
           lang,
           onCancel: () => setEditing(false),
           onSave: onUpdate
-        }
-      ) : null,
-      reading ? /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
-        DocumentReader,
-        {
-          sessionId,
-          api,
-          documentId: document2.id,
-          ...version === void 0 ? {} : { versionId: version.id },
-          lang
         }
       ) : null,
       expanded ? /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
@@ -20327,6 +20396,16 @@ ${chunk.text}
           onDetach,
           onAdopt,
           onAddVersion
+        }
+      ) : null,
+      !editing && !expanded ? /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
+        DocumentReader,
+        {
+          sessionId,
+          api,
+          documentId: document2.id,
+          ...version === void 0 ? {} : { versionId: version.id },
+          lang
         }
       ) : null
     ] });
@@ -20351,6 +20430,8 @@ ${chunk.text}
     const [selectedUpload, setSelectedUpload] = (0, import_react5.useState)(sessionFiles[0]?.name || "");
     const [query, setQuery] = (0, import_react5.useState)("");
     const [attachedOnly, setAttachedOnly] = (0, import_react5.useState)(false);
+    const [selectedId, setSelectedId] = (0, import_react5.useState)(null);
+    const [closedFolders, setClosedFolders] = (0, import_react5.useState)(/* @__PURE__ */ new Set());
     const [searching, setSearching] = (0, import_react5.useState)(false);
     const [searchResult, setSearchResult] = (0, import_react5.useState)(null);
     const [openedEvidence, setOpenedEvidence] = (0, import_react5.useState)(null);
@@ -20435,31 +20516,30 @@ ${chunk.text}
         setEvidenceError(errorMessage(error, lang));
       }
     };
-    return /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("section", { className: "od-library od-fm", "aria-label": words("知识库", "Knowledge library", lang), children: [
-      /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "od-fm-bar", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("form", { className: "od-fm-search", onSubmit: (event) => void submitSearch(event), role: "search", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
-            "input",
-            {
-              type: "search",
-              value: query,
-              maxLength: 2e3,
-              placeholder: words("搜索材料内容…", "Search material…", lang),
-              "aria-label": words("搜索材料内容", "Search material", lang),
-              onChange: (event) => setQuery(event.target.value)
-            }
-          ),
-          query ? /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("button", { type: "button", className: "od-link", onClick: () => {
-            setQuery("");
-            setSearchResult(null);
-          }, children: words("清除", "Clear", lang) }) : null,
-          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("button", { type: "submit", className: "act", disabled: searching || !query.trim(), children: searching ? words("查找中…", "Searching…", lang) : words("搜索", "Search", lang) })
-        ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "od-fm-tools", children: [
+    const UNFILED2 = words("未分类", "Untagged", lang);
+    const folders = /* @__PURE__ */ new Map();
+    for (const item of documents) {
+      const keys = item.tags.length ? item.tags : [UNFILED2];
+      for (const key of keys) {
+        const bucket = folders.get(key);
+        if (bucket) bucket.push(item);
+        else folders.set(key, [item]);
+      }
+    }
+    const folderNames = [...folders.keys()].sort((a, b) => {
+      if (a === UNFILED2) return 1;
+      if (b === UNFILED2) return -1;
+      return a.localeCompare(b, "zh-Hans-CN");
+    });
+    const selected = documents.find((item) => item.id === selectedId) ?? null;
+    return /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("section", { className: "od-library od-fm", "aria-label": words("知识库", "Knowledge library", lang), children: /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "od-explorer", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("aside", { className: "od-tree", "aria-label": words("材料目录", "Material tree", lang), children: [
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "od-tree-bar", children: [
           level === "global" ? null : sessionFiles.length ? /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)(import_jsx_runtime7.Fragment, { children: [
             /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
               "select",
               {
+                className: "od-tree-pick",
                 "aria-label": words("选择要添加的文件", "Choose a file to add", lang),
                 value: selectedUpload,
                 onChange: (event) => setSelectedUpload(event.target.value),
@@ -20470,167 +20550,166 @@ ${chunk.text}
               "button",
               {
                 type: "button",
-                className: "act pri",
+                title: words("把这份文件加入知识库", "Add this file", lang),
                 disabled: Boolean(busy) || !selectedUpload,
                 onClick: () => void runMutation("promote:new", async () => await api.promote(sessionId, { session_file_name: selectedUpload })),
-                children: busy === "promote:new" ? words("添加中…", "Adding…", lang) : words("＋ 添加材料", "＋ Add", lang)
+                children: "＋"
               }
             )
           ] }) : /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
             "button",
             {
               type: "button",
-              className: "act pri",
+              title: words("上传材料", "Upload material", lang),
               onClick: () => document.getElementById("picker")?.click(),
-              children: words("＋ 添加材料", "＋ Add material", lang)
+              children: "＋"
             }
           ),
           /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
             "button",
             {
               type: "button",
-              className: "act",
+              title: words("全部收起", "Collapse all", lang),
+              onClick: () => setClosedFolders(new Set(folderNames)),
+              children: "⌄"
+            }
+          ),
+          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
+            "button",
+            {
+              type: "button",
+              title: words("刷新", "Refresh", lang),
               disabled: status === "loading" || Boolean(busy),
               onClick: () => void refresh2(),
-              children: words("刷新", "Refresh", lang)
+              children: "↻"
             }
-          )
-        ] })
-      ] }),
-      searchResult ? /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("section", { className: "od-search-results", "aria-label": words("知识库搜索结果", "Library search results", lang), children: [
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "od-results-head", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("strong", { children: searchResult.hits.length ? words(`找到 ${searchResult.hits.length} 处材料片段`, `${searchResult.hits.length} source passages found`, lang) : words("没有找到可直接支持这项内容的材料", "No material directly supports this", lang) }),
-          searchResult.coverage?.missingTerms?.length ? /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("span", { children: [
-            words("未命中：", "Not found: ", lang),
-            searchResult.coverage.missingTerms.join("、")
-          ] }) : null
-        ] }),
-        !searchResult.hits.length ? /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("p", { className: "od-no-evidence", children: [
-          words(
-            "搜索只返回能定位到文件版本和原文位置的片段。",
-            "Search only returns passages tied to a file version and location. ",
-            lang
           ),
-          words(
-            "这不代表业务上一定不存在，只表示当前知识库没有证据。请补充材料或向业务方确认。",
-            "This does not prove the business fact is false; it means the current library has no evidence. Add material or ask the business owner.",
-            lang
-          )
-        ] }) : /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "od-hit-list", children: searchResult.hits.map((hit) => /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("button", { type: "button", className: "od-hit", onClick: () => void openEvidence(hit.evidence_ref), children: [
-          /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("span", { children: [
-            /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("strong", { children: [
-              hit.document_title,
-              " · v",
-              hit.version_no
-            ] }),
-            /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("small", { children: hit.cite })
-          ] }),
-          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("p", { children: hit.text }),
-          /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("i", { "aria-hidden": "true", children: [
-            words("查看定位", "Open source", lang),
-            " →"
-          ] })
-        ] }, hit.evidence_ref)) }),
-        evidenceError ? /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "od-inline-error", children: evidenceError }) : null,
-        openedEvidence ? /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("article", { className: "od-open-evidence", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { children: [
-            /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("strong", { children: [
-              openedEvidence.document_title,
-              " · v",
-              openedEvidence.version_no
-            ] }),
-            /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { children: openedEvidence.cite })
-          ] }),
-          openedEvidence.context ? /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("p", { className: "od-evidence-context", children: openedEvidence.context }) : null,
-          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("blockquote", { children: openedEvidence.text }),
-          /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("small", { title: openedEvidence.text_sha256, children: [
-            words("原文校验值", "Source text checksum", lang),
-            "：",
-            shortId(openedEvidence.text_sha256)
-          ] })
-        ] }) : null
-      ] }) : null,
-      /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "od-fm-status", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { children: status === "ready" ? words(`${documents.length} 份材料`, `${documents.length} files`, lang) : words("读取中…", "Loading…", lang) }),
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("label", { className: "od-check", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
+          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("label", { className: "od-tree-archived", title: words("显示已归档", "Show archived", lang), children: /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
             "input",
             {
               type: "checkbox",
               checked: includeArchived,
               onChange: (event) => setIncludeArchived(event.target.checked)
             }
-          ),
-          " ",
-          words("显示已归档", "Show archived", lang)
-        ] })
-      ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "od-feedback", "aria-live": "polite", children: [
-        notice ? /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "od-notice", children: notice }) : null,
-        mutationError ? /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "od-inline-error", children: mutationError }) : null
-      ] }),
-      status === "error" ? /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "od-library-error", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("strong", { children: words("项目知识库暂时不可用", "Project library is temporarily unavailable", lang) }),
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("p", { children: loadError }),
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("button", { type: "button", className: "act", onClick: () => void refresh2(), children: words("再试一次", "Try again", lang) }),
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("small", { children: words("本次会话里已上传的材料仍可在下方查看和使用。", "Files already uploaded to this session remain available below.", lang) })
-      ] }) : status === "loading" && documents.length === 0 ? /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "od-library-loading", children: words("正在读取项目文件和固定版本…", "Loading project files and pinned versions…", lang) }) : documents.length === 0 ? /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "od-library-empty", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("strong", { children: level === "global" ? words("公共知识库还是空的", "The shared library is empty", lang) : words("这个项目还没有保存的材料", "No material saved in this project yet", lang) }),
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("p", { children: level === "global" ? words(
-          "这里放跨项目通用的东西：行业标准、通用制度、模板。把某个项目里的材料设为通用知识后，它会出现在这里。",
-          "This holds cross-project material: standards, generic policies, templates.",
-          lang
-        ) : sessionFiles.length ? words("用上面的「添加材料」把本次上传的文件存进来。", "Use “Add” above to save an uploaded file here.", lang) : words("先上传一份业务材料，再把它添加进来。", "Upload business material first, then add it here.", lang) })
-      ] }) : /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "od-fm-list", role: "table", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "od-fm-head", role: "row", "aria-hidden": "true", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { children: words("名称", "Name", lang) }),
-          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "od-row-ver", children: words("版本", "Version", lang) }),
-          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "od-row-state", children: words("状态", "Status", lang) }),
-          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "od-row-time", children: words("更新", "Updated", lang) }),
-          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "od-row-actions" })
+          ) })
         ] }),
-        documents.map((item) => {
-          return /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
-            DocumentCard,
-            {
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("form", { className: "od-tree-search", onSubmit: (event) => void submitSearch(event), role: "search", children: /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
+          "input",
+          {
+            type: "search",
+            value: query,
+            maxLength: 2e3,
+            placeholder: words("搜索原文…", "Search text…", lang),
+            "aria-label": words("搜索材料内容", "Search material", lang),
+            onChange: (event) => setQuery(event.target.value)
+          }
+        ) }),
+        status === "error" ? /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "od-library-error", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("strong", { children: words("知识库暂时不可用", "Library unavailable", lang) }),
+          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("p", { children: loadError }),
+          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("button", { type: "button", className: "act", onClick: () => void refresh2(), children: words("再试一次", "Try again", lang) })
+        ] }) : status === "loading" && documents.length === 0 ? /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "od-library-loading", children: words("读取中…", "Loading…", lang) }) : documents.length === 0 ? /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "od-library-empty", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("strong", { children: level === "global" ? words("公共知识库还是空的", "The shared library is empty", lang) : words("这个项目还没有材料", "No material yet", lang) }),
+          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("p", { children: level === "global" ? words("这里放跨项目通用的东西：行业标准、通用制度、模板。", "Cross-project material lives here.", lang) : words("用左上角的 ＋ 把材料加进来。", "Use ＋ above to add material.", lang) })
+        ] }) : /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "od-tree-body", role: "tree", children: folderNames.map((name) => {
+          const closed = closedFolders.has(name);
+          const items = folders.get(name) ?? [];
+          return /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "od-folder", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)(
+              "button",
+              {
+                type: "button",
+                className: "od-folder-head",
+                "aria-expanded": !closed,
+                onClick: () => setClosedFolders((prev) => {
+                  const next = new Set(prev);
+                  if (next.has(name)) next.delete(name);
+                  else next.add(name);
+                  return next;
+                }),
+                children: [
+                  /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "od-folder-caret", "aria-hidden": "true", children: closed ? "›" : "⌄" }),
+                  /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "od-folder-name", children: name }),
+                  /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "od-folder-n", children: items.length })
+                ]
+              }
+            ),
+            closed ? null : /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "od-folder-body", role: "group", children: items.map((item) => /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)(
+              "button",
+              {
+                type: "button",
+                className: `od-file${item.id === selectedId ? " on" : ""}${item.status === "archived" ? " archived" : ""}`,
+                onClick: () => setSelectedId(item.id),
+                children: [
+                  /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "od-file-name", children: item.title }),
+                  attachedVersion(item.id, attachments) ? /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "od-file-dot", title: words("本次分析在用", "In use this run", lang) }) : null
+                ]
+              },
+              item.id
+            )) })
+          ] }, name);
+        }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "od-fm-status", children: /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { children: status === "ready" ? words(`${documents.length} 份材料`, `${documents.length} files`, lang) : "" }) })
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "od-preview-pane", children: [
+        searchResult ? /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
+          SearchPane,
+          {
+            result: searchResult,
+            openedEvidence,
+            evidenceError,
+            lang,
+            onOpen: (ref) => void openEvidence(ref),
+            onClear: () => {
+              setQuery("");
+              setSearchResult(null);
+            }
+          }
+        ) : selected ? /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
+          DocumentPreview,
+          {
+            sessionId,
+            api,
+            onClose: () => setSelectedId(null),
+            document: selected,
+            versions: histories[selected.id],
+            attachment: attachedVersion(selected.id, attachments),
+            sessionFiles,
+            busy,
+            lang,
+            onUpdate: async (input) => await runMutation(`${selected.id}:metadata`, async () => await api.update(sessionId, selected.id, input)),
+            onArchive: async () => await runMutation(`${selected.id}:archive`, async () => await api.archive(
               sessionId,
-              api,
-              document: item,
-              versions: histories[item.id],
-              attachment: attachedVersion(item.id, attachments),
-              sessionFiles,
-              busy,
-              lang,
-              onUpdate: async (input) => await runMutation(`${item.id}:metadata`, async () => await api.update(sessionId, item.id, input)),
-              onArchive: async () => await runMutation(`${item.id}:archive`, async () => await api.archive(
-                sessionId,
-                item.id,
-                item.status !== "archived",
-                item.revision
-              )),
-              onAttach: async (version) => await runMutation(`${item.id}:attach`, async () => await api.attach(
-                sessionId,
-                item.id,
-                version.id
-              )),
-              onDetach: async () => await runMutation(`${item.id}:detach`, async () => await api.detach(sessionId, item.id)),
-              onAdopt: async (version) => await runMutation(`${item.id}:adopt`, async () => await api.adopt(
-                sessionId,
-                item.id,
-                version.id,
-                item.revision
-              )),
-              onAddVersion: async (fileName) => await runMutation(`${item.id}:version`, async () => await api.promote(sessionId, {
-                session_file_name: fileName,
-                target_document_id: item.id,
-                base_version_id: item.current_version_id
-              }))
-            },
-            item.id
-          );
-        })
+              selected.id,
+              selected.status !== "archived",
+              selected.revision
+            )),
+            onAttach: async (version) => await runMutation(`${selected.id}:attach`, async () => await api.attach(
+              sessionId,
+              selected.id,
+              version.id
+            )),
+            onDetach: async () => await runMutation(`${selected.id}:detach`, async () => await api.detach(sessionId, selected.id)),
+            onAdopt: async (version) => await runMutation(`${selected.id}:adopt`, async () => await api.adopt(
+              sessionId,
+              selected.id,
+              version.id,
+              selected.revision
+            )),
+            onAddVersion: async (fileName) => await runMutation(`${selected.id}:version`, async () => await api.promote(sessionId, {
+              session_file_name: fileName,
+              target_document_id: selected.id,
+              base_version_id: selected.current_version_id
+            }))
+          },
+          selected.id
+        ) : /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "od-preview-idle", children: words("在左边选一份材料，正文就显示在这里。", "Pick a file on the left to read it here.", lang) }),
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "od-feedback", "aria-live": "polite", children: [
+          notice ? /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "od-notice", children: notice }) : null,
+          mutationError ? /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "od-inline-error", children: mutationError }) : null
+        ] })
       ] })
-    ] });
+    ] }) });
   }
 
   // ts/src/ui/react/knowledge-workspace.tsx

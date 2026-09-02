@@ -178,17 +178,98 @@ describe("argparse 对等物", () => {
 });
 
 // ══════════════════════════════════════════════════════════════════
-//  尚未迁移的三条
+//  parse —— 真解析，不碰网络
 // ══════════════════════════════════════════════════════════════════
 
-describe("doctor / parse / build", () => {
-  it("如实报「尚未迁移」并退 1，且**不占用 stdout**", async () => {
-    for (const argv of [["doctor"], ["parse", "x"], ["build", "x"]]) {
-      const r = await run(argv);
-      expect(r.code, argv.join(" ")).toBe(1);
-      expect(r.out, argv.join(" ")).toBe("");
-      expect(r.err, argv.join(" ")).toContain("尚未迁移到 TS");
+/** 网关凭证在**进程环境**里时 `doctor` 会真去连网。这些用例只验不联网的路径，
+ * 所以逐个用例把它们摘掉，跑完再放回去 —— 不然本机 export 过凭证的人跑测试会
+ * 打到真网关上，CI 与本地结果不一致。 */
+function withoutGatewayEnv<T>(body: () => Promise<T>): Promise<T> {
+  const saved = {
+    CUSTOM_LLM_BASE_URL: process.env["CUSTOM_LLM_BASE_URL"],
+    CUSTOM_LLM_API_KEY: process.env["CUSTOM_LLM_API_KEY"],
+  };
+  delete process.env["CUSTOM_LLM_BASE_URL"];
+  delete process.env["CUSTOM_LLM_API_KEY"];
+  return body().finally(() => {
+    for (const [k, v] of Object.entries(saved)) {
+      if (v === undefined) delete process.env[k];
+      else process.env[k] = v;
     }
+  });
+}
+
+describe("parse", () => {
+  it("真的解析 DDL 与 CSV，报切片数并退 0", async () => {
+    writeFileSync(
+      join(workspace, "schema.ddl"),
+      "CREATE TABLE 合同 (\n  id INT,  -- 合同主键\n  金额 DECIMAL(18,2)  -- 不含税单次\n);\n",
+      "utf-8",
+    );
+    writeFileSync(join(workspace, "清单.csv"), "编码,名称\nC001,合同\nC002,预算\n", "utf-8");
+
+    const r = await run(["parse", workspace]);
+
+    expect(r.code).toBe(0);
+    expect(r.err).toBe("");
+    // 两份材料都要被认出来，且切片数是真数出来的（> 0）。
+    expect(r.out).toContain("schema.ddl");
+    expect(r.out).toContain("清单.csv");
+    expect(r.out).toMatch(/解析 2 份材料 → \d+ 个切片/);
+  });
+
+  it("--json 把概览写到盘上，键是 files/chunks/findings", async () => {
+    writeFileSync(join(workspace, "清单.csv"), "编码,名称\nC001,合同\n", "utf-8");
+    const outJson = join(workspace, "summary.json");
+
+    const r = await run(["parse", workspace, "--json", outJson]);
+
+    expect(r.code).toBe(0);
+    const s = JSON.parse(readFileSync(outJson, "utf-8"));
+    expect(Object.keys(s)).toEqual(["files", "chunks", "findings"]);
+    expect(s.chunks).toBeGreaterThan(0);
+  });
+
+  it("一个文件都没找到时退 1", async () => {
+    const r = await run(["parse", join(workspace, "根本不存在")]);
+    expect(r.code).toBe(1);
+    expect(r.out).toContain("没有找到任何文件");
+  });
+});
+
+// ══════════════════════════════════════════════════════════════════
+//  doctor
+// ══════════════════════════════════════════════════════════════════
+
+describe("doctor", () => {
+  it("没配网关时报配置错并退 1 —— 不联网、不谎称「尚未迁移」", async () => {
+    const r = await withoutGatewayEnv(() => run(["doctor"]));
+
+    expect(r.code).toBe(1);
+    expect(r.out).toContain("配置");
+    expect(r.out).toContain("CUSTOM_LLM_BASE_URL");
+    expect(r.out).not.toContain("尚未迁移");
+  });
+});
+
+// ══════════════════════════════════════════════════════════════════
+//  build —— 仍未接线，但话要说对
+// ══════════════════════════════════════════════════════════════════
+
+describe("build", () => {
+  it("如实报未接线并退 1，且**不占用 stdout**", async () => {
+    const r = await run(["build", "x"]);
+    expect(r.code).toBe(1);
+    expect(r.out).toBe("");
+    expect(r.err).toContain("尚未接线");
+  });
+
+  it("**不再**把人指去已经删掉的 Python 源码树", async () => {
+    const r = await run(["build", "x"]);
+    // 59346fa 把 src/ontocopilot 整棵删了；再叫人 `python -m ontocopilot.cli`
+    // 就是把人送进一条死路。
+    expect(r.err).not.toContain("python -m ontocopilot.cli");
+    expect(r.err).not.toContain("Python 侧");
   });
 });
 
