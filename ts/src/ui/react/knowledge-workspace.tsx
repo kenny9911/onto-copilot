@@ -23,14 +23,6 @@ import { KnowledgeLibrary, type KnowledgeSessionFile } from "./knowledge-library
 
 export type KnowledgeWorkspaceSection = "files" | "wiki" | "jobs" | "sources" | "access";
 
-const TABS: Array<{ id: KnowledgeWorkspaceSection; label: string; note: string }> = [
-  { id: "files", label: "文件", note: "版本、原文搜索与影响" },
-  { id: "wiki", label: "项目 Wiki", note: "草稿和已确认知识" },
-  { id: "jobs", label: "处理任务", note: "解析与 OCR" },
-  { id: "sources", label: "数据源", note: "外部文件同步" },
-  { id: "access", label: "权限审计", note: "访问规则与记录" },
-];
-
 const CLAIM_KINDS: Array<{ value: WikiClaimKind; label: string }> = [
   { value: "MATERIAL_FACT", label: "材料事实" },
   { value: "HUMAN_DECISION", label: "人工决定" },
@@ -633,33 +625,74 @@ function AccessPanel({ sessionId, api }: { sessionId: string; api: KnowledgeMana
 }
 
 export interface KnowledgeWorkspaceProps {
+  /** 公共库不属于任何会话：没有 Wiki、没有处理任务、没有权限分区可谈。 */
+  level?: "global" | "project";
   sessionId: string;
   sessionFiles: KnowledgeSessionFile[];
   api?: KnowledgeManagementApi;
 }
 
-export function KnowledgeWorkspace({ sessionId, sessionFiles, api = knowledgeManagementApi }: KnowledgeWorkspaceProps): ReactElement {
+/**
+ * 知识库主界面。
+ *
+ * 原来是五个 Tab：文件 / 项目 Wiki / 处理任务 / 数据源 / 权限审计 —— 那是**后端
+ * 五个路由文件的镜像**，不是用户的五件事。其中三个是纯内部机器：数据源列了六个
+ * 企业连接器但同步永远抛异常；权限审计要用户手填 chunk id；处理任务把文档和版本
+ * 的原始 id 当正文显示。一个刚传完材料的人打开这一页，看到的是五个他一个都不需要
+ * 的分区，而他真正想干的事（看看里面有什么）连入口都没有。
+ *
+ * 现在：**一个列表 + 一个搜索框**，和文件管理器一样，不用学。
+ *   - 材料本身是主体，点标题就地展开读全文（KnowledgeLibrary 里的阅读器）
+ *   - 「已确认知识」(Wiki) 是次级入口，不占主位 —— 它要等库里真有东西才有意义
+ *   - 处理任务 / 数据源 / 权限审计 收进底部一个默认折叠的「高级」区，
+ *     仍然可达，但不再挡在用户和他的材料之间
+ */
+export function KnowledgeWorkspace({ level = "project", sessionId, sessionFiles, api = knowledgeManagementApi }: KnowledgeWorkspaceProps): ReactElement {
+  const isGlobal = level === "global";
   const [section, setSection] = useState<KnowledgeWorkspaceSection>("files");
-  const body = useMemo(() => {
-    if (section === "files") return <div className="odm-files">
-      <KnowledgeLibrary sessionId={sessionId} sessionFiles={sessionFiles} />
-      <VersionReviewPanel sessionId={sessionId} api={api} />
-    </div>;
-    if (section === "wiki") return <WikiPanel sessionId={sessionId} api={api} />;
-    if (section === "jobs") return <JobsPanel sessionId={sessionId} api={api} />;
-    if (section === "sources") return <SourcesPanel sessionId={sessionId} api={api} />;
-    return <AccessPanel sessionId={sessionId} api={api} />;
-  }, [api, section, sessionFiles, sessionId]);
+  const [advanced, setAdvanced] = useState(false);
+  const showingWiki = section === "wiki";
 
-  return <div className="odm-workspace">
-    <nav className="odm-tabs" aria-label="项目知识库管理分区" role="tablist">
-      {TABS.map((tab) => <button type="button" role="tab" id={`odm-tab-${tab.id}`}
-        aria-controls="odm-active-panel" key={tab.id} aria-selected={section === tab.id}
-        className={section === tab.id ? "on" : ""} onClick={() => setSection(tab.id)}>
-        <strong>{tab.label}</strong><small>{tab.note}</small>
-      </button>)}
+  if (isGlobal) {
+    // 公共库只有一件事：文档列表 + 点开预览。其余分区都以会话/项目为前提。
+    return <div className="odm-workspace odm-simple">
+      <div className="odm-panel">
+        <KnowledgeLibrary level="global" sessionId={sessionId} sessionFiles={[]} />
+      </div>
+    </div>;
+  }
+
+  return <div className="odm-workspace odm-simple">
+    <nav className="odm-switch" aria-label="项目知识库">
+      <button type="button" className={showingWiki ? "" : "on"} aria-pressed={!showingWiki}
+        onClick={() => setSection("files")}>材料</button>
+      <button type="button" className={showingWiki ? "on" : ""} aria-pressed={showingWiki}
+        onClick={() => setSection("wiki")}>已确认知识</button>
     </nav>
-    <div className="odm-panel" id="odm-active-panel" role="tabpanel" aria-labelledby={`odm-tab-${section}`}>{body}</div>
+
+    <div className="odm-panel" id="odm-active-panel">
+      {showingWiki
+        ? <WikiPanel sessionId={sessionId} api={api} />
+        : <div className="odm-files">
+            <KnowledgeLibrary sessionId={sessionId} sessionFiles={sessionFiles} />
+          </div>}
+    </div>
+
+    {/* 内部机器收在这里：仍然可达，但不再和「我的材料」抢主位。 */}
+    <div className="odm-advanced">
+      <button type="button" className="odm-advanced-toggle" aria-expanded={advanced}
+        onClick={() => setAdvanced((on) => !on)}>
+        {advanced ? "▾" : "▸"} 高级：版本比较 · 处理任务 · 数据源 · 权限审计
+      </button>
+      {advanced && <div className="odm-advanced-body">
+        {/* 版本比较也搬到这里：它回答的是「改了哪一版、影响什么」，
+            不是「我的材料里有什么」。后者才是这一页的主线。 */}
+        <VersionReviewPanel sessionId={sessionId} api={api} />
+        <JobsPanel sessionId={sessionId} api={api} />
+        <SourcesPanel sessionId={sessionId} api={api} />
+        <AccessPanel sessionId={sessionId} api={api} />
+      </div>}
+    </div>
   </div>;
 }
 

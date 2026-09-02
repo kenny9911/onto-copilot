@@ -134,6 +134,21 @@ export interface DocumentRepository {
     versionId: string,
     chunkId: string,
   ): Promise<SearchChunkCandidate | null>;
+  /**
+   * 按原文顺序取一个版本的切片 —— 「打开一份材料读」用的。
+   *
+   * 在此之前整个知识库只有两条读路径：`chunksForSearch`（要关键词）和 `getChunk`
+   * （要一个已经拿到的 evidence_ref）。也就是说**存进去的文件根本没有打开入口**，
+   * 用户只能靠猜关键词去搜自己刚传的东西。这是「知识库看不懂、用不起来」最直接的一条。
+   *
+   * 返回 total 是为了让阅读器如实说「第 1-50 段，共 213 段」，而不是默默截断。
+   */
+  chunksOfVersion(
+    scope: DocumentScope,
+    documentId: string,
+    versionId: string,
+    opts?: { readonly offset?: number; readonly limit?: number },
+  ): Promise<{ readonly chunks: SearchChunkCandidate[]; readonly total: number }>;
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -573,6 +588,30 @@ export class MemoryDocumentRepository implements DocumentRepository {
     const c = this.chunks.get(`${versionId}\u0000${chunkId}`);
     if (d === null || v?.documentId !== documentId || c?.documentId !== documentId) return null;
     return { document: cloneDocument(d), version: versionPublic(cloneVersion(v)), chunk: cloneChunk(c) };
+  }
+
+  async chunksOfVersion(
+    scope: DocumentScope,
+    documentId: string,
+    versionId: string,
+    opts: { readonly offset?: number; readonly limit?: number } = {},
+  ): Promise<{ readonly chunks: SearchChunkCandidate[]; readonly total: number }> {
+    const d = this.scoped(scope, documentId);
+    const v = this.versions.get(versionId);
+    if (d === null || v?.documentId !== documentId) return { chunks: [], total: 0 };
+    const all = [...this.chunks.values()]
+      .filter((c) => c.versionId === versionId && c.documentId === documentId)
+      .sort((a, b) => a.order - b.order || a.chunkId.localeCompare(b.chunkId));
+    const offset = Math.max(0, Math.trunc(opts.offset ?? 0));
+    const limit = opts.limit === undefined ? all.length : Math.max(0, Math.trunc(opts.limit));
+    return {
+      chunks: all.slice(offset, offset + limit).map((c) => ({
+        document: cloneDocument(d),
+        version: versionPublic(cloneVersion(v)),
+        chunk: cloneChunk(c),
+      })),
+      total: all.length,
+    };
   }
 }
 
@@ -1139,6 +1178,44 @@ export class SqlDocumentRepository implements DocumentRepository {
         "WHERE d.project_id=? AND d.owner=? AND d.id=? AND v.id=? AND c.chunk_id=?";
       const rows = await conn.all<DbRow>(sql, [scope.projectId, scope.owner, documentId, versionId, chunkId]);
       return rows[0] === undefined ? null : candidateFromJoined(rows[0]);
+    });
+  }
+
+  async chunksOfVersion(
+    scope: DocumentScope,
+    documentId: string,
+    versionId: string,
+    opts: { readonly offset?: number; readonly limit?: number } = {},
+  ): Promise<{ readonly chunks: SearchChunkCandidate[]; readonly total: number }> {
+    assertScope(scope);
+    const offset = Math.max(0, Math.trunc(opts.offset ?? 0));
+    const limit = Math.max(0, Math.trunc(opts.limit ?? 200));
+    return this.engine.connect(async (conn) => {
+      const bounds = [scope.projectId, scope.owner, documentId, versionId];
+      // 先数一次总量：阅读器要能如实说「第 1-50 段，共 213 段」，
+      // 而不是默默截断 —— 这个产品的其它地方都在守「不把截断伪装成全部」这条。
+      const counted = await conn.all<DbRow>(
+        "SELECT COUNT(*) AS n FROM onto_document d " +
+          "JOIN onto_document_version v ON v.document_id=d.id " +
+          "JOIN onto_document_chunk c ON c.version_id=v.id AND c.document_id=d.id " +
+          "WHERE d.project_id=? AND d.owner=? AND d.id=? AND v.id=?",
+        bounds,
+      );
+      const total = Number(counted[0]?.["n"] ?? 0);
+      if (total === 0 || limit === 0) return { chunks: [], total };
+      const sql =
+        `SELECT ${DOC_COLUMNS.split(",").map((c) => `d.${c} AS d_${c}`).join(",")},` +
+        `${VERSION_COLUMNS.split(",").map((c) => `v.${c} AS v_${c}`).join(",")},` +
+        "c.version_id AS c_version_id,c.chunk_id AS c_chunk_id,c.document_id AS c_document_id," +
+        "c.order_no AS c_order_no,c.locator AS c_locator,c.render_text AS c_render_text," +
+        "c.raw_json AS c_raw_json,c.tags AS c_tags,c.context AS c_context,c.text_sha256 AS c_text_sha256 " +
+        "FROM onto_document d JOIN onto_document_version v ON v.document_id=d.id " +
+        "JOIN onto_document_chunk c ON c.version_id=v.id AND c.document_id=d.id " +
+        "WHERE d.project_id=? AND d.owner=? AND d.id=? AND v.id=? " +
+        // 走 onto_document_chunk_version_order_idx (version_id, order_no)。
+        "ORDER BY c.order_no,c.chunk_id LIMIT ? OFFSET ?";
+      const rows = await conn.all<DbRow>(sql, [...bounds, limit, offset]);
+      return { chunks: rows.map(candidateFromJoined), total };
     });
   }
 }

@@ -19,6 +19,7 @@ import {
   DocumentForbidden,
   type DocumentAttachment,
   type DocumentOpenResult,
+  type DocumentReadResult,
   type DocumentSearchResult,
   type DocumentSummary,
   type DocumentVersion,
@@ -107,6 +108,16 @@ const SEARCH: DocumentSearchResult = {
   coverage: { matchedTerms: ["审批"], missingTerms: [], queryTerms: 1, ratio: 1 },
 };
 
+const READ: DocumentReadResult = {
+  document: SUMMARY,
+  version: VERSION,
+  level: "project",
+  // 每段都自带 evidence_ref 和引用文案 —— 阅读器里的「引用到对话」靠的就是这个。
+  chunks: SEARCH.hits,
+  total: 213,
+  offset: 0,
+};
+
 const OPEN: DocumentOpenResult = {
   ...SEARCH.hits[0]!,
   raw: { paragraph: "采购申请由部门负责人审批。" },
@@ -151,6 +162,11 @@ class FakeDocumentService implements DocumentServicePort {
   async open(...args: Parameters<DocumentServicePort["open"]>): Promise<DocumentOpenResult> {
     this.calls.push({ method: "open", args });
     return OPEN;
+  }
+
+  async read(...args: Parameters<DocumentServicePort["read"]>): Promise<DocumentReadResult> {
+    this.calls.push({ method: "read", args });
+    return READ;
   }
 
   async updateMetadata(
@@ -450,6 +466,51 @@ describe("OntoDocument 路由安全边界", () => {
     const response = await app.request("/api/sessions/s1/documents");
     expect(response.status).toBe(404);
     expect(documents.calls).toHaveLength(0);
+  });
+
+  it("能按原文顺序打开一份材料读，且如实说明这是第几段、一共多少段", async () => {
+    // 在这条路由之前，知识库里存进去的文件**没有任何打开入口**：只有 search（要关键词）
+    // 和 evidence/:ref/open（要一个已经拿到的引用）。用户刚传完一份 40 页的材料想看看
+    // 里面有什么，只能靠猜关键词——这是「知识库看不懂、用不起来」最直接的一条。
+    const response = await app.request(
+      "/api/sessions/s1/documents/doc-1/content?offset=0&limit=50",
+    );
+    expect(response.status).toBe(200);
+    const payload = await json(response);
+
+    expect(payload.document).toMatchObject({ id: "doc-1" });
+    expect(payload.level).toBe("project");
+    // 不默默截断：界面要能说「第 1-1 段，共 213 段」。
+    expect(payload.total).toBe(213);
+    expect(payload.offset).toBe(0);
+    // 每段都带 evidence_ref 和引用文案，阅读器里的「引用到对话」直接用它。
+    expect(payload.chunks[0]).toMatchObject({
+      evidence_ref: "odoc:doc-1:ver-2:chunk-1",
+      level: "project",
+    });
+    expect(payload.chunks[0]).toHaveProperty("cite");
+    // 版本正文不外发存储路径。
+    expect(JSON.stringify(payload)).not.toContain("rel_path");
+
+    expect(documents.calls.at(-1)).toMatchObject({
+      method: "read",
+      args: [
+        { projectId: "project-1", owner: "u1", actorId: "u1" },
+        "doc-1",
+        { offset: 0, limit: 50 },
+      ],
+    });
+  });
+
+  it("不传版本时读采用版；读正文的边界字段一律拒绝", async () => {
+    await app.request("/api/sessions/s1/documents/doc-1/content");
+    // versionId 缺省交给服务层决定（采用版优先，退到最新版），路由不替它猜。
+    expect(documents.calls.at(-1)!.args[2]).toEqual({ offset: 0, limit: 100 });
+
+    for (const q of ["project_id=other", "owner=u2", "path=/etc/passwd"]) {
+      const denied = await app.request(`/api/sessions/s1/documents/doc-1/content?${q}`);
+      expect(denied.status).toBe(400);
+    }
   });
 
   it("会话未归项目时惰性落到默认项目，并把这件事报给前端", async () => {

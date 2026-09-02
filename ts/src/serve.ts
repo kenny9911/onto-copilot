@@ -92,7 +92,7 @@ import {
 import { registerLiveBrowserRoutes } from "./server/routes/live-browser.js";
 import { autoTitle, registerSessionRoutes } from "./server/routes/sessions.js";
 import { registerProjectRoutes, rememberDecision } from "./server/routes/projects.js";
-import { registerDocumentRoutes } from "./server/routes/documents.js";
+import { registerDocumentRoutes, registerGlobalKnowledgeRoutes } from "./server/routes/documents.js";
 import { lazyDocumentService } from "./document/deps.js";
 import {
   lazyDocumentOperations,
@@ -1042,6 +1042,8 @@ export function wireServer(): void {
   });
   const documents = lazyDocumentService();
   registerDocumentRoutes(app, { documents, operations: lazyDocumentOperations() });
+  // 公共知识库：不经过会话，直接可达。见 routes/documents.ts 的 registerGlobalKnowledgeRoutes。
+  registerGlobalKnowledgeRoutes(app, { documents });
   registerDocumentKnowledgeRoutes(app, {
     documents,
     wiki: lazyWikiPageService(),

@@ -56,27 +56,36 @@ describe("独立项目知识库页面", () => {
     const view = render(<KnowledgePage />);
     expect(view.container.querySelector(".knowledge-page-shell")).toBeNull();
 
-    act(() => openKnowledgePage());
+    // 侧栏在会话已归项目时传 "project"；缺省是公共库。
+    act(() => openKnowledgePage("project"));
 
     expect(G.MAIN_PAGE).toBe("knowledge");
+    expect(G.KNOWLEDGE_TARGET).toBe("project");
     expect(window.location.hash).toBe("#knowledge");
-    expect(await view.findByRole("main", { name: "项目知识库页面" })).not.toBeNull();
-    expect(view.getByRole("heading", { name: "项目知识库" })).not.toBeNull();
+    expect(await view.findByRole("main", { name: "知识库" })).not.toBeNull();
+    expect(view.getByRole("heading", { name: /知识库/ })).not.toBeNull();
     expect(view.container.textContent).toContain("采购数字化");
     expect(view.container.querySelector(".od-library")?.getAttribute("data-session-id")).toBe("s1");
     expect(view.container.textContent).toContain("采购制度.docx");
     expect(document.body.classList.contains("knowledge-page-open")).toBe(true);
   });
 
-  it("没有已归入项目的当前会话时拒绝打开", () => {
+  it("没有已归入项目的会话时打开的是公共知识库，而不是什么都不发生", () => {
+    // 旧契约：`if (!G.S?.id || !G.S?.project_id) return;` —— 按钮点了没反应。
+    // 产品要求这个库可以直接访问，所以没有项目就退到公共层，而不是拒绝。
     G.S = { id: "s1", filelist: [] };
     const view = render(<KnowledgePage />);
 
-    act(() => openKnowledgePage());
+    act(() => openKnowledgePage("project"));
 
-    expect(G.MAIN_PAGE).toBe("chat");
-    expect(window.location.hash).toBe("");
-    expect(view.container.querySelector(".knowledge-page-shell")).toBeNull();
+    expect(G.MAIN_PAGE).toBe("knowledge");
+    expect(G.KNOWLEDGE_TARGET).toBe("global");
+    expect(window.location.hash).toBe("#knowledge");
+    expect(view.container.querySelector(".knowledge-page-shell")).not.toBeNull();
+    expect(view.container.querySelector("h1")?.textContent).toBe("公共知识库");
+    // 「当前项目」那一档在没有项目时是灰的，但公共这一档永远能用。
+    const project = view.container.querySelectorAll(".kp-level button")[1] as HTMLButtonElement;
+    expect(project.hasAttribute("disabled")).toBe(true);
   });
 
   it("页面内返回会话会清掉 hash，并替换当前历史记录", async () => {

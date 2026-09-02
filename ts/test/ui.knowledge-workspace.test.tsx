@@ -118,19 +118,35 @@ beforeEach(() => { document.body.innerHTML = ""; });
 afterEach(() => cleanup());
 
 describe("独立项目知识库工作区", () => {
-  it("五个管理分区都在独立页面内，文件区包含版本影响检查", async () => {
+  it("首屏只有材料，内部机器不占主位", async () => {
+    // 原来是五个 Tab：文件 / 项目 Wiki / 处理任务 / 数据源 / 权限审计 —— 那是**后端
+    // 五个路由文件的镜像**，不是用户的五件事。其中三个是纯内部机器（数据源的同步
+    // 永远抛异常、权限审计要手填 chunk id），却和「我的材料」抢同一排主位。
     const api = apiFixture();
     const view = render(<KnowledgeWorkspace sessionId="session/1" sessionFiles={[{ name: "采购制度.docx" }]} api={api} />);
-    expect(Array.from(view.container.querySelectorAll(".odm-tabs button") as any[]).map((node: any) => node.textContent))
-      .toEqual(["文件版本、原文搜索与影响", "项目 Wiki草稿和已确认知识", "处理任务解析与 OCR", "数据源外部文件同步", "权限审计访问规则与记录"]);
+
+    // 顶部只剩两个轻量切换，材料在前。
+    expect(Array.from(view.container.querySelectorAll(".odm-switch button") as any[]).map((node: any) => node.textContent))
+      .toEqual(["材料", "已确认知识"]);
+    expect(view.container.querySelector(".odm-tabs"), "五个 Tab 的旧结构应当已经消失").toBeNull();
+
+    // 内部机器默认不渲染，收在折叠区里 —— 可达，但不挡在用户和他的材料之间。
+    expect(view.container.textContent).not.toContain("新建处理任务");
+    expect(view.container.querySelector(".odm-advanced-toggle")?.textContent)
+      .toContain("高级：版本比较 · 处理任务 · 数据源 · 权限审计");
+
     expect(view.container.querySelector(".od-library")?.getAttribute("data-session-id")).toBe("session/1");
-    await waitFor(() => expect(view.container.textContent).toContain("版本变化与影响"));
+    // 「版本变化与影响」不再出现在首屏 —— 它搬进了折叠的高级区。
+    expect(view.container.textContent).not.toContain("版本变化与影响");
     expect(view.container.querySelector(".ctx-sidebar"), "知识库内容被放回右侧 sidebar").toBeNull();
   });
 
   it("版本影响只有点击比较后才调用，并明确不会自动修改产物", async () => {
     const api = apiFixture();
     const view = render(<KnowledgeWorkspace sessionId="s1" sessionFiles={[]} api={api} />);
+    // 版本比较回答的是「改了哪一版、影响什么」，不是「我的材料里有什么」——
+    // 它也搬进了折叠的高级区，先展开。
+    fireEvent.click(view.container.querySelector(".odm-advanced-toggle") as any);
     const compare = await view.findByRole("button", { name: "比较并检查影响" });
     await waitFor(() => expect(compare.hasAttribute("disabled")).toBe(false));
     expect(api.diff).not.toHaveBeenCalled();
@@ -142,7 +158,7 @@ describe("独立项目知识库工作区", () => {
   it("Wiki 清楚区分 AI 草稿和人工确认，确认必须由按钮提交且带证据", async () => {
     const api = apiFixture();
     const view = render(<KnowledgeWorkspace sessionId="s1" sessionFiles={[]} api={api} />);
-    fireEvent.click(view.getByRole("tab", { name: /项目 Wiki/ }));
+    fireEvent.click(view.getByRole("button", { name: "已确认知识" }));
     await waitFor(() => expect(view.container.textContent).toContain("AI 草稿 · 待人工确认"));
     expect(view.container.textContent).toContain("人工已确认");
     expect(api.confirmWikiClaim).not.toHaveBeenCalled();
@@ -157,7 +173,8 @@ describe("独立项目知识库工作区", () => {
   it("处理任务不会自动创建；人工确认后才提交固定文档版本", async () => {
     const api = apiFixture();
     const view = render(<KnowledgeWorkspace sessionId="s1" sessionFiles={[]} api={api} />);
-    fireEvent.click(view.getByRole("tab", { name: /处理任务/ }));
+    // 内部机器收在折叠区里，先展开再操作。
+    fireEvent.click(view.container.querySelector(".odm-advanced-toggle") as any);
     await waitFor(() => expect(view.container.textContent).toContain("OCR 识别"));
     expect(api.createJob).not.toHaveBeenCalled();
     fireEvent.click(view.getByRole("button", { name: "新建处理任务" }));
@@ -171,7 +188,8 @@ describe("独立项目知识库工作区", () => {
   it("数据源只显示凭据引用，只有点击同步才读取远端", async () => {
     const api = apiFixture();
     const view = render(<KnowledgeWorkspace sessionId="s1" sessionFiles={[]} api={api} />);
-    fireEvent.click(view.getByRole("tab", { name: /数据源/ }));
+    // 内部机器收在折叠区里，先展开再操作。
+    fireEvent.click(view.container.querySelector(".odm-advanced-toggle") as any);
     await waitFor(() => expect(view.container.textContent).toContain("项目 SharePoint"));
     expect(view.container.textContent).toContain("vault://team/sharepoint");
     expect(view.container.textContent).toContain("不接收密码或 Token");
@@ -189,7 +207,8 @@ describe("独立项目知识库工作区", () => {
   it("权限默认只读，点击编辑和确认保存后才写；并如实说明当前账号边界", async () => {
     const api = apiFixture();
     const view = render(<KnowledgeWorkspace sessionId="s1" sessionFiles={[]} api={api} />);
-    fireEvent.click(view.getByRole("tab", { name: /权限审计/ }));
+    // 内部机器收在折叠区里，先展开再操作。
+    fireEvent.click(view.container.querySelector(".odm-advanced-toggle") as any);
     await waitFor(() => expect(view.container.textContent).toContain("允许 用户 u1"));
     expect(view.container.textContent).toContain("当前版本以项目所属账号为访问边界");
     expect(view.queryByRole("button", { name: "确认保存权限" })).toBeNull();

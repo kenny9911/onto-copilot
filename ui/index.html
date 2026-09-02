@@ -132,7 +132,11 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 
 .main{flex:1 1 640px;min-width:520px;border-right:1px solid var(--line);position:relative}
 .knowledge-page{display:none;min-height:0;flex:1;overflow:hidden;background:var(--bg)}
-body.knowledge-page-open .main>.stream,body.knowledge-page-open .main>.comp,body.knowledge-page-open .main>.qbar{display:none!important}
+/* 知识库页面**保留对话输入框**：产品要求就是「在知识库里跟 Copilot 说话」，
+   把 .comp 一起藏掉，那条路当场就断了。消息流仍然收起（知识库页是主内容），
+   发出去之后由 knowledge-page 负责退回聊天，避免「说了话看不到回答」的死路。 */
+body.knowledge-page-open .main>.stream,body.knowledge-page-open .main>.qbar{display:none!important}
+body.knowledge-page-open .main>.comp{border-top:1px solid var(--line-soft)}
 body.knowledge-page-open .knowledge-page{display:flex}
 body.knowledge-page-open .preview,body.knowledge-page-open .pexpand{display:none!important}
 body.knowledge-page-open .main{min-width:0;border-right:0}
@@ -141,6 +145,55 @@ body.knowledge-page-open .main{min-width:0;border-right:0}
 .knowledge-page-head span{color:var(--ink-3);font-size:.7407rem}.knowledge-page-head h1{margin-top:2px;font-size:1.5556rem;font-weight:600;letter-spacing:-.02em}.knowledge-page-head p{margin-top:4px;color:var(--ink-2);font-size:.8519rem}
 .knowledge-page-body{min-height:0;flex:1;overflow:auto;padding:0 32px 40px}.knowledge-page-body>.odm-workspace{width:min(1240px,100%);margin:0 auto}
 .odm-workspace{min-width:0}.odm-tabs{position:sticky;z-index:3;top:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px;padding:14px 0;border-bottom:1px solid var(--line-soft);background:color-mix(in srgb,var(--bg) 94%,transparent)}
+/* 五个 Tab 收成「材料 / 已确认知识」两个轻量切换 —— 原来那五个是后端五个路由
+   文件的镜像，不是用户的五件事。 */
+.odm-switch{position:sticky;z-index:3;top:0;display:flex;gap:4px;padding:14px 0;border-bottom:1px solid var(--line-soft);background:color-mix(in srgb,var(--bg) 94%,transparent)}
+.odm-switch button{padding:6px 14px;border:1px solid transparent;border-radius:99px;color:var(--ink-2);font-size:.8519rem}
+.odm-switch button:hover{background:var(--hover)}
+.odm-switch button.on{border-color:var(--accent-line);background:var(--accent-tint);color:var(--accent);font-weight:600}
+/* 内部机器（处理任务/数据源/权限审计）默认折叠：仍然可达，但不挡在用户和材料之间。 */
+.odm-advanced{margin-top:28px;padding-top:14px;border-top:1px solid var(--line-soft)}
+.odm-advanced-toggle{padding:4px 0;color:var(--ink-3);font-size:.7407rem}
+.odm-advanced-toggle:hover{color:var(--ink-2)}
+.odm-advanced-body{display:flex;flex-direction:column;gap:16px;padding-top:14px}
+/* ── 文件管理器式列表 ─────────────────────────────────────────────
+   原来这一屏在看到第一个文件之前堆了：标题段、产品说明、信任提示条、
+   带勾选框的搜索表单、一整块「保存到项目库」。那是说明书不是文件管理器。
+   现在：一条工具栏 + 一张表。列宽固定，扫一眼就知道有什么。 */
+.kp-title{display:flex;align-items:center;gap:12px}
+.kp-level{display:flex;gap:3px;padding:2px;border:1px solid var(--line);border-radius:99px;background:var(--panel)}
+.kp-level button{padding:3px 12px;border-radius:99px;color:var(--ink-2);font-size:.7407rem}
+.kp-level button:hover:not(:disabled){background:var(--hover)}
+.kp-level button.on{background:var(--accent-tint);color:var(--accent);font-weight:600}
+.kp-level button:disabled{color:var(--ink-3);cursor:default}
+.od-fm-bar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:2px 0 14px}
+.od-fm-search{display:flex;flex:1;min-width:220px;align-items:center;gap:8px}
+.od-fm-search input{flex:1;min-width:0;padding:7px 11px;border:1px solid var(--line);border-radius:8px;background:var(--panel);font-size:.8519rem}
+.od-fm-search input:focus{border-color:var(--accent-line);outline:0}
+.od-fm-tools{display:flex;align-items:center;gap:8px}
+.od-fm-tools select{max-width:180px;padding:6px 9px;border:1px solid var(--line);border-radius:8px;background:var(--panel);font-size:.7778rem}
+.od-fm-list{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--panel)}
+.od-fm-head,.od-row-main{display:grid;grid-template-columns:minmax(0,1fr) 62px 96px 116px 74px;align-items:center;gap:10px;padding:8px 14px}
+.od-fm-head{border-bottom:1px solid var(--line);background:var(--hover);color:var(--ink-3);font-size:.7037rem;letter-spacing:.03em}
+.od-row{border-bottom:1px solid var(--line-soft)}
+.od-row:last-child{border-bottom:0}
+.od-row.attached{background:var(--accent-tint)}
+.od-row.archived .od-row-title{color:var(--ink-3);text-decoration:line-through}
+.od-row-main:hover{background:var(--hover)}
+.od-row-name{display:flex;min-width:0;align-items:center;gap:7px;padding:0;background:none;text-align:left}
+.od-row-icon{width:12px;color:var(--ink-3);font-size:.7037rem}
+.od-row-title{overflow:hidden;color:var(--ink);font-size:.8519rem;text-overflow:ellipsis;white-space:nowrap}
+.od-row-tag{flex:none;padding:1px 6px;border-radius:99px;background:var(--hover-2);color:var(--ink-3);font-size:.6667rem}
+.od-row-col{color:var(--ink-2);font-size:.7407rem;white-space:nowrap}
+.od-row-time{color:var(--ink-3)}
+.od-row-actions{display:flex;justify-content:flex-end}
+.od-row-more{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:0 14px 10px 33px}
+.od-fm-status{display:flex;align-items:center;justify-content:space-between;padding:8px 2px;color:var(--ink-3);font-size:.7407rem}
+/* 就地读全文。这是此前完全没有的入口。 */
+.od-reader{display:flex;flex-direction:column;gap:10px;margin:0 14px 12px 33px;padding:12px 14px;border:1px solid var(--line-soft);border-radius:9px;background:var(--panel-soft)}
+.od-reader-chunk{display:flex;flex-direction:column;gap:4px;padding-bottom:10px;border-bottom:1px dashed var(--line-soft)}
+.od-reader-chunk:last-of-type{border-bottom:0;padding-bottom:0}
+.od-reader-text{margin:0;color:var(--ink);font-size:.8519rem;line-height:1.65;white-space:pre-wrap}
 .odm-tabs button{display:flex;min-width:0;flex-direction:column;align-items:flex-start;padding:9px 11px;border:1px solid transparent;border-radius:9px;color:var(--ink-2);text-align:left}
 .odm-tabs button:hover{background:var(--hover)}.odm-tabs button.on{border-color:var(--accent-line);background:var(--accent-tint);color:var(--accent)}
 .odm-tabs strong{font-size:.8519rem}.odm-tabs small{max-width:100%;overflow:hidden;margin-top:1px;color:var(--ink-3);font-size:.6667rem;text-overflow:ellipsis;white-space:nowrap}
@@ -14523,6 +14576,7 @@ body.dragging .preview{transition:none}
   var G = {
     S: null,
     MAIN_PAGE: "chat",
+    KNOWLEDGE_TARGET: "global",
     TAB: "model",
     CONTEXT_BACK: null,
     FILE: null,
@@ -19240,8 +19294,11 @@ ${el.value}` : text4;
   var import_react5 = __toESM(require_react(), 1);
 
   // ts/src/ui/knowledge-library.ts
-  function route2(sessionId, suffix = "") {
+  function sessionRoute(sessionId, suffix = "") {
     return `${API}/api/sessions/${encodeURIComponent(sessionId)}/documents${suffix}`;
+  }
+  function globalRoute(_sessionId, suffix = "") {
+    return `${API}/api/knowledge/documents${suffix}`;
   }
   function detailFromBody(body, fallback) {
     if (!body) return fallback;
@@ -19274,64 +19331,672 @@ ${el.value}` : text4;
   function documentSuffix(documentId, tail2 = "") {
     return `/${encodeURIComponent(documentId)}${tail2}`;
   }
-  var knowledgeLibraryApi = {
-    async list(sessionId, includeArchived = false) {
-      const query = includeArchived ? "?include_archived=true" : "";
-      return await request2(route2(sessionId, query));
-    },
-    async history(sessionId, documentId) {
-      const result = await request2(
-        route2(sessionId, documentSuffix(documentId, "/history"))
-      );
-      return result.versions || [];
-    },
-    async search(sessionId, query, attachedOnly = false) {
-      const params = new URLSearchParams({ q: query, limit: "30" });
-      if (attachedOnly) params.set("attached_only", "true");
-      return await request2(route2(sessionId, `/search?${params.toString()}`));
-    },
-    async open(sessionId, evidenceRef) {
-      const result = await request2(
-        route2(sessionId, `/evidence/${encodeURIComponent(evidenceRef)}/open`)
-      );
-      return result.evidence;
-    },
-    async promote(sessionId, input) {
-      return await request2(route2(sessionId, "/promote"), {
-        method: "POST",
-        body: JSON.stringify(input)
-      });
-    },
-    async update(sessionId, documentId, input) {
-      return await request2(route2(sessionId, documentSuffix(documentId)), {
-        method: "PATCH",
-        body: JSON.stringify(input)
-      });
-    },
-    async adopt(sessionId, documentId, versionId, expectedRevision) {
-      return await request2(route2(sessionId, documentSuffix(documentId, "/adopt")), {
-        method: "PATCH",
-        body: JSON.stringify({ version_id: versionId, expected_revision: expectedRevision })
-      });
-    },
-    async archive(sessionId, documentId, archived, expectedRevision) {
-      return await request2(route2(sessionId, documentSuffix(documentId, "/archive")), {
-        method: "PATCH",
-        body: JSON.stringify({ archived, expected_revision: expectedRevision })
-      });
-    },
-    async attach(sessionId, documentId, versionId, role = "reference") {
-      return await request2(route2(sessionId, documentSuffix(documentId, "/attach")), {
-        method: "POST",
-        body: JSON.stringify({ version_id: versionId, role })
-      });
-    },
-    async detach(sessionId, documentId) {
-      return await request2(route2(sessionId, documentSuffix(documentId, "/attach")), {
-        method: "DELETE"
-      });
+  function notInGlobal(what) {
+    throw new Error(`公共知识库不支持${what}：它属于某个会话的语义。请在项目知识库里操作。`);
+  }
+  function createKnowledgeApi(route2, scope) {
+    return {
+      async list(sessionId, includeArchived = false) {
+        const query = includeArchived ? "?include_archived=true" : "";
+        return await request2(route2(sessionId, query));
+      },
+      async history(sessionId, documentId) {
+        const result = await request2(
+          route2(sessionId, documentSuffix(documentId, "/history"))
+        );
+        return result.versions || [];
+      },
+      async search(sessionId, query, attachedOnly = false) {
+        const params = new URLSearchParams({ q: query, limit: "30" });
+        if (attachedOnly) params.set("attached_only", "true");
+        return await request2(route2(sessionId, `/search?${params.toString()}`));
+      },
+      async open(sessionId, evidenceRef) {
+        const result = await request2(
+          route2(sessionId, `/evidence/${encodeURIComponent(evidenceRef)}/open`)
+        );
+        return result.evidence;
+      },
+      async read(sessionId, documentId, opts = {}) {
+        const params = new URLSearchParams();
+        if (opts.versionId) params.set("version_id", opts.versionId);
+        if (opts.offset !== void 0) params.set("offset", String(opts.offset));
+        if (opts.limit !== void 0) params.set("limit", String(opts.limit));
+        const query = params.toString();
+        return await request2(
+          route2(sessionId, documentSuffix(documentId, `/content${query ? `?${query}` : ""}`))
+        );
+      },
+      async promote(sessionId, input) {
+        if (scope === "global") notInGlobal("从会话文件入库");
+        return await request2(route2(sessionId, "/promote"), {
+          method: "POST",
+          body: JSON.stringify(input)
+        });
+      },
+      async update(sessionId, documentId, input) {
+        return await request2(route2(sessionId, documentSuffix(documentId)), {
+          method: "PATCH",
+          body: JSON.stringify(input)
+        });
+      },
+      async adopt(sessionId, documentId, versionId, expectedRevision) {
+        return await request2(route2(sessionId, documentSuffix(documentId, "/adopt")), {
+          method: "PATCH",
+          body: JSON.stringify({ version_id: versionId, expected_revision: expectedRevision })
+        });
+      },
+      async archive(sessionId, documentId, archived, expectedRevision) {
+        return await request2(route2(sessionId, documentSuffix(documentId, "/archive")), {
+          method: "PATCH",
+          body: JSON.stringify({ archived, expected_revision: expectedRevision })
+        });
+      },
+      async attach(sessionId, documentId, versionId, role = "reference") {
+        if (scope === "global") notInGlobal("「用于本次分析」");
+        return await request2(route2(sessionId, documentSuffix(documentId, "/attach")), {
+          method: "POST",
+          body: JSON.stringify({ version_id: versionId, role })
+        });
+      },
+      async detach(sessionId, documentId) {
+        if (scope === "global") notInGlobal("取消本次使用");
+        return await request2(route2(sessionId, documentSuffix(documentId, "/attach")), {
+          method: "DELETE"
+        });
+      }
+    };
+  }
+  var knowledgeLibraryApi = createKnowledgeApi(sessionRoute, "session");
+  var knowledgeGlobalApi = createKnowledgeApi(globalRoute, "global");
+
+  // ts/src/ui/context-sync.ts
+  var CONTEXT_CHANGE_SCHEMA = "ontocopilot.context-change/1";
+  var CONTEXT_FOCUS_SCHEMA = "ontocopilot.context-focus/1";
+  var CANVAS_NODE_REFERENCE_SCHEMA = "ontocopilot.canvas-node-reference/1";
+  var GENERIC_SCENARIO_DRAFT_SCHEMA = "ontocopilot.generic-scenario-draft/1";
+  var CONTEXT_CHANGE_REQUEST_EVENT = "ontocopilot:context-change-request";
+  var CONTEXT_CHANGE_EVENT = "ontocopilot:context-change";
+  var CONTEXT_FOCUS_REQUEST_EVENT = "ontocopilot:context-focus-request";
+  var CONTEXT_FOCUS_EVENT = "ontocopilot:context-focus";
+  var CHANGE_TYPES = /* @__PURE__ */ new Set([
+    "review.answer",
+    "review.assign",
+    "review.status",
+    "model.select",
+    "model.confirm",
+    "evidence.locate",
+    "delivery.select",
+    "delivery.export",
+    "context.update"
+  ]);
+  var SECTIONS = /* @__PURE__ */ new Set(["project", "evidence", "model", "review", "delivery"]);
+  var ORIGINS = /* @__PURE__ */ new Set(["sidebar", "chat", "system"]);
+  var FOCUS_SOURCES = /* @__PURE__ */ new Set(["chat", "receipt", "sidebar", "system"]);
+  var TYPE_SECTION = Object.freeze({
+    "review.answer": "review",
+    "review.assign": "review",
+    "review.status": "review",
+    "model.select": "model",
+    "model.confirm": "model",
+    "evidence.locate": "evidence",
+    "delivery.select": "delivery",
+    "delivery.export": "delivery",
+    "context.update": "project"
+  });
+  var EMPTY_REFS = Object.freeze({
+    entityIds: Object.freeze([]),
+    questionIds: Object.freeze([]),
+    evidenceIds: Object.freeze([]),
+    artifactIds: Object.freeze([]),
+    canvasNodeIds: Object.freeze([])
+  });
+  function isRecord(value2) {
+    return typeof value2 === "object" && value2 !== null && !Array.isArray(value2);
+  }
+  function text(value2) {
+    if (value2 === null || value2 === void 0) return "";
+    if (typeof value2 === "string") return value2.trim();
+    if (typeof value2 === "number" || typeof value2 === "boolean" || typeof value2 === "bigint") return String(value2);
+    if (isRecord(value2) && "value" in value2) return text(value2["value"]);
+    return "";
+  }
+  function truncate(value2, max) {
+    const chars = [...text(value2)];
+    return chars.length <= max ? chars.join("") : `${chars.slice(0, Math.max(0, max - 1)).join("")}…`;
+  }
+  function values(value2) {
+    if (Array.isArray(value2)) return value2;
+    if (value2 instanceof Set) return [...value2];
+    return value2 === null || value2 === void 0 || value2 === "" ? [] : [value2];
+  }
+  function ids(...rawValues) {
+    const out = /* @__PURE__ */ new Set();
+    for (const rawValue of rawValues) {
+      for (const value2 of values(rawValue)) {
+        const id = truncate(value2, 160);
+        if (id) out.add(id);
+        if (out.size >= 80) break;
+      }
+      if (out.size >= 80) break;
     }
-  };
+    return Object.freeze([...out].sort(compareCodePoint));
+  }
+  function compareCodePoint(a, b) {
+    return a < b ? -1 : a > b ? 1 : 0;
+  }
+  function referencesOf(input, inherited = EMPTY_REFS) {
+    const refs = input.refs ?? {};
+    return Object.freeze({
+      entityIds: ids(inherited.entityIds, refs.entityIds, input.entityIds),
+      questionIds: ids(inherited.questionIds, refs.questionIds, input.questionIds),
+      evidenceIds: ids(inherited.evidenceIds, refs.evidenceIds, input.evidenceIds),
+      artifactIds: ids(inherited.artifactIds, refs.artifactIds, input.artifactIds),
+      canvasNodeIds: ids(inherited.canvasNodeIds, refs.canvasNodeIds, input.canvasNodeIds)
+    });
+  }
+  function changeType(value2) {
+    const key = text(value2).toLocaleLowerCase();
+    return CHANGE_TYPES.has(key) ? key : "context.update";
+  }
+  function sectionOf(value2, fallback) {
+    const key = text(value2).toLocaleLowerCase();
+    return SECTIONS.has(key) ? key : fallback;
+  }
+  function originOf(value2) {
+    const key = text(value2).toLocaleLowerCase();
+    return ORIGINS.has(key) ? key : "sidebar";
+  }
+  function focusSourceOf(value2) {
+    const key = text(value2).toLocaleLowerCase();
+    return FOCUS_SOURCES.has(key) ? key : "sidebar";
+  }
+  function isoTime(value2, fallbackMs) {
+    let date;
+    if (value2 instanceof Date) date = value2;
+    else if (typeof value2 === "number") date = new Date(value2);
+    else if (typeof value2 === "string" && value2.trim()) date = new Date(value2);
+    else date = new Date(fallbackMs);
+    return Number.isFinite(date.getTime()) ? date.toISOString() : new Date(fallbackMs).toISOString();
+  }
+  function stableHash(value2) {
+    let hash = 2166136261;
+    for (let i = 0; i < value2.length; i += 1) {
+      hash ^= value2.charCodeAt(i);
+      hash = Math.imul(hash, 16777619);
+    }
+    return (hash >>> 0).toString(36).padStart(7, "0");
+  }
+  function receiptId(data) {
+    const canonical = JSON.stringify([
+      data.sessionId,
+      data.type,
+      data.section,
+      data.origin,
+      data.title,
+      data.summary,
+      data.refs.entityIds,
+      data.refs.questionIds,
+      data.refs.evidenceIds,
+      data.refs.artifactIds,
+      data.refs.canvasNodeIds,
+      data.revision,
+      data.createdAt
+    ]);
+    return `ctxr_${stableHash(canonical)}`;
+  }
+  function focusId(data) {
+    const canonical = JSON.stringify([
+      data.sessionId,
+      data.source,
+      data.section,
+      data.label,
+      data.receiptId,
+      data.refs.entityIds,
+      data.refs.questionIds,
+      data.refs.evidenceIds,
+      data.refs.artifactIds,
+      data.refs.canvasNodeIds,
+      data.createdAt
+    ]);
+    return `ctxf_${stableHash(canonical)}`;
+  }
+  function contextRevisionOf(session) {
+    const root2 = isRecord(session) ? session : {};
+    const state = isRecord(root2["state"]) ? root2["state"] : {};
+    const ontology = isRecord(state["ontology_package"]) ? state["ontology_package"] : {};
+    const revision = isRecord(state["revision"]) ? state["revision"] : {};
+    const project = isRecord(root2["project"]) ? root2["project"] : {};
+    const projectRevision = isRecord(project["revision"]) ? project["revision"] : {};
+    return truncate(
+      projectRevision["label"] ?? projectRevision["model"] ?? ontology["revision"] ?? state["artifact_revision"] ?? root2["state_version"] ?? root2["stateVersion"] ?? root2["revision"] ?? revision["id"] ?? revision["revision"] ?? "current",
+      100
+    ) || "current";
+  }
+  function canvasNodeType(value2) {
+    const key = text(value2).toLocaleLowerCase().replace(/[\s_-]+/gu, "");
+    if (["ontology", "ontologytype", "ontologyobject"].includes(key)) return "ontology";
+    if (["workflow", "process", "flow"].includes(key)) return "workflow";
+    if (["action", "actiontype", "processstep", "task"].includes(key)) return "action";
+    if (["event", "eventtype"].includes(key)) return "event";
+    if (["object", "objecttype", "dataobject"].includes(key)) return "object";
+    if (["rule", "businessrule"].includes(key)) return "rule";
+    return "unknown";
+  }
+  function contextReferenceFromCanvasNode(input, options = {}) {
+    const type = canvasNodeType(input.nodeType ?? input.type ?? input.kind);
+    const label = truncate(input.label ?? input.title, 180) || "未命名画布节点";
+    const rawId = truncate(input.nodeId ?? input.id, 180);
+    const nodeId = rawId || `node_${stableHash(JSON.stringify([type, label]))}`;
+    const sessionId = truncate(input.sessionId ?? options.sessionId ?? G.S?.id, 160);
+    const revision = truncate(input.revision ?? options.revision ?? contextRevisionOf(G.S), 100) || "current";
+    const refs = referencesOf({ ...input, canvasNodeIds: [nodeId] });
+    const id = `canvas:${type}:${nodeId}`;
+    return Object.freeze({
+      schemaVersion: CANVAS_NODE_REFERENCE_SCHEMA,
+      id,
+      sessionId,
+      section: "model",
+      nodeId,
+      nodeType: type,
+      label,
+      revision,
+      refs
+    });
+  }
+  function focusCanvasNodeReference(reference, source = "sidebar", store = contextSyncStore) {
+    return store.focus({
+      source,
+      section: "model",
+      label: reference.label,
+      sessionId: reference.sessionId,
+      refs: reference.refs
+    });
+  }
+  function canvasNodeCitation(reference) {
+    return `引用画布节点「${reference.label}」（${reference.nodeType}；revision ${reference.revision}；node ${reference.nodeId}）`;
+  }
+  function draftOutputType(value2) {
+    const key = text(value2).toLocaleLowerCase();
+    if (key === "workflow" || key === "flow" || key === "process") return "Workflow";
+    if (key === "action" || key === "actiontype") return "Action";
+    if (key === "event" || key === "eventtype") return "Event";
+    return "Ontology";
+  }
+  function promptLines(value2, max = 12) {
+    if (value2 === void 0) return [];
+    const out = [];
+    for (const item of value2) {
+      const line = truncate(item, 240);
+      if (line && !out.includes(line)) out.push(line);
+      if (out.length >= max) break;
+    }
+    return out;
+  }
+  function referencePromptLine(refs) {
+    const parts = [];
+    if (refs.canvasNodeIds.length) parts.push(`画布节点=${refs.canvasNodeIds.join(", ")}`);
+    if (refs.entityIds.length) parts.push(`实体=${refs.entityIds.join(", ")}`);
+    if (refs.questionIds.length) parts.push(`问题=${refs.questionIds.join(", ")}`);
+    if (refs.artifactIds.length) parts.push(`产物=${refs.artifactIds.join(", ")}`);
+    return parts.join("；");
+  }
+  function genericScenarioDraftPrompt(input) {
+    const scenario = truncate(input.scenario, 1200) || "（尚未描述场景）";
+    const outputType = draftOutputType(input.outputType);
+    const assumptions = promptLines(input.assumptions);
+    const validation = promptLines(input.validationFocus);
+    const refs = referencesOf(input);
+    const lines = [
+      `请基于以下通用业务场景生成一份 ${outputType} 草案。`,
+      `通用场景：${scenario}`,
+      `输出类型：${outputType}`,
+      "材料状态：当前没有可直接引用的客户材料；以下内容不得表述为客户事实。",
+      "工作要求：",
+      "1. 将所有业务对象、流程、动作、事件和规则标记为“待验证假设”。",
+      "2. 区分通用行业经验、从场景推导的假设，以及仍然未知的信息。",
+      "3. 为每条关键假设给出需要向业务方确认的问题与验收条件。",
+      "4. 不编造证据、客户系统名、字段口径、负责人或已确认状态。"
+    ];
+    if (assumptions.length) lines.push("已知假设：", ...assumptions.map((item) => `- ${item}`));
+    if (validation.length) lines.push("优先验证：", ...validation.map((item) => `- ${item}`));
+    const refLine = referencePromptLine(refs);
+    if (refLine) lines.push(`当前工作区引用（仅作定位，不代表证据）：${refLine}`);
+    lines.push(`请先输出 ${outputType} 草案，再单列“假设与待验证问题”。`);
+    return lines.join("\n");
+  }
+  function freezeReceipt(receipt) {
+    return Object.freeze({ ...receipt, refs: referencesOf({ refs: receipt.refs }) });
+  }
+  function freezeReference(reference) {
+    return Object.freeze({ ...reference, refs: referencesOf({ refs: reference.refs }) });
+  }
+  function freezeSnapshot(version, receipts, dismissed, activeReference) {
+    return Object.freeze({
+      version,
+      receipts: Object.freeze([...receipts]),
+      dismissedIds: Object.freeze([...dismissed].sort(compareCodePoint)),
+      activeReference
+    });
+  }
+  function createContextSyncStore(options = {}) {
+    const capacity = Math.max(1, Math.min(500, Math.trunc(options.capacity ?? 80)));
+    const now = options.now ?? (() => Date.now());
+    const getSessionId = options.getSessionId ?? (() => "");
+    const getRevision = options.getRevision ?? (() => "current");
+    let receipts = [];
+    const dismissed = /* @__PURE__ */ new Set();
+    let activeReference = null;
+    let version = 0;
+    let snapshot = freezeSnapshot(version, receipts, dismissed, activeReference);
+    const listeners = /* @__PURE__ */ new Set();
+    const eventListeners = /* @__PURE__ */ new Set();
+    const emit = (event) => {
+      version += 1;
+      snapshot = freezeSnapshot(version, receipts, dismissed, activeReference);
+      for (const listener of [...listeners]) listener();
+      for (const listener of [...eventListeners]) listener(event);
+    };
+    const store = {
+      getSnapshot: () => snapshot,
+      subscribe(listener) {
+        listeners.add(listener);
+        return () => {
+          listeners.delete(listener);
+        };
+      },
+      subscribeEvents(listener) {
+        eventListeners.add(listener);
+        return () => {
+          eventListeners.delete(listener);
+        };
+      },
+      publish(input) {
+        const type = changeType(input.type);
+        const createdAt = isoTime(input.createdAt, now());
+        const data = {
+          sessionId: truncate(input.sessionId ?? getSessionId(), 160),
+          type,
+          section: sectionOf(input.section, TYPE_SECTION[type]),
+          origin: originOf(input.origin),
+          title: truncate(input.title, 180) || "上下文已更新",
+          summary: truncate(input.summary, 800),
+          refs: referencesOf(input),
+          revision: truncate(input.revision ?? getRevision(), 100) || "current",
+          createdAt
+        };
+        const id = receiptId(data);
+        const existing = receipts.find((receipt2) => receipt2.id === id);
+        if (existing !== void 0) return existing;
+        const receipt = freezeReceipt({ schemaVersion: CONTEXT_CHANGE_SCHEMA, id, ...data });
+        receipts = [...receipts, receipt].slice(-capacity);
+        const kept = new Set(receipts.map((item) => item.id));
+        for (const dismissedId of [...dismissed]) if (!kept.has(dismissedId)) dismissed.delete(dismissedId);
+        emit({ kind: "receipt.published", receipt });
+        return receipt;
+      },
+      getReceipt(id) {
+        const key = text(id);
+        return receipts.find((receipt) => receipt.id === key) ?? null;
+      },
+      dismissReceipt(id) {
+        const key = text(id);
+        if (!receipts.some((receipt) => receipt.id === key) || dismissed.has(key)) return false;
+        dismissed.add(key);
+        emit({ kind: "receipt.dismissed", receiptId: key });
+        return true;
+      },
+      clearReceipts(sessionId) {
+        const sid = text(sessionId);
+        const before = receipts.length;
+        receipts = sid ? receipts.filter((receipt) => receipt.sessionId !== sid) : [];
+        if (receipts.length === before) return;
+        const kept = new Set(receipts.map((receipt) => receipt.id));
+        for (const dismissedId of [...dismissed]) if (!kept.has(dismissedId)) dismissed.delete(dismissedId);
+        if (activeReference !== null && (!sid || activeReference.sessionId === sid)) activeReference = null;
+        emit({ kind: "reference.cleared" });
+      },
+      focus(input) {
+        const source = focusSourceOf(input.source);
+        const receiptIdValue = truncate(input.receiptId, 160);
+        const receipt = receiptIdValue ? store.getReceipt(receiptIdValue) : null;
+        const createdAt = isoTime(input.createdAt, now());
+        const data = {
+          sessionId: truncate(input.sessionId ?? receipt?.sessionId ?? getSessionId(), 160),
+          source,
+          section: sectionOf(input.section, receipt?.section ?? "project"),
+          label: truncate(input.label ?? receipt?.title, 180) || "上下文引用",
+          receiptId: receipt?.id ?? receiptIdValue,
+          refs: referencesOf(input, receipt?.refs ?? EMPTY_REFS),
+          createdAt
+        };
+        const reference = freezeReference({ schemaVersion: CONTEXT_FOCUS_SCHEMA, id: focusId(data), ...data });
+        activeReference = reference;
+        emit({ kind: "reference.focused", reference });
+        return reference;
+      },
+      focusReceipt(receiptIdValue, source = "receipt") {
+        const receipt = store.getReceipt(receiptIdValue);
+        if (receipt === null) return null;
+        return store.focus({
+          source,
+          section: receipt.section,
+          label: receipt.title,
+          receiptId: receipt.id,
+          refs: receipt.refs,
+          sessionId: receipt.sessionId
+        });
+      },
+      clearFocus() {
+        if (activeReference === null) return;
+        activeReference = null;
+        emit({ kind: "reference.cleared" });
+      }
+    };
+    return store;
+  }
+  var contextSyncStore = createContextSyncStore({
+    getSessionId: () => G.S?.id ?? "",
+    getRevision: () => contextRevisionOf(G.S)
+  });
+  function selectRecentContextReceipts(snapshot, options = {}) {
+    const sessionId = text(options.sessionId);
+    const dismissed = new Set(snapshot.dismissedIds);
+    let rows2 = snapshot.receipts.filter(
+      (receipt) => (!sessionId || receipt.sessionId === sessionId) && (options.includeDismissed === true || !dismissed.has(receipt.id))
+    );
+    if (options.newestFirst !== false) rows2 = [...rows2].reverse();
+    const limit = Math.max(0, Math.trunc(options.limit ?? 3));
+    return rows2.slice(0, limit);
+  }
+  function contextReceiptCitation(receipt) {
+    const refs = [];
+    if (receipt.refs.entityIds.length) refs.push(`实体 ${receipt.refs.entityIds.slice(0, 3).join("、")}`);
+    if (receipt.refs.questionIds.length) refs.push(`问题 ${receipt.refs.questionIds.slice(0, 3).join("、")}`);
+    if (receipt.refs.evidenceIds.length) refs.push(`证据 ${receipt.refs.evidenceIds.slice(0, 3).join("、")}`);
+    if (receipt.refs.artifactIds.length) refs.push(`产物 ${receipt.refs.artifactIds.slice(0, 3).join("、")}`);
+    if (receipt.refs.canvasNodeIds.length) refs.push(`画布节点 ${receipt.refs.canvasNodeIds.slice(0, 3).join("、")}`);
+    const meta = [receipt.revision && `revision ${receipt.revision}`, ...refs].filter(Boolean).join("；");
+    const header = `引用上下文「${receipt.title}」${meta ? `（${meta}）` : ""}`;
+    return receipt.summary ? `${header}
+${receipt.summary}` : header;
+  }
+  function browserDocument() {
+    const doc = globalThis.document;
+    return doc && typeof doc.getElementById === "function" ? doc : void 0;
+  }
+  function payloadText(payload) {
+    if (typeof payload === "string") return truncate(payload, 4e3);
+    if (payload.schemaVersion === CONTEXT_CHANGE_SCHEMA) return contextReceiptCitation(payload);
+    if (payload.schemaVersion === CANVAS_NODE_REFERENCE_SCHEMA) return canvasNodeCitation(payload);
+    return genericScenarioDraftPrompt(payload);
+  }
+  function focusComposerPayload(payload, store) {
+    if (typeof payload === "string") return null;
+    if (payload.schemaVersion === CONTEXT_CHANGE_SCHEMA) return store.focusReceipt(payload.id, "chat");
+    if (payload.schemaVersion === CANVAS_NODE_REFERENCE_SCHEMA) {
+      return focusCanvasNodeReference(payload, "chat", store);
+    }
+    return store.focus({
+      source: "chat",
+      section: "model",
+      label: `通用场景草案：${truncate(payload.scenario, 100) || "未命名场景"}`,
+      refs: referencesOf(payload)
+    });
+  }
+  function prefillComposer(payload, options = {}) {
+    const content = payloadText(payload);
+    const doc = options.document ?? browserDocument();
+    const raw = doc?.getElementById(options.composerId ?? "cin");
+    if (typeof raw !== "object" || raw === null) {
+      return { prepared: false, inserted: false, text: content, reference: null };
+    }
+    const composer = raw;
+    if (typeof composer.value !== "string") {
+      return { prepared: false, inserted: false, text: content, reference: null };
+    }
+    let inserted = false;
+    if (options.mode === "replace") {
+      if (composer.value !== content) {
+        composer.value = content;
+        composer.selectionStart = content.length;
+        composer.selectionEnd = content.length;
+        inserted = true;
+      }
+    } else if (!composer.value.includes(content)) {
+      const current = composer.value;
+      const start = typeof composer.selectionStart === "number" ? composer.selectionStart : current.length;
+      const end = typeof composer.selectionEnd === "number" ? composer.selectionEnd : start;
+      const before = current.slice(0, start);
+      const after = current.slice(end);
+      const left = before && !before.endsWith("\n") ? "\n\n" : "";
+      const right = after && !after.startsWith("\n") ? "\n\n" : "";
+      composer.value = `${before}${left}${content}${right}${after}`;
+      const cursor = before.length + left.length + content.length;
+      composer.selectionStart = cursor;
+      composer.selectionEnd = cursor;
+      inserted = true;
+    }
+    if (inserted) {
+      const EventCtor = globalThis.Event;
+      if (typeof composer.dispatchEvent === "function" && EventCtor !== void 0) {
+        composer.dispatchEvent(new EventCtor("input", { bubbles: true }));
+      }
+    }
+    composer.focus?.();
+    const reference = options.focusSidebar === false ? null : focusComposerPayload(payload, options.store ?? contextSyncStore);
+    return { prepared: true, inserted, text: content, reference };
+  }
+  async function sendContextToChat(payload, options = {}) {
+    const doc = options.document ?? browserDocument();
+    const composer = doc?.getElementById(options.composerId ?? "cin");
+    const draft = typeof composer?.value === "string" ? composer.value : "";
+    const prepared = prefillComposer(payload, options);
+    if (!prepared.prepared || options.send === void 0) return { ...prepared, sent: false };
+    try {
+      await options.send();
+    } finally {
+      if (draft !== "" && composer && typeof composer.value === "string") {
+        composer.value = draft;
+        composer.selectionStart = draft.length;
+        composer.selectionEnd = draft.length;
+        composer.dispatchEvent?.(new Event("input", { bubbles: true }));
+      }
+    }
+    return { ...prepared, sent: true };
+  }
+  function quoteContextReceiptToComposer(receipt, options = {}) {
+    const { inserted, text: citation, reference } = prefillComposer(receipt, options);
+    return { inserted, text: citation, reference };
+  }
+  function makeDetailEvent(type, detail) {
+    const CustomEventCtor = globalThis.CustomEvent;
+    if (CustomEventCtor !== void 0) return new CustomEventCtor(type, { detail });
+    const EventCtor = globalThis.Event;
+    const event = new EventCtor(type);
+    Object.defineProperty(event, "detail", { configurable: false, enumerable: true, value: detail });
+    return event;
+  }
+  function eventDetail(event) {
+    return event.detail;
+  }
+  function eventTargetOrNull(value2) {
+    if (value2 instanceof EventTarget) return value2;
+    if (value2 !== null && typeof value2 === "object") {
+      const row = value2;
+      if (typeof row.addEventListener === "function" && typeof row.dispatchEvent === "function") {
+        return value2;
+      }
+    }
+    return null;
+  }
+  function browserEventTarget() {
+    return eventTargetOrNull(globalThis.window);
+  }
+  var BRIDGES = /* @__PURE__ */ new WeakMap();
+  function installContextSyncBridge(target = browserEventTarget(), store = contextSyncStore) {
+    if (target === null) return () => {
+    };
+    let stores = BRIDGES.get(target);
+    if (stores === void 0) {
+      stores = /* @__PURE__ */ new Map();
+      BRIDGES.set(target, stores);
+    }
+    const old = stores.get(store);
+    if (old !== void 0) {
+      old.refs += 1;
+      let active2 = true;
+      return () => {
+        if (!active2) return;
+        active2 = false;
+        old.refs -= 1;
+        if (old.refs === 0) {
+          old.stop();
+          stores.delete(store);
+        }
+      };
+    }
+    const onChangeRequest = (event) => {
+      const detail = eventDetail(event);
+      if (!isRecord(detail)) return;
+      const input = isRecord(detail["change"]) ? detail["change"] : detail;
+      store.publish(input);
+    };
+    const onFocusRequest = (event) => {
+      const detail = eventDetail(event);
+      if (!isRecord(detail)) return;
+      const input = isRecord(detail["focus"]) ? detail["focus"] : detail;
+      store.focus(input);
+    };
+    target.addEventListener(CONTEXT_CHANGE_REQUEST_EVENT, onChangeRequest);
+    target.addEventListener(CONTEXT_FOCUS_REQUEST_EVENT, onFocusRequest);
+    const offEvents = store.subscribeEvents((event) => {
+      if (event.kind === "receipt.published") {
+        target.dispatchEvent(makeDetailEvent(CONTEXT_CHANGE_EVENT, event.receipt));
+      } else if (event.kind === "reference.focused") {
+        target.dispatchEvent(makeDetailEvent(CONTEXT_FOCUS_EVENT, event.reference));
+      }
+    });
+    const entry = {
+      refs: 1,
+      stop: () => {
+        target.removeEventListener(CONTEXT_CHANGE_REQUEST_EVENT, onChangeRequest);
+        target.removeEventListener(CONTEXT_FOCUS_REQUEST_EVENT, onFocusRequest);
+        offEvents();
+      }
+    };
+    stores.set(store, entry);
+    let active = true;
+    return () => {
+      if (!active) return;
+      active = false;
+      entry.refs -= 1;
+      if (entry.refs === 0) {
+        entry.stop();
+        stores.delete(store);
+      }
+    };
+  }
 
   // ts/src/ui/react/knowledge-library.tsx
   var import_jsx_runtime7 = __toESM(require_jsx_runtime(), 1);
@@ -19490,7 +20155,83 @@ ${el.value}` : text4;
       ] })
     ] });
   }
+  function DocumentReader({ sessionId, documentId, versionId, lang, api = knowledgeLibraryApi }) {
+    const [state, setState] = (0, import_react5.useState)("loading");
+    const [error, setError] = (0, import_react5.useState)("");
+    const [chunks, setChunks] = (0, import_react5.useState)([]);
+    const [total, setTotal] = (0, import_react5.useState)(0);
+    const [more, setMore] = (0, import_react5.useState)(false);
+    const load = (0, import_react5.useCallback)(async (offset) => {
+      setMore(true);
+      try {
+        const page = await api.read(sessionId, documentId, {
+          ...versionId === void 0 ? {} : { versionId },
+          offset,
+          limit: PAGE
+        });
+        setChunks((prev) => offset === 0 ? page.chunks : [...prev, ...page.chunks]);
+        setTotal(page.total);
+        setState("ready");
+        setError("");
+      } catch (exc) {
+        setState("error");
+        setError(exc instanceof Error ? exc.message : String(exc));
+      } finally {
+        setMore(false);
+      }
+    }, [api, documentId, sessionId, versionId]);
+    (0, import_react5.useEffect)(() => {
+      void load(0);
+    }, [load]);
+    if (state === "loading") {
+      return /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "od-library-loading", children: words("正在读取正文…", "Loading content…", lang) });
+    }
+    if (state === "error") {
+      return /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "od-inline-error", children: error });
+    }
+    if (total === 0) {
+      return /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "od-library-empty", children: words(
+        "这一版还没有读出可核验的正文。它可能是扫描件，需要先做识别。",
+        "No verifiable text has been read from this version yet.",
+        lang
+      ) });
+    }
+    return /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "od-reader", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "od-eyebrow", children: words(
+        `第 1–${chunks.length} 段，共 ${total} 段`,
+        `Paragraphs 1–${chunks.length} of ${total}`,
+        lang
+      ) }),
+      chunks.map((chunk) => /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "od-reader-chunk", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "od-evidence-context", children: [
+          chunk.cite,
+          chunk.level === "global" ? /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "od-badge current", children: words("总库", "Shared", lang) }) : null
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("p", { className: "od-reader-text", children: chunk.text }),
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("button", { type: "button", className: "od-link", onClick: () => {
+          prefillComposer(`关于「${chunk.cite}」这一段：
+
+${chunk.text}
+
+`, { mode: "insert" });
+        }, children: words("引用到对话", "Quote in chat", lang) })
+      ] }, chunk.evidence_ref)),
+      chunks.length < total ? /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
+        "button",
+        {
+          type: "button",
+          className: "act",
+          disabled: more,
+          onClick: () => void load(chunks.length),
+          children: more ? words("正在读取…", "Loading…", lang) : words(`继续读（还有 ${total - chunks.length} 段）`, `Read more (${total - chunks.length} left)`, lang)
+        }
+      ) : null
+    ] });
+  }
+  var PAGE = 50;
   function DocumentCard({
+    sessionId,
+    api,
     document: document2,
     versions,
     attachment,
@@ -19506,33 +20247,53 @@ ${el.value}` : text4;
   }) {
     const [expanded, setExpanded] = (0, import_react5.useState)(Boolean(attachment));
     const [editing, setEditing] = (0, import_react5.useState)(false);
+    const [reading, setReading] = (0, import_react5.useState)(false);
     const pinnedVersion = versions?.find((item) => item.id === attachment?.version_id);
     const adoptedVersion = versions?.find((item) => item.id === document2.adopted_version_id);
     const currentVersion = versions?.find((item) => item.id === document2.current_version_id);
     const version = pinnedVersion || adoptedVersion || currentVersion;
     const hasUnadoptedVersion = Boolean(document2.adopted_version_id && document2.current_version_id !== document2.adopted_version_id);
     const isBusy = busy.startsWith(`${document2.id}:`);
-    return /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("article", { className: `od-document ${document2.status} ${attachment ? "attached" : ""}`, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "od-document-head", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("button", { type: "button", className: "od-document-toggle", "aria-expanded": expanded, onClick: () => setExpanded((value2) => !value2), children: [
-          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "od-disclosure", "aria-hidden": "true", children: expanded ? "−" : "+" }),
-          /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("span", { className: "od-document-copy", children: [
-            /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("span", { className: "od-document-title", children: [
-              /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("strong", { children: document2.title }),
+    return /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("article", { className: `od-row ${document2.status} ${attachment ? "attached" : ""}`, role: "row", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "od-row-main", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)(
+          "button",
+          {
+            type: "button",
+            className: "od-row-name",
+            "aria-expanded": reading,
+            onClick: () => setReading((value2) => !value2),
+            title: words("打开读全文", "Open and read", lang),
+            children: [
+              /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "od-row-icon", "aria-hidden": "true", children: reading ? "▾" : "▸" }),
+              /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "od-row-title", children: document2.title }),
               document2.status === "archived" ? /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "od-badge archived", children: words("已归档", "Archived", lang) }) : null,
-              attachment ? /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "od-badge attached", children: words("本次分析已固定版本", "Version pinned for this run", lang) }) : null,
-              hasUnadoptedVersion ? /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "od-badge pending", children: words("有新版本待决定", "New version pending", lang) }) : null
-            ] }),
-            /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("span", { className: "od-document-meta", children: [
-              sourceClassLabel(document2.source_class, lang),
-              version ? ` · ${attachment ? words(`本次使用 v${version.version_no}`, `Run uses v${version.version_no}`, lang) : words(`项目采用版 v${version.version_no}`, `Adopted v${version.version_no}`, lang)} · ${versionParseStatusLabel(version, lang)}` : ` · ${words("正在读取版本信息", "Loading version details", lang)}`,
-              hasUnadoptedVersion && currentVersion ? words(` · 最新上传 v${currentVersion.version_no}`, ` · latest upload v${currentVersion.version_no}`, lang) : ""
-            ] })
-          ] })
-        ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "od-document-actions", children: /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("button", { type: "button", className: "act", disabled: isBusy, onClick: () => setEditing((value2) => !value2), children: words("编辑", "Edit", lang) }) })
+              attachment ? /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "od-badge attached", children: words("本次在用", "In use", lang) }) : null,
+              hasUnadoptedVersion ? /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "od-badge pending", children: words("有新版本", "New version", lang) }) : null,
+              document2.tags.slice(0, 3).map((tag) => /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "od-row-tag", children: tag }, tag))
+            ]
+          }
+        ),
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "od-row-col od-row-ver", children: version ? `v${version.version_no}` : "—" }),
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "od-row-col od-row-state", children: version ? versionParseStatusLabel(version, lang) : words("读取中", "Loading", lang) }),
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "od-row-col od-row-time", children: when2(document2.updated_at, lang) }),
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "od-row-actions", children: /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
+          "button",
+          {
+            type: "button",
+            className: "od-link",
+            disabled: isBusy,
+            onClick: () => setExpanded((value2) => !value2),
+            "aria-expanded": expanded,
+            children: words("⋯ 更多", "⋯ More", lang)
+          }
+        ) })
       ] }),
-      document2.tags.length ? /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "od-tags", "aria-label": words("文档标签", "Document tags", lang), children: document2.tags.map((tag) => /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { children: tag }, tag)) }) : null,
+      expanded ? /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "od-row-more", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("button", { type: "button", className: "act", disabled: isBusy, onClick: () => setEditing((value2) => !value2), children: words("编辑", "Edit", lang) }),
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("button", { type: "button", className: "od-link", disabled: isBusy, onClick: () => void onArchive(), children: document2.status === "archived" ? words("恢复", "Restore", lang) : words("归档", "Archive", lang) }),
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "od-muted", children: sourceClassLabel(document2.source_class, lang) })
+      ] }) : null,
       editing ? /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
         MetadataEditor,
         {
@@ -19541,6 +20302,16 @@ ${el.value}` : text4;
           lang,
           onCancel: () => setEditing(false),
           onSave: onUpdate
+        }
+      ) : null,
+      reading ? /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
+        DocumentReader,
+        {
+          sessionId,
+          api,
+          documentId: document2.id,
+          ...version === void 0 ? {} : { versionId: version.id },
+          lang
         }
       ) : null,
       expanded ? /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
@@ -19557,21 +20328,14 @@ ${el.value}` : text4;
           onAdopt,
           onAddVersion
         }
-      ) : null,
-      /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "od-document-foot", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("span", { children: [
-          words("更新于", "Updated", lang),
-          " ",
-          when2(document2.updated_at, lang)
-        ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("button", { type: "button", className: "od-link", disabled: isBusy, onClick: () => void onArchive(), children: document2.status === "archived" ? words("恢复文档", "Restore", lang) : words("归档（保留历史）", "Archive (keep history)", lang) })
-      ] })
+      ) : null
     ] });
   }
   function KnowledgeLibrary({
     sessionId,
     sessionFiles,
-    api = knowledgeLibraryApi
+    level = "project",
+    api = level === "global" ? knowledgeGlobalApi : knowledgeLibraryApi
   }) {
     const ui = useUi();
     const lang = ui.LANG || "zh";
@@ -19671,38 +20435,67 @@ ${el.value}` : text4;
         setEvidenceError(errorMessage(error, lang));
       }
     };
-    return /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("section", { className: "od-library", "aria-label": words("项目知识库", "Project knowledge library", lang), children: [
-      /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("header", { className: "od-library-head", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { children: [
-          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "od-eyebrow", children: "OntoDocument" }),
-          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("h3", { children: words("项目知识库", "Project knowledge library", lang) }),
-          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("p", { children: words(
-            "长期保留项目文件和版本；本次分析只使用你明确加入的固定版本。",
-            "Keep project files and versions; this run only uses versions you explicitly pin.",
-            lang
-          ) })
+    return /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("section", { className: "od-library od-fm", "aria-label": words("知识库", "Knowledge library", lang), children: [
+      /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "od-fm-bar", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("form", { className: "od-fm-search", onSubmit: (event) => void submitSearch(event), role: "search", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
+            "input",
+            {
+              type: "search",
+              value: query,
+              maxLength: 2e3,
+              placeholder: words("搜索材料内容…", "Search material…", lang),
+              "aria-label": words("搜索材料内容", "Search material", lang),
+              onChange: (event) => setQuery(event.target.value)
+            }
+          ),
+          query ? /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("button", { type: "button", className: "od-link", onClick: () => {
+            setQuery("");
+            setSearchResult(null);
+          }, children: words("清除", "Clear", lang) }) : null,
+          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("button", { type: "submit", className: "act", disabled: searching || !query.trim(), children: searching ? words("查找中…", "Searching…", lang) : words("搜索", "Search", lang) })
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("button", { type: "button", className: "act", disabled: status === "loading" || Boolean(busy), onClick: () => void refresh2(), children: words("刷新", "Refresh", lang) })
-      ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "od-trust-note", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("strong", { children: words("材料事实有出处", "Material facts have sources", lang) }),
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { children: words(
-          "搜索只返回能定位到文件版本和原文位置的片段。没有命中时，OntoCopilot 不应把推测写成材料结论。",
-          "Search only returns passages tied to a file version and location. A miss must not become a material claim.",
-          lang
-        ) })
-      ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("form", { className: "od-search", onSubmit: (event) => void submitSearch(event), children: [
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("label", { children: [
-          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { children: words("搜索项目文件内容", "Search project file contents", lang) }),
-          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("input", { type: "search", value: query, maxLength: 2e3, placeholder: words("例如：计划金额怎么计算", "For example: how is planned amount calculated?", lang), onChange: (event) => setQuery(event.target.value) })
-        ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("label", { className: "od-check", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("input", { type: "checkbox", checked: attachedOnly, onChange: (event) => setAttachedOnly(event.target.checked) }),
-          " ",
-          words("只搜本次分析正在使用的版本", "Only versions used in this run", lang)
-        ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("button", { type: "submit", className: "act pri", disabled: searching, children: searching ? words("正在查材料…", "Searching…", lang) : words("搜索原文", "Search source text", lang) })
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "od-fm-tools", children: [
+          level === "global" ? null : sessionFiles.length ? /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)(import_jsx_runtime7.Fragment, { children: [
+            /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
+              "select",
+              {
+                "aria-label": words("选择要添加的文件", "Choose a file to add", lang),
+                value: selectedUpload,
+                onChange: (event) => setSelectedUpload(event.target.value),
+                children: sessionFiles.map((file) => /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("option", { value: file.name, children: file.name }, file.name))
+              }
+            ),
+            /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
+              "button",
+              {
+                type: "button",
+                className: "act pri",
+                disabled: Boolean(busy) || !selectedUpload,
+                onClick: () => void runMutation("promote:new", async () => await api.promote(sessionId, { session_file_name: selectedUpload })),
+                children: busy === "promote:new" ? words("添加中…", "Adding…", lang) : words("＋ 添加材料", "＋ Add", lang)
+              }
+            )
+          ] }) : /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
+            "button",
+            {
+              type: "button",
+              className: "act pri",
+              onClick: () => document.getElementById("picker")?.click(),
+              children: words("＋ 添加材料", "＋ Add material", lang)
+            }
+          ),
+          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
+            "button",
+            {
+              type: "button",
+              className: "act",
+              disabled: status === "loading" || Boolean(busy),
+              onClick: () => void refresh2(),
+              children: words("刷新", "Refresh", lang)
+            }
+          )
+        ] })
       ] }),
       searchResult ? /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("section", { className: "od-search-results", "aria-label": words("知识库搜索结果", "Library search results", lang), children: [
         /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "od-results-head", children: [
@@ -19712,11 +20505,18 @@ ${el.value}` : text4;
             searchResult.coverage.missingTerms.join("、")
           ] }) : null
         ] }),
-        !searchResult.hits.length ? /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("p", { className: "od-no-evidence", children: words(
-          "这不代表业务上一定不存在，只表示当前知识库没有证据。请补充材料或向业务方确认。",
-          "This does not prove the business fact is false; it means the current library has no evidence. Add material or ask the business owner.",
-          lang
-        ) }) : /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "od-hit-list", children: searchResult.hits.map((hit) => /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("button", { type: "button", className: "od-hit", onClick: () => void openEvidence(hit.evidence_ref), children: [
+        !searchResult.hits.length ? /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("p", { className: "od-no-evidence", children: [
+          words(
+            "搜索只返回能定位到文件版本和原文位置的片段。",
+            "Search only returns passages tied to a file version and location. ",
+            lang
+          ),
+          words(
+            "这不代表业务上一定不存在，只表示当前知识库没有证据。请补充材料或向业务方确认。",
+            "This does not prove the business fact is false; it means the current library has no evidence. Add material or ask the business owner.",
+            lang
+          )
+        ] }) : /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "od-hit-list", children: searchResult.hits.map((hit) => /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("button", { type: "button", className: "od-hit", onClick: () => void openEvidence(hit.evidence_ref), children: [
           /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("span", { children: [
             /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("strong", { children: [
               hit.document_title,
@@ -19750,23 +20550,17 @@ ${el.value}` : text4;
           ] })
         ] }) : null
       ] }) : null,
-      /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "od-promote", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { children: [
-          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("strong", { children: words("把本次上传文件保存到项目库", "Save an uploaded file to the project", lang) }),
-          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("small", { children: words("原文件仍留在本次会话；项目库会保存一个可追溯版本。", "The session file stays in place; the project receives a traceable version.", lang) })
-        ] }),
-        sessionFiles.length ? /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)(import_jsx_runtime7.Fragment, { children: [
-          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("select", { "aria-label": words("选择要保存的上传文件", "Choose an uploaded file to save", lang), value: selectedUpload, onChange: (event) => setSelectedUpload(event.target.value), children: sessionFiles.map((file) => /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("option", { value: file.name, children: file.name }, file.name)) }),
-          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("button", { type: "button", className: "act", disabled: Boolean(busy) || !selectedUpload, onClick: () => void runMutation(
-            "promote:new",
-            async () => await api.promote(sessionId, { session_file_name: selectedUpload })
-          ), children: busy === "promote:new" ? words("正在保存…", "Saving…", lang) : words("保存到项目库", "Save to project", lang) })
-        ] }) : /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("button", { type: "button", className: "act", onClick: () => document.getElementById("picker")?.click(), children: words("先上传文件", "Upload a file first", lang) })
-      ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "od-library-controls", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { children: status === "ready" ? words(`${documents.length} 份项目文档 · ${attachments.length} 份用于本次分析`, `${documents.length} project documents · ${attachments.length} used in this run`, lang) : words("正在读取项目知识库…", "Loading project library…", lang) }),
+      /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "od-fm-status", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { children: status === "ready" ? words(`${documents.length} 份材料`, `${documents.length} files`, lang) : words("读取中…", "Loading…", lang) }),
         /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("label", { className: "od-check", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("input", { type: "checkbox", checked: includeArchived, onChange: (event) => setIncludeArchived(event.target.checked) }),
+          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
+            "input",
+            {
+              type: "checkbox",
+              checked: includeArchived,
+              onChange: (event) => setIncludeArchived(event.target.checked)
+            }
+          ),
           " ",
           words("显示已归档", "Show archived", lang)
         ] })
@@ -19781,63 +20575,66 @@ ${el.value}` : text4;
         /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("button", { type: "button", className: "act", onClick: () => void refresh2(), children: words("再试一次", "Try again", lang) }),
         /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("small", { children: words("本次会话里已上传的材料仍可在下方查看和使用。", "Files already uploaded to this session remain available below.", lang) })
       ] }) : status === "loading" && documents.length === 0 ? /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "od-library-loading", children: words("正在读取项目文件和固定版本…", "Loading project files and pinned versions…", lang) }) : documents.length === 0 ? /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "od-library-empty", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("strong", { children: words("这个项目还没有长期保存的文件", "No files have been saved to this project yet", lang) }),
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("p", { children: sessionFiles.length ? words("从上面的本次上传文件中选一份保存。保存后，其他会话也能检索和使用它。", "Choose an uploaded file above. Other sessions can search and use it after it is saved.", lang) : words("先上传一份业务材料，再把它保存到项目知识库。", "Upload business material, then save it to the project library.", lang) })
-      ] }) : /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "od-document-list", children: documents.map((item) => {
-        return /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
-          DocumentCard,
-          {
-            document: item,
-            versions: histories[item.id],
-            attachment: attachedVersion(item.id, attachments),
-            sessionFiles,
-            busy,
-            lang,
-            onUpdate: async (input) => await runMutation(`${item.id}:metadata`, async () => await api.update(sessionId, item.id, input)),
-            onArchive: async () => await runMutation(`${item.id}:archive`, async () => await api.archive(
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("strong", { children: level === "global" ? words("公共知识库还是空的", "The shared library is empty", lang) : words("这个项目还没有保存的材料", "No material saved in this project yet", lang) }),
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("p", { children: level === "global" ? words(
+          "这里放跨项目通用的东西：行业标准、通用制度、模板。把某个项目里的材料设为通用知识后，它会出现在这里。",
+          "This holds cross-project material: standards, generic policies, templates.",
+          lang
+        ) : sessionFiles.length ? words("用上面的「添加材料」把本次上传的文件存进来。", "Use “Add” above to save an uploaded file here.", lang) : words("先上传一份业务材料，再把它添加进来。", "Upload business material first, then add it here.", lang) })
+      ] }) : /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "od-fm-list", role: "table", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "od-fm-head", role: "row", "aria-hidden": "true", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { children: words("名称", "Name", lang) }),
+          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "od-row-ver", children: words("版本", "Version", lang) }),
+          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "od-row-state", children: words("状态", "Status", lang) }),
+          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "od-row-time", children: words("更新", "Updated", lang) }),
+          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "od-row-actions" })
+        ] }),
+        documents.map((item) => {
+          return /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
+            DocumentCard,
+            {
               sessionId,
-              item.id,
-              item.status !== "archived",
-              item.revision
-            )),
-            onAttach: async (version) => await runMutation(`${item.id}:attach`, async () => await api.attach(
-              sessionId,
-              item.id,
-              version.id
-            )),
-            onDetach: async () => await runMutation(`${item.id}:detach`, async () => await api.detach(sessionId, item.id)),
-            onAdopt: async (version) => await runMutation(`${item.id}:adopt`, async () => await api.adopt(
-              sessionId,
-              item.id,
-              version.id,
-              item.revision
-            )),
-            onAddVersion: async (fileName) => await runMutation(`${item.id}:version`, async () => await api.promote(sessionId, {
-              session_file_name: fileName,
-              target_document_id: item.id,
-              base_version_id: item.current_version_id
-            }))
-          },
-          item.id
-        );
-      }) }),
-      /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("footer", { className: "od-boundary-note", children: words(
-        "归档不会删除原文件或历史版本。采用版属于项目；“用于本次分析”只影响当前会话。",
-        "Archiving keeps originals and history. Adoption is project-wide; “use in this run” only affects this session.",
-        lang
-      ) })
+              api,
+              document: item,
+              versions: histories[item.id],
+              attachment: attachedVersion(item.id, attachments),
+              sessionFiles,
+              busy,
+              lang,
+              onUpdate: async (input) => await runMutation(`${item.id}:metadata`, async () => await api.update(sessionId, item.id, input)),
+              onArchive: async () => await runMutation(`${item.id}:archive`, async () => await api.archive(
+                sessionId,
+                item.id,
+                item.status !== "archived",
+                item.revision
+              )),
+              onAttach: async (version) => await runMutation(`${item.id}:attach`, async () => await api.attach(
+                sessionId,
+                item.id,
+                version.id
+              )),
+              onDetach: async () => await runMutation(`${item.id}:detach`, async () => await api.detach(sessionId, item.id)),
+              onAdopt: async (version) => await runMutation(`${item.id}:adopt`, async () => await api.adopt(
+                sessionId,
+                item.id,
+                version.id,
+                item.revision
+              )),
+              onAddVersion: async (fileName) => await runMutation(`${item.id}:version`, async () => await api.promote(sessionId, {
+                session_file_name: fileName,
+                target_document_id: item.id,
+                base_version_id: item.current_version_id
+              }))
+            },
+            item.id
+          );
+        })
+      ] })
     ] });
   }
 
   // ts/src/ui/react/knowledge-workspace.tsx
   var import_jsx_runtime8 = __toESM(require_jsx_runtime(), 1);
-  var TABS = [
-    { id: "files", label: "文件", note: "版本、原文搜索与影响" },
-    { id: "wiki", label: "项目 Wiki", note: "草稿和已确认知识" },
-    { id: "jobs", label: "处理任务", note: "解析与 OCR" },
-    { id: "sources", label: "数据源", note: "外部文件同步" },
-    { id: "access", label: "权限审计", note: "访问规则与记录" }
-  ];
   var CLAIM_KINDS = [
     { value: "MATERIAL_FACT", label: "材料事实" },
     { value: "HUMAN_DECISION", label: "人工决定" },
@@ -20797,37 +21594,59 @@ ${el.value}` : text4;
       ] })
     ] });
   }
-  function KnowledgeWorkspace({ sessionId, sessionFiles, api = knowledgeManagementApi }) {
+  function KnowledgeWorkspace({ level = "project", sessionId, sessionFiles, api = knowledgeManagementApi }) {
+    const isGlobal = level === "global";
     const [section, setSection] = (0, import_react6.useState)("files");
-    const body = (0, import_react6.useMemo)(() => {
-      if (section === "files") return /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { className: "odm-files", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(KnowledgeLibrary, { sessionId, sessionFiles }),
-        /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(VersionReviewPanel, { sessionId, api })
-      ] });
-      if (section === "wiki") return /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(WikiPanel, { sessionId, api });
-      if (section === "jobs") return /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(JobsPanel, { sessionId, api });
-      if (section === "sources") return /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(SourcesPanel, { sessionId, api });
-      return /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(AccessPanel, { sessionId, api });
-    }, [api, section, sessionFiles, sessionId]);
-    return /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { className: "odm-workspace", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("nav", { className: "odm-tabs", "aria-label": "项目知识库管理分区", role: "tablist", children: TABS.map((tab) => /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)(
-        "button",
-        {
-          type: "button",
-          role: "tab",
-          id: `odm-tab-${tab.id}`,
-          "aria-controls": "odm-active-panel",
-          "aria-selected": section === tab.id,
-          className: section === tab.id ? "on" : "",
-          onClick: () => setSection(tab.id),
-          children: [
-            /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("strong", { children: tab.label }),
-            /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("small", { children: tab.note })
-          ]
-        },
-        tab.id
-      )) }),
-      /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { className: "odm-panel", id: "odm-active-panel", role: "tabpanel", "aria-labelledby": `odm-tab-${section}`, children: body })
+    const [advanced, setAdvanced] = (0, import_react6.useState)(false);
+    const showingWiki = section === "wiki";
+    if (isGlobal) {
+      return /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { className: "odm-workspace odm-simple", children: /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { className: "odm-panel", children: /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(KnowledgeLibrary, { level: "global", sessionId, sessionFiles: [] }) }) });
+    }
+    return /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { className: "odm-workspace odm-simple", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("nav", { className: "odm-switch", "aria-label": "项目知识库", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
+          "button",
+          {
+            type: "button",
+            className: showingWiki ? "" : "on",
+            "aria-pressed": !showingWiki,
+            onClick: () => setSection("files"),
+            children: "材料"
+          }
+        ),
+        /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
+          "button",
+          {
+            type: "button",
+            className: showingWiki ? "on" : "",
+            "aria-pressed": showingWiki,
+            onClick: () => setSection("wiki"),
+            children: "已确认知识"
+          }
+        )
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { className: "odm-panel", id: "odm-active-panel", children: showingWiki ? /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(WikiPanel, { sessionId, api }) : /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { className: "odm-files", children: /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(KnowledgeLibrary, { sessionId, sessionFiles }) }) }),
+      /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { className: "odm-advanced", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)(
+          "button",
+          {
+            type: "button",
+            className: "odm-advanced-toggle",
+            "aria-expanded": advanced,
+            onClick: () => setAdvanced((on) => !on),
+            children: [
+              advanced ? "▾" : "▸",
+              " 高级：版本比较 · 处理任务 · 数据源 · 权限审计"
+            ]
+          }
+        ),
+        advanced && /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { className: "odm-advanced-body", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(VersionReviewPanel, { sessionId, api }),
+          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(JobsPanel, { sessionId, api }),
+          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(SourcesPanel, { sessionId, api }),
+          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(AccessPanel, { sessionId, api })
+        ] })
+      ] })
     ] });
   }
 
@@ -20843,9 +21662,9 @@ ${el.value}` : text4;
     if (replace) window.history.replaceState(state, "", next);
     else window.history.pushState(state, "", next);
   }
-  function openKnowledgePage() {
-    if (!G.S?.id || !G.S?.project_id) return;
-    setUi({ MAIN_PAGE: "knowledge" });
+  function openKnowledgePage(target = "global") {
+    const canProject = Boolean(G.S?.id && G.S?.project_id);
+    setUi({ MAIN_PAGE: "knowledge", KNOWLEDGE_TARGET: target === "project" && canProject ? "project" : "global" });
     setHash(true);
   }
   function closeKnowledgePage(options = {}) {
@@ -20866,7 +21685,7 @@ ${el.value}` : text4;
     (0, import_react7.useEffect)(() => {
       if (typeof window === "undefined") return;
       const sync = () => {
-        const next = window.location.hash === HASH && G.S?.id && G.S?.project_id ? "knowledge" : "chat";
+        const next = window.location.hash === HASH ? "knowledge" : "chat";
         if (G.MAIN_PAGE !== next) {
           G.MAIN_PAGE = next;
           bumpUi();
@@ -20874,7 +21693,7 @@ ${el.value}` : text4;
       };
       window.addEventListener("popstate", sync);
       window.addEventListener("hashchange", sync);
-      if (window.location.hash === HASH && session?.id && session?.project_id && !active) sync();
+      if (window.location.hash === HASH && !active) sync();
       return () => {
         window.removeEventListener("popstate", sync);
         window.removeEventListener("hashchange", sync);
@@ -20882,15 +21701,35 @@ ${el.value}` : text4;
     }, [active, session?.id, session?.project_id]);
     if (!active) return null;
     const files = Array.isArray(session?.filelist) ? session.filelist : [];
-    return /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("main", { className: "knowledge-page-shell", "aria-label": "项目知识库页面", children: [
+    const canProject = Boolean(session?.id && session?.project_id);
+    const target = ui.KNOWLEDGE_TARGET === "project" && canProject ? "project" : "global";
+    const isGlobal = target === "global";
+    return /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("main", { className: "knowledge-page-shell", "aria-label": "知识库", children: [
       /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("header", { className: "knowledge-page-head", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { children: [
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("span", { children: [
-            "项目 / ",
-            String(project?.name ?? session?.project_name ?? "当前项目")
-          ] }),
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("h1", { children: "项目知识库" }),
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("p", { children: "集中管理项目材料、准确版本、解析状态和 AI 可核对的原文证据。" })
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "kp-title", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("h1", { children: isGlobal ? "公共知识库" : `${String(project?.name ?? "项目")} · 知识库` }),
+          /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("nav", { className: "kp-level", "aria-label": "知识库层级", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+              "button",
+              {
+                type: "button",
+                className: isGlobal ? "on" : "",
+                onClick: () => setUi({ KNOWLEDGE_TARGET: "global" }),
+                children: "公共"
+              }
+            ),
+            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+              "button",
+              {
+                type: "button",
+                className: isGlobal ? "" : "on",
+                disabled: !canProject,
+                title: canProject ? "当前项目的知识库" : "当前会话还没有归入项目",
+                onClick: () => setUi({ KNOWLEDGE_TARGET: "project" }),
+                children: "当前项目"
+              }
+            )
+          ] })
         ] }),
         /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
           "button",
@@ -20905,14 +21744,15 @@ ${el.value}` : text4;
       /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "knowledge-page-body", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
         KnowledgeWorkspace,
         {
+          level: target,
           sessionId: String(session?.id ?? ""),
-          sessionFiles: files.map((file) => ({
+          sessionFiles: isGlobal ? [] : files.map((file) => ({
             name: String(file?.name ?? ""),
             state: String(file?.state ?? ""),
             issue: String(file?.issue ?? "")
           })).filter((file) => Boolean(file.name))
         },
-        String(session?.id ?? "")
+        `${target}:${String(session?.id ?? "")}`
       ) })
     ] });
   }
@@ -21017,14 +21857,13 @@ ${el.value}` : text4;
       {
         type: "button",
         className: `side-knowledge-entry${G3.MAIN_PAGE === "knowledge" ? " on" : ""}`,
-        disabled: !currentProject || !G3.S?.id,
-        title: currentProject ? `打开「${currentProject.name}」项目知识库` : "请先打开一个已归入项目的会话",
-        onClick: () => openKnowledgePage(),
+        title: currentProject ? `打开「${currentProject.name}」的知识库` : "打开公共知识库",
+        onClick: () => openKnowledgePage(currentProject ? "project" : "global"),
         children: [
           /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("span", { className: "side-knowledge-icon", "aria-hidden": "true", children: "▤" }),
           /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("span", { children: [
-            /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("strong", { children: "项目知识库" }),
-            /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("small", { children: currentProject?.name ?? "请先选择项目会话" })
+            /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("strong", { children: "知识库" }),
+            /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("small", { children: currentProject?.name ?? "公共" })
           ] })
         ]
       }
@@ -21100,594 +21939,6 @@ ${el.value}` : text4;
 
   // ts/src/ui/react/chat.tsx
   var import_react8 = __toESM(require_react(), 1);
-
-  // ts/src/ui/context-sync.ts
-  var CONTEXT_CHANGE_SCHEMA = "ontocopilot.context-change/1";
-  var CONTEXT_FOCUS_SCHEMA = "ontocopilot.context-focus/1";
-  var CANVAS_NODE_REFERENCE_SCHEMA = "ontocopilot.canvas-node-reference/1";
-  var GENERIC_SCENARIO_DRAFT_SCHEMA = "ontocopilot.generic-scenario-draft/1";
-  var CONTEXT_CHANGE_REQUEST_EVENT = "ontocopilot:context-change-request";
-  var CONTEXT_CHANGE_EVENT = "ontocopilot:context-change";
-  var CONTEXT_FOCUS_REQUEST_EVENT = "ontocopilot:context-focus-request";
-  var CONTEXT_FOCUS_EVENT = "ontocopilot:context-focus";
-  var CHANGE_TYPES = /* @__PURE__ */ new Set([
-    "review.answer",
-    "review.assign",
-    "review.status",
-    "model.select",
-    "model.confirm",
-    "evidence.locate",
-    "delivery.select",
-    "delivery.export",
-    "context.update"
-  ]);
-  var SECTIONS = /* @__PURE__ */ new Set(["project", "evidence", "model", "review", "delivery"]);
-  var ORIGINS = /* @__PURE__ */ new Set(["sidebar", "chat", "system"]);
-  var FOCUS_SOURCES = /* @__PURE__ */ new Set(["chat", "receipt", "sidebar", "system"]);
-  var TYPE_SECTION = Object.freeze({
-    "review.answer": "review",
-    "review.assign": "review",
-    "review.status": "review",
-    "model.select": "model",
-    "model.confirm": "model",
-    "evidence.locate": "evidence",
-    "delivery.select": "delivery",
-    "delivery.export": "delivery",
-    "context.update": "project"
-  });
-  var EMPTY_REFS = Object.freeze({
-    entityIds: Object.freeze([]),
-    questionIds: Object.freeze([]),
-    evidenceIds: Object.freeze([]),
-    artifactIds: Object.freeze([]),
-    canvasNodeIds: Object.freeze([])
-  });
-  function isRecord(value2) {
-    return typeof value2 === "object" && value2 !== null && !Array.isArray(value2);
-  }
-  function text(value2) {
-    if (value2 === null || value2 === void 0) return "";
-    if (typeof value2 === "string") return value2.trim();
-    if (typeof value2 === "number" || typeof value2 === "boolean" || typeof value2 === "bigint") return String(value2);
-    if (isRecord(value2) && "value" in value2) return text(value2["value"]);
-    return "";
-  }
-  function truncate(value2, max) {
-    const chars = [...text(value2)];
-    return chars.length <= max ? chars.join("") : `${chars.slice(0, Math.max(0, max - 1)).join("")}…`;
-  }
-  function values(value2) {
-    if (Array.isArray(value2)) return value2;
-    if (value2 instanceof Set) return [...value2];
-    return value2 === null || value2 === void 0 || value2 === "" ? [] : [value2];
-  }
-  function ids(...rawValues) {
-    const out = /* @__PURE__ */ new Set();
-    for (const rawValue of rawValues) {
-      for (const value2 of values(rawValue)) {
-        const id = truncate(value2, 160);
-        if (id) out.add(id);
-        if (out.size >= 80) break;
-      }
-      if (out.size >= 80) break;
-    }
-    return Object.freeze([...out].sort(compareCodePoint));
-  }
-  function compareCodePoint(a, b) {
-    return a < b ? -1 : a > b ? 1 : 0;
-  }
-  function referencesOf(input, inherited = EMPTY_REFS) {
-    const refs = input.refs ?? {};
-    return Object.freeze({
-      entityIds: ids(inherited.entityIds, refs.entityIds, input.entityIds),
-      questionIds: ids(inherited.questionIds, refs.questionIds, input.questionIds),
-      evidenceIds: ids(inherited.evidenceIds, refs.evidenceIds, input.evidenceIds),
-      artifactIds: ids(inherited.artifactIds, refs.artifactIds, input.artifactIds),
-      canvasNodeIds: ids(inherited.canvasNodeIds, refs.canvasNodeIds, input.canvasNodeIds)
-    });
-  }
-  function changeType(value2) {
-    const key = text(value2).toLocaleLowerCase();
-    return CHANGE_TYPES.has(key) ? key : "context.update";
-  }
-  function sectionOf(value2, fallback) {
-    const key = text(value2).toLocaleLowerCase();
-    return SECTIONS.has(key) ? key : fallback;
-  }
-  function originOf(value2) {
-    const key = text(value2).toLocaleLowerCase();
-    return ORIGINS.has(key) ? key : "sidebar";
-  }
-  function focusSourceOf(value2) {
-    const key = text(value2).toLocaleLowerCase();
-    return FOCUS_SOURCES.has(key) ? key : "sidebar";
-  }
-  function isoTime(value2, fallbackMs) {
-    let date;
-    if (value2 instanceof Date) date = value2;
-    else if (typeof value2 === "number") date = new Date(value2);
-    else if (typeof value2 === "string" && value2.trim()) date = new Date(value2);
-    else date = new Date(fallbackMs);
-    return Number.isFinite(date.getTime()) ? date.toISOString() : new Date(fallbackMs).toISOString();
-  }
-  function stableHash(value2) {
-    let hash = 2166136261;
-    for (let i = 0; i < value2.length; i += 1) {
-      hash ^= value2.charCodeAt(i);
-      hash = Math.imul(hash, 16777619);
-    }
-    return (hash >>> 0).toString(36).padStart(7, "0");
-  }
-  function receiptId(data) {
-    const canonical = JSON.stringify([
-      data.sessionId,
-      data.type,
-      data.section,
-      data.origin,
-      data.title,
-      data.summary,
-      data.refs.entityIds,
-      data.refs.questionIds,
-      data.refs.evidenceIds,
-      data.refs.artifactIds,
-      data.refs.canvasNodeIds,
-      data.revision,
-      data.createdAt
-    ]);
-    return `ctxr_${stableHash(canonical)}`;
-  }
-  function focusId(data) {
-    const canonical = JSON.stringify([
-      data.sessionId,
-      data.source,
-      data.section,
-      data.label,
-      data.receiptId,
-      data.refs.entityIds,
-      data.refs.questionIds,
-      data.refs.evidenceIds,
-      data.refs.artifactIds,
-      data.refs.canvasNodeIds,
-      data.createdAt
-    ]);
-    return `ctxf_${stableHash(canonical)}`;
-  }
-  function contextRevisionOf(session) {
-    const root2 = isRecord(session) ? session : {};
-    const state = isRecord(root2["state"]) ? root2["state"] : {};
-    const ontology = isRecord(state["ontology_package"]) ? state["ontology_package"] : {};
-    const revision = isRecord(state["revision"]) ? state["revision"] : {};
-    const project = isRecord(root2["project"]) ? root2["project"] : {};
-    const projectRevision = isRecord(project["revision"]) ? project["revision"] : {};
-    return truncate(
-      projectRevision["label"] ?? projectRevision["model"] ?? ontology["revision"] ?? state["artifact_revision"] ?? root2["state_version"] ?? root2["stateVersion"] ?? root2["revision"] ?? revision["id"] ?? revision["revision"] ?? "current",
-      100
-    ) || "current";
-  }
-  function canvasNodeType(value2) {
-    const key = text(value2).toLocaleLowerCase().replace(/[\s_-]+/gu, "");
-    if (["ontology", "ontologytype", "ontologyobject"].includes(key)) return "ontology";
-    if (["workflow", "process", "flow"].includes(key)) return "workflow";
-    if (["action", "actiontype", "processstep", "task"].includes(key)) return "action";
-    if (["event", "eventtype"].includes(key)) return "event";
-    if (["object", "objecttype", "dataobject"].includes(key)) return "object";
-    if (["rule", "businessrule"].includes(key)) return "rule";
-    return "unknown";
-  }
-  function contextReferenceFromCanvasNode(input, options = {}) {
-    const type = canvasNodeType(input.nodeType ?? input.type ?? input.kind);
-    const label = truncate(input.label ?? input.title, 180) || "未命名画布节点";
-    const rawId = truncate(input.nodeId ?? input.id, 180);
-    const nodeId = rawId || `node_${stableHash(JSON.stringify([type, label]))}`;
-    const sessionId = truncate(input.sessionId ?? options.sessionId ?? G.S?.id, 160);
-    const revision = truncate(input.revision ?? options.revision ?? contextRevisionOf(G.S), 100) || "current";
-    const refs = referencesOf({ ...input, canvasNodeIds: [nodeId] });
-    const id = `canvas:${type}:${nodeId}`;
-    return Object.freeze({
-      schemaVersion: CANVAS_NODE_REFERENCE_SCHEMA,
-      id,
-      sessionId,
-      section: "model",
-      nodeId,
-      nodeType: type,
-      label,
-      revision,
-      refs
-    });
-  }
-  function focusCanvasNodeReference(reference, source = "sidebar", store = contextSyncStore) {
-    return store.focus({
-      source,
-      section: "model",
-      label: reference.label,
-      sessionId: reference.sessionId,
-      refs: reference.refs
-    });
-  }
-  function canvasNodeCitation(reference) {
-    return `引用画布节点「${reference.label}」（${reference.nodeType}；revision ${reference.revision}；node ${reference.nodeId}）`;
-  }
-  function draftOutputType(value2) {
-    const key = text(value2).toLocaleLowerCase();
-    if (key === "workflow" || key === "flow" || key === "process") return "Workflow";
-    if (key === "action" || key === "actiontype") return "Action";
-    if (key === "event" || key === "eventtype") return "Event";
-    return "Ontology";
-  }
-  function promptLines(value2, max = 12) {
-    if (value2 === void 0) return [];
-    const out = [];
-    for (const item of value2) {
-      const line = truncate(item, 240);
-      if (line && !out.includes(line)) out.push(line);
-      if (out.length >= max) break;
-    }
-    return out;
-  }
-  function referencePromptLine(refs) {
-    const parts = [];
-    if (refs.canvasNodeIds.length) parts.push(`画布节点=${refs.canvasNodeIds.join(", ")}`);
-    if (refs.entityIds.length) parts.push(`实体=${refs.entityIds.join(", ")}`);
-    if (refs.questionIds.length) parts.push(`问题=${refs.questionIds.join(", ")}`);
-    if (refs.artifactIds.length) parts.push(`产物=${refs.artifactIds.join(", ")}`);
-    return parts.join("；");
-  }
-  function genericScenarioDraftPrompt(input) {
-    const scenario = truncate(input.scenario, 1200) || "（尚未描述场景）";
-    const outputType = draftOutputType(input.outputType);
-    const assumptions = promptLines(input.assumptions);
-    const validation = promptLines(input.validationFocus);
-    const refs = referencesOf(input);
-    const lines = [
-      `请基于以下通用业务场景生成一份 ${outputType} 草案。`,
-      `通用场景：${scenario}`,
-      `输出类型：${outputType}`,
-      "材料状态：当前没有可直接引用的客户材料；以下内容不得表述为客户事实。",
-      "工作要求：",
-      "1. 将所有业务对象、流程、动作、事件和规则标记为“待验证假设”。",
-      "2. 区分通用行业经验、从场景推导的假设，以及仍然未知的信息。",
-      "3. 为每条关键假设给出需要向业务方确认的问题与验收条件。",
-      "4. 不编造证据、客户系统名、字段口径、负责人或已确认状态。"
-    ];
-    if (assumptions.length) lines.push("已知假设：", ...assumptions.map((item) => `- ${item}`));
-    if (validation.length) lines.push("优先验证：", ...validation.map((item) => `- ${item}`));
-    const refLine = referencePromptLine(refs);
-    if (refLine) lines.push(`当前工作区引用（仅作定位，不代表证据）：${refLine}`);
-    lines.push(`请先输出 ${outputType} 草案，再单列“假设与待验证问题”。`);
-    return lines.join("\n");
-  }
-  function freezeReceipt(receipt) {
-    return Object.freeze({ ...receipt, refs: referencesOf({ refs: receipt.refs }) });
-  }
-  function freezeReference(reference) {
-    return Object.freeze({ ...reference, refs: referencesOf({ refs: reference.refs }) });
-  }
-  function freezeSnapshot(version, receipts, dismissed, activeReference) {
-    return Object.freeze({
-      version,
-      receipts: Object.freeze([...receipts]),
-      dismissedIds: Object.freeze([...dismissed].sort(compareCodePoint)),
-      activeReference
-    });
-  }
-  function createContextSyncStore(options = {}) {
-    const capacity = Math.max(1, Math.min(500, Math.trunc(options.capacity ?? 80)));
-    const now = options.now ?? (() => Date.now());
-    const getSessionId = options.getSessionId ?? (() => "");
-    const getRevision = options.getRevision ?? (() => "current");
-    let receipts = [];
-    const dismissed = /* @__PURE__ */ new Set();
-    let activeReference = null;
-    let version = 0;
-    let snapshot = freezeSnapshot(version, receipts, dismissed, activeReference);
-    const listeners = /* @__PURE__ */ new Set();
-    const eventListeners = /* @__PURE__ */ new Set();
-    const emit = (event) => {
-      version += 1;
-      snapshot = freezeSnapshot(version, receipts, dismissed, activeReference);
-      for (const listener of [...listeners]) listener();
-      for (const listener of [...eventListeners]) listener(event);
-    };
-    const store = {
-      getSnapshot: () => snapshot,
-      subscribe(listener) {
-        listeners.add(listener);
-        return () => {
-          listeners.delete(listener);
-        };
-      },
-      subscribeEvents(listener) {
-        eventListeners.add(listener);
-        return () => {
-          eventListeners.delete(listener);
-        };
-      },
-      publish(input) {
-        const type = changeType(input.type);
-        const createdAt = isoTime(input.createdAt, now());
-        const data = {
-          sessionId: truncate(input.sessionId ?? getSessionId(), 160),
-          type,
-          section: sectionOf(input.section, TYPE_SECTION[type]),
-          origin: originOf(input.origin),
-          title: truncate(input.title, 180) || "上下文已更新",
-          summary: truncate(input.summary, 800),
-          refs: referencesOf(input),
-          revision: truncate(input.revision ?? getRevision(), 100) || "current",
-          createdAt
-        };
-        const id = receiptId(data);
-        const existing = receipts.find((receipt2) => receipt2.id === id);
-        if (existing !== void 0) return existing;
-        const receipt = freezeReceipt({ schemaVersion: CONTEXT_CHANGE_SCHEMA, id, ...data });
-        receipts = [...receipts, receipt].slice(-capacity);
-        const kept = new Set(receipts.map((item) => item.id));
-        for (const dismissedId of [...dismissed]) if (!kept.has(dismissedId)) dismissed.delete(dismissedId);
-        emit({ kind: "receipt.published", receipt });
-        return receipt;
-      },
-      getReceipt(id) {
-        const key = text(id);
-        return receipts.find((receipt) => receipt.id === key) ?? null;
-      },
-      dismissReceipt(id) {
-        const key = text(id);
-        if (!receipts.some((receipt) => receipt.id === key) || dismissed.has(key)) return false;
-        dismissed.add(key);
-        emit({ kind: "receipt.dismissed", receiptId: key });
-        return true;
-      },
-      clearReceipts(sessionId) {
-        const sid = text(sessionId);
-        const before = receipts.length;
-        receipts = sid ? receipts.filter((receipt) => receipt.sessionId !== sid) : [];
-        if (receipts.length === before) return;
-        const kept = new Set(receipts.map((receipt) => receipt.id));
-        for (const dismissedId of [...dismissed]) if (!kept.has(dismissedId)) dismissed.delete(dismissedId);
-        if (activeReference !== null && (!sid || activeReference.sessionId === sid)) activeReference = null;
-        emit({ kind: "reference.cleared" });
-      },
-      focus(input) {
-        const source = focusSourceOf(input.source);
-        const receiptIdValue = truncate(input.receiptId, 160);
-        const receipt = receiptIdValue ? store.getReceipt(receiptIdValue) : null;
-        const createdAt = isoTime(input.createdAt, now());
-        const data = {
-          sessionId: truncate(input.sessionId ?? receipt?.sessionId ?? getSessionId(), 160),
-          source,
-          section: sectionOf(input.section, receipt?.section ?? "project"),
-          label: truncate(input.label ?? receipt?.title, 180) || "上下文引用",
-          receiptId: receipt?.id ?? receiptIdValue,
-          refs: referencesOf(input, receipt?.refs ?? EMPTY_REFS),
-          createdAt
-        };
-        const reference = freezeReference({ schemaVersion: CONTEXT_FOCUS_SCHEMA, id: focusId(data), ...data });
-        activeReference = reference;
-        emit({ kind: "reference.focused", reference });
-        return reference;
-      },
-      focusReceipt(receiptIdValue, source = "receipt") {
-        const receipt = store.getReceipt(receiptIdValue);
-        if (receipt === null) return null;
-        return store.focus({
-          source,
-          section: receipt.section,
-          label: receipt.title,
-          receiptId: receipt.id,
-          refs: receipt.refs,
-          sessionId: receipt.sessionId
-        });
-      },
-      clearFocus() {
-        if (activeReference === null) return;
-        activeReference = null;
-        emit({ kind: "reference.cleared" });
-      }
-    };
-    return store;
-  }
-  var contextSyncStore = createContextSyncStore({
-    getSessionId: () => G.S?.id ?? "",
-    getRevision: () => contextRevisionOf(G.S)
-  });
-  function selectRecentContextReceipts(snapshot, options = {}) {
-    const sessionId = text(options.sessionId);
-    const dismissed = new Set(snapshot.dismissedIds);
-    let rows2 = snapshot.receipts.filter(
-      (receipt) => (!sessionId || receipt.sessionId === sessionId) && (options.includeDismissed === true || !dismissed.has(receipt.id))
-    );
-    if (options.newestFirst !== false) rows2 = [...rows2].reverse();
-    const limit = Math.max(0, Math.trunc(options.limit ?? 3));
-    return rows2.slice(0, limit);
-  }
-  function contextReceiptCitation(receipt) {
-    const refs = [];
-    if (receipt.refs.entityIds.length) refs.push(`实体 ${receipt.refs.entityIds.slice(0, 3).join("、")}`);
-    if (receipt.refs.questionIds.length) refs.push(`问题 ${receipt.refs.questionIds.slice(0, 3).join("、")}`);
-    if (receipt.refs.evidenceIds.length) refs.push(`证据 ${receipt.refs.evidenceIds.slice(0, 3).join("、")}`);
-    if (receipt.refs.artifactIds.length) refs.push(`产物 ${receipt.refs.artifactIds.slice(0, 3).join("、")}`);
-    if (receipt.refs.canvasNodeIds.length) refs.push(`画布节点 ${receipt.refs.canvasNodeIds.slice(0, 3).join("、")}`);
-    const meta = [receipt.revision && `revision ${receipt.revision}`, ...refs].filter(Boolean).join("；");
-    const header = `引用上下文「${receipt.title}」${meta ? `（${meta}）` : ""}`;
-    return receipt.summary ? `${header}
-${receipt.summary}` : header;
-  }
-  function browserDocument() {
-    const doc = globalThis.document;
-    return doc && typeof doc.getElementById === "function" ? doc : void 0;
-  }
-  function payloadText(payload) {
-    if (typeof payload === "string") return truncate(payload, 4e3);
-    if (payload.schemaVersion === CONTEXT_CHANGE_SCHEMA) return contextReceiptCitation(payload);
-    if (payload.schemaVersion === CANVAS_NODE_REFERENCE_SCHEMA) return canvasNodeCitation(payload);
-    return genericScenarioDraftPrompt(payload);
-  }
-  function focusComposerPayload(payload, store) {
-    if (typeof payload === "string") return null;
-    if (payload.schemaVersion === CONTEXT_CHANGE_SCHEMA) return store.focusReceipt(payload.id, "chat");
-    if (payload.schemaVersion === CANVAS_NODE_REFERENCE_SCHEMA) {
-      return focusCanvasNodeReference(payload, "chat", store);
-    }
-    return store.focus({
-      source: "chat",
-      section: "model",
-      label: `通用场景草案：${truncate(payload.scenario, 100) || "未命名场景"}`,
-      refs: referencesOf(payload)
-    });
-  }
-  function prefillComposer(payload, options = {}) {
-    const content = payloadText(payload);
-    const doc = options.document ?? browserDocument();
-    const raw = doc?.getElementById(options.composerId ?? "cin");
-    if (typeof raw !== "object" || raw === null) {
-      return { prepared: false, inserted: false, text: content, reference: null };
-    }
-    const composer = raw;
-    if (typeof composer.value !== "string") {
-      return { prepared: false, inserted: false, text: content, reference: null };
-    }
-    let inserted = false;
-    if (options.mode === "replace") {
-      if (composer.value !== content) {
-        composer.value = content;
-        composer.selectionStart = content.length;
-        composer.selectionEnd = content.length;
-        inserted = true;
-      }
-    } else if (!composer.value.includes(content)) {
-      const current = composer.value;
-      const start = typeof composer.selectionStart === "number" ? composer.selectionStart : current.length;
-      const end = typeof composer.selectionEnd === "number" ? composer.selectionEnd : start;
-      const before = current.slice(0, start);
-      const after = current.slice(end);
-      const left = before && !before.endsWith("\n") ? "\n\n" : "";
-      const right = after && !after.startsWith("\n") ? "\n\n" : "";
-      composer.value = `${before}${left}${content}${right}${after}`;
-      const cursor = before.length + left.length + content.length;
-      composer.selectionStart = cursor;
-      composer.selectionEnd = cursor;
-      inserted = true;
-    }
-    if (inserted) {
-      const EventCtor = globalThis.Event;
-      if (typeof composer.dispatchEvent === "function" && EventCtor !== void 0) {
-        composer.dispatchEvent(new EventCtor("input", { bubbles: true }));
-      }
-    }
-    composer.focus?.();
-    const reference = options.focusSidebar === false ? null : focusComposerPayload(payload, options.store ?? contextSyncStore);
-    return { prepared: true, inserted, text: content, reference };
-  }
-  async function sendContextToChat(payload, options = {}) {
-    const doc = options.document ?? browserDocument();
-    const composer = doc?.getElementById(options.composerId ?? "cin");
-    const draft = typeof composer?.value === "string" ? composer.value : "";
-    const prepared = prefillComposer(payload, options);
-    if (!prepared.prepared || options.send === void 0) return { ...prepared, sent: false };
-    try {
-      await options.send();
-    } finally {
-      if (draft !== "" && composer && typeof composer.value === "string") {
-        composer.value = draft;
-        composer.selectionStart = draft.length;
-        composer.selectionEnd = draft.length;
-        composer.dispatchEvent?.(new Event("input", { bubbles: true }));
-      }
-    }
-    return { ...prepared, sent: true };
-  }
-  function quoteContextReceiptToComposer(receipt, options = {}) {
-    const { inserted, text: citation, reference } = prefillComposer(receipt, options);
-    return { inserted, text: citation, reference };
-  }
-  function makeDetailEvent(type, detail) {
-    const CustomEventCtor = globalThis.CustomEvent;
-    if (CustomEventCtor !== void 0) return new CustomEventCtor(type, { detail });
-    const EventCtor = globalThis.Event;
-    const event = new EventCtor(type);
-    Object.defineProperty(event, "detail", { configurable: false, enumerable: true, value: detail });
-    return event;
-  }
-  function eventDetail(event) {
-    return event.detail;
-  }
-  function eventTargetOrNull(value2) {
-    if (value2 instanceof EventTarget) return value2;
-    if (value2 !== null && typeof value2 === "object") {
-      const row = value2;
-      if (typeof row.addEventListener === "function" && typeof row.dispatchEvent === "function") {
-        return value2;
-      }
-    }
-    return null;
-  }
-  function browserEventTarget() {
-    return eventTargetOrNull(globalThis.window);
-  }
-  var BRIDGES = /* @__PURE__ */ new WeakMap();
-  function installContextSyncBridge(target = browserEventTarget(), store = contextSyncStore) {
-    if (target === null) return () => {
-    };
-    let stores = BRIDGES.get(target);
-    if (stores === void 0) {
-      stores = /* @__PURE__ */ new Map();
-      BRIDGES.set(target, stores);
-    }
-    const old = stores.get(store);
-    if (old !== void 0) {
-      old.refs += 1;
-      let active2 = true;
-      return () => {
-        if (!active2) return;
-        active2 = false;
-        old.refs -= 1;
-        if (old.refs === 0) {
-          old.stop();
-          stores.delete(store);
-        }
-      };
-    }
-    const onChangeRequest = (event) => {
-      const detail = eventDetail(event);
-      if (!isRecord(detail)) return;
-      const input = isRecord(detail["change"]) ? detail["change"] : detail;
-      store.publish(input);
-    };
-    const onFocusRequest = (event) => {
-      const detail = eventDetail(event);
-      if (!isRecord(detail)) return;
-      const input = isRecord(detail["focus"]) ? detail["focus"] : detail;
-      store.focus(input);
-    };
-    target.addEventListener(CONTEXT_CHANGE_REQUEST_EVENT, onChangeRequest);
-    target.addEventListener(CONTEXT_FOCUS_REQUEST_EVENT, onFocusRequest);
-    const offEvents = store.subscribeEvents((event) => {
-      if (event.kind === "receipt.published") {
-        target.dispatchEvent(makeDetailEvent(CONTEXT_CHANGE_EVENT, event.receipt));
-      } else if (event.kind === "reference.focused") {
-        target.dispatchEvent(makeDetailEvent(CONTEXT_FOCUS_EVENT, event.reference));
-      }
-    });
-    const entry = {
-      refs: 1,
-      stop: () => {
-        target.removeEventListener(CONTEXT_CHANGE_REQUEST_EVENT, onChangeRequest);
-        target.removeEventListener(CONTEXT_FOCUS_REQUEST_EVENT, onFocusRequest);
-        offEvents();
-      }
-    };
-    stores.set(store, entry);
-    let active = true;
-    return () => {
-      if (!active) return;
-      active = false;
-      entry.refs -= 1;
-      if (entry.refs === 0) {
-        entry.stop();
-        stores.delete(store);
-      }
-    };
-  }
 
   // ts/src/ui/react/markdown.tsx
   var import_jsx_runtime11 = __toESM(require_jsx_runtime(), 1);

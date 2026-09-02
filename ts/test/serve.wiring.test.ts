@@ -182,6 +182,17 @@ describe("wireServer", () => {
       "POST /api/sessions/:sid/documents/search-snapshots",
       "POST /api/sessions/:sid/documents/search-snapshots/:snapshotId/page",
       "GET /api/sessions/:sid/documents/:documentId/history",
+      // 打开一份材料按原文顺序读。此前知识库只有 search（要关键词）和
+      // evidence/:ref/open（要一个已经拿到的引用）——存进去的文件没有打开入口。
+      "GET /api/sessions/:sid/documents/:documentId/content",
+      // 公共知识库：**不经过会话**。产品要求「这个知识库应该可以直接去访问」——
+      // 在此之前所有知识库路由都挂在 /api/sessions/:sid 下，侧栏按钮在会话没归项目时
+      // 是禁用的。这一组只有读与整理；attach/promote 依赖会话语义，刻意没挂。
+      "GET /api/knowledge/documents",
+      "GET /api/knowledge/documents/search",
+      "GET /api/knowledge/documents/evidence/:ref/open",
+      "GET /api/knowledge/documents/:documentId/content",
+      "GET /api/knowledge/documents/:documentId/history",
       "GET /api/sessions/:sid/documents/evidence/:ref/open",
       "PATCH /api/sessions/:sid/documents/:documentId",
       "PATCH /api/sessions/:sid/documents/:documentId/adopt",

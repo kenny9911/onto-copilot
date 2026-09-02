@@ -132,7 +132,11 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 
 .main{flex:1 1 640px;min-width:520px;border-right:1px solid var(--line);position:relative}
 .knowledge-page{display:none;min-height:0;flex:1;overflow:hidden;background:var(--bg)}
-body.knowledge-page-open .main>.stream,body.knowledge-page-open .main>.comp,body.knowledge-page-open .main>.qbar{display:none!important}
+/* 知识库页面**保留对话输入框**：产品要求就是「在知识库里跟 Copilot 说话」，
+   把 .comp 一起藏掉，那条路当场就断了。消息流仍然收起（知识库页是主内容），
+   发出去之后由 knowledge-page 负责退回聊天，避免「说了话看不到回答」的死路。 */
+body.knowledge-page-open .main>.stream,body.knowledge-page-open .main>.qbar{display:none!important}
+body.knowledge-page-open .main>.comp{border-top:1px solid var(--line-soft)}
 body.knowledge-page-open .knowledge-page{display:flex}
 body.knowledge-page-open .preview,body.knowledge-page-open .pexpand{display:none!important}
 body.knowledge-page-open .main{min-width:0;border-right:0}
@@ -141,6 +145,55 @@ body.knowledge-page-open .main{min-width:0;border-right:0}
 .knowledge-page-head span{color:var(--ink-3);font-size:.7407rem}.knowledge-page-head h1{margin-top:2px;font-size:1.5556rem;font-weight:600;letter-spacing:-.02em}.knowledge-page-head p{margin-top:4px;color:var(--ink-2);font-size:.8519rem}
 .knowledge-page-body{min-height:0;flex:1;overflow:auto;padding:0 32px 40px}.knowledge-page-body>.odm-workspace{width:min(1240px,100%);margin:0 auto}
 .odm-workspace{min-width:0}.odm-tabs{position:sticky;z-index:3;top:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px;padding:14px 0;border-bottom:1px solid var(--line-soft);background:color-mix(in srgb,var(--bg) 94%,transparent)}
+/* 五个 Tab 收成「材料 / 已确认知识」两个轻量切换 —— 原来那五个是后端五个路由
+   文件的镜像，不是用户的五件事。 */
+.odm-switch{position:sticky;z-index:3;top:0;display:flex;gap:4px;padding:14px 0;border-bottom:1px solid var(--line-soft);background:color-mix(in srgb,var(--bg) 94%,transparent)}
+.odm-switch button{padding:6px 14px;border:1px solid transparent;border-radius:99px;color:var(--ink-2);font-size:.8519rem}
+.odm-switch button:hover{background:var(--hover)}
+.odm-switch button.on{border-color:var(--accent-line);background:var(--accent-tint);color:var(--accent);font-weight:600}
+/* 内部机器（处理任务/数据源/权限审计）默认折叠：仍然可达，但不挡在用户和材料之间。 */
+.odm-advanced{margin-top:28px;padding-top:14px;border-top:1px solid var(--line-soft)}
+.odm-advanced-toggle{padding:4px 0;color:var(--ink-3);font-size:.7407rem}
+.odm-advanced-toggle:hover{color:var(--ink-2)}
+.odm-advanced-body{display:flex;flex-direction:column;gap:16px;padding-top:14px}
+/* ── 文件管理器式列表 ─────────────────────────────────────────────
+   原来这一屏在看到第一个文件之前堆了：标题段、产品说明、信任提示条、
+   带勾选框的搜索表单、一整块「保存到项目库」。那是说明书不是文件管理器。
+   现在：一条工具栏 + 一张表。列宽固定，扫一眼就知道有什么。 */
+.kp-title{display:flex;align-items:center;gap:12px}
+.kp-level{display:flex;gap:3px;padding:2px;border:1px solid var(--line);border-radius:99px;background:var(--panel)}
+.kp-level button{padding:3px 12px;border-radius:99px;color:var(--ink-2);font-size:.7407rem}
+.kp-level button:hover:not(:disabled){background:var(--hover)}
+.kp-level button.on{background:var(--accent-tint);color:var(--accent);font-weight:600}
+.kp-level button:disabled{color:var(--ink-3);cursor:default}
+.od-fm-bar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:2px 0 14px}
+.od-fm-search{display:flex;flex:1;min-width:220px;align-items:center;gap:8px}
+.od-fm-search input{flex:1;min-width:0;padding:7px 11px;border:1px solid var(--line);border-radius:8px;background:var(--panel);font-size:.8519rem}
+.od-fm-search input:focus{border-color:var(--accent-line);outline:0}
+.od-fm-tools{display:flex;align-items:center;gap:8px}
+.od-fm-tools select{max-width:180px;padding:6px 9px;border:1px solid var(--line);border-radius:8px;background:var(--panel);font-size:.7778rem}
+.od-fm-list{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--panel)}
+.od-fm-head,.od-row-main{display:grid;grid-template-columns:minmax(0,1fr) 62px 96px 116px 74px;align-items:center;gap:10px;padding:8px 14px}
+.od-fm-head{border-bottom:1px solid var(--line);background:var(--hover);color:var(--ink-3);font-size:.7037rem;letter-spacing:.03em}
+.od-row{border-bottom:1px solid var(--line-soft)}
+.od-row:last-child{border-bottom:0}
+.od-row.attached{background:var(--accent-tint)}
+.od-row.archived .od-row-title{color:var(--ink-3);text-decoration:line-through}
+.od-row-main:hover{background:var(--hover)}
+.od-row-name{display:flex;min-width:0;align-items:center;gap:7px;padding:0;background:none;text-align:left}
+.od-row-icon{width:12px;color:var(--ink-3);font-size:.7037rem}
+.od-row-title{overflow:hidden;color:var(--ink);font-size:.8519rem;text-overflow:ellipsis;white-space:nowrap}
+.od-row-tag{flex:none;padding:1px 6px;border-radius:99px;background:var(--hover-2);color:var(--ink-3);font-size:.6667rem}
+.od-row-col{color:var(--ink-2);font-size:.7407rem;white-space:nowrap}
+.od-row-time{color:var(--ink-3)}
+.od-row-actions{display:flex;justify-content:flex-end}
+.od-row-more{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:0 14px 10px 33px}
+.od-fm-status{display:flex;align-items:center;justify-content:space-between;padding:8px 2px;color:var(--ink-3);font-size:.7407rem}
+/* 就地读全文。这是此前完全没有的入口。 */
+.od-reader{display:flex;flex-direction:column;gap:10px;margin:0 14px 12px 33px;padding:12px 14px;border:1px solid var(--line-soft);border-radius:9px;background:var(--panel-soft)}
+.od-reader-chunk{display:flex;flex-direction:column;gap:4px;padding-bottom:10px;border-bottom:1px dashed var(--line-soft)}
+.od-reader-chunk:last-of-type{border-bottom:0;padding-bottom:0}
+.od-reader-text{margin:0;color:var(--ink);font-size:.8519rem;line-height:1.65;white-space:pre-wrap}
 .odm-tabs button{display:flex;min-width:0;flex-direction:column;align-items:flex-start;padding:9px 11px;border:1px solid transparent;border-radius:9px;color:var(--ink-2);text-align:left}
 .odm-tabs button:hover{background:var(--hover)}.odm-tabs button.on{border-color:var(--accent-line);background:var(--accent-tint);color:var(--accent)}
 .odm-tabs strong{font-size:.8519rem}.odm-tabs small{max-width:100%;overflow:hidden;margin-top:1px;color:var(--ink-3);font-size:.6667rem;text-overflow:ellipsis;white-space:nowrap}

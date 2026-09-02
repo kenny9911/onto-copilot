@@ -33,6 +33,7 @@ import {
   type DocumentManifestEntry,
   type DocumentMetadataPatch,
   type DocumentOpenResult,
+  type DocumentReadResult,
   type DocumentScope,
   type DocumentSearchHit,
   type DocumentSearchOptions,
@@ -236,6 +237,104 @@ export class DocumentService {
     if (documentAuthorization.aclRevision !== plan.aclRevision) throw new DocumentNotFound();
     await this.assertAclRevision(scope, plan.aclRevision);
     return result;
+  }
+
+  /**
+   * 打开一份材料，按原文顺序读。
+   *
+   * 在此之前，知识库里**存进去的文件根本没有打开入口**：只有 `search`（要关键词）
+   * 和 `open`（要一个已经拿到的 evidence_ref）。用户刚传完一份 40 页的材料，
+   * 想知道里面有什么，只能靠猜关键词——这是「知识库看不懂、用不起来」最直接的一条。
+   *
+   * ACL 与 search 走同一套两级裁决：先按 version 决定这一版能不能进，
+   * 再按 chunk 逐段过滤，最后重新核对 ACL revision。**不因为「用户能看这份文档」
+   * 就顺带把整版正文交出去。**
+   */
+  async read(
+    scope: DocumentScope,
+    documentId: string,
+    options: {
+      readonly versionId?: string;
+      readonly offset?: number;
+      readonly limit?: number;
+    } = {},
+  ): Promise<DocumentReadResult> {
+    safeScope(scope);
+    const cleanId = cleanText(documentId, "", "文档 ID", 2_048);
+    const document = await this.guardAcl(() => this.acl.readAuthorized(
+      scope,
+      principalOf(scope),
+      { scopeType: "document", documentId: cleanId },
+      async () => await this.repository.get(scope, cleanId),
+    ));
+    if (document === null) throw new DocumentNotFound();
+    // 不传 versionId 就读「采用版」；采用版没设过时退到最新版 —— 和检索的默认口径
+    // 一致（repository 的 COALESCE(adopted,current)），否则「搜到的」和「读到的」
+    // 会是两个不同的版本，那是最难查的一类不一致。
+    const versionId = options.versionId === undefined || options.versionId === ""
+      ? document.adoptedVersionId ?? document.currentVersionId
+      : cleanText(options.versionId, "", "版本 ID", 2_048);
+    const versionAuth = await this.guardAcl(() => this.acl.authorizeRead(
+      scope,
+      principalOf(scope),
+      { scopeType: "version", documentId: cleanId, versionId },
+    ));
+    const page = await this.repository.chunksOfVersion(scope, cleanId, versionId, {
+      ...(options.offset === undefined ? {} : { offset: options.offset }),
+      ...(options.limit === undefined ? {} : { limit: options.limit }),
+    });
+    if (page.chunks.length === 0 && page.total === 0) {
+      // 版本存在但一段都读不出来，和「没有这一版」是两件事；调用方靠 total=0 分辨。
+      const stored = await this.repository.getVersion(scope, cleanId, versionId);
+      if (stored === null) throw new DocumentNotFound("没有找到这一版材料");
+      // 完整 ParsedDoc 永不越过服务边界 —— 和 promote/commit 两处同一个写法。
+      const { parsedDoc: _parsedDoc, ...version } = stored;
+      return {
+        document,
+        version,
+        level: levelOf(scope),
+        chunks: [],
+        total: 0,
+        offset: Math.max(0, Math.trunc(options.offset ?? 0)),
+      };
+    }
+    const chunkPlan = await this.acl.filterSearchTargets(
+      scope,
+      principalOf(scope),
+      page.chunks.map((candidate) => ({
+        scopeType: "chunk",
+        documentId: cleanId,
+        versionId,
+        chunkId: candidate.chunk.chunkId,
+      })),
+    );
+    const allowed = new Set(chunkPlan.allowedTargets.map(resourceKey));
+    const level = levelOf(scope);
+    const chunks = page.chunks
+      .filter((candidate) => allowed.has(resourceKey({
+        scopeType: "chunk",
+        documentId: cleanId,
+        versionId,
+        chunkId: candidate.chunk.chunkId,
+      })))
+      // score=1 / coverage 空：阅读不是检索，这里没有「相关性」可言，
+      // 借用 hit 形状只是为了让每一段自带 evidenceRef 和引用文案。
+      .map((candidate) => hitOf(
+        candidate,
+        1,
+        { matchedTerms: [], missingTerms: [], queryTerms: 0, ratio: 1 },
+        level,
+      ));
+    if (versionAuth.aclRevision !== chunkPlan.aclRevision) throw new DocumentNotFound();
+    await this.assertAclRevision(scope, chunkPlan.aclRevision);
+    return {
+      document,
+      version: page.chunks[0]!.version,
+      level,
+      chunks,
+      total: page.total,
+      offset: Math.max(0, Math.trunc(options.offset ?? 0)),
+    };
   }
 
   /**

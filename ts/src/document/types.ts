@@ -282,6 +282,23 @@ export interface DocumentSearchResult {
   readonly coverage: SearchCoverage;
 }
 
+/**
+ * 「打开一份材料，从头读」的结果。
+ *
+ * 段落直接复用 `DocumentSearchHit` 的形状，不是偷懒 —— 那个形状里已经带了
+ * `evidenceRef` 和 `displayCite`，于是阅读器里的每一段天生就能「引用到对话」，
+ * 不用第二套管线，也不会出现「读到的那段引用不了」这种割裂。
+ */
+export interface DocumentReadResult {
+  readonly document: DocumentSummary;
+  readonly version: DocumentVersion;
+  readonly level: KnowledgeLevel;
+  readonly chunks: readonly DocumentSearchHit[];
+  /** 这一版一共多少段。用来如实说「第 1-50 段，共 213 段」，不默默截断。 */
+  readonly total: number;
+  readonly offset: number;
+}
+
 export interface DocumentOpenResult extends DocumentSearchHit {
   readonly raw: unknown;
   readonly context: string;

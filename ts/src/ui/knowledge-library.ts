@@ -61,9 +61,13 @@ export interface KnowledgeCoverage {
   ratio: number;
 }
 
+export type KnowledgeLevel = "global" | "project";
+
 export interface KnowledgeSearchHit {
   evidence_ref: string;
   cite: string;
+  /** 这段来自总库还是项目库。缺省按项目库处理（后端旧版本没有这个字段）。 */
+  level?: KnowledgeLevel;
   document_id: string;
   version_id: string;
   version_no: number;
@@ -93,6 +97,18 @@ export interface KnowledgeOpenResult extends KnowledgeSearchHit {
 export interface KnowledgeListResult {
   documents: KnowledgeDocument[];
   attachments: KnowledgeAttachment[];
+}
+
+/** 打开一份材料按原文顺序读的结果。 */
+export interface KnowledgeReadResult {
+  document: KnowledgeDocument;
+  version: KnowledgeDocumentVersion;
+  level: KnowledgeLevel;
+  /** 段落复用检索命中的形状，所以每段天生带 evidence_ref 和引用文案。 */
+  chunks: KnowledgeSearchHit[];
+  /** 这一版一共多少段 —— 用来如实说「第 1-50 段，共 213 段」。 */
+  total: number;
+  offset: number;
 }
 
 export interface KnowledgeMutationResult {
@@ -128,6 +144,12 @@ export interface KnowledgeLibraryApi {
   history(sessionId: string, documentId: string): Promise<KnowledgeDocumentVersion[]>;
   search(sessionId: string, query: string, attachedOnly?: boolean): Promise<KnowledgeSearchResult>;
   open(sessionId: string, evidenceRef: string): Promise<KnowledgeOpenResult>;
+  /** 不需要关键词，直接打开读。 */
+  read(
+    sessionId: string,
+    documentId: string,
+    opts?: { versionId?: string; offset?: number; limit?: number },
+  ): Promise<KnowledgeReadResult>;
   promote(sessionId: string, input: PromoteKnowledgeInput): Promise<KnowledgeMutationResult>;
   update(sessionId: string, documentId: string, input: UpdateKnowledgeInput): Promise<KnowledgeMutationResult>;
   adopt(sessionId: string, documentId: string, versionId: string, expectedRevision: number): Promise<KnowledgeMutationResult>;
@@ -136,9 +158,22 @@ export interface KnowledgeLibraryApi {
   detach(sessionId: string, documentId: string): Promise<KnowledgeMutationResult>;
 }
 
-function route(sessionId: string, suffix = ""): string {
+/** 会话作用域的基址：项目知识库。 */
+function sessionRoute(sessionId: string, suffix = ""): string {
   return `${API}/api/sessions/${encodeURIComponent(sessionId)}/documents${suffix}`;
 }
+
+/**
+ * 公共知识库的基址：**不带会话**。
+ *
+ * 产品要求：不选项目也能打开知识库。所以这条路径里没有 sessionId ——
+ * 参数保留只是为了和会话版共用同一个 API 形状，调用方传什么都会被忽略。
+ */
+function globalRoute(_sessionId: string, suffix = ""): string {
+  return `${API}/api/knowledge/documents${suffix}`;
+}
+
+type RouteFn = (sessionId: string, suffix?: string) => string;
 
 function detailFromBody(body: string, fallback: string): string {
   if (!body) return fallback;
@@ -175,71 +210,99 @@ function documentSuffix(documentId: string, tail = ""): string {
   return `/${encodeURIComponent(documentId)}${tail}`;
 }
 
-export const knowledgeLibraryApi: KnowledgeLibraryApi = {
-  async list(sessionId, includeArchived = false) {
-    const query = includeArchived ? "?include_archived=true" : "";
-    return await request<KnowledgeListResult>(route(sessionId, query));
-  },
+/** 公共库里不成立的操作：它们的语义要么依赖「本次会话上传的文件」，要么依赖
+ *  「本次会话固定了哪一版」。与其静默失败，不如当场说清楚。 */
+function notInGlobal(what: string): never {
+  throw new Error(`公共知识库不支持${what}：它属于某个会话的语义。请在项目知识库里操作。`);
+}
 
-  async history(sessionId, documentId) {
-    const result = await request<{ versions: KnowledgeDocumentVersion[] }>(
-      route(sessionId, documentSuffix(documentId, "/history")),
-    );
-    return result.versions || [];
-  },
+function createKnowledgeApi(route: RouteFn, scope: "session" | "global"): KnowledgeLibraryApi {
+  return {
+    async list(sessionId, includeArchived = false) {
+      const query = includeArchived ? "?include_archived=true" : "";
+      return await request<KnowledgeListResult>(route(sessionId, query));
+    },
 
-  async search(sessionId, query, attachedOnly = false) {
-    const params = new URLSearchParams({ q: query, limit: "30" });
-    if (attachedOnly) params.set("attached_only", "true");
-    return await request<KnowledgeSearchResult>(route(sessionId, `/search?${params.toString()}`));
-  },
+    async history(sessionId, documentId) {
+      const result = await request<{ versions: KnowledgeDocumentVersion[] }>(
+        route(sessionId, documentSuffix(documentId, "/history")),
+      );
+      return result.versions || [];
+    },
 
-  async open(sessionId, evidenceRef) {
-    const result = await request<{ evidence: KnowledgeOpenResult }>(
-      route(sessionId, `/evidence/${encodeURIComponent(evidenceRef)}/open`),
-    );
-    return result.evidence;
-  },
+    async search(sessionId, query, attachedOnly = false) {
+      const params = new URLSearchParams({ q: query, limit: "30" });
+      if (attachedOnly) params.set("attached_only", "true");
+      return await request<KnowledgeSearchResult>(route(sessionId, `/search?${params.toString()}`));
+    },
 
-  async promote(sessionId, input) {
-    return await request<KnowledgeMutationResult>(route(sessionId, "/promote"), {
-      method: "POST",
-      body: JSON.stringify(input),
-    });
-  },
+    async open(sessionId, evidenceRef) {
+      const result = await request<{ evidence: KnowledgeOpenResult }>(
+        route(sessionId, `/evidence/${encodeURIComponent(evidenceRef)}/open`),
+      );
+      return result.evidence;
+    },
 
-  async update(sessionId, documentId, input) {
-    return await request<KnowledgeMutationResult>(route(sessionId, documentSuffix(documentId)), {
-      method: "PATCH",
-      body: JSON.stringify(input),
-    });
-  },
+    async read(sessionId, documentId, opts = {}) {
+      const params = new URLSearchParams();
+      if (opts.versionId) params.set("version_id", opts.versionId);
+      if (opts.offset !== undefined) params.set("offset", String(opts.offset));
+      if (opts.limit !== undefined) params.set("limit", String(opts.limit));
+      const query = params.toString();
+      return await request<KnowledgeReadResult>(
+        route(sessionId, documentSuffix(documentId, `/content${query ? `?${query}` : ""}`)),
+      );
+    },
 
-  async adopt(sessionId, documentId, versionId, expectedRevision) {
-    return await request<KnowledgeMutationResult>(route(sessionId, documentSuffix(documentId, "/adopt")), {
-      method: "PATCH",
-      body: JSON.stringify({ version_id: versionId, expected_revision: expectedRevision }),
-    });
-  },
+    async promote(sessionId, input) {
+      if (scope === "global") notInGlobal("从会话文件入库");
+      return await request<KnowledgeMutationResult>(route(sessionId, "/promote"), {
+        method: "POST",
+        body: JSON.stringify(input),
+      });
+    },
 
-  async archive(sessionId, documentId, archived, expectedRevision) {
-    return await request<KnowledgeMutationResult>(route(sessionId, documentSuffix(documentId, "/archive")), {
-      method: "PATCH",
-      body: JSON.stringify({ archived, expected_revision: expectedRevision }),
-    });
-  },
+    async update(sessionId, documentId, input) {
+      return await request<KnowledgeMutationResult>(route(sessionId, documentSuffix(documentId)), {
+        method: "PATCH",
+        body: JSON.stringify(input),
+      });
+    },
 
-  async attach(sessionId, documentId, versionId, role = "reference") {
-    return await request<KnowledgeMutationResult>(route(sessionId, documentSuffix(documentId, "/attach")), {
-      method: "POST",
-      body: JSON.stringify({ version_id: versionId, role }),
-    });
-  },
+    async adopt(sessionId, documentId, versionId, expectedRevision) {
+      return await request<KnowledgeMutationResult>(route(sessionId, documentSuffix(documentId, "/adopt")), {
+        method: "PATCH",
+        body: JSON.stringify({ version_id: versionId, expected_revision: expectedRevision }),
+      });
+    },
 
-  async detach(sessionId, documentId) {
-    return await request<KnowledgeMutationResult>(route(sessionId, documentSuffix(documentId, "/attach")), {
-      method: "DELETE",
-    });
-  },
-};
+    async archive(sessionId, documentId, archived, expectedRevision) {
+      return await request<KnowledgeMutationResult>(route(sessionId, documentSuffix(documentId, "/archive")), {
+        method: "PATCH",
+        body: JSON.stringify({ archived, expected_revision: expectedRevision }),
+      });
+    },
+
+    async attach(sessionId, documentId, versionId, role = "reference") {
+      if (scope === "global") notInGlobal("「用于本次分析」");
+      return await request<KnowledgeMutationResult>(route(sessionId, documentSuffix(documentId, "/attach")), {
+        method: "POST",
+        body: JSON.stringify({ version_id: versionId, role }),
+      });
+    },
+
+    async detach(sessionId, documentId) {
+      if (scope === "global") notInGlobal("取消本次使用");
+      return await request<KnowledgeMutationResult>(route(sessionId, documentSuffix(documentId, "/attach")), {
+        method: "DELETE",
+      });
+    },
+  };
+}
+
+export const knowledgeLibraryApi: KnowledgeLibraryApi = createKnowledgeApi(sessionRoute, "session");
+
+/** 公共知识库客户端。侧栏那颗按钮不再需要「先打开一个已归入项目的会话」。 */
+export const knowledgeGlobalApi: KnowledgeLibraryApi = createKnowledgeApi(globalRoute, "global");
+
 

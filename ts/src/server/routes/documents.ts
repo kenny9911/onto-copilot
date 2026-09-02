@@ -44,6 +44,7 @@ import {
   type DocumentListOptions,
   type DocumentMetadataPatch,
   type DocumentOpenResult,
+  type DocumentReadResult,
   type DocumentScope,
   type DocumentSearchOptions,
   type DocumentSearchResult,
@@ -57,7 +58,7 @@ import {
 import type { AppEnv } from "../app.js";
 import { root, sessAsync } from "../session.js";
 import type { ProjectDirectory } from "./document_scope.js";
-import { repoProjectDirectory, resolveProjectScope } from "./document_scope.js";
+import { repoProjectDirectory, resolveGlobalScope, resolveProjectScope } from "./document_scope.js";
 import { apiError, relativeToRoot } from "./sessions.js";
 
 export interface DocumentServicePort {
@@ -73,6 +74,15 @@ export interface DocumentServicePort {
     scope: DocumentScope,
     options: { readonly evidenceRef: string },
   ): Promise<DocumentOpenResult>;
+  read(
+    scope: DocumentScope,
+    documentId: string,
+    options?: {
+      readonly versionId?: string;
+      readonly offset?: number;
+      readonly limit?: number;
+    },
+  ): Promise<DocumentReadResult>;
   updateMetadata(
     scope: DocumentScope,
     documentId: string,
@@ -346,6 +356,17 @@ function auditLimitQuery(value: string | undefined): number {
   const parsed = Number(value);
   if (!Number.isSafeInteger(parsed) || parsed > 200) {
     throw apiError(400, "limit 必须在 1 到 200 之间");
+  }
+  return parsed;
+}
+
+/** 阅读器的每页段数。上限 500：再多一次响应就大到没人读得完，也拖慢首屏。 */
+function readLimitQuery(value: string | undefined): number {
+  if (value === undefined || value === "") return 100;
+  if (!/^[1-9]\d*$/u.test(value)) throw apiError(400, "limit 必须是正整数");
+  const parsed = Number(value);
+  if (!Number.isSafeInteger(parsed) || parsed > 500) {
+    throw apiError(400, "limit 必须在 1 到 500 之间");
   }
   return parsed;
 }
@@ -1282,6 +1303,36 @@ export function registerDocumentRoutes(app: Hono<AppEnv>, deps: DocumentRouteDep
     return c.json({ document_id: documentId, versions: versions.map(versionView) });
   });
 
+  /**
+   * 打开一份材料，按原文顺序读。
+   *
+   * 这条路由此前**不存在** —— 知识库只有 `search`（要关键词）和
+   * `evidence/:ref/open`（要一个已经拿到的引用）。用户刚存进去一份材料，
+   * 想知道里面有什么，只能靠猜关键词。这是「知识库看不懂」最直接的一条。
+   */
+  app.get("/api/sessions/:sid/documents/:documentId/content", async (c) => {
+    rejectBoundaryQuery(c);
+    onlyQueryFields(c, new Set(["version_id", "offset", "limit"]), "材料正文");
+    const { scope } = await routeScope(c, deps);
+    const documentId = opaqueId(c.req.param("documentId"), "文档");
+    const versionId = c.req.query("version_id");
+    const result = await documentCall(async () => await deps.documents.read(scope, documentId, {
+      ...(versionId === undefined || versionId === "" ? {} : { versionId: opaqueId(versionId, "版本") }),
+      offset: offsetQuery(c.req.query("offset")) ?? 0,
+      limit: readLimitQuery(c.req.query("limit")),
+    }));
+    return c.json({
+      document: documentView(result.document),
+      version: versionView(result.version),
+      level: result.level,
+      chunks: result.chunks.map(searchHitView),
+      // 如实说「第 offset+1 到 offset+chunks.length 段，共 total 段」，
+      // 不把截断伪装成全部 —— 和检索那边的 total 同一条纪律。
+      total: result.total,
+      offset: result.offset,
+    });
+  });
+
   app.get("/api/sessions/:sid/documents/evidence/:ref/open", async (c) => {
     rejectBoundaryQuery(c);
     onlyQueryFields(c, new Set(), "证据打开");
@@ -1436,5 +1487,91 @@ export function registerDocumentRoutes(app: Hono<AppEnv>, deps: DocumentRouteDep
         ? "已从本次分析中移除；知识库里的文档没有被删除。"
         : "本次分析原本就没有使用这份文档，知识库内容没有变化。",
     });
+  });
+}
+
+/**
+ * 公共知识库（总库）的 HTTP 入口 —— **不经过任何会话**。
+ *
+ * 产品要求（2026-09-02）：「知识库应该可以直接去访问的，应该有一个总的知识库。」
+ * 在此之前所有 43 条知识库路由都挂在 `/api/sessions/:sid/documents`，侧栏那颗按钮
+ * 在会话没归项目时是**禁用**的，提示写着「请先打开一个已归入项目的会话」——
+ * 也就是说想看一眼公共材料，得先建会话、再把会话归进某个项目。
+ *
+ * 这里只挂**读与整理**这一组。刻意不挂的两类：
+ *   - promote-from-session-file：它的输入就是「本次会话上传的文件」，没有会话无从谈起；
+ *   - attach / detach / manifest：它们的语义是「**本次会话**固定了哪一版」，
+ *     那是真实的 per-session 概念，不是可以抹掉的耦合。
+ * 「把一份项目材料设为通用知识」是另一条显式的人工动作，单独做，不混在这里。
+ */
+export function registerGlobalKnowledgeRoutes(app: Hono<AppEnv>, deps: DocumentRouteDeps): void {
+  app.get("/api/knowledge/documents", async (c) => {
+    rejectBoundaryQuery(c);
+    onlyQueryFields(c, new Set(["include_archived"]), "公共知识库");
+    const { scope } = resolveGlobalScope(c);
+    const includeArchived = boolQuery(c.req.query("include_archived"), "include_archived");
+    const documents = await documentCall(async () => await deps.documents.list(scope, { includeArchived }));
+    return c.json({
+      documents: documents.map(documentView),
+      // 公共库不属于任何会话，所以没有「本次固定了哪一版」这回事。
+      attachments: [],
+      level: "global",
+    });
+  });
+
+  app.get("/api/knowledge/documents/search", async (c) => {
+    rejectBoundaryQuery(c);
+    onlyQueryFields(c, new Set(["q", "document_id", "limit"]), "公共知识库搜索");
+    const { scope } = resolveGlobalScope(c);
+    const query = requiredText(c.req.query("q"), "搜索内容", 2_000);
+    const rawDocumentIds = new URL(c.req.url).searchParams.getAll("document_id");
+    if (rawDocumentIds.length > 100) throw apiError(400, "一次最多筛选 100 份文档");
+    const documentIds = rawDocumentIds.map((id) => opaqueId(id, "文档"));
+    const limit = limitQuery(c.req.query("limit"));
+    const result = await documentCall(async () => await deps.documents.search(scope, {
+      query,
+      ...(limit === undefined ? {} : { limit }),
+      ...(documentIds.length === 0 ? {} : { documentIds }),
+    }));
+    return c.json(searchView(result));
+  });
+
+  app.get("/api/knowledge/documents/evidence/:ref/open", async (c) => {
+    rejectBoundaryQuery(c);
+    onlyQueryFields(c, new Set(), "证据打开");
+    const { scope } = resolveGlobalScope(c);
+    const evidenceRef = opaqueId(c.req.param("ref"), "证据引用");
+    const evidence = await documentCall(async () => await deps.documents.open(scope, { evidenceRef }));
+    return c.json({ evidence: openView(evidence) });
+  });
+
+  app.get("/api/knowledge/documents/:documentId/content", async (c) => {
+    rejectBoundaryQuery(c);
+    onlyQueryFields(c, new Set(["version_id", "offset", "limit"]), "材料正文");
+    const { scope } = resolveGlobalScope(c);
+    const documentId = opaqueId(c.req.param("documentId"), "文档");
+    const versionId = c.req.query("version_id");
+    const result = await documentCall(async () => await deps.documents.read(scope, documentId, {
+      ...(versionId === undefined || versionId === "" ? {} : { versionId: opaqueId(versionId, "版本") }),
+      offset: offsetQuery(c.req.query("offset")) ?? 0,
+      limit: readLimitQuery(c.req.query("limit")),
+    }));
+    return c.json({
+      document: documentView(result.document),
+      version: versionView(result.version),
+      level: result.level,
+      chunks: result.chunks.map(searchHitView),
+      total: result.total,
+      offset: result.offset,
+    });
+  });
+
+  app.get("/api/knowledge/documents/:documentId/history", async (c) => {
+    rejectBoundaryQuery(c);
+    onlyQueryFields(c, new Set(), "版本历史");
+    const { scope } = resolveGlobalScope(c);
+    const documentId = opaqueId(c.req.param("documentId"), "文档");
+    const versions = await documentCall(async () => await deps.documents.history(scope, documentId));
+    return c.json({ document_id: documentId, versions: versions.map(versionView) });
   });
 }

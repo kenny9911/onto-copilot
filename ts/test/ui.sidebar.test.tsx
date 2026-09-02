@@ -188,7 +188,9 @@ describe("项目知识库入口", () => {
     expect(convs().querySelector(".side-knowledge-entry")).toBeNull();
   });
 
-  it("工作模式显示入口，但未打开项目会话时不可用", () => {
+  it("会话没归项目时入口照样可点 —— 进的是公共知识库", () => {
+    // 旧契约是「禁用 + 提示请先打开一个已归入项目的会话」：想看一眼公共材料，
+    // 得先建会话、再把会话归进某个项目。产品要求是这个库可以直接访问。
     G.PROJECTS_OK = true;
     G.PROJECTS = [{ id: "p1", name: "采购项目" }];
     G.S = { id: "s0" };
@@ -196,8 +198,9 @@ describe("项目知识库入口", () => {
 
     const entry = convs().querySelector(".side-knowledge-entry") as HTMLButtonElement;
     expect(entry).not.toBeNull();
-    expect(entry.hasAttribute("disabled")).toBe(true);
-    expect(entry.textContent).toContain("请先选择项目会话");
+    expect(entry.hasAttribute("disabled")).toBe(false);
+    expect(entry.textContent).toContain("公共");
+    expect(entry.getAttribute("title")).toBe("打开公共知识库");
   });
 
   it("入口位于项目列表之前，点击后打开独立主页面并写入可恢复的 hash", () => {
