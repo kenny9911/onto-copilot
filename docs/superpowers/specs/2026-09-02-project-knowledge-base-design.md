@@ -154,7 +154,29 @@
 
 ---
 
-## 6. 附：验证纪律
+## 6. 上线记录（2026-09-02 16:39）
+
+`npm run build` + `npm run build:ui` 后 kill 守护进程（launchd KeepAlive 自动带新 dist 重生，
+PID 99130 → 5762）。判据从 `grep -c registerDocumentRoutes ts/dist/src/serve.js` = **0 变成 2**，
+`ts/dist/src/document/` 出现，三个路由文件编译产物齐全。
+
+线上六组知识库端点从 `404 Not Found`（路由不存在）变为 `401`（鉴权门后面，路由存在）：
+`/documents`、`/documents/wiki/pages`、`/documents/acl`、`/documents/audit`、
+`/documents/jobs`、`/document-connectors`。首页 200，`/api/health` 返回
+`{"ok":true,"database":{"ok":true,"schema_version":18}}`。
+
+重启瞬间 stderr 有一条 `database is locked` —— 新旧进程重叠时的一次性竞争，之后未再出现。
+
+三份 UI（`ui/index.html`、`ts/dist/src/server/ui/index.html`、服务实际吐出的字节）
+sha256 一致。本轮没有改动 `ts/src/ui/*`，所以 bundle 与重建前逐字节相同，属预期。
+
+推送：`fork`（stevenchengxy/onto-copilot）与 `origin`（stevenchengxy/OntoChat）已同步到 `b39c63b`；
+`kenny9911/onto-copilot` 无推送权限（`permissions.push=false`），走 PR
+[#3](https://github.com/kenny9911/onto-copilot/pull/3)（OPEN / MERGEABLE，597 文件）。
+
+---
+
+## 7. 附：验证纪律
 
 改完必须两步都跑：`cd ts && npx tsc`（后端）与 `npm run build:ui`（前端，已自动同步 dist 副本）。
 判据是 `grep -c registerDocumentRoutes ts/dist/src/serve.js`，不是文件时间戳。
@@ -162,7 +184,7 @@
 
 ---
 
-## 7. 已完成部分的验收记录（2026-09-02）
+## 8. 已完成部分的验收记录（2026-09-02）
 
 | 改动 | 钉住它的测试 |
 |---|---|
