@@ -629,6 +629,27 @@ describe("重跑挖掘不许抹掉人的分派/关闭状态", () => {
   });
 });
 
+describe("澄清卡的优先级分流（HITL 关口被 naming lint 挤占的案发路径）", () => {
+  it("单选项 + 机器可执行 effect → LOW；单选项无 effect / 多选项 → BLOCKING", () => {
+    const backlog = buildQuestionBacklog({
+      clarificationQuestions: [
+        { id: "q_lint", text: "ot_me2n: apiName 不是 lowerCamelCase",
+          options: [{ id: "apply", label: "改为 mE2N", effect: { set_api_name: "mE2N" } }],
+          source_ref: "cf_n1" },
+        { id: "q_free", text: "审批边界不明确",
+          options: [{ id: "include", label: "包含50万" }], source_ref: "cf_n2" },
+        { id: "q_choice", text: "供应商主数据的 SOR 是哪个系统？",
+          options: [{ id: "sap", label: "SAP MM" }, { id: "ecp", label: "ECP" }],
+          source_ref: "cf_n3" },
+      ],
+    });
+    const by = new Map([...backlog.questions.values()].map((q) => [q.text.slice(0, 6), q.priority]));
+    expect(by.get("ot_me2")).toBe("low");
+    expect(by.get("审批边界不明")).toBe("blocking");
+    expect(by.get("供应商主数据")).toBe("blocking");
+  });
+});
+
 describe("buildQuestionBacklog —— 三种遗留来源合流", () => {
   it("OpenQuestion + 澄清卡 + 原始 conflict", () => {
     const B = Q.build_backlog;

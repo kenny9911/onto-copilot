@@ -1507,7 +1507,11 @@
        "table": 0
       },
       "order": 2,
-      "raw": null,
+      "raw": {
+       "口径": "含税年度累计",
+       "字段": "plan_amount",
+       "所属对象": "pbpHeader"
+      },
       "render": "字段=plan_amount | 所属对象=pbpHeader | 口径=含税年度累计",
       "tags": [
        "table"
@@ -1531,7 +1535,11 @@
        "table": 0
       },
       "order": 3,
-      "raw": null,
+      "raw": {
+       "口径": "不含税单次",
+       "字段": "plan_amount",
+       "所属对象": "clmContract"
+      },
       "render": "字段=plan_amount | 所属对象=clmContract | 口径=不含税单次",
       "tags": [
        "table"
@@ -1766,7 +1774,11 @@
        "table": 1
       },
       "order": 1,
-      "raw": null,
+      "raw": {
+       "C2": "b",
+       "C3": "",
+       "字段": "a"
+      },
       "render": "字段=a | =b",
       "tags": [
        "table"
@@ -1790,7 +1802,11 @@
        "table": 1
       },
       "order": 2,
-      "raw": null,
+      "raw": {
+       "C2": "",
+       "C3": "c",
+       "字段": ""
+      },
       "render": "=c",
       "tags": [
        "table"
@@ -1959,7 +1975,11 @@
        "table": 0
       },
       "order": 2,
-      "raw": null,
+      "raw": {
+       "口径": "含税年度累计",
+       "字段": "plan_amount",
+       "所属对象": "pbpHeader"
+      },
       "render": "字段=plan_amount | 所属对象=pbpHeader | 口径=含税年度累计",
       "tags": [
        "table"
@@ -1983,7 +2003,11 @@
        "table": 0
       },
       "order": 3,
-      "raw": null,
+      "raw": {
+       "口径": "不含税单次",
+       "字段": "plan_amount",
+       "所属对象": "clmContract"
+      },
       "render": "字段=plan_amount | 所属对象=clmContract | 口径=不含税单次",
       "tags": [
        "table"

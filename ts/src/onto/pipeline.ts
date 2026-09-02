@@ -39,6 +39,7 @@
  */
 
 import { defaultAgents, renderSystem } from "../kernel/agents.js";
+import { defaultLibrary } from "../kernel/skills.js";
 import { pyRepr } from "../kernel/errors.js";
 import {
   Critic,
@@ -72,6 +73,7 @@ import {
   inferred,
   makeActionType,
   makeBusinessRule,
+  makeEventType,
   makeLinkType,
   makeObjectType,
   makeOpenQuestion,
@@ -87,6 +89,7 @@ import {
   type Provenance,
 } from "./oir.js";
 import {
+  ColumnRole,
   inferShape,
   SegmentShape,
   structuralExtract,
@@ -213,6 +216,25 @@ export const SEGMENT_CHUNKS = 45;
 /** 一段最少要有多少切片才值得单独起一个节点。太碎会让每段都缺上下文。 */
 export const MIN_SEGMENT = 6;
 
+/** **页码派生的**分组要更大才值得单独起一个节点。
+ *
+ * 分组键按 `sheet → object → section → page` 依次取。前三个都是**真正的容器**
+ * —— 一张工作表、一个对象、一节文档，里面的内容天然属于一起，哪怕只有几片也
+ * 值得单独看。而"第 107 页幻灯片"不是容器，只是一次分页：相邻几页讲的往往是
+ * 同一件事，拆开反而让每段都缺上下文。
+ *
+ * 一次真实事故：一份 155 页的 pptx 每页恰好 6~7 片，**刚好越过 MIN_SEGMENT=6**，
+ * 于是 155 页各自成段（全库 219 段）。每段只装 6~7 片而额度是 45 —— 装了七分之一，
+ * 却付了七倍的固定开销（每段一整轮 plan/execute/critic）。而队列排到后面的段
+ * 连模型都没调到就被墙钟判死。
+ *
+ * 判据取 `SEGMENT_CHUNKS` 的三分之一：连节点额度三分之一都装不满的分页，
+ * 并回同文件的"其它"再按 45 重切。155 页因此变成约 22 段。
+ * **只作用于页码键**，而且**只在同一份文件里有两个以上装不满的分页时才生效** ——
+ * 工作表和小节的阈值不动；只有一页的扫描件也保住它的 `p4` 标签，因为合并它
+ * 一个节点都省不下。 */
+export const MIN_PAGE_SEGMENT = Math.floor(SEGMENT_CHUNKS / 3);
+
 // ══════════════════════════════════════════════════════════════════
 //  切段
 // ══════════════════════════════════════════════════════════════════
@@ -321,7 +343,17 @@ export class Segment {
  * 它们的 `raw` 同样是 dict，混进行里就会被抽成一个 apiName 是整坨 profile JSON
  * 的"实体"，一路混进模板和 critic 报告。判据用 tag，对所有解析器都成立。
  */
-export const NON_ROW_TAGS: ReadonlySet<string> = new Set(["schema", "meta", "toc"]);
+/** 形状像数据行、语义不是的切片。
+ *
+ * `slide_text` 是被真材料教出来的：pptx 的**文本框**切片 raw 是
+ * `{id, name, text, bbox}`（形状元数据，不是业务字段），tags 是
+ * `["pptx","slide_text"]` —— 一条都不在原来的名单里，于是被当成数据行。
+ * 后果是 `classifyColumns` 拿到 6 列、填充率 43%/57% 的垃圾输入，`inferShape`
+ * 据此告诉模型「这一段有 7 行，一行 = 一个业务对象」，而眼前只有 4 条真表格行。
+ * 模型于是去找不存在的第 5~7 行 —— 一次真实事故里，把节点墙钟耗光的正是这个。 */
+export const NON_ROW_TAGS: ReadonlySet<string> = new Set([
+  "schema", "meta", "toc", "slide_text",
+]);
 
 export function isDataRow(chunk: unknown): boolean {
   const tags = (chunk as { tags?: unknown } | null | undefined)?.tags;
@@ -356,6 +388,8 @@ export function segmentCorpus(
   // 判成 binary，`grep` 于是**静默跳过它**（不是报错，是什么都不输出）——
   // 在一个 1500 行的文件上找符号时，这会让人以为文件是空的。
   const gkey = (fname: string, key: string): string => `${fname}\u0000${key}`;
+  /** 哪些分组的键是从页码来的。页不是容器，合并阈值更高（MIN_PAGE_SEGMENT）。 */
+  const pageKeys = new Set<string>();
 
   for (const doc of docs) {
     for (const c of doc.chunks) {
@@ -375,7 +409,11 @@ export function segmentCorpus(
           key = head;
         }
         if (!key && pyTruthy(section)) key = pyStr(section);
-        if (!key) key = pyTruthy(page) ? `p${pyStr(page)}` : "";
+        if (!key) {
+          key = pyTruthy(page) ? `p${pyStr(page)}` : "";
+          // 记住这一组是"分页"而不是"容器" —— 合并阈值不同，见 MIN_PAGE_SEGMENT。
+          if (key) pageKeys.add(gkey(doc.file_name, key));
+        }
         if (!key) key = pyStr(c.tags[0]);
       }
       const k = key || "main";
@@ -391,8 +429,19 @@ export function segmentCorpus(
 
   // 太小的段并回同文件的"其它"，避免每段都缺上下文
   const merged = new Map<string, { fname: string; key: string; ids: string[] }>();
+  // 同一份文件里有几个"装不满"的分页组。**合并要真的能省下节点才做** ——
+  // 只有一个小分页时合并一个节点都省不下，却把 `p4` 这种标签换成了「其它」，
+  // 纯损失。所以下面要求同文件至少有两个才合。
+  const smallPages = new Map<string, number>();
   for (const g of groups.values()) {
-    const tk = g.ids.length >= MIN_SEGMENT ? g.key : "其它";
+    if (pageKeys.has(gkey(g.fname, g.key)) && g.ids.length < MIN_PAGE_SEGMENT) {
+      smallPages.set(g.fname, (smallPages.get(g.fname) ?? 0) + 1);
+    }
+  }
+  for (const g of groups.values()) {
+    const isPage = pageKeys.has(gkey(g.fname, g.key));
+    const floor = isPage && (smallPages.get(g.fname) ?? 0) >= 2 ? MIN_PAGE_SEGMENT : MIN_SEGMENT;
+    const tk = g.ids.length >= floor ? g.key : "其它";
     const id = gkey(g.fname, tk);
     let bucket = merged.get(id);
     if (bucket === undefined) {
@@ -672,6 +721,12 @@ export class ExtractSegment extends NodeHandler {
         + "**已经由规则逐行抽好了，你不要重复抽，也不要改动它们**。\n"
         + `已抽出的对象名：${previewNames(pre.objects)}\n`);
     }
+    if (pre.links.length > 0) {
+      lines.push(
+        `其中 ${pre.links.length} 条关系**已经由规则逐行抽好了**（两端对象名、`
+        + "基数都来自表格原文），你不要重复抽、不要改两端的名字。"
+        + "关系两端的对象在别的表里登记过，**不要在这一段把它们再抽成对象**。\n");
+    }
 
     const owed = this.wants();
     const want = owed.map(askFor);
@@ -731,15 +786,38 @@ export class ExtractSegment extends NodeHandler {
         out[key] = modelSide;
         continue;
       }
-      const taken = new Set<string>();
+      // **属性的去重键必须带宿主。** 上一版只按裸 api_name：
+      // PurchaseOrder.amount 和 Supplier.amount 撞键，模型抽的第二个被当成
+      // "重复"整条丢掉 —— 不同对象上的同名字段是常态（编号/金额/状态哪张表都有）。
+      const keyOf = (x: unknown): string => {
+        if (!isPlainDict(x)) return "";
+        const api = pyStrip(pyStr(dgetD(x, "api_name", ""))).toLowerCase();
+        if (key !== "properties") return api;
+        return `${pyStrip(pyStr(dgetD(x, "parent_api_name", ""))).toLowerCase()}::${api}`;
+      };
+      const ruleByKey = new Map<string, Record<string, unknown>>();
       for (const x of ruleSide) {
-        if (isPlainDict(x)) taken.add(pyStrip(pyStr(dgetD(x, "api_name", ""))).toLowerCase());
+        if (isPlainDict(x)) ruleByKey.set(keyOf(x), x as Record<string, unknown>);
       }
-      // 模型若重复抽了同名的，丢掉模型那份 —— 规则那份带着逐行出处
+      // 同键相遇时不是丢掉模型那份，而是**嫁接**：规则那份权威（名字/类型/必填
+      // 逐行搬自表格，带出处），但这一段专门跑一轮模型就是为了拿**口径** ——
+      // outstanding() 的注释早就承诺了「规则搬完之后仍向模型索要，由 finalize()
+      // 合并（规则侧权威）」，而上一版 finalize 只会丢，从没合过：
+      // 模型写出的 definition 被原样扔掉，规则行的口径永远是空。
+      if (key === "properties") {
+        for (const x of modelSide) {
+          const hit = ruleByKey.get(keyOf(x));
+          if (hit === undefined || !isPlainDict(x)) continue;
+          for (const f of ["definition", "unit", "semantic_type", "value_domain"]) {
+            const mine = hit[f];
+            const theirs = (x as Record<string, unknown>)[f];
+            if (!pyTruthy(mine) && pyTruthy(theirs)) hit[f] = theirs;
+          }
+        }
+      }
       out[key] = [
         ...ruleSide,
-        ...modelSide.filter((x) => isPlainDict(x)
-          && !taken.has(pyStrip(pyStr(dgetD(x, "api_name", ""))).toLowerCase())),
+        ...modelSide.filter((x) => isPlainDict(x) && !ruleByKey.has(keyOf(x))),
       ];
     }
     return out;
@@ -845,7 +923,10 @@ export class MergeSegments extends NodeHandler {
     _ctx: RunContext,
   ): Promise<Record<string, unknown[]>> {
     const merged: Record<string, unknown[]> = {
-      objects: [], properties: [], links: [], actions: [], rules: [], questions: [],
+      // events 必须在这张表里 —— 合并按键遍历，不在表里的桶在这一步**静默蒸发**。
+      // （A1 给 EXTRACTOR_SCHEMA 加了 events 桶；schema、merge、buildOir 三处
+      //   同一份桶清单，漏一处就是"模型抽了、产物里没有、没人报错"。）
+      objects: [], properties: [], links: [], actions: [], rules: [], questions: [], events: [],
     };
     // `inputs.values()` 是插入序；节点 id 形如 `EXTRACT.s0`，不会被 V8 当整数键重排。
     for (const out of Object.values(inputs)) {
@@ -869,6 +950,10 @@ export interface DroppedStats {
   links?: number;
   property_parents?: string[];
   link_endpoints?: string[];
+  /** 出处不存在，或真实出处与模型主张无关而被拒绝的条目。 */
+  ungrounded?: number;
+  /** 同一个对象上抽出两个同名字段，形如 `PurchaseOrder.amount`。 */
+  property_dupes?: string[];
   [k: string]: unknown;
 }
 
@@ -895,12 +980,59 @@ export function buildOir(
   if (!("links" in lost)) lost.links = 0;
   if (!("property_parents" in lost)) lost.property_parents = [];
   if (!("link_endpoints" in lost)) lost.link_endpoints = [];
+  // property_dupes 是**懒建**的：不撞就不出现这个键 ——
+  // 每一份丢弃统计里都挂一个空数组，只会让"有没有重复"这件事更难看出来。
+
   const lostProps = (): number => Number(lost.properties ?? 0);
   const lostLinks = (): number => Number(lost.links ?? 0);
   const propParents = lost.property_parents as string[];
+  const noteDupe = (name: string): void => {
+    if (!Array.isArray(lost.property_dupes)) lost.property_dupes = [];
+    const arr = lost.property_dupes as string[];
+    if (!arr.includes(name)) arr.push(name);
+  };
   const linkEndpoints = lost.link_endpoints as string[];
+  const supported = (item: unknown, bucket: GroundedBucket): boolean => {
+    if (index === null) return true;
+    if (extractionEvidenceSupport(item, bucket, index).ok) return true;
+    lost.ungrounded = Number(lost.ungrounded ?? 0) + 1;
+    return false;
+  };
+  /**
+   * 行级 cite 只能证明“这行与对象/行动有关”，不能证明行里的每个字段都是真的。
+   * 字段只有在同一真实切片（render/raw/context）中逐字出现时才算 EXTRACTED；
+   * 否则保留为明确的 INFERRED 候选，或在没有 Assertion 容器时直接省略。
+   *
+   * `_origin=rule` 的值来自 structuralExtract 的确定性搬运/归一化，可作为第二条
+   * 受信路径（例如材料写“一对多”，规则层规范化成 ONE_TO_MANY）。模型抽取不走
+   * 这条捷径。
+   */
+  const fieldSupported = (item: unknown, value: unknown, deterministicRule = false): boolean => {
+    if (index === null) return true; // 老部署 / 离线调用保持原有行为
+    if (deterministicRule && dget(item, "_origin") === "rule") return true;
+    const chunk = extractionChunk(item, index);
+    if (chunk === null) return false;
+    const body = supportNorm([
+      chunk.render,
+      chunk.context,
+      isPlainDict(chunk.raw) || Array.isArray(chunk.raw) ? JSON.stringify(chunk.raw) : chunk.raw,
+    ].filter((x) => x !== null && x !== undefined).join("\n"));
+    const values = Array.isArray(value) ? value : [value];
+    const claims = values.map(supportNorm).filter(Boolean);
+    return claims.length > 0 && claims.every((claim) => body.includes(claim));
+  };
+  const fieldAssertion = <T>(
+    item: unknown,
+    value: T,
+    ev: Provenance,
+    deterministicRule = false,
+  ) => fieldSupported(item, value, deterministicRule) ? extracted(value, ev) : inferred(value);
+  const supportedItems = (item: unknown, values: readonly string[]): string[] =>
+    values.filter((value) => fieldSupported(item, value));
 
   const byApi = new Map<string, string>();
+  /** 材料里明确声明的主键（对象 rid → 属性 apiName 列表）。属性建完后解析成 rid。 */
+  const declaredPks = new Map<string, { names: string[]; ev: Provenance }>();
   /**
    * 分组列（「业务对象」那一列）的取值 → 该组**第一行**实体的 rid。
    *
@@ -915,8 +1047,14 @@ export function buildOir(
   for (const o of asList(dgetD(data, "objects", []))) {
     const api = gstr(o, "api_name");
     if (!api || looksLikeProse(api)) continue; // 单元格说明文字不是实体名
+    // 模型为满足行覆盖对读不出的行编的占位符（「MISSING_REQUIRED（第10行/
+    // CF-10，内容未知）」）。占位符不是实体：该行读不出是一个**问题**，
+    // 不是一个对象。api/display 任一命中都拦。
+    if (PLACEHOLDER_RE.test(api) || PLACEHOLDER_RE.test(gstr(o, "display_name"))) continue;
+    if (!supported(o, "objects")) continue;
     const rid = makeRid("ot", api);
-    const group = gstr(o, "group");
+    const rawGroup = gstr(o, "group");
+    const group = rawGroup && fieldSupported(o, rawGroup, true) ? rawGroup : "";
     const existing = oir.objects.get(rid);
     if (existing !== undefined) {
       // 多段抽到同一个对象：保留先出现的，把别名并进去
@@ -928,13 +1066,22 @@ export function buildOir(
     }
     const ev = prov(o, index);
     const desc = dget(o, "description");
+    const cls = pyStr(pyTruthy(dget(o, "classification")) ? dget(o, "classification") : "");
+    const display = pyTruthy(dget(o, "display_name")) ? pyStr(dget(o, "display_name")) : api;
     const added = oir.addObject(makeObjectType({
       rid,
-      apiName: extracted(api, ev),
-      displayName: extracted(pyTruthy(dget(o, "display_name")) ? pyStr(dget(o, "display_name")) : api, ev),
-      description: pyTruthy(desc) ? extracted(pyStr(desc), ev) : inferred(""),
+      apiName: fieldAssertion(o, api, ev, true),
+      displayName: fieldAssertion(o, display, ev, true),
+      description: pyTruthy(desc) ? fieldAssertion(o, pyStr(desc), ev) : inferred(""),
       primaryKey: inferred<string[]>([]),
+      ...(cls ? { classification: fieldAssertion(o, cls, ev) } : {}),
     }));
+    // 声明主键先记 apiName —— 属性还没建，rid 解析要等属性循环之后
+    const declaredPk = asList(dget(o, "primary_key")).map((x) => pyStr(x)).filter(Boolean);
+    // 复合主键必须每一列都能在对象出处中找到；只找到一半不能升级成事实。
+    if (declaredPk.length > 0 && declaredPk.every((name) => fieldSupported(o, name))) {
+      declaredPks.set(rid, { names: declaredPk, ev });
+    }
     byApi.set(api.toLowerCase(), rid);
     if (group && !byGroup.has(group)) {
       byGroup.set(group, rid);
@@ -944,9 +1091,26 @@ export function buildOir(
     }
   }
 
+  // 名字解析要认**显示名和别名**，不能只认 api_name。中文材料里跨段（乃至
+  // 同段的规则抽取）唯一稳定的身份是中文名：主数据清单的关键属性列写宿主
+  // 「物料主数据」，关系表写「供应商主数据 → 采购信息记录」，而实体登记段的
+  // 模型各自现起英文 api_name —— 只按 api_name 对，属性挂不上、39 条带基数
+  // 的关系整批 lost（记了账，但没人看见）。
+  const byAnyName = new Map<string, string>();
+  for (const [orid, ot] of oir.objects) {
+    for (const nm of [ot.apiName.value, ot.displayName.value, ...ot.aliases]) {
+      const k = pyStrip(pyStr(nm)).toLowerCase();
+      if (k && !byAnyName.has(k)) byAnyName.set(k, orid);
+    }
+  }
+  const resolveEnd = (raw: unknown): string | undefined => {
+    const k = pyStrip(pyTruthy(raw) ? pyStr(raw) : "").toLowerCase();
+    if (!k) return undefined;
+    return byApi.get(k) ?? byAnyName.get(k);
+  };
+
   asList(dgetD(data, "properties", [])).forEach((p, i) => {
-    const parent = byApi.get(pyStr(pyTruthy(dget(p, "parent_api_name"))
-      ? dget(p, "parent_api_name") : "").toLowerCase());
+    const parent = resolveEnd(dget(p, "parent_api_name"));
     const api = gstr(p, "api_name");
     if (parent === undefined || !api) {
       // 挂不上父对象就丢 —— 但**要记下来**。名字对不齐是能修的，
@@ -958,8 +1122,38 @@ export function buildOir(
     }
     // Python 是 `p['parent_api_name']`（直接索引，缺键 KeyError）—— 上面已经
     // 靠它查到了 parent，所以这里必然有键。
-    const rid = makeRid("pt", `${pyStr((p as Record<string, unknown>)["parent_api_name"])}_${api}_${i}`);
-    if (oir.properties.has(rid)) return;
+    //
+    // **rid 里不能有段内数组下标。** 上一版是 `${parent}_${api}_${i}`，
+    // 真实库里直接看得到：`pt_person_name_0`、`pt_organization_org_name_1`。
+    // 而模板回传是按 `(rid, 字段)` 匹配的（onto/audit.ts 的 ridFieldKey），
+    // 于是这条链是：补料 → 重跑抽取（`_replay_flow_patches` 就是为这个设计的）
+    // → 模型输出顺序一变 → rid 变 → **业务顾问填好的那份模板一格都对不上，
+    // 而且不报错**。id 里嵌"这次恰好排第几"，等于把稳定标识绑在了模型的心情上。
+    //
+    // 去掉 `i` 之后同段内重名属性会撞 rid。上一版靠 `has(rid) return` 静默跳过 ——
+    // 那也是错的（第二条被丢了却不计入 lost）。现在撞了就**记账**：
+    // 同一个对象上出现两个同名字段，是模型抽重了或材料本身有歧义，都该被看见。
+    // rid 用**宿主对象的 apiName**，不用草稿里写的那个名字：草稿可能写中文
+    // 显示名（关键属性列的规则抽取就是），同一个属性从两条路进来必须撞同一个
+    // rid，否则 pt_物料主数据_编码 和 pt_materialmaster_编码 并存。对 api_name
+    // 直给的老路径，两者本来就是同一个串 —— rid 不变。
+    const parentApi = oir.objects.get(parent)?.apiName.value
+      ?? pyStr((p as Record<string, unknown>)["parent_api_name"]);
+    const rid = makeRid("pt", `${parentApi}_${api}`);
+    if (oir.properties.has(rid)) {
+      lost.properties = lostProps() + 1;
+      noteDupe(`${parentApi}.${api}`);
+      return;
+    }
+    if (!supported(p, "properties")) return;
+    const parentClaim = gstr(p, "parent_api_name");
+    if (!fieldSupported(p, parentClaim, true)) {
+      // 属性本身虽被提到，但“属于哪个对象”没有材料支持时不能静默焊到对象上。
+      lost.properties = lostProps() + 1;
+      lost.ungrounded = Number(lost.ungrounded ?? 0) + 1;
+      if (parentClaim && !propParents.includes(parentClaim)) propParents.push(parentClaim);
+      return;
+    }
     const ev = prov(p, index);
     let bt: BaseType;
     try {
@@ -968,21 +1162,39 @@ export function buildOir(
       bt = BaseType.STRING;
     }
     const unit = dget(p, "unit");
+    const vd = asList(dget(p, "value_domain")).map((x) => pyStr(x)).filter(Boolean);
+    const semType = pyStr(pyTruthy(dget(p, "semantic_type")) ? dget(p, "semantic_type") : "");
+    const display = pyTruthy(dget(p, "display_name")) ? pyStr(dget(p, "display_name")) : api;
+    const definition = pyTruthy(dget(p, "definition")) ? pyStr(dget(p, "definition")) : "";
     oir.addProperty(makePropertyType({
       rid,
       parent,
-      apiName: extracted(api, ev),
-      displayName: extracted(pyTruthy(dget(p, "display_name")) ? pyStr(dget(p, "display_name")) : api, ev),
-      baseType: extracted(bt, ev),
-      definition: extracted(pyTruthy(dget(p, "definition")) ? pyStr(dget(p, "definition")) : "", ev),
-      unit: pyTruthy(unit) ? extracted<string | null>(pyStr(unit), ev) : inferred<string | null>(null),
+      apiName: fieldAssertion(p, api, ev, true),
+      displayName: fieldAssertion(p, display, ev, true),
+      baseType: fieldAssertion(p, bt, ev, true),
+      // 历史离线调用把空 definition 也记为 EXTRACTED；有真实索引时，空值没有
+      // 可引用的主张，明确留作 INFERRED。这样既收紧生产路径又不漂老产物。
+      definition: index === null
+        ? extracted(definition, ev)
+        : definition ? fieldAssertion(p, definition, ev) : inferred(""),
+      unit: pyTruthy(unit)
+        ? fieldAssertion<string | null>(p, pyStr(unit), ev)
+        : inferred<string | null>(null),
       required: inferred(pyTruthy(dget(p, "required"))),
+      // A1：值域与语义类型。schema 里有坑位了，落库也要接住 —— 只声明不落，
+      // 模型填了也是白填（那正是这一轮修的病）。
+      ...(vd.length > 0
+        ? { valueDomain: fieldAssertion<string[] | null>(p, vd, ev) }
+        : {}),
+      ...(semType
+        ? { semanticType: fieldAssertion<string | null>(p, semType, ev) }
+        : {}),
     }));
   });
 
   for (const l of asList(dgetD(data, "links", []))) {
-    const src = byApi.get(pyStr(pyTruthy(dget(l, "from_api_name")) ? dget(l, "from_api_name") : "").toLowerCase());
-    const tgt = byApi.get(pyStr(pyTruthy(dget(l, "to_api_name")) ? dget(l, "to_api_name") : "").toLowerCase());
+    const src = resolveEnd(dget(l, "from_api_name"));
+    const tgt = resolveEnd(dget(l, "to_api_name"));
     const api = gstr(l, "api_name");
     if (src === undefined || tgt === undefined || !api) {
       lost.links = lostLinks() + 1;
@@ -996,20 +1208,44 @@ export function buildOir(
     }
     const rid = makeRid("lt", api);
     if (oir.links.has(rid)) continue;
+    if (!supported(l, "links")) continue;
     const ev = prov(l, index);
     let card: Cardinality;
-    try {
-      card = parseCardinality(pyStr(dgetD(l, "cardinality", "ONE_TO_MANY")).toUpperCase());
-    } catch {
+    let flipped = false;
+    const rawCard = pyStr(dgetD(l, "cardinality", "ONE_TO_MANY")).toUpperCase();
+    // MANY_TO_ONE 是合法的建模说法，用方向来表达：对调两端落成 ONE_TO_MANY。
+    // 以前这条路径静默改成 ONE_TO_MANY **不对调** —— 和对话路径（oir_edit 的
+    // add_batch 会对调）语义相反，同一句话两条路两个意思。
+    if (rawCard === "MANY_TO_ONE") {
       card = Cardinality.ONE_TO_MANY;
+      flipped = true;
+    } else {
+      try {
+        card = parseCardinality(rawCard);
+      } catch {
+        card = Cardinality.ONE_TO_MANY;
+      }
     }
+    const [linkSrc, linkTgt] = flipped ? [tgt, src] : [src, tgt];
+    // join_key：{from_property, to_property} → {from: to}。翻转时键值也要跟着换边。
+    const jk = dget(l, "join_key");
+    // join_key 是可选桶：缺席时 jk 是 undefined，对它 dget 会抛 —— 先判形状
+    const jkFrom = isPlainDict(jk) ? pyStr(pyTruthy(jk["from_property"]) ? jk["from_property"] : "") : "";
+    const jkTo = isPlainDict(jk) ? pyStr(pyTruthy(jk["to_property"]) ? jk["to_property"] : "") : "";
+    const joinKey = jkFrom && jkTo
+      ? (flipped ? { [jkTo]: jkFrom } : { [jkFrom]: jkTo })
+      : null;
     oir.addLink(makeLinkType({
       rid,
-      apiName: extracted(api, ev),
-      source: src,
-      target: tgt,
-      cardinality: extracted(card, ev),
-      joinKey: inferred<Record<string, string> | null>(null),
+      apiName: fieldAssertion(l, api, ev, true),
+      source: linkSrc,
+      target: linkTgt,
+      cardinality: fieldAssertion(l, card, ev, true),
+      joinKey: joinKey !== null
+        ? (fieldSupported(l, [jkFrom, jkTo])
+          ? extracted<Record<string, string> | null>(joinKey, ev)
+          : inferred<Record<string, string> | null>(joinKey))
+        : inferred<Record<string, string> | null>(null),
     }));
   }
 
@@ -1032,17 +1268,41 @@ export function buildOir(
     if (!api || looksLikeProse(api)) continue;
     const rid = makeRid("at", api);
     if (oir.actions.has(rid)) continue;
+    if (!supported(a, "actions")) continue;
     const host = resolveHost(a, byApi, byDisplay, byGroup);
     const ev = prov(a, index);
+    const actActor = pyStr(pyTruthy(dget(a, "actor")) ? dget(a, "actor") : "");
+    const actPre = asList(dget(a, "preconditions")).map((x) => pyStr(x)).filter(Boolean);
+    const actEff = asList(dget(a, "effects")).map((x) => pyStr(x)).filter(Boolean);
+    const groundedPre = supportedItems(a, actPre);
+    const groundedEff = supportedItems(a, actEff);
+    const objectClaim = gstr(a, "object") || gstr(a, "object_display");
+    const groundedHost = host !== null && objectClaim && fieldSupported(a, objectClaim, true)
+      ? host : null;
+    const endpoint = pyTruthy(dget(a, "endpoint")) ? pyStr(dget(a, "endpoint")) : "";
+    const endpointDisplay = pyTruthy(dget(a, "display_name"))
+      && fieldSupported(a, pyStr(dget(a, "display_name")))
+      ? pyStr(dget(a, "display_name")) : "";
     oir.addAction(makeActionType({
       rid,
-      apiName: extracted(api, ev),
-      appliesTo: host !== null ? [host] : [],
-      sourceEndpoint: pyTruthy(dget(a, "endpoint"))
-        ? extracted<Record<string, string> | null>({
-          path: pyStr(pyTruthy(dget(a, "endpoint")) ? dget(a, "endpoint") : ""),
-          display: pyStr(pyTruthy(dget(a, "display_name")) ? dget(a, "display_name") : ""),
-        }, ev)
+      apiName: fieldAssertion(a, api, ev, true),
+      appliesTo: groundedHost !== null ? [groundedHost] : [],
+      // A1：语义字段落库。以前这里只写 apiName 和 endpoint —— schema 有
+      // actor/preconditions/effects 的坑位、编辑面也能改，唯独抽取不填，
+      // 于是「Action 出厂即空壳」（实测 parameters 0/121、actor 只有手补的 6 条）。
+      ...(actActor ? { actor: fieldAssertion(a, actActor, ev) } : {}),
+      ...(actPre.length > 0
+        ? { preconditions: groundedPre.length === actPre.length
+          ? extracted(groundedPre, ev) : inferred(actPre) }
+        : {}),
+      ...(actEff.length > 0
+        ? { effects: groundedEff.length === actEff.length
+          ? extracted(groundedEff, ev) : inferred(actEff) }
+        : {}),
+      sourceEndpoint: endpoint
+        ? (fieldSupported(a, endpoint, true)
+          ? extracted<Record<string, string> | null>({ path: endpoint, display: endpointDisplay }, ev)
+          : inferred<Record<string, string> | null>({ path: endpoint, display: endpointDisplay }))
         : inferred<Record<string, string> | null>(null),
     }));
   }
@@ -1053,6 +1313,7 @@ export function buildOir(
     if (cpLen(stmt) < 6) return;
     const rid = makeRid("br", `${cpSlice(stmt, 40)}_${i}`);
     if (oir.rules.has(rid)) return;
+    if (!supported(r, "rules")) return;
     const ev = prov(r, index);
     let rk: RuleKind;
     try {
@@ -1062,17 +1323,23 @@ export function buildOir(
     }
     const hosts: string[] = [];
     for (const name of asList(pyTruthy(dget(r, "applies_to")) ? dget(r, "applies_to") : [])) {
+      if (!fieldSupported(r, pyStr(name))) continue;
       const h = byApi.get(pyStr(name).toLowerCase())
         ?? byDisplay.get(pyStrip(pyStr(name)))
         ?? byGroup.get(pyStrip(pyStr(name)));
       if (h !== undefined && h !== "") hosts.push(h);
     }
+    const cond = pyStr(pyTruthy(dget(r, "condition")) ? dget(r, "condition") : "");
+    const actor = pyTruthy(dget(r, "actor")) ? pyStr(dget(r, "actor")) : "";
     oir.addRule(makeBusinessRule({
       rid,
       statement: extracted(stmt, ev),
-      kind: extracted(rk, ev),
+      kind: fieldAssertion(r, rk, ev, true),
       appliesTo: hosts,
-      actor: extracted(pyTruthy(dget(r, "actor")) ? pyStr(dget(r, "actor")) : "", ev),
+      actor: index === null
+        ? extracted(actor, ev)
+        : actor ? fieldAssertion(r, actor, ev) : inferred(""),
+      ...(cond ? { condition: fieldAssertion(r, cond, ev) } : {}),
     }));
   });
 
@@ -1106,7 +1373,55 @@ export function buildOir(
     }));
   });
 
+  // ── 事件（A1 新桶）─────────────────────────────────────────
+  // emitted_by 解析成 Action rid（认不出就存原样 —— 宁可粗也不丢）；
+  // payload_objects 走 byApi/byDisplay。
+  for (const e of asList(dgetD(data, "events", []))) {
+    const api = gstr(e, "api_name");
+    if (!api || looksLikeProse(api)) continue;
+    const rid = makeRid("et", api);
+    if (oir.events.has(rid)) continue;
+    if (!supported(e, "events")) continue;
+    const emitter = gstr(e, "emitted_by");
+    const emitterRid = emitter ? makeRid("at", emitter) : "";
+    const rawPayload = asList(dget(e, "payload_objects"))
+      .map((x) => pyStrip(pyStr(x)))
+      .filter((nm) => fieldSupported(e, nm));
+    const payload = rawPayload
+      .map((nm) => byApi.get(nm.toLowerCase()) ?? byDisplay.get(nm) ?? byGroup.get(nm) ?? "")
+      .filter(Boolean);
+    const eev = prov(e, index);
+    const display = pyTruthy(dget(e, "display_name")) ? pyStr(dget(e, "display_name")) : api;
+    oir.addEvent(makeEventType({
+      rid,
+      apiName: fieldAssertion(e, api, eev, true),
+      displayName: fieldAssertion(e, display, eev, true),
+      emittedBy: emitter && fieldSupported(e, emitter)
+        ? [oir.actions.has(emitterRid) ? emitterRid : emitter]
+        : [],
+      payload,
+    }));
+  }
+
+  // ── 主键 ──────────────────────────────────────────────────
+  // 声明的优先：材料里明确标了主键（extracted，带出处）就用它；
+  // apiName 以 id 结尾的启发式只做兜底（inferred —— 它就是猜的）。
+  for (const [orid, decl] of declaredPks) {
+    const o = oir.objects.get(orid);
+    if (o === undefined) continue;
+    const rids = decl.names
+      .map((nm) => o.properties.find((pr) => {
+        const pp = oir.properties.get(pr);
+        return pp !== undefined && pp.apiName.value.toLowerCase() === nm.toLowerCase();
+      }))
+      .filter((x): x is string => x !== undefined);
+    // 一个都解析不到就不写 —— 写一半的复合主键比不写更误导
+    if (rids.length === decl.names.length && rids.length > 0) {
+      o.primaryKey = extracted(rids, decl.ev);
+    }
+  }
   for (const o of oir.objects.values()) {
+    if (o.primaryKey.value.length > 0) continue; // 声明过的不动
     const pk = o.properties.filter((r) => {
       const p = oir.properties.get(r);
       // Python 是 `oir.properties[r]`：不存在就 KeyError，不静默跳过。
@@ -1119,10 +1434,22 @@ export function buildOir(
 }
 
 /** 单元格里的说明文字被当成实体名，是真实材料上最常见的抽取噪声。
- * 「与采购需求计划一致」「见附件」这种不是对象。 */
-export const PROSE_HINTS: readonly string[] = [
-  "一致", "同上", "见附件", "待定", "参见", "同前", "略", "无", "如下", "以上", "详见",
-];
+ * 「与采购需求计划一致」「见附件」这种不是对象。
+ *
+ * **按命中方式分三档，不是一把子串**。上一版对全部提示词做 `includes` ——
+ * `looksLikeProse("采购策略") === true`（命中「略」）、「无形资产」命中「无」、
+ * 「一致性校验」命中「一致」：**合法中文对象名被当噪声静默丢掉**。
+ * 单字提示只能整格匹配；「一致」只在句尾才是"照抄上文"的意思；
+ * 只有「见附件/参见/详见」这类短语出现在哪里都是说明文字。 */
+export const PROSE_EXACT: readonly string[] = ["略", "无", "同上", "同前", "待定"];
+export const PROSE_SUFFIX: readonly string[] = ["一致", "如下", "以上", "即可"];
+export const PROSE_CONTAINS: readonly string[] = ["见附件", "参见", "详见"];
+/** 兼容导出（有测试和下游按名字引它）。语义以上面三档为准。 */
+export const PROSE_HINTS: readonly string[] = [...PROSE_EXACT, ...PROSE_SUFFIX, ...PROSE_CONTAINS];
+
+/** 占位符实体名：模型对读不出的行编出来交差的名字。整词短语，不收单字 ——
+ * 「未知」两个字会误杀「未知数管理」这类合法名。 */
+export const PLACEHOLDER_RE = /内容未知|无法识别|未能识别|不可读|missing_required|unknown_row|placeholder/iu;
 
 /** 代码风格的标识符。长度判据对它**不成立** ——
  * `bdPurchaseDocSubtypeMapping` 27 个字符，是个规规矩矩的 apiName；
@@ -1137,7 +1464,9 @@ export function looksLikeProse(name: unknown): boolean {
     return cpLen(n) > 64;
   }
   if (cpLen(n) > 24) return true;
-  return PROSE_HINTS.some((h) => n.includes(h));
+  if (PROSE_EXACT.includes(n)) return true;
+  if (PROSE_SUFFIX.some((h) => n.endsWith(h))) return true;
+  return PROSE_CONTAINS.some((h) => n.includes(h));
 }
 
 /**
@@ -1178,19 +1507,103 @@ export function resolveHost(
  * 规则抽出来的条目 cite 是本地生成的、必然命中，置信度给满；模型给的 cite 可能
  * 是改写过的，命中也只给 0.85 —— 它证明的是"这句话在这里"，不是"这个判断对"。
  */
+type GroundedBucket = "objects" | "properties" | "links" | "actions" | "events" | "rules";
+
+interface ExtractionEvidenceVerdict {
+  readonly ok: boolean;
+  readonly code: "" | "EVIDENCE_MISSING" | "EVIDENCE_UNRESOLVED" | "EVIDENCE_NOT_SUPPORTING_CLAIM";
+  readonly cite: string;
+}
+
+/** 精确定位模型声称使用的材料切片；定位不到时绝不拿条目自身内容补一份“证据”。 */
+function extractionChunk(item: unknown, index: EvidenceIndex): Chunk | null {
+  const cite = gstr(item, "source_locator");
+  if (!cite) return null;
+  const fname = gstr(item, "source_file");
+  const table = citeIndex(index);
+  let chunk = table.get(cite) ?? resolveCite(table, cite);
+  if (chunk === null && fname) {
+    for (const [key, candidate] of table) {
+      if (key.endsWith(cite)) {
+        chunk = candidate;
+        break;
+      }
+    }
+  }
+  return chunk;
+}
+
+function supportNorm(value: unknown): string {
+  return pyStrip(pyStr(value ?? ""))
+    .toLowerCase()
+    .replace(/[\s\p{P}\p{S}_]+/gu, "");
+}
+
+function supportLabels(item: unknown, bucket: GroundedBucket): string[] {
+  const values: unknown[] = bucket === "rules"
+    ? [dget(item, "statement")]
+    : bucket === "links"
+      ? [dget(item, "from_api_name"), dget(item, "to_api_name"), dget(item, "display_name"), dget(item, "api_name")]
+      : [dget(item, "display_name"), dget(item, "api_name")];
+  const out: string[] = [];
+  for (const value of values) {
+    const label = supportNorm(value);
+    if (!label || out.includes(label)) continue;
+    // 单个字/字母几乎必然在无关原文中撞上，不能拿来证明一条业务主张。
+    const han = [...label].some((ch) => /\p{Script=Han}/u.test(ch));
+    if ([...label].length < (han ? 2 : 4)) continue;
+    out.push(label);
+  }
+  return out;
+}
+
+/**
+ * 材料引用的三层门：cite 存在、引用位置可解析、该切片确实提到了被抽取的对象。
+ * 这是保守的字面支持检查：宁可把需要改写/推断的内容留作候选，也不能把它标成
+ * “材料明确写了”。跨句推理应走待确认问题，不在这里自动升级成 EXTRACTED。
+ */
+export function extractionEvidenceSupport(
+  item: unknown,
+  bucket: GroundedBucket,
+  index: EvidenceIndex,
+): ExtractionEvidenceVerdict {
+  const cite = gstr(item, "source_locator");
+  if (!cite) return { ok: false, code: "EVIDENCE_MISSING", cite: "" };
+  const chunk = extractionChunk(item, index);
+  if (chunk === null) return { ok: false, code: "EVIDENCE_UNRESOLVED", cite };
+  const body = supportNorm(chunk.render);
+  const labels = supportLabels(item, bucket);
+  const quote = supportNorm(dget(item, "source_quote"));
+  if (quote && !body.includes(quote)) {
+    return { ok: false, code: "EVIDENCE_NOT_SUPPORTING_CLAIM", cite };
+  }
+  let related = false;
+  if (bucket === "links") {
+    // 关系必须让两端都在同一切片里出现；只出现一端不能证明二者有关系。
+    const ends = [dget(item, "from_api_name"), dget(item, "to_api_name")]
+      .map(supportNorm)
+      .filter(Boolean);
+    related = ends.length === 2 && ends.every((label) => body.includes(label));
+    if (!related) {
+      const explicitRelationship = [dget(item, "display_name"), dget(item, "api_name")]
+        .map(supportNorm)
+        .filter((label) => [...label].length >= 4);
+      related = explicitRelationship.some((label) => body.includes(label));
+    }
+  } else {
+    related = labels.some((label) => body.includes(label));
+  }
+  return related
+    ? { ok: true, code: "", cite }
+    : { ok: false, code: "EVIDENCE_NOT_SUPPORTING_CLAIM", cite };
+}
+
 export function prov(item: unknown, index: EvidenceIndex | null): Provenance {
   const cite = gstr(item, "source_locator");
   const fname = gstr(item, "source_file");
   const byRule = dget(item, "_origin") === "rule";
   if (index !== null && cite) {
-    const table = citeIndex(index);
-    let c = table.get(cite) ?? null;
-    if (c === null && fname) {
-      c = null;
-      for (const [k, x] of table) {
-        if (k.endsWith(cite)) { c = x; break; }
-      }
-    }
+    const c = extractionChunk(item, index);
     if (c !== null) {
       return makeProvenance(c.fileId, c.fileName, c.locator, {
         snippet: cpSlice(c.render, 200),
@@ -1214,6 +1627,41 @@ export function prov(item: unknown, index: EvidenceIndex | null): Provenance {
   );
 }
 
+/**
+ * cite 的写法归一。
+ *
+ * 索引里的 cite 是 `文件!表!R12-12`，而模型手写时常有两处偏差：
+ *  · 单行写成 `R12`（索引里是 `R12-12`）；
+ *  · 文件与表之间用 `#` 而不是 `!`（`#` 在索引里是给文件级引用留的）。
+ * 这两种都是**同一个位置的不同写法**，认不出来的代价不是报错，而是悄悄退化成
+ * 「证据 = 它自己的名字」的兜底（2026-08-25 真库：27 个对象里 24 个如此）。
+ *
+ * 只做写法归一，不做模糊匹配 —— 指不到就该如实回落，硬认一个更糟。
+ */
+function normalizeCite(cite: string): string[] {
+  const out = new Set<string>([cite]);
+  const swapped = cite.replace("#", "!");
+  out.add(swapped);
+  for (const form of [...out]) {
+    // R12 → R12-12（单行的两种写法）
+    const single = form.replace(/!R(\d+)$/u, (_m, n: string) => `!R${n}-${n}`);
+    out.add(single);
+    // R12-12 → R12（反向，索引里存的是短写法时）
+    const collapsed = form.replace(/!R(\d+)-\1$/u, (_m, n: string) => `!R${n}`);
+    out.add(collapsed);
+  }
+  out.delete(cite);
+  return [...out];
+}
+
+function resolveCite(table: Map<string, Chunk>, cite: string): Chunk | null {
+  for (const form of normalizeCite(cite)) {
+    const hit = table.get(form);
+    if (hit !== undefined) return hit;
+  }
+  return null;
+}
+
 /** cite → chunk。每条断言都全表扫一遍的话，162 个对象 × 326 个切片就是五万次
  * 字符串比较，而这张表在一次 build 里是不变的。 */
 const CITE_CACHE = new WeakMap<EvidenceIndex, Map<string, Chunk>>();
@@ -1232,11 +1680,25 @@ function citeIndex(index: EvidenceIndex): Map<string, Chunk> {
 //  Critic
 // ══════════════════════════════════════════════════════════════════
 
-/** `cn[y]` —— LINKS 不在这张表里，Python 侧就是 KeyError。见 {@link CoverageCritic}。 */
-const YIELD_CN: Readonly<Partial<Record<Yield, string>>> = {
+/**
+ * `cn[y]` —— 判缺文案里那个中文名。
+ *
+ * **类型是完整的 `Record<Yield, string>`，不是 `Partial`。** 这不是洁癖：
+ * 上一版是 Partial 且只写了三条，而 `CHECKED_YIELDS` 后来特意加进了 LINKS ——
+ * 于是任何"本该抽出关系却一条都没抽到"的段，都会在下面那句取值上抛
+ * `KeyError: 'links'`，**把整个抽取 run 崩掉**，而不是报一条 finding。
+ * 两次改动隔了时间、只改了一边，类型没拦住。
+ *
+ * 写成完整 Record 之后，`Yield` 再加成员时**编译期**就会报这里缺一条 ——
+ * 这类"两处要一起改"的耦合，靠人记是记不住的。
+ */
+const YIELD_CN: Readonly<Record<Yield, string>> = {
   [Yield.PROPERTIES]: "属性",
   [Yield.OBJECTS]: "对象",
   [Yield.ACTIONS]: "行动",
+  [Yield.LINKS]: "关系",
+  [Yield.RULES]: "业务规则",
+  [Yield.QUESTIONS]: "待确认问题",
 };
 
 /**
@@ -1251,6 +1713,44 @@ const YIELD_CN: Readonly<Partial<Record<Yield, string>>> = {
  * 而下面那张中文名表 `cn` 里没有。一张有两列标识符的表（`yields` 会带上 LINKS）
  * 走到这里就是 `KeyError: Yield.LINKS`。要修得在 Python 侧一起修。
  */
+/**
+ * 这一行是**表格结构**，不是一条业务数据吗。
+ *
+ * 2026-08-25 实拍：一张 sheet 里叠着三张子表，于是行里混着横幅行（整行合并，
+ * 各列同值）、子表头行（这一行的取值就是下面几行的列名）和序号行（「二、」）。
+ * 它们被当成「漏掉的对象」逐条念给模型，模型于是把它们建成了对象 ——
+ * `do.一` / `do.三` / `do.业务对象` 就是这么来的。
+ *
+ * 判据全是**形状**，不含任何词表：
+ *  · 横幅：非空取值去重只剩 1 个，而这张表有 ≥3 列（合并单元格填充的痕迹）；
+ *  · 序号：整格就是一个中文/阿拉伯数字序号（可带顿号句点），本身不是名字；
+ *  · 子表头回声：这一格的内容与本表的某个列名逐字相同。
+ */
+export function isStructuralRow(
+  name: string,
+  row: Record<string, unknown>,
+  nameColumn: string,
+): boolean {
+  const cols = Object.keys(row);
+  const values = cols.map((k) => pyStrip(pyStr(row[k] ?? ""))).filter((v) => v !== "");
+  if (cols.length >= 3 && new Set(values).size <= 1) return true;
+  const bare = name.replace(/[、,，.．。:：]+$/u, "");
+  if (/^[一二三四五六七八九十百千]+$/u.test(bare) || /^\d+$/u.test(bare)) return true;
+  // 序号开头且整格就是「N、某某」这种小标题（「二、规则体系明细」）——
+  // 名称列里出现带序号前缀的整句，是分节标题的写法，不是对象名。
+  if (/^(?:[一二三四五六七八九十百千]+|\d+)[、.．]/u.test(name)) return true;
+  if (cols.some((k) => k !== nameColumn && pyStrip(k) === name)) return true;
+  // 子表头回声：这一行有两格以上的内容与它**自己那一列的列名**逐字相同。
+  // 数据行偶尔会有一格这样（一个叫「说明」的对象），两格同时中的只有表头。
+  let echo = 0;
+  for (const k of cols) {
+    const v = pyStrip(pyStr(row[k] ?? ""));
+    if (v !== "" && v === pyStrip(k)) echo += 1;
+  }
+  if (echo >= 2) return true;
+  return false;
+}
+
 export class CoverageCritic extends Critic {
   private readonly _byKey: Map<string, Segment>;
   readonly index: SegmentIndex | null;
@@ -1282,6 +1782,61 @@ export class CoverageCritic extends Critic {
     }));
   }
 
+  /** 登记表按名称列点名缺行。没有可用名称列（或行读不回来）就给空数组，
+   *  回落到纯数量阈值 —— 点名是增强，不是新的硬依赖。 */
+  private missingRowNames(segment: Segment, objs: readonly unknown[]): string[] {
+    const shape = segment.shape;
+    const nameCol = shape.col(ColumnRole.IDENTIFIER)
+      ?? shape.cols(ColumnRole.LABEL).filter((c) => c.fill >= 0.6)
+        .sort((x, y) => y.fill - x.fill)[0] ?? null;
+    if (nameCol === null || this.index === null) return [];
+    let rows: Record<string, unknown>[];
+    try {
+      [rows] = segment.rows(this.index);
+    } catch {
+      return [];
+    }
+    const have: string[] = [];
+    for (const o of objs) {
+      if (!isPlainDict(o)) continue;
+      for (const k of ["api_name", "display_name"]) {
+        const v = pyStrip(pyStr(dgetD(o, k, ""))).toLowerCase();
+        if (v) have.push(v);
+      }
+    }
+    const missing: string[] = [];
+    for (const r of rows) {
+      const nm = pyStrip(pyStr(r[nameCol.name] ?? ""));
+      if (!nm || looksLikeProse(nm) || isStructuralRow(nm, r, nameCol.name)) continue;
+      const key = nm.toLowerCase();
+      if (have.some((h) => h.includes(key) || key.includes(h))) continue;
+      if (!missing.includes(nm)) missing.push(nm);
+    }
+    return missing;
+  }
+
+  /** 名称列上**去重后**的业务实体数 —— 「抽到几个」要和它比，不能和行数比。 */
+  entityCount(segment: Segment): number | null {
+    const shape = segment.shape;
+    const nameCol = shape.col(ColumnRole.IDENTIFIER)
+      ?? shape.cols(ColumnRole.LABEL).filter((c) => c.fill >= 0.6)
+        .sort((x, y) => y.fill - x.fill)[0] ?? null;
+    if (nameCol === null || this.index === null) return null;
+    let rows: Record<string, unknown>[];
+    try {
+      [rows] = segment.rows(this.index);
+    } catch {
+      return null;
+    }
+    const names = new Set<string>();
+    for (const r of rows) {
+      const nm = pyStrip(pyStr(r[nameCol.name] ?? ""));
+      if (!nm || looksLikeProse(nm) || isStructuralRow(nm, r, nameCol.name)) continue;
+      names.add(nm.toLowerCase());
+    }
+    return names.size > 0 ? names.size : null;
+  }
+
   check(draft: unknown, segment: Segment): Finding[] {
     if (!isPlainDict(draft)) {
       return [makeFinding({
@@ -1292,6 +1847,13 @@ export class CoverageCritic extends Critic {
     const objs = asList(pyTruthy(draft["objects"]) ? draft["objects"] : []);
     const props = asList(pyTruthy(draft["properties"]) ? draft["properties"] : []);
     const acts = asList(pyTruthy(draft["actions"]) ? draft["actions"] : []);
+    // **links 桶必须读**。漏了它不是少判一类，是**恒判一类**：
+    // `have.links` 为 undefined 时 outstanding() 一律当成"零关系"，于是任何
+    // 形状带 LINKS 的段，无论模型抽没抽到关系，评审都判「一条都没抽到」——
+    // 精炼循环反复重试直到烧穿预算，而抽得好好的那份被打成不合格。
+    // （上一版这里更响：YIELD_CN 缺 links 直接抛 KeyError 把整个 run 崩掉。
+    //   补了 YIELD_CN 之后崩变成了"永远失败"，比崩更难发现 —— 两处要一起修。）
+    const lnks = asList(pyTruthy(draft["links"]) ? draft["links"] : []);
     const shape = segment.shape;
     const out: Finding[] = [];
 
@@ -1301,9 +1863,12 @@ export class CoverageCritic extends Critic {
     //
     // 判据函数与 `ExtractSegment.wants()` 是同一个 —— critic 判缺的每一类，
     // 任务描述里都点名要过。两边各写各的判据是上一版真实卡死的成因。
-    for (const y of outstanding(shape, { objects: objs, properties: props, actions: acts })) {
-      const cn = YIELD_CN[y];
-      if (cn === undefined) throw new Error(`KeyError: ${pyRepr(y)}`);
+    for (const y of outstanding(shape, {
+      objects: objs, properties: props, links: lnks, actions: acts,
+    })) {
+      // 类型已保证穷尽（见 YIELD_CN 的注释）。留这一句是防运行时喂进来野值 ——
+      // 但它现在是"不该发生"的兜底，不再是正常路径上的地雷。
+      const cn = YIELD_CN[y] ?? pyStr(y);
       out.push(makeFinding({
         severity: Severity.HIGH,
         code: `${y.toUpperCase()}_MISSING`,
@@ -1324,13 +1889,31 @@ export class CoverageCritic extends Critic {
         if (isPlainDict(o)) names.add(pyStrip(pyStr(dgetD(o, "api_name", ""))).toLowerCase());
       }
       const got = names.size;
-      if (got < shape.rowCount * 0.8) {
+      // 登记表有名称列时，缺的是**哪几行**是可以算出来的。只报数量的 finding
+      // 逼模型「逐行过一遍」重出全表；点名的 finding 一轮补齐。真实案发：
+      // 36 行漏 3 行（91.7%），0.8 的量级阈值放行 —— 违约索赔单/监造计划/
+      // 质量通知就此消失，连带关系表里指向它们的 2 条关系整批 lost。
+      const missing = this.missingRowNames(segment, objs);
+      // **分母要和被数的东西同量纲。** rowCount 数的是行，got 数的是对象，而
+      // 同一个业务对象常横跨多行（采购计划占 3 行、执行偏差占 2 行）——
+      // 拿 7 个对象去比 26 行的 80%，清单清干净了也永远不达标，hint 退化成
+      // 「逐行过一遍，不要跳行」，模型只能去编。能数出去重实体数就用它。
+      const denom = this.entityCount(segment) ?? shape.rowCount;
+      if (got < denom * 0.8 || missing.length > 0) {
         out.push(makeFinding({
           severity: Severity.HIGH, code: "ROWS_DROPPED", target: segment.key,
-          claim: `这段有 ${shape.rowCount} 行、一行一个对象，但只抽出 ${got} 个 —— `
-            + `漏了 ${shape.rowCount - got} 行`,
+          claim: `这段有 ${denom} 个待抽实体、一行一个对象，但只抽出 ${got} 个 —— `
+            + `漏了 ${Math.max(denom - got, 0)} 个`
+            + (missing.length > 0
+              ? `。缺的行（按名称列）：${missing.slice(0, 12).join("、")}`
+              : ""),
           evidenceChecked: [segment.label],
-          proposedFix: { action: "RETRY", hint: "逐行过一遍，不要跳行、不要合并" },
+          proposedFix: {
+            action: "RETRY",
+            hint: missing.length > 0
+              ? `把这些行补进来（其余已抽出的不要动）：${missing.slice(0, 12).join("、")}`
+              : "逐行过一遍，不要跳行、不要合并",
+          },
           verifier: "rule:coverage",
         }));
       }
@@ -1362,6 +1945,24 @@ export class CoverageCritic extends Critic {
       return out;
     }
 
+    if (shape.rowUnit === "link") {
+      // 关系表的产出是 links，一行一条。判它有没有对象是问错了问题 ——
+      // 正是这个错问把 40 行关系表逼成了零关系 + 一堆假对象（critic 按行数
+      // 要对象，模型只好把关系两端的名字当实体交差）。
+      // 零 links 由上面 outstanding() 的 LINKS_MISSING 兜着；这里管**漏行**。
+      if (lnks.length > 0 && lnks.length < shape.rowCount * 0.8) {
+        out.push(makeFinding({
+          severity: Severity.HIGH, code: "LINKS_DROPPED", target: segment.key,
+          claim: `这段有 ${shape.rowCount} 行、一行一条关系，但只抽出 ${lnks.length} 条 —— `
+            + `漏了 ${shape.rowCount - lnks.length} 行`,
+          evidenceChecked: [segment.label],
+          proposedFix: { action: "RETRY", hint: "逐行过一遍，不要跳行、不要合并" },
+          verifier: "rule:coverage",
+        }));
+      }
+      return out;
+    }
+
     if (objs.length === 0 && props.length === 0 && acts.length === 0) {
       out.push(makeFinding({
         severity: Severity.HIGH, code: "EXTRACT_EMPTY", target: segment.key,
@@ -1386,24 +1987,72 @@ export class CoverageCritic extends Critic {
 }
 
 /** 溯源视角 —— 每条断言都要指向材料里真实存在的位置。 */
-export function provenanceCritic(): RuleCritic {
+/**
+ * @param index 给了就多判一件事：这个 cite **解析得出来吗**。
+ *
+ * 只判「字段非空」是不够的：模型给一个格式对、却在索引里指不到任何切片的 cite，
+ * 字段有值，于是 `prov()` 悄悄退化成兜底 —— locator.kind=raw、confidence 0.6、
+ * snippet 就是条目自己的名字（「证据 = 它自己」）。2026-08-25 真库审计：一个会话
+ * 27 个对象里 24 个如此，而 provenance 这一关三轮都判「0 条」。
+ *
+ * 这是一道发布前硬门：有材料索引时，缺出处、出处不存在、或出处与主张无关都
+ * 是 HIGH。模型可以少抽、可以把内容留作待确认，但不能把猜测标成 EXTRACTED。
+ */
+export function provenanceCritic(index: EvidenceIndex | null = null): RuleCritic {
   const check = (draft: unknown): Finding[] => {
     if (!isPlainDict(draft)) return [];
     const out: Finding[] = [];
-    for (const bucket of ["objects", "properties", "links"]) {
-      for (const item of asList(pyTruthy(draft[bucket]) ? draft[bucket] : [])) {
-        if (!gstr(item, "source_locator")) {
+    if (index === null) {
+      // 兼容没有 EvidenceIndex 的离线部署：仍保留旧的“缺引用可见”检查，
+      // 但无法声称已核验出处真伪或相关性。
+      for (const bucket of ["objects", "properties", "links"] as const) {
+        for (const item of asList(pyTruthy(draft[bucket]) ? draft[bucket] : [])) {
+          if (gstr(item, "source_locator")) continue;
+          const target = pyStr(pyTruthy(dget(item, "api_name")) ? dget(item, "api_name") : "?");
           out.push(makeFinding({
             severity: Severity.MEDIUM,
             code: "EVIDENCE_MISSING",
-            target: pyStr(pyTruthy(dget(item, "api_name")) ? dget(item, "api_name") : "?"),
+            target,
             claim: `${bucket} 里有条目没给出处`,
             verifier: "rule:provenance",
           }));
         }
       }
+      return out.slice(0, 12);
     }
-    return out.slice(0, 12);
+    for (const bucket of ["objects", "properties", "links", "actions", "events", "rules"] as const) {
+      for (const item of asList(pyTruthy(draft[bucket]) ? draft[bucket] : [])) {
+        const target = pyStr(
+          pyTruthy(dget(item, "display_name"))
+            ? dget(item, "display_name")
+            : pyTruthy(dget(item, "api_name"))
+              ? dget(item, "api_name")
+              : pyTruthy(dget(item, "statement"))
+                ? dget(item, "statement")
+                : "?",
+        );
+        const verdict = extractionEvidenceSupport(item, bucket, index);
+        if (verdict.ok) continue;
+        const claim = verdict.code === "EVIDENCE_MISSING"
+          ? `${bucket} 里有条目没给材料出处`
+          : verdict.code === "EVIDENCE_UNRESOLVED"
+            ? `出处 ${verdict.cite} 在证据索引里指不到任何切片`
+            : `出处 ${verdict.cite} 虽然存在，但原文不支持「${target}」`;
+        out.push(makeFinding({
+          severity: Severity.HIGH,
+          code: verdict.code,
+          target,
+          claim,
+          evidenceChecked: verdict.cite ? [verdict.cite] : [],
+          proposedFix: {
+            action: "RETRY",
+            hint: "逐字引用真正支持该条目的材料；找不到就删除该候选并提出待确认问题",
+          },
+          verifier: "rule:provenance",
+        }));
+      }
+    }
+    return out.slice(0, 50);
   };
   return new RuleCritic("provenance", check);
 }
@@ -1429,7 +2078,14 @@ export function buildDag(segments: readonly Segment[]): Dag {
     // 两遍 —— 真实材料上这让每次调用涨到 90k 输入、9 段直接烧穿预算。
     // 要额外证据请用 evidence.search 工具按需捞。
     scope: makeScopeSpec({ evidenceTopK: 0 }),
-    budget: makeNodeBudget({ tokens: 24_000, iterations: 4, wallclockS: 420 }),
+    // wallclockS 现在真的是"单段跑多久"的上界 —— 墙钟已改成从拿到 permit 起算
+    // （见 kernel/scheduler.ts），排队不再算在节点头上。实测单段 66~120 秒，
+    // 给足是因为超时的代价是**整段白跑**，而这一档的成本远高于多等一会儿。
+    // 900 曾被真实案发打穿：网关连接悬死时 backend 每次要等满 300s 超时才
+    // 判负，3 次悬死 + 退避 + 一次真实生成 ≈ 1200s+（EXTRACT.s37_27 实测
+    // 1258s），节点在**等待重试**里被判死。上界必须盖过 backend 的最坏重试
+    // 链条：4×300s + 退避 + 生成 → 1800。
+    budget: makeNodeBudget({ tokens: 24_000, iterations: 4, wallclockS: 1800 }),
     critics: ["coverage", "provenance"],
     criticRounds: 2,
     difficulty: Difficulty.HIGH,
@@ -1477,11 +2133,16 @@ export class SegmentRouter extends NodeHandler {
     // 照搬这个形状（取不到就炸），不把它"修"成静默降级：散文段悄悄走了实体
     // 抽取，产出的是一堆「与采购需求计划一致」这样的伪实体，没人会发现。
     const miner = defaultAgents().get("rule_miner");
+    // 与 extractor 的装配保持一致：Agent system 带 Skill 目录，随后注入它显式
+    // 声明的 Skill 全文。旧实现只调用 renderSystem(miner)，导致 frontmatter 里
+    // 的「口径对齐」在生产路径从未生效，catalog 里的 Prompt 改得再好也到不了模型。
+    const skills = defaultLibrary();
+    const minerSystem = `${renderSystem(miner, skills)}\n\n${skills.load([...miner.skills])}`;
     for (const seg of segments) {
       if (seg.shape.rowUnit === "question") {
         this._byKey.set(seg.key, new HarvestQuestions(seg, index));
       } else if (seg.shape.rowUnit === "rule") {
-        this._byKey.set(seg.key, new MineRules(seg, index, miner, renderSystem(miner)));
+        this._byKey.set(seg.key, new MineRules(seg, index, miner, minerSystem));
       } else {
         this._byKey.set(seg.key, new ExtractSegment(seg, index, agent, system));
       }

@@ -16,6 +16,8 @@ import { evDetail, evLabel, evStats, evTag, hasCard, timeline, opsLog } from "..
 beforeEach(() => {
   G.S = { id: "s1", status: "done", state: {}, events: [] };
   G.OPS = [];
+  G.THINKING = false;
+  G.CHAT_ABORT = null;
 });
 
 describe("evLabel / evTag", () => {
@@ -66,6 +68,15 @@ describe("evDetail / evStats", () => {
 describe("timeline 归并", () => {
   const asst = (ts: number, text: string) => ({ speaker: "assistant", ts, text });
   const user = (ts: number, text: string) => ({ speaker: "user", ts, text });
+  const source = (id: string, url: string, over: Record<string, unknown> = {}) => ({
+    source_id: id,
+    title: `来源 ${id}`,
+    url,
+    domain: new URL(url).hostname,
+    snippet: `摘要 ${id}`,
+    content_status: "snippet_only",
+    ...over,
+  });
 
   it("工具卡挂到紧随其后的那条助手发言之后，而不是插在提问和回答中间", () => {
     G.S.events = [{ seq: 1, ts: 150, kind: "ui.table", title: "清单", columns: ["a"], rows: [["1"]] }];
@@ -114,12 +125,143 @@ describe("timeline 归并", () => {
     ];
     expect(timeline([]).map((x: any) => x.ev.error)).toEqual(["一", "二"]);
   });
+
+  it("助手回答落地前，web.sources 留在事件状态里但不展示中间候选卡", () => {
+    const event = {
+      seq: 1, ts: 150, kind: "web.sources", query: "检索中",
+      results: [source("candidate", "https://example.com/candidate")],
+    };
+    G.S.events = [event];
+    G.THINKING = true;
+
+    const items = timeline([user(100, "查一下")]);
+
+    expect(items.filter((item: any) => item.ev?.kind === "web.sources")).toHaveLength(0);
+    expect(G.S.events).toEqual([event]);
+  });
+
+  it("停止或失败且没有助手回答时，候选按用户轮聚合成兜底卡而不是永久隐藏", () => {
+    G.S.events = [
+      {
+        seq: 1, ts: 130, kind: "web.sources", query: "第一批",
+        results: [source("a", "https://example.com/a")],
+      },
+      {
+        seq: 2, ts: 150, kind: "web.sources", query: "第二批",
+        results: [source("b", "https://example.com/b")],
+      },
+    ];
+    G.THINKING = false;
+    G.CHAT_ABORT = null;
+
+    const cards = timeline([user(100, "查一下")])
+      .filter((item: any) => item.ev?.kind === "web.sources");
+
+    expect(cards).toHaveLength(1);
+    expect(cards[0]!.ev.results.map((row: any) => row.source_id)).toEqual(["a", "b"]);
+  });
+
+  it("新一轮开始时只隐藏新候选，不让历史失败轮的兜底来源卡闪退", () => {
+    G.S.events = [
+      {
+        seq: 1, ts: 150, kind: "web.sources", query: "上一轮",
+        results: [source("old", "https://example.com/old")],
+      },
+      {
+        seq: 2, ts: 350, kind: "web.sources", query: "当前轮",
+        results: [source("active", "https://example.com/active")],
+      },
+    ];
+    G.THINKING = true;
+
+    const cards = timeline([user(100, "上一问"), user(300, "当前问题")])
+      .filter((item: any) => item.ev?.kind === "web.sources");
+
+    expect(cards).toHaveLength(1);
+    expect(cards[0]!.ev.results.map((row: any) => row.source_id)).toEqual(["old"]);
+  });
+
+  it("同一助手轮的多次网络搜索合成一张卡，引用过的来源优先", () => {
+    G.S.events = [
+      {
+        seq: 1, ts: 130, kind: "web.sources", query: "第一次搜索", search_id: "search-1", total: 2,
+        results: [
+          source("a", "https://example.com/a"),
+          source("b", "https://example.com/b"),
+        ],
+      },
+      {
+        seq: 2, ts: 150, kind: "web.sources", query: "第二次搜索", search_id: "search-2", total: 2,
+        results: [
+          source("c", "https://example.com/c"),
+          source("a", "https://example.com/a", {
+            snippet: "读取后的正文摘要", content_status: "fetched",
+          }),
+        ],
+      },
+    ];
+    const items = timeline([user(100, "查一下"), asst(200, "先看 WEB[c]，再核对 WEB[a]。")]);
+    const cards = items.filter((item: any) => item.ev?.kind === "web.sources");
+
+    expect(cards).toHaveLength(1);
+    expect(cards[0]!.key).toBe(200);
+    expect(cards[0]!.ev.results.map((row: any) => row.source_id)).toEqual(["c", "a", "b"]);
+    expect(cards[0]!.ev.results.find((row: any) => row.source_id === "a")).toMatchObject({
+      snippet: "读取后的正文摘要",
+      content_status: "fetched",
+    });
+    expect(cards[0]!.ev.citation_ids).toEqual(["c", "a"]);
+    expect(cards[0]!.ev.total).toBe(3);
+  });
+
+  it("同 URL 即使来源编号不同也只留一条，正文读取版本覆盖搜索摘要", () => {
+    G.S.events = [
+      {
+        seq: 1, ts: 130, kind: "web.sources", query: "搜索", search_id: "search-1",
+        results: [
+          source("search-id", "https://example.com/article#overview"),
+          source("other", "https://example.com/other"),
+        ],
+      },
+      {
+        seq: 2, ts: 150, kind: "web.sources", query: "正文", search_id: "read_read-id",
+        results: [source("read-id", "https://example.com/article", {
+          snippet: "正文内容", content_status: "fetched",
+        })],
+      },
+    ];
+    const card = timeline([user(100, "查"), asst(200, "依据 WEB[read-id]")])
+      .find((item: any) => item.ev?.kind === "web.sources")!;
+
+    expect(card.ev.results).toHaveLength(2);
+    expect(card.ev.results[0]).toMatchObject({
+      source_id: "read-id",
+      snippet: "正文内容",
+      content_status: "fetched",
+    });
+    expect(card.ev.citation_ids).toEqual(["read-id"]);
+  });
+
+  it("不同助手轮的网络来源各自成卡，不跨轮合并", () => {
+    G.S.events = [
+      { seq: 1, ts: 150, kind: "web.sources", results: [source("a", "https://example.com/a")] },
+      { seq: 2, ts: 350, kind: "web.sources", results: [source("b", "https://example.com/b")] },
+    ];
+    const cards = timeline([
+      user(100, "第一问"), asst(200, "第一答 WEB[a]"),
+      user(300, "第二问"), asst(400, "第二答 WEB[b]"),
+    ]).filter((item: any) => item.ev?.kind === "web.sources");
+
+    expect(cards).toHaveLength(2);
+    expect(cards.map((item: any) => item.key)).toEqual([200, 400]);
+    expect(cards.map((item: any) => item.ev.results[0].source_id)).toEqual(["a", "b"]);
+  });
 });
 
 describe("hasCard：哪些事件值得单独占一张卡片", () => {
   it("大多数事件只进推理轨迹，只有需要人读全文的才升级成卡片", () => {
-    for (const k of ["parse.failed", "human.recorded", "artifact.ready", "audit.applied",
-                     "ui.table", "export.ready", "run.failed", "session.restored"]) {
+    for (const k of ["parse.failed", "human.recorded", "artifact.ready", "asset.recalled", "audit.applied",
+                     "ui.table", "export.ready", "web.sources", "run.failed", "session.restored"]) {
       expect(hasCard({ kind: k }), k).toBe(true);
     }
     for (const k of ["node.entered", "prompts.ready", "chat.turn", "plan.frozen"]) {
@@ -151,5 +293,47 @@ describe("opsLog", () => {
   it("没有操作记录时不占位置", () => {
     G.OPS = [];
     expect(opsLog()).toBe("");
+  });
+});
+
+// ══════════════════════════════════════════════════════════════════
+//  question.answered 的详情一直是空的
+//
+//  确凿的键名对不上：服务端发的是 `{question, decision, pending, affected}`
+//  （server/routes/questions.ts:869-874），渲染器读的是
+//  `ev.question_id || ev.qid` —— **两个都不存在**。于是操作记录和推理轨迹里
+//  每一条「答复问题」都渲染成空白详情。
+//
+//  这不是显示不好看：回答是这个产品里最重的一次人工输入，它在时间线上
+//  留下的是一行没有内容的灰条。
+// ══════════════════════════════════════════════════════════════════
+
+describe("question.answered 的详情", () => {
+  it("读服务端真正发出来的键（question），不是不存在的 question_id", () => {
+    expect(evDetail({ kind: "question.answered", question: "q_pk_choice" })).toContain("q_pk_choice");
+  });
+
+  it("**拍板内容优先于问题 id** —— 人要看的是「定了什么」不是「哪条问题」", () => {
+    const d = evDetail({
+      kind: "question.answered",
+      question: "q_pk_choice",
+      label: "主键用 poNo",
+      changed: ["ot_po", "pt_po_no"],
+    });
+    expect(d).toContain("主键用 poNo");
+  });
+
+  it("带上受影响数量 —— 「改了 2 处」是决定要不要点开的依据", () => {
+    const d = evDetail({
+      kind: "question.answered",
+      question: "q1",
+      label: "主键用 poNo",
+      changed: ["ot_po", "pt_po_no"],
+    });
+    expect(d).toContain("2");
+  });
+
+  it("老事件（只有 question_id）仍然认 —— 历史会话的时间线不能因此变空", () => {
+    expect(evDetail({ kind: "question.answered", question_id: "q_old" })).toContain("q_old");
   });
 });

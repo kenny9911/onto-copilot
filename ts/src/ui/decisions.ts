@@ -10,12 +10,23 @@ import { refresh } from "./sessions.js";
 import { sendChat } from "./chat.js";
 
 // 只发请求，一个 DOM 节点都不碰。
+//
+// **这次点击的结局必须说出来。** 以前这里没有 catch：跑批激活期服务端回 409
+// （mutation 租约必拒），异常穿过 pending.tsx 的 `.finally()` 变成一条 unhandled
+// rejection —— 用户看到的是「点了没反应」，而他刚刚做的是这个产品里最贵的一次
+// 输入（2026-08-25 用户实拍）。现在服务端跑批时改成**排队**，于是有三种结局，
+// 三种都要讲清楚：已落账（安静刷新）、已登记（说明何时生效）、真失败（报出来）。
 export async function postAnswer(qid: any, conflictRid: any){
   const oid = G.ANSWERS[qid];
   if (!oid) return;
-  await j(`/api/sessions/${G.S.id}/answer`, {method:"POST", headers:{"content-type":"application/json"},
-    body: JSON.stringify({conflict_rid: conflictRid, option_id: oid, note: "由 FDE 在界面上确认", lang:G.LANG})});
-  await refresh();
+  try {
+    const r: any = await j(`/api/sessions/${G.S.id}/answer`, {method:"POST", headers:{"content-type":"application/json"},
+      body: JSON.stringify({conflict_rid: conflictRid, option_id: oid, note: "由 FDE 在界面上确认", lang:G.LANG})});
+    if (r?.queued) alert(r.message || "会话正在梳理，这次确认已经登记，本轮跑完自动落账。");
+    await refresh();
+  } catch (e: any) {
+    alert(`没有确认成功：${e?.message || e}`);
+  }
 }
 
 /** 选一个选项。**只改状态** —— .sel 与「确认」按钮的可用性由组件从 G.ANSWERS 推出来。 */

@@ -290,3 +290,21 @@ describe("移植期新增的判据（Python 侧不可能踩的坑）", () => {
     expect((await repo.listFiles("s")).map((f) => f.name)).toEqual(["10.pdf", "2.pdf"]);
   });
 });
+
+describe("claimMutationLease 与 PG 的取消语义对齐", () => {
+  it("**点了停止（cancel_requested_at 已打）之后编辑要能进** —— 两种后端一个表现", async () => {
+    const repo = new MemoryRepo();
+    await repo.createSession(makeSessionRow({ id: "s1", created: 1 }));
+    const ok = await repo.claimBuildLease("s1", {
+      owner: "w1:b", now: 0, ttl: 1000, fromStatuses: ["idle"], toStatus: "queued",
+    });
+    expect(ok).toBe(true);
+    // 未取消：编辑被 build 租约挡住（原有行为）
+    expect(await repo.claimMutationLease("s1", { owner: "w1:m", kind: "edit", now: 1, ttl: 100 }))
+      .toBe(false);
+    // 请求取消之后（requestBuildCancel 自己会把状态置 stopped）：不再挡
+    await repo.requestBuildCancel("s1", { now: 2 });
+    expect(await repo.claimMutationLease("s1", { owner: "w1:m", kind: "edit", now: 3, ttl: 100 }))
+      .toBe(true);
+  });
+});

@@ -11,9 +11,10 @@
  *   2. **effect 级** —— 崩在半路的节点会重跑，但它已完成的 effect 从历史读回。
  *      所以第 47 轮崩溃是从第 47 轮继续，不是从头。
  *
- * effect 的键是 `(node_id, 序号)`，**不是全局 seq** —— 并行节点的全局顺序在两
- * 次运行间不保证一致，按节点命名空间才稳定。节点内如果有并发 effect（比如四个
- * critic 视角同时跑），调用方必须显式传 `key`，否则计数器顺序不稳。
+ * effect 的键是 `(node_id, checkpoint_version, 序号)`，**不是全局 seq** ——
+ * 并行节点的全局顺序在两次运行间不保证一致，按节点和语义版本命名
+ * 才稳定。节点内如果有并发 effect（比如四个 critic 视角同时跑），调用方
+ * 必须显式传 `key`，否则计数器顺序不稳。
  *
  * ── 相对 Python 的四处改动 ──────────────────────────────────────────
  *
@@ -45,6 +46,14 @@ import { pyFloatRepr } from "./pyfmt.js";
 /** payload 超过这个**码位数**就落 BlobStore，事件里只留 ref。 */
 export const INLINE_LIMIT = 2048;
 
+function checkpointVersion(value: unknown): string | null {
+  return typeof value === "string" && value !== "" ? value : null;
+}
+
+function checkpointKey(nodeId: string, version: string | null): string {
+  return `${nodeId}\u0000${version ?? ""}`;
+}
+
 /** 重放索引里的一条 effect 记录。 */
 interface EffectRecord {
   readonly fp: string;
@@ -73,10 +82,33 @@ export type EffectFn = () => unknown;
 export interface EffectOptions {
   /** 节点内并发 effect 必须显式传，否则计数器顺序不稳定。 */
   readonly key?: string | null;
+  /**
+   * 与节点 checkpoint 相同的语义版本。AgentLoop 通过
+   * {@link Recorder.nextAttempt} 绑定后无需重复传；直接调用 effect 的代码
+   * 可显式指定，`null` 表示 legacy 命名空间。
+   */
+  readonly checkpointVersion?: string | null;
+  /**
+   * `never` 表示这次 effect 仍写完整审计事件，但历史结果永远不能充当下一次调用的
+   * 授权票据。权限敏感的读取（例如 document.search/open）必须使用它：崩溃恢复
+   * 后重新执行 `fn`，让资源层按**当前** ACL 裁决，而不是把撤权前正文从 journal
+   * 原样交回调用方。
+   *
+   * 默认 `reuse` 保持 LLM、时钟和普通非确定性 effect 的既有确定性重放语义。
+   */
+  readonly replay?: "reuse" | "never";
 }
 
 export interface RecorderOptions {
   readonly resume?: boolean;
+  /**
+   * 把 effect 的原始 request 另存进 BlobStore，并让 `effect.requested.ref` 指向它。
+   *
+   * 默认关闭以保持历史/golden 的事件字节不变。开启后，blob 捕获属于纯观测旁路：
+   * 写入或序列化失败只会在 requested payload 里降级成 digest + error，绝不能阻止
+   * 真正的 effect 执行。
+   */
+  readonly captureRequestBlobs?: boolean;
   /**
    * 事件旁路。每条 emit 出去的事件都会**在 journal.append 之后**再喂给它一份，
    * 用于可观测性（见 otel.ts）。
@@ -191,7 +223,7 @@ export class Recorder {
   readonly blobs: BlobStore;
 
   private seq = 0;
-  /** node_id → 下一个 effect 序号 */
+  /** `(node_id, checkpoint_version)` → 下一个 effect 序号 */
   private readonly counters = new Map<string, number>();
   /**
    * 同进程 single-flight：同一显式 key 并发调用时，第二个等第一个的结果，
@@ -199,6 +231,12 @@ export class Recorder {
    * key；这层先封住单 worker 最常见的竞态。
    */
   private readonly inflight = new Map<string, Inflight>();
+  /**
+   * node_id → 当前执行的 checkpoint 版本。Scheduler 一个 DAG 内不会
+   * 并发执行同一 node_id，所以这个按节点的绑定不会交叉污染。
+   * effect 仍把真实 node_id 写入事件，版本只用于内部重放键。
+   */
+  private readonly activeCheckpointVersions = new Map<string, string | null>();
 
   // ── 重放索引 ──
   private readonly effects = new Map<string, EffectRecord>();
@@ -206,16 +244,18 @@ export class Recorder {
   private readonly completedNodes = new Map<string, string | null>();
   /** request_id → 答案 */
   private readonly humans = new Map<string, unknown>();
-  /** node_id → 已尝试次数 */
+  /** `(node_id, checkpoint_version)` → 已尝试次数 */
   private readonly attempts = new Map<string, number>();
 
   private readonly observer: ((event: Event) => void) | null;
+  private readonly captureRequestBlobs: boolean;
 
   constructor(runId: string, journal: Journal, blobs: BlobStore, opts: RecorderOptions = {}) {
     this.runId = runId;
     this.journal = journal;
     this.blobs = blobs;
     this.observer = opts.observer ?? null;
+    this.captureRequestBlobs = opts.captureRequestBlobs ?? false;
     if (opts.resume === true) this.loadHistory();
   }
 
@@ -225,7 +265,14 @@ export class Recorder {
       this.seq = Math.max(this.seq, ev.seq + 1);
       switch (ev.kind) {
         case EventKind.EFFECT_COMPLETED: {
-          const key = requireString(ev, "key");
+          // 这类完成事件只承担审计职责，从来不是可重放的能力票据。旧版本没有该
+          // 字段，仍按原语义载入；调用方当前若指定 replay=never，也会在 effect()
+          // 里无条件绕过那些旧记录。
+          if (ev.payload["replay_policy"] === "never") break;
+          const key = checkpointKey(
+            requireString(ev, "key"),
+            checkpointVersion(ev.payload["checkpoint_version"]),
+          );
           // 只认第一次记录：同 key 的重复写入意味着重试，应复用首次结果
           if (!this.effects.has(key)) {
             this.effects.set(key, {
@@ -237,17 +284,27 @@ export class Recorder {
           break;
         }
         case EventKind.NODE_COMPLETED:
-          this.completedNodes.set(ev.nodeId ?? "", ev.ref);
+          this.completedNodes.set(
+            checkpointKey(ev.nodeId ?? "", checkpointVersion(ev.payload["checkpoint_version"])),
+            ev.ref,
+          );
           break;
         case EventKind.NODE_ENTERED: {
           const nid = ev.nodeId ?? "";
+          const attemptKey = checkpointKey(
+            nid,
+            checkpointVersion(ev.payload["checkpoint_version"]),
+          );
           const raw = ev.payload["attempt"] ?? 0;
           // Python 是 `payload.get("attempt", 0) + 1`：缺失回退 0，值不是数就 TypeError。
           // 日志是外部输入，这里也当场拒绝而不是让 NaN 一路传下去。
           if (typeof raw !== "number") {
             throw new TypeError(`node.entered 的 attempt 不是数字: ${JSON.stringify(raw)}`);
           }
-          this.attempts.set(nid, Math.max(this.attempts.get(nid) ?? 0, raw + 1));
+          this.attempts.set(
+            attemptKey,
+            Math.max(this.attempts.get(attemptKey) ?? 0, raw + 1),
+          );
           break;
         }
         case EventKind.HUMAN_RECORDED:
@@ -260,6 +317,24 @@ export class Recorder {
           break;
       }
     }
+  }
+
+  /**
+   * 本 journal 里同名 DAG 最近一次 RUN_STARTED 的拓扑指纹（没有或老格式 → null）。
+   * 按 dag 名分桶：嵌套子图与外层共用一个 journal，各自核对各自的形状。
+   */
+  lastTopologyFp(dagName: string): { readonly fp: string; readonly nodeCount: number } | null {
+    let found: { fp: string; nodeCount: number } | null = null;
+    for (const ev of this.journal.read(this.runId)) {
+      if (ev.kind !== EventKind.RUN_STARTED) continue;
+      if (ev.payload["dag"] !== dagName) continue;
+      const fp = ev.payload["topology_fp"];
+      // 老 journal 没有指纹字段：记为 null（覆盖掉更早的），维持"无从核对就不拦"。
+      found = typeof fp === "string"
+        ? { fp, nodeCount: Number(ev.payload["node_count"] ?? 0) }
+        : null;
+    }
+    return found;
   }
 
   // ── 事件发射 ─────────────────────────────────────────────────
@@ -312,32 +387,49 @@ export class Recorder {
   }
 
   // ── 节点级 checkpoint ────────────────────────────────────────
-  nodeIsComplete(nodeId: string): boolean {
-    return this.completedNodes.has(nodeId);
+  nodeIsComplete(nodeId: string, version: string | null = null): boolean {
+    return this.completedNodes.has(checkpointKey(nodeId, version));
   }
 
   /** Python 侧是同步的；这里 async 只因为 BlobStore 是异步的（见文件头 §2）。 */
-  async nodeOutput(nodeId: string): Promise<unknown> {
-    if (!this.completedNodes.has(nodeId)) {
+  async nodeOutput(nodeId: string, version: string | null = null): Promise<unknown> {
+    const key = checkpointKey(nodeId, version);
+    if (!this.completedNodes.has(key)) {
       // Python 是 `self._completed_nodes[node_id]` 的 KeyError。
       throw new Error(`节点未完成: ${pyRepr(nodeId)}`);
     }
-    const ref = this.completedNodes.get(nodeId) ?? null;
+    const ref = this.completedNodes.get(key) ?? null;
     return ref !== null && ref !== "" ? await this.blobs.getJson(ref) : null;
   }
 
-  nextAttempt(nodeId: string): number {
-    const n = this.attempts.get(nodeId) ?? 0;
-    this.attempts.set(nodeId, n + 1);
+  /** keyed effect 记录时该节点的 attempt 计数（仅活内存）。
+   *  用来区分「同一 attempt 里的真不确定性」（要炸）和
+   *  「上一个 attempt 的陈账」（要重做）——见 effect() 里的 staleness 判定。 */
+  private readonly keyedEffectAttempt = new Map<string, number>();
+
+  nextAttempt(nodeId: string, version: string | null = null): number {
+    const normalized = checkpointVersion(version);
+    const key = checkpointKey(nodeId, normalized);
+    this.activeCheckpointVersions.set(nodeId, normalized);
+    const n = this.attempts.get(key) ?? 0;
+    this.attempts.set(key, n + 1);
     return n;
   }
 
-  async completeNode(nodeId: string, output: unknown): Promise<void> {
+  async completeNode(
+    nodeId: string,
+    output: unknown,
+    version: string | null = null,
+  ): Promise<void> {
     // blob 必须先于指向它的事件落盘，否则崩溃后会读到一条指着不存在的 blob 的
     // NODE_COMPLETED（journal.ts 文件头记着这条）。await 天然给出这个顺序。
     const ref = await this.blobs.putJson(output);
-    this.completedNodes.set(nodeId, ref);
-    this.emit(EventKind.NODE_COMPLETED, { nodeId, ref });
+    this.completedNodes.set(checkpointKey(nodeId, version), ref);
+    this.emit(EventKind.NODE_COMPLETED, {
+      nodeId,
+      ref,
+      payload: version === null ? {} : { checkpoint_version: version },
+    });
   }
 
   // ── effect ───────────────────────────────────────────────────
@@ -350,6 +442,8 @@ export class Recorder {
    * @param request 请求内容。**会被指纹化**，重放时不一致即报 {@link DeterminismViolation}。
    * @param fn 真正干活的可调用对象，同步异步均可。
    * @param opts.key 节点内并发 effect 必须显式传，否则计数器顺序不稳定。
+   * @param opts.checkpointVersion 直接调用时可显式指定版本；节点执行通常由
+   *   `nextAttempt` 绑定。
    *
    * 返回 `unknown` 而不是泛型 `T`：重放路径返回的是 JSON 往返之后的值
    * （Date、class 实例、undefined 全都变了形），给它一个泛型只是把谎写进类型里。
@@ -363,21 +457,28 @@ export class Recorder {
   ): Promise<unknown> {
     // ── 临界区（无 await，天然原子；见文件头 §1）──
     const key = opts.key ?? null;
+    const version =
+      opts.checkpointVersion === undefined
+        ? (this.activeCheckpointVersions.get(nodeId) ?? null)
+        : checkpointVersion(opts.checkpointVersion);
+    const counterKey = checkpointKey(nodeId, version);
     let ekey: string;
     if (key === null) {
-      const idx = this.counters.get(nodeId) ?? 0;
-      this.counters.set(nodeId, idx + 1);
+      const idx = this.counters.get(counterKey) ?? 0;
+      this.counters.set(counterKey, idx + 1);
       ekey = `${nodeId}#${idx}`;
     } else {
       ekey = `${nodeId}#${key}`;
     }
-    const recorded = this.effects.get(ekey);
+    const storageKey = checkpointKey(ekey, version);
+    const replayable = opts.replay !== "never";
+    const recorded = replayable ? this.effects.get(storageKey) : undefined;
 
     const fp = fingerprint({ kind, request });
-    const pending = this.inflight.get(ekey);
+    const pending = replayable ? this.inflight.get(storageKey) : undefined;
     let waiting: Promise<unknown> | null = null;
-    if (recorded === undefined && pending === undefined) {
-      this.inflight.set(ekey, newInflight(fp)); // 本次调用是领导者
+    if (replayable && recorded === undefined && pending === undefined) {
+      this.inflight.set(storageKey, newInflight(fp)); // 本次调用是领导者
     } else if (pending !== undefined) {
       // 注意这一支在"历史里有记录 + 同时还有 inflight"时也会跑（Python 的 elif
       // 链就是这个顺序）：先按 inflight 的指纹判，两条判据的报错参数不一样。
@@ -387,16 +488,79 @@ export class Recorder {
     // ── 临界区结束 ──
 
     if (recorded !== undefined) {
-      if (recorded.fp !== fp) throw new DeterminismViolation(ekey, recorded.fp, fp);
-      return await this.load(recorded);
+      if (recorded.fp !== fp) {
+        // ── 跨 attempt 的 keyed 撞键不是违例，是陈账 ────────────────
+        // 真实事故（E2，2026-08-20）：EXTRACT.s20_1 第 0 次尝试里 #plan 的
+        // LLM 调用撞上网关 503 → 节点按可重试失败重进；第 1 次尝试再要 #plan，
+        // key 相同、prompt 却随上下文演进（并发调度下别的节点跑完，黑板事实
+        // 变了）→ 指纹不同 → 这里把**正常重试**当成 DeterminismViolation，
+        // 一个节点的重试把整轮 $4 的抽取判死。
+        //
+        // loadHistory 的注释早写明了设计意图：「同 key 的重复写入意味着重试，
+        // 应复用首次结果」—— 恢复路径预期了重试，实时路径却在杀它。
+        //
+        // 判据收得很窄：**只有 keyed effect、且节点的 attempt 计数已经超过
+        // 这条账记下时的水位**，才按陈账重做。同一 attempt 里同 key 不同指纹
+        // 照样炸（那是真的不确定性）；chat 侧从不调 nextAttempt（水位恒 0），
+        // 重放严格性原样保留。
+        const attemptsKey = checkpointKey(nodeId, version);
+        const current = this.attempts.get(attemptsKey) ?? 0;
+        const recordedAt = key !== null ? (this.keyedEffectAttempt.get(storageKey) ?? 0) : null;
+        if (key !== null && recordedAt !== null && current > recordedAt) {
+          this.emit(EventKind.EFFECT_SUPERSEDED, {
+            nodeId,
+            payload: {
+              key: ekey, kind,
+              stale_fp: recorded.fp, fp,
+              attempt: current,
+              ...(version === null ? {} : { checkpoint_version: version }),
+            },
+          });
+          // 当领导者重新执行：从 effects 里摘掉陈账，走下面的正常执行路径。
+          // journal 里的旧 EFFECT_COMPLETED 不动 —— 追加式账本不改历史；
+          // 恢复时 loadHistory「只认第一次」的规则也不动（见那边的注释）。
+          this.effects.delete(storageKey);
+          this.inflight.set(storageKey, newInflight(fp));
+        } else {
+          throw new DeterminismViolation(ekey, recorded.fp, fp);
+        }
+      } else {
+        return await this.load(recorded);
+      }
     }
     // 走到这里 waiting 非空 ⟺ 上面进的是 elif 那支（有人正在跑同一个 key）。
     // 反过来 waiting 为空就必然是领导者 —— recorded 非空的情况刚刚已经返回了。
     if (waiting !== null) return await waiting;
 
+    let requestRef: string | null = null;
+    let requestCapture: Record<string, unknown> = {};
+    if (this.captureRequestBlobs) {
+      try {
+        requestRef = await this.blobs.putJson(request);
+        requestCapture = { request_fidelity: "full" };
+      } catch (exc) {
+        // 请求捕获是审计旁路，不是业务前置条件。磁盘满、对象不可序列化等情况
+        // 都保留原来的 digest 并继续执行 effect；显式记下退化，不能让审计端把
+        // 摘要误认成全文。
+        requestCapture = {
+          request_fidelity: "digest",
+          request_capture_error: errorLabel(exc),
+        };
+      }
+    }
+
     this.emit(EventKind.EFFECT_REQUESTED, {
       nodeId,
-      payload: { key: ekey, kind, fp, request: digestRequest(request) },
+      payload: {
+        key: ekey,
+        kind,
+        fp,
+        request: digestRequest(request),
+        ...requestCapture,
+        ...(version === null ? {} : { checkpoint_version: version }),
+        ...(replayable ? {} : { replay_policy: "never" }),
+      },
+      ref: requestRef,
     });
     let result: unknown;
     try {
@@ -408,10 +572,16 @@ export class Recorder {
       // JS 的 catch 本来就抓一切，注释留着是因为**理由**没变：清理后原样重抛。
       this.emit(EventKind.EFFECT_FAILED, {
         nodeId,
-        payload: { key: ekey, kind, error: errorLabel(exc) },
+        payload: {
+          key: ekey,
+          kind,
+          error: errorLabel(exc),
+          ...(version === null ? {} : { checkpoint_version: version }),
+          ...(replayable ? {} : { replay_policy: "never" }),
+        },
       });
-      const inflight = this.inflight.get(ekey);
-      this.inflight.delete(ekey);
+      const inflight = replayable ? this.inflight.get(storageKey) : undefined;
+      if (replayable) this.inflight.delete(storageKey);
       // reject 前那个 promise 上已经挂了空 catch（见 newInflight）——
       // 没有等待者时它是一个 rejected 但"已处理"的 promise，不会掀翻进程。
       inflight?.reject(exc);
@@ -420,11 +590,24 @@ export class Recorder {
 
     const [stored, ref] = await this.store(result);
     // 键序照抄 Python：result 在前，key/kind/fp 在后 —— 落盘字节跟着插入序走。
-    const payload: Record<string, unknown> = { ...(stored ?? {}), key: ekey, kind, fp };
+    const payload: Record<string, unknown> = {
+      ...(stored ?? {}),
+      key: ekey,
+      kind,
+      fp,
+      ...(version === null ? {} : { checkpoint_version: version }),
+      ...(replayable ? {} : { replay_policy: "never" }),
+    };
     this.emit(EventKind.EFFECT_COMPLETED, { nodeId, payload, ref });
-    this.effects.set(ekey, { fp, ref, inline: payload["result"] });
-    const inflight = this.inflight.get(ekey);
-    this.inflight.delete(ekey);
+    if (replayable) this.effects.set(storageKey, { fp, ref, inline: payload["result"] });
+    if (replayable && key !== null) {
+      this.keyedEffectAttempt.set(
+        storageKey,
+        this.attempts.get(checkpointKey(nodeId, version)) ?? 0,
+      );
+    }
+    const inflight = replayable ? this.inflight.get(storageKey) : undefined;
+    if (replayable) this.inflight.delete(storageKey);
     inflight?.resolve(result);
     return result;
   }

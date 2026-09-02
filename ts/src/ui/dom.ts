@@ -32,7 +32,26 @@ export const j = async (u: string, o?: any): Promise<any> => {
   // 401 意味着会话过期或从未登录 —— 除了登录请求本身，任何接口踩到这个都该
   // 弹登录框，而不是让调用方各自处理一遍「未授权」。
   if (r.status === 401 && u !== "/api/login") showLogin();
-  if (!r.ok) throw new Error((await r.text()).slice(0, 300));
+  if (!r.ok) {
+    // **把状态码和人话都带上。** 原来直接 `throw new Error(await r.text())`：
+    //   1. 调用方分不清 409（会话忙，等一下就好）和 500（真出事了）—— 而这两者
+    //      该有完全不同的反应，一个是排队，一个是报错。
+    //   2. 抛出去的是响应体原文，于是界面上出现的是
+    //      `没发出去：{"detail":"这个会话已有一轮对话正在处理…"}` —— 把一句本来
+    //      写得好好的中文包在 JSON 里念给用户听。
+    const body = (await r.text()).slice(0, 2000);
+    let detail = body;
+    try {
+      const o = JSON.parse(body);
+      // FastAPI 风格是 detail，我们自己的路由有的用 error。两个都认。
+      const d = o?.detail ?? o?.error ?? o?.message;
+      if (typeof d === "string" && d) detail = d;
+    } catch { /* 不是 JSON 就用原文，总比什么都不说强 */ }
+    const err = new Error(detail.slice(0, 300)) as Error & { status?: number; body?: string };
+    err.status = r.status;
+    err.body = body;
+    throw err;
+  }
   return r.json();
 };
 

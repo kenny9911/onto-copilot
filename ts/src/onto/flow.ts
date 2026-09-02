@@ -629,6 +629,67 @@ export class FlowGraph {
     return out;
   }
 
+  /**
+   * 结构病灶：一份**能给客户看**的流程图必须过的几条。
+   *
+   * 与上面那几个体检方法的关系：`dangling` / `deadEnds` 各回答一个具体问题，
+   * 这里把"这张图现在能不能交出去"合成一句话。判据全部可规则化，所以一条模型
+   * 调用都不花（ADR-5；而且 Huang et al. ICLR'24 说明这类结构判断交给模型自省
+   * 反而会掉点）。
+   *
+   * 返回空数组 = 结构上没问题。非空时每条都写清**缺什么、缺在哪几个节点上**，
+   * 让模型能据此改对，而不是收到一句"图不合格"。
+   */
+  structureDefects(): string[] {
+    const out: string[] = [];
+    const name = (n: FlowNode): string => n.label.value || n.code;
+    if (this.nodes.size === 0) return ["一个环节都没有。"];
+    if (this.edges.size === 0) {
+      out.push(
+        `${this.nodes.size} 个环节之间一条连线都没有 —— 流程图的顺序全在边上，` +
+          "没有边就只是一张名词表。",
+      );
+    }
+    const dangling = this.dangling();
+    if (dangling.length > 0) {
+      out.push(
+        `${dangling.length} 个环节既没有上一步也没有下一步：` +
+          `${dangling.slice(0, 6).map(name).join("、")}。`,
+      );
+    }
+    const unstaged = [...this.nodes.values()].filter((n) => !n.stage);
+    if (unstaged.length > 0) {
+      out.push(
+        `${unstaged.length} 个环节没有归到任何阶段：${unstaged.slice(0, 6).map(name).join("、")}。`,
+      );
+    }
+    const unlabeled = this.unlabeledBranches();
+    if (unlabeled.length > 0) {
+      out.push(
+        `${unlabeled.length} 个分叉点的出边没写条件：${unlabeled.slice(0, 6).map(name).join("、")}。` +
+          "看图的人不知道什么时候走哪条。",
+      );
+    }
+    // 事件必须有产生它的一步 —— 否则编译成 OntologyPackage 时 producer 是 unknown
+    const orphanEvents = [...this.nodes.values()].filter(
+      (n) => n.kind === NodeKind.EVENT && this.inEdges(n.rid).length === 0,
+    );
+    if (orphanEvents.length > 0) {
+      out.push(
+        `${orphanEvents.length} 个事件没有产生它的动作：` +
+          `${orphanEvents.slice(0, 6).map(name).join("、")}。`,
+      );
+    }
+    const seen = new Map<string, number>();
+    for (const n of this.nodes.values()) {
+      const key = name(n).trim();
+      if (key) seen.set(key, (seen.get(key) ?? 0) + 1);
+    }
+    const dup = [...seen.entries()].filter(([, c]) => c > 1).map(([k]) => k);
+    if (dup.length > 0) out.push(`环节重名：${dup.slice(0, 6).join("、")}。`);
+    return out;
+  }
+
   stats(): Record<string, number> {
     const kinds: Record<string, number> = {};
     for (const k of Object.values(NodeKind)) kinds[k] = 0;
@@ -735,6 +796,13 @@ function str0(d: Record<string, unknown>, k: string): string {
  * **注意 status 存不住**：`toDict` 印了 status，这里不读，还原出来一律是
  * CANDIDATE。照实迁 —— 补上会让 TS 的产物和 Python 的对不上。
  */
+/** status 的宽容解析：老数据没写、或写了认不出的，一律 candidate ——
+ *  反序列化是恢复路径，在这里炸等于旧会话打不开。 */
+function parseStatusSoft(v: unknown): Status {
+  const s = typeof v === "string" ? v : "";
+  return (Object.values(Status) as string[]).includes(s) ? (s as Status) : Status.CANDIDATE;
+}
+
 export function flowFromDict(data: Record<string, unknown>): FlowGraph {
   const graph = new FlowGraph();
   for (const raw of rowsOf(g(data, "stages"))) {
@@ -784,8 +852,15 @@ export function flowFromDict(data: Record<string, unknown>): FlowGraph {
       code: str0(n, "code"),
       stage: str0(n, "stage"),
       actor: assertFromDict(g(n, "actor")) as Assertion<string>,
-      objects: rowsOf(g(n, "objects")).map(pyStr),
+      // 只收 rid 形（`<kind>_<slug>`）。历史会话里落过原始标签串甚至裸换行符
+      // （flow_extract 的旧写法，见那里的注释），读回来照样会让 autoBindObjects
+      // 把这些节点当作"已绑过"跳过。在反序列化这一处过滤，老会话一加载就自愈。
+      objects: rowsOf(g(n, "objects")).map(pyStr).filter((o) => /^[a-z]+_/u.test(o)),
       endpoint: str0(n, "endpoint"),
+      // A10 修复：status 原本「to_dict 印、from_dict 不读」（照迁 Python 的死字段，
+      // 一次往返归零）。Python 侧已退役，而这个字段是流程侧 rejected 软删路径
+      // （set_node_status + 删除守卫）的地基 —— 有意翻转。认不出的值落回 candidate。
+      status: parseStatusSoft(n["status"]),
     });
     graph.nodes.set(node.rid, node);
   }

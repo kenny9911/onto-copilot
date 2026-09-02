@@ -104,7 +104,10 @@ describe("chat.turn 走 addTurn，不是 push", () => {
     installFetch([[/\/state$/, { id: "s1", status: "done", filelist: [],
       state: { dialogue: { turns: [turn("user", 1, "问")], compactions: 2 } } }]]);
     es.send(ev({ seq: 3, kind: "run.completed" }));
-    await new Promise(r => setTimeout(r, 0));
+    // 状态重取是**去抖**的（sse.ts scheduleStateRefresh，400ms 静默窗）——
+    // 2026-08-25 页面冻死事故的修法：首连 `?since=0` 会回放上千条事件，每条都
+    // 立刻拉一次 8MB 的 /state 会把渲染进程打满。合并语义没变，只是晚 400ms 到。
+    await new Promise(r => setTimeout(r, 500));
     expect(G.S.state.dialogue.turns.map((t: any) => t.text)).toEqual(["问", "刚推上来的答"]);
     expect(G.S.state.dialogue.compactions).toBe(2);
   });

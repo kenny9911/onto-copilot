@@ -236,6 +236,18 @@
       }
     ],
     "mutation_lease": [],
+    "onto_document": [],
+    "onto_document_acl_rule": [],
+    "onto_document_acl_state": [],
+    "onto_document_chunk": [],
+    "onto_document_connector_source": [],
+    "onto_document_job": [],
+    "onto_document_search_snapshot": [],
+    "onto_document_search_snapshot_item": [],
+    "onto_document_security_audit": [],
+    "onto_document_version": [],
+    "onto_document_wiki_page": [],
+    "onto_document_wiki_page_revision": [],
     "project": [
       {
         "created_at": "<ts>",
@@ -428,6 +440,7 @@
         "updated_at": "<ts>"
       }
     ],
+    "session_document": [],
     "session_event": [
       {
         "event_id": "e-1",

@@ -112,7 +112,8 @@ export async function newSession(silent?: any){
     body: JSON.stringify({
       title: G.MODE === "chat" ? t("session.newChat") : t("session.newWork"),
       mode: G.MODE})});
-  G.S.state = {}; G.S.events = []; G.ANSWERS = {}; G.SRC = {}; G.FILE = null; G.PENDING = []; G.MAT_N = 100;
+  G.S.state = {}; G.S.events = []; G.ANSWERS = {}; G.SRC = {}; G.FILE = null; G.PENDING = []; G.QUEUED = []; G.MAT_N = 100;
+  G.TAB = "model"; G.CONTEXT_BACK = null;
   G.S.filelist = []; G.S.files = 0; G.PROMPTS = []; G.FOLLOWUPS = [];
   G.Q_BACKLOG = []; G.Q_API = false; G.Q_FILTER = "open"; G.Q_LIMIT = 40; G.Q_NEXT = [];
   G.RETURN_AUDIT = null; G.RETURN_FILE = null; G.RETURN_BUSY = false;
@@ -127,7 +128,17 @@ export async function newSession(silent?: any){
 
 export async function openSession(id: any){
   const st = await j(`/api/sessions/${id}/state`);
-  G.S = st; G.S.events = []; G.ANSWERS = {}; G.SRC = {}; G.FILE = null; G.PENDING = []; G.MAT_N = 100;
+  G.S = st; G.S.events = []; G.ANSWERS = {}; G.SRC = {}; G.FILE = null; G.PENDING = []; G.QUEUED = []; G.MAT_N = 100;
+  G.CONTEXT_BACK = null;
+  G.MAIN_PAGE = "chat";
+  const browserWindow = typeof window === "undefined" ? null : window;
+  if (browserWindow?.location?.hash === "#knowledge" && browserWindow.history?.replaceState) {
+    browserWindow.history.replaceState(
+      { ...(browserWindow.history.state || {}), ocPage: "chat" },
+      "",
+      `${browserWindow.location.pathname}${browserWindow.location.search}`,
+    );
+  }
   // 上一轮的 chips 跟着会话回来（服务端存着）。以前这里写死清空，于是**每次
   // 重开一个聊过的会话、每次刷新，"接下来能问什么"就永久消失** —— 而那正是
   // 最需要它的时刻：隔了一天回来，对着一段旧对话，不知道该接着问什么。

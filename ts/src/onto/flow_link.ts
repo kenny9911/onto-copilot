@@ -540,8 +540,55 @@ const EVENT_NAME: Readonly<Record<string, string>> = {
   CLOSE: "已关闭",
 };
 
-function eventNameOf(verb: string, obj: { displayName: { value: string } } | undefined): string {
-  const name = obj !== undefined ? pyStr(obj.displayName.value) : "单据";
+/**
+ * 从动作名里取资源名 —— 去掉动词段，剩下的就是它操作的东西。
+ *
+ * 为什么需要它：`eventNameOf` 原本在绑不到对象时一律兜底成字面量「单据」，
+ * 于是一个只有接口清单的会话会得到一屏「单据已创建 / 单据已修改 / 单据已提交」
+ * （真实库 d53cb63f7e18 就是 32 个这样的事件）。而 `CreatePurchaseRequisition`
+ * 这个名字里本来就写着它操作的是什么。
+ *
+ * 判据是结构性的（切驼峰 / 切中文动词前后缀），不含任何业务词表 ——
+ * 动词表 `VERBS` 是既有的、`canonicalVerb` 已经在用的那一份，不新增第二张。
+ */
+export function resourceNameOf(apiName: string): string {
+  const t = pyOrStr(apiName).trim();
+  if (!t) return "";
+
+  if (isAscii(t)) {
+    const parts = t.match(CAMEL);
+    if (parts === null || parts.length === 0) return "";
+    const head = (parts[0] as string).toLowerCase();
+    // 首段是动词就丢掉它，否则整名都是资源
+    const isVerbHead = [...VERBS].some(([, words]) =>
+      words.some((w) => isAscii(w) && (head === w || head.startsWith(w))));
+    const rest = isVerbHead ? parts.slice(1) : parts;
+    return rest.join(" ");
+  }
+
+  const head = t.replace(ASIDE, "");
+  for (const [, words] of VERBS) {
+    for (const w of words) {
+      if (isAscii(w)) continue;
+      // 动词在前：「创建采购申请」
+      if (head.startsWith(w)) return head.slice(w.length);
+      // 动词在后：「采购需求计划审批」
+      if (head.endsWith(w) && head.length > w.length) return head.slice(0, -w.length);
+    }
+  }
+  return head;
+}
+
+function eventNameOf(
+  verb: string,
+  obj: { displayName: { value: string } } | undefined,
+  apiName = "",
+): string {
+  // 绑上对象最好；绑不上就用动作名里写着的资源名；再取不出才落到「单据」。
+  // 三级兜底，每一级都比上一级模糊，但都比"全都叫单据"强。
+  const name = obj !== undefined
+    ? pyStr(obj.displayName.value)
+    : (resourceNameOf(apiName) || "单据");
   return `${name}${EVENT_NAME[verb] ?? "已处理"}`;
 }
 
@@ -636,7 +683,8 @@ export function flowFromActions(
           rid: makeRid("fn", `apievt_${pyStr(a.apiName.value)}`),
           kind: NodeKind.EVENT,
           stage: key,
-          label: extracted(eventNameOf(verb, obj), prov),
+          // 传 apiName：绑不到对象时用动作名里的资源名，别让整张图都叫「单据」
+          label: extracted(eventNameOf(verb, obj, pyStr(a.apiName.value)), prov),
         }),
       );
       g.connect(act.rid, evt.rid, { evidence: [prov] });
@@ -645,4 +693,59 @@ export function flowFromActions(
     }
   }
   return g;
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  对象 ↔ 流程节点的自动绑定（C2 前置）与流程侧依赖查询
+// ══════════════════════════════════════════════════════════════════
+
+/**
+ * 按名字确定性补空绑定。实测真实库 11 个流程节点的 objects 全部为空 ——
+ * 本体与流程之间的桥没搭，impact.trace 想看流程也连不过去。
+ *
+ * 规则（零模型、幂等）：
+ *  · **只补空的**：人工绑过（bind_objects）或 BPMN 带来的绑定一概不动。
+ *    注意 unbind 清到空之后，再显式跑 bind_auto 会重新补上 —— 要排除某个
+ *    误绑，请 unbind 后手动绑上正确的那个，而不是留空；
+ *  · 对象的 displayName / 别名（≥2 个码点）作为**子串**出现在节点 label 里即命中；
+ *  · 一个节点最多绑 3 个，按名字长度降序取 —— 长名更具体（「采购订单」优先于「订单」）。
+ */
+export function autoBindObjects(g: FlowGraph, oir: OIR): number {
+  const names: { name: string; rid: string }[] = [];
+  for (const o of oir.objects.values()) {
+    for (const name of [o.displayName.value, ...o.aliases]) {
+      if ([...name].length >= 2) names.push({ name, rid: o.rid });
+    }
+  }
+  // 长名优先；同长按 rid 稳定
+  names.sort((a, b) => [...b.name].length - [...a.name].length || (a.rid < b.rid ? -1 : 1));
+  let added = 0;
+  for (const n of g.nodes.values()) {
+    if (n.objects.length > 0) continue;
+    const hits: string[] = [];
+    for (const { name, rid } of names) {
+      if (hits.length >= 3) break;
+      if (hits.includes(rid)) continue;
+      if (n.label.value.includes(name)) hits.push(rid);
+    }
+    if (hits.length > 0) {
+      n.objects.push(...hits);
+      added += hits.length;
+    }
+  }
+  return added;
+}
+
+/** impact.trace 的流程侧一半：给一组对象 rid，返回绑着它们的节点（rid + 名字）。 */
+export function flowDependents(
+  g: FlowGraph,
+  objectRids: readonly string[],
+): { rid: string; label: string; via: string }[] {
+  const want = new Set(objectRids);
+  const out: { rid: string; label: string; via: string }[] = [];
+  for (const n of g.nodes.values()) {
+    const hit = n.objects.find((r) => want.has(r));
+    if (hit !== undefined) out.push({ rid: n.rid, label: n.label.value, via: hit });
+  }
+  return out;
 }

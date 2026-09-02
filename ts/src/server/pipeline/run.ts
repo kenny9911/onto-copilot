@@ -26,8 +26,19 @@ import { budgetCappedText, quotaExhaustedText } from "../../kernel/gateway_balan
 import { RunStatus } from "../../kernel/scheduler.js";
 import type { JsonObject } from "../../store/types.js";
 import { AgentBus } from "../../kernel/bus/bus.js";
+import { fingerprint } from "../../kernel/ids.js";
 import type { ParsedDoc } from "../../onto/parse/base.js";
 import { persist } from "./persist.js";
+import { drainDecisionQueue } from "../glue/decisions_queue.js";
+import { drainMutationQueue } from "../glue/mutations.js";
+import {
+  FDE_ANALYSIS_NODES,
+  fdeForkReplayableNodes,
+  mergePendingHumanQuestion,
+  pendingHumanContract,
+  pendingHumanNode,
+} from "../glue/engagement_handoff.js";
+import { stageEngagementDelivery } from "../glue/engagement_delivery.js";
 import type { PersistDeps } from "./persist.js";
 import { pumpKernelEvents, runWithLiveTrace } from "./trace.js";
 import {
@@ -49,10 +60,15 @@ import type {
 
 import { access, constants as FS } from "node:fs/promises";
 import { join } from "node:path";
-import { existsSync } from "node:fs";
+import { existsSync, writeFileSync } from "node:fs";
 import { conflictToDict, type Conflict } from "../../onto/conflict.js";
 import { clarificationSummary, questionToDict, type ClarificationSet } from "../../onto/clarify.js";
-import { gapToQuestion, type Gap } from "../../onto/gaps.js";
+import { gapToQuestion, makeGap, type Gap } from "../../onto/gaps.js";
+import { normalizeCorpus, normalizedToDoc } from "../../onto/normalize.js";
+import { toXlsx } from "../../onto/export.js";
+import { compileOntologyPackageV1 } from "../../onto/ontology_package.js";
+import type { PackageSource } from "../../onto/canonical.js";
+import { getDocumentServiceOptional } from "../../document/deps.js";
 
 // ══════════════════════════════════════════════════════════════════
 //  Python 小工具
@@ -178,7 +194,37 @@ export async function claimAndStartBuild(
     // Claim 先于 task，保证另一个 worker 即使持有陈旧 Session 投影，也无法
     // 启动第二条付费 DAG。pipeline 一进入就把 token 捕获到局部变量中。
     await deps.refreshFilesProjection(s);
-    if (s.files.length === 0) {
+    const documentStore = getDocumentServiceOptional();
+    if (documentStore !== null && s.projectId) {
+      // attach/detach 的权威关系在 OntoDocument，不以某个 worker 的旧 state 为准。
+      // 这里只刷新轻量 manifest；正文到 PARSE 阶段再读，避免 claim 持锁期间做重 IO。
+      try {
+        s.state["_document_manifest"] = await documentStore.manifest({
+          sessionId: s.id,
+          projectId: s.projectId,
+          owner: s.owner,
+        });
+        delete s.state["_document_manifest_error"];
+      } catch (exc) {
+        const detail = exc instanceof Error ? `${exc.name}: ${exc.message}` : String(exc);
+        const error = `项目知识库当前无法核对，梳理没有启动：${detail}`;
+        s.state["_document_manifest_error"] = error;
+        s.status = "failed";
+        s.error = error;
+        s.emit("document.manifest_failed", { error });
+        await deps.repo().releaseBuildLease(s.id, { owner: leaseOwner });
+        await deps.repo().claimSessionStatus(s.id, {
+          fromStatuses: ["queued"],
+          toStatus: "failed",
+          error,
+        });
+        return "failed";
+      }
+    }
+    const attachedCount = Array.isArray(s.state["_document_manifest"])
+      ? s.state["_document_manifest"].length
+      : 0;
+    if (s.files.length === 0 && attachedCount === 0) {
       await deps.repo().releaseBuildLease(s.id, { owner: leaseOwner });
       await deps.repo().claimSessionStatus(s.id, {
         fromStatuses: ["queued"],
@@ -237,6 +283,43 @@ const SCAN_EXT: readonly string[] = [
  * 材料的形态 —— 一次性把几百个切片丢给模型，八成内容会被截掉，而流水线
  * 还会一路绿灯跑完。
  */
+/**
+ * P4：活跃调度器登记 —— 「停掉单个在飞节点」的路由靠它找到正在跑的 Scheduler。
+ * 纯内存（跨重启即空，重启后本就没有在飞节点）；extraction / engagement 两段
+ * 各自登记，runPipeline 收尾统一注销。
+ */
+// abortNode 可选：harness 的注入面只承诺 run()，测试假件也只给 run() ——
+// 没有这个方法就等于"这台调度器不支持局部停止"，路由回 404。
+interface ActiveSchedulerHandle {
+  readonly run?: unknown;
+  readonly abortNode?: (nodeId: string) => boolean;
+}
+
+const ACTIVE_SCHEDULERS = new Map<string, ActiveSchedulerHandle>();
+
+export function activeScheduler(sessionId: string): ActiveSchedulerHandle | null {
+  return ACTIVE_SCHEDULERS.get(sessionId) ?? null;
+}
+
+/** 登记/注销走具名函数而不是暴露 Map —— 路由测试也用它注入假调度器。 */
+export function registerActiveScheduler(sessionId: string, sched: ActiveSchedulerHandle): void {
+  ACTIVE_SCHEDULERS.set(sessionId, sched);
+}
+
+/**
+ * 注销带栅栏（与租约释放同一模式）：只删**自己登记的那只**句柄。旧 run 的
+ * finally 无条件删的话，会把同会话后继 run 刚登记的调度器一并打掉 —— 新 run
+ * 最长最烧钱的 EXTRACT 阶段里，单节点停止路由就恒 409 了。
+ * 不传 expected = 无条件删（测试与明确要清场的调用方用）。
+ */
+export function unregisterActiveScheduler(
+  sessionId: string,
+  expected?: ActiveSchedulerHandle,
+): void {
+  if (expected !== undefined && ACTIVE_SCHEDULERS.get(sessionId) !== expected) return;
+  ACTIVE_SCHEDULERS.delete(sessionId);
+}
+
 export async function runPipeline(
   s: SessionLike,
   deps: PipelineDeps,
@@ -256,6 +339,20 @@ export async function runPipeline(
   const leaseOwner = s.buildLeaseOwner;
   let heartbeatDone: Promise<void> | null = null;
   const heartbeatStop = new AbortController();
+  /**
+   * **这一轮自己**提交过终态了吗。
+   *
+   * 心跳丢租约时要分清两件事：一是自己刚写完 owner-fenced 的终态检查点（那会
+   * 让续租合法地失效，是正常收尾）；二是别人把这个会话写成了终态。以前只看库里
+   * 的状态在不在 {awaiting_answer, done, failed} 里 —— 而幽灵回收器
+   * （glue/reap.ts）写下的正是 failed：于是这条 DAG 认为「我跑完了」，静默 return，
+   * 实际继续把整轮 EXTRACT 烧完（没有租约、没人管），而 failed ∈ BUILD_STARTABLE
+   * 且租约行已被删，用户再点一次「开始梳理」就能在同一个内存 Session 上起第二条
+   * 付费 DAG。判据必须是「我提交过没有」，不是「库里现在是什么」。
+   */
+  let terminalCommitted = false;
+  /** 本次 run 最后登记的调度器句柄 —— finally 的栅栏注销只认它。 */
+  let registeredSched: ActiveSchedulerHandle | null = null;
 
   const heartbeat = async (): Promise<void> => {
     for (;;) {
@@ -270,7 +367,15 @@ export async function runPipeline(
         const row = await deps.repo().getSession(s.id);
         // A successful owner-fenced terminal checkpoint intentionally makes
         // renew ineligible.  That is normal completion, not cancellation.
-        if (row !== null && ["awaiting_answer", "done", "failed"].includes(row.status)) return;
+        // `terminalCommitted` 是「这一轮自己提交的」那一半 —— 少了它，别人写的
+        // failed（回收器）会被读成自己的正常收尾，见上面的注释。
+        if (
+          terminalCommitted &&
+          row !== null &&
+          ["awaiting_answer", "done", "failed"].includes(row.status)
+        ) {
+          return;
+        }
         // Durable stop intent, lease takeover/expiry, or session deletion fences
         // this invocation.  Cancellation is cooperative but reaches every await.
         opts.controller.abort();
@@ -363,6 +468,19 @@ export async function runPipeline(
         },
       })
       .parseAll(paths, { continueOnError: true });
+    const documentStore = getDocumentServiceOptional();
+    if (documentStore !== null && s.projectId) {
+      // 专业 Harness 不开放全项目漫游，只读取用户/控制层固定到本次会话的精确版本。
+      // 这里再次校验 owner/project/session 与权限；一份已选择文档若读不到就整轮失败，
+      // 绝不静默少分析一份后继续交付一份看似完整的结果。
+      const loaded = await documentStore.loadAttachedParsedDocs({
+        sessionId: s.id,
+        projectId: s.projectId,
+        owner: s.owner,
+      });
+      docs.push(...loaded.documents);
+      s.state["_document_manifest"] = loaded.manifest;
+    }
     checkCancelled(signal);
     const index = deps.buildIndex(docs);
     const endpoints = deps.collectEndpoints(docs);
@@ -383,7 +501,7 @@ export async function runPipeline(
     s.emit("node.completed", {
       node: "PARSE",
       stats: {
-        files: paths.length,
+        files: docs.length,
         chunks: index.length,
         endpoints: endpoints.length,
         profiles: countOf(profiles),
@@ -394,6 +512,7 @@ export async function runPipeline(
     // 免费流程预览：流程图已出，到此为止 —— 不进 EXTRACT 那条付费 DAG。
     // 文本/表格/SQL 语料到这里零模型成本；扫描件/PDF 因视觉解析会有少量费用。
     if (tier === "flow_preview") {
+      terminalCommitted = true;   // 本轮自己的终态：心跳据此把丢租约读成正常收尾
       s.status = "done";
       await persist(s, persistDeps, { leaseOwner });
       const flow = (s.state["flow"] as Record<string, unknown> | undefined) ?? {};
@@ -409,13 +528,85 @@ export async function runPipeline(
       return;
     }
 
+    // ── 语料归一：把散落的表和字段整合成一份数据字典 ─────────
+    //
+    // **零模型调用、不进 DAG。** 全是确定性计算（列画像、分词聚类、投票），
+    // 所以不需要 checkpoint 语义，也不花钱。放在切段之前是因为它回答的是
+    // 「这些材料里到底有哪些表、哪些字段、口径一不一致」—— 那是做 Ontology
+    // 的前提，不是抽取的副产品。
+    //
+    // 在这之前，"材料整理"的产出只有 corpus（几份文件、几片切片、几条告警），
+    // **一个字段都不在里面**。数据字典是第一份可以打开、可以核对、可以下载的
+    // 整理结果；写进 s.dir 就自动成为产物（见 glue/flow.ts 的 sortedArtifacts）。
+    // **算和写是两件事，分开兜底。** 捆在一个 try 里的话，会话目录不可写会连
+    // 算出来的字典一起丢掉 —— 而那份结果本来还能进 state 给界面用。
+    try {
+      const normalized = normalizeCorpus(docs);
+      const conflicts = normalized.fields.filter((f) => f.conflicts.length > 0).length;
+      s.state["normalized"] = {
+        tables: normalized.tables.length,
+        fields: normalized.fields.length,
+        conflicts,
+        coverage: normalized.coverage,
+      };
+      s.emit("normalize.ready", {
+        tables: normalized.tables.length,
+        fields: normalized.fields.length,
+        conflicts,
+      });
+      try {
+        writeFileSync(join(s.dir, "数据字典.json"), JSON.stringify(normalized, null, 2), "utf8");
+        writeFileSync(join(s.dir, "数据字典.xlsx"), toXlsx(normalizedToDoc(normalized)));
+      } catch (e) {
+        // 落盘失败只丢下载口，state 里的统计还在。**要说出来** —— 界面上
+        // 显示"183 张表"却下载不到文件，比一开始就说写失败更让人困惑。
+        s.emit("normalize.unsaved", { why: e instanceof Error ? e.message : String(e) });
+      }
+    } catch (e) {
+      // 归一本身失败不许拖垮整轮 —— 它是增量能力，抽取不依赖它。
+      s.emit("normalize.skipped", { why: e instanceof Error ? e.message : String(e) });
+    }
+
     // ── 切段并冻结计划 ─────────────────────────────────────
     const segments = deps.segmentCorpus(index, docs);
+    // 段数就是 fan-out 基数，而它来自**材料内容**（一个 sheet/章节一段）——
+    // 一份两千个 sheet 的工作簿会直接放大成两千路抽取。实测一段约 4.5 万
+    // token，预算的 tokens/usd 两维今天还没有检查点（P0-4 才补），所以这里
+    // 必须先有一道**起跑前**的闸。拒跑而不是截断：静默砍掉一半材料再交付
+    // 一份"完整"报告，比明说跑不了更糟。
+    {
+      const raw = (process.env["ONTOCOPILOT_MAX_SEGMENTS"] ?? "").trim();
+      const parsed = Number.parseInt(raw, 10);
+      // 0 或负数 = 不限（显式要求放开）；没配或配了个非数字 = 默认 240。
+      const cap = raw === "" || !Number.isFinite(parsed) ? 240 : parsed;
+      if (cap > 0 && segments.length > cap) {
+        throw new Error(
+          `材料切出 ${segments.length} 段，超过单轮上限 ${cap} 段（按实测每段约 4.5 万 token 估算，` +
+            `这一轮的规模已超出可控成本）。两条出路：把材料拆分成多次上传（拆分材料，每次聚焦一部分），` +
+            `或由管理员通过 ONTOCOPILOT_MAX_SEGMENTS 环境变量调高上限后重跑。`,
+        );
+      }
+    }
     // 产品主线使用完整 FDE Engagement DAG 作为稳定的控制面：材料内容只能
     // 决定某个节点看哪些证据，不能增删角色、工具或跳过 HITL/Review/Export。
     // 现有 EXTRACT fan-out 是 PROCESS/DATA/RULES 节点内部的数据并行实现，
     // 不是另一条偷偷存在的产品流程。
-    const engagement = deps.harness.engagementDag();
+    // §7.5 fork 指令（路由写入、这里一次性消费）：整个 engagement 段掺盐脱离旧
+    // 检查点；保留的专业节点稍后经 replayOutputs 零模型重放，被 fork 的活跑。
+    // **读到即删**：fork 是一次性的 —— 若本轮中途挂起，后续恢复走既有的确定性
+    // 重建路径，不会再带着盐（带盐恢复会让 resume 的无盐 DAG 与检查点错配）。
+    const forkRaw = s.state["engagement_fork"];
+    const forkDirective =
+      forkRaw !== null && typeof forkRaw === "object" && !Array.isArray(forkRaw) &&
+      typeof (forkRaw as Record<string, unknown>)["node"] === "string" &&
+      typeof (forkRaw as Record<string, unknown>)["salt"] === "string"
+        ? { node: String((forkRaw as Record<string, unknown>)["node"]),
+            salt: String((forkRaw as Record<string, unknown>)["salt"]) }
+        : null;
+    if (forkDirective !== null) delete s.state["engagement_fork"];
+    const engagement = deps.harness.engagementDag(
+      forkDirective === null ? undefined : { checkpointSalt: forkDirective.salt },
+    );
     s.emit("engagement.frozen", {
       version: engagement.name,
       nodes: engagement.describe(),
@@ -520,7 +711,12 @@ export async function runPipeline(
     // 分不清"在干活"和"卡住了"。这里边跑边泵，让推理实时可见。
     // 用同一个 run_id —— 调度器另起一个 id 的话，恢复索引和它写的日志就对不上，
     // resume 会永远命不中。
-    const outcome = await runWithLiveTrace(s, gw.rec, sched.run(runId));
+    // signal 进调度器：/stop 的 abort 要能打断在跑的 DAG，不是等它自然跑完。
+    // 外部停止时 outcome 是 fail，但下一行 checkCancelled 先看信号 —— 抛
+    // RunCancelled，状态照旧落 stopped 而不是 failed。
+    registerActiveScheduler(s.id, sched);
+    registeredSched = sched;
+    const outcome = await runWithLiveTrace(s, gw.rec, sched.run(runId, { signal }));
     checkCancelled(signal);
 
     if (outcome.status !== RunStatus.COMPLETED) {
@@ -558,11 +754,23 @@ export async function runPipeline(
     //   · 流程与接口对不上的地方 —— 哪一步没有系统支撑、哪个写接口不在流程里
     //   · 从证据里挖的缺口 —— 占位符、空表、待确认的取值清单、结构空位
     // 后两条以前都不存在：材料没带问卷时，这张表就只剩三四行系统自问自答。
+    // 第五条来源：**逐字段的结构缺口**（Action 缺什么 / Event 缺什么 / Rules 缺
+    // 什么 / Workflow 哪个阶段不明确 / DataObject 缺什么）。
+    //
+    // 这批判据一直是写好的 —— `compileOntologyPackageV1` 里的 GapCollector 覆盖
+    // Action / Event / Rule / DataObject / Link / Workflow / ProcessNode /
+    // ProcessEdge 共 30 余处 `字段是不是 unknown` 的检查，还给每条配了中文问句。
+    // 但它只挂在一条只读 HTTP 路由上，梳理主链一次都不调，产出的 gaps 一条也进
+    // 不了问题清单 —— FDE 于是永远看不到"这个 Action 没有 operationId"这种话。
+    //
+    // 这里是**旁路调用、只取 gaps**：不碰 CANONICALIZE、不改交付路径，编译失败
+    // 也只是少一批问题，不影响整轮梳理。
+    const packageGaps = structuralPackageGaps(s, oir);
     const mined = deps.mineQuestions(oir, {
       docs,
       chunks: index.allChunks(),
       extra: [...((s.state["_flow_gaps"] as unknown[] | undefined) ?? [])],
-      extraGaps: linkGaps,
+      extraGaps: [...linkGaps, ...packageGaps],
     });
     for (const q of mined) {
       if (!hasQuestion(oir.questions, q.rid)) oir.addQuestion(q);
@@ -655,9 +863,32 @@ export async function runPipeline(
     }
 
     // ── 可执行的产品 Engagement DAG ───────────────────────────
-    // 成熟 EXTRACT fan-out 已完成唯一一轮付费材料理解。专业节点以它的 OIR/Flow
-    // 为 seed，通过规则型 skip_model 形成各自契约；但节点调度、checkpoint、HITL
-    // 与 release gate 都是真实 Scheduler 执行，而不是 UI 进度事件的模拟。
+    // 成熟 EXTRACT fan-out 给出覆盖完整的 OIR/Flow seed；专业 Agent 各自做语义
+    // 推理，再由确定性 finalize 合并。HITL/checkpoint/release gate 仍由同一个
+    // Scheduler 控制，模型既不能删 seed，也不能自行放行交付。
+    const engagementEvidenceRecords = (index.allChunks() as readonly {
+      cite(): string;
+      fileId: string;
+      fileName: string;
+      locator: Record<string, unknown>;
+      render: string;
+    }[]).map((chunk) => ({
+      cite: chunk.cite(),
+      file_id: chunk.fileId,
+      file_name: chunk.fileName,
+      locator: { ...chunk.locator },
+      // Preserve enough of the bounded chunk for exact field-to-source checks.
+      snippet: [...chunk.render].slice(0, 1_200).join(""),
+      extractor: "evidence-index",
+      confidence: 1,
+    }));
+    const engagementEvidenceRefs = engagementEvidenceRecords.map((row) => row.cite);
+    const engagementSourceFingerprint = fingerprint({
+      oir: oir.toDict(),
+      flow: s.state["_flow"] ?? null,
+      artifactRevision: Math.trunc(Number(s.state["artifact_revision"] ?? 0) || 0),
+      evidence: engagementEvidenceRecords,
+    });
     const runtime = {
       sessionId: s.id,
       project: s.project || s.title,
@@ -670,22 +901,88 @@ export async function runPipeline(
       // Recorder 重放要求输出确定。会话创建时刻对同一语料 run 始终稳定。
       generatedAt: pyIsoUtc(s.created),
       releaseDownloadable: await writable(s.dir),
+      evidenceRefs: engagementEvidenceRefs,
+      evidenceRecords: engagementEvidenceRecords,
       // 降级过就让产物自己说出来（budget.ts 的注释承诺过的那个标记）
-      skippedReviews: gws.budget.skippedReviews(),
+      skippedReviews: () => gws.budget.skippedReviews(),
     };
+    // OIR 此刻才存在。给 Engagement 单独装一份只读工具表，避免覆盖抽取黑板上
+    // 已经被 Recorder 使用过的注册表（同 key 二次写会被 Blackboard 判争议）。
+    const engagementTools = await deps.harness.buildTools({
+      evidence: index,
+      profiles,
+      oir,
+      codeact: false,
+    });
+    // 专业角色不能继续背着 extractor 的 L0。复用证据与长期记忆，复制本 Run
+    // 已沉淀的事实/教训，但换成中性的 Engagement 共同规范。
+    const engagementCtx = deps.harness.makeContext({
+      system:
+        "FDE Engagement 专业分析。确定性基线负责覆盖和稳定 ID；模型只补语义空槽。" +
+        "材料没有的信息必须留空或转成问题，所有发布结论仍须通过 REVIEW/EXPORT 硬门。",
+      evidence: index,
+      longTerm: pmem !== null ? pmem.store : null,
+    });
+    if (engagementCtx !== cm) {
+      // Human/project decisions are already available through runtime, blackboard
+      // and long-term memory.  Copy only lessons learned during extraction; copying
+      // all seeded decisions would duplicate them in L3.
+      for (const reflection of cm.reflections) {
+        if (!seededReflections.has(reflection)) engagementCtx.reflect(reflection);
+      }
+    }
+    const engagementSeededReflections = new Set(engagementCtx.reflections);
+    const runLessons = (): string[] => [
+      ...new Set([
+        ...cm.reflections.filter((r) => !seededReflections.has(r)),
+        ...engagementCtx.reflections.filter((r) => !engagementSeededReflections.has(r)),
+      ]),
+    ];
     // The question/decision API must resume this exact content-addressed
     // Recorder after INTERVIEW.  Persist the identity with the suspended
     // session; deriving it again after files change would target another run.
     s.state["engagement_run_id"] = runId;
+    // §7.5 fork：被 fork 的节点不进重放表 —— 它要重新分析；其余专业节点用
+    // 上一轮 model-backed 产出零模型重放（与问答后的确定性恢复同一机制）。
+    const forkKeep = (() => {
+      if (forkDirective === null) return null;
+      const stored = s.state["engagement_analysis"];
+      const nodes =
+        stored !== null && typeof stored === "object" && !Array.isArray(stored)
+          ? (stored as Record<string, unknown>)["nodes"]
+          : null;
+      if (nodes === null || typeof nodes !== "object" || Array.isArray(nodes)) return null;
+      const storedNodes = nodes as Record<string, unknown>;
+      const keep = Object.fromEntries(
+        fdeForkReplayableNodes(forkDirective.node, storedNodes)
+          .map((n) => [n, storedNodes[n]]),
+      );
+      return Object.keys(keep).length > 0 ? keep : null;
+    })();
     const engagementSched = deps.harness.makeEngagementRun({
       gw,
-      ctx: cm,
+      ctx: engagementCtx,
       bus,
       budget: gws.budget,
       runtime,
       dag: engagement,
+      tools: engagementTools,
+      ...(forkKeep === null ? {} : { replayOutputs: forkKeep }),
     });
-    const engagementOutcome = await runWithLiveTrace(s, gw.rec, engagementSched.run(runId));
+    if (forkDirective !== null) {
+      s.emit("engagement.forked", {
+        node: forkDirective.node,
+        salt: forkDirective.salt,
+        replayed: forkKeep === null ? [] : sortedCp(Object.keys(forkKeep)),
+      });
+    }
+    registerActiveScheduler(s.id, engagementSched);
+    registeredSched = engagementSched;
+    const engagementOutcome = await runWithLiveTrace(s, gw.rec, engagementSched.run(runId, { signal }));
+    // Scheduler completion only queues NODE_COMPLETED/RUN_* events.  Make the
+    // engagement checkpoint durable before persisting awaiting_answer or writing
+    // a released artifact that claims it can be resumed.
+    await flushJournal(gw);
     checkCancelled(signal);
     s.state["engagement_execution"] = {
       status: String(engagementOutcome.status),
@@ -693,12 +990,55 @@ export async function runPipeline(
       restored: sortedCp(engagementOutcome.skipped),
       pendingHuman: engagementOutcome.pendingHuman,
     };
+    s.state["engagement_analysis"] = {
+      schemaVersion: "1.0.0",
+      runId,
+      sourceFingerprint: engagementSourceFingerprint,
+      modelBacked: true,
+      skippedReviews: gws.budget.skippedReviews(),
+      nodes: Object.fromEntries(
+        FDE_ANALYSIS_NODES
+          .filter((node) => Object.prototype.hasOwnProperty.call(engagementOutcome.outputs, node))
+          .map((node) => [node, engagementOutcome.outputs[node]]),
+      ),
+    };
+    // GAP is the only authority allowed to turn model findings into workflow
+    // questions.  Sync its deterministic output through repo/state/files before
+    // a possible HITL suspension so resume sees exactly the same backlog.
+    const gapOutput = engagementOutcome.outputs["GAP"] as Record<string, unknown> | undefined;
+    if (Array.isArray(gapOutput?.["questions"])) {
+      s.state["question_backlog"] = {
+        $schema: "ontocopilot.question-backlog/1",
+        schemaVersion: "1.0.0",
+        questions: gapOutput["questions"],
+        stats: gapOutput["stats"] ?? {},
+      };
+      await deps.syncQuestionBacklog(s, {
+        oir,
+        clarification: cs.questions,
+        conflicts,
+      });
+    }
     if (engagementOutcome.status === RunStatus.SUSPENDED) {
+      terminalCommitted = true;   // 本轮自己的终态：心跳据此把丢租约读成正常收尾
       s.status = "awaiting_answer";
       const pendingHuman = engagementOutcome.pendingHuman ?? {};
+      const node = pendingHumanNode(pendingHuman);
+      // HUMAN_ACCEPTANCE 与 INTERVIEW 共用同一 Question/Decision 状态机。先把
+      // Scheduler 的 singular question 合入投影，再由现有同步器一次性写
+      // repo/state/JSON/Markdown/XLSX，不能另造一条只在内存里的签字通道。
+      if (mergePendingHumanQuestion(s, pendingHuman)) {
+        await deps.syncQuestionBacklog(s, {
+          oir,
+          clarification: cs.questions,
+          conflicts,
+        });
+      }
+      // 无正式 APPROVE 时永远是 DRAFT；旧会话遗留的 RELEASED 不得穿透新门。
+      s.state["release_state"] = "DRAFT";
       s.emit("engagement.stage", {
-        node: "INTERVIEW",
-        contract: "QuestionBacklog",
+        node,
+        contract: pendingHumanContract(pendingHuman),
         pending: truthy(pendingHuman["pending"])
           ? Math.trunc(Number(pendingHuman["pending"]))
           : deps.pendingQuestions(s).length,
@@ -713,7 +1053,7 @@ export async function runPipeline(
       // 用户点了停止）。
       await deps.rememberRunLessons(
         s,
-        cm.reflections.filter((r) => !seededReflections.has(r)),
+        runLessons(),
         { runId, pm: pmem },
       );
       await flushJournal(gw); // Run 收尾
@@ -726,6 +1066,9 @@ export async function runPipeline(
     if (engagementOutcome.status !== RunStatus.COMPLETED) {
       throw new Error(`FDE Engagement 失败：${engagementOutcome.error}`);
     }
+    // 只有 compile 完整提交成功后才重新置 RELEASED。任何 gate/序列化/写盘异常
+    // 都从 DRAFT 出发，不能留下上一 revision 的发布状态。
+    s.state["release_state"] = "DRAFT";
     const exportPlan =
       (engagementOutcome.outputs["EXPORT"] as Record<string, unknown> | undefined) ?? {};
     if (
@@ -737,20 +1080,54 @@ export async function runPipeline(
     ) {
       throw new Error("FDE Engagement EXPORT 硬门未通过，已阻止交付");
     }
-    s.state["release_state"] = truthy(exportPlan["releaseState"])
-      ? String(exportPlan["releaseState"])
-      : "RELEASED";
+    // The release writer must commit the exact package that REVIEW/EXPORT gated,
+    // including professional enrichments, not rebuild a projection from raw OIR.
+    const packageToCommit = exportPlan["package"];
+    if (
+      packageToCommit === null ||
+      typeof packageToCommit !== "object" ||
+      Array.isArray(packageToCommit)
+    ) {
+      throw new Error("FDE Engagement EXPORT 未携带已审查的 OntologyPackage，已阻止交付");
+    }
+    // 这一步同时校验正式 APPROVE，或正式 REJECT 的 DRAFT 终态，并冻结固定
+    // 白名单交付件。缺少人工决定时 fail closed，绝不靠“REVIEW 无 blocker”
+    // 自动合成签字。
+    const deliveryDisposition = stageEngagementDelivery(s, exportPlan);
+    const committedReleaseState = deliveryDisposition === "RELEASED" ? "RELEASED" : "DRAFT";
     s.emit("engagement.stage", {
       node: "EXPORT",
       contract: "OntologyPackage.v1",
       artifacts: exportPlan["artifacts"] ?? [],
+      release_state: committedReleaseState,
     });
+    s.state["_engagement_package"] = packageToCommit;
     // 只有 REVIEW/EXPORT gate 已提交，现有原子 release 边界才真正写盘。
     await deps.compile(s, { leaseOwner });
+    // 真 compile 已经在自己的 persist 边界写入同一值；测试/替代端口没有状态
+    // 副作用时在这里补齐内存投影。
+    s.state["release_state"] = committedReleaseState;
+    // 跑中排队的对话编辑：现在按序应用到**新一轮**产物上（durable mutation
+    // queue，glue/mutations.ts）。尽力而为 —— drain 自身的意外绝不拖垮 Run 收尾。
+    try {
+      drainMutationQueue(s as never);
+    } catch (exc) {
+      s.emit("mutations.drain_failed", { error: String(exc) });
+    }
+    // 跑中排队的人工拍板同理：系统在跑的时候把决策卡摆给用户，用户拍了板，
+    // 这一次输入必须有归宿（glue/decisions_queue.ts）。同样尽力而为。
+    if (deps.answerQueuedDecision !== undefined) {
+      const answer = deps.answerQueuedDecision;
+      try {
+        await drainDecisionQueue(s as never, async (qid, body) => await answer(s, qid, body));
+      } catch (exc) {
+        s.emit("decisions.drain_failed", { error: String(exc) });
+      }
+    }
     // 正常收尾这一个出口。同样在 compile 的 persist 之后、finishRun 之前。
     await deps.rememberRunLessons(
       s,
-      cm.reflections.filter((r) => !seededReflections.has(r)),
+      runLessons(),
       { runId, pm: pmem },
     );
     await flushJournal(gw); // Run 收尾
@@ -778,6 +1155,7 @@ export async function runPipeline(
       throw exc;
     }
     // 服务边界，错误要送到前端而不是吞掉
+    terminalCommitted = true;   // 本轮自己的终态：心跳据此把丢租约读成正常收尾
     s.status = "failed";
     const name = exc instanceof Error ? exc.name : typeof exc;
     const msg = exc instanceof Error ? exc.message : String(exc);
@@ -820,6 +1198,7 @@ export async function runPipeline(
       });
     }
   } finally {
+    if (registeredSched !== null) unregisterActiveScheduler(s.id, registeredSched);
     heartbeatStop.abort();
     if (heartbeatDone !== null) await heartbeatDone.catch(() => undefined);
     // 失败与取消同样是 Run 的结束，日志一样要落盘 —— 否则下一次 resume 看到的是一个
@@ -839,6 +1218,90 @@ export async function runPipeline(
 // ══════════════════════════════════════════════════════════════════
 
 /** `oir.questions` 在 Python 侧是 dict；TS 侧可能是 Map，两种都认。 */
+/** package gap 的 entityType → 问题清单里的分组名 + 排序权重。
+ *
+ * 权重的次序是**下游阻塞程度**，不是"哪个看起来重要"：
+ * 流程说不清 → 什么都建不对；对象/关系缺 → Action 和规则挂不上去；
+ * Action/Event 的接口细节缺 → 只影响落地实现，可以后补。 */
+const PACKAGE_GAP_DIMENSIONS: Readonly<Record<string, { group: string; weight: number }>> = {
+  Workflow: { group: "流程阶段", weight: 96 },
+  ProcessNode: { group: "流程阶段", weight: 95 },
+  ProcessEdge: { group: "流程阶段", weight: 94 },
+  DataObject: { group: "数据对象", weight: 92 },
+  Link: { group: "对象关系", weight: 90 },
+  Rule: { group: "业务规则", weight: 88 },
+  Action: { group: "Action 操作", weight: 86 },
+  ActionAlignment: { group: "Action 操作", weight: 85 },
+  Event: { group: "Event 事件", weight: 84 },
+  Package: { group: "交付完整性", weight: 70 },
+  PackageInput: { group: "交付完整性", weight: 69 },
+};
+
+/**
+ * 逐字段的结构缺口 —— 六个维度各缺什么。
+ *
+ * 判据全部来自 `compileOntologyPackageV1` 的 GapCollector（30 余处「这个字段是不是
+ * unknown」），**一条都不是模型判的**。它本来就写好了，只是从没接进梳理主链。
+ *
+ * 三条纪律：
+ *   * **只取 open 的**。已被决策回答过的 gap 会带 resolution，再问一遍是骚扰。
+ *   * **编译失败不许拖垮整轮**。这是一条旁路增强：拿不到就少一批问题，
+ *     不是让已经跑了几十分钟的梳理前功尽弃。
+ *   * **不碰交付路径**。CANONICALIZE 仍走 canonical.buildPackage，这里只借
+ *     另一个编译器算一遍缺口。两者收敛是独立议题。
+ */
+function structuralPackageGaps(s: SessionLike, oir: PackageSource): Gap[] {
+  let pkg: { gaps: readonly unknown[]; questions: readonly unknown[] };
+  try {
+    pkg = compileOntologyPackageV1(oir, (s.state["_flow"] ?? null) as PackageSource, {
+      packageId: `pkg.${s.id}`,
+      // revision 必须 >= 1（canonical.buildPackage 会抛）。写 0 的话下面的 catch
+      // 会把异常吞掉、静默返回空数组 —— 整个增强变成一颗哑弹，而且没有任何迹象。
+      revision: 1,
+      baseRevision: null,
+      sessionId: s.id,
+      decisions: [],
+      backlog: null,
+    }) as unknown as { gaps: readonly unknown[]; questions: readonly unknown[] };
+  } catch {
+    // 编译不出来就当没有这批增强，不影响本轮其余四个来源。
+    return [];
+  }
+  // 问句在 questions 里，缺口在 gaps 里，靠 gapId 对上。
+  const askById = new Map<string, string>();
+  for (const raw of pkg.questions) {
+    const q = raw as Record<string, unknown>;
+    const gid = typeof q["gapId"] === "string" ? q["gapId"] : "";
+    const text = typeof q["text"] === "string" ? q["text"] : "";
+    if (gid && text) askById.set(gid, text);
+  }
+  const out: Gap[] = [];
+  for (const raw of pkg.gaps) {
+    const g = raw as Record<string, unknown>;
+    if (g["status"] !== "open") continue;
+    const entityType = typeof g["entityType"] === "string" ? g["entityType"] : "";
+    const dim = PACKAGE_GAP_DIMENSIONS[entityType];
+    // 认不出的实体类型宁可不问 —— 分组名会变成一个 FDE 看不懂的英文标识符。
+    if (dim === undefined) continue;
+    const gid = typeof g["id"] === "string" ? g["id"] : "";
+    const text = askById.get(gid) ?? (typeof g["message"] === "string" ? g["message"] : "");
+    if (!text) continue;
+    const entityId = typeof g["entityId"] === "string" ? g["entityId"] : "";
+    out.push(makeGap({
+      text,
+      group: dim.group,
+      // kind 用 gap 的 code（MISSING_OPERATION_ID 这种），去重和统计都按它。
+      kind: typeof g["code"] === "string" ? g["code"] : "MISSING_FIELD",
+      // 结构缺口没有材料出处 —— 它说的正是"材料里没有"，编一个 locator 是撒谎。
+      prov: null,
+      options: null,
+      appliesTo: entityId ? [entityId] : null,
+      weight: dim.weight,
+    }));
+  }
+  return out;
+}
+
 function hasQuestion(
   questions: Map<string, QuestionLike> | Record<string, QuestionLike>,
   rid: string,

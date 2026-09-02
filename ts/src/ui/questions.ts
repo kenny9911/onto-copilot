@@ -6,12 +6,18 @@ import { refresh } from "./sessions.js";
 import { paint } from "./preview.js";
 import { showLogin } from "./auth.js";
 import { returnAuditCard, openReturnPicker } from "./returnaudit.js";
+import {
+  plainQuestionCopy,
+  plainQuestionSource,
+  plainQuestionWhy,
+} from "../onto/plain_language.js";
 
 // ── FDE 问题工作台 ──────────────────────────────────────────────
 // 新 Question Ledger 与历史 OIR/clarify 形态在这里收口。前端后续只认这一种结构，
 // 避免每个卡片各自猜字段，也让后端可以渐进迁移已有会话。
 export const qval = (v: any) => (v && typeof v === "object" && "value" in v) ? v.value : (v ?? "");
 export function normalizeQuestion(raw: any, source: any){
+  const copy = plainQuestionCopy(qval(raw.text) || raw.title || raw.q || "（未命名问题）");
   const activeDecision = raw.activeDecision || raw.decision || {};
   const directRaw = qval(raw.answer), ledgerRaw = qval(activeDecision.answer);
   const directAnswer = directRaw == null ? "" : directRaw;
@@ -28,6 +34,7 @@ export function normalizeQuestion(raw: any, source: any){
   else if (!["open","assigned","blocked","answered","deferred","cancelled"].includes(status)) status = "open";
   const impactN = Number(raw.blastRadius || raw.blast_radius || raw.impact_count || raw.impactCount || 0);
   let priority = String(raw.priority || raw.severity || "").toLowerCase();
+  if (!priority && copy.priority) priority = copy.priority;
   if (!priority) priority = (raw.blocking || raw.reversible === false || impactN >= 10)
     ? "high" : "normal";
   const options = (raw.options || []).map((o: any, i: any) => typeof o === "object"
@@ -35,19 +42,21 @@ export function normalizeQuestion(raw: any, source: any){
     : {id:String(i), label:String(o), rationale:""}).filter((o: any) => o.label);
   const applies = raw.appliesTo || raw.applies_to || raw.blockedArtifacts || [];
   const blockedArtifacts = raw.blockedArtifacts || raw.blocked_artifacts || [];
+  const role = String(raw.audienceRole || raw.audience_role || raw.role || raw.audience || raw.askedBy || copy.audienceRole || "");
+  const rawSource = String(raw.sourceKind || raw.source_kind || raw.source || source || "system");
   return {
     id: String(raw.id || raw.rid || raw.conflict_rid || `q_${source}_${Math.random()}`),
-    text: String(qval(raw.text) || raw.title || raw.q || "（未命名问题）"),
+    text: copy.text,
     status, priority, answer, options,
     answerSchema: raw.answerSchema || raw.answer_schema || {type:"string"},
     owner: String(raw.ownerUserId || raw.owner_user_id || raw.owner || ""),
-    role: String(raw.audienceRole || raw.audience_role || raw.role || raw.audience || raw.askedBy || ""),
-    why: String(raw.why || raw.rationale || raw.group || raw.reason || ""),
+    role,
+    why: plainQuestionWhy(raw.why || raw.rationale || raw.group || raw.reason || "", role),
     impact: String(raw.impact || raw.impactSummary || (impactN ? `影响 ${impactN} 个实体` : "")),
     applies: Array.isArray(applies) ? applies.map(String) : [String(applies)],
     blockedArtifacts: Array.isArray(blockedArtifacts) ? blockedArtifacts.map(String) : [String(blockedArtifacts)],
     evidence: raw.evidence || raw.citations || raw.evidenceIds || raw.evidence_ids || [], code: String(raw.code || ""),
-    source: String(raw.sourceKind || raw.source_kind || raw.source || source || "system"), conflictRid: raw.conflict_rid || raw.conflictRid || "",
+    source: rawSource, sourceLabel: plainQuestionSource(rawSource), conflictRid: raw.conflict_rid || raw.conflictRid || "",
     revision: raw.revision ?? raw.version ?? raw.updated_at ?? null, raw,
   };
 }
@@ -98,25 +107,58 @@ export function qSetFilter(v: any){ G.Q_FILTER = v; G.Q_LIMIT = 40; paint(); }
 export function qRow(i: any){ return G.Q_BACKLOG[i]; }
 export function qCard(i: any){ return document.querySelector(`.qcard[data-qidx="${i}"]`); }
 
+/** 409 的机器可读分诊：跑批在途（重试也没用）还是版本落后（拉新重试就好）。
+ *  只认服务端两种既有文案的关键词，认不出的按版本落后处理 —— 宁可多拉一次新。 */
+function conflictKind(detail: string): "busy" | "stale" {
+  return /正在梳理|尚未提交/.test(detail) ? "busy" : "stale";
+}
+
 export async function qRequest(i: any, path: any, method: any, body: any){
-  const q = qRow(i);
-  if (!q || !G.S || Q_BUSY.has(q.id)) return false;
+  const q0 = qRow(i);
+  if (!q0 || !G.S || Q_BUSY.has(q0.id)) return false;
   if (!G.Q_API) {
     alert("当前服务端尚未启用 Question Ledger；问题可查看和下载，但分派、延期与自由文本回答需要升级后端。");
     return false;
   }
-  Q_BUSY.add(q.id); paint();
+  const qid = q0.id;
+  Q_BUSY.add(qid); paint();
   try {
-    const payload = {...body};
-    if (q.revision !== null && q.revision !== undefined) payload.expected_revision = q.revision;
-    const r = await fetch(`${API}/api/sessions/${G.S.id}/questions/${encodeURIComponent(q.id)}${path}`, {
-      method, headers:{"content-type":"application/json"}, body:JSON.stringify(payload)});
-    if (r.status === 409) throw new Error("问题已被其他人更新，请刷新后重试");
-    if (!r.ok) throw new Error((await r.text()).slice(0,240) || `HTTP ${r.status}`);
-    await loadQuestions();
-    return true;
+    let q = q0;
+    // 至多两次：第一次冲突时拉新 revision 原样重试，第二次仍冲突才打扰用户。
+    for (let attempt = 0; ; attempt++) {
+      const payload = {...body};
+      if (q.revision !== null && q.revision !== undefined) payload.expected_revision = q.revision;
+      const r = await fetch(`${API}/api/sessions/${G.S.id}/questions/${encodeURIComponent(qid)}${path}`, {
+        method, headers:{"content-type":"application/json"}, body:JSON.stringify(payload)});
+      if (r.ok) {
+        // 跑批中的回答由服务端登记进队列（glue/decisions_queue.ts），收尾自动落账 ——
+        // 这不是失败，但也不能假装已经生效：说清楚它什么时候生效。
+        // 体读不出来（空体/非 JSON）一律按「已生效」走，不因解析失败改变结局。
+        let done: any = null;
+        try { done = await r.json(); } catch { /* 空体或非 JSON：照旧当成功 */ }
+        if (done?.queued) alert(done.message || "会话正在梳理，这次回答已经登记，本轮跑完自动落账。");
+        await loadQuestions();
+        return true;
+      }
+      const raw = await r.text().catch(() => "");
+      let detail = raw;
+      try { detail = JSON.parse(raw)?.detail || raw; } catch { /* 纯文本错误体照用 */ }
+      if (r.status !== 409) throw new Error(String(detail).slice(0,240) || `HTTP ${r.status}`);
+      if (conflictKind(String(detail)) === "busy") {
+        // 跑批期间 mutation 租约必拒 —— 重试、刷新都没用，说真话并保住草稿。
+        throw new Error("会话正在梳理，本轮跑完才能保存。你的填写还留在界面上，跑完后再点一次即可。");
+      }
+      if (attempt >= 1) throw new Error("问题刚被别人改过，已拉取最新内容，请核对后重试");
+      await loadQuestions();
+      const fresh = G.Q_BACKLOG.find((row: any) => row.id === qid);
+      if (!fresh) throw new Error("问题已不在清单里（可能已被合并或取消），列表已刷新");
+      if (["answered", "cancelled"].includes(fresh.status)) {
+        throw new Error("这条已在别处被回答或关闭，列表已刷新 —— 不再覆写");
+      }
+      q = fresh; // 带拉新后的 revision 原样重试用户的这次修改
+    }
   } catch (e: any) { alert(`没有保存：${e.message || e}`); return false; }
-  finally { Q_BUSY.delete(q.id); paint(); }
+  finally { Q_BUSY.delete(qid); paint(); }
 }
 
 export async function qSaveMeta(i: any){
@@ -200,6 +242,9 @@ export function questionWorkbench(){
     <div class="qtext">访谈清单与当前交付版本</div>
     <div class="qwbsum">${G.Q_BACKLOG.length} 个问题 · ${artifacts.length} 份关联产物 · ${esc(version)} · ${esc(release.state)}${release.blockers ? `（${release.blockers} 个阻塞项）` : ""}</div>
     <div class="acts">
+      ${G.Q_API ? `<a class="act pri" download
+        title="给业务方填写的回传件：按受访角色分组、带「您的回答」列，填完直接用下面的上传按钮传回"
+        href="${API}/api/sessions/${encodeURIComponent(G.S.id)}/questions/interview-kit?format=xlsx">访谈包 XLSX</a>` : ""}
       ${G.Q_API ? ["xlsx","md","json"].map(f => `<a class="act" download
         href="${API}/api/sessions/${encodeURIComponent(G.S.id)}/questions/export?format=${f}">${f.toUpperCase()}</a>`).join("") : ""}
       ${artifacts.slice(0,5).map((a: any) => `<a class="act" download title="${eattr(a)}"
@@ -233,7 +278,7 @@ export function questionWorkbench(){
         <span class="qbadge ${eattr(q.status)}">${esc(statusLabel)}</span>
         <span class="qbadge ${eattr(q.priority)}">${q.priority==="high"||q.priority==="blocking"?"高":q.priority==="low"?"低":"普通"}优先级</span>
         ${q.code ? `<span class="qbadge">${esc(q.code)}</span>` : ""}
-        <span class="qbadge">${esc(q.source)}</span>
+        <span class="qbadge">${esc(q.sourceLabel || q.source)}</span>
       </div>
       <div class="qtext">${esc(q.text)}</div>
       ${q.why ? `<div class="qwhy">为什么问：${esc(q.why)}</div>` : ""}

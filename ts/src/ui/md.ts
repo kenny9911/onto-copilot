@@ -1,5 +1,5 @@
 // 轻量 markdown → HTML。
-import { esc } from "./dom.js";
+import { eattr, esc } from "./dom.js";
 
 // 轻量 markdown → HTML。**先转义再套用**，杜绝注入；只覆盖助手回答里常见的子集：
 // 代码块 / 行内代码 / 加粗 / 标题 / 有序无序列表 / 换行。
@@ -10,6 +10,38 @@ export function md(src: any){
   s = s.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, l, c) =>
         keep(`<pre class="mdcode">${c.replace(/\n$/, "")}</pre>`));
   s = s.replace(/`([^`\n]+)`/g, (_, c) => keep(`<code class="mdik">${c}</code>`));
+
+  // 助手会按标准 Markdown 给出公开网页链接。输入已经过 esc；这里只把 http(s)、无
+  // 凭证且有 hostname 的地址放回固定模板，URL 再走属性转义。javascript:/data:
+  // 或 user:pass@host 都继续作为普通文字显示。
+  s = s.replace(/\[([^\]\n]{1,300})\]\((https?:\/\/[^\s<>'"]{1,2048})\)/gi,
+    (whole, label, escapedUrl) => {
+      try {
+        const parsed = new URL(String(escapedUrl).replace(/&amp;/g, "&"));
+        if (!(["http:", "https:"] as string[]).includes(parsed.protocol)
+            || parsed.username || parsed.password || !parsed.hostname) return whole;
+        return keep(`<a class="mdlink" href="${eattr(parsed.toString())}" target="_blank" `
+          + `rel="noopener noreferrer">${label}<span class="sr-only">（在新窗口打开）</span></a>`);
+      } catch {
+        return whole;
+      }
+    });
+
+  // 网络来源的内部引用协议不应该直接暴露给用户。工具与模型之间用
+  // `WEB[web_…]` 精确对齐来源，聊天里把它收成按本条回答编号的可点击引用。
+  // 只接受后端会生成的安全字符集，属性值因此不可能闭合 href/data 属性；代码块和
+  // 行内代码已经先 stash，示例里的字面量 WEB[…] 不会被误改。
+  const webCitationNumbers = new Map<string, number>();
+  s = s.replace(/(?:◧\s*)?WEB\[([A-Za-z0-9][A-Za-z0-9_-]{0,119})\]/g, (_whole, sourceId) => {
+    let number = webCitationNumbers.get(sourceId);
+    if (number === undefined) {
+      number = webCitationNumbers.size + 1;
+      webCitationNumbers.set(sourceId, number);
+    }
+    return keep(`<sup class="web-citation"><a class="web-citation-link" `
+      + `href="#web-source-${sourceId}" data-source-id="${sourceId}" `
+      + `aria-label="查看网络来源 ${number}">[${number}]</a></sup>`);
+  });
   s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
   // 斜体：**必须在加粗之后**，否则 ** 会被单星规则先吃掉。模型很爱用 *(补充说明)*，
   // 不认的话满篇星号。

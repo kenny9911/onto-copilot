@@ -321,13 +321,16 @@ describe("flowFromDict —— 重启之后要还原得回来", () => {
     }
   });
 
-  it("status 存不住 —— to_dict 印了，from_dict 不读", () => {
-    // 照实迁。补上会让 TS 的产物和 Python 的对不上，而这个模块存在的意义
-    // 就是两边对得上。
+  it("status 现在存得住 —— A10 修复：评审状态是 set_node_status/删除守卫的地基", () => {
+    // 原本「照实迁」自 Python（to_dict 印、from_dict 不读，一次往返归零）。
+    // Python 侧已退役，这个死字段挡住了流程侧的 rejected 软删路径，故有意翻转。
     const g = flowFromDict({
       nodes: [{ rid: "a", kind: "action", label: { value: "x" }, status: "confirmed" }],
     });
-    expect((g.nodes.get("a") as FlowNode).status).toBe("candidate");
+    expect((g.nodes.get("a") as FlowNode).status).toBe("confirmed");
+    // 没写 status 的老数据照旧落 candidate
+    const g2 = flowFromDict({ nodes: [{ rid: "b", kind: "action", label: { value: "y" } }] });
+    expect((g2.nodes.get("b") as FlowNode).status).toBe("candidate");
   });
 
   it("缺 rid / 缺 kind 当场炸，不静默丢行", () => {

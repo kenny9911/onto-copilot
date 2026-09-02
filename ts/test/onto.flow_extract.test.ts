@@ -24,6 +24,7 @@ import {
   gapsToQuestions,
   gatewayToDict,
   looksLikeProcess,
+  mayHaveCondition,
   parseGateways,
   parseSteps,
   processStepToDict,
@@ -230,6 +231,45 @@ describe("阶段划分", () => {
 // ══════════════════════════════════════════════════════════════════
 //  网关
 // ══════════════════════════════════════════════════════════════════
+/**
+ * 预筛与正则不许脱节。
+ *
+ * `glue/flow.ts` 在把文本喂给 `parseGateways` 之前有一道便宜的预筛。它原本写死成
+ * `includes("如") && (includes("则") || includes("否则"))` —— 而 `COND_RE` 本身认
+ * 「若 / 倘若 / 当 / 一旦」和「即 / 就 / 需 / 应 / 自动 / 会 / 方可 / 才能」。
+ * 于是「若金额超过5万，需总经理审批」这类规则**整段**进不了网关抽取，
+ * 症状是"这份材料里一个分支都没识别出来"，而不是报错。
+ *
+ * 所以预筛必须与 `COND_RE` 共用一份词形定义，并由下面这条守卫钉住：
+ * **凡是 COND_RE 能匹配的句子，预筛都必须放行。**
+ */
+describe("条件预筛", () => {
+  const SENTENCES = [
+    "如果金额超过5万，则需要总经理审批",
+    "如金额超过5万，则需要总经理审批",
+    "若金额超过5万，需总经理审批",
+    "倘若供应商未通过资质审核，应当退回申请",
+    "当库存低于安全线，就触发补货流程",
+    "一旦合同到期，自动转入续签流程",
+    "若验收不合格，方可拒收",
+    "如遇紧急采购，才能走特批通道",
+  ];
+
+  it("COND_RE 能匹配的句子，预筛一条都不许拦下", () => {
+    for (const s of SENTENCES) {
+      // 先证明这句话确实是 COND_RE 认的（否则这条守卫是空的）
+      expect(parseGateways(s, { cite: "f!A1" }).length, `COND_RE 应认得：${s}`)
+        .toBeGreaterThan(0);
+      expect(mayHaveCondition(s), `预筛拦下了 COND_RE 认得的句子：${s}`).toBe(true);
+    }
+  });
+
+  it("不含条件句的文本被挡掉 —— 预筛还得省钱", () => {
+    expect(mayHaveCondition("采购申请由发起人填写并提交")).toBe(false);
+    expect(mayHaveCondition("本节说明采购流程的适用范围")).toBe(false);
+  });
+});
+
 describe("网关", () => {
   it("parseGateways：句式判据 + 半截条件宁可丢", () => {
     for (const row of rows("parse_gateways")) {
@@ -359,5 +399,96 @@ describe("applyFlowEdit", () => {
       expect(exc).toBeInstanceOf(Error);
       expect((exc as Error).name).toBe("FlowEditError");
     }
+  });
+});
+
+// ══════════════════════════════════════════════════════════════════
+//  apply_patch：一次落一整块，整批成功才落地
+// ══════════════════════════════════════════════════════════════════
+
+describe("applyFlowEdit / apply_patch", () => {
+  const 骨架 = {
+    stages: [
+      { key: "s1", title: "阶段一｜申请与审批" },
+      { key: "s2", title: "阶段二｜付款" },
+    ],
+    nodes: [
+      { key: "n1", kind: "action", label: "提交报销单", stage: "s1", actor: "员工" },
+      { key: "n2", kind: "event", label: "报销单已提交", stage: "s1" },
+      { key: "n3", kind: "gateway", label: "金额是否超阈值", stage: "s1" },
+      { key: "n4", kind: "action", label: "财务出账", stage: "s2", actor: "财务" },
+    ],
+    edges: [
+      { from: "n1", to: "n2" },
+      { from: "n2", to: "n3" },
+      { from: "n3", to: "n4", label: "未超阈值" },
+    ],
+  };
+
+  it("一次调用建出一份连通的流程 —— 这是 5 步预算下唯一能做到的方式", () => {
+    const g = new FlowGraph();
+    const note = applyFlowEdit(g, "apply_patch", 骨架);
+
+    expect(g.stages.size).toBe(2);
+    expect(g.nodes.size).toBe(4);
+    expect(g.edges.size).toBe(3);
+    expect(g.dangling()).toEqual([]); // 没有孤立节点
+    expect(note).toContain("4 个环节");
+    expect(note).toContain("3 条连线");
+  });
+
+  it("**整批成功才落地** —— 一条边指向不存在的节点，原图一个字节都不动", () => {
+    const g = new FlowGraph();
+    applyFlowEdit(g, "apply_patch", 骨架);
+    const before = JSON.stringify(g.toDict());
+
+    expect(() =>
+      applyFlowEdit(g, "apply_patch", {
+        nodes: [{ key: "x1", kind: "action", label: "新环节", stage: "s1" }],
+        edges: [{ from: "x1", to: "根本不存在的节点" }],
+      }),
+    ).toThrow(/既不是这一批里的 key，也不是图上已有的节点/u);
+
+    // 半张流程图比没有更糟：它看起来像是完整的
+    expect(JSON.stringify(g.toDict())).toBe(before);
+  });
+
+  it("坏在哪一条要说清楚 —— 整批拒绝时这是模型唯一能据以改对的信息", () => {
+    const g = new FlowGraph();
+    expect(() =>
+      applyFlowEdit(g, "apply_patch", {
+        stages: [{ key: "s1", title: "阶段一" }],
+        nodes: [
+          { key: "n1", kind: "action", label: "好节点", stage: "s1" },
+          { key: "n2", kind: "外星人", label: "坏节点", stage: "s1" },
+        ],
+      }),
+    ).toThrow(/nodes\[1\]（坏节点）/u);
+  });
+
+  it("边能连到图上**已有**的节点 —— 给现有流程补一段，不是只能从零建", () => {
+    const g = new FlowGraph();
+    applyFlowEdit(g, "apply_patch", 骨架);
+
+    applyFlowEdit(g, "apply_patch", {
+      nodes: [{ key: "n5", kind: "event", label: "款项已支付", stage: "s2" }],
+      edges: [{ from: "财务出账", to: "n5" }], // 用已有节点的名字
+    });
+
+    const evt = [...g.nodes.values()].find((n) => n.label.value === "款项已支付")!;
+    const act = [...g.nodes.values()].find((n) => n.label.value === "财务出账")!;
+    expect([...g.edges.values()].some((e) => e.source === act.rid && e.target === evt.rid)).toBe(true);
+  });
+
+  it("什么都不给 → 一句人话，不是静默成功", () => {
+    const g = new FlowGraph();
+    expect(() => applyFlowEdit(g, "apply_patch", {})).toThrow(/至少要给/u);
+  });
+
+  it("通用假设档不留任何 evidence —— 否则会被算成有材料依据", () => {
+    const g = new FlowGraph();
+    applyFlowEdit(g, "apply_patch", 骨架, { source: "generic_assumption" });
+    for (const n of g.nodes.values()) expect(n.label.evidence).toEqual([]);
+    for (const e of g.edges.values()) expect(e.evidence).toEqual([]);
   });
 });

@@ -158,3 +158,14 @@ export function getStore(): Store {
 export function setRepoForTests(repo: Repo | null): void {
   _repo = repo;
 }
+
+/**
+ * Store/lifespan 还没起来时返回 null，而不是抛。
+ *
+ * 和 `document/deps.ts` 的 `getDocumentServiceOptional()` 同一个理由与同一种写法：
+ * 窄单测（不起 HTTP、不起 lifespan）里「仓储不存在」是正常状态，不是接线 bug，
+ * 调用方按「这条信息拿不到」降级即可。**只**吞这一种错误，其余照抛。
+ */
+export function getRepoOptional(): Repo | null {
+  return _repo;
+}

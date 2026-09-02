@@ -51,7 +51,10 @@ export const FOLLOWUPS_SCHEMA: Record<string, unknown> = {
         type: "object",
         required: ["text"],
         properties: {
-          text: { type: "string", description: "展示给 FDE 的问题，一句话" },
+          text: {
+            type: "string",
+            description: "展示给用户的下一步，一句日常中文，尽量不超过 28 个字，不含内部术语",
+          },
           send: { type: "string", description: "点下去实际发送的话；缺省等于 text" },
         },
       },
@@ -67,6 +70,9 @@ export const FDE_SYSTEM = `你在为一位 FDE（前向部署工程师）预测�
 - 是这个角色真正关心的：材料哪里没写清、哪些推断没依据、口径由谁定、
   哪些必须问客户、接下来该跑什么。
 - 只问答得上、且答了有用的 —— 一个点下去得到"我查不到"的问题，净价值是负的。
+- 用日常中文，尽量不超过 28 个字。不要写 FDE、Ontology、DAG、schema、blocked、
+  Question Ledger 等内部词，也不要堆未解释的英文缩写。
+- 不要自己复述问题条数或材料条数；除非当前项目状态明确给出了同一口径的准确数字。
 
 不要寒暄，不要重复他已经问过的，不要把一个问题拆成两条。`;
 

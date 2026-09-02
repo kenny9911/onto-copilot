@@ -493,6 +493,11 @@
         "effort": null,
         "model": "google/gemini-3.5-flash",
         "overridden": false
+      },
+      "image": {
+        "model": null,
+        "overridden": false,
+        "default": null
       }
     }
   },
@@ -728,6 +733,11 @@
         "effort": null,
         "model": "google/gemini-3.5-flash",
         "overridden": false
+      },
+      "image": {
+        "model": null,
+        "overridden": false,
+        "default": null
       }
     }
   }

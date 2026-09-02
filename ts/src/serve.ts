@@ -43,7 +43,7 @@ import { serve } from "@hono/node-server";
 import type { MiddlewareHandler } from "hono";
 import { HTTPException } from "hono/http-exception";
 
-import { chatUsdCap, installAppConfig, modelOverrides, resolvedLlmConfig } from "./appconfig.js";
+import { chatUsdCap, imageModelOverride, installAppConfig, modelOverrides, resolvedLlmConfig } from "./appconfig.js";
 import { authMiddleware, authRouter, corsOrigins, usersRouter } from "./authgate.js";
 import { configRouter, registerConfigCatalog } from "./configapi.js";
 import { ModelCatalog, currentCatalog } from "./kernel/catalog.js";
@@ -64,16 +64,45 @@ import {
   sessAsync,
 } from "./server/session.js";
 import { getStore } from "./store/deps.js";
-import { registerRepoBuilder } from "./store/deps.js";
+import { registerRepoBuilder, workspaceRoot } from "./store/deps.js";
 import type { Store } from "./store/engine.js";
 import { MemoryRepo } from "./store/repo/memory.js";
 import { PgRepo } from "./store/repo/pg.js";
 import type { Repo } from "./store/repo/protocol.js";
-import type { JsonValue } from "./store/types.js";
-import { decisionToDialogueDict, makeDecisionRow } from "./store/types.js";
+import type { JsonObject, JsonValue } from "./store/types.js";
+import { decisionToDialogueDict, makeDecisionRow, revisionRowFromDomain } from "./store/types.js";
+import { PatchSet, Revision, RevisionStatus } from "./onto/questions.js";
 import { registerFileRoutes } from "./server/routes/files.js";
+import { registerContextRoutes } from "./server/routes/context.js";
+import {
+  buildDraftOntologyPackage,
+  hasDraftOntologySource,
+  registerDraftOntologyRoutes,
+} from "./server/routes/ontology-draft.js";
+import { FileBlobStore } from "./kernel/journal.js";
+// **必须是 canonical 那一份** pyJsonDumps（全仓有四个同名函数）：内容寻址只有在
+// 序列化确定时才有意义，而 `glue/compile.ts` 写 ontology.package.json 用的就是它。
+import { pyJsonDumps as canonicalJsonDumps } from "./onto/canonical.js";
+import { join as pathJoin } from "node:path";
+import { registerPreviewRoutes } from "./server/routes/preview.js";
+import {
+  registerWebPreviewRoutes,
+  type WebModelRequest,
+} from "./server/routes/web-preview.js";
+import { registerLiveBrowserRoutes } from "./server/routes/live-browser.js";
 import { autoTitle, registerSessionRoutes } from "./server/routes/sessions.js";
 import { registerProjectRoutes, rememberDecision } from "./server/routes/projects.js";
+import { registerDocumentRoutes } from "./server/routes/documents.js";
+import { lazyDocumentService } from "./document/deps.js";
+import {
+  lazyDocumentOperations,
+  registerDocumentOcrProcessor,
+} from "./document/operations_deps.js";
+import { registerDocumentKnowledgeRoutes } from "./server/routes/document-knowledge.js";
+import { lazyWikiPageService } from "./document/wiki_deps.js";
+import { registerDocumentConnectorRoutes } from "./server/routes/document-connectors.js";
+import { lazyConnectorManagementService } from "./document/connectors/deps.js";
+import { registerLogRoutes } from "./server/routes/logs.js";
 import {
   answerDomainQuestion,
   questionBacklog,
@@ -96,6 +125,10 @@ import { buildFdeEngagementDag } from "./onto/engagement.js";
 import { buildDag, buildOir, finish, segmentCorpus } from "./onto/pipeline.js";
 import { mineQuestions } from "./onto/gaps.js";
 import * as exportApi from "./onto/export.js";
+import { registerPdfRendererAsync } from "./onto/export.js";
+import { setGatewayMaxConcurrency } from "./kernel/llm.js";
+import { Difficulty } from "./kernel/dag.js";
+import { detectPdfEngine, renderPdfWith } from "./server/glue/pdf.js";
 import { applyFlowEdit } from "./onto/flow_edit.js";
 import { followupPrompts } from "./onto/prompts.js";
 import { registerArtifactRoutes } from "./server/routes/artifacts.js";
@@ -117,7 +150,7 @@ import { tablesInText } from "./server/pipeline/tables.js";
 import { blocksFromMarkdown } from "./onto/export.js";
 import { gateways, moneyFailure } from "./server/usage.js";
 import { warnLowBalance } from "./server/usage.js";
-import { projectMemory, rememberRunLessons } from "./server/routes/projects.js";
+import { projectMemory, rememberRunLessons, saveProjectMemory } from "./server/routes/projects.js";
 import { buildHeartbeatInterval, buildLeaseTtl, runIdFor } from "./server/session.js";
 import { usdCap } from "./appconfig.js";
 import { Speaker } from "./kernel/memory/dialogue.js";
@@ -138,6 +171,7 @@ import {
 import { hydrate as glueHydrate } from "./server/glue/hydrate.js";
 import { act } from "./server/glue/act.js";
 import { exportDoc } from "./server/glue/export_doc.js";
+import { toMermaid } from "./onto/diagram.js";
 import { HARNESS } from "./server/glue/harness.js";
 import { chunkCache, preparse as gluePreparse } from "./server/glue/preparse.js";
 import { pendingQuestions, syncQuestionBacklog } from "./server/glue/questions.js";
@@ -275,6 +309,31 @@ function chatRunDeps(): Parameters<typeof glueChatRun>[1] {
   return { repo: () => currentRepo(), gateways: (dir, runId, o) => gateways(dir, runId, o) };
 }
 
+/** 网页翻译/总结与聊天共用 ModelGateway、Recorder 和 usage ledger。 */
+async function runWebModel(s: Session, request: WebModelRequest): Promise<unknown> {
+  return await glueChatRun(
+    s,
+    chatRunDeps(),
+    {
+      kind: `web.preview.${request.operation}`,
+      semanticInput: request.semanticInput,
+    },
+    async (run) => {
+      const completion = await run.gw.call(
+        `web.preview.${request.operation}`,
+        request.prompt,
+        {
+          system: request.system,
+          difficulty: Difficulty.MEDIUM,
+          schema: request.schema,
+          maxTokens: request.maxTokens,
+        },
+      );
+      return completion.data;
+    },
+  );
+}
+
 /**
  * `server/glue/*` 那一批胶水共用的接缝。**每次现取** —— 与 {@link dialogueDeps}
  * 同一个理由：租约 TTL 和 repo 实例都会在 lifespan 里被换掉。
@@ -368,7 +427,7 @@ function dialogueDeps(): DialogueDeps {
     // （server.py:4692）也没传 sandbox。对话是直接读用户上传材料的地方，
     // 材料里一段伪装成业务说明的指令就能诱导模型去执行代码。
     builtinRegistry: (o) => builtinRegistry({ evidence: seam(o.evidence), oir: seam(o.oir),
-      profiles: seam(o.profiles) }),
+      profiles: seam(o.profiles), ...(o.flow === undefined ? {} : { flow: o.flow }) }),
     preparse: (s, opts) => gluePreparse(seam(s), { vision: seam(opts?.vision ?? null) }),
     // 与 `POST /api/sessions/{sid}/build` **同一份实现**（段 D 的 `pipeline/run.ts`）。
     // Python 侧对话工具、意图动作、HTTP 三个入口调的都是同一个 `_claim_and_start_build`
@@ -376,6 +435,15 @@ function dialogueDeps(): DialogueDeps {
     // 慢慢漂开，而那意味着两条付费 DAG 能同时起来。
     claimAndStartBuild: (s, o) =>
       claimAndStartBuild(seam(s), pipelineDeps(), { tier: o?.tier ?? "full" }),
+    // 「图像」档（设置 → 模型分级 → 图像）候选串的第一个。图像模型被
+    // NOT_CHAT_RE 有意挡在聊天目录外，难度路由给不了它，单独一条口子。
+    imageModel: () => {
+      for (const raw of imageModelOverride().split(/[,、]/)) {
+        const name = raw.trim();
+        if (name !== "") return name;
+      }
+      return null;
+    },
     recompile: (s) => glueRecompile(seam(s), glueDeps()),
     rewriteFlowArtifacts: (s, g) => rewriteFlowArtifacts(seam(s), seam(g)),
     // 与七条路由**同一份实现**。chat 工具那条路带着 `mutationClaimed` 进来 ——
@@ -384,6 +452,44 @@ function dialogueDeps(): DialogueDeps {
     answerDomainQuestion: async (s, qid, body, o) =>
       seam(await answerDomainQuestion(seam(s), qid, body, questionDeps(), o ?? {})),
     rememberDecision: (s, d, o) => rememberDecision(serverEnv(), seam(s), seam(d), o),
+    // 参考档写入。**写失败不抛** —— 记忆写不进去不该把一次成功的解析变成失败，
+    // 同 rememberDecision / rememberRunLessons 那条口径。
+    rememberObservation: async (s, content, o) => {
+      const sess = seam(s) as Session;
+      if (!sess.projectId || !content.trim()) return;
+      try {
+        const pm = await projectMemory(sess.projectId);
+        const item = pm.observe(content, {
+          sessionId: sess.title || sess.id,
+          files: o?.files ?? sess.files.map((f) => f.name),
+          support: [`session:${sess.id}`],
+        });
+        await saveProjectMemory(pm, new Set([item.key]));
+      } catch (exc) {
+        sess.emit("memory.failed", { scope: "project", op: "observe", error: String(exc) });
+      }
+    },
+    recallProjectMemory: async (s, query, o) => {
+      const sess = seam(s) as Session;
+      if (!sess.projectId || !query.trim()) return [];
+      try {
+        const pm = await projectMemory(sess.projectId);
+        return pm
+          .recall(query, {
+            topK: o?.topK ?? 6,
+            currentFiles: new Set(sess.files.map((f) => f.name)),
+          })
+          .map((m) => ({
+            content: m.content,
+            kind: String(m.kind),
+            tier: String(m.tier),
+            confidence: m.confidence,
+          }));
+      } catch {
+        // 召回失败就当没有记忆 —— 它是加分项，不该挡住对话
+        return [];
+      }
+    },
     // `default_registry()` **每次现建**：它不做任何 IO（见 parse/index.ts 的说明），
     // 而缓存一份会把「设置页改了 SQL 方言」挡在下一次重启之后。
     materialTable: async (s, file, sheet, contains, columns) =>
@@ -398,6 +504,9 @@ function dialogueDeps(): DialogueDeps {
             repo: () => currentRepo(),
             dialogue: (x) => dialogueOf(seam(x)),
             registry: () => parseRegistry.defaultRegistry(),
+            toMermaid: (g) => toMermaid(seam(g)),
+            // 文档头里的生成时间。注入而不是模块内部读钟 —— 见 ExportDocDeps.now。
+            now: () => Date.now() / 1000,
           },
           source,
           contains,
@@ -405,11 +514,69 @@ function dialogueDeps(): DialogueDeps {
           name,
         ),
       ),
-    exportApi: seam(exportApi),
+    // render 换成异步口：pdf 走子进程排版，其余格式仍是同步 render 的外壳。
+    // 端口本来就声明成 Promise（ports.ts），调用方一行不用改。
+    exportApi: seam({ ...exportApi, render: exportApi.renderAsync }),
+    // `revision.diff` 的两条读侧。都不写任何东西。
+    listRevisions: async (s) => await (await currentRepo()).listRevisions(s.id),
+    readSnapshot: async (s, ref) => {
+      const blobs = new FileBlobStore(pathJoin(s.dir, "blobs"));
+      // 读不出来要**抛**：回 null 会被 diff 读成一份空包，也就是「所有东西
+      // 都被删了」—— 把一次读取失败伪装成一次大规模变更。
+      return JSON.parse(new TextDecoder().decode(await blobs.get(ref))) as unknown;
+    },
+    // 写侧：对话编辑 → 耐久 revision（kind=dialogue_edit）。**自吞异常**是端口
+    // 契约（ports.ts）：编辑本体已经生效，记账失败只发事件，不冒泡砸编辑。
+    editRevision: async (s, info) => {
+      try {
+        let snapshotHash = "";
+        try {
+          snapshotHash = await draftSnapshotRef(seam(s));
+        } catch (exc) {
+          s.emit("revision.snapshot_failed", {
+            tool: info.tool,
+            error: exc instanceof Error ? `${exc.name}: ${exc.message}` : String(exc),
+          });
+        }
+        const idem = `edit:${info.tool}:${newToken()}`;
+        const rev = new Revision({
+          id: "rev.pending", // repo.appendRevision 持锁发号，同 answer 路径
+          ordinal: 0,
+          parentId: null,
+          kind: "dialogue_edit",
+          status: RevisionStatus.APPLIED,
+          patchSet: new PatchSet({
+            id: `patch.${idem}`,
+            baseRevision: 0,
+            ops: [],
+            affectedIds: [...info.changedIds],
+            idempotencyKey: idem,
+            actor: "user",
+            reason: info.label,
+          }),
+          changedIds: info.changedIds,
+          snapshotHash,
+          invalidatedArtifacts: [],
+          actor: "user",
+          sourceTurn: "",
+        });
+        // 领域对象 → repo 行的接缝（同 routes/questions.ts 的 asDoc）：toDict 的
+        // Record<string, unknown> 与 JsonObject 值相同，只是 TS 不认。
+        await (await currentRepo()).appendRevision(
+          s.id,
+          revisionRowFromDomain({ toDict: () => rev.toDict() as JsonObject }, idem),
+        );
+      } catch (exc) {
+        s.emit("revision.append_failed", {
+          tool: info.tool,
+          error: exc instanceof Error ? `${exc.name}: ${exc.message}` : String(exc),
+        });
+      }
+    },
     // 本进程内渲染（resvg）。`svgToPng` 是同步的 —— 包一层 async 是因为端口
     // 声明的是 Promise：一张流程图几百 KB，将来换个渲染器要异步也不用改接口。
     renderSvgPng: (svg, opts) => Promise.resolve(svgToPng(svg, opts ?? {})),
-    applyFlowEdit: (g, op, args) => applyFlowEdit(seam(g), op, seam(args)),
+    applyFlowEdit: (g, op, args, opts) => applyFlowEdit(seam(g), op, seam(args), opts),
     tablesInText: (text, ts) => tablesInText(text, ts, seam(blocksFromMarkdown)),
 
     settleFollowups: (s, o) => seam(settleFollowups(seam(s), o)),
@@ -466,6 +633,10 @@ function pipelineDeps(): PipelineDeps {
       await emitAiPrompts(seam(s), emitDeps(), { slot: o.slot });
     },
     persistDecisions: (s, dm) => persistDecisions(s, dm),
+    // 跑中排队的人工拍板，Run 收尾时按序落账。走的仍是同一个回答实现；
+    // mutationClaimed:true —— 收尾这一刻本来就在 build 租约里。
+    answerQueuedDecision: async (s, qid, body) =>
+      seam(await answerDomainQuestion(seam(s), qid, body, questionDeps(), { mutationClaimed: true })),
 
     registry: (o) => parseRegistry.defaultRegistry(seam(o)),
     buildIndex: (docs) => seam(parseRegistry.buildIndex(seam(docs))),
@@ -528,6 +699,17 @@ function pipelineDeps(): PipelineDeps {
  * `syncQuestionBacklog` 这里不传 `oir`** —— 它自己会从 `s.state["_oir"]` 取，
  * 与 Python 的 `oir = oir or s.state.get("_oir")` 是同一条路。
  */
+/**
+ * 当前草案本体的内容寻址快照 ref。questionDeps.snapshot 与对话侧 editRevision
+ * 共用这一份 —— 两个生产者各写一遍编译/序列化/blob 布局，口径迟早漂移。
+ * 还没有本体可快照回空串（正常状态，不是故障）。
+ */
+async function draftSnapshotRef(s: Session): Promise<string> {
+  if (!hasDraftOntologySource(s)) return "";
+  const blobs = new FileBlobStore(pathJoin(s.dir, "blobs"));
+  return await blobs.put(canonicalJsonDumps(buildDraftOntologyPackage(s), null));
+}
+
 function questionDeps(): QuestionDeps {
   return {
     persist: (s) => PARTS.persist(s),
@@ -539,6 +721,52 @@ function questionDeps(): QuestionDeps {
         clarification: o?.clarification ?? null,
         conflicts: o?.conflicts ?? null,
       }),
+    // 三样都是现成的：`FileBlobStore` 内容寻址（`kernel/journal.ts`，engagement
+    // recorder 已经在用同一个目录布局）、`buildDraftOntologyPackage` 只读且
+    // 不推进 revision（`routes/ontology-draft.ts`）、`snapshot_hash` 列早就存在
+    // 且读写打通。这里只是把它们接上 —— 零 schema 迁移、零新依赖。
+    //
+    // 用 canonical package 而不是 OIR 原始投影：包里的 id 是稳定的
+    // （do.* / attr.* / rel.* / act.* / rule.*），而 rid 由名字派生，
+    // 一次改名在 rid 世界里会渲染成「删一个加一个」。
+    snapshot: async (s) => {
+      // 还没有本体可快照是**正常状态**，不是故障 —— 回空串，别让 409 冒上去
+      // 变成一条 `revision.snapshot_failed` 告警（那会让人去查不存在的问题）。
+      return await draftSnapshotRef(s);
+    },
+    // 访谈包一键下载：复用对话侧 export.file 的同一条组包/渲染链
+    // （export_doc.ts 组 ExportDoc → onto/export.ts 渲染），别在 HTTP 层再造一份。
+    exportKit: async (s, format) => {
+      const fmt = exportApi.resolveFormat(format);
+      if (!fmt || !exportApi.availableFormats().includes(fmt)) {
+        return {
+          error: `不支持的格式「${format}」。可用：${exportApi.availableFormats().join("/")}`,
+        };
+      }
+      const [doc, receipt] = await exportDoc(
+        seam(s),
+        {
+          repo: () => currentRepo(),
+          dialogue: (x) => dialogueOf(seam(x)),
+          registry: () => parseRegistry.defaultRegistry(),
+          toMermaid: (g) => toMermaid(seam(g)),
+        },
+        "interview_kit",
+        "",
+        "",
+        "",
+      );
+      if (doc === null) {
+        const why = (receipt as Record<string, unknown>)["error"];
+        return { error: typeof why === "string" && why ? why : "访谈包没有内容。" };
+      }
+      const [data, spec] = await exportApi.render(seam(doc), fmt);
+      return {
+        name: exportApi.safeName(doc.title, spec.ext),
+        data,
+        mediaType: spec.media_type,
+      };
+    },
   };
 }
 
@@ -610,8 +838,14 @@ const PARTS: {
     persistCheckpoint(seam(s), { repo: () => currentRepo(), now, persistDecisions }, opts ?? {}),
   // `async with _session_mutation(s, kind)`：跨 worker 串行一次领域修改。
   // deps **每次现取**，这样 lifespan 重算过的租约 TTL 立刻生效。
+  // claimWaitMs：非聊天的领域修改对租约**排队**而不是秒拒 —— 一把拖 8 份材料，
+  // 首份的 preparse 持锁期间其余 7 份曾经全部 409（E2E 实测的红叉风暴）。
+  // 聊天路径不走这里（dialogue.ts 的 chatRoute 自己调 withSessionMutation，
+  // 缺省 0 保持秒拒）。45s 上限 > 最大单份材料的 preparse 实测耗时。
   sessionMutation: (s, kind, body) =>
-    withSessionMutation(seam(s), dialogueDeps(), kind, {}, async () => await body()),
+    withSessionMutation(seam(s), dialogueDeps(), kind, { claimWaitMs: 45_000 }, async () =>
+      await body(),
+    ),
   busy: (s) => isBusy(seam(s)),
   preparse: (s) => gluePreparse(s),
   dialogue: (s) => dialogueOf(seam(s)),
@@ -709,6 +943,25 @@ export function wireServer(): void {
   registerAuthMiddleware(authMiddleware() as unknown as MiddlewareHandler<AppEnv>);
   // 4. 允许的跨域来源：每个请求现算，设置页改了不必重启
   registerCorsOrigins(() => corsOrigins());
+  // 4.4 网关全局并发上限（P0）：节点并发 × 节点内并发不能无闸地打到上游。
+  //     重放路径不受影响（闸在 rec.effect 内侧的真实网络调用上）。
+  //     0 或负数 = 不限（回到旧行为）。
+  {
+    const raw = (process.env["ONTOCOPILOT_GATEWAY_CONCURRENCY"] ?? "6").trim();
+    const limit = Number.parseInt(raw, 10);
+    setGatewayMaxConcurrency(Number.isFinite(limit) && limit > 0 ? limit : null);
+    console.log(`[llm] 网关并发上限：${Number.isFinite(limit) && limit > 0 ? limit : "不限"}`);
+  }
+  // 4.5 PDF 排版器：探到什么接什么。探不到就**不注册** —— `availableFormats()`
+  //     里于是没有 pdf，模型据此说「这台机器导不出 pdf」，而不是先答应再失败。
+  //     用异步口：排版是个跑两秒的子进程，同步做会把整台服务卡住（见 glue/pdf.ts）。
+  const pdfEngine = detectPdfEngine();
+  if (pdfEngine !== null) {
+    registerPdfRendererAsync(async (html, css) => await renderPdfWith(pdfEngine, html, css));
+    console.log(`[export] PDF 排版器已接：${pdfEngine.label}（${pdfEngine.path}）`);
+  } else {
+    console.log("[export] 没找到 PDF 排版器（Chrome/Chromium/Edge），本进程导不出 pdf");
+  }
   // 5. 模型目录：`gateways()` 用过滤后的那一份，设置页用未过滤的内置目录
   //    （与 Python 的 `_ensure_catalog()` / `ModelCatalog()` 两个调用点一一对应）
   installCatalogPort();
@@ -757,7 +1010,48 @@ export function wireServer(): void {
   app.route("/", configRouter());
   registerSessionRoutes(app, env);
   registerFileRoutes(app, env);
+  registerContextRoutes(app);
+  registerDraftOntologyRoutes(app);
+  registerPreviewRoutes(app);
+  registerWebPreviewRoutes(app, {
+    model: runWebModel,
+    persist: (s) => env.persist(s, { status: false }),
+    sessionMutation: (s, kind, body) => env.sessionMutation(s, kind, body),
+  });
+  registerLiveBrowserRoutes(app);
   registerProjectRoutes(app);
+  registerDocumentOcrProcessor({
+    name: "vision-registry",
+    version: "1",
+    async process(context) {
+      // 每次尝试独立 journal；请求只能选择 exact document/version，不能提供 out/path/url。
+      const runId = `${context.job.id}-attempt-${context.job.attempts}`;
+      const out = pathJoin(workspaceRoot(), "document-jobs", context.job.id, String(context.job.attempts));
+      const gws = gateways(out, runId, {
+        kind: "document_ocr",
+        owner: context.job.owner,
+      });
+      return parseRegistry.defaultRegistry({
+        visionGateway: seam(gws.smart),
+        // VisionParser 每页都会报一次进度，顺便续租；失败由处理结束后的强校验兜住。
+        visionProgress: () => {
+          void context.heartbeat().catch(() => undefined);
+        },
+      }).parse(context.exactPath, { fileId: context.version.id });
+    },
+  });
+  const documents = lazyDocumentService();
+  registerDocumentRoutes(app, { documents, operations: lazyDocumentOperations() });
+  registerDocumentKnowledgeRoutes(app, {
+    documents,
+    wiki: lazyWikiPageService(),
+  });
+  registerDocumentConnectorRoutes(app, {
+    connectors: lazyConnectorManagementService(),
+  });
+  // 全量日志。**故意不在 /api/sessions/ 下面** —— authgate 那道按 owner 判的
+  // 中间件对管理员也不豁免，挂进去管理员看别人的会话只会拿到 404。
+  registerLogRoutes(app);
   registerStreamRoutes(app);
   registerForkRoutes(app, env);
   registerArtifactRoutes(seam(app), {
@@ -774,6 +1068,12 @@ export function wireServer(): void {
     persist: (s) => PARTS.persist(s),
     recompile: (s) => glueRecompile(seam(s), glueDeps()),
     sessionMutation: (s, kind, body) => PARTS.sessionMutation(s, kind, body),
+    // 访谈包回传的落账通道 —— 与聊天里的 question.answer、审阅页的提交**同一条**
+    // 权威路径。mutationClaimed: true —— audit 路由已在 sessionMutation 租约里。
+    answerQuestion: async (s, qid, body) =>
+      seam(await answerDomainQuestion(seam(s), qid, body, questionDeps(), {
+        mutationClaimed: true,
+      })) as Record<string, unknown>,
   });
   registerQuestionRoutes(app, questionDeps());
   app.route("/", pipelineRoutes(pipelineDeps()));
@@ -861,8 +1161,26 @@ export class ArgError extends Error {
   }
 }
 
+/** 端口/地址的默认值，取自环境（`.env` 已由 main.ts 在 chdir 之后载入）。
+ *
+ * **为什么要有这个**：端口原来只能靠命令行传，于是同一台机器上先后起的服务各用
+ * 各的端口，谁也不知道浏览器连的是哪一个 —— 真实后果是改动验证全打在空处，因为
+ * 那个端口上跑的是几小时前启动的旧进程。把它固定在 `.env` 里，"启动"就只有一种
+ * 结果。命令行显式传 `--port` 仍然优先（临时起第二个实例时用）。
+ *
+ * 解析不出整数就退回内置默认值，**不抛** —— `.env` 写歪了不该让服务起不来，
+ * 而显式 `--port abc` 该报错（那是 argparse 的语义，见下面）。 */
+function envDefaults(env: NodeJS.ProcessEnv = process.env): Pick<ServeArgs, "host" | "port"> {
+  const rawPort = (env["ONTOCOPILOT_PORT"] ?? "").trim();
+  const port = /^\d+$/.test(rawPort) && Number(rawPort) > 0 && Number(rawPort) < 65536
+    ? Number(rawPort)
+    : 8000;
+  const host = (env["ONTOCOPILOT_HOST"] ?? "").trim() || "127.0.0.1";
+  return { host, port };
+}
+
 export function parseArgs(argv: readonly string[]): ServeArgs {
-  const out: ServeArgs = { host: "127.0.0.1", port: 8000, reload: false };
+  const out: ServeArgs = { ...envDefaults(), reload: false };
   for (let i = 0; i < argv.length; i += 1) {
     const a = argv[i]!;
     const eq = a.indexOf("=");

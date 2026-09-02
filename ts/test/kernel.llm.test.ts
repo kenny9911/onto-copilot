@@ -10,6 +10,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 import { Budget } from "../src/kernel/budget.js";
+import { BudgetExhausted } from "../src/kernel/errors.js";
 import { Difficulty } from "../src/kernel/dag.js";
 import { EventKind } from "../src/kernel/events.js";
 import {
@@ -578,6 +579,28 @@ describe("路由表", () => {
       .effort).toBeNull();
   });
 
+  it("按档多候选（人手配的顺序就是优先序）：取目录里第一个在的", () => {
+    // 第一候选不在目录 → 落到第二候选
+    const r = gatewayRouting(
+      { high: "some/unknown-model, openai/gpt-5.5" },
+      CATALOG,
+    );
+    expect(r.modelFor(Difficulty.HIGH).name).toBe("openai/gpt-5.5");
+    // 顿号、空格分隔一视同仁；第一候选在目录就用第一
+    const r2 = gatewayRouting(
+      { high: "openai/gpt-5.5、google/gemini-3.5-flash" },
+      CATALOG,
+    );
+    expect(r2.modelFor(Difficulty.HIGH).name).toBe("openai/gpt-5.5");
+    // 全都不在目录 → 保守用第一候选（无 effort、中档定价），不炸
+    const r3 = gatewayRouting({ high: "a/x, b/y" }, CATALOG);
+    expect(r3.modelFor(Difficulty.HIGH).name).toBe("a/x");
+    expect(r3.modelFor(Difficulty.HIGH).effort).toBeNull();
+    // 无目录（离线）→ 第一候选原样
+    const r4 = gatewayRouting({ high: "a/x, b/y" }, null);
+    expect(r4.modelFor(Difficulty.HIGH).name).toBe("a/x");
+  });
+
   it("modelFor / judgeFor 的返回与报错", () => {
     const stub = stubRouting();
     for (const c of GOLDEN["routing"].model_for as any[]) {
@@ -1102,6 +1125,43 @@ describe("OpenAICompatBackend", () => {
     expect(usage.tok_in).toBe(10);
   });
 
+  it("2xx 截断体：进重试循环，不许抛裸 SyntaxError（EXTRACT.s37_27 案发路径）", async () => {
+    const gw = new FakeGateway([
+      [200, '{"choices":[{"message":{"content":"ok"'], // 网关悬死后吐出半个体
+      [200, OK_BODY],
+    ]);
+    const { be, sleeps } = makeBackend(gw);
+    const [text] = await be.generate({ model: SPEC, prompt: "hi", maxTokens: 100 });
+    expect(text).toBe("ok");
+    expect(gw.hits).toBe(2);
+    expect(sleeps).toEqual([800]);
+  });
+
+  it("响应体读取失败（body 阶段超时/连接中断）：按瞬时故障重试，不吞成空串", async () => {
+    let calls = 0;
+    const be = new OpenAICompatBackend("http://gw.test/v1", "k", {
+      maxRetries: 3,
+      fetchImpl: () => {
+        calls += 1;
+        if (calls === 1) {
+          return Promise.resolve({
+            status: 200,
+            headers: new Headers(),
+            text: () => Promise.reject(new Error("terminated: body timeout")),
+          } as unknown as Response);
+        }
+        return Promise.resolve(
+          new Response(OK_BODY, { status: 200, headers: { "content-type": "application/json" } }),
+        );
+      },
+      sleep: () => Promise.resolve(),
+      rng: () => 0,
+    });
+    const [text] = await be.generate({ model: SPEC, prompt: "hi", maxTokens: 100 });
+    expect(text).toBe("ok");
+    expect(calls).toBe(2);
+  });
+
   it("一直限流：走完重试后报普通失败，**不是**余额不足", async () => {
     const gw = new FakeGateway([[429, RATE_429]]);
     const { be, sleeps } = makeBackend(gw, 2);
@@ -1605,5 +1665,62 @@ describe("SSE / 流式解析", () => {
         maxTokens: 100,
       }),
     ).rejects.toThrow(QuotaExhausted);
+  });
+});
+
+// ══════════════════════════════════════════════════════════════════
+//  P0：起跑前预检 —— tokens/usd 两维在真实网络调用前先问一次额度
+// ══════════════════════════════════════════════════════════════════
+describe("网关起跑前额度预检", () => {
+  const okItem: [string, Usage] = ['{"ok": true}', new Usage({ tok_in: 10, tok_out: 5 })];
+
+  it("tokens 已耗尽 → 不打网络直接抛 BudgetExhausted", async () => {
+    const backend = new SequencedBackend([okItem]);
+    const budget = new Budget({ tokens: 100 });
+    budget.spend({ tokens: 100 });
+    const gw = new ModelGateway(backend, new FakeRecorder("r-pre"), {
+      routing: stubRouting(),
+      budget,
+    });
+    await expect(
+      gw.call("NODE", "hi", { difficulty: Difficulty.LOW, schema: SCHEMA_OK }),
+    ).rejects.toThrow(BudgetExhausted);
+    expect(backend.calls, "额度耗尽后一个网络包都不该出去").toHaveLength(0);
+  });
+
+  it("usd 已耗尽 → 同样拦在网络调用之前", async () => {
+    const backend = new SequencedBackend([okItem]);
+    const budget = new Budget({ usd: 1 });
+    budget.spend({ usd: 1 });
+    const gw = new ModelGateway(backend, new FakeRecorder("r-pre2"), {
+      routing: stubRouting(),
+      budget,
+    });
+    await expect(
+      gw.call("NODE", "hi", { difficulty: Difficulty.LOW, schema: SCHEMA_OK }),
+    ).rejects.toThrow(BudgetExhausted);
+    expect(backend.calls).toHaveLength(0);
+  });
+
+  it("重放豁免：超支的历史 journal 仍能恢复（预检只管活调用）", async () => {
+    const journal = new FakeJournal();
+    const backend = new SequencedBackend([okItem]);
+    const gw = new ModelGateway(backend, new FakeRecorder("r-replay-pre", journal), {
+      routing: stubRouting(),
+      budget: new Budget(),
+    });
+    await gw.call("NODE", "hi", { difficulty: Difficulty.LOW, schema: SCHEMA_OK });
+    expect(backend.calls).toHaveLength(1);
+
+    // 恢复现场：新预算一开始就是耗尽的（比如管理员调低了上限）。
+    const drained = new Budget({ tokens: 1 });
+    drained.spend({ tokens: 1 });
+    const gw2 = new ModelGateway(backend, new FakeRecorder("r-replay-pre", journal), {
+      routing: stubRouting(),
+      budget: drained,
+    });
+    const c = await gw2.call("NODE", "hi", { difficulty: Difficulty.LOW, schema: SCHEMA_OK });
+    expect(c.data).toEqual({ ok: true });
+    expect(backend.calls, "重放不打网络，也不受预检拦截").toHaveLength(1);
   });
 });

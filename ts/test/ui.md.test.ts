@@ -26,6 +26,40 @@ describe("md()", () => {
     expect(md("用 `a*b*` 表示")).toBe('用 <code class="mdik">a*b*</code> 表示');
   });
 
+  it("把内部 WEB 引用收成稳定编号，重复引用沿用同一编号", () => {
+    const out = md("结论一 WEB[web_0123456789abcdef]；再引用 WEB[web_0123456789abcdef]；另一条 WEB[web_fedcba9876543210]");
+    expect(out).not.toContain("WEB[");
+    expect(out.match(/>\[1\]<\/a>/g)).toHaveLength(2);
+    expect(out.match(/>\[2\]<\/a>/g)).toHaveLength(1);
+    expect(out).toContain('data-source-id="web_0123456789abcdef"');
+    expect(out).toContain('aria-label="查看网络来源 1"');
+  });
+
+  it("代码里的 WEB 字样不变，畸形 source id 不会进入属性", () => {
+    expect(md("`WEB[web_0123456789abcdef]`")).toContain("WEB[web_0123456789abcdef]");
+    const out = md('WEB[x"><img src=x onerror=alert(1)>]');
+    expect(out).not.toContain("<img");
+    expect(out).not.toContain("web-citation-link");
+  });
+
+  it("公开 http(s) Markdown 链接可打开，危险协议和带凭证 URL 仍是普通文字", () => {
+    const safe = md("[财政部](https://www.mof.gov.cn/index.htm?q=1&x=2)");
+    expect(safe).toContain('class="mdlink"');
+    expect(safe).toContain('target="_blank"');
+    expect(safe).toContain('rel="noopener noreferrer"');
+    expect(safe).toContain("https://www.mof.gov.cn/index.htm?q=1&amp;x=2");
+    expect(md("[坏](javascript:alert(1))")).not.toContain('class="mdlink"');
+    expect(md("[坏](https://u:p@example.com/a)")).not.toContain('class="mdlink"');
+  });
+
+  it("兼容旧回答的菱形前缀，但界面只保留来源编号", () => {
+    const out = md("依据：◧ WEB[web_0123456789abcdef]");
+    expect(out).toContain("依据：");
+    expect(out).not.toContain("◧");
+    expect(out).not.toContain("WEB[");
+    expect(out).toContain(">[1]</a>");
+  });
+
   it("加粗在斜体之前 —— ** 不会被单星规则先吃掉", () => {
     expect(md("**粗** 和 *斜*")).toBe("<strong>粗</strong> 和 <em>斜</em>");
     expect(md("*(补充说明)*")).toBe("<em>(补充说明)</em>");

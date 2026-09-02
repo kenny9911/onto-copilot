@@ -1,0 +1,145 @@
+{
+  "type": "object",
+  "required": [
+    "stages",
+    "nodes",
+    "edges",
+    "caveats"
+  ],
+  "properties": {
+    "stages": {
+      "type": "array",
+      "description": "阶段（泳道）。按业务节拍分，不要按文档章节分。",
+      "items": {
+        "type": "object",
+        "required": [
+          "key",
+          "title"
+        ],
+        "properties": {
+          "key": {
+            "type": "string",
+            "minLength": 1
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "subtitle": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "nodes": {
+      "type": "array",
+      "description": "环节。每一个都必须有 evidence —— 材料里没写的不许出现在这里，写进 caveats。",
+      "items": {
+        "type": "object",
+        "required": [
+          "key",
+          "kind",
+          "label",
+          "stage",
+          "evidence"
+        ],
+        "properties": {
+          "key": {
+            "type": "string",
+            "minLength": 1
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "action",
+              "event",
+              "gateway",
+              "terminal",
+              "external"
+            ]
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1
+          },
+          "stage": {
+            "type": "string",
+            "minLength": 1
+          },
+          "actor": {
+            "type": "string",
+            "description": "执行者。材料里写了才填，没写就留空 —— 不要猜。"
+          },
+          "evidence": {
+            "type": "object",
+            "required": [
+              "chunk_id",
+              "quote"
+            ],
+            "properties": {
+              "chunk_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "quote": {
+                "type": "string",
+                "minLength": 4,
+                "description": "从该 chunk **原样抄**的句子，不要复述、不要改写。"
+              }
+            }
+          }
+        }
+      }
+    },
+    "edges": {
+      "type": "array",
+      "description": "环节之间的先后关系。同样每条都要 evidence。",
+      "items": {
+        "type": "object",
+        "required": [
+          "from",
+          "to",
+          "evidence"
+        ],
+        "properties": {
+          "from": {
+            "type": "string",
+            "minLength": 1
+          },
+          "to": {
+            "type": "string",
+            "minLength": 1
+          },
+          "label": {
+            "type": "string",
+            "description": "分支条件写在这里，如「金额>5万」。"
+          },
+          "evidence": {
+            "type": "object",
+            "required": [
+              "chunk_id",
+              "quote"
+            ],
+            "properties": {
+              "chunk_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "quote": {
+                "type": "string",
+                "minLength": 4
+              }
+            }
+          }
+        }
+      }
+    },
+    "caveats": {
+      "type": "array",
+      "description": "材料没说清、但流程要成立就必须知道的事。这些会变成问业务方的问题。",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

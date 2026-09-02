@@ -37,15 +37,18 @@ beforeEach(() => {
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
 
 describe("tab 条", () => {
-  it("网关那一栏只有管理员看得见", () => {
+  it("网关那一栏只有管理员看得见，**日志那一栏所有人都有**", () => {
     const admin = render(<SettingsTabs />);
     expect([...admin.container.querySelectorAll(".stab")].map(b => b.textContent))
-      .toEqual([zh("appearance.title"), zh("usage.title"), zh("settings.gateway")]);
+      .toEqual([zh("appearance.title"), zh("usage.title"), zh("logs.title"), zh("settings.gateway")]);
     cleanup();
     G.CURRENT_USER = { id: "u2", username: "bob", role: "user" };
     const plain = render(<SettingsTabs />);
+    // 日志**不**按管理员收起：普通用户看的是自己跟 AI 说过什么，那本来就是他的数据。
+    // 真正的可见范围在服务端 /api/logs/* 判 —— 前端藏 tab 只是把入口藏了，
+    // 数据该给谁不该给谁跟这里无关。
     expect([...plain.container.querySelectorAll(".stab")].map(b => b.textContent))
-      .toEqual([zh("appearance.title"), zh("usage.title")]);
+      .toEqual([zh("appearance.title"), zh("usage.title"), zh("logs.title")]);
   });
 
   it("选中的那个带 .on，别的不带", () => {
@@ -205,5 +208,124 @@ describe("网关表单", () => {
     const ok = render(<ConfigForm />);
     expect((ok.container.querySelector("#cfgSaved") as any).style.display).toBe("inline");
     expect(ok.container.querySelector("#cfgSaved")!.textContent).toBe(zh("settings.saved"));
+  });
+});
+
+// ══════════════════════════════════════════════════════════════════
+//  模型分级：从「自己敲逗号串」变成从目录里挑
+//
+//  2026-08-25 用户要求：「模型分配，我希望可以在一系列模型里选择，并且不同等级
+//  的可以分配多个」。后端早就收逗号候选串（顺序即优先序，跑的时候取目录里第一个
+//  可用的），缺的是界面 —— 此前是一个要用户手打模型名的输入框。
+// ══════════════════════════════════════════════════════════════════
+describe("模型分级多选", () => {
+  const config = {
+    gateway: { base_url: "https://gw/v1" },
+    tiers: { low: { candidates: "m-small, m-big", model: "m-small" }, high: {} },
+    catalog: [{ name: "m-small" }, { name: "m-big", vendor: "acme", quality: "high" }, { name: "m-new" }],
+    budget: {}, env: [], balance: { known: false },
+  };
+
+  const chips = (root: Element, tk: string) => Array.from(
+    root.querySelectorAll(`[data-tier="${tk}"] .tier-chip`) as any[]);
+
+  it("已配的候选按优先序显示成芯片，序号看得见", () => {
+    G.CONFIG = config;
+    const { container } = render(<ConfigForm />);
+    expect(chips(container, "low").map((c: any) => c.textContent)).toEqual(
+      expect.arrayContaining([expect.stringContaining("m-small"), expect.stringContaining("m-big")]));
+    expect(chips(container, "low")[0]!.textContent).toContain("1");
+    expect(chips(container, "high")).toHaveLength(0);
+  });
+
+  it("从目录下拉里加一个 → 芯片和隐藏输入同时更新（保存读的是隐藏输入）", () => {
+    G.CONFIG = config;
+    const { container } = render(<ConfigForm />);
+    const add: any = container.querySelector('[data-tier="high"] .tier-add');
+    // 已选过的不再出现在下拉里，避免重复配同一个模型
+    fireEvent.change(add, { target: { value: "m-new" } });
+    expect(chips(container, "high").map((c: any) => c.textContent.replace(/\D+/gu, "") ? c.textContent : c.textContent))
+      .toHaveLength(1);
+    expect((container.querySelector("#tier_high") as any).value).toBe("m-new");
+  });
+
+  it("移除一个 → 隐藏输入跟着变；全移除就是空串（＝回默认）", () => {
+    G.CONFIG = config;
+    const { container } = render(<ConfigForm />);
+    fireEvent.click(chips(container, "low")[0]!.querySelector(".tier-drop") as any);
+    expect((container.querySelector("#tier_low") as any).value).toBe("m-big");
+    fireEvent.click(chips(container, "low")[0]!.querySelector(".tier-drop") as any);
+    expect((container.querySelector("#tier_low") as any).value).toBe("");
+  });
+
+  it("能上移改优先序 —— 顺序就是「先用哪个」", () => {
+    G.CONFIG = config;
+    const { container } = render(<ConfigForm />);
+    fireEvent.click(chips(container, "low")[1]!.querySelector(".tier-up") as any);
+    expect((container.querySelector("#tier_low") as any).value).toBe("m-big, m-small");
+  });
+
+  it("下拉里不重复列已选的模型", () => {
+    G.CONFIG = config;
+    const { container } = render(<ConfigForm />);
+    const opts = Array.from(container.querySelectorAll('[data-tier="low"] .tier-add option') as any[])
+      .map((o: any) => o.value).filter(Boolean);
+    expect(opts).toEqual(["m-new"]);
+  });
+
+  it("说清楚多个候选是什么意思 —— 不让用户猜顺序有没有用", () => {
+    G.CONFIG = config;
+    const { container } = render(<ConfigForm />);
+    expect(container.querySelector(".tier-hint")?.textContent).toContain("第一个可用");
+  });
+
+  /**
+   * 「图像」档的可选列表来自网关探测（image_catalog），不是聊天目录 ——
+   * 聊天目录被 NOT_CHAT_RE 有意挡住出图模型，从那里永远选不到。
+   * 探测失败列表为空时，下拉消失、手填框兜底（设置页不能因为网关抖而废掉）。
+   */
+  it("图像档：网关探出清单就出下拉，聊天模型不混进来", () => {
+    G.CONFIG = { ...config, image_catalog: ["openai/gpt-5.4-image-2", "dall-e-3"] };
+    const { container } = render(<ConfigForm />);
+    const opts = Array.from(container.querySelectorAll('[data-tier="image"] select option') as any[])
+      .map((o: any) => o.value).filter(Boolean);
+    expect(opts).toEqual(["openai/gpt-5.4-image-2", "dall-e-3"]);
+    // 手填框仍在（兜底）
+    expect(container.querySelector('[data-tier="image"] input.tier-add')).not.toBeNull();
+  });
+
+  it("图像档：清单为空只剩手填框，没有空下拉", () => {
+    G.CONFIG = { ...config, image_catalog: [] };
+    const { container } = render(<ConfigForm />);
+    expect(container.querySelector('[data-tier="image"] select')).toBeNull();
+    expect(container.querySelector('[data-tier="image"] input.tier-add')).not.toBeNull();
+  });
+
+  /**
+   * 用户实报的 bug：加完出图模型点保存，**存不上**。
+   * 根因：saveConfig 的档位循环写死 ["low","medium","high","critical"] ——
+   * 图像档的隐藏输入更新了，保存时根本不读；保存后服务端返回的旧配置
+   * 把 chip 又冲掉，看起来就是"无法保存"。
+   * 这条测试走**真实路径**：手填框回车加 chip → saveConfig → 断言请求体。
+   */
+  it("★ 图像档加了模型后保存，请求体里必须带 models.image", async () => {
+    G.CONFIG = { ...config, image_catalog: [] };
+    const { container } = render(<ConfigForm />);
+
+    const free = container.querySelector('[data-tier="image"] input.tier-add') as HTMLInputElement;
+    free.value = "openai/gpt-5.4-image-2";
+    fireEvent.keyDown(free, { key: "Enter" });
+    // chip 已加、隐藏输入已更新
+    expect((container.querySelector("#tier_image") as HTMLInputElement).value)
+      .toBe("openai/gpt-5.4-image-2");
+
+    const { saveConfig } = await import("../src/ui/settings.js");
+    await saveConfig();
+
+    const calls = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls
+      .filter(([url]) => String(url).includes("/api/config"));
+    expect(calls.length, "应当发出保存请求").toBeGreaterThan(0);
+    const body = JSON.parse(String(calls[0]![1]!.body));
+    expect(body.models?.image).toBe("openai/gpt-5.4-image-2");
   });
 });

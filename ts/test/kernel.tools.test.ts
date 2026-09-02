@@ -416,7 +416,13 @@ describe("ToolRegistry（按作用域授权）", () => {
 class FakeRecorder implements ToolRecorder {
   readonly emitted: { kind: EventKind; nodeId?: string; payload?: Record<string, unknown> }[] =
     [];
-  readonly effects: { nodeId: string; kind: string; request: Record<string, unknown>; key?: string | null }[] =
+  readonly effects: {
+    nodeId: string;
+    kind: string;
+    request: Record<string, unknown>;
+    key?: string | null;
+    replay?: "reuse" | "never";
+  }[] =
     [];
 
   emit(kind: EventKind, opts: { nodeId?: string; payload?: Record<string, unknown> }): unknown {
@@ -429,9 +435,15 @@ class FakeRecorder implements ToolRecorder {
     kind: string,
     request: Record<string, unknown>,
     fn: () => unknown | Promise<unknown>,
-    opts?: { key?: string | null },
+    opts?: { key?: string | null; replay?: "reuse" | "never" },
   ): Promise<unknown> {
-    this.effects.push({ nodeId, kind, request, key: opts?.key ?? null });
+    this.effects.push({
+      nodeId,
+      kind,
+      request,
+      key: opts?.key ?? null,
+      ...(opts?.replay === undefined ? {} : { replay: opts.replay }),
+    });
     return await fn();
   }
 }
@@ -507,6 +519,19 @@ describe("ToolRegistry.call", () => {
     await reg.call("t", { idempotency_key: "k1" }, { rec });
     expect(rec.effects[0]!.nodeId).toBe("TOOL");
     expect(rec.effects[0]!.key).toBe("tool:t:k1");
+  });
+
+  it("document.* 只读工具标为不可重放；普通 READ 仍复用 Recorder 历史", async () => {
+    const reg = new ToolRegistry();
+    reg.fn({ name: "document.open", description: "读项目正文", schema: {} }, () => "doc");
+    reg.fn({ name: "lookup", description: "普通查询", schema: {} }, () => "hit");
+    const rec = new FakeRecorder();
+    await reg.call("document.open", {}, { rec, nodeId: "N" });
+    await reg.call("lookup", {}, { rec, nodeId: "N" });
+    expect(rec.effects.map((effect) => [effect.request["tool"], effect.replay])).toEqual([
+      ["document.open", "never"],
+      ["lookup", undefined],
+    ]);
   });
 
   it("没有 rec 就直接执行，不假装记账", async () => {

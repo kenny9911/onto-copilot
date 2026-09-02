@@ -7758,9 +7758,7 @@
    "theta_ask": 0.05
   },
   {
-   "auto_repairable": [
-    "cf_naming_violation_x"
-   ],
+   "auto_repairable": [],
    "deferred_to_template": [],
    "hints": [
     "cf_orphan_x"
@@ -7815,15 +7813,16 @@
    "name": "only_non_ask",
    "questions": [],
    "round_trip": [
+    "cf_naming_violation_x",
     "cf_missing_required_x"
    ],
    "stopped_because": "全部可问的冲突都已提问",
    "summary": {
     "asked": 0,
-    "auto_repairable": 1,
+    "auto_repairable": 0,
     "deferred_to_template": 0,
+    "round_trip": 2,
     "hints": 1,
-    "round_trip": 1,
     "stopped_because": "全部可问的冲突都已提问"
    },
    "theta_ask": 0.35
@@ -9318,9 +9317,7 @@
    "theta_ask": 0.0
   },
   {
-   "auto_repairable": [
-    "cf_naming_violation_x"
-   ],
+   "auto_repairable": [],
    "deferred_to_template": [
     "cf_duplicate_noev",
     "cf_duplicate_blasttwo",
@@ -10470,15 +10467,16 @@
     }
    ],
    "round_trip": [
+    "cf_naming_violation_x",
     "cf_missing_required_x"
    ],
    "stopped_because": "已达提问上限 3",
    "summary": {
     "asked": 3,
-    "auto_repairable": 1,
+    "auto_repairable": 0,
     "deferred_to_template": 7,
+    "round_trip": 2,
     "hints": 1,
-    "round_trip": 1,
     "stopped_because": "已达提问上限 3"
    },
    "theta_ask": 0.35
@@ -11108,6 +11106,19 @@
     "stopped_because": "剩余 1 条得分均低于阈值 0.35，转为模板中的业务必填项"
    },
    "theta_ask": 0.35
+  }
+ ],
+ "deliberate_changes": [
+  {
+   "id": "naming-violation-needs-appliable-option",
+   "what": "没有可执行改名选项的 NAMING_VIOLATION 不再算 auto_repair，落到 round_trip（等业务方回填译名）",
+   "python_was": "handling 按 kind 恒为 auto_repair，因此这类冲突一律进 auto_repairable 桶",
+   "why": "真库 3b06cae04490：25 条命名违规全是「apiName 含中文」，其中 23 条 toCamel 恒等 —— autoRepair 因 old === new 短路，它们顶着 auto_repair 的名分永远消化不掉；另外 2 条真被改了且改坏了（区间号被吃掉）。详见 golden/onto.conflict.json 的 name01-only-real-repairs。",
+   "why_round_trip_not_ask_user": "第一版改成 ask_user，被 dialogue.judgment-tools 的真实规模用例当场抓到：「必须我拍板」会从 1 条涨到 77 条，真决策被一堆待译名淹掉。中文 apiName 要的是业务方回填一个译名 —— 那是回传模板那一档。",
+   "affected_vectors": [
+    "only_non_ask",
+    "mixed_all_buckets"
+   ]
   }
  ]
 }

@@ -1,0 +1,7 @@
+schema_version: 1
+catalog: ontocopilot-runtime-definitions
+directories:
+  skills: skills
+  agents: agents
+  tools: tools
+  workflows: workflows

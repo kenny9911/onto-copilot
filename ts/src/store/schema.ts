@@ -16,7 +16,7 @@
  * Drizzle 的 `pgTable` 与 `sqliteTable` 是**两套 builder**，没有 with_variant。
  * 摆在面前的两条路：
  *
- *   (a) 23 张表各手抄两遍 —— 46 份声明。这正是这个仓库反复吃过亏的那种漂移：
+ *   (a) 33 张表各手抄两遍 —— 66 份声明。这正是这个仓库反复吃过亏的那种漂移：
  *       `migrations/*.sql` 与 `schema.py` 就是两份手抄，靠一个测试兜着才没崩。
  *       再造一对手抄件等于再开一个同样的坑，而且这次连测试都得新写。
  *   (b) 一份中立的「表形状」描述（`TABLE_SPECS`），pg 与 sqlite 各消费一次。
@@ -147,7 +147,7 @@ const fkSession = {
 } as const;
 
 // ══════════════════════════════════════════════════════════════════
-//  23 张表
+//  33 张表
 // ══════════════════════════════════════════════════════════════════
 
 export const TABLE_SPECS = {
@@ -306,6 +306,509 @@ export const TABLE_SPECS = {
       sha256: { kind: "text", notNull: true, default: lit("") },
       uploaded_at: { kind: "tstz", notNull: true, default: NOW },
     },
+  },
+
+  /** OntoDocument 的项目级逻辑文档。文档与版本分表：元数据可以人工修订，已经入库的
+   * 版本内容永远不改。owner/project_id 都是强制列，仓储每条读取都同时过滤两者；
+   * 不挂外键，避免删除项目/用户时由数据库暗中级联掉可审计的知识资产。 */
+  onto_document: {
+    columns: {
+      id: { kind: "text", pk: true },
+      project_id: { kind: "text", notNull: true },
+      owner: { kind: "text", notNull: true },
+      title: { kind: "text", notNull: true },
+      logical_name: { kind: "text", notNull: true },
+      source_class: { kind: "text", notNull: true },
+      tags: { kind: "json", notNull: true },
+      status: { kind: "text", notNull: true, default: lit("active") },
+      current_version_id: { kind: "text", notNull: true },
+      adopted_version_id: { kind: "text" },
+      revision: { kind: "int", notNull: true, default: lit(1) },
+      created_by: { kind: "text", notNull: true },
+      created_at: { kind: "tstz", notNull: true, default: NOW },
+      updated_at: { kind: "tstz", notNull: true, default: NOW },
+    },
+    checks: [
+      { name: "onto_document_status_ck", expr: "status IN ('active','archived')" },
+      {
+        name: "onto_document_source_class_ck",
+        expr: "source_class IN ('session_upload','generated','external','imported')",
+      },
+    ],
+    indexes: [
+      { name: "onto_document_project_owner_idx", columns: ["project_id", "owner", "status"] },
+      { name: "onto_document_adopted_idx", columns: ["adopted_version_id"] },
+    ],
+  },
+
+  /** 一次解析后的不可变版本。parsed_doc 保存完整 ParsedDoc（含 structured/findings/meta
+   * 与全部 chunks），chunk 表则给检索和精确打开提供可索引的扁平读路径。 */
+  onto_document_version: {
+    columns: {
+      id: { kind: "text", pk: true },
+      document_id: { kind: "text", notNull: true },
+      version_no: { kind: "int", notNull: true },
+      file_name: { kind: "text", notNull: true },
+      media_type: { kind: "text", notNull: true },
+      size_bytes: { kind: "bigint", notNull: true },
+      sha256: { kind: "text", notNull: true },
+      rel_path: { kind: "text", notNull: true },
+      doc_kind: { kind: "text", notNull: true },
+      parsed_doc: { kind: "json", notNull: true },
+      parse_status: { kind: "text", notNull: true },
+      parser_name: { kind: "text", notNull: true },
+      parser_version: { kind: "text", notNull: true },
+      index_revision: { kind: "text", notNull: true },
+      chunk_count: { kind: "int", notNull: true },
+      created_by: { kind: "text", notNull: true },
+      created_at: { kind: "tstz", notNull: true, default: NOW },
+    },
+    unique: [
+      { name: "onto_document_version_no_uq", columns: ["document_id", "version_no"] },
+      { name: "onto_document_version_sha_uq", columns: ["document_id", "sha256"] },
+    ],
+    checks: [
+      { name: "onto_document_version_no_ck", expr: "version_no > 0" },
+      { name: "onto_document_parse_status_ck", expr: "parse_status IN ('ready','degraded')" },
+    ],
+    indexes: [{ name: "onto_document_version_document_idx", columns: ["document_id"] }],
+  },
+
+  onto_document_chunk: {
+    columns: {
+      version_id: { kind: "text", pk: true },
+      chunk_id: { kind: "text", pk: true },
+      document_id: { kind: "text", notNull: true },
+      order_no: { kind: "int", notNull: true },
+      locator: { kind: "json", notNull: true },
+      render_text: { kind: "text", notNull: true },
+      raw_json: { kind: "json", notNull: true },
+      tags: { kind: "json", notNull: true },
+      context: { kind: "text", notNull: true },
+      text_sha256: { kind: "text", notNull: true },
+    },
+    indexes: [
+      { name: "onto_document_chunk_document_idx", columns: ["document_id"] },
+      { name: "onto_document_chunk_version_order_idx", columns: ["version_id", "order_no"] },
+    ],
+  },
+
+  /** 会话固定到精确 version_id。采用版本以后发生变化，也不会让正在运行的 build
+   * 偷偷换材料。project_id/owner 是冗余的安全边界列，每条查询仍会与文档表交叉校验。 */
+  session_document: {
+    columns: {
+      session_id: { kind: "text", pk: true },
+      document_id: { kind: "text", pk: true },
+      version_id: { kind: "text", notNull: true },
+      project_id: { kind: "text", notNull: true },
+      owner: { kind: "text", notNull: true },
+      role: { kind: "text", notNull: true, default: lit("reference") },
+      attached_by: { kind: "text", notNull: true },
+      attached_at: { kind: "tstz", notNull: true, default: NOW },
+    },
+    checks: [
+      { name: "session_document_role_ck", expr: "role IN ('reference','primary')" },
+    ],
+    indexes: [
+      { name: "session_document_session_idx", columns: ["session_id"] },
+      { name: "session_document_scope_idx", columns: ["project_id", "owner"] },
+    ],
+  },
+
+  /** 项目知识库 ACL 的 CAS 版本。规则变更和 revision 递增必须在同一事务提交，
+   * 检索快照和打开前复核都携带这个版本，避免撤权后继续使用旧命中。 */
+  onto_document_acl_state: {
+    columns: {
+      project_id: { kind: "text", pk: true },
+      owner: { kind: "text", pk: true },
+      revision: { kind: "int", notNull: true, default: lit(0) },
+      updated_by: { kind: "text", notNull: true },
+      updated_at: { kind: "tstz", notNull: true, default: NOW },
+    },
+    checks: [{ name: "onto_document_acl_revision_ck", expr: "revision >= 0" }],
+  },
+
+  /** principal/group 的 allow/deny 规则。scope_type 决定后三个 target id 的合法形状；
+   * 仓储还会做同样校验，不能依赖某个数据库恰好启用了 CHECK。 */
+  onto_document_acl_rule: {
+    columns: {
+      project_id: { kind: "text", pk: true },
+      owner: { kind: "text", pk: true },
+      id: { kind: "text", pk: true },
+      subject_type: { kind: "text", notNull: true },
+      subject_id: { kind: "text", notNull: true },
+      effect: { kind: "text", notNull: true },
+      permission: { kind: "text", notNull: true },
+      scope_type: { kind: "text", notNull: true },
+      document_id: { kind: "text" },
+      version_id: { kind: "text" },
+      chunk_id: { kind: "text" },
+      changed_revision: { kind: "int", notNull: true },
+      created_by: { kind: "text", notNull: true },
+      created_at: { kind: "tstz", notNull: true, default: NOW },
+    },
+    checks: [
+      { name: "onto_document_acl_subject_ck", expr: "subject_type IN ('principal','group')" },
+      { name: "onto_document_acl_effect_ck", expr: "effect IN ('allow','deny')" },
+      { name: "onto_document_acl_permission_ck", expr: "permission IN ('read','write','manage_acl')" },
+      { name: "onto_document_acl_scope_ck", expr: "scope_type IN ('project','document','version','chunk')" },
+      { name: "onto_document_acl_changed_revision_ck", expr: "changed_revision > 0" },
+      {
+        name: "onto_document_acl_target_shape_ck",
+        expr:
+          "(scope_type = 'project' AND document_id IS NULL AND version_id IS NULL AND chunk_id IS NULL) OR " +
+          "(scope_type = 'document' AND document_id IS NOT NULL AND version_id IS NULL AND chunk_id IS NULL) OR " +
+          "(scope_type = 'version' AND document_id IS NOT NULL AND version_id IS NOT NULL AND chunk_id IS NULL) OR " +
+          "(scope_type = 'chunk' AND document_id IS NOT NULL AND version_id IS NOT NULL AND chunk_id IS NOT NULL)",
+      },
+    ],
+    indexes: [
+      {
+        name: "onto_document_acl_subject_idx",
+        columns: ["project_id", "owner", "subject_type", "subject_id"],
+      },
+      {
+        name: "onto_document_acl_target_idx",
+        columns: ["project_id", "owner", "document_id", "version_id", "chunk_id"],
+      },
+    ],
+  },
+
+  /** 文档安全审计只存身份、动作、裁决、资源 id 和摘要计数；没有正文、查询原文、
+   * chunk render/raw/context 等列。detail 的键和值还会由 audit.ts 白名单化。 */
+  onto_document_security_audit: {
+    columns: {
+      id: { kind: "text", pk: true },
+      project_id: { kind: "text", notNull: true },
+      owner: { kind: "text", notNull: true },
+      actor_type: { kind: "text", notNull: true },
+      actor_id: { kind: "text", notNull: true },
+      action: { kind: "text", notNull: true },
+      decision: { kind: "text", notNull: true },
+      scope_type: { kind: "text", notNull: true },
+      document_id: { kind: "text" },
+      version_id: { kind: "text" },
+      chunk_id: { kind: "text" },
+      acl_revision: { kind: "int", notNull: true },
+      matched_rule_ids: { kind: "json", notNull: true },
+      detail: { kind: "json", notNull: true },
+      occurred_at: { kind: "tstz", notNull: true, default: NOW },
+    },
+    checks: [
+      { name: "onto_document_security_actor_ck", expr: "actor_type IN ('principal','service')" },
+      {
+        name: "onto_document_security_action_ck",
+        expr: "action IN ('acl.change','search.filter','document.read','version.read','chunk.read')",
+      },
+      { name: "onto_document_security_decision_ck", expr: "decision IN ('allow','deny','changed')" },
+      { name: "onto_document_security_scope_ck", expr: "scope_type IN ('project','document','version','chunk')" },
+      { name: "onto_document_security_revision_ck", expr: "acl_revision >= 0" },
+      {
+        name: "onto_document_security_target_shape_ck",
+        expr:
+          "(scope_type = 'project' AND document_id IS NULL AND version_id IS NULL AND chunk_id IS NULL) OR " +
+          "(scope_type = 'document' AND document_id IS NOT NULL AND version_id IS NULL AND chunk_id IS NULL) OR " +
+          "(scope_type = 'version' AND document_id IS NOT NULL AND version_id IS NOT NULL AND chunk_id IS NULL) OR " +
+          "(scope_type = 'chunk' AND document_id IS NOT NULL AND version_id IS NOT NULL AND chunk_id IS NOT NULL)",
+      },
+    ],
+    indexes: [
+      {
+        name: "onto_document_security_project_idx",
+        columns: ["project_id", "owner", "occurred_at"],
+      },
+      {
+        name: "onto_document_security_actor_idx",
+        columns: ["actor_type", "actor_id", "occurred_at"],
+      },
+    ],
+  },
+
+  /** 可被多副本领取的解析/OCR 任务。任务复制目标版本的内容摘要与索引版本，worker
+   * 开始执行前必须再次核对；lease_token 让过期 worker 无法覆盖后来重领的结果。 */
+  onto_document_job: {
+    columns: {
+      id: { kind: "text", pk: true },
+      project_id: { kind: "text", notNull: true },
+      owner: { kind: "text", notNull: true },
+      document_id: { kind: "text", notNull: true },
+      version_id: { kind: "text", notNull: true },
+      kind: { kind: "text", notNull: true },
+      idempotency_key: { kind: "text", notNull: true },
+      request_sha256: { kind: "text", notNull: true },
+      source_sha256: { kind: "text", notNull: true },
+      expected_index_revision: { kind: "text", notNull: true },
+      input: { kind: "json", notNull: true },
+      status: { kind: "text", notNull: true, default: lit("queued") },
+      attempts: { kind: "int", notNull: true, default: lit(0) },
+      max_attempts: { kind: "int", notNull: true, default: lit(3) },
+      available_at: { kind: "tstz", notNull: true },
+      lease_owner: { kind: "text" },
+      lease_token: { kind: "text" },
+      lease_expires_at: { kind: "tstz" },
+      result: { kind: "json", notNull: true },
+      result_sha256: { kind: "text", notNull: true, default: lit("") },
+      last_error: { kind: "text", notNull: true, default: lit("") },
+      created_at: { kind: "tstz", notNull: true },
+      updated_at: { kind: "tstz", notNull: true },
+      started_at: { kind: "tstz" },
+      completed_at: { kind: "tstz" },
+    },
+    unique: [
+      {
+        name: "onto_document_job_scope_key_uq",
+        columns: ["project_id", "owner", "idempotency_key"],
+      },
+    ],
+    checks: [
+      { name: "onto_document_job_kind_ck", expr: "kind IN ('parse','ocr')" },
+      {
+        name: "onto_document_job_status_ck",
+        expr: "status IN ('queued','running','succeeded','failed','cancelled')",
+      },
+      {
+        name: "onto_document_job_attempts_ck",
+        expr: "attempts >= 0 AND max_attempts > 0 AND attempts <= max_attempts",
+      },
+      {
+        name: "onto_document_job_lease_shape_ck",
+        expr:
+          "(status = 'running' AND lease_owner IS NOT NULL AND lease_token IS NOT NULL " +
+          "AND lease_expires_at IS NOT NULL) OR " +
+          "(status <> 'running' AND lease_owner IS NULL AND lease_token IS NULL " +
+          "AND lease_expires_at IS NULL)",
+      },
+    ],
+    indexes: [
+      {
+        name: "onto_document_job_queue_idx",
+        columns: ["status", "available_at", "lease_expires_at"],
+      },
+      {
+        name: "onto_document_job_version_idx",
+        columns: ["project_id", "owner", "version_id", "created_at"],
+      },
+    ],
+  },
+
+  /** 一次搜索的固定语义清单和过期边界。query 只存摘要，避免任务表复制用户查询；
+   * manifest 固定 version/index/ACL revision，翻页时逐项复核。 */
+  onto_document_search_snapshot: {
+    columns: {
+      id: { kind: "text", pk: true },
+      project_id: { kind: "text", notNull: true },
+      owner: { kind: "text", notNull: true },
+      session_id: { kind: "text" },
+      query_sha256: { kind: "text", notNull: true },
+      manifest: { kind: "json", notNull: true },
+      manifest_sha256: { kind: "text", notNull: true },
+      acl_revision: { kind: "int", notNull: true },
+      status: { kind: "text", notNull: true, default: lit("active") },
+      invalidated_reason: { kind: "text", notNull: true, default: lit("") },
+      total_items: { kind: "int", notNull: true },
+      expires_at: { kind: "tstz", notNull: true },
+      created_at: { kind: "tstz", notNull: true },
+      updated_at: { kind: "tstz", notNull: true },
+    },
+    checks: [
+      {
+        name: "onto_document_search_snapshot_status_ck",
+        expr: "status IN ('active','invalidated')",
+      },
+      {
+        name: "onto_document_search_snapshot_counts_ck",
+        expr: "acl_revision >= 0 AND total_items >= 0",
+      },
+    ],
+    indexes: [
+      {
+        name: "onto_document_search_snapshot_scope_idx",
+        columns: ["project_id", "owner", "status", "expires_at"],
+      },
+      {
+        name: "onto_document_search_snapshot_session_idx",
+        columns: ["session_id", "created_at"],
+      },
+    ],
+  },
+
+  /** 搜索命中的稳定顺序。只存 chunk 身份和摘要，不复制 render/raw/context。 */
+  onto_document_search_snapshot_item: {
+    columns: {
+      snapshot_id: { kind: "text", pk: true },
+      ordinal: { kind: "int", pk: true },
+      document_id: { kind: "text", notNull: true },
+      version_id: { kind: "text", notNull: true },
+      chunk_id: { kind: "text", notNull: true },
+      index_revision: { kind: "text", notNull: true },
+      acl_revision: { kind: "int", notNull: true },
+      score: { kind: "float", notNull: true },
+      text_sha256: { kind: "text", notNull: true },
+    },
+    checks: [
+      {
+        name: "onto_document_search_snapshot_item_ordinal_ck",
+        expr: "ordinal >= 0 AND acl_revision >= 0",
+      },
+    ],
+    indexes: [
+      {
+        name: "onto_document_search_snapshot_item_version_idx",
+        columns: ["version_id", "snapshot_id"],
+      },
+      {
+        name: "onto_document_search_snapshot_item_chunk_idx",
+        columns: ["version_id", "chunk_id"],
+      },
+    ],
+  },
+
+  /** Wiki 页面当前快照。id 只在 project_id + owner 内唯一，避免从一个租户探测另一个
+   * 租户的页面。页面只允许归档，不提供物理删除路径。 */
+  onto_document_wiki_page: {
+    columns: {
+      project_id: { kind: "text", pk: true },
+      owner: { kind: "text", pk: true },
+      id: { kind: "text", pk: true },
+      title: { kind: "text", notNull: true },
+      summary: { kind: "text", notNull: true },
+      tags: { kind: "json", notNull: true },
+      claims: { kind: "json", notNull: true },
+      status: { kind: "text", notNull: true, default: lit("active") },
+      revision: { kind: "int", notNull: true, default: lit(1) },
+      created_by_kind: { kind: "text", notNull: true },
+      created_by_id: { kind: "text", notNull: true },
+      created_at: { kind: "tstz", notNull: true },
+      updated_by_kind: { kind: "text", notNull: true },
+      updated_by_id: { kind: "text", notNull: true },
+      updated_at: { kind: "tstz", notNull: true },
+    },
+    checks: [
+      {
+        name: "onto_document_wiki_page_status_ck",
+        expr: "status IN ('active','archived')",
+      },
+      { name: "onto_document_wiki_page_revision_ck", expr: "revision > 0" },
+      {
+        name: "onto_document_wiki_page_created_actor_ck",
+        expr: "created_by_kind IN ('ai','human')",
+      },
+      {
+        name: "onto_document_wiki_page_updated_actor_ck",
+        expr: "updated_by_kind IN ('ai','human')",
+      },
+    ],
+    indexes: [
+      {
+        name: "onto_document_wiki_page_scope_idx",
+        columns: ["project_id", "owner", "status", "updated_at"],
+      },
+    ],
+  },
+
+  /** 每次 CAS 写入留下完整不可变快照和审计字段。仓储只有 INSERT 历史行，绝不
+   * UPDATE/DELETE；content_sha256 让导出或审计方能验证快照内容。 */
+  onto_document_wiki_page_revision: {
+    columns: {
+      project_id: { kind: "text", pk: true },
+      owner: { kind: "text", pk: true },
+      page_id: { kind: "text", pk: true },
+      revision: { kind: "int", pk: true },
+      title: { kind: "text", notNull: true },
+      summary: { kind: "text", notNull: true },
+      tags: { kind: "json", notNull: true },
+      claims: { kind: "json", notNull: true },
+      status: { kind: "text", notNull: true },
+      action: { kind: "text", notNull: true },
+      actor_kind: { kind: "text", notNull: true },
+      actor_id: { kind: "text", notNull: true },
+      recorded_at: { kind: "tstz", notNull: true },
+      content_sha256: { kind: "text", notNull: true },
+    },
+    checks: [
+      { name: "onto_document_wiki_revision_number_ck", expr: "revision > 0" },
+      {
+        name: "onto_document_wiki_revision_status_ck",
+        expr: "status IN ('active','archived')",
+      },
+      {
+        name: "onto_document_wiki_revision_action_ck",
+        expr: "action IN ('create','edit','confirm_claim','archive','restore')",
+      },
+      {
+        name: "onto_document_wiki_revision_actor_ck",
+        expr: "actor_kind IN ('ai','human')",
+      },
+    ],
+    indexes: [
+      {
+        name: "onto_document_wiki_revision_history_idx",
+        columns: ["project_id", "owner", "page_id", "revision"],
+      },
+    ],
+  },
+
+  /** 项目级外部知识来源。credential_ref 只是宿主凭据仓的引用，不保存 token/secret；
+   * root_or_prefix 是经过服务层验证的远端定位，不接受 URL 或本机路径。revision 是
+   * 管理操作与同步游标共同使用的 CAS 栅栏。 */
+  onto_document_connector_source: {
+    columns: {
+      id: { kind: "text", pk: true },
+      project_id: { kind: "text", notNull: true },
+      owner: { kind: "text", notNull: true },
+      provider: { kind: "text", notNull: true },
+      name: { kind: "text", notNull: true },
+      root_or_prefix: { kind: "text", notNull: true },
+      credential_ref: { kind: "text", notNull: true },
+      tags: { kind: "json", notNull: true },
+      classification: { kind: "text", notNull: true, default: lit("internal") },
+      enabled: { kind: "bool", notNull: true, default: lit(true) },
+      revision: { kind: "int", notNull: true, default: lit(1) },
+      cursor: { kind: "text" },
+      status: { kind: "text", notNull: true, default: lit("idle") },
+      created_by: { kind: "text", notNull: true },
+      updated_by: { kind: "text", notNull: true },
+      created_at: { kind: "tstz", notNull: true },
+      updated_at: { kind: "tstz", notNull: true },
+      last_started_at: { kind: "tstz" },
+      last_completed_at: { kind: "tstz" },
+      last_error: { kind: "text" },
+    },
+    unique: [
+      {
+        name: "onto_document_connector_scope_root_uq",
+        columns: ["project_id", "owner", "provider", "root_or_prefix"],
+      },
+    ],
+    checks: [
+      {
+        name: "onto_document_connector_provider_ck",
+        expr: "provider IN ('sharepoint','webdav','s3','confluence','datahub','openmetadata')",
+      },
+      {
+        name: "onto_document_connector_classification_ck",
+        expr: "classification IN ('public','internal','confidential','restricted')",
+      },
+      {
+        name: "onto_document_connector_status_ck",
+        expr: "status IN ('idle','syncing','error','archived')",
+      },
+      { name: "onto_document_connector_revision_ck", expr: "revision > 0" },
+      {
+        name: "onto_document_connector_archive_ck",
+        expr: "status <> 'archived' OR enabled = false",
+      },
+    ],
+    indexes: [
+      {
+        name: "onto_document_connector_scope_idx",
+        columns: ["project_id", "owner", "status", "updated_at"],
+      },
+      {
+        name: "onto_document_connector_sync_idx",
+        columns: ["enabled", "status", "last_started_at"],
+      },
+    ],
   },
 
   run: {
@@ -897,9 +1400,9 @@ export type SqliteTables = {
   readonly [N in TableName]: SQLiteTable & { readonly [C in ColumnNames<N>]: SQLiteColumn };
 };
 
-/** Postgres 方言的 23 张表。仓储层按 `import { pgTables as t }` 用 `t.session`，
+/** Postgres 方言的 33 张表。仓储层按 `import { pgTables as t }` 用 `t.session`，
  * 与 Python 侧 `from . import schema as t; t.session` 同形。 */
 export const pgTables = buildPgTables() as unknown as PgTables;
 
-/** SQLite 方言的同 23 张表，由同一份 `TABLE_SPECS` 生成 —— 两套声明不可能漂移。 */
+/** SQLite 方言的同 33 张表，由同一份 `TABLE_SPECS` 生成 —— 两套声明不可能漂移。 */
 export const sqliteTables = buildSqliteTables() as unknown as SqliteTables;

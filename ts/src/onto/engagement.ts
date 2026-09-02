@@ -1,187 +1,114 @@
 /**
- * Frozen FDE engagement workflow declaration.
+ * Compatibility facade for the catalog-backed, frozen FDE engagement workflow.
  *
- * The executable handlers live in `engagement_runtime.ts`; keeping the declaration
- * separate preserves the stable control-plane contract.  Material *contents* are node
- * inputs and can never add tools or alter the topology.
- *
- * 移植说明：Python 的 `ScopeSpec(evidence_top_k=0, recall_long_term=False)` 里，
- * `recall_long_term` 全仓**只写不读**，`kernel/dag.ts` 已确认它是死开关、没有迁。
- * 这里同样不迁 —— 为了"看起来完整"把一个假字段加回去，等于凭空承诺了一个
- * 谁都没有实现的语义。
+ * The executable handlers live in engagement_runtime.ts.  The control-plane topology
+ * lives in ts/catalog/workflows/fde-engagement.yaml and is loaded once at startup; user
+ * material can never select another file or mutate the frozen graph.
  */
 
 import { type AgentLibrary, defaultAgents } from "../kernel/agents.js";
+import { NodeMode } from "../kernel/dag.js";
 import {
-  Dag,
-  Difficulty,
-  type GateSpec,
-  NodeMode,
-  type NodeSpec,
-  makeGateSpec,
-  makeNodeBudget,
-  makeNodeSpec,
-  makeScopeSpec,
-} from "../kernel/dag.js";
+  buildWorkflowDag,
+  loadWorkflowDefinition,
+  type WorkflowDefinition,
+} from "../workflows/loader.js";
 
-export const FDE_ENGAGEMENT_AGENTS: readonly string[] = [
-  "fde_interviewer",
-  "process_modeler",
-  "erp_mapper",
-  "rule_engineer",
-  "data_steward",
-  "delivery_reviewer",
-];
+const FDE_DEFINITION = loadWorkflowDefinition("fde-engagement.yaml");
 
-/** Translate an `AgentSpec` into the existing DAG node contract. */
-function agentNode(
-  nodeId: string,
-  agentName: string,
-  opts: {
-    deps?: readonly string[];
-    evidenceTopK?: number;
-    gate?: GateSpec | null;
-  } = {},
-): NodeSpec {
-  const agent = defaultAgents().get(agentName);
-  return makeNodeSpec({
-    id: nodeId,
-    mode: agent.mode,
-    handler: `agent.${agentName}`,
-    deps: opts.deps ?? [],
-    scope: makeScopeSpec({ evidenceTopK: opts.evidenceTopK ?? 32 }),
-    budget: agent.budget,
-    critics: agent.critics,
-    criticRounds: agent.criticRounds,
-    difficulty: agent.difficulty,
-    gate: opts.gate ?? null,
-    params: {
-      agent: agentName,
-      tool_scope: agent.toolScope,
-      output_schema: agent.outputSchema,
-    },
-  });
+function assertFdeSafetyContract(definition: WorkflowDefinition): void {
+  if (definition.name !== "fde_engagement_v3") {
+    throw new Error(`FDE workflow name 不可变更: ${definition.name}`);
+  }
+  if (definition.freezeBefore !== "INTAKE" || definition.nodes[0]?.id !== "INTAKE") {
+    throw new Error("FDE workflow 必须在首个 INTAKE 节点前冻结");
+  }
+  const interview = definition.nodes.find((node) => node.id === "INTERVIEW");
+  if (
+    interview?.kind !== "handler" ||
+    interview.mode !== NodeMode.HITL ||
+    interview.handler !== "engagement.interview" ||
+    interview.gate === null ||
+    !interview.gate.require.includes("contract == 'DecisionLedger'") ||
+    !interview.gate.require.includes("resolved == true")
+  ) {
+    throw new Error("FDE INTERVIEW 必须保留 DecisionLedger 人工门");
+  }
+  const decisionProposal = definition.nodes.find((node) => node.id === "DECISION_PROPOSAL");
+  if (
+    decisionProposal?.kind !== "agent" ||
+    decisionProposal.agent !== "decision_integrator"
+  ) {
+    throw new Error("FDE DECISION_PROPOSAL 必须由 decision_integrator 生成只读变更建议");
+  }
+  const decisionApply = definition.nodes.find((node) => node.id === "DECISION_APPLY");
+  if (
+    decisionApply?.kind !== "handler" ||
+    decisionApply.mode !== NodeMode.DETERMINISTIC ||
+    decisionApply.handler !== "engagement.validate_decision_application" ||
+    decisionApply.gate === null ||
+    !decisionApply.gate.require.includes("untargeted_write_count == 0") ||
+    !decisionApply.gate.require.includes("mutation_count == 0") ||
+    !decisionApply.gate.require.includes("claimed_applied_count == 0")
+  ) {
+    throw new Error("FDE DECISION_APPLY 必须确定性、无写权限并对无目标/伪应用 fail closed");
+  }
+  for (const [id, agent] of [
+    ["REQUIREMENTS", "requirements_engineer"],
+    ["ARCHITECTURE", "solution_architect"],
+    ["TEST_PLAN", "acceptance_test_engineer"],
+  ] as const) {
+    const node = definition.nodes.find((candidate) => candidate.id === id);
+    if (node?.kind !== "agent" || node.agent !== agent) {
+      throw new Error(`FDE ${id} 必须由 ${agent} 执行`);
+    }
+  }
+  const review = definition.nodes.find((node) => node.id === "REVIEW");
+  if (review?.kind !== "agent" || review.agent !== "delivery_reviewer" || review.gate === null) {
+    throw new Error("FDE REVIEW 必须由 delivery_reviewer 执行并保留质量门");
+  }
+  const humanAcceptance = definition.nodes.find((node) => node.id === "HUMAN_ACCEPTANCE");
+  if (
+    humanAcceptance?.kind !== "handler" ||
+    humanAcceptance.mode !== NodeMode.HITL ||
+    humanAcceptance.handler !== "engagement.human_acceptance" ||
+    humanAcceptance.gate === null ||
+    !humanAcceptance.gate.require.includes("signed == true") ||
+    !humanAcceptance.gate.require.includes("decision_recorded == true") ||
+    !humanAcceptance.gate.require.includes("package_bound == true")
+  ) {
+    throw new Error("FDE HUMAN_ACCEPTANCE 必须保留与精确包版本绑定的正式人工签字门");
+  }
+  const exported = definition.nodes.find((node) => node.id === "EXPORT");
+  if (
+    exported?.kind !== "handler" ||
+    exported.handler !== "engagement.export" ||
+    exported.gate === null ||
+    !exported.gate.require.includes("human_decided == true")
+  ) {
+    throw new Error("FDE EXPORT 必须保留确定性交付门");
+  }
 }
 
-/**
- * Build and freeze the front-line discovery-to-delivery workflow.
- *
- * The optional `agents` argument is a fail-fast compatibility check for deployments
- * that extend the default agent library.  Nodes still carry only serializable names and
- * schemas, so the declaration can be journalled or rendered without live agent objects.
- *
- * Topology:
- * ```
- *     INTAKE -> PROCESS -> ERP_MAP -----\
- *                       -> RULES --------> GAP -> INTERVIEW (HITL)
- *                       -> DATA_OBJECTS -/             |
- *                                          CANONICALIZE -> REVIEW -> EXPORT
- * ```
- *
- * `GAP` is the synchronization barrier.  `INTERVIEW` is always present even when the
- * current backlog is empty; its deterministic handler may immediately accept an empty
- * answer.  This keeps uploaded content from changing the plan after it is frozen.
- */
-export function buildFdeEngagementDag(agents?: AgentLibrary | null): Dag {
-  const library = agents ?? defaultAgents();
-  // 只为 fail-fast：库里缺角色就当场 KeyError，而不是等跑到那个节点才发现。
-  for (const name of FDE_ENGAGEMENT_AGENTS) library.get(name);
+assertFdeSafetyContract(FDE_DEFINITION);
 
-  const dag = new Dag("fde_engagement_v1", { freezeBefore: "INTAKE" });
-  dag.extend([
-    agentNode("INTAKE", "fde_interviewer", { evidenceTopK: 40 }),
-    agentNode("PROCESS", "process_modeler", { deps: ["INTAKE"], evidenceTopK: 48 }),
-    agentNode("ERP_MAP", "erp_mapper", { deps: ["PROCESS"], evidenceTopK: 40 }),
-    agentNode("RULES", "rule_engineer", { deps: ["PROCESS"], evidenceTopK: 40 }),
-    agentNode("DATA_OBJECTS", "data_steward", { deps: ["PROCESS"], evidenceTopK: 40 }),
-    makeNodeSpec({
-      id: "GAP",
-      mode: NodeMode.DETERMINISTIC,
-      handler: "engagement.collect_gaps",
-      deps: ["PROCESS", "ERP_MAP", "RULES", "DATA_OBJECTS"],
-      scope: makeScopeSpec({ evidenceTopK: 0 }),
-      budget: makeNodeBudget({ tokens: 0, iterations: 1, wallclockS: 60, toolCalls: 0 }),
-      params: {
-        output_contract: "QuestionBacklog",
-        rank_by: ["downstream_blocking", "blast_radius", "irreversibility", "evidence_gap"],
-      },
-      retries: 0,
-    }),
-    makeNodeSpec({
-      id: "INTERVIEW",
-      mode: NodeMode.HITL,
-      handler: "engagement.interview",
-      deps: ["GAP"],
-      scope: makeScopeSpec({ evidenceTopK: 0 }),
-      budget: makeNodeBudget({ tokens: 0, iterations: 1, wallclockS: 604_800, toolCalls: 0 }),
-      difficulty: Difficulty.LOW,
-      // **唯一的人类环节不能是唯一没有门的节点。**
-      //
-      // 在此之前 INTERVIEW 一条 require 都没有，而 REVIEW 带 4 条、EXPORT 带 3 条。
-      // 门读的是节点自己的产出（scheduler.applyGate 把 result.output 的顶层键并进
-      // metrics），所以这里断的是 InterviewHandler 的输出契约本身。
-      //
-      // 故意**不**用 `blocker_count == 0`：REVIEW 门要的就是它，而
-      // `InterviewHandler.skipModel` 判的也是同一个 `blockers()` —— 拿它当
-      // INTERVIEW 的门，等于让同一个判据自己给自己发通行证，两道门一起空过。
-      //
-      // 值不大但不是摆设：`requirementPasses` 遇到未知指标路径抛 NodeFailure
-      // （scheduler.ts:1052），所以 handler 哪天返回一个缺字段的东西会当场失败，
-      // 而不是让一个形状不对的 DecisionLedger 一路流到 CANONICALIZE。
-      gate: makeGateSpec({
-        kind: "auto",
-        require: ["contract == 'DecisionLedger'", "resolved == true"],
-      }),
-      params: {
-        input_contract: "QuestionBacklog",
-        output_contract: "DecisionLedger",
-        batching: "progressive",
-      },
-      retries: 0,
-    }),
-    makeNodeSpec({
-      id: "CANONICALIZE",
-      mode: NodeMode.DETERMINISTIC,
-      handler: "engagement.canonicalize",
-      deps: ["INTERVIEW"],
-      scope: makeScopeSpec({ evidenceTopK: 0 }),
-      budget: makeNodeBudget({ tokens: 0, iterations: 1, wallclockS: 120, toolCalls: 0 }),
-      params: { output_contract: "OntologyPackage.v1" },
-      retries: 0,
-    }),
-    agentNode("REVIEW", "delivery_reviewer", {
-      deps: ["CANONICALIZE"],
-      evidenceTopK: 24,
-      gate: makeGateSpec({
-        kind: "auto",
-        require: [
-          "verdict == 'PASS'",
-          "blocker_count == 0",
-          "all_passed == true",
-          "high_findings == 0",
-        ],
-      }),
-    }),
-    makeNodeSpec({
-      id: "EXPORT",
-      mode: NodeMode.DETERMINISTIC,
-      handler: "engagement.export",
-      // Export must receive both the reviewed package and the review verdict.
-      // A transitive dependency is not included in WorkingSet.select(); declaring
-      // both inputs prevents the release handler from silently re-validating `{}`.
-      deps: ["CANONICALIZE", "REVIEW"],
-      scope: makeScopeSpec({ evidenceTopK: 0 }),
-      budget: makeNodeBudget({ tokens: 0, iterations: 1, wallclockS: 180, toolCalls: 0 }),
-      gate: makeGateSpec({
-        kind: "auto",
-        require: ["review_passed == true", "schema_valid == true", "downloadable == true"],
-      }),
-      params: {
-        formats: ["json", "xlsx", "md", "mermaid"],
-        input_contract: "OntologyPackage.v1",
-      },
-      retries: 0,
-    }),
-  ]);
-  return dag.freeze();
+export const FDE_ENGAGEMENT_AGENTS: readonly string[] = [...FDE_DEFINITION.requiredAgents];
+export const FDE_CHECKPOINT_VERSION = FDE_DEFINITION.checkpointVersion;
+
+/**
+ * Build a fresh frozen front-line workflow.  The optional AgentLibrary retains the
+ * historical fail-fast compatibility check; executable node specs still come from the
+ * default built-in catalog, exactly as before this file-structure migration.
+ */
+export function buildFdeEngagementDag(
+  agents?: AgentLibrary | null,
+  opts: { checkpointSalt?: string } = {},
+) {
+  const compatibilityLibrary = agents ?? defaultAgents();
+  for (const name of FDE_ENGAGEMENT_AGENTS) compatibilityLibrary.get(name);
+
+  const checkpointVersion = opts.checkpointSalt
+    ? `${FDE_CHECKPOINT_VERSION}+fork.${opts.checkpointSalt}`
+    : FDE_CHECKPOINT_VERSION;
+  return buildWorkflowDag(FDE_DEFINITION, defaultAgents(), { checkpointVersion });
 }

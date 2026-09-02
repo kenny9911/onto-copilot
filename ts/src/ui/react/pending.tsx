@@ -22,6 +22,7 @@
 
 import { useState, type ReactElement, type ReactNode } from "react";
 
+import { plainQuestionCopy, plainUserFacingCopy } from "../../onto/plain_language.js";
 import { adopt, pickAnswer, postAnswer } from "../decisions.js";
 import { openSource } from "../preview.js";
 import { bumped } from "./bridge.js";
@@ -43,6 +44,7 @@ function DecisionCard({ q, i, n, done }: { q: any; i: number; n: number; done: b
   const G = useUi();
   const [busy, setBusy] = useState(false);
   const chosen = G.ANSWERS[q.id];
+  const title = plainUserFacingCopy(plainQuestionCopy(q.title).text);
   const confirm = (): void => {
     setBusy(true);
     void postAnswer(q.id, q.conflict_rid).finally(() => { setBusy(false); bumpUi(); });
@@ -50,16 +52,16 @@ function DecisionCard({ q, i, n, done }: { q: any; i: number; n: number; done: b
   return (
     <div className={"q" + (done ? " answered" : "")}>
       <div className="qh">
-        <div className="qm">{`决策 ${i + 1}/${n} · 影响 ${q.impact_count} 个实体 · ${q.reversible ? "可逆" : "不可逆"}`}</div>
-        <div className="qt">{q.title}</div>
+        <div className="qm">{`第 ${i + 1}/${n} 个问题 · 涉及 ${q.impact_count} 项 · ${q.reversible ? "可以撤销" : "确认后不能自动撤销"}`}</div>
+        <div className="qt">{title}</div>
       </div>
       <div className="qbody">
         {(q.options || []).map((o: any) => (
           <div key={o.id} className={"opt" + (chosen === o.id ? " sel" : "")}
             {...(done ? {} : { onClick: () => { pickAnswer(q.id, o.id); bumpUi(); } })}>
             <span className="rd"></span>
-            <div>{o.label}
-              {o.rationale ? <div className="rr">{o.rationale}</div> : null}
+            <div>{plainUserFacingCopy(o.label)}
+              {o.rationale ? <div className="rr">{plainUserFacingCopy(o.rationale)}</div> : null}
               {(o.evidence || []).slice(0, 3).map((e: any, k: number) => (
                 <span key={k} className="ev"
                   onClick={ev => { ev.stopPropagation(); showSource(e.file_name, e.cite); }}>◧ {e.cite}</span>
@@ -100,10 +102,10 @@ export function SuggestionCards(): ReactNode {
     <div className="sgc" key={i}>
       <div className="sgh">
         <span className="sgi">{ICON[x.kind] || "▸"}</span>
-        <span className="sgt">{x.title}</span>
-        <span className="sgm">{`影响 ${x.impact} · 把握 ${Math.round(x.confidence * 100)}%`}</span>
+        <span className="sgt">{plainUserFacingCopy(x.title)}</span>
+        <span className="sgm">{`涉及 ${x.impact} 项 · 可信度 ${Math.round(x.confidence * 100)}%`}</span>
       </div>
-      <div className="sgr">{x.rationale}</div>
+      <div className="sgr">{plainUserFacingCopy(x.rationale)}</div>
       {(x.citations || []).slice(0, 3).map((c: any, k: number) => (
         <span key={k} className="ev" onClick={() => showSource("", c)}>◧ {c}</span>
       ))}

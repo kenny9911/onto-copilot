@@ -1,0 +1,461 @@
+{
+  "type": "object",
+  "required": [
+    "components",
+    "fit_gap_dispositions",
+    "integration_contracts",
+    "risks",
+    "questions"
+  ],
+  "properties": {
+    "components": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "kind",
+          "status",
+          "responsibility",
+          "system_id",
+          "requirement_ids",
+          "evidence_ids"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "EXISTING_SYSTEM",
+              "ERP_MODULE",
+              "SERVICE",
+              "DATA_STORE",
+              "EXTERNAL_SERVICE",
+              "MANUAL_CONTROL",
+              "USER_CHANNEL"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "EXISTING",
+              "PROPOSED",
+              "UNKNOWN"
+            ]
+          },
+          "responsibility": {
+            "type": "string",
+            "minLength": 1
+          },
+          "system_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "requirement_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "evidence_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      }
+    },
+    "fit_gap_dispositions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "requirement_id",
+          "fit",
+          "proposed_disposition",
+          "component_ids",
+          "rationale",
+          "constraints",
+          "impact_summary",
+          "evidence_ids"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "requirement_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "fit": {
+            "type": "string",
+            "enum": [
+              "FIT",
+              "PARTIAL_FIT",
+              "GAP",
+              "UNKNOWN"
+            ]
+          },
+          "proposed_disposition": {
+            "type": "string",
+            "enum": [
+              "REUSE",
+              "CONFIGURE",
+              "ENHANCE",
+              "CUSTOM_BUILD",
+              "INTEGRATE",
+              "PROCESS_CHANGE",
+              "DEFER",
+              "UNKNOWN"
+            ]
+          },
+          "component_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "rationale": {
+            "type": "string",
+            "minLength": 1
+          },
+          "constraints": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "impact_summary": {
+            "type": "string",
+            "minLength": 1
+          },
+          "evidence_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      }
+    },
+    "integration_contracts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "evidence_status",
+          "producer_component_id",
+          "consumer_component_id",
+          "interaction_pattern",
+          "direction",
+          "trigger",
+          "payload_object_ids",
+          "key_fields",
+          "protocol",
+          "frequency",
+          "idempotency_key",
+          "authentication",
+          "authorization",
+          "error_handling",
+          "retry_policy",
+          "reconciliation",
+          "data_classification",
+          "requirement_ids",
+          "evidence_ids"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "evidence_status": {
+            "type": "string",
+            "enum": [
+              "EVIDENCED_CANDIDATE",
+              "ASSUMPTION",
+              "UNKNOWN"
+            ]
+          },
+          "producer_component_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "consumer_component_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "interaction_pattern": {
+            "type": "string",
+            "enum": [
+              "REQUEST_RESPONSE",
+              "EVENT",
+              "BATCH",
+              "FILE",
+              "MANUAL",
+              "UNKNOWN"
+            ]
+          },
+          "direction": {
+            "type": "string",
+            "enum": [
+              "PUSH",
+              "PULL",
+              "BIDIRECTIONAL",
+              "UNKNOWN"
+            ]
+          },
+          "trigger": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "payload_object_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "key_fields": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "protocol": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "frequency": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "idempotency_key": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "authentication": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "authorization": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "error_handling": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "retry_policy": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "reconciliation": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "data_classification": {
+            "type": "string",
+            "enum": [
+              "PUBLIC",
+              "INTERNAL",
+              "CONFIDENTIAL",
+              "RESTRICTED",
+              "UNKNOWN"
+            ]
+          },
+          "requirement_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "evidence_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      }
+    },
+    "risks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "epistemic_status",
+          "severity",
+          "statement",
+          "mitigation_candidate",
+          "owner_role",
+          "related_ids",
+          "evidence_ids"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "epistemic_status": {
+            "type": "string",
+            "enum": [
+              "FACT",
+              "ASSUMPTION",
+              "UNKNOWN"
+            ]
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "LOW",
+              "MEDIUM",
+              "HIGH",
+              "CRITICAL"
+            ]
+          },
+          "statement": {
+            "type": "string",
+            "minLength": 1
+          },
+          "mitigation_candidate": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "owner_role": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "related_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "evidence_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      }
+    },
+    "questions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "text",
+          "audience_role",
+          "priority",
+          "answer_kind",
+          "options",
+          "blocked_ids",
+          "evidence_ids"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "text": {
+            "type": "string",
+            "minLength": 1
+          },
+          "audience_role": {
+            "type": "string",
+            "minLength": 1
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "BLOCKING",
+              "HIGH",
+              "NORMAL",
+              "LOW"
+            ]
+          },
+          "answer_kind": {
+            "type": "string",
+            "enum": [
+              "TEXT",
+              "NUMBER",
+              "INTEGER",
+              "BOOLEAN",
+              "SINGLE_CHOICE"
+            ]
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "blocked_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "evidence_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -260,7 +260,12 @@ export async function act(
     return outcome("status", statusLine(s), {
       产物: Object.keys(st).length > 0 ? st : "还没跑过梳理",
       材料份数: s.files.length,
-      花费美元: pyRound(pyFloatOr0(spent["usd"] ?? 0), 2),
+      // 两本账合计（梳理 state.budget.spent.usd + 对话 state._chat_usd）——
+      // 与 session.status 同口径，只报一本等于低报。
+      花费美元: pyRound(
+        pyFloatOr0(spent["usd"] ?? 0) + pyFloatOr0(s.state["_chat_usd"] ?? 0),
+        2,
+      ),
       待拍板: countOf(s, "questions"),
       建议: listOf(s, "suggestions")
         .map((x) => x["title"])

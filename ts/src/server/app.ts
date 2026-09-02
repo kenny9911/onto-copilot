@@ -34,6 +34,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { loadDotenv } from "../kernel/config.js";
+import { findRepoRoot } from "../repo_root.js";
 import { SESSION_EVENTS } from "../session_events.js";
 import { getRepo, lifespan as storeLifespan, shutdownStore, startStore } from "../store/deps.js";
 import type { Repo } from "../store/repo/protocol.js";
@@ -51,6 +52,7 @@ import {
 } from "./usage.js";
 import type { UsageDrain, UsageReport } from "./usage.js";
 import { optionalIntQuery } from "./http422.js";
+import { stopLiveBrowserRuntime } from "./live_browser.js";
 
 /** 单一版本来源，与 `ontocopilot.__version__` 对齐。 */
 export const VERSION = "0.1.0";
@@ -163,14 +165,42 @@ function queryInt(c: Context<AppEnv>, name: string, fallback: number): number {
 }
 
 app.get("/api/usage", async (c) => {
+  // 三档，与 /api/logs/* 同一套判据：
+  //   * 开放模式（合成管理员）—— 不隔离，看全部
+  //   * 管理员 —— 跨账号看全部，可用 ?owner= 钻到某个账号
+  //   * 其他人 —— 钉死在自己账上
+  //
+  // 原来这里只写 `isolate(c) ? ownerId(c) : null`，而 isolate 只排除合成管理员 ——
+  // **真管理员也被钉在自己账上**，于是"管理员监控全部账号的用量"根本做不到，
+  // 而界面上又没有任何迹象说明他看到的只是自己那份。
+  const seeAll = c.get("user")?.role === "admin" || !isolate(c);
+  const asked = (c.req.query("owner") ?? "").trim();
+  // **?owner= 只对能看全部的人生效**，否则改一个参数就读到别人的账。
+  const owner = seeAll ? (asked === "" ? null : asked) : ownerId(c);
   const report: UsageReport = await usageReport(currentRepo(), {
     days: queryInt(c, "days", 30),
     bucket: c.req.query("bucket") ?? "day",
     limit: queryInt(c, "limit", 5000),
-    // 强制鉴权下只看自己的账；开放模式（合成管理员）看全部，与会话列表同一套规则
-    owner: isolate(c) ? ownerId(c) : null,
+    owner,
   });
-  return c.json(report);
+  // 账号 id 是一串 hex，界面上要显示成人名。只有能看全部的人才需要这张表。
+  //
+  // **拿不到就算了，不要让整个用量接口挂掉。** 名字是显示用的，数字才是这个接口
+  // 的意义；为了一张对照表把 200 变成 500，是拿主功能给装饰品陪葬。
+  // （usageReport 的 repo 接缝刻意窄成 Pick<Repo,"usageSince">，能传进来的东西
+  //   不保证有 listUsers —— 这里必须自己扛住。）
+  const names: Record<string, string> = {};
+  if (seeAll) {
+    try {
+      const repo = currentRepo() as { listUsers?: () => Promise<{ id: string; username: string; display_name: string }[]> };
+      for (const u of (await repo.listUsers?.()) ?? []) {
+        names[u.id] = u.display_name || u.username;
+      }
+    } catch {
+      // 名字解析失败就退回显示 id —— 前端已经有这条兜底分支。
+    }
+  }
+  return c.json({ ...report, can_see_all: seeAll, owner_filter: owner ?? "", owner_names: names });
 });
 
 // ══════════════════════════════════════════════════════════════════
@@ -178,9 +208,14 @@ app.get("/api/usage", async (c) => {
 // ══════════════════════════════════════════════════════════════════
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-// 源码开发（ts/src/server/ → 仓库根）与打包安装（与代码同级的 ui/）位置不同；
+// 源码开发（仓库根的 ui/）与打包安装（与代码同级的 ui/）位置不同；
 // 选择真实存在的完整工作台。与 Python 的 `_SOURCE_UI` / `_PACKAGED_UI` 同一条判据。
-const SOURCE_UI = resolve(HERE, "..", "..", "..", "ui");
+//
+// **不要数目录层数。** 这里原来写死 `../../../ui`：从 ts/src/server/ 算是仓库根的
+// ui/（对），从 ts/dist/src/server/ 算就成了 ts/ui/ —— 那个目录不存在，于是**静悄悄
+// 回落到打包副本**，表现是"前端重新构建了却不生效"，而 ui/index.html 明明是新的。
+// 改用 findRepoRoot 找标志物；找不到（真的打包安装）才用 PACKAGED_UI。
+const SOURCE_UI = join(findRepoRoot(HERE, 3), "ui");
 const PACKAGED_UI = join(HERE, "ui");
 
 export function uiDir(): string {
@@ -231,6 +266,9 @@ export async function startServerLifespan(): Promise<void> {
 
 /** 与 {@link startServerLifespan} 对称。**关库之前**必须先排空事件与账本。 */
 export async function stopServerLifespan(): Promise<void> {
+  // Third-party Chromium contexts and the pinned egress proxy must disappear before the process
+  // closes its durable store.  Browser state is intentionally runtime-only and never recoverable.
+  await stopLiveBrowserRuntime();
   const drain = _usageDrain;
   _usageDrain = null;
   if (drain !== null) {
@@ -267,6 +305,7 @@ export async function serverLifespan<T>(body: () => Promise<T>): Promise<T> {
     try {
       return await body();
     } finally {
+      await stopLiveBrowserRuntime();
       _usageDrain = null;
       drain.stop();
       await drain.promise;

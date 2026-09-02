@@ -139,6 +139,28 @@ export function chatUsdCap(): number {
   return num(BUDGET_CHAT_USD_CAP, "ONTOCOPILOT_CHAT_USD_CAP", 3.0);
 }
 
+/** 一次梳理的墙钟上限（秒）。
+ *
+ * **必须能配。** 原来 Run 的 Budget 只显式传 tokens 和 usd，wallclock_s 与
+ * tool_calls 静默走 DEFAULT_LIMITS（3600 / 500）。一份切出 219 段的材料，光
+ * EXTRACT 就要 ~8300 秒、1000+ 次工具调用 —— 两条都会在中途把整个 Run 判死，
+ * 而失败信息只说"预算耗尽"，不会告诉你是哪一维、更不会说这是个默认值。 */
+export function runWallclockS(): number {
+  return num("__env_only_run_wallclock", "ONTOCOPILOT_RUN_WALLCLOCK_S", 3600);
+}
+
+/** 一次梳理的工具调用次数上限。理由同上。 */
+export function runToolCalls(): number {
+  return num("__env_only_run_tool_calls", "ONTOCOPILOT_RUN_TOOL_CALLS", 500);
+}
+
+/** 一次梳理的 token 上限。理由同上 —— wallclock/tool_calls 修成可配之后，
+ * tokens 仍是 usage.ts 里的 4_000_000 硬编码：84 个抽取节点的真实材料在
+ * 3.81M/4M（tightest=tokens）处被判死，其余三维都还宽裕。 */
+export function runTokens(): number {
+  return num("__env_only_run_tokens", "ONTOCOPILOT_RUN_TOKENS", 4_000_000);
+}
+
 /** 各难度档的模型覆盖（只含设置页真正配了的档）。 */
 export function modelOverrides(): Record<string, string> {
   const out: Record<string, string> = {};
@@ -147,6 +169,18 @@ export function modelOverrides(): Record<string, string> {
     if (pyTruthy(v)) out[tier] = pyStr(v);
   }
   return out;
+}
+
+/**
+ * 「图像」档的模型候选串（`gateway.model.image`，逗号/顿号分隔，顺序即优先序）。
+ *
+ * 设置页上它与 低/中/高/关键 并排，存储键也同形 —— 但**不进 `modelOverrides()`**：
+ * 那张表会被 `gatewayRouting` 按 Difficulty 消费，而出图走 images 端点，
+ * 没有难度可映射，混进去就是一个未知档。没配返回空串。
+ */
+export function imageModelOverride(): string {
+  const v = _CACHE.get("gateway.model.image");
+  return pyTruthy(v) ? pyStr(v) : "";
 }
 
 /**
@@ -195,6 +229,9 @@ export const APP_CONFIG_PORT: AppConfigPort = {
   resolvedLlmConfig,
   usdCap,
   chatUsdCap,
+  runWallclockS,
+  runToolCalls,
+  runTokens,
   modelOverrides,
   refresh,
 };

@@ -466,6 +466,10 @@ export interface ObjectType {
   titleProperty: Assertion<string | null>;
   properties: string[];
   aliases: string[];
+  /** ★ 对象分类：业务对象/单据/主数据/事务/派生数据。分类决定下游怎么待它 ——
+   * 主数据进字典表、单据进流程、派生数据不让人填。以前只有交付包里有这个概念
+   * （编译时一律落 UNKNOWN），抽取侧根本没有坑位。 */
+  classification: Assertion<string>;
   owner: string | null;
   status: Status;
   conflicts: string[];
@@ -483,6 +487,7 @@ export function makeObjectType(
     titleProperty: p.titleProperty ?? inferred(null),
     properties: [...(p.properties ?? [])],
     aliases: [...(p.aliases ?? [])],
+    classification: p.classification ?? inferred(""),
     owner: p.owner ?? null,
     status: p.status ?? Status.CANDIDATE,
     conflicts: [...(p.conflicts ?? [])],
@@ -499,6 +504,8 @@ export function objectToDict(o: ObjectType): Record<string, unknown> {
     primaryKey: assertionToDict(o.primaryKey),
     properties: o.properties,
     aliases: o.aliases,
+    // **可选发射**：没填时一个键都不多 —— golden 钉的是旧字节，老会话必须原样
+    ...(o.classification.value ? { classification: assertionToDict(o.classification) } : {}),
     owner: o.owner,
     status: o.status,
     conflicts: o.conflicts,
@@ -551,6 +558,10 @@ export interface ActionType {
   rid: string;
   apiName: Assertion<string>;
   appliesTo: string[];
+  /** 执行角色。通用草案里按通识填的会在 package 编译时落成 assumed 绑定。 */
+  actor: Assertion<string>;
+  /** 前置条件（自然语言即可）。没有前置条件的 Action 无法进审批链配置。 */
+  preconditions: Assertion<string[]>;
   parameters: Assertion<Record<string, unknown>[]>;
   effects: Assertion<string[]>;
   /** 从 OpenAPI 反推的来源。设计稿里的杀手锏：没人填 ActionType 时，
@@ -564,6 +575,8 @@ export function makeActionType(p: Init<ActionType, "rid" | "apiName">): ActionTy
     rid: p.rid,
     apiName: p.apiName,
     appliesTo: [...(p.appliesTo ?? [])],
+    actor: p.actor ?? inferred(""),
+    preconditions: p.preconditions ?? inferred([]),
     parameters: p.parameters ?? inferred([]),
     effects: p.effects ?? inferred([]),
     sourceEndpoint: p.sourceEndpoint ?? inferred(null),
@@ -577,10 +590,61 @@ export function actionToDict(a: ActionType): Record<string, unknown> {
     kind: "ActionType",
     apiName: assertionToDict(a.apiName),
     appliesTo: a.appliesTo,
+    // **可选发射**：没填时一个键都不多 —— golden 钉的是旧字节，老数据必须原样。
+    ...(a.actor.value ? { actor: assertionToDict(a.actor) } : {}),
+    ...(a.preconditions.value.length > 0 ? { preconditions: assertionToDict(a.preconditions) } : {}),
     parameters: assertionToDict(a.parameters),
     effects: assertionToDict(a.effects),
     sourceEndpoint: assertionToDict(a.sourceEndpoint),
     status: a.status,
+  };
+}
+
+/**
+ * ★ 业务事件 —— OIR 的一等公民（A6 的第一步）。
+ *
+ * 以前 Event 只作为 FlowGraph 的一种 node kind 存在：进不了交付包的对象模型、
+ * 拿不到证据、编辑面也补不了载荷；「没有流程图就没有事件」。
+ * 现在抽取 schema 有了 events 桶，这里是它的落点。
+ *
+ * 字段刻意少：payload 是**对象 rid 列表**而不是自由 schema —— 事件带的是
+ * 哪张单据的数据，先把这一层连上；字段级载荷等真实样本多了再说。
+ * 序列化键与右栏的读法对齐（producerAction / objectIds —— context-sidebar
+ * 的 modelItems 早就在读这两个键，只是一直没人发过）。
+ */
+export interface EventType {
+  rid: string;
+  apiName: Assertion<string>;
+  displayName: Assertion<string>;
+  /** 产生它的 Action（rid；解析不到时存原样 api_name，宁可粗也不丢）。 */
+  emittedBy: string[];
+  /** 事件载荷涉及的对象 rid。 */
+  payload: string[];
+  status: Status;
+}
+
+export function makeEventType(p: Init<EventType, "rid" | "apiName" | "displayName">): EventType {
+  return {
+    rid: p.rid,
+    apiName: p.apiName,
+    displayName: p.displayName,
+    emittedBy: [...(p.emittedBy ?? [])],
+    payload: [...(p.payload ?? [])],
+    status: p.status ?? Status.CANDIDATE,
+  };
+}
+
+export function eventToDict(e: EventType): Record<string, unknown> {
+  return {
+    rid: e.rid,
+    kind: "EventType",
+    apiName: assertionToDict(e.apiName),
+    displayName: assertionToDict(e.displayName),
+    emittedBy: e.emittedBy,
+    // 右栏兼容键：modelItems 读 producerAction（单值）与 objectIds
+    producerAction: e.emittedBy[0] ?? "",
+    objectIds: e.payload,
+    status: e.status,
   };
 }
 
@@ -618,6 +682,20 @@ export interface BusinessRule {
   appliesTo: string[];
   /** 承担这条规则的角色，如"采购计划员"。 */
   actor: Assertion<string>;
+  /**
+   * ★ **可判定的条件**。`statement` 是原话（"金额超过 50,000 元需总经理审批"），
+   * 这里是能拿去执行的那一半（`estimatedAmount > 50000`）。
+   *
+   * 为什么必须单独一个字段：同一条业务事实现在会被写两遍 —— 一遍进 statement，
+   * 一遍进流程网关的边标签（"金额 > 5万"）—— **两处没有任何可机读的联系，
+   * 数字写法还不一样（50,000 vs 5万），矛盾了也没人发现**。有了这个字段，
+   * 校验代码生成得出来，规则与分支的交叉核对也才有抓手。
+   *
+   * 形态是**归一化后的表达式文本**而不是结构体：`{subject,op,value}` 那种拆法
+   * 在"两个条件与起来""按某个枚举取值分档"上会立刻不够用，而这一层现在还没有
+   * 足够的真实样本来定形。先把话说准，结构化留给下一步。
+   */
+  condition: Assertion<string>;
   status: Status;
 }
 
@@ -628,6 +706,7 @@ export function makeBusinessRule(p: Init<BusinessRule, "rid" | "statement">): Bu
     kind: p.kind ?? inferred(RuleKind.OTHER),
     appliesTo: [...(p.appliesTo ?? [])],
     actor: p.actor ?? inferred(""),
+    condition: p.condition ?? inferred(""),
     status: p.status ?? Status.CANDIDATE,
   };
 }
@@ -640,6 +719,9 @@ export function ruleToDict(r: BusinessRule): Record<string, unknown> {
     ruleKind: assertionToDict(r.kind),
     appliesTo: r.appliesTo,
     actor: assertionToDict(r.actor),
+    // **可选发射**：没填时一个键都不多 —— golden 钉的是旧字节，老会话必须原样。
+    // 与 actionToDict 的 actor/preconditions 是同一条纪律。
+    ...(r.condition.value ? { condition: assertionToDict(r.condition) } : {}),
     status: r.status,
   };
 }
@@ -720,6 +802,7 @@ export class OIR {
   readonly links = new Map<string, LinkType>();
   readonly actions = new Map<string, ActionType>();
   readonly rules = new Map<string, BusinessRule>();
+  readonly events = new Map<string, EventType>();
   readonly questions = new Map<string, OpenQuestion>();
 
   // ── 构建 ────────────────────────────────────────────────────
@@ -748,6 +831,11 @@ export class OIR {
   addRule(br: BusinessRule): BusinessRule {
     this.rules.set(br.rid, br);
     return br;
+  }
+
+  addEvent(e: EventType): EventType {
+    this.events.set(e.rid, e);
+    return e;
   }
 
   addQuestion(q: OpenQuestion): OpenQuestion {
@@ -795,6 +883,11 @@ export class OIR {
       }
       for (const a of this.actions.values()) {
         if (a.appliesTo.includes(rid)) out.push(a.rid);
+      }
+      // 规则也在波及面里 ——「改这个对象会波及哪些规则」恰恰是客户当面最常问的，
+      // 而这条以前不收，impact.trace 因此对规则全盲（影响分析 C1 缺口）。
+      for (const r of this.rules.values()) {
+        if (r.appliesTo.includes(rid)) out.push(r.rid);
       }
     } else {
       const pt = this.properties.get(rid);
@@ -851,6 +944,7 @@ export class OIR {
       links: this.links.size,
       actions: this.actions.size,
       rules: this.rules.size,
+      ...(this.events.size > 0 ? { events: this.events.size } : {}),
       questions: this.questions.size,
       // 未答的那部分才是待办。答过的是事实，混在一起统计会让人以为
       // 还有一大堆没问，或者反过来以为已经问完了。
@@ -866,6 +960,10 @@ export class OIR {
       properties: [...this.properties.values()].map(propertyToDict),
       links: [...this.links.values()].map(linkToDict),
       rules: [...this.rules.values()].map(ruleToDict),
+      // **可选发射**：没有事件时一个键都不多 —— golden 钉的是旧字节
+      ...(this.events.size > 0
+        ? { events: [...this.events.values()].map(eventToDict) }
+        : {}),
       questions: [...this.questions.values()].map(questionToDict),
       actions: [...this.actions.values()].map(actionToDict),
       stats: this.stats(),
@@ -986,6 +1084,10 @@ export function oirFromDict(data: Record<string, unknown>): OIR {
       titleProperty: inferred(null),
       properties: pyStrList(g(o, "properties")),
       aliases: pyStrList(g(o, "aliases")),
+      // 老数据没有这个键（可选发射），缺省回落到与 makeObjectType 相同的空断言
+      classification: o["classification"] === undefined
+        ? inferred("")
+        : (assertFrom(g(o, "classification")) as Assertion<string>),
       owner: (g(o, "owner") as string | null) ?? null,
       status: statusFrom(g(o, "status")),
       conflicts: pyStrList(g(o, "conflicts")),
@@ -1028,6 +1130,11 @@ export function oirFromDict(data: Record<string, unknown>): OIR {
       rid,
       apiName: assertFrom(g(a, "apiName")) as Assertion<string>,
       appliesTo: pyStrList(g(a, "appliesTo")),
+      // 老数据没有这两个键（可选发射），缺省回落到与 makeActionType 相同的空断言
+      actor: a["actor"] === undefined ? inferred("") : (assertFrom(g(a, "actor")) as Assertion<string>),
+      preconditions: a["preconditions"] === undefined
+        ? inferred([])
+        : (assertFrom(g(a, "preconditions")) as Assertion<string[]>),
       parameters: assertFrom(g(a, "parameters")) as Assertion<Record<string, unknown>[]>,
       effects: assertFrom(g(a, "effects")) as Assertion<string[]>,
       sourceEndpoint: assertFrom(g(a, "sourceEndpoint")) as Assertion<Record<
@@ -1045,8 +1152,27 @@ export function oirFromDict(data: Record<string, unknown>): OIR {
       kind: assertFrom(g(r, "ruleKind"), parseRuleKind) as Assertion<RuleKind>,
       appliesTo: pyStrList(g(r, "appliesTo")),
       actor: assertFrom(g(r, "actor")) as Assertion<string>,
+      // 老数据没有这个键（可选发射），缺省回落到与 makeBusinessRule 相同的空断言
+      condition: r["condition"] === undefined
+        ? inferred("")
+        : (assertFrom(g(r, "condition")) as Assertion<string>),
       status: statusFrom(g(r, "status")),
     });
+  }
+  // 老数据没有 events 键（可选发射）—— rows() 会对缺失键给空列表吗？
+  // 不会：pyList(undefined) 的行为要么空要么抛，这里显式判一次，缺键就跳过。
+  if (Array.isArray(g(data, "events"))) {
+    for (const e of rows("events")) {
+      const rid = pyStr(e["rid"]);
+      oir.events.set(rid, {
+        rid,
+        apiName: assertFrom(g(e, "apiName")) as Assertion<string>,
+        displayName: assertFrom(g(e, "displayName")) as Assertion<string>,
+        emittedBy: pyStrList(g(e, "emittedBy")),
+        payload: pyStrList(g(e, "objectIds")),
+        status: statusFrom(g(e, "status")),
+      });
+    }
   }
   for (const q of rows("questions")) {
     const rid = pyStr(q["rid"]);

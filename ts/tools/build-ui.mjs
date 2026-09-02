@@ -12,9 +12,9 @@
 //   --check 只比对，不写盘（CI 里用来确认 index.html 与源码没有漂移）
 
 import { build } from "esbuild";
-import { readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { dirname, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, "../..");
@@ -83,4 +83,14 @@ if (process.argv.includes("--check")) {
 } else {
   writeFileSync(OUT, html);
   console.log(`ui/index.html 已生成（bundle ${bundle.length} 字节）`);
+  // 编译版（node ts/dist/src/main.js）解析出来的 uiDir() 是 ts/dist/src/server/ui，
+  // 不是仓库根的 ui/。以前那份是手工拷进去的：dist 一重建就没了，服务端于是回退到
+  // 「前端未构建」，或者更糟 —— 继续吐几小时前的旧界面，而你以为看的是新代码。
+  // 前端只有这一个产物，跟着它一起写出去最省事。
+  const packaged = resolve(ROOT, "ts/dist/src/server");
+  if (existsSync(packaged)) {
+    mkdirSync(join(packaged, "ui"), { recursive: true });
+    writeFileSync(join(packaged, "ui", "index.html"), html);
+    console.log("ts/dist/src/server/ui/index.html 已同步");
+  }
 }

@@ -16,7 +16,11 @@ export type Json = any;
 export interface UiState {
   /** 当前会话（/api/sessions/{id}/state 的返回，外加前端挂的 events / filelist）。 */
   S: Json;
+  /** 中栏顶级页面。项目知识库是独立页面，不属于右侧会话上下文栏。 */
+  MAIN_PAGE: "chat" | "knowledge";
   TAB: string;
+  /** 从模型/审阅点进证据后回到原工作上下文；显式切导航时清空。 */
+  CONTEXT_BACK: string | null;
   FILE: string | null;
   SRC: Record<string, Json>;
   ES: Json;
@@ -62,6 +66,9 @@ export interface UiState {
   // 乐观上屏的消息。服务端回执到达后由 S.state.dialogue 接管，这里清空 ——
   // 不清的话同一句话会显示两遍。
   PENDING: Json[];
+  /** 轮次在跑时用户又发的话。**不丢也不硬发** —— 硬发会撞服务端的 409，
+   *  而那条错误以前会永久卡在气泡流里。落地后自动出队。 */
+  QUEUED: string[];
   // 当前这轮推理的过程。回答落地后清空 —— 保留的话每轮都会越堆越长。
   STEPS: Json[];
   // 是否正在等回复。发出去的那一刻就置上，不等第一个 step。
@@ -111,11 +118,13 @@ export interface UiState {
 
   USAGE: Json;
   USAGE_DAYS: number;
+  /** 用量按账号钻取；""=全部。只有管理员用得到。 */
+  USAGE_OWNER: string;
   USAGE_ROWS_OPEN: boolean;
 }
 
 export const G: UiState = {
-  S: null, TAB: "mat", FILE: null, SRC: {}, ES: null, ANSWERS: {},
+  S: null, MAIN_PAGE: "chat", TAB: "model", CONTEXT_BACK: null, FILE: null, SRC: {}, ES: null, ANSWERS: {},
   Q_BACKLOG: [], Q_API: false, Q_FILTER: "open", Q_LIMIT: 40,
   Q_NEXT: [], RETURN_AUDIT: null, RETURN_FILE: null, RETURN_BUSY: false,
   MODE: localStorage.getItem("oc_mode") || "work", // 聊天 / 工作 双模式
@@ -124,7 +133,7 @@ export const G: UiState = {
   STREAM: null,
   MAT_N: 100,
   MAT_OPEN: new Set<string>(),
-  PENDING: [], STEPS: [], THINKING: false,
+  PENDING: [], QUEUED: [], STEPS: [], THINKING: false,
   NEEDS_CONFIRM: false, CONFIRM_NEXT: false,
   PROMPTS: [], FOLLOWUPS: [], TRACE: [], OPS: [],
   CHAT_ABORT: null,
@@ -138,7 +147,7 @@ export const G: UiState = {
   THINK_T0: 0, THINK_TIMER: null, PFADE_T: null,
   USERS: [], RESET_ID: null,
   SET_TAB: "appearance", CONFIG: null,
-  USAGE: null, USAGE_DAYS: 7, USAGE_ROWS_OPEN: false,
+  USAGE: null, USAGE_DAYS: 7, USAGE_OWNER: "", USAGE_ROWS_OPEN: false,
 };
 
 /** 忙着提交的问题 id。原文件是 `const Q_BUSY = new Set()`，从没被重新赋值。 */

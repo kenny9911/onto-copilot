@@ -473,6 +473,8 @@ function specOf(c: NodeCfg): NodeSpec {
 interface Replayed {
   calls: PyCall[];
   events: PyEvent[];
+  /** §6.1 相位剖面事件单独收 —— Python 侧不存在它，不进 golden 事件对拍。 */
+  profiles: PyEvent[];
   judged: PyJudged[];
   validated: { lenses: string[]; node_id: string }[];
   assembles: PyAssemble[];
@@ -567,7 +569,8 @@ async function replay(c: RunCase): Promise<Replayed> {
 
   return {
     calls: gw.calls,
-    events: rec.events,
+    events: rec.events.filter((e) => (e.kind as string) !== "node.profile"),
+    profiles: rec.events.filter((e) => (e.kind as string) === "node.profile"),
     judged: panel.judged,
     validated: panel.validated,
     assembles: cm.assembles,
@@ -688,6 +691,39 @@ describe("AgentLoop.route", () => {
 // ══════════════════════════════════════════════════════════════════
 //  整节点重放
 // ══════════════════════════════════════════════════════════════════
+describe("§6.1 节点相位剖面（TS 新增，不进 Python 平价对拍）", () => {
+  it("每个成功的 run 恰好发一条 node.profile，各桶之和恒等于墙钟", async () => {
+    for (const run of G.runs) {
+      const got = await replay(run.case);
+      if (got.error !== null) {
+        // 挂起/失败路径不发剖面 —— 没跑完的节点没有可信的相位分布
+        continue;
+      }
+      expect(got.profiles, run.name).toHaveLength(1);
+      const payload = got.profiles[0]!.payload as {
+        wallclock_ms: number;
+        phases_ms: Record<string, number>;
+        calls: Record<string, number>;
+      };
+      const KNOWN = new Set([
+        "materialize", "execute", "sampling", "tool_io",
+        "critic_judge", "critic_refine", "finalize", "human_wait", "overhead",
+      ]);
+      let sum = 0;
+      for (const [k, v] of Object.entries(payload.phases_ms)) {
+        expect(KNOWN.has(k), `${run.name} 出现未知相位 ${k}`).toBe(true);
+        expect(v, `${run.name}/${k} 为负`).toBeGreaterThanOrEqual(0);
+        sum += v;
+      }
+      // 残差构造保证：sum(各桶) === 墙钟 —— 拿去画饼图不需要解释
+      expect(sum, run.name).toBeCloseTo(payload.wallclock_ms, 6);
+      for (const v of Object.values(payload.calls)) {
+        expect(v).toBeGreaterThan(0);
+      }
+    }
+  });
+});
+
 describe("AgentLoop.run 重放 golden 剧本", () => {
   for (const run of G.runs) {
     describe(run.name, () => {
@@ -809,5 +845,72 @@ describe("critic 修订环不能吃掉规则抽好的内容（loop.ts:critique �
     // critic 判的必须是节点真正要交出去的东西 —— 否则它会对"模型没抽但规则已经
     // 抽了"的内容报缺失，把一个好产物打回去重做
     expect((seen[1] as { actions: unknown[] }).actions).toEqual([{ api_name: "createPbp" }]);
+  });
+});
+
+// ══════════════════════════════════════════════════════════════════
+//  AbortSignal 真正进循环（P0）
+//
+//  Scheduler 早就把每节点的 signal 传进 loop.run（scheduler.ts 的 AgentLoopLike
+//  也声明了它），但 AgentLoop 的 opts 类型不收 —— 全文件 signal 出现 0 次，
+//  停止键按下后循环照跑到自然结束。取消是协作式的：循环边界查一次，
+//  中止即抛 NodeFailure(retryable=false) —— 调度器现有分支就地定案，零重试白烧。
+// ══════════════════════════════════════════════════════════════════
+describe("AbortSignal 进 AgentLoop", () => {
+  const abortLoop = (gw: StubGateway) => new AgentLoop({
+    gateway: gw,
+    ctxManager: new StubCM(),
+    panel: new StubPanel([]),
+    bus: new StubBus(""),
+    recorder: new StubRecorder({}),
+    budget: new Budget(),
+    handlers: { h: new StubHandler({}) },
+    newScratchpad: (t) => new FakePad(t, new Set(), 0),
+  });
+
+  it("进门前已中止 → 一次模型调用都不发", async () => {
+    const gw = new StubGateway([], 2, 4, 1, "m");
+    const controller = new AbortController();
+    controller.abort();
+    await expect(abortLoop(gw).run(
+      makeNodeSpec({ id: "N", mode: parseNodeMode("react"), handler: "h" }),
+      { working: new StubWorking({}), deps: [], runId: "r", signal: controller.signal },
+    )).rejects.toMatchObject({ retryable: false });
+    expect(gw.calls).toHaveLength(0);
+  });
+
+  it("循环中途中止 → 不再发下一步（本步收尾，下一轮边界停）", async () => {
+    const controller = new AbortController();
+    // 第一步的响应到达时按下停止 —— 之后循环头必须看见并停下
+    class AbortingGateway extends StubGateway {
+      override call(nodeId: string, prompt: string, opts?: LoopCallOptions): Promise<LoopCompletion> {
+        const out = super.call(nodeId, prompt, opts);
+        controller.abort();
+        return out;
+      }
+    }
+    const gw = new AbortingGateway([
+      { data: { thought: "先查一下材料里的对象定义", kind: "tool", tool: "t", args: {} } },
+      { data: { thought: "再看第二处", kind: "tool", tool: "t", args: {} } },
+      { data: { thought: "综合以上", kind: "answer", tool: "" } },
+    ], 2, 4, 1, "m");
+    await expect(abortLoop(gw).run(
+      makeNodeSpec({ id: "N", mode: parseNodeMode("react"), handler: "h" }),
+      { working: new StubWorking({}), deps: [], runId: "r", signal: controller.signal },
+    )).rejects.toMatchObject({ retryable: false });
+    expect(gw.calls).toHaveLength(1);      // 只发了第一步
+  });
+
+  it("不传 signal 的调用方行为不变：同一份脚本跑完全部三步", async () => {
+    const gw = new StubGateway([
+      { data: { thought: "先查一下材料里的对象定义", kind: "tool", tool: "t", args: {} } },
+      { data: { thought: "再看第二处", kind: "tool", tool: "t", args: {} } },
+      { data: { thought: "综合以上", kind: "answer", tool: "" } },
+    ], 2, 4, 1, "m");
+    await abortLoop(gw).run(
+      makeNodeSpec({ id: "N", mode: parseNodeMode("react"), handler: "h" }),
+      { working: new StubWorking({}), deps: [], runId: "r" },
+    );
+    expect(gw.calls.length).toBeGreaterThanOrEqual(3);   // 与中止用例同脚本，未中止就走完
   });
 });

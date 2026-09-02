@@ -1,0 +1,7 @@
+# ui/index.html 是 build-ui.mjs 从 ts/src/ui/ 烤出来的 1.6MB 产物，但它**被 git 跟踪**
+# （因为后端在 / 直接吐它，部署时要有）。不折叠的话，一次 UI 改动的 diff 是几万行生成物
+# 盖住几十行真源码 —— 历史上它一直混在 41~127 文件的大提交里，没有人 review 过。
+#
+# linguist-generated 让 GitHub 默认折叠它，-diff 让本地 `git diff` 只显示一行摘要。
+# 要看真正改了什么，去看 ts/src/ui/*.ts；要看产物对不对，跑 ts/tools/verify-ui-shell.mjs。
+ui/index.html -diff linguist-generated

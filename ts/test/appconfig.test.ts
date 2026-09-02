@@ -28,6 +28,8 @@ import {
   redactDbUrl,
   registerConfigCatalog,
   snapshot,
+  imageCatalogCacheReset,
+  imageCatalogView,
 } from "../src/configapi.js";
 import type { ConfigCatalog } from "../src/configapi.js";
 import { SYNTHETIC_ADMIN } from "../src/authgate.js";
@@ -131,6 +133,25 @@ describe("appconfig", () => {
     expect(appconfig.chatUsdCap()).toBe(G.defaults.chat_usd_cap);
   });
 
+  it("Run 三维上限都可配 —— tokens 不许再是唯一调不动的那维", () => {
+    withEnv({
+      ONTOCOPILOT_RUN_WALLCLOCK_S: "14400",
+      ONTOCOPILOT_RUN_TOOL_CALLS: "4000",
+      ONTOCOPILOT_RUN_TOKENS: "12000000",
+    });
+    expect(appconfig.runWallclockS()).toBe(14400);
+    expect(appconfig.runToolCalls()).toBe(4000);
+    expect(appconfig.runTokens()).toBe(12_000_000);
+    withEnv({
+      ONTOCOPILOT_RUN_WALLCLOCK_S: "",
+      ONTOCOPILOT_RUN_TOOL_CALLS: "",
+      ONTOCOPILOT_RUN_TOKENS: "",
+    });
+    expect(appconfig.runWallclockS()).toBe(3600);
+    expect(appconfig.runToolCalls()).toBe(500);
+    expect(appconfig.runTokens()).toBe(4_000_000);
+  });
+
   it("模型覆盖只含真配了的档（假值一律不算配）", () => {
     for (const c of G.model_overrides) {
       appconfig.setCacheForTests(c.cache);
@@ -164,6 +185,98 @@ describe("appconfig", () => {
     expect(appconfig.modelOverrides()).toEqual({});
     expect(appconfig.chatUsdCap()).toBe(2);
     expect((await repo.listSettings()).map((r) => r.key).includes("gateway.model.high")).toBe(false);
+  });
+
+  /**
+   * 「图像」档 —— 和 低/中/高/关键 并排的第五档，但**不进难度路由**：
+   * 出图走 images 端点，与 chat completions 不是一条路，也没有 Difficulty 可映射。
+   * 所以它有自己的读取口（imageModelOverride），不混进 modelOverrides() ——
+   * 混进去会被 gatewayRouting 当成未知难度档。
+   */
+  it("图像档：gateway.model.image 有自己的读取口，不混进难度路由", async () => {
+    const repo = new MemoryRepo() as unknown as Repo;
+    await repo.setSetting("gateway.model.image", "openai/gpt-image-2, dall-e-3");
+    await repo.setSetting("gateway.model.high", "a/b");
+    await appconfig.refresh(repo);
+
+    expect(appconfig.imageModelOverride()).toBe("openai/gpt-image-2, dall-e-3");
+    // 难度路由的覆盖表里没有 image —— 它不是一个难度
+    expect(appconfig.modelOverrides()).toEqual({ high: "a/b" });
+  });
+
+  it("图像档：没配就是空串", async () => {
+    const repo = new MemoryRepo() as unknown as Repo;
+    await appconfig.refresh(repo);
+
+    expect(appconfig.imageModelOverride()).toBe("");
+  });
+});
+
+/**
+ * 图像模型的**可选列表** —— 设置页「图像」档下拉的数据源。
+ *
+ * 聊天目录被 NOT_CHAT_RE 有意挡住图像模型，所以列表只能来自**网关本身**：
+ * 打开设置时探测一次 `/v1/models`，按名形筛出出图型号。
+ * 探测失败（网关挂了/超时/没配 key）一律回空列表 —— 设置页回落到手填框，
+ * 绝不能让设置页因为网关抖一下就打不开。
+ */
+describe("imageCatalogView", () => {
+  const realFetch = globalThis.fetch;
+  afterEach(() => {
+    globalThis.fetch = realFetch;
+    imageCatalogCacheReset();
+  });
+
+  function fakeGateway(ids: string[]): void {
+    globalThis.fetch = (async () =>
+      new Response(JSON.stringify({ data: ids.map((id) => ({ id })) }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      })) as typeof fetch;
+  }
+
+  it("从网关名单里筛出出图型号，聊天模型不进列表", async () => {
+    withEnv({ CUSTOM_LLM_BASE_URL: "http://gw/v1", CUSTOM_LLM_API_KEY: "k" });
+    fakeGateway([
+      "openai/gpt-5.4-image-2",
+      "google/gemini-3.1-flash-image",
+      "google/gemini-3.5-flash",
+      "anthropic/claude-opus-4.8",
+    ]);
+
+    expect(await imageCatalogView()).toEqual([
+      "google/gemini-3.1-flash-image",
+      "openai/gpt-5.4-image-2",
+    ]);
+  });
+
+  it("网关炸了给空列表，不炸设置页", async () => {
+    withEnv({ CUSTOM_LLM_BASE_URL: "http://gw/v1", CUSTOM_LLM_API_KEY: "k" });
+    globalThis.fetch = (async () => {
+      throw new Error("boom");
+    }) as typeof fetch;
+
+    expect(await imageCatalogView()).toEqual([]);
+  });
+
+  it("没配网关也给空列表", async () => {
+    withEnv({});
+
+    expect(await imageCatalogView()).toEqual([]);
+  });
+
+  it("60 秒内不重复打网关 —— 设置页每次打开都探测会把网关刷爆", async () => {
+    withEnv({ CUSTOM_LLM_BASE_URL: "http://gw/v1", CUSTOM_LLM_API_KEY: "k" });
+    let hits = 0;
+    globalThis.fetch = (async () => {
+      hits += 1;
+      return new Response(JSON.stringify({ data: [{ id: "dall-e-3" }] }), { status: 200 });
+    }) as typeof fetch;
+
+    await imageCatalogView();
+    await imageCatalogView();
+
+    expect(hits).toBe(1);
   });
 });
 
@@ -249,9 +362,9 @@ function testApp(repo: Repo, user: unknown = SYNTHETIC_ADMIN): Hono<AuthEnv> {
 }
 
 const CATALOG: ConfigCatalog = {
-  get: (name) => (name === "a/b" ? { spec: { effort: null } as never } : null),
-  names: () => ["a/b"],
-  describe: () => [{ name: "a/b" }],
+  get: (name) => (name === "a/b" || name === "c/d" ? { spec: { effort: null } as never } : null),
+  names: () => ["a/b", "c/d"],
+  describe: () => [{ name: "a/b" }, { name: "c/d" }],
 };
 
 describe("/api/config", () => {
@@ -268,9 +381,11 @@ describe("/api/config", () => {
     expect(res.status).toBe(200);
     const body = (await res.json()) as Record<string, unknown>;
     expect(Object.keys(body).sort()).toEqual(
-      ["balance", "budget", "catalog", "env", "gateway", "tiers"].sort(),
+      // image_catalog：「图像」档下拉的数据源（网关探测，失败为空数组）
+      ["balance", "budget", "catalog", "env", "gateway", "image_catalog", "tiers"].sort(),
     );
     expect(body["balance"]).toEqual({ known: false });
+    expect(body["image_catalog"]).toEqual([]);
   });
 
   it("PUT 存 base_url / api_key / 预算，并热应用到缓存", async () => {
@@ -328,6 +443,51 @@ describe("/api/config", () => {
     expect((await repo.listSettings()).length).toBe(0);
   });
 
+  /**
+   * 「图像」档 —— 设置页模型分级的第五行。
+   * 存储键同形（gateway.model.image）、校验同规（候选必须在目录里）、
+   * 但它不进难度路由，snapshot 里单独一行（没有 effort，default 来自
+   * 目录里第一个带出图能力的模型）。
+   */
+  it("图像档：保存、校验、清空、快照，一套走全", async () => {
+    const repo = new MemoryRepo() as unknown as Repo;
+    registerConfigCatalog(() => CATALOG);
+    const app = testApp(repo);
+    const put = async (body: unknown) => {
+      const res = await app.request("/api/config", {
+        method: "PUT",
+        body: JSON.stringify(body),
+        headers: { "content-type": "application/json" },
+      });
+      return [res.status, (await res.json()) as Record<string, unknown>] as const;
+    };
+
+    // 把聊天模型误填进图像档 → 保存那一刻打回（不是运行时 images 端点 400）。
+    // 图像档不查聊天目录：图像模型被 NOT_CHAT_RE 有意挡在目录外，查了永远打回。
+    const [badStatus, badBody] = await put({ models: { image: "a/b" } });
+    expect(badStatus).toBe(400);
+    expect(String((badBody as { detail?: unknown })["detail"])).toMatch(/不是图像模型：a\/b/u);
+
+    // 合法候选串（顿号也认）→ 落库 + 快照回显
+    const [okStatus, okBody] = await put({ models: { image: " openai/gpt-image-2 、 dall-e-3 " } });
+    expect(okStatus).toBe(200);
+    expect(appconfig.imageModelOverride()).toBe("openai/gpt-image-2, dall-e-3");
+    const imageTier = (okBody["tiers"] as Record<string, Record<string, unknown>>)["image"]!;
+    expect(imageTier["model"]).toBe("openai/gpt-image-2");
+    expect(imageTier["overridden"]).toBe(true);
+    expect(imageTier["candidates"]).toBe("openai/gpt-image-2, dall-e-3");
+
+    // 空串 = 清覆盖
+    const [clrStatus, clrBody] = await put({ models: { image: "" } });
+    expect(clrStatus).toBe(200);
+    expect(appconfig.imageModelOverride()).toBe("");
+    const cleared = (clrBody["tiers"] as Record<string, Record<string, unknown>>)["image"]!;
+    expect(cleared["overridden"]).toBe(false);
+    // 测试目录里没有带出图能力的模型 → default 是 null，如实说"没有"
+    expect(cleared["model"]).toBeNull();
+    expect(cleared["default"]).toBeNull();
+  });
+
   it("模型必须在目录里；空串是「清覆盖」", async () => {
     const repo = new MemoryRepo() as unknown as Repo;
     registerConfigCatalog(() => CATALOG);
@@ -361,6 +521,32 @@ describe("/api/config", () => {
     expect(appconfig.modelOverrides()).toEqual({});
   });
 
+  it("一档可配多候选（逗号/顿号分隔），逐个校验、存归一化串", async () => {
+    const repo = new MemoryRepo() as unknown as Repo;
+    registerConfigCatalog(() => CATALOG);
+    const app = testApp(repo);
+    const ok = await app.request("/api/config", {
+      method: "PUT",
+      body: JSON.stringify({ models: { high: " a/b 、 c/d " } }),
+      headers: { "content-type": "application/json" },
+    });
+    expect(ok.status).toBe(200);
+    expect(appconfig.modelOverrides()).toEqual({ high: "a/b, c/d" });
+    const tiers = ((await ok.json()) as Record<string, Record<string, Record<string, unknown>>>)[
+      "tiers"
+    ]!;
+    expect(tiers["high"]!["candidates"]).toBe("a/b, c/d");
+    expect(tiers["high"]!["model"]).toBe("a/b"); // 第一候选在目录 → 生效的是它
+
+    const bad = await app.request("/api/config", {
+      method: "PUT",
+      body: JSON.stringify({ models: { high: "a/b, 查无此模型" } }),
+      headers: { "content-type": "application/json" },
+    });
+    expect(bad.status).toBe(400);
+    expect(await bad.json()).toEqual({ detail: "模型不在目录中：查无此模型" });
+  });
+
   it("目录还没接线时一律拒绝覆盖（fail closed，不写一个查不到的模型名）", async () => {
     const repo = new MemoryRepo() as unknown as Repo;
     const res = await testApp(repo).request("/api/config", {
@@ -377,6 +563,10 @@ describe("/api/config", () => {
 // ══════════════════════════════════════════════════════════════════
 describe("serve", () => {
   it("argparse 的那一小块", () => {
+    // 显式清掉环境：默认值现在取自 ONTOCOPILOT_PORT/HOST，开发机上恰好设了的话
+    // 这条断言会莫名其妙地红，而红的原因跟被测代码无关。
+    delete process.env["ONTOCOPILOT_PORT"];
+    delete process.env["ONTOCOPILOT_HOST"];
     expect(parseArgs([])).toEqual({ host: "127.0.0.1", port: 8000, reload: false });
     expect(parseArgs(["--host", "0.0.0.0", "--port", "9000", "--reload"])).toEqual({
       host: "0.0.0.0",
@@ -388,6 +578,39 @@ describe("serve", () => {
     expect(() => parseArgs(["--port", "abc"])).toThrow("invalid int value");
     expect(() => parseArgs(["--nope"])).toThrow("unrecognized arguments");
     expect(() => parseArgs(["--port"])).toThrow("expected one argument");
+  });
+
+  // 端口以前只能靠命令行传，于是同一台机器上并存好几个实例、各用各的端口，
+  // 排查时反复在验证一个没人用的旧进程。钉死在 .env 里，"启动"只有一种结果。
+  describe("端口默认值取自环境", () => {
+    const saved = { p: process.env["ONTOCOPILOT_PORT"], h: process.env["ONTOCOPILOT_HOST"] };
+    afterEach(() => {
+      for (const [k, v] of [["ONTOCOPILOT_PORT", saved.p], ["ONTOCOPILOT_HOST", saved.h]] as const) {
+        if (v === undefined) delete process.env[k];
+        else process.env[k] = v;
+      }
+    });
+
+    it("ONTOCOPILOT_PORT / HOST 顶掉内置默认值", () => {
+      process.env["ONTOCOPILOT_PORT"] = "8765";
+      process.env["ONTOCOPILOT_HOST"] = "0.0.0.0";
+      expect(parseArgs([])).toEqual({ host: "0.0.0.0", port: 8765, reload: false });
+    });
+
+    it("命令行显式传的优先于环境 —— 临时起第二个实例时要能压过去", () => {
+      process.env["ONTOCOPILOT_PORT"] = "8765";
+      expect(parseArgs(["--port", "9001"]).port).toBe(9001);
+    });
+
+    it("环境里写歪了退回 8000，不抛 —— .env 打错字不该让服务起不来", () => {
+      for (const bad of ["abc", "", "0", "70000", "-1", "80 80"]) {
+        process.env["ONTOCOPILOT_PORT"] = bad;
+        expect(parseArgs([]).port, bad).toBe(8000);
+      }
+      // 但显式 --port 写歪了仍然报错：那是 argparse 的语义，两者不是一回事。
+      process.env["ONTOCOPILOT_PORT"] = "8765";
+      expect(() => parseArgs(["--port", "abc"])).toThrow("invalid int value");
+    });
   });
 
   it("buildRepo 是唯一的选路点：没引擎走内存，有引擎走 PgRepo", async () => {

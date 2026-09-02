@@ -44,6 +44,15 @@ import {
   type FlowGraph,
   type FlowNode,
 } from "./flow.js";
+import {
+  autoPaletteMarker,
+  resolveDiagramStyle,
+  type DiagramLayout,
+  type FlowPalette,
+} from "./flow_style.js";
+
+export { resolveDiagramStyle } from "./flow_style.js";
+export type { DiagramLayout, DiagramMetrics, DiagramTheme, ResolvedDiagramStyle } from "./flow_style.js";
 
 // ══════════════════════════════════════════════════════════════════
 //  Python 语义垫片
@@ -63,6 +72,26 @@ function isAlnum(ch: string): boolean {
 /** `s[:n]`：按 code point 切。 */
 function cpSlice(s: string, n: number): string {
   return [...s].slice(0, n).join("");
+}
+
+/**
+ * 边标签能画多少字。
+ *
+ * 原来是 8 —— 而分支条件恰恰最容易超：「金额大于等于5万元」9 字，砍到 8 就成了
+ * 「金额大于等于5万」，**把「元」砍掉还算小事，砍在「等于」上含义就反了**。
+ * 边标签是全图唯一带判定信息的东西，砍它等于砍掉这张图能不能被执行的那部分。
+ *
+ * 24 是按渲染尺度定的：节点框宽 168，标签画在边的中点、9.5px 字号，
+ * 24 个中文字约 228px —— 比一个节点宽一些，仍在两列间距（214）的量级内，
+ * 不会盖到相邻节点上。超过就截，并**显式留省略号**：画不下是事实，
+ * 但要让人看得出这里被截过，而不是以为条件就这么短。
+ */
+const EDGE_LABEL_MAX = 24;
+
+function edgeLabelText(label: string): string {
+  const cps = [...label];
+  if (cps.length <= EDGE_LABEL_MAX) return label;
+  return cps.slice(0, EDGE_LABEL_MAX - 1).join("") + "…";
 }
 
 /** `html.escape(s)`，默认 `quote=True`。
@@ -214,24 +243,8 @@ export function toMermaid(
 //  SVG
 // ══════════════════════════════════════════════════════════════════
 
-/** 配色。默认值取自客户那张图 —— 产出物要能直接贴进他们已有的材料里。 */
-export interface Palette {
-  actionFill: string;
-  actionLine: string;
-  eventFill: string;
-  eventLine: string;
-  gatewayFill: string;
-  gatewayLine: string;
-  terminalFill: string;
-  terminalLine: string;
-  externalFill: string;
-  externalLine: string;
-  band: string;
-  bandLine: string;
-  ink: string;
-  dim: string;
-  edge: string;
-}
+/** 配色契约。auto 的计算在 flow_style.ts；这里保留显式模板兼容层。 */
+export type Palette = FlowPalette;
 
 const PALETTE_DEFAULTS: Readonly<Palette> = {
   actionFill: "#dbeafe",
@@ -251,6 +264,70 @@ const PALETTE_DEFAULTS: Readonly<Palette> = {
   edge: "#9ca3af",
 };
 
+/**
+ * 预置模板（用户点名要的「多模板化」——每次都是同一张米色模板，讲给不同客户
+ * 看的图应该能换气质）。**模板只换配色，不换布局语义**：布局由拓扑决定，
+ * 换模板不能把人拖好的位置或阅读顺序换掉。
+ *
+ * 名字按用途起，不按颜色起 —— 「打印」比「灰色」告诉用的人更多。
+ */
+export const SVG_TEMPLATES: Readonly<Record<string, Partial<Palette>>> = {
+  /** 默认：现在这套米色暖调。 */
+  classic: {},
+  /** 深底演示：投屏/大屏讲解用。 */
+  slate: {
+    actionFill: "#1e293b", actionLine: "#475569",
+    eventFill: "#312e2b", eventLine: "#a16207",
+    gatewayFill: "#292524", gatewayLine: "#a8a29e",
+    terminalFill: "#14532d", terminalLine: "#22c55e",
+    externalFill: "#1e1b4b", externalLine: "#6366f1",
+    band: "#0f172a", bandLine: "#1e293b",
+    ink: "#e2e8f0", dim: "#94a3b8", edge: "#64748b",
+  },
+  /** 高对比打印：黑白激光打印机、合同附件用 —— 灰阶也分得开。 */
+  print: {
+    actionFill: "#ffffff", actionLine: "#111111",
+    eventFill: "#f5f5f5", eventLine: "#111111",
+    gatewayFill: "#e5e5e5", gatewayLine: "#111111",
+    terminalFill: "#d4d4d4", terminalLine: "#111111",
+    externalFill: "#fafafa", externalLine: "#525252",
+    band: "#ffffff", bandLine: "#a3a3a3",
+    ink: "#000000", dim: "#525252", edge: "#404040",
+  },
+  /** 蓝图：偏 IT/架构评审的冷调。 */
+  blueprint: {
+    actionFill: "#dbeafe", actionLine: "#2563eb",
+    eventFill: "#e0f2fe", eventLine: "#0284c7",
+    gatewayFill: "#ede9fe", gatewayLine: "#7c3aed",
+    terminalFill: "#dcfce7", terminalLine: "#16a34a",
+    externalFill: "#f1f5f9", externalLine: "#64748b",
+    band: "#f8fafc", bandLine: "#cbd5e1",
+    ink: "#0f172a", dim: "#475569", edge: "#334155",
+  },
+};
+
+/**
+ * 模板名 → Palette。auto 可以先在没有图时作为标记传给 toSvg；toSvg 会用真实图、
+ * 标题重新解析。显式旧模板和未知模板回落 classic 的行为保持不变。
+ */
+export function paletteFor(
+  template: string,
+  g?: FlowGraph | null,
+  opts: { title?: string } = {},
+): Palette {
+  const normalized = template.trim().toLowerCase();
+  if (normalized === "auto") {
+    return g
+      ? resolveDiagramStyle(g, {
+          ...(opts.title === undefined ? {} : { title: opts.title }),
+          template: "auto",
+        }).palette
+      : autoPaletteMarker();
+  }
+  const patch = SVG_TEMPLATES[normalized] ?? {};
+  return makePalette(patch);
+}
+
 export function makePalette(p: Partial<Palette> = {}): Palette {
   return { ...PALETTE_DEFAULTS, ...p };
 }
@@ -264,6 +341,26 @@ const GAP_Y = 26;
 const BAND_PAD = 18;
 const BAND_HEAD = 40;
 const MARGIN = 24;
+
+/** 旧导出布局。只在调用方显式使用旧模板/自定义 Palette 时保留。 */
+const LEGACY_LAYOUT: DiagramLayout = Object.freeze({
+  direction: "LR",
+  nodeWidth: NODE_W,
+  nodeHeight: NODE_H,
+  gapX: GAP_X,
+  gapY: GAP_Y,
+  bandPadding: BAND_PAD,
+  bandHeader: BAND_HEAD,
+  bandGap: 16,
+  margin: MARGIN,
+  titleHeight: 34,
+  minCanvasWidth: 640,
+  labelPerLine: 12,
+  labelLines: 2,
+  columns: 1,
+  density: 0,
+  rationale: ["显式兼容布局"],
+});
 
 /** 中文按字数折行。超出行数截断加省略号 —— 框是固定宽的，撑破了整张图就乱。
  *
@@ -332,10 +429,26 @@ export function layer(g: FlowGraph, nodes: readonly FlowNode[]): FlowNode[][] {
  */
 export function toSvg(
   g: FlowGraph,
-  opts: { title?: string; palette?: Palette | null; showCodes?: boolean } = {},
+  opts: {
+    title?: string;
+    palette?: Palette | null;
+    showCodes?: boolean;
+    layout?: "auto" | "classic" | DiagramLayout;
+  } = {},
 ): string {
   const title = opts.title ?? "业务流程总览";
-  const p = opts.palette ?? makePalette();
+  const autoRequested = opts.layout === "auto" || opts.palette?.mode === "auto";
+  const autoStyle = autoRequested ? resolveDiagramStyle(g, { title, template: "auto" }) : null;
+  const p = opts.palette && opts.palette.mode !== "auto"
+    ? opts.palette
+    : autoStyle?.palette ?? opts.palette ?? makePalette();
+  const layout = typeof opts.layout === "object"
+    ? opts.layout
+    : autoStyle?.layout ?? LEGACY_LAYOUT;
+  const dynamicStyle = autoStyle !== null;
+  const nodeW = layout.nodeWidth;
+  const nodeH = layout.nodeHeight;
+  const margin = layout.margin;
   const showCodes = opts.showCodes ?? true;
   const byStage = g.byStage();
   const ordered = [...g.stages.values()].sort((a, b) => a.order - b.order);
@@ -351,7 +464,7 @@ export function toSvg(
 
   const pos = new Map<string, [number, number]>();
   const bands: [string, number, number, number][] = []; // key, y, h, w
-  let y = MARGIN + 34;
+  let y = margin + layout.titleHeight;
   let maxW = 0;
 
   for (const key of stageKeys) {
@@ -359,32 +472,55 @@ export function toSvg(
     const layers = layer(g, members);
     // `max(..., default=1)`：空泳道也按一行算高度。
     const rows = layers.length > 0 ? Math.max(...layers.map((c) => c.length)) : 1;
-    const bandH = BAND_HEAD + rows * NODE_H + (rows - 1) * GAP_Y + BAND_PAD * 2;
-    layers.forEach((col, li) => {
-      col.forEach((n, ri) => {
-        pos.set(n.rid, [
-          MARGIN + BAND_PAD + li * (NODE_W + GAP_X),
-          y + BAND_HEAD + BAND_PAD + ri * (NODE_H + GAP_Y),
-        ]);
+    let bandH: number;
+    let w: number;
+    if (layout.direction === "LR") {
+      bandH =
+        layout.bandHeader + rows * nodeH + (rows - 1) * layout.gapY + layout.bandPadding * 2;
+      layers.forEach((col, li) => {
+        col.forEach((n, ri) => {
+          pos.set(n.rid, [
+            margin + layout.bandPadding + li * (nodeW + layout.gapX),
+            y + layout.bandHeader + layout.bandPadding + ri * (nodeH + layout.gapY),
+          ]);
+        });
       });
-    });
-    const w = MARGIN + BAND_PAD * 2 + Math.max(1, layers.length) * (NODE_W + GAP_X);
+      w = margin + layout.bandPadding * 2 + Math.max(1, layers.length) * (nodeW + layout.gapX);
+    } else {
+      const layerCount = Math.max(1, layers.length);
+      bandH =
+        layout.bandHeader + layerCount * nodeH + (layerCount - 1) * layout.gapY +
+        layout.bandPadding * 2;
+      layers.forEach((row, li) => {
+        row.forEach((n, ci) => {
+          pos.set(n.rid, [
+            margin + layout.bandPadding + ci * (nodeW + layout.gapX),
+            y + layout.bandHeader + layout.bandPadding + li * (nodeH + layout.gapY),
+          ]);
+        });
+      });
+      w = margin + layout.bandPadding * 2 + rows * (nodeW + layout.gapX);
+    }
     maxW = Math.max(maxW, w);
     bands.push([key, y, bandH, w]);
-    y += bandH + 16;
+    y += bandH + layout.bandGap;
   }
 
-  const W = Math.max(maxW + MARGIN, 640);
-  const H = y + MARGIN;
+  const W = Math.max(maxW + margin, layout.minCanvasWidth);
+  const H = y + margin;
+  const styleAttrs = dynamicStyle
+    ? ` data-style="${htmlEscape(autoStyle.theme.id)}" data-layout-direction="${layout.direction}"` +
+      ` data-layout-density="${layout.density}"`
+    : "";
   const out: string[] = [
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${formatFixed0(W)} ${formatFixed0(H)}" ` +
       `width="${formatFixed0(W)}" height="${formatFixed0(H)}" font-family="-apple-system,PingFang SC,` +
-      `Microsoft YaHei,sans-serif">`,
-    `<rect width="${formatFixed0(W)}" height="${formatFixed0(H)}" fill="#ffffff"/>`,
+      `Microsoft YaHei,sans-serif"${styleAttrs}>`,
+    `<rect width="${formatFixed0(W)}" height="${formatFixed0(H)}" fill="${p.canvas ?? "#ffffff"}"/>`,
     `<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" ` +
       `markerWidth="6" markerHeight="6" orient="auto-start-reverse">` +
       `<path d="M0,0 L10,5 L0,10 z" fill="${p.edge}"/></marker></defs>`,
-    `<text x="${MARGIN}" y="${MARGIN + 14}" font-size="17" font-weight="600" ` +
+    `<text x="${margin}" y="${margin + 14}" font-size="17" font-weight="600" ` +
       `fill="${p.ink}">${htmlEscape(title)}</text>`,
   ];
   const st = g.stats();
@@ -399,7 +535,7 @@ export function toSvg(
     }
   }
   out.push(
-    `<text x="${MARGIN}" y="${MARGIN + 32}" font-size="11" fill="${p.dim}">` +
+    `<text x="${margin}" y="${margin + 32}" font-size="11" fill="${p.dim}">` +
       `${st["actions"] ?? 0} 个 Action ｜ ${st["events"] ?? 0} 个 Event ｜ ` +
       `${st["stages"] ?? 0} 个阶段 ｜ ${st["inferred_edges"] ?? 0} 条边为系统推断，需人工确认` +
       (wired ? ` ｜ ${wired}/${acts} 个环节已对上接口` : "") +
@@ -407,24 +543,27 @@ export function toSvg(
   );
 
   // 泳道
-  for (const [key, by, bh] of bands) {
+  for (const [bandIndex, [key, by, bh]] of bands.entries()) {
     const stage = g.stages.get(key);
+    const accent = dynamicStyle
+      ? autoStyle.theme.stageAccents[bandIndex % autoStyle.theme.stageAccents.length]!
+      : p.actionLine;
     out.push(
-      `<rect x="${MARGIN}" y="${formatFixed0(by)}" width="${formatFixed0(W - MARGIN * 2)}" ` +
+      `<rect x="${margin}" y="${formatFixed0(by)}" width="${formatFixed0(W - margin * 2)}" ` +
         `height="${formatFixed0(bh)}" rx="6" fill="${p.band}" stroke="${p.bandLine}"/>`,
     );
     out.push(
-      `<rect x="${MARGIN}" y="${formatFixed0(by)}" width="4" height="${formatFixed0(bh)}" ` +
-        `rx="2" fill="${p.actionLine}"/>`,
+      `<rect x="${margin}" y="${formatFixed0(by)}" width="4" height="${formatFixed0(bh)}" ` +
+        `rx="2" fill="${accent}"/>`,
     );
     out.push(
-      `<text x="${MARGIN + 16}" y="${formatFixed0(by + 22)}" font-size="12.5" ` +
+      `<text x="${margin + 16}" y="${formatFixed0(by + 22)}" font-size="12.5" ` +
         `font-weight="600" fill="${p.ink}">` +
         `${htmlEscape(stage ? stage.title : key)}</text>`,
     );
     if (stage && stage.subtitle) {
       out.push(
-        `<text x="${MARGIN + 16}" y="${formatFixed0(by + 36)}" font-size="10" ` +
+        `<text x="${margin + 16}" y="${formatFixed0(by + 36)}" font-size="10" ` +
           `fill="${p.dim}">${htmlEscape(cpSlice(stage.subtitle, 80))}</text>`,
       );
     }
@@ -437,21 +576,35 @@ export function toSvg(
     if (src === undefined || tgt === undefined) continue;
     const [x1, y1] = src;
     const [x2, y2] = tgt;
-    const sx = x1 + NODE_W;
-    const sy = y1 + NODE_H / 2;
-    const tx = x2;
-    const ty = y2 + NODE_H / 2;
+    const sx = layout.direction === "LR" ? x1 + nodeW : x1 + nodeW / 2;
+    const sy = layout.direction === "LR" ? y1 + nodeH / 2 : y1 + nodeH;
+    const tx = layout.direction === "LR" ? x2 : x2 + nodeW / 2;
+    const ty = layout.direction === "LR" ? y2 + nodeH / 2 : y2;
     const dash =
       e.kind === EdgeKind.INFERRED ||
       e.kind === EdgeKind.EXTERNAL ||
       e.kind === EdgeKind.COMPENSATE
         ? ' stroke-dasharray="5 4"'
         : "";
-    const col = e.kind === EdgeKind.COMPENSATE ? "#c4b5fd" : p.edge;
+    const col = e.kind === EdgeKind.COMPENSATE
+      ? dynamicStyle ? p.externalLine : "#c4b5fd"
+      : p.edge;
     let d: string;
-    if (tx < sx) {
-      // 回退边：从下方绕
-      const mid2 = Math.max(sy, ty) + NODE_H * 0.7;
+    if (layout.direction === "TB") {
+      if (ty < sy) {
+        // 竖排回退边从右侧绕，避免穿过节点文字。
+        const side = Math.max(sx, tx) + nodeW * 0.68;
+        d =
+          `M${formatFixed0(sx)},${formatFixed0(sy)} C${formatFixed0(side)},${formatFixed0(sy + 32)} ` +
+          `${formatFixed0(side)},${formatFixed0(ty - 32)} ${formatFixed0(tx)},${formatFixed0(ty)}`;
+      } else {
+        d =
+          `M${formatFixed0(sx)},${formatFixed0(sy)} C${formatFixed0(sx)},${formatFixed0((sy + ty) / 2)} ` +
+          `${formatFixed0(tx)},${formatFixed0((sy + ty) / 2)} ${formatFixed0(tx)},${formatFixed0(ty)}`;
+      }
+    } else if (tx < sx) {
+      // 横排回退边从下方绕。
+      const mid2 = Math.max(sy, ty) + nodeH * 0.7;
       d =
         `M${formatFixed0(sx)},${formatFixed0(sy)} C${formatFixed0(sx + 40)},${formatFixed0(mid2)} ` +
         `${formatFixed0(tx - 40)},${formatFixed0(mid2)} ${formatFixed0(tx)},${formatFixed0(ty)}`;
@@ -468,7 +621,7 @@ export function toSvg(
       out.push(
         `<text x="${formatFixed0((sx + tx) / 2)}" y="${formatFixed0((sy + ty) / 2 - 5)}" ` +
           `font-size="9.5" fill="${p.dim}" text-anchor="middle">` +
-          `${htmlEscape(cpSlice(e.label, 8))}</text>`,
+          `${htmlEscape(edgeLabelText(e.label))}</text>`,
       );
     }
   }
@@ -495,39 +648,39 @@ export function toSvg(
     const [fill, line] = fills[n.kind];
     const dash = !nodeGrounded(n) ? ' stroke-dasharray="4 3"' : "";
     if (n.kind === NodeKind.GATEWAY) {
-      const cx = x + NODE_W / 2;
-      const cy = ny + NODE_H / 2;
+      const cx = x + nodeW / 2;
+      const cy = ny + nodeH / 2;
       out.push(
-        `<polygon points="${formatFixed0(cx)},${formatFixed0(ny)} ${formatFixed0(x + NODE_W)},${formatFixed0(cy)} ` +
-          `${formatFixed0(cx)},${formatFixed0(ny + NODE_H)} ${formatFixed0(x)},${formatFixed0(cy)}" fill="${fill}" ` +
+        `<polygon points="${formatFixed0(cx)},${formatFixed0(ny)} ${formatFixed0(x + nodeW)},${formatFixed0(cy)} ` +
+          `${formatFixed0(cx)},${formatFixed0(ny + nodeH)} ${formatFixed0(x)},${formatFixed0(cy)}" fill="${fill}" ` +
           `stroke="${line}"${dash}/>`,
       );
     } else {
       const r = n.kind === NodeKind.ACTION ? 14 : 4;
       out.push(
-        `<rect x="${formatFixed0(x)}" y="${formatFixed0(ny)}" width="${NODE_W}" ` +
-          `height="${NODE_H}" rx="${r}" fill="${fill}" stroke="${line}"${dash}/>`,
+        `<rect x="${formatFixed0(x)}" y="${formatFixed0(ny)}" width="${nodeW}" ` +
+          `height="${nodeH}" rx="${r}" fill="${fill}" stroke="${line}"${dash}/>`,
       );
     }
     const tag = tags[n.kind];
     let ty0 = ny + 15;
     if (tag) {
       out.push(
-        `<text x="${formatFixed0(x + NODE_W / 2)}" y="${formatFixed0(ty0)}" font-size="7.5" ` +
+        `<text x="${formatFixed0(x + nodeW / 2)}" y="${formatFixed0(ty0)}" font-size="7.5" ` +
           `fill="${p.dim}" text-anchor="middle" letter-spacing="0.5">${tag}</text>`,
       );
       ty0 += 12;
     }
-    wrap(n.label.value, 12, 2).forEach((ln, i) => {
+    wrap(n.label.value, layout.labelPerLine, layout.labelLines).forEach((ln, i) => {
       out.push(
-        `<text x="${formatFixed0(x + NODE_W / 2)}" y="${formatFixed0(ty0 + i * 12)}" ` +
+        `<text x="${formatFixed0(x + nodeW / 2)}" y="${formatFixed0(ty0 + i * 12)}" ` +
           `font-size="10.5" fill="${p.ink}" text-anchor="middle">` +
           `${htmlEscape(ln)}</text>`,
       );
     });
     if (showCodes && n.code) {
       out.push(
-        `<text x="${formatFixed0(x + NODE_W / 2)}" y="${formatFixed0(ny + NODE_H - 6)}" ` +
+        `<text x="${formatFixed0(x + nodeW / 2)}" y="${formatFixed0(ny + nodeH - 6)}" ` +
           `font-size="7" fill="${p.dim}" text-anchor="middle" ` +
           `font-family="ui-monospace,monospace">${htmlEscape(n.code)}</text>`,
       );
@@ -536,7 +689,7 @@ export function toSvg(
       // 接口路径在 168px 宽的框里放不下，硬塞会把标签挤掉。用一个角标表示
       // "这一步有系统支撑"，完整路径进 <title> —— 鼠标停上去就能看全。
       out.push(
-        `<circle cx="${formatFixed0(x + NODE_W - 9)}" cy="${formatFixed0(ny + 9)}" r="3.5" ` +
+        `<circle cx="${formatFixed0(x + nodeW - 9)}" cy="${formatFixed0(ny + 9)}" r="3.5" ` +
           `fill="${p.actionLine}"><title>${htmlEscape(n.endpoint)}` +
           `</title></circle>`,
       );
@@ -544,7 +697,7 @@ export function toSvg(
   }
 
   out.push(
-    `<text x="${MARGIN}" y="${formatFixed0(H - 8)}" font-size="9" fill="${p.dim}">` +
+    `<text x="${margin}" y="${formatFixed0(H - 8)}" font-size="9" fill="${p.dim}">` +
       "虚线 = 系统推断的顺序，材料里没有明写　·　右上角圆点 = 这一步有接口实现，" +
       "悬停看路径</text>",
   );

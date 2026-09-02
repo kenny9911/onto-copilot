@@ -13,6 +13,8 @@ import type { Repo } from "../../store/repo/protocol.js";
 import { RunCancelled, isCancelled } from "./types.js";
 import type { SessionLike } from "./types.js";
 import { conflictToDict, type Conflict } from "../../onto/conflict.js";
+import { syncAssetMemory } from "../asset_memory.js";
+import { filterProjectDocumentChunks } from "../glue/document_projection.js";
 
 // ══════════════════════════════════════════════════════════════════
 //  白名单
@@ -26,10 +28,36 @@ export const PERSISTED: readonly string[] = [
   "oir", "flow", "template", "artifacts", "questions", "question_backlog",
   "decision_ledger", "suggestions", "corpus", "budget", "routing", "answered", "audit",
   "mode", "model", "artifact_revision", "ontology_package",
-  "engagement_run_id", "engagement_execution", "release_state",
+  "engagement_run_id", "engagement_execution", "engagement_analysis", "release_state",
+  // 无材料通用草案的来源边界。没有这两项，重启后同一批无证据断言会退化成
+  // 普通 inferred，UI/后续编辑都无法再区分“通用假设”和“材料推断”。
+  "draft_provenance", "flow_provenance",
+  // 导出台账（P3 产物迭代）：文件名 → 生成时的 artifact_revision。丢了它，
+  // 重启后所有导出卡都答不上「这份是基于第几版」。
+  "export_meta",
   // 上一轮的追问 chips。落库是因为它是**会话的一部分**：重开会话时
   // "接下来能问什么"必须还在，而不是让人对着一段旧对话重新想。
   "followups",
+  // 公开网页检索签发的来源登记。`web.read` 只收 source_id；跨重启仍要能用同一个
+  // 编号回到当时那条 URL，而不是逼模型重新搜索后猜一个新编号。
+  "web_sources",
+  // 网页工作台的 reader snapshots。只保存经过 SSRF/content-type/大小门禁后的纯文本
+  // 段落与引用；绝不保存或回放第三方脚本。pageId + digest 也是翻译/总结的 basedOn。
+  "web_pages",
+  // 与具体 pageId+digest 绑定的网页翻译/AI 总结。Recorder 是付费效果重放账本，
+  // 不是用户可发现的记忆；这份投影让刷新/重启后仍能打开已经生成的分析。
+  "web_analyses",
+  // 改动记忆。会话记「做过什么、依据是什么」，重启后必须还在 ——
+  // 它是 md 记忆文档和 memory.recall 的数据源，丢了等于这个会话失忆。
+  "memory_log",
+  // 材料、图片、问题、导出件和外部素材的统一可检索目录。文件正文仍在原权威位置，
+  // 这里保存稳定 id、不可变快照、版本、来源与别名；缺它重启后“刚才那张图”就失忆。
+  "asset_memory",
+  // 参考图快照（B11）。三处代码按"它落了库"写（重画守卫读它、draft.adopt 从
+  // 它转正、右栏预览它），但它从来不在任何白名单里 —— 重载会话参考图整个消失，
+  // 用户对着"刚才画过了"的守卫却看不到那张图。`_sketch` 活对象不存，
+  // hydrate 时从这份快照的 graph 重建。
+  "sketch",
 ];
 
 /**
@@ -41,6 +69,9 @@ export const PERSISTED: readonly string[] = [
 export const PERSISTED_PRIVATE: readonly string[] = [
   "_flow_versions", "_tpl_versions", "_oir_versions",
   "_flow_patch_log", "_tpl_patch_log", "_oir_patch_log",
+  // 与 _oir_versions 并行的「这版带不带补丁」标记 —— 两者必须一起存一起截，
+  // 只存一半的话重启后 undo 又会回到"无条件弹补丁"的老行为。
+  "_oir_version_patched",
 ];
 
 /** 单栈封顶，防一个长命进程每编辑一次就把栈顶到天上。撤销深度 20 够用。 */
@@ -61,6 +92,15 @@ export const VERSION_STACK_CAP = 20;
 export const PERSISTED_PRIVATE_DOCS: readonly string[] = [
   "_chunks", "_cards", "_tables", "_pending_actions", "_pending_action",
   "_last_reason", "_chat_usd",
+  // 当前会话钉住的 OntoDocument 精确版本。正文与完整 ParsedDoc 在文档库里，
+  // 这里只持久化轻量 manifest，供严格证据模式、Run 指纹和界面恢复使用。
+  "_document_manifest",
+  // durable mutation queue：chat 侧写入、Run 收尾时消费 —— 放在这一组正合适：
+  // 它就是「chat 拥有、要与 build checkpoint 做 CAS 合并」的文档。
+  "_mutation_queue",
+  // 跑中排队的人工拍板：同理 —— 一次确认排了队，重启后必须还在，否则用户的
+  // 拍板会随进程一起消失（glue/decisions_queue.ts）。
+  "_decision_queue",
 ];
 
 /**
@@ -73,10 +113,18 @@ export const CHAT_OWNED_DOCS: ReadonlySet<string> = new Set([
   // 这一轮的 chips 跟着这一轮的回答走，和 dialogue 同属对话侧 —— 并发的梳理
   // checkpoint 不该把它们盖掉，也不该被它们盖掉。
   "followups",
+  "web_sources",
+  "web_pages",
+  "web_analyses",
+  // 这是 build/chat 共同派生的并集。CAS 冲突时 build 宁可丢掉自己的旧投影（文件与
+  // durable event 仍在，下次 sync 会补），也不能覆盖另一 worker 刚登记的新图片/材料。
+  "asset_memory",
+  // document.attach/detach 可以从对话侧发生，CAS 合并时不能被并发 build 的旧投影覆盖。
+  "_document_manifest",
 ]);
 
 /** 值得跨重启留下来的事件类型 —— 判据是「里面装的是内容，不是进度」。 */
-export const CARD_EVENT_KINDS: readonly string[] = ["ui.table", "export.ready"];
+export const CARD_EVENT_KINDS: readonly string[] = ["ui.table", "export.ready", "web.sources"];
 /** 留最近几条就够。一张 192 行的表 JSON 就有几十 KB，不封顶会把状态文档撑爆。 */
 export const CARD_EVENT_CAP = 12;
 
@@ -152,22 +200,41 @@ export async function persist(
   const repo = deps.repo();
   let dm: DialogueDoc | null = null;
   try {
+    // 在收集 docs 之前，把这一节点已经写成的文件/问题/素材登记到统一资产记忆，并为
+    // 可覆盖文件保存不可变快照。失败必须和其它 checkpoint 失败一样 fail closed。
+    syncAssetMemory(s);
     let docs: Record<string, JsonValue> = {};
     for (const k of PERSISTED) {
       if (k in s.state) docs[k] = s.state[k] as JsonValue;
     }
-    // 私有的版本/补丁栈也落，顺手把内存态也封顶
+    // 私有的版本/补丁栈也落，顺手把内存态也封顶。
+    //
+    // **空数组也要写。** 判据是 `!== undefined`，不是 `length > 0` ——
+    // repo 的 writeDocs / mergeDocs 都是**逐键 upsert，缺键不删旧值**
+    // （pg.ts 的 onConflictDoUpdate、memory.ts 的 mergeDocs）。撤销把栈 pop 成
+    // `[]` 之后，如果这里因为"空就不写"而跳过，库里仍然留着撤销前的那条补丁；
+    // 下一次 hydrate 或 refreshChatProjection 把它载回内存，重跑时
+    // `replayOirPatches` 就把这条**用户明确撤销掉的改动**重新贴到新抽取结果上，
+    // 出现在交付产物里，而且全程没有任何事件说过它回来了。
+    //
+    // 同一个仓库的 glue/flow.ts 有一条注释专门写着「不能 delete：repo 的 state
+    // 文档是 merge/upsert，缺键不会删除旧值」—— 那条纪律在这里漏了一处。
     for (const k of PERSISTED_PRIVATE) {
       const stack = s.state[k] as unknown[] | undefined;
-      if (stack !== undefined && stack.length > 0) {
+      if (stack !== undefined) {
         s.state[k] = stack.slice(-VERSION_STACK_CAP);
         docs[k] = s.state[k] as JsonValue;
       }
     }
     for (const k of PERSISTED_PRIVATE_DOCS) {
-      // 整体存，不截断
+      // 整体存，不截断。同样不能用 truthy —— 清空后的 `[]`/`{}` 是假值，
+      // 跳过就等于把"已经清空"这件事瞒下来，库里那份旧的照旧生效。
       const doc = s.state[k];
-      if (truthy(doc)) docs[k] = doc as JsonValue;
+      if (doc !== undefined && doc !== null) {
+        // OntoDocument 正文由不可变版本库持有；Session 只保存 manifest。把项目切片
+        // 再存进 `_chunks` 会让撤权前正文在 hydrate 时复活。临时附件/OCR 仍照常存。
+        docs[k] = (k === "_chunks" ? filterProjectDocumentChunks(doc) : doc) as JsonValue;
+      }
     }
     dm = (s.state["_dialogue"] as DialogueDoc | undefined) ?? null;
     if (dm !== null) {

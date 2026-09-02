@@ -399,3 +399,141 @@ describe("枚举与形状对象", () => {
     expect(w.toDict().note).toBe(s.toDict().note);
   });
 });
+
+// ══════════════════════════════════════════════════════════════════
+//  关系表（E2E 案发：40 行关联关系表被判成实体登记表，零 links）
+// ══════════════════════════════════════════════════════════════════
+describe("关系表：基数列 + 两根名称列 → 一行一条 link", () => {
+  const relRows = [
+    { 源数据对象: "供应商主数据", 目标数据对象: "采购信息记录", 基数关系: "1:N", 关系说明: "供应商主数据与采购信息记录一对多，一个供应商可以有多条信息记录" },
+    { 源数据对象: "供应商主数据", 目标数据对象: "货源清单", 基数关系: "1:N", 关系说明: "供应商主数据与货源清单一对多，货源来自不同供应商时逐条登记" },
+    { 源数据对象: "物料主数据", 目标数据对象: "采购申请", 基数关系: "1:N", 关系说明: "一个物料可出现在多张采购申请里，申请行项目引用物料编码" },
+    { 源数据对象: "采购品类", 目标数据对象: "供应商主数据", 基数关系: "M:N", 关系说明: "品类与供应商多对多，一个品类多家供货、一家供多个品类" },
+    { 源数据对象: "采购申请", 目标数据对象: "采购订单", 基数关系: "1:N", 关系说明: "申请转订单一对多，可拆分下达" },
+    { 源数据对象: "采购订单", 目标数据对象: "物料凭证", 基数关系: "1:N", 关系说明: "订单收货产生多张物料凭证" },
+    { 源数据对象: "采购订单", 目标数据对象: "供应商发票", 基数关系: "1:N", 关系说明: "订单可分批开票" },
+    { 源数据对象: "配额协议", 目标数据对象: "供应商主数据", 基数关系: "N:1", 关系说明: "多条配额协议行指向同一供应商" },
+  ];
+  const cites = relRows.map((_, i) => `2_采购领域数据架构清单.xlsx!数据对象关联关系#r${i + 2}`);
+
+  it("形状判成 link，不是实体登记表", () => {
+    const s = inferShape(relRows);
+    expect(s.rowUnit).toBe("link");
+    expect([...s.yields]).toContain(Yield.LINKS);
+    expect([...s.ruleDecidable]).toContain(Yield.LINKS);
+    // 基数列被认出来
+    expect(s.col(ColumnRole.CARDINALITY)).not.toBeNull();
+  });
+
+  it("规则逐行抽 links：两端名、基数、出处一行不丢", () => {
+    const s = inferShape(relRows);
+    const out = structuralExtract(relRows, cites, s, null);
+    expect(out.objects).toHaveLength(0);        // 关系表不产对象
+    expect(out.links).toHaveLength(8);
+    const first = out.links[0]!;
+    expect(first["from_api_name"]).toBe("供应商主数据");
+    expect(first["to_api_name"]).toBe("采购信息记录");
+    expect(first["cardinality"]).toBe("ONE_TO_MANY");
+    expect(first["source_locator"]).toBe(cites[0]);
+    // M:N 与 N:1 的映射
+    expect(out.links[3]!["cardinality"]).toBe("MANY_TO_MANY");
+    expect(out.links[7]!["cardinality"]).toBe("MANY_TO_ONE");
+  });
+
+  it("「M:1」与「N:1」同义（真实材料两种写法并存）", () => {
+    const rows = [
+      { 源数据对象: "监造计划", 目标数据对象: "采购合同", 基数关系: "M:1", 关系说明: "监造计划针对采购合同执行，多份计划对应一份合同" },
+      { 源数据对象: "报关申请单", 目标数据对象: "采购订单", 基数关系: "M:1", 关系说明: "报关申请关联采购订单，多张申请对应一张订单" },
+      { 源数据对象: "供应商主数据", 目标数据对象: "采购信息记录", 基数关系: "1:M", 关系说明: "供应商主数据与采购信息记录一对多" },
+      { 源数据对象: "采购申请", 目标数据对象: "采购订单", 基数关系: "1:N", 关系说明: "申请转订单一对多，可拆分下达" },
+      { 源数据对象: "采购品类", 目标数据对象: "供应商主数据", 基数关系: "M:N", 关系说明: "品类与供应商多对多" },
+      { 源数据对象: "采购订单", 目标数据对象: "物料凭证", 基数关系: "1:N", 关系说明: "订单收货产生多张物料凭证" },
+    ];
+    const cs = rows.map((_, i) => `x!r${i}`);
+    const s = inferShape(rows);
+    expect(s.rowUnit).toBe("link");
+    const out = structuralExtract(rows, cs, s, null);
+    expect(out.links[0]!["cardinality"]).toBe("MANY_TO_ONE");
+    expect(out.links[2]!["cardinality"]).toBe("ONE_TO_MANY");
+  });
+
+  it("全角冒号与中文写法照样认", () => {
+    const rows = relRows.map((r, i) => ({
+      ...r, 基数关系: i % 2 === 0 ? "1：N" : "一对多",
+    }));
+    const s = inferShape(rows);
+    expect(s.rowUnit).toBe("link");
+    const out = structuralExtract(rows, cites, s, null);
+    expect(out.links.every((l) => l["cardinality"] === "ONE_TO_MANY")).toBe(true);
+  });
+
+  it("列名认不出源/目标时按列序兜底（源在左目标在右）", () => {
+    const rows = relRows.map((r) => ({
+      对象A: r["源数据对象"], 对象B: r["目标数据对象"],
+      基数关系: r["基数关系"], 关系说明: r["关系说明"],
+    }));
+    const s = inferShape(rows);
+    expect(s.rowUnit).toBe("link");
+    const out = structuralExtract(rows, cites, s, null);
+    expect(out.links[0]!["from_api_name"]).toBe("供应商主数据");
+    expect(out.links[0]!["to_api_name"]).toBe("采购信息记录");
+  });
+
+  it("有数据类型列时仍是字段表 —— 类型列压过基数列", () => {
+    const rows = Array.from({ length: 8 }, (_, i) => ({
+      字段名: `f${i}`, 数据类型: "varchar(32)", 基数关系: "1:N", 所属对象: "采购订单",
+    }));
+    expect(inferShape(rows).rowUnit).toBe("property");
+  });
+});
+
+describe("功能清单与关键属性列（E2E 案发：900 个事务码假对象、44 个关键属性全丢）", () => {
+  it("事务码清单 → action 形状，不再一行造一个对象", () => {
+    const rows = Array.from({ length: 12 }, (_, i) => ({
+      序号: String(i + 1), SAP事务码: `ZURCMM${100 + i}`,
+      业务功能描述: i % 2 ? "MM模块用户控制面板" : "采购订单批量导入",
+    }));
+    const s = inferShape(rows);
+    expect(s.rowUnit).toBe("action");
+    expect([...s.yields]).toContain(Yield.ACTIONS);
+    expect([...s.ruleDecidable]).not.toContain(Yield.OBJECTS);
+    // 没有覆盖压力来源：objects 不在 yields 里
+    expect([...s.yields]).not.toContain(Yield.OBJECTS);
+  });
+
+  it("主数据清单的「关键属性」列 → 逐词抽成属性，宿主是本行对象", () => {
+    const rows = [
+      { 编号: "MD-01", 主数据对象: "物料主数据", 定义: "物资/备件/服务的编码化主数据，含基本视图与采购视图等",
+        关键属性: "物料编码、物料描述、基本单位、物料组", 现状承载系统: "SAP MM" },
+      { 编号: "MD-02", 主数据对象: "供应商主数据", 定义: "供应商全生命周期主数据，含基本信息与采购组织层级数据",
+        关键属性: "供应商编码、名称、统一社会信用代码", 现状承载系统: "SAP MM" },
+      { 编号: "MD-03", 主数据对象: "采购组织", 定义: "企业内负责采购业务的组织单元，含结构与分配关系",
+        关键属性: "采购组织代码、描述", 现状承载系统: "—" },
+    ];
+    const cites = rows.map((_, i) => `5_主数据清单.xlsx!2-主数据清单#r${i + 2}`);
+    const s = inferShape(rows);
+    expect(s.rowUnit).toBe("object");
+    expect([...s.yields]).toContain(Yield.PROPERTIES);
+    const out = structuralExtract(rows, cites, s, null);
+    // 「MD-01」带连字符过不了 IDENT_RE，对象留给模型 —— 但属性照抽，
+    // 宿主用本行中文名（buildOir 按显示名解析）。
+    const byParent: Record<string, string[]> = {};
+    for (const p of out.properties) {
+      (byParent[p.parent_api_name] ??= []).push(p.api_name);
+    }
+    expect(byParent["物料主数据"]).toEqual(["物料编码", "物料描述", "基本单位", "物料组"]);
+    expect(byParent["供应商主数据"]).toEqual(["供应商编码", "名称", "统一社会信用代码"]);
+    expect(byParent["采购组织"]).toEqual(["采购组织代码", "描述"]);
+    expect(out.properties.every((p) => p._origin === "rule" && p.definition === "")).toBe(true);
+    expect(out.properties[0]!.source_locator).toBe(cites[0]);
+  });
+
+  it("「L4逻辑数据实体」这类顿号清单**不是**属性列 —— 只按列名认", () => {
+    const rows = Array.from({ length: 6 }, (_, i) => ({
+      编号: `OBJ-${i}`, L3业务对象: `对象${i}`,
+      L4逻辑数据实体: "采购组织描述、采购组织结构、采购组织分配",
+    }));
+    const s = inferShape(rows);
+    expect([...s.yields]).not.toContain(Yield.PROPERTIES);
+  });
+});

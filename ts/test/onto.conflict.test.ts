@@ -98,6 +98,71 @@ const sec = (k: string): Record<string, unknown> => G[k] as Record<string, unkno
 // ══════════════════════════════════════════════════════════════════
 //  0. difflib —— 上面所有东西的地基
 // ══════════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════════
+//  命名违规：能自动修的才叫自动修
+//
+//  2026-08-25 真库审计（3b06cae04490）：27 个对象报了 25 条命名违规，全部走
+//  「apiName 含中文」分支，真 camelCase 违规 0 条。而 handling 是 AUTO_REPAIR：
+//   · 23 条的 toCamel 是**恒等**，option 变成「改为 <它自己>」，autoRepair 因
+//     old === new 短路，于是这些冲突永远消化不掉，长期占住三成派生积压；
+//   · 剩下 2 条真被改了，且**改坏了**：toCamel 按 [_\-\s]+ 切分再拼，把区间号
+//     吃掉 —— "节点偏差扩大，按期概率50%-85%" → "…50%85%"，语义变了，
+//     而 AUTO_REPAIR 的契约白纸黑字写着「可逆、零语义损失」。
+//
+//  含中文的名字，机器给不出正确的 apiName（那需要一个译名）。所以：照报违规，
+//  但不许假装能自动修 —— 该问人。
+// ══════════════════════════════════════════════════════════════════
+describe("NAME-01 只在真能修时给自动修", () => {
+  const objOf = (api: string) => {
+    const o = new OIR();
+    o.addObject(makeObjectType({
+      rid: makeRid("ot", api),
+      apiName: extracted(api, xlsx(1, api)),
+      displayName: extracted(api, xlsx(1, api)),
+    }));
+    return o;
+  };
+
+  it("中文名：照报违规，但不给「改为它自己」这种假选项", () => {
+    const cs = detectNaming(objOf("采购计划"));
+    expect(cs).toHaveLength(1);
+    expect(cs[0]!.summary).toContain("含中文");
+    // 恒等的 set_api_name 是消化不掉的死选项
+    const effects = cs[0]!.options.map((o) => (o.effect ?? {})["set_api_name"]);
+    expect(effects).not.toContain("采购计划");
+    // 要给人一个真能执行的动作：给译名
+    expect(JSON.stringify(cs[0]!.options)).toContain("译名");
+  });
+
+  it("含区间号的中文名：绝不能悄悄把 - 吃掉（那不是归一，是改数据）", () => {
+    const bad = "节点偏差扩大，按期概率50%-85%";
+    const cs = detectNaming(objOf(bad));
+    const effects = cs[0]!.options.map((o) => (o.effect ?? {})["set_api_name"]);
+    expect(effects).not.toContain("节点偏差扩大，按期概率50%85%");
+    for (const e of effects) expect(String(e ?? "")).not.toMatch(/50%85%/u);
+  });
+
+  it("修不了的那些别再标成「自动修」—— 否则它们永远卡在那个桶里", () => {
+    // 真库 25 条命名违规里 23 条的 toCamel 恒等：autoRepair 因 old === new 短路，
+    // 冲突却顶着 auto_repair 的名分永远消化不掉，长期占住三成派生积压。
+    // 处置档位描述的是「这条冲突怎么了结」，而它有没有可自动执行的选项，
+    // 是这条冲突自己的事实，不是它所属 kind 的事实。
+    // ROUND_TRIP 而不是 ASK_USER：中文名要的是业务方回填一个译名，
+    // 不是 FDE 现场拍板。（第一版写成 ask_user，被 conflict.query 的测试抓到 ——
+    // 「必须我拍板」会从 1 条涨到 77 条，真决策被待译名淹掉。）
+    expect(handlingOf(detectNaming(objOf("采购计划"))[0]!)).toBe("round_trip");
+    expect(handlingOf(detectNaming(objOf("PO_Header"))[0]!)).toBe("auto_repair");
+  });
+
+  it("真正的 camelCase 违规照旧自动修 —— 这条能力不许被误伤", () => {
+    const cs = detectNaming(objOf("PO_Header"));
+    expect(cs).toHaveLength(1);
+    expect(cs[0]!.summary).toContain("lowerCamelCase");
+    expect(cs[0]!.options[0]!.effect?.["set_api_name"]).toBe("poHeader");
+    expect(cs[0]!.options[0]!.rationale).toContain("零语义损失");
+  });
+});
+
 describe("SequenceMatcher", () => {
   it("ratio / matching blocks / opcodes 与 CPython 逐向量一致", () => {
     for (const c of rows(G, "seqmatch")) {
@@ -843,10 +908,13 @@ const SCENARIOS: Record<string, () => OIR> = {
     alProp(o, "p4", b.rid, "layoutJson");
     return o;
   },
+  // 守卫语义：名字**像但不相同**、无结构证据 → 不合并交人判。
+  // 原版两个对象连显示名都逐字相等 —— 那在新策略下是「材料自身身份」，走
+  // 直接合并（见 exact_display_name 场景），不再适合当这条守卫的物料。
   no_structure: () => {
     const o = new OIR();
     o.addObject(alObj("ot_a", "purchasePlan", "采购计划", alX("A")));
-    o.addObject(alObj("ot_b", "purchasePlan", "采购计划", alD("t", "B")));
+    o.addObject(alObj("ot_b", "purchasePlan", "采购计划单", alD("t", "B")));
     return o;
   },
   alias_only: () => {
@@ -1032,6 +1100,37 @@ describe("实体对齐", () => {
   });
 
   // ── 下面几条把 golden 的含义写成人话，回归时一眼看懂坏在哪 ──
+  it("显示名逐字相等 + 一侧无结构 → 直接合并（「采购品类」×4 案发）", () => {
+    const o = new OIR();
+    o.addObject(alObj("ot_a", "purchasingCategory", "采购品类", alX("A")));
+    o.addObject(alObj("ot_b", "purchaseCategory", "采购品类", alD("t", "B")));
+    o.addObject(alObj("ot_c", "procurementCategory", "采购品类", alX("C")));
+    alProp(o, "p1", "ot_a", "品类编码");
+    const [result] = alignAndApply(o);
+    expect(o.objects.size).toBe(1);
+    const rep = [...o.objects.values()][0]!;
+    // 属性跟着合并走，不许丢
+    expect(rep.properties).toContain("p1");
+    // 别名保留：三个 apiName 里至少两个要活在代表的名字/别名里
+    const names = new Set([rep.apiName.value, ...rep.aliases]);
+    const kept = ["purchasingCategory", "purchaseCategory", "procurementCategory"]
+      .filter((n) => names.has(n));
+    expect(kept.length).toBeGreaterThanOrEqual(2);
+    expect(result.scores.some((x) => x.reasons.some((r) => r.includes("显示名逐字相等")))).toBe(true);
+  });
+
+  it("显示名逐字相等但两侧各有结构且毫无交集 → 仍交人确认", () => {
+    const o = new OIR();
+    o.addObject(alObj("ot_a", "planA", "采购计划", alX("A")));
+    o.addObject(alObj("ot_b", "planB", "采购计划", alD("t", "B")));
+    alProp(o, "p1", "ot_a", "编码甲");
+    alProp(o, "p2", "ot_b", "编码乙");
+    const [result, log] = alignAndApply(o);
+    expect(log).toEqual([]);
+    expect(o.objects.size).toBe(2);
+    expect(result.uncertain.some((x) => x.reasons.some((r) => r.includes("交人确认")))).toBe(true);
+  });
+
   it("名字像但结构毫无交集 —— 不合并，进人工复核队列", () => {
     const o = (SCENARIOS["no_structure"] as () => OIR)();
     const result = new EntityAligner().align(o);

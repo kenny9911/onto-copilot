@@ -19,6 +19,9 @@ export const I18N: Record<string, Record<string, string>> = {
     "status.awaiting_answer":"待拍板", "status.done":"已完成", "status.failed":"失败", "status.ready":"就绪",
     "status.stopped":"已停止",
     "composer.placeholder":"说点什么，或直接把材料拖进来",
+    "composer.attach":"添加材料",
+    "composer.send":"发送", "composer.stop":"停止",
+    "nav.toggleSessions":"收起或展开会话栏", "nav.closeSessions":"关闭会话栏",
     "action.refresh":"刷新", "preview.title":"预览",
     "model.auto":"自动选模型",
     "mat.parsed":"已读入 {n} 段", "mat.partial":"部分读入 {n} 段", "mat.failed":"解析失败",
@@ -32,6 +35,20 @@ export const I18N: Record<string, Record<string, string>> = {
     "mat.count":"{n} 份材料",
     "table.expand":"展开全部 {n} 条", "table.collapse":"收起", "table.total":"共 {n} 条",
     "export.download":"下载 {name}",
+    "web.title":"网络参考资料", "web.expandMore":"再看 {n} 条",
+    "web.statusFetched":"已读取正文", "web.statusSnippet":"搜索摘要", "web.statusBlocked":"正文访问受限",
+    "web.published":"发布于 {date}", "web.sourceId":"来源 {id}",
+    "web.newWindow":"{title}（在新窗口打开）",
+    "web.disclaimer":"外部资料用于行业参考，不等同于客户事实或已确认业务规则。",
+    "reasoning.thinking":"思考中", "reasoning.searchingWeb":"正在搜索公开资料",
+    "reasoning.screeningWeb":"已找到 {n} 条候选，正在筛选",
+    "reasoning.readingMaterials":"正在查阅业务材料", "reasoning.checkingModel":"正在核对业务模型",
+    "reasoning.completed":"已完成思考", "reasoning.steps":"{n} 个步骤",
+    "reasoning.preparing":"正在准备推理步骤…",
+    "reasoning.redacted":"[已隐藏敏感信息]", "reasoning.truncated":"…（内容过长，已截断）",
+    "reasoning.toggleRunning":"展开或收起当前思考、工具调用与结果",
+    "reasoning.toggleCompleted":"展开或收起本轮思考、工具调用与结果",
+    "reasoning.trace":"运行详情 · {n} 条", "reasoning.traceToggle":"展开或收起运行详情",
     "session.newChat":"新对话", "session.newWork":"新会话",
     "session.rename":"重命名", "session.renamePrompt":"给这个会话起个名字",
     "session.fork":"从拍板点分叉", "fork.failed":"分叉失败",
@@ -62,6 +79,9 @@ export const I18N: Record<string, Record<string, string>> = {
     "store.memory":"内存模式", "store.memoryHint":"会话在服务重启后会丢失",
     "store.error":"数据库异常", "auth.adopted":"已把 {n} 个会话归到这个账号",
     "auth.logout":"退出", "auth.local":"本地模式", "auth.accounts":"账户管理", "auth.settings":"设置", "auth.language":"语言",
+    "auth.logs":"日志", "logs.title":"日志",
+    "usage.byOwner":"按账号", "usage.allOwners":"全部账号", "usage.noOwner":"（无归属）",
+    "queue.hint":"排队中 · 等当前这一轮结束后自动发出", "queue.withdraw":"撤回", "queue.now":"停止当前并发送",
     "role.admin":"管理员", "role.user":"用户",
     "accounts.title":"账户管理", "accounts.username":"用户名", "accounts.role":"角色", "accounts.active":"启用",
     "accounts.actions":"操作", "accounts.add":"添加账号", "accounts.addBtn":"添加", "accounts.password":"密码",
@@ -73,6 +93,7 @@ export const I18N: Record<string, Record<string, string>> = {
     "settings.apiKeyHint":"留空则不修改", "settings.insecure":"不安全的 HTTP 连接",
     "settings.models":"模型分级", "settings.tierLow":"低", "settings.tierMedium":"中",
     "settings.tierHigh":"高", "settings.tierCritical":"关键",
+    "settings.tierImage":"图像",
     "settings.default":"默认", "settings.overridden":"已覆盖",
     "settings.budget":"预算", "settings.usdCap":"总额上限（USD）", "settings.chatUsdCap":"对话额度上限（USD）",
     // 余额：查不到是常态（多数网关没有这个接口），那时要说"查不到"，
@@ -136,6 +157,9 @@ export const I18N: Record<string, Record<string, string>> = {
     "status.awaiting_answer":"Awaiting decision", "status.done":"Done", "status.failed":"Failed", "status.ready":"Ready",
     "status.stopped":"Stopped",
     "composer.placeholder":"Say something, or drop materials in",
+    "composer.attach":"Add materials",
+    "composer.send":"Send", "composer.stop":"Stop",
+    "nav.toggleSessions":"Collapse or expand sessions", "nav.closeSessions":"Close sessions",
     "action.refresh":"Refresh", "preview.title":"Preview",
     "model.auto":"Auto-select model",
     "mat.parsed":"{n} segments read", "mat.partial":"Partially read · {n} segments",
@@ -150,6 +174,20 @@ export const I18N: Record<string, Record<string, string>> = {
     "mat.count":"{n} materials",
     "table.expand":"Show all {n}", "table.collapse":"Collapse", "table.total":"{n} rows",
     "export.download":"Download {name}",
+    "web.title":"Web references", "web.expandMore":"Show {n} more",
+    "web.statusFetched":"Full text read", "web.statusSnippet":"Search snippet", "web.statusBlocked":"Full text unavailable",
+    "web.published":"Published {date}", "web.sourceId":"Source {id}",
+    "web.newWindow":"{title} (opens in a new window)",
+    "web.disclaimer":"External material is industry reference, not customer evidence or a confirmed business rule.",
+    "reasoning.thinking":"Thinking", "reasoning.searchingWeb":"Searching public sources",
+    "reasoning.screeningWeb":"Found {n} candidates; selecting the best",
+    "reasoning.readingMaterials":"Reviewing business materials", "reasoning.checkingModel":"Checking the business model",
+    "reasoning.completed":"Thinking complete", "reasoning.steps":"{n} steps",
+    "reasoning.preparing":"Preparing the reasoning steps…",
+    "reasoning.redacted":"[sensitive value hidden]", "reasoning.truncated":"… (content truncated)",
+    "reasoning.toggleRunning":"Expand or collapse current reasoning, tool calls, and results",
+    "reasoning.toggleCompleted":"Expand or collapse this turn's reasoning, tool calls, and results",
+    "reasoning.trace":"Run details · {n}", "reasoning.traceToggle":"Expand or collapse run details",
     "session.newChat":"New chat", "session.newWork":"New session",
     "session.rename":"Rename", "session.renamePrompt":"Name this session",
     "session.fork":"Fork at decision", "fork.failed":"Fork failed",
@@ -180,6 +218,9 @@ export const I18N: Record<string, Record<string, string>> = {
     "store.memory":"In-memory mode", "store.memoryHint":"Sessions are lost when the server restarts",
     "store.error":"Database error", "auth.adopted":"{n} session(s) moved to this account",
     "auth.logout":"Log out", "auth.local":"Local mode", "auth.accounts":"Accounts", "auth.settings":"Settings", "auth.language":"Language",
+    "auth.logs":"Logs", "logs.title":"Logs",
+    "usage.byOwner":"By account", "usage.allOwners":"All accounts", "usage.noOwner":"(unassigned)",
+    "queue.hint":"Queued · will send when this turn finishes", "queue.withdraw":"Withdraw", "queue.now":"Stop current and send",
     "role.admin":"Admin", "role.user":"User",
     "accounts.title":"Accounts", "accounts.username":"Username", "accounts.role":"Role", "accounts.active":"Active",
     "accounts.actions":"Actions", "accounts.add":"Add account", "accounts.addBtn":"Add", "accounts.password":"Password",
@@ -191,6 +232,7 @@ export const I18N: Record<string, Record<string, string>> = {
     "settings.apiKeyHint":"Leave blank to keep unchanged", "settings.insecure":"Insecure HTTP connection",
     "settings.models":"Model tiers", "settings.tierLow":"Low", "settings.tierMedium":"Medium",
     "settings.tierHigh":"High", "settings.tierCritical":"Critical",
+    "settings.tierImage":"Image",
     "settings.default":"Default", "settings.overridden":"Overridden",
     "settings.budget":"Budget", "settings.usdCap":"Total cap (USD)", "settings.chatUsdCap":"Chat cap (USD)",
     "balance.label":"Gateway balance", "balance.unknown":"This gateway offers no balance lookup",
@@ -266,6 +308,14 @@ export function applyI18n(): void {
   set("newchatBtn", t("nav.newSession"));
   const sec = document.querySelector(".sec"); if (sec) sec.textContent = t("nav.sessions");
   const pjn = $("pjnewBtn"); if (pjn) pjn.title = t("project.new");
+  if (pjn) pjn.setAttribute("aria-label", t("project.new"));
+  const toggle = $("sidetoggle"); if (toggle) toggle.setAttribute("aria-label", t("nav.toggleSessions"));
+  const close = $("sidebarClose"); if (close) {
+    close.textContent = t("common.close"); close.setAttribute("aria-label", t("nav.closeSessions"));
+  }
+  const attach = $("attach"); if (attach) {
+    attach.title = t("composer.attach"); attach.setAttribute("aria-label", t("composer.attach"));
+  }
   // 会话行里的状态、项目组的「未归类」都是翻过的文案，切语言得重画一遍侧栏
   if (G.SESSION_LIST.length || G.PROJECTS.length) paintSessions();
   const mChat = document.querySelector('#modetog button[data-mode="chat"]'); if (mChat) mChat.textContent = t("mode.chat");

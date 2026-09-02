@@ -8,9 +8,9 @@
  * 同样的两条纪律：
  *   1. **模型只选操作和参数，绝不重写整份 OIR。** 直接让模型吐一份新 OIR 会把其它
  *      断言的溯源全抹掉 —— 每个值的 origin/evidence 是「这不是瞎编」的凭证。
- *   2. **口述的事实一律 `Origin.USER`（人工拍板），带 extractor="human" 的 Provenance，
- *      绝不冒充材料抽取（EXTRACTED）。** 它在 OIR 里可见、可信度高，但语义上是「人说的」，
- *      不是「材料里读到的」。这条由构造保证：所有赋值都走 {@link byUser}。
+ *   2. **口述的事实一律 `Origin.USER`（人工拍板）**，绝不冒充材料抽取。唯一的
+ *      可选分支是无材料通用草案：调用方显式传 `generic_assumption` 时保持
+ *      `Origin.INFERRED` + 零 evidence，由会话级 provenance 标出来源。
  *
  * 原子性和模板编辑一样：在一份副本上应用、守卫过了才换回，半应用的 OIR 比不改更糟。
  *
@@ -62,7 +62,40 @@ import {
   type OIR,
   type ObjectType,
   type PropertyType,
+  type Provenance,
 } from "./oir.js";
+
+/**
+ * 一次结构化编辑的事实来源。
+ *
+ * 默认仍是 FDE 的口述事实；`generic_assumption` 只供“无材料通用草案”使用。
+ * 后者必须保持 INFERRED、零 evidence，不能因为也是通过编辑工具落地就被伪装成
+ * USER，更不能挂一条看起来像材料定位的 provenance。
+ */
+export type OirEditSource = "user" | "generic_assumption";
+
+export interface OirEditOptions {
+  readonly source?: OirEditSource;
+}
+
+interface EditContext {
+  readonly source: OirEditSource;
+  assertion<T>(value: T, note: string): Assertion<T>;
+  readonly receipt: string;
+}
+
+function editContext(opts: OirEditOptions): EditContext {
+  const source = opts.source === "generic_assumption" ? "generic_assumption" : "user";
+  return {
+    source,
+    assertion<T>(value: T, note: string): Assertion<T> {
+      // 通用草案的出处记在会话级 draft_provenance；断言本身必须无 evidence，
+      // 否则 UI 的 grounded 判据会把它误画成“有材料依据”。
+      return source === "generic_assumption" ? inferred(value) : byUser(value, note);
+    },
+    receipt: source === "generic_assumption" ? "通用假设，待业务验证" : "人工口述，标 USER 来源",
+  };
+}
 
 /** 一次 OIR 编辑不合法。消息要说清为什么，让模型能转述给用户。 */
 export class OIREditError extends Error {
@@ -209,11 +242,6 @@ function assertionOf(ent: object, key: string): Assertion<unknown> | null {
     : null;
 }
 
-/** 口述赋值的统一入口：Origin.USER + 一条 human Provenance。**不是材料证据。** */
-function human<T>(value: T, note: string): Assertion<T> {
-  return byUser(value, note);
-}
-
 function label(ent: object): string {
   for (const key of ["displayName", "apiName", "statement"]) {
     const a = assertionOf(ent, key);
@@ -227,7 +255,10 @@ function label(ent: object): string {
 //  解析（FDE 说的是名字/编号，不是 rid）
 // ══════════════════════════════════════════════════════════════════
 
-function findObject(oir: OIR, ref: string): ObjectType {
+/** 导出给 flow.edit 的 bind_objects 用 —— 「采购申请」解析成哪个对象，
+ *  两处必须是同一套判据（直接命中 rid / apiName / displayName / alias，
+ *  再退到包含匹配，多个候选就点名让人说具体些）。各写各的必然分叉。 */
+export function findObject(oir: OIR, ref: string): ObjectType {
   const direct = oir.objects.get(ref);
   if (direct) return direct;
   let hit = [...oir.objects.values()].filter(
@@ -348,10 +379,15 @@ function ref0(v: unknown): string {
   return v;
 }
 
-function opAddObjectType(oir: OIR, a: Args): string {
+function opAddObjectType(oir: OIR, a: Args, ctx: EditContext): string {
   const apiName = strip0(a["api_name"]);
   const displayName = text0(a["display_name"]);
   const description = text0(a["description"]);
+  // 主键之前**没有任何写入口** —— schema 里有 primaryKey、抽取侧不产出、
+  // add_object_type 不收、EDITABLE 也没有它。实测真实库 527 个对象全是空。
+  // 右栏还挂着一枚「无主键」的补齐芯片，点了预填一句指令，而模型无论怎么答
+  // 都落不了盘 —— 和 flow.edit 缺 bind_objects 是同一个毛病：**指着不存在的能力**。
+  const primaryKey = pyIterList(a["primary_key"] ?? []).map((v) => pyStr(v)).filter((v) => v !== "");
   if (!apiName) throw new OIREditError("新增对象要给 api_name。");
   for (const o of oir.objects.values()) {
     if (o.apiName.value === apiName) {
@@ -361,15 +397,20 @@ function opAddObjectType(oir: OIR, a: Args): string {
   oir.addObject(
     makeObjectType({
       rid: makeRid("ot", apiName),
-      apiName: human(apiName, `人工口述新增对象：${apiName}`),
-      displayName: human(pyTruthy(displayName) ? displayName : apiName, "人工口述"),
-      description: pyTruthy(description) ? human(description, "人工口述") : inferred(""),
+      apiName: ctx.assertion(apiName, `人工口述新增对象：${apiName}`),
+      displayName: ctx.assertion(pyTruthy(displayName) ? displayName : apiName, "人工口述"),
+      description: pyTruthy(description) ? ctx.assertion(description, "人工口述") : inferred(""),
+      ...(primaryKey.length > 0
+        ? { primaryKey: ctx.assertion(primaryKey, `人工口述主键：${primaryKey.join("+")}`) }
+        : {}),
     }),
   );
-  return `新增对象「${pyStr(pyTruthy(displayName) ? displayName : apiName)}」（人工口述，标 USER 来源）。`;
+  return `新增对象「${pyStr(pyTruthy(displayName) ? displayName : apiName)}」`
+    + (primaryKey.length > 0 ? `，主键 ${primaryKey.join("+")}` : "")
+    + `（${ctx.receipt}）。`;
 }
 
-function opAddProperty(oir: OIR, a: Args): string {
+function opAddProperty(oir: OIR, a: Args, ctx: EditContext): string {
   const parent = findObject(oir, ref0(a["object"]));
   const apiName = strip0(a["api_name"]);
   const displayName = text0(a["display_name"]);
@@ -392,13 +433,13 @@ function opAddProperty(oir: OIR, a: Args): string {
     makePropertyType({
       rid: makeRid("pt", `${parent.rid}_${apiName}`),
       parent: parent.rid,
-      apiName: human(apiName, "人工口述"),
-      displayName: human(pyTruthy(displayName) ? displayName : apiName, "人工口述"),
-      baseType: human(bt, "人工口述"),
-      definition: pyTruthy(definition) ? human(definition, "人工口述") : inferred(""),
-      required: human(pyTruthy(required), "人工口述"),
+      apiName: ctx.assertion(apiName, "人工口述"),
+      displayName: ctx.assertion(pyTruthy(displayName) ? displayName : apiName, "人工口述"),
+      baseType: ctx.assertion(bt, "人工口述"),
+      definition: pyTruthy(definition) ? ctx.assertion(definition, "人工口述") : inferred(""),
+      required: ctx.assertion(pyTruthy(required), "人工口述"),
       valueDomain: pyTruthy(valueDomain)
-        ? human(pyIterList(valueDomain) as string[], "人工口述")
+        ? ctx.assertion(pyIterList(valueDomain) as string[], "人工口述")
         : inferred(null),
     }),
   );
@@ -407,36 +448,52 @@ function opAddProperty(oir: OIR, a: Args): string {
   )}」。`;
 }
 
-function opAddLink(oir: OIR, a: Args): string {
-  const src = findObject(oir, ref0(a["source"]));
-  const tgt = findObject(oir, ref0(a["target"]));
+function opAddLink(oir: OIR, a: Args, ctx: EditContext): string {
+  let src = findObject(oir, ref0(a["source"]));
+  let tgt = findObject(oir, ref0(a["target"]));
   const joinKey = a["join_key"] ?? null;
   let card: Cardinality;
-  try {
-    card = parseCardinality(a["cardinality"] === undefined ? "ONE_TO_MANY" : a["cardinality"]);
-  } catch {
-    throw new OIREditError(`cardinality 只能是 ${pyList(Object.values(Cardinality))}。`);
+  let flipped = false;
+  const rawCard = a["cardinality"] === undefined ? "ONE_TO_MANY" : a["cardinality"];
+  // **MANY_TO_ONE 是个合法的建模说法，只是这里用方向来表达。**
+  // A --MANY_TO_ONE--> B 与 B --ONE_TO_MANY--> A 是同一件事；为这个让人多跑一轮
+  // 纯属浪费。对调两端接住它，并在回执里说清做了这个对调 —— 不能悄悄改语义。
+  if (typeof rawCard === "string" && rawCard.trim().toUpperCase() === "MANY_TO_ONE") {
+    card = Cardinality.ONE_TO_MANY;
+    flipped = true;
+  } else {
+    try {
+      card = parseCardinality(rawCard);
+    } catch {
+      throw new OIREditError(
+        `cardinality 只能是 ${pyList(Object.values(Cardinality))}` +
+          "（MANY_TO_ONE 也收，会自动对调 source/target）。",
+      );
+    }
   }
+  if (flipped) [src, tgt] = [tgt, src];
   const given = strip0(a["api_name"]);
   const name = given || `${src.apiName.value}_${tgt.apiName.value}`;
   oir.addLink(
     makeLinkType({
       rid: makeRid("lt", `${src.rid}_${name}_${tgt.rid}`),
-      apiName: human(name, "人工口述"),
+      apiName: ctx.assertion(name, "人工口述"),
       source: src.rid,
       target: tgt.rid,
-      cardinality: human(card, "人工口述"),
+      cardinality: ctx.assertion(card, "人工口述"),
       joinKey: pyTruthy(joinKey)
-        ? human(pyDict(joinKey) as Record<string, string>, "人工口述")
+        ? ctx.assertion(pyDict(joinKey) as Record<string, string>, "人工口述")
         : inferred(null),
     }),
   );
   return (
-    `连关系：「${src.displayName.value}」→「${tgt.displayName.value}」` + `（${card}）。`
+    `连关系：「${src.displayName.value}」→「${tgt.displayName.value}」（${card}）。` +
+    // 对调过就必须说出来：调用方写的是 A→B，落进去的是 B→A，不告诉他等于偷改语义。
+    (flipped ? "（你写的 MANY_TO_ONE 已按等价的 ONE_TO_MANY 对调了两端）" : "")
   );
 }
 
-function opAddRule(oir: OIR, a: Args): string {
+function opAddRule(oir: OIR, a: Args, ctx: EditContext): string {
   const statement = strip0(a["statement"]);
   if (!statement) throw new OIREditError("新增规则要给 statement。");
   let rk: RuleKind;
@@ -447,23 +504,27 @@ function opAddRule(oir: OIR, a: Args): string {
   }
   const appliesTo = a["applies_to"] ?? null;
   const actor = text0(a["actor"]);
+  const condition = text0(a["condition"]);
   const applies = pyIterList(pyTruthy(appliesTo) ? appliesTo : []).map(
     (x) => findObject(oir, ref0(x)).rid,
   );
   oir.addRule(
     makeBusinessRule({
       rid: makeRid("br", statement),
-      statement: human(statement, "人工口述"),
-      kind: human(rk, "人工口述"),
+      statement: ctx.assertion(statement, "人工口述"),
+      kind: ctx.assertion(rk, "人工口述"),
       appliesTo: applies,
-      actor: pyTruthy(actor) ? human(actor, "人工口述") : inferred(""),
+      actor: pyTruthy(actor) ? ctx.assertion(actor, "人工口述") : inferred(""),
+      ...(pyTruthy(condition) ? { condition: ctx.assertion(condition, "人工口述") } : {}),
     }),
   );
-  return `新增业务规则「${head(statement, 24)}」（${rk}）。`;
+  return `新增业务规则「${head(statement, 24)}」（${rk}）`
+    + (pyTruthy(condition) ? `，判定条件 ${condition}` : "")
+    + "。";
 }
 
 /** 新增可执行语义动作；所有口述字段保持 USER provenance。 */
-function opAddActionType(oir: OIR, a: Args): string {
+function opAddActionType(oir: OIR, a: Args, ctx: EditContext): string {
   const apiName = strip0(a["api_name"]);
   if (!apiName) throw new OIREditError("新增动作要给 api_name。");
   for (const x of oir.actions.values()) {
@@ -478,28 +539,39 @@ function opAddActionType(oir: OIR, a: Args): string {
   const targets = pyIterList(pyTruthy(appliesTo) ? appliesTo : []).map(
     (ref) => findObject(oir, ref0(ref)).rid,
   );
+  // actor / preconditions：没有它们的 Action 是个空壳 —— 编译成 OntologyPackage 时
+  // role 绑定落成 unknown、审批链配不了。通用草案里由模型按通识填，走 ctx.assertion
+  // 与其它字段同一条溯源纪律（generic 档零 evidence → package 编译时自动落成 assumed）。
+  const actor = strip0(a["actor"]);
+  const preconditions = pyIterList(pyTruthy(a["preconditions"]) ? a["preconditions"] : [])
+    .map((x) => strip0(x))
+    .filter(Boolean);
   oir.addAction(
     makeActionType({
       rid: makeRid("at", apiName),
-      apiName: human(apiName, `人工口述新增动作：${apiName}`),
+      apiName: ctx.assertion(apiName, `人工口述新增动作：${apiName}`),
       appliesTo: targets,
-      parameters: human(
+      ...(actor ? { actor: ctx.assertion(actor, "人工口述执行角色") } : {}),
+      ...(preconditions.length > 0
+        ? { preconditions: ctx.assertion(preconditions, "人工口述前置条件") }
+        : {}),
+      parameters: ctx.assertion(
         pyIterList(pyTruthy(parameters) ? parameters : []) as Record<string, unknown>[],
         "人工口述动作参数",
       ),
-      effects: human(
+      effects: ctx.assertion(
         pyIterList(pyTruthy(effects) ? effects : []) as string[],
         "人工口述动作效果",
       ),
       sourceEndpoint: pyTruthy(sourceEndpoint)
-        ? human(pyDict(sourceEndpoint) as Record<string, string>, "人工口述动作接口")
+        ? ctx.assertion(pyDict(sourceEndpoint) as Record<string, string>, "人工口述动作接口")
         : inferred(null),
     }),
   );
-  return `新增动作「${apiName}」（人工口述，标 USER 来源）。`;
+  return `新增动作「${apiName}」（${ctx.receipt}）。`;
 }
 
-function opAddEnumValue(oir: OIR, a: Args): string {
+function opAddEnumValue(oir: OIR, a: Args, ctx: EditContext): string {
   const property = ref0(a["property"]);
   const value = a["value"];
   const pt = findProperty(oir, property);
@@ -508,9 +580,9 @@ function opAddEnumValue(oir: OIR, a: Args): string {
     throw new OIREditError(`「${property}」已经有取值「${pyStr(value)}」。`);
   }
   dom.push(value as string);
-  pt.valueDomain = human(dom, `人工口述新增取值：${pyStr(value)}`);
+  pt.valueDomain = ctx.assertion(dom, `人工口述新增取值：${pyStr(value)}`);
   if (pt.baseType.value !== BaseType.ENUM) {
-    pt.baseType = human(BaseType.ENUM, "人工口述：有取值域了，类型改 ENUM");
+    pt.baseType = ctx.assertion(BaseType.ENUM, "人工口述：有取值域了，类型改 ENUM");
   }
   return `给属性「${pt.displayName.value}」加取值「${pyStr(value)}」。`;
 }
@@ -528,6 +600,12 @@ const EDITABLE: Record<string, string> = {
   base_type: "baseType",
   cardinality: "cardinality",
   api_name: "apiName",
+  // 抽取建出来的对象不会再走 add_object_type，所以补主键的主路是这里。
+  primary_key: "primaryKey",
+  // 规则的两处：分类原来只能在 add_rule 时定死，改不了；可判定条件是新加的字段。
+  // 右栏那两枚芯片（「未分类」「无可判定条件」）指的就是这两条路。
+  kind: "kind",
+  condition: "condition",
   required: "required",
   actor: "actor",
   statement: "statement",
@@ -547,6 +625,9 @@ const COERCE: Record<string, (v: unknown) => unknown> = {
     typeof v === "boolean" ? v : ["1", "true", "是", "yes"].includes(pyStr(v).toLowerCase()),
   parameters: (v) => pyIterList(v),
   effects: (v) => pyIterList(v),
+  kind: (v) => parseRuleKind(v),
+  // 主键是属性名的列表；给一个裸字符串也接（单主键是最常见的情况）
+  primary_key: (v) => (typeof v === "string" ? [v] : pyIterList(v).map((x) => pyStr(x))),
   source_endpoint: (v) => (v !== null && v !== undefined ? pyDict(v) : null),
 };
 
@@ -557,7 +638,7 @@ function isValueOrKeyError(e: unknown): boolean {
   return e instanceof RangeError || (e instanceof Error && e.name === "KeyError");
 }
 
-function opEditAssertion(oir: OIR, a: Args): string {
+function opEditAssertion(oir: OIR, a: Args, ctx: EditContext): string {
   const target = ref0(a["target"]);
   // field 不 strip、也不校验类型：Python 里非字符串的 field 直接落进
   // `field not in _EDITABLE` 判 False，报的是「不是可改字段」。
@@ -583,10 +664,41 @@ function opEditAssertion(oir: OIR, a: Args): string {
     if (!isValueOrKeyError(e)) throw e;
     throw new OIREditError(`${field} 的值「${pyStr(value)}」不合法。`);
   }
-  (ent as unknown as Record<string, unknown>)[tsKey] = human(
+  const prev = (ent as unknown as Record<string, unknown>)[tsKey] as
+    | Assertion<unknown>
+    | undefined;
+  (ent as unknown as Record<string, unknown>)[tsKey] = ctx.assertion(
     coerced,
     pyTruthy(note) ? note : `人工口述改 ${field}`,
   );
+  // ── 改名的引用传播（B2 缺口：以前只改字段，引用留在旧名字上）──
+  // · 对象改名：旧名记进 aliases —— findObject 认别名，改名之后旧称呼不失联；
+  // · 属性改 api_name：父对象 primaryKey 存的是属性 **api 名**（不是 rid），
+  //   不跟着走的话主键指着一个不存在的名字，编译时静默变成"没有主键"。
+  if (field === "api_name" || field === "display_name") {
+    const oldName = typeof prev?.value === "string" ? prev.value : "";
+    const newName = typeof coerced === "string" ? coerced : "";
+    if (oldName && newName && oldName !== newName) {
+      if ("aliases" in ent && Array.isArray((ent as ObjectType).aliases)) {
+        const obj = ent as ObjectType;
+        if (
+          oldName !== obj.displayName.value &&
+          oldName !== obj.apiName.value &&
+          !obj.aliases.includes(oldName)
+        ) {
+          obj.aliases.push(oldName);
+        }
+      } else if (field === "api_name" && "parent" in ent) {
+        const p = ent as PropertyType;
+        const parent = oir.objects.get(p.parent);
+        if (parent !== undefined && parent.primaryKey.value.includes(oldName)) {
+          parent.primaryKey.value = parent.primaryKey.value.map((x) =>
+            x === oldName ? newName : x,
+          );
+        }
+      }
+    }
+  }
   return `把「${label(ent)}」的 ${field} 改为「${pyStr(value)}」。`;
 }
 
@@ -621,11 +733,19 @@ function opSetActionScope(oir: OIR, a: Args): string {
 /** 只有人工口述加错的才能硬删；材料抽出来的删了会丢证据，引导去 setStatus。
  *
  * `kind` 这个参数 Python 侧也没用上，照实迁 —— 删掉它就是一处静默的接口漂移。 */
-function requireUserOrigin(ent: object, kind: string): void {
+function requireEditableOrigin(ent: object, kind: string, ctx: EditContext): void {
   void kind;
   for (const key of ["displayName", "apiName", "statement"]) {
     const a = assertionOf(ent, key);
     if (a !== null && a.origin === Origin.USER) return;
+    // 通用草案里的元素是 INFERRED + 零 evidence；允许模型在同一草案中修正自己
+    // 生成的假设，但绝不因此放宽普通材料产物的删除守卫。
+    if (
+      ctx.source === "generic_assumption" &&
+      a !== null &&
+      a.origin === Origin.INFERRED &&
+      a.evidence.length === 0
+    ) return;
   }
   throw new OIREditError(
     `「${label(ent)}」不是人工口述加的（是从材料抽出来的），删除会丢证据。` +
@@ -633,9 +753,20 @@ function requireUserOrigin(ent: object, kind: string): void {
   );
 }
 
-function opRemoveObjectType(oir: OIR, a: Args): string {
+function opRemoveObjectType(oir: OIR, a: Args, ctx: EditContext): string {
   const o = findObject(oir, ref0(a["target"]));
-  requireUserOrigin(o, "对象");
+  requireEditableOrigin(o, "对象", ctx);
+  // C4：级联删除先看影响 —— dependents 现在含属性/关系/Action/规则。
+  // 有波及而不带 confirm 就拒绝，把波及面列给人；这不是多一道手续，
+  // 是把「删了才发现连坐了 12 处」变成「删之前就知道」。
+  const blast = oir.dependents(o.rid);
+  if (blast.length > 0 && a["confirm"] !== true) {
+    throw new OIREditError(
+      `删「${o.displayName.value}」会波及 ${blast.length} 处：` +
+        `${blast.slice(0, 8).join("、")}${blast.length > 8 ? " 等" : ""}。` +
+        "确认要删就再调一次并带 confirm=true；只想排除请用 set_status(status=rejected)。",
+    );
+  }
   for (const r of [...oir.properties.values()].filter((p) => p.parent === o.rid).map((p) => p.rid)) {
     oir.properties.delete(r);
   }
@@ -648,9 +779,9 @@ function opRemoveObjectType(oir: OIR, a: Args): string {
   return `删掉了对象「${o.displayName.value}」及其属性/相关关系。`;
 }
 
-function opRemoveProperty(oir: OIR, a: Args): string {
+function opRemoveProperty(oir: OIR, a: Args, ctx: EditContext): string {
   const p = findProperty(oir, ref0(a["target"]));
-  requireUserOrigin(p, "属性");
+  requireEditableOrigin(p, "属性", ctx);
   oir.properties.delete(p.rid);
   const parent = oir.objects.get(p.parent);
   if (parent && parent.properties.includes(p.rid)) {
@@ -659,27 +790,171 @@ function opRemoveProperty(oir: OIR, a: Args): string {
   return `删掉了属性「${p.displayName.value}」。`;
 }
 
-function opRemoveLink(oir: OIR, a: Args): string {
+function opRemoveLink(oir: OIR, a: Args, ctx: EditContext): string {
   const target = ref0(a["target"]);
   const lt = oir.links.get(target);
   if (lt === undefined) throw new OIREditError(`找不到关系「${target}」（用 rid）。`);
-  requireUserOrigin(lt, "关系");
+  requireEditableOrigin(lt, "关系", ctx);
   oir.links.delete(lt.rid);
   return `删掉了关系「${lt.apiName.value}」。`;
 }
 
-function opRemoveRule(oir: OIR, a: Args): string {
+function opRemoveRule(oir: OIR, a: Args, ctx: EditContext): string {
   const r = findRule(oir, ref0(a["target"]));
-  requireUserOrigin(r, "规则");
+  requireEditableOrigin(r, "规则", ctx);
   oir.rules.delete(r.rid);
   return `删掉了规则「${head(r.statement.value, 16)}」。`;
 }
 
-function opRemoveActionType(oir: OIR, a: Args): string {
+function opRemoveActionType(oir: OIR, a: Args, ctx: EditContext): string {
   const action = findAction(oir, ref0(a["target"]));
-  requireUserOrigin(action, "动作");
+  requireEditableOrigin(action, "动作", ctx);
   oir.actions.delete(action.rid);
   return `删掉了动作「${action.apiName.value}」。`;
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  合并与批量（第 2 层「二轮编辑动词」）
+// ══════════════════════════════════════════════════════════════════
+
+/** Provenance 去重键 —— 同一处出处并集两次不重复。confidence 不进键：同一处
+ *  出处两次置信度不同仍是同一处，重复挂两条才是丢真相。 */
+function provKey(p: Provenance): string {
+  return JSON.stringify([p.fileId, p.fileName, p.locator, p.snippet, p.extractor]);
+}
+
+/** 把 extra 的证据并进断言（去重），返回真正新增的条数。 */
+function unionEvidence(into: Assertion<unknown>, extra: readonly Provenance[]): number {
+  const seen = new Set(into.evidence.map(provKey));
+  let added = 0;
+  for (const p of extra) {
+    const k = provKey(p);
+    if (seen.has(k)) continue;
+    seen.add(k);
+    into.evidence.push(p);
+    added += 1;
+  }
+  return added;
+}
+
+/**
+ * 合并两个抽重了的对象 —— FDE 二轮最高频的意图，此前走不通：remove 被出处守卫
+ * 拦（那条守卫防的是**丢证据**），remove+add 又真的丢证据。merge 的全部契约就是
+ * 「证据一条不丢」：断言证据并集、老名字入别名、属性迁移（同 api_name 合并）、
+ * 关系端点改写（自环丢弃并明说）、appliesTo 改写去重、空主键收养。
+ *
+ * **删除守卫对 merge 不适用是有原则的例外，不是放宽**：被并对象的每一条证据都
+ * 活在幸存者身上，这正是守卫要保的东西。原子性由 applyOirEdit 的 trial 副本兜底。
+ */
+function opMergeObjects(oir: OIR, a: Args, ctx: EditContext): string {
+  void ctx;
+  const into = findObject(oir, ref0(a["into"]));
+  const from = findObject(oir, ref0(a["from"]));
+  if (into.rid === from.rid) {
+    throw new OIREditError("into 与 from 是同一个对象，没有可合并的。");
+  }
+  // ① 断言证据并集；幸存者的空槽收养被并者的值
+  unionEvidence(into.displayName as Assertion<unknown>, from.displayName.evidence);
+  unionEvidence(into.apiName as Assertion<unknown>, from.apiName.evidence);
+  if (!into.description.value && from.description.value) {
+    into.description = from.description;
+  } else {
+    unionEvidence(into.description as Assertion<unknown>, from.description.evidence);
+  }
+  if (into.primaryKey.value.length === 0 && from.primaryKey.value.length > 0) {
+    into.primaryKey = from.primaryKey;
+  }
+  // ② 老名字入别名 —— 合并之后按旧名还能找到它
+  for (const name of [from.displayName.value, from.apiName.value, ...from.aliases]) {
+    if (
+      name &&
+      name !== into.displayName.value &&
+      name !== into.apiName.value &&
+      !into.aliases.includes(name)
+    ) {
+      into.aliases.push(name);
+    }
+  }
+  // ③ 属性迁移；同 api_name 的合并证据后去掉重复那份
+  const intoProps = new Map<string, string>();
+  for (const rid of into.properties) {
+    const p = oir.properties.get(rid);
+    if (p) intoProps.set(p.apiName.value, p.rid);
+  }
+  let moved = 0;
+  let mergedProps = 0;
+  for (const p of [...oir.properties.values()].filter((x) => x.parent === from.rid)) {
+    const twinRid = intoProps.get(p.apiName.value);
+    if (twinRid !== undefined) {
+      const twin = oir.properties.get(twinRid)!;
+      unionEvidence(twin.displayName as Assertion<unknown>, p.displayName.evidence);
+      unionEvidence(twin.apiName as Assertion<unknown>, p.apiName.evidence);
+      oir.properties.delete(p.rid);
+      mergedProps += 1;
+    } else {
+      p.parent = into.rid;
+      if (!into.properties.includes(p.rid)) into.properties.push(p.rid);
+      intoProps.set(p.apiName.value, p.rid);
+      moved += 1;
+    }
+  }
+  // ④ 关系端点改写；并出来的自环没有语义，丢弃但要说
+  let rewired = 0;
+  let loops = 0;
+  for (const l of [...oir.links.values()]) {
+    const hitS = l.source === from.rid;
+    const hitT = l.target === from.rid;
+    if (!hitS && !hitT) continue;
+    if (hitS) l.source = into.rid;
+    if (hitT) l.target = into.rid;
+    if (l.source === l.target) {
+      oir.links.delete(l.rid);
+      loops += 1;
+    } else {
+      rewired += 1;
+    }
+  }
+  // ⑤ Action / Rule 的 appliesTo 改写去重
+  let scoped = 0;
+  for (const ent of [...oir.actions.values(), ...oir.rules.values()]) {
+    if (!ent.appliesTo.includes(from.rid)) continue;
+    ent.appliesTo = [...new Set(ent.appliesTo.map((r) => (r === from.rid ? into.rid : r)))];
+    scoped += 1;
+  }
+  oir.objects.delete(from.rid);
+  return (
+    `把「${from.displayName.value}」并入「${into.displayName.value}」：` +
+    `迁移属性 ${moved} 个、同名合并 ${mergedProps} 个、改写关系 ${rewired} 条` +
+    (loops > 0 ? `、丢弃自环 ${loops} 条` : "") +
+    (scoped > 0 ? `、改写 appliesTo ${scoped} 处` : "") +
+    "；老名字已记为别名，证据全部保留。"
+  );
+}
+
+/**
+ * 一次落一批拍板 —— 工作坊散场后「这 20 条全确认」是紧接着发生的第一件事，
+ * 逐条 set_status × 一轮 5 步永远落不完。任一目标指不到就整批不落
+ * （trial 副本保证）：半批落地比失败更糟 —— 没人会去数哪几条成了。
+ */
+function opSetStatusBatch(oir: OIR, a: Args): string {
+  const targets = pyIterList(a["targets"]).map((t) => ref0(t));
+  if (targets.length === 0) throw new OIREditError("targets 是空的，没有可标的。");
+  let st: Status;
+  try {
+    st = parseStatus(a["status"]);
+  } catch {
+    throw new OIREditError(`status 只能是 ${pyList(Object.values(Status))}。`);
+  }
+  const names: string[] = [];
+  for (const ref of targets) {
+    const ent = resolveAny(oir, ref);
+    (ent as { status: Status }).status = st;
+    names.push(label(ent));
+  }
+  return (
+    `批量把 ${names.length} 项标为 ${st}：` +
+    `${names.slice(0, 6).join("、")}${names.length > 6 ? " 等" : ""}。`
+  );
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -691,15 +966,74 @@ interface OpSpec {
   fnName: string;
   required: readonly string[];
   optional: readonly string[];
-  run: (oir: OIR, args: Args) => string;
+  run: (oir: OIR, args: Args, ctx: EditContext) => string;
+}
+
+/**
+ * 一次落一批**新增**。
+ *
+ * 同 `flow_edit` 的 `apply_patch`，理由是同一笔账：一份通用 Ontology 要 4–6 个对象、
+ * 12–18 个属性、4–8 条关系、5–8 个 Action、4–6 条规则，而每个 op 一次只加一个、
+ * 对话循环一轮只有 5 步。逐条加的结果是永远加不完，用户拿到半份模型。
+ *
+ * **原子性是白捡的**：`applyOirEdit` 本来就在 `trial` 副本上跑、`guard` 过了才
+ * refill，所以这里拿到的 `oir` 就是那个副本 —— 任一条抛错，外层连 refill 都不会走。
+ *
+ * **只收 `add_*`。** 删除与改断言各有各的溯源讲究（材料抽出来的不能硬删），
+ * 批量做等于把那些讲究一次绕过去；批量的真实需求也只有"把模型搭起来"这一件。
+ */
+function opAddBatch(oir: OIR, a: Args, ctx: EditContext): string {
+  const raw = a["items"];
+  if (!Array.isArray(raw) || raw.length === 0) {
+    throw new OIREditError("add_batch 的 items 要是一个非空数组。");
+  }
+  const notes: string[] = [];
+  raw.forEach((row, i) => {
+    if (typeof row !== "object" || row === null || Array.isArray(row)) {
+      throw new OIREditError(`items[${i}] 要是一个对象。`);
+    }
+    // `basis` 在外层已经决定了（整批同一个来源），模型却很自然地在每一条上都
+    // 重写一遍 —— 那是**对的直觉**，不该被当成参数错误拒掉。这里丢掉即可。
+    const { op: rawOp, basis: _perItemBasis, ...args } = row as Record<string, unknown>;
+    const op = typeof rawOp === "string" ? rawOp : "";
+    if (!op.startsWith("add_") || op === "add_batch" || OPS[op] === undefined) {
+      const allowed = pySorted(Object.keys(OPS).filter((k) => k.startsWith("add_") && k !== "add_batch"));
+      throw new OIREditError(`items[${i}] 的 op「${op}」不能批量做。批量只收：${pyList(allowed)}`);
+    }
+    const spec = OPS[op]!;
+    try {
+      checkKwargs(spec, args);
+      notes.push(spec.run(oir, args, ctx));
+    } catch (exc) {
+      // 指名道姓说是**哪一条**坏了 —— 整批拒绝时这是模型唯一能据以改对的信息。
+      // 顺带提醒顺序：属性要挂在对象上，对象没先建就会在这里报。
+      // 光说"参数不对"会让它再猜一轮。把这个 op **实际收哪些参数**一起给出去 ——
+      // 与 export.file / material.inspect 同一条口径：给的是"下一步填什么"，
+      // 不是一句诊断。
+      const accepts =
+        `${op} 收：必填 ${pyList([...spec.required])}` +
+        (spec.optional.length > 0 ? `，可选 ${pyList([...spec.optional])}` : "，没有可选参数");
+      throw new OIREditError(
+        `items[${i}]（${op}）：${exc instanceof Error ? exc.message : String(exc)}　${accepts}。` +
+          `${i > 0 ? "　items 按顺序执行：属性/关系/规则要排在它们依附的对象之后。" : ""}`,
+      );
+    }
+  });
+  return `一次加了 ${raw.length} 条：${notes.slice(0, 3).join(" ")}${raw.length > 3 ? " …" : ""}`;
 }
 
 const OPS: Record<string, OpSpec> = {
+  add_batch: {
+    fnName: "_op_add_batch",
+    required: ["items"],
+    optional: [],
+    run: opAddBatch,
+  },
   // add
   add_object_type: {
     fnName: "_op_add_object_type",
     required: ["api_name"],
-    optional: ["display_name", "description"],
+    optional: ["display_name", "description", "primary_key"],
     run: opAddObjectType,
   },
   add_property: {
@@ -717,13 +1051,13 @@ const OPS: Record<string, OpSpec> = {
   add_rule: {
     fnName: "_op_add_rule",
     required: ["statement"],
-    optional: ["kind", "applies_to", "actor"],
+    optional: ["kind", "applies_to", "actor", "condition"],
     run: opAddRule,
   },
   add_action_type: {
     fnName: "_op_add_action_type",
     required: ["api_name"],
-    optional: ["applies_to", "parameters", "effects", "source_endpoint"],
+    optional: ["applies_to", "parameters", "effects", "source_endpoint", "actor", "preconditions"],
     run: opAddActionType,
   },
   add_enum_value: {
@@ -745,6 +1079,18 @@ const OPS: Record<string, OpSpec> = {
     optional: [],
     run: opSetStatus,
   },
+  set_status_batch: {
+    fnName: "_op_set_status_batch",
+    required: ["targets", "status"],
+    optional: [],
+    run: opSetStatusBatch,
+  },
+  merge_objects: {
+    fnName: "_op_merge_objects",
+    required: ["into", "from"],
+    optional: [],
+    run: opMergeObjects,
+  },
   bind_rule: { fnName: "_op_bind_rule", required: ["rule", "object"], optional: [], run: opBindRule },
   set_action_scope: {
     fnName: "_op_set_action_scope",
@@ -755,7 +1101,7 @@ const OPS: Record<string, OpSpec> = {
   remove_object_type: {
     fnName: "_op_remove_object_type",
     required: ["target"],
-    optional: [],
+    optional: ["confirm"],
     run: opRemoveObjectType,
   },
   remove_property: {
@@ -776,6 +1122,29 @@ const OPS: Record<string, OpSpec> = {
 
 /** 可用的编辑操作名。给上层做 schema / 提示用，别再手抄一份。 */
 export const OIR_EDIT_OPS: readonly string[] = Object.keys(OPS);
+
+/** 每个 op 认的关键字全集（required + optional）。
+ *
+ * **为什么必须导出：** 上层 `oir.add` 的 JSON schema 曾经是手抄的，抄漏和抄错各犯了一次，
+ * 而两种错的表现完全不同、都很难查：
+ *
+ * * **抄漏**（schema 没声明、op 却认）—— 网关 `validateArgs` 会把未声明字段**静默丢弃**
+ *   （kernel/tools.ts 那里是刻意的：报错等于告诉调用方边界在哪）。于是 `description` /
+ *   `value_domain` / `join_key` 从来没到过 op，模型以为写进去了，产物里那几项永远是空的。
+ * * **抄错**（schema 声明了、该 op 不认）—— 穿过网关后被 `checkKwargs` 抛
+ *   `unexpected keyword argument`。模型把这类回执读成"参数写错了"，然后反复重试同一个
+ *   必然失败的调用（见本文件末尾那段注释）。
+ *
+ * 契约测试拿它和 schema 做双向差集，抄漏抄错都当场红。 */
+export const OIR_EDIT_OP_KEYS: Readonly<Record<string, readonly string[]>> = Object.freeze(
+  Object.fromEntries(
+    Object.entries(OPS).map(([op, spec]) => [op, [...spec.required, ...spec.optional]]),
+  ),
+);
+
+/** `edit_assertion` 能改的字段名。**wire 上是 snake_case** —— 上层 schema 直接拿它当 enum，
+ * 别再在 description 里手写一遍（写错过一次：`displayName` 是 TS 属性名，不是 wire 名）。 */
+export const OIR_EDITABLE_FIELDS: readonly string[] = Object.keys(EDITABLE);
 
 /** 复现 CPython 关键字展开的两条报错。
  *
@@ -856,7 +1225,12 @@ function refill<K, V>(dst: Map<K, V>, src: Map<K, V>): void {
  *
  * **在副本上应用、守卫通过后才换回** —— 被拒的编辑让活 OIR 字节不变，未触碰部分
  * 的溯源全保留。抛 {@link OIREditError} 时调用方转述给用户。 */
-export function applyOirEdit(oir: OIR, op: string, args: Args): string {
+export function applyOirEdit(
+  oir: OIR,
+  op: string,
+  args: Args,
+  opts: OirEditOptions = {},
+): string {
   const spec = OPS[op];
   if (spec === undefined) {
     throw new OIREditError(`不支持的 OIR 编辑 ${op}。支持：${pyList(pySorted(Object.keys(OPS)))}`);
@@ -865,7 +1239,7 @@ export function applyOirEdit(oir: OIR, op: string, args: Args): string {
   let note: string;
   try {
     checkKwargs(spec, args);
-    note = spec.run(trial, args);
+    note = spec.run(trial, args, editContext(opts));
   } catch (exc) {
     // **只接 TypeError**。Python 侧的 `except TypeError` 不会接住 AttributeError /
     // ValueError，接多了会把「服务端出错」伪装成「你参数写错了」，模型于是

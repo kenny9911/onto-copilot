@@ -1,5 +1,10 @@
 # OntoCopilot 工具与 Agent 工作流清单
 
+> **文件位置更新（2026-08-26）**：Skills、Agents、Tools 权限和固定工作流已迁到
+> `ts/catalog/`。目录与修改规范见
+> [OntoChat-Runtime-Definitions-Structure.md](./OntoChat-Runtime-Definitions-Structure.md)。
+> 本文后续章节保留业务能力说明，具体数量与权限以 runtime catalog 为准。
+>
 > 这份文档回答两个问题：**AI 手上有哪些工具**、**这些工具被编排成了哪些工作流**。
 >
 > 判断标准是"跑起来是什么样"，不是"设计成什么样" —— 每一条都标了成熟度，

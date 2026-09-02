@@ -33,8 +33,10 @@
 
 import type { Budget } from "./budget.js";
 import { Difficulty, NodeMode, type NodeSpec } from "./dag.js";
-import { BudgetExhausted, NodeFailure, pyRepr } from "./errors.js";
+import { BudgetExhausted, HumanInputRequired, NodeFailure, pyRepr } from "./errors.js";
 import { EventKind } from "./events.js";
+import { fingerprint } from "./ids.js";
+import { QuotaExhausted } from "./llm.js";
 import { pyJsonDumps } from "./journal.js";
 import { estTokens } from "./memory/types.js";
 
@@ -170,7 +172,7 @@ export interface LoopGateway {
 }
 
 export interface LoopRecorder {
-  nextAttempt(nodeId: string): number;
+  nextAttempt(nodeId: string, checkpointVersion?: string | null): number;
   emit(
     kind: EventKind,
     opts?: { nodeId?: string | null; payload?: Record<string, unknown>; ref?: string | null },
@@ -415,6 +417,8 @@ export interface RunContextInit {
   readonly nodeId?: string;
   readonly nodeToolLimit?: number | null;
   readonly nodeToolCalls?: number;
+  /** 协作式取消信号。见 AgentLoop.run 的 opts.signal 注释。 */
+  readonly signal?: AbortSignal | null;
 }
 
 /** 一次 Run 的共享环境，透传给 handler。 */
@@ -428,6 +432,14 @@ export class RunContext {
   readonly nodeId: string;
   readonly nodeToolLimit: number | null;
   nodeToolCalls: number;
+  readonly signal: AbortSignal | null;
+
+  /** 循环边界的取消检查：中止即抛 NodeFailure(retryable=false)，调度器就地定案。 */
+  assertAlive(): void {
+    if (this.signal?.aborted === true) {
+      throw new NodeFailure(this.nodeId, "已被停止（收到取消信号）", false);
+    }
+  }
 
   constructor(init: RunContextInit) {
     this.runId = init.runId;
@@ -439,6 +451,7 @@ export class RunContext {
     this.nodeId = init.nodeId ?? "";
     this.nodeToolLimit = init.nodeToolLimit ?? null;
     this.nodeToolCalls = init.nodeToolCalls ?? 0;
+    this.signal = init.signal ?? null;
   }
 
   /**
@@ -454,6 +467,33 @@ export class RunContext {
       throw new BudgetExhausted("node_tool_calls", this.nodeToolLimit, this.nodeToolCalls);
     }
     this.nodeToolCalls += 1;
+  }
+}
+
+/**
+ * Cohort 子任务的运行环境。
+ *
+ * 同一节点内并发跑多个子任务时，effect 键不能再靠 Recorder 的
+ * (node, version, seq) 自增序 —— 并发把 seq 变成到达顺序的竞态，恢复重放
+ * 会把 A 的工具结果发给 B。这里给每个子任务一个**稳定前缀**（任务文本
+ * 哈希），每读一次 `toolEffectKey` 就派发一个确定的递增键；tools.ts 恰好
+ * 在每次真实调用前读一次（见 ToolCallCtx.toolEffectKey —— 那个字段声明
+ * 至今，就是在等这里第一个写方）。
+ *
+ * **读取即消费**：除 tools 层外不要读这个 getter（spread/日志都会吃掉一个键）。
+ */
+export class CohortRunContext extends RunContext {
+  private toolSeq = 0;
+  constructor(
+    init: RunContextInit,
+    private readonly keyPrefix: string,
+  ) {
+    super(init);
+  }
+  get toolEffectKey(): string {
+    const k = `${this.keyPrefix}:t${this.toolSeq}`;
+    this.toolSeq += 1;
+    return k;
   }
 }
 
@@ -505,6 +545,54 @@ export const PLAN_SCHEMA: Record<string, unknown> = {
     },
   },
 };
+
+// ── Cohort（节点内受限并行）─────────────────────────────────────
+/**
+ * 子任务提案 schema。`maxItems` 由节点的 cohort_max 决定 —— 上限写进 schema
+ * 是让模型**看得见**闸，而不是提完了再被代码砍（砍完的提案彼此可能不再自洽）。
+ */
+export function cohortPlanSchema(cohortMax: number): Record<string, unknown> {
+  return {
+    type: "object",
+    required: ["subtasks"],
+    properties: {
+      subtasks: {
+        type: "array",
+        minItems: 1,
+        maxItems: cohortMax,
+        items: {
+          type: "object",
+          required: ["task"],
+          properties: { task: { type: "string" } },
+        },
+      },
+    },
+  };
+}
+
+/** 单个子任务的收尾契约：结论 + 出处。出处必须逐字来自**本子任务**的工具返回。 */
+export const COHORT_FINDING_SCHEMA: Record<string, unknown> = {
+  type: "object",
+  required: ["finding", "cites"],
+  properties: {
+    finding: { type: "string" },
+    cites: { type: "array", items: { type: "string" } },
+  },
+};
+
+/** cohort 开关：params.cohort_max ≥ 2 才成立（1 个"并行"任务没有意义）。 */
+export function cohortMaxOf(node: NodeSpec): number | null {
+  const raw = node.params["cohort_max"];
+  const n = typeof raw === "number" ? Math.floor(raw) : Number.NaN;
+  return Number.isFinite(n) && n >= 2 ? n : null;
+}
+
+/** 每个子任务的步数上限：params.cohort_steps ∈ [1,5]，默认 3。 */
+export function cohortStepsOf(node: NodeSpec): number {
+  const raw = node.params["cohort_steps"];
+  const n = typeof raw === "number" ? Math.floor(raw) : Number.NaN;
+  return Number.isFinite(n) ? Math.min(5, Math.max(1, n)) : 3;
+}
 
 /** 把 `args_json` 解析成参数字典。解析不了就返回空，让工具层报缺参。 */
 export function parseActionArgs(action: Record<string, unknown>): Record<string, unknown> {
@@ -558,11 +646,73 @@ export interface AgentLoopOptions {
   readonly handlers: Record<string, NodeHandler>;
   /** 见文件头 2：Python 是在 `run()` 里直接 new Scratchpad 的。 */
   readonly newScratchpad: (budgetTokens: number) => LoopScratchpad;
+  /** 相位计时的时钟（毫秒）。可注入 —— 测试要能钉住 profile 数字。默认 Date.now。 */
+  readonly now?: () => number;
+}
+
+/**
+ * §6.1 节点相位剖面：**单活跃相位**计时（produce/critique 内部确实串行 ——
+ * 这个前提在 loop 内成立）。残差全部归 overhead，让**各桶之和恒等于节点墙钟**：
+ * 拿去画饼图不需要任何解释。
+ *
+ * **走普通事件、不进 effect**：profile 没有 request，塞进指纹空间只会注入
+ * 永不复用的键；resume 时已完成节点整个被 checkpoint 跳过，也不存在重复计费。
+ * usd 只统计本层直接可见的 gw.call（sampling/critic_refine）；critic_judge 的
+ * 钱在 panel 内部，v1 只记次数 —— 部分可见的钱如实标注比装作全知强。
+ */
+class PhaseClock {
+  private readonly t0: number;
+  private readonly ms = new Map<string, number>();
+  private readonly calls = new Map<string, number>();
+  private readonly usd = new Map<string, number>();
+  constructor(private readonly now: () => number) {
+    this.t0 = now();
+  }
+  async in<T>(phase: string, fn: () => Promise<T>): Promise<T> {
+    const s = this.now();
+    try {
+      return await fn();
+    } finally {
+      this.ms.set(phase, (this.ms.get(phase) ?? 0) + (this.now() - s));
+    }
+  }
+  inSync<T>(phase: string, fn: () => T): T {
+    const s = this.now();
+    try {
+      return fn();
+    } finally {
+      this.ms.set(phase, (this.ms.get(phase) ?? 0) + (this.now() - s));
+    }
+  }
+  hit(phase: string, usd?: unknown): void {
+    this.calls.set(phase, (this.calls.get(phase) ?? 0) + 1);
+    if (typeof usd === "number" && Number.isFinite(usd)) {
+      this.usd.set(phase, (this.usd.get(phase) ?? 0) + usd);
+    }
+  }
+  snapshot(): Record<string, unknown> {
+    const wallclock = this.now() - this.t0;
+    let sum = 0;
+    const phases: Record<string, number> = {};
+    for (const [k, v] of this.ms) {
+      phases[k] = v;
+      sum += v;
+    }
+    phases["overhead"] = Math.max(0, wallclock - sum);
+    return {
+      wallclock_ms: wallclock,
+      phases_ms: phases,
+      calls: Object.fromEntries(this.calls),
+      ...(this.usd.size > 0 ? { usd_visible: Object.fromEntries(this.usd) } : {}),
+    };
+  }
 }
 
 /** 节点执行引擎。 */
 export class AgentLoop {
   gw: LoopGateway;
+  /** 相位计时时钟。 */
+  nowMs: () => number;
   cm: LoopContextManager;
   /** 可写：测试与调度器会整体换掉评审面板（Python 侧同样是普通属性）。 */
   panel: LoopPanel;
@@ -581,14 +731,31 @@ export class AgentLoop {
     this.budget = o.budget;
     this.handlers = o.handlers;
     this.newScratchpad = o.newScratchpad;
+    this.nowMs = o.now ?? Date.now;
   }
 
   // ── 入口 ────────────────────────────────────────────────────
   async run(
     node: NodeSpec,
-    opts: { working: LoopWorkingSet; deps: readonly string[]; runId: string },
+    opts: {
+      working: LoopWorkingSet;
+      deps: readonly string[];
+      runId: string;
+      checkpointVersion?: string | null;
+      /**
+       * 协作式取消。Scheduler 一直在传它（AgentLoopLike 也声明了），此前这里
+       * 不收 —— 停止键按下后循环照跑到自然结束，钱照烧。取消只在**循环边界**查：
+       * 正在飞的那次 HTTP 不截（截了也退不了款），下一步不再发。中止的表达是
+       * NodeFailure(retryable=false) —— 调度器现有分支就地定案，零重试白烧。
+       */
+      signal?: AbortSignal;
+    },
   ): Promise<NodeResult> {
     const { working, deps, runId } = opts;
+    if (opts.signal?.aborted === true) {
+      throw new NodeFailure(node.id, "已被停止（收到取消信号）", false);
+    }
+    const checkpointVersion = opts.checkpointVersion ?? null;
     // `dict.get` 而不是属性访问：`handlers["constructor"]` 在 JS 里会摸到原型链上的函数
     const base = Object.hasOwn(this.handlers, node.handler)
       ? this.handlers[node.handler]
@@ -598,15 +765,40 @@ export class AgentLoop {
     }
     const handler = base.forNode(node.id);
 
-    const attempt = this.rec.nextAttempt(node.id);
+    const attempt = this.rec.nextAttempt(node.id, checkpointVersion);
     this.rec.emit(EventKind.NODE_ENTERED, {
       nodeId: node.id,
-      payload: { mode: node.mode, attempt, handler: node.handler },
+      payload: {
+        mode: node.mode,
+        attempt,
+        handler: node.handler,
+        ...(checkpointVersion === null ? {} : { checkpoint_version: checkpointVersion }),
+      },
     });
 
     // Python 是 `node.difficulty or self._route(...)`；Difficulty 的取值全是非空串，
     // 所以那个 `or` 等价于 `is None` 判断
     const difficulty = node.difficulty ?? this.route(node, working, deps);
+    // CODEACT 的降级披露。CODEACT 与 REACT 共用同一个循环骨架，唯一该有的差别
+    // 是动作空间里的 code.exec —— 而那个工具被环境开关 + 沙箱探活双重闸住，
+    // 默认部署下根本不在。此时节点仍标着 mode=codeact 跑完：模型被系统提示
+    // 要求"生成代码在沙箱跑"，实际没有执行器，只能靠读文本硬猜 —— 产物降档，
+    // 而事件日志里 mode 照写 codeact，排查的人会以为代码路径真的跑过。
+    // **贴牌运行必须变成可见事实**（与降级标记进产物是同一条纪律，见 730882f）。
+    if (node.mode === NodeMode.CODEACT) {
+      const reg = (this.bus as { read?: (k: string) => unknown }).read?.("_tools") as
+        { forScope?: (s: string) => { spec: { name?: string } }[] } | null;
+      const names = reg?.forScope?.("*")?.map((t) => pyStr(t.spec.name ?? "")) ?? [];
+      if (!names.includes("code.exec")) {
+        this.rec.emit(EventKind.DEGRADED, {
+          nodeId: node.id,
+          payload: {
+            reason: "CODEACT_NO_SANDBOX",
+            detail: "节点声明为 codeact，但动作空间里没有 code.exec（沙箱未启用）——按 react 降档运行",
+          },
+        });
+      }
+    }
     const inputs = working.select(deps);
     // Configuration is part of the frozen control plane.  Validate it before the
     // handler or model performs work, not only when/if the critic round is reached
@@ -621,9 +813,11 @@ export class AgentLoop {
       ctx: this.cm,
       nodeId: node.id,
       nodeToolLimit: node.budget.toolCalls,
+      signal: opts.signal ?? null,
     });
 
     const pad = this.newScratchpad(Math.floor(node.budget.tokens / 2));
+    const clock = new PhaseClock(this.nowMs);
     const skipped = handler.skipModel(inputs);
     let draft: unknown;
     let iters: number;
@@ -631,11 +825,11 @@ export class AgentLoop {
       draft = skipped;
       iters = 0;
     } else {
-      [draft, iters] = await this.produce(node, handler, inputs, rctx, pad, difficulty);
+      [draft, iters] = await this.produce(node, handler, inputs, rctx, pad, difficulty, clock);
     }
     // 规则产出在这里并进来 —— 必须**先于** critic，否则 critic 判的不是节点
     // 的真实产出，会对"模型没抽但规则已经抽了"的东西报缺失。
-    draft = handler.finalize(draft, inputs);
+    draft = clock.inSync("finalize", () => handler.finalize(draft, inputs));
 
     // ── Critic 环 ────────────────────────────────────────────
     const rounds = this.gw.criticRoundsFor(difficulty, node.criticRounds);
@@ -643,6 +837,7 @@ export class AgentLoop {
     let done = 0;
     if (node.critics.length > 0 && rounds !== 0) {
       [draft, verdicts, done] = await this.critique(
+        clock,
         node,
         handler,
         inputs,
@@ -650,6 +845,7 @@ export class AgentLoop {
         difficulty,
         rounds,
         pad,
+        rctx,
       );
     }
 
@@ -666,6 +862,8 @@ export class AgentLoop {
       runId,
       evidenceTopK: node.scope.evidenceTopK,
     });
+    // §6.1：钱和时间花在哪个相位 —— 此前只有节点级 usd，答不出「$90 花在哪个阶段」
+    this.rec.emit(EventKind.NODE_PROFILE, { nodeId: node.id, payload: clock.snapshot() });
     return makeNodeResult({
       nodeId: node.id,
       output: draft,
@@ -685,36 +883,38 @@ export class AgentLoop {
     rctx: RunContext,
     pad: LoopScratchpad,
     difficulty: Difficulty,
+    clock: PhaseClock,
   ): Promise<[unknown, number]> {
     if (node.mode === NodeMode.DETERMINISTIC) {
-      return [await handler.execute(inputs, rctx), 0];
+      return [await clock.in("execute", () => handler.execute(inputs, rctx)), 0];
     }
 
     if (node.mode === NodeMode.HITL) {
       const requestId = `${node.id}:hitl`;
       // Python 这里传的是 `human_request(inputs, inputs)` —— 此刻还没有 draft，
       // 两个位置都塞 inputs。照抄，别"顺手修成 None"：handler 覆盖版读的是第一个参数。
-      const answer = await this.rec.askHuman(
-        node.id,
-        requestId,
-        handler.humanRequest(inputs, inputs),
+      // human_wait 单独成桶：等人可能是几天，混进 overhead 会让剖面没法读；
+      // 算 SLA 时把这一桶从分母里剔掉。
+      const answer = await clock.in("human_wait", () =>
+        this.rec.askHuman(node.id, requestId, handler.humanRequest(inputs, inputs)),
       );
       return [answer, 0];
     }
 
-    const ctxText = this.context(node, handler, inputs, rctx);
+    const ctxText = clock.inSync("materialize", () => this.context(node, handler, inputs, rctx));
 
     if (node.mode === NodeMode.SINGLE_SHOT) {
-      const comp = await this.gw.call(node.id, ctxText, {
+      const comp = await clock.in("sampling", () => this.gw.call(node.id, ctxText, {
         system: handler.system,
         difficulty,
         schema: handler.schema,
         maxTokens: Math.min(node.budget.tokens, 16_000),
-      });
+      }));
+      clock.hit("sampling", (comp as { usage?: { usd?: unknown } }).usage?.usd);
       return [hasSchema(handler) ? comp.data : comp.text, 1];
     }
 
-    return await this.iterate(node, handler, rctx, pad, difficulty, ctxText);
+    return await this.iterate(node, handler, rctx, pad, difficulty, ctxText, clock);
   }
 
   /** REACT / PLAN_EXECUTE / CODEACT 的共用循环骨架。 */
@@ -725,17 +925,27 @@ export class AgentLoop {
     pad: LoopScratchpad,
     difficulty: Difficulty,
     ctxText: string,
+    clock: PhaseClock,
   ): Promise<[unknown, number]> {
     const maxIters = Math.min(node.budget.iterations, this.gw.iterationsFor(difficulty));
     let steps: unknown[] | null = null;
 
     if (node.mode === NodeMode.PLAN_EXECUTE) {
-      const plan = await this.gw.call(node.id, `${ctxText}\n\n先出一份可执行的分步计划。`, {
+      const cohortMax = cohortMaxOf(node);
+      if (cohortMax !== null) {
+        const cohortOut = await this.runCohort(
+          node, handler, rctx, pad, difficulty, ctxText, clock, cohortMax,
+        );
+        // 提案为空时退回经典单线 plan-execute —— 空提案不该把节点打死。
+        if (cohortOut !== null) return cohortOut;
+      }
+      const plan = await clock.in("sampling", () => this.gw.call(node.id, `${ctxText}\n\n先出一份可执行的分步计划。`, {
         system: handler.system,
         difficulty,
         schema: PLAN_SCHEMA,
         key: "plan",
-      });
+      }));
+      clock.hit("sampling", (plan as { usage?: { usd?: unknown } }).usage?.usd);
       const pd = isRecord(plan.data) ? plan.data : {};
       const raw = pyGet(pd, "steps", []);
       steps = Array.isArray(raw) ? raw : [];
@@ -744,17 +954,19 @@ export class AgentLoop {
 
     let i = 0;
     while (i < maxIters) {
+      rctx.assertAlive();
       if (this.budget.mustHalt()) {
         throw new NodeFailure(node.id, "预算耗尽，已保存 checkpoint", false);
       }
 
       const prompt = AgentLoop.stepPrompt(ctxText, pad, steps);
-      const comp = await this.gw.call(node.id, prompt, {
+      const comp = await clock.in("sampling", () => this.gw.call(node.id, prompt, {
         system: handler.system,
         difficulty,
         schema: STEP_SCHEMA,
         key: `step:${i}`,
-      });
+      }));
+      clock.hit("sampling", (comp as { usage?: { usd?: unknown } }).usage?.usd);
       const step = isRecord(comp.data) ? comp.data : {};
       // STEP_SCHEMA 保证 thought 是字符串（网关校验不过会抛，半成品到不了这里）；
       // 兜底成空串只是为了别让一次坏输出把整个节点炸掉
@@ -775,7 +987,8 @@ export class AgentLoop {
 
       // 展开顺序照抄 Python 的 `{**action, "args": …}`：args 若已存在则原位覆盖
       const withArgs: Record<string, unknown> = { ...action, args: parseActionArgs(action) };
-      const obs = await handler.dispatch(withArgs, rctx);
+      const obs = await clock.in("tool_io", () => handler.dispatch(withArgs, rctx));
+      clock.hit("tool_io");
       const obsText = pySlice(pyStr(obs), 4000);
       pad.append(thought, fmtAction(withArgs), obsText);
       this.rec.emit(EventKind.OBSERVATION, {
@@ -791,7 +1004,7 @@ export class AgentLoop {
       }
     }
 
-    const final = await this.gw.call(
+    const final = await clock.in("sampling", () => this.gw.call(
       node.id,
       `${ctxText}\n\n## 本节点已完成的工作\n${pad.render()}\n\n据此给出最终产出。`,
       {
@@ -801,12 +1014,244 @@ export class AgentLoop {
         key: "final",
         maxTokens: Math.min(node.budget.tokens, 16_000),
       },
-    );
+    ));
+    clock.hit("sampling", (final as { usage?: { usd?: unknown } }).usage?.usd);
     return [hasSchema(handler) ? final.data : final.text, i];
+  }
+
+  /**
+   * PLAN_EXECUTE 的第二形态：**受限 Cohort**（§3，P1）。
+   *
+   * 外层图纹丝不动 —— 这里只是把一个节点内部的分析拆成至多 cohort_max 个
+   * **互不依赖、只读**的并行子任务。每个子任务：自己的 CohortRunContext
+   * （分摊后的工具额度 + 稳定 effect 键前缀）→ 至多 cohort_steps 步工具
+   * 核实 → 一份"结论 + 逐字出处"的收尾。出处必须能在**本子任务自己的**
+   * 工具返回里找到（converse.checkGrounding 同款判据），找不到的在合并时
+   * 明标"不可采信"，不静默删除也不采信。
+   *
+   * 合并是**确定性代码**，不是又一次模型调用；真正的综合交给经典 final
+   * （key 同为 "final"），critics 照常在外层把关。四类运行级异常
+   * （QuotaExhausted / BudgetExhausted / HumanInputRequired / NodeFailure）
+   * 从子任务里**原样穿透**，与 scheduler 的定案语义对齐；其余异常只算
+   * 单个子任务失败，全军覆没才算节点失败。
+   *
+   * 返回 null = 提案为空，调用方退回经典路径。
+   */
+  private async runCohort(
+    node: NodeSpec,
+    handler: NodeHandler,
+    rctx: RunContext,
+    pad: LoopScratchpad,
+    difficulty: Difficulty,
+    ctxText: string,
+    clock: PhaseClock,
+    cohortMax: number,
+  ): Promise<[unknown, number] | null> {
+    const plan = await clock.in("sampling", () => this.gw.call(
+      node.id,
+      `${ctxText}\n\n把本节点要做的分析拆成至多 ${cohortMax} 个互不依赖、可并行的子任务。` +
+        `每个子任务用一句话说清：要查什么、要回答什么。拆不出并行就只给 1 个。`,
+      { system: handler.system, difficulty, schema: cohortPlanSchema(cohortMax), key: "cohort:plan" },
+    ));
+    clock.hit("sampling", (plan as { usage?: { usd?: unknown } }).usage?.usd);
+    const pd = isRecord(plan.data) ? plan.data : {};
+    const rawTasks = pyGet(pd, "subtasks", []);
+    const tasks = (Array.isArray(rawTasks) ? rawTasks : [])
+      .map((x) => (isRecord(x) ? pyStr(pyGet(x, "task", "")) : ""))
+      .map((x) => x.trim())
+      .filter((x) => x !== "")
+      .slice(0, cohortMax); // schema 之外的第二道闸（老网关/宽松后端不认 maxItems）
+    if (tasks.length === 0) return null;
+
+    // 稳定键：任务**文本**哈希，不是数组下标 —— 恢复时提案顺序变了也命中同
+    // 一份历史。同文重复靠出现序号消歧（同文子任务本就可互换，序号是稳定的）。
+    const seen = new Map<string, number>();
+    const keyed = tasks.map((task) => {
+      const h = fingerprint(task);
+      const n = seen.get(h) ?? 0;
+      seen.set(h, n + 1);
+      return { task, base: n === 0 ? `cohort:${h}` : `cohort:${h}:${n}` };
+    });
+
+    this.rec.emit(EventKind.PLAN_CREATED, {
+      nodeId: node.id,
+      payload: {
+        steps: keyed.map((k) => ({ goal: k.task })),
+        cohort: true,
+        cohort_max: cohortMax,
+        cohort_tasks: keyed.length,
+      },
+    });
+
+    // 工具额度分摊：节点的冻结额度均分给子任务，至少 1 —— 并行不放大总额。
+    const subLimit =
+      rctx.nodeToolLimit === null ? null : Math.max(1, Math.floor(rctx.nodeToolLimit / keyed.length));
+
+    interface CohortCite {
+      readonly text: string;
+      readonly grounded: boolean;
+    }
+    interface CohortResult {
+      readonly task: string;
+      readonly status: "ok" | "failed";
+      readonly finding?: string;
+      readonly cites?: readonly CohortCite[];
+      readonly error?: string;
+      readonly steps: number;
+    }
+
+    const stepsMax = cohortStepsOf(node);
+    const runOne = async (task: string, base: string, idx: number): Promise<CohortResult> => {
+      const subCtx = new CohortRunContext(
+        {
+          runId: rctx.runId,
+          rec: this.rec,
+          bus: this.bus,
+          gateway: this.gw,
+          budget: this.budget,
+          ctx: this.cm,
+          nodeId: node.id,
+          nodeToolLimit: subLimit,
+          signal: rctx.signal,
+        },
+        base,
+      );
+      const obsLog: string[] = [];
+      const lines: string[] = [];
+      let steps = 0;
+      for (let j = 0; j < stepsMax; j++) {
+        subCtx.assertAlive();
+        if (this.budget.mustHalt()) {
+          throw new NodeFailure(node.id, "预算耗尽，已保存 checkpoint", false);
+        }
+        const prompt =
+          `${ctxText}\n\n## 你的并行子任务\n${task}\n` +
+          (lines.length > 0 ? `\n## 已做步骤\n${lines.join("\n")}\n` : "") +
+          `\n用工具核实；足够下结论就 finish。`;
+        const comp = await clock.in("sampling", () => this.gw.call(node.id, prompt, {
+          system: handler.system,
+          difficulty,
+          schema: STEP_SCHEMA,
+          key: `${base}:step:${j}`,
+        }));
+        clock.hit("sampling", (comp as { usage?: { usd?: unknown } }).usage?.usd);
+        const step = isRecord(comp.data) ? comp.data : {};
+        const rawThought = pyGet(step, "thought", "");
+        const thought = typeof rawThought === "string" ? rawThought : "";
+        const rawAction = pyGet(step, "action", {});
+        const action = isRecord(rawAction) ? rawAction : {};
+        this.rec.emit(EventKind.THOUGHT, {
+          nodeId: node.id,
+          payload: { text: pySlice(thought, 800), cohort_task: idx },
+        });
+        steps += 1;
+        if (pyGet(action, "kind", undefined) === "finish") break;
+        const withArgs: Record<string, unknown> = { ...action, args: parseActionArgs(action) };
+        const obs = await clock.in("tool_io", () => handler.dispatch(withArgs, subCtx));
+        clock.hit("tool_io");
+        const obsText = pySlice(pyStr(obs), 4000);
+        obsLog.push(obsText);
+        lines.push(`- ${thought} → ${fmtAction(withArgs)} → ${pySlice(obsText, 800)}`);
+        this.rec.emit(EventKind.OBSERVATION, {
+          nodeId: node.id,
+          payload: {
+            tool: pyGet(withArgs, "tool", ""),
+            summary: pySlice(obsText, 400),
+            cohort_task: idx,
+          },
+        });
+      }
+      const fin = await clock.in("sampling", () => this.gw.call(
+        node.id,
+        `${ctxText}\n\n## 你的并行子任务\n${task}\n\n## 你做过的步骤与工具返回\n` +
+          `${lines.join("\n") || "（没有做任何工具调用）"}\n\n` +
+          `给出子任务结论。cites 必须逐字摘自上面工具返回的原文；工具没返回过的不许引，查不到就说查不到。`,
+        {
+          system: handler.system,
+          difficulty,
+          schema: COHORT_FINDING_SCHEMA,
+          key: `${base}:final`,
+          maxTokens: Math.min(node.budget.tokens, 8_000),
+        },
+      ));
+      clock.hit("sampling", (fin as { usage?: { usd?: unknown } }).usage?.usd);
+      const fd = isRecord(fin.data) ? fin.data : {};
+      const blob = obsLog.join("\n");
+      const rawCites = pyGet(fd, "cites", []);
+      const cites: CohortCite[] = (Array.isArray(rawCites) ? rawCites : [])
+        .map((c) => pyStr(c).trim())
+        .filter((c) => c !== "")
+        .map((text) => ({ text, grounded: blob.includes(text) }));
+      return { task, status: "ok", finding: pyStr(pyGet(fd, "finding", "")), cites, steps };
+    };
+
+    const settled = await Promise.allSettled(keyed.map((k, i) => runOne(k.task, k.base, i)));
+
+    // 四类运行级异常原样穿透（与 scheduler 的定案分类对齐）。扫描顺序即优先级：
+    // 欠费 > 预算 > 要人 > 取消/节点级失败 —— 同时出现时报最"硬"的那个。
+    for (const cls of [QuotaExhausted, BudgetExhausted, HumanInputRequired, NodeFailure]) {
+      for (const s of settled) {
+        if (s.status === "rejected" && s.reason instanceof cls) throw s.reason;
+      }
+    }
+
+    const results: CohortResult[] = settled.map((s, i) =>
+      s.status === "fulfilled"
+        ? s.value
+        : { task: keyed[i]!.task, status: "failed", error: pyStr(s.reason), steps: 0 },
+    );
+    const okCount = results.filter((r) => r.status === "ok").length;
+    if (okCount === 0) {
+      const first = results.find((r) => r.error !== undefined);
+      throw new NodeFailure(
+        node.id,
+        `cohort 全部 ${keyed.length} 个子任务失败：${pySlice(first?.error ?? "", 400)}`,
+        true,
+      );
+    }
+
+    // 确定性合并进 pad：结论逐条落盘，未落地的出处**明标**，不删也不采信。
+    let stepsTotal = 0;
+    for (const [i, r] of results.entries()) {
+      stepsTotal += r.steps;
+      if (r.status === "ok") {
+        const citesLine = (r.cites ?? [])
+          .map((c) =>
+            c.grounded
+              ? `「${pySlice(c.text, 120)}」`
+              : `「${pySlice(c.text, 120)}」（未在工具返回中找到，不可采信）`,
+          )
+          .join("；");
+        pad.append(
+          `[子任务${i + 1}] ${r.task}`,
+          "cohort",
+          pySlice(`${r.finding ?? ""}\n出处：${citesLine || "（无出处 —— 结论未落地）"}`, 2000),
+        );
+      } else {
+        pad.append(`[子任务${i + 1}] ${r.task}`, "cohort", `子任务失败：${pySlice(r.error ?? "", 400)}`);
+      }
+    }
+
+    // 标准收尾：与经典路径同一个 "final" 键与 handler schema，critics 在外层照常把关。
+    const final = await clock.in("sampling", () => this.gw.call(
+      node.id,
+      `${ctxText}\n\n## 并行子任务结论\n${pad.render()}\n\n` +
+        `据此给出最终产出。标注「未在工具返回中找到」的出处不可采信，不要写进结论。`,
+      {
+        system: handler.system,
+        difficulty,
+        schema: handler.schema,
+        key: "final",
+        maxTokens: Math.min(node.budget.tokens, 16_000),
+      },
+    ));
+    clock.hit("sampling", (final as { usage?: { usd?: unknown } }).usage?.usd);
+    return [hasSchema(handler) ? final.data : final.text, stepsTotal];
   }
 
   // ── 评审 ────────────────────────────────────────────────────
   private async critique(
+    clock: PhaseClock,
     node: NodeSpec,
     handler: NodeHandler,
     inputs: Record<string, unknown>,
@@ -814,6 +1259,7 @@ export class AgentLoop {
     difficulty: Difficulty,
     rounds: number,
     pad: LoopScratchpad,
+    rctx: RunContext,
   ): Promise<[unknown, LoopVerdict[], number]> {
     let draft = draft0;
     const generator = this.gw.routing.modelFor(difficulty);
@@ -830,9 +1276,11 @@ export class AgentLoop {
     let done = 0;
 
     for (let r = 0; r < rounds; r++) {
-      verdicts = await this.panel.judge(draft, node.critics, cctx, {
+      rctx.assertAlive();
+      verdicts = await clock.in("critic_judge", () => this.panel.judge(draft, node.critics, cctx, {
         allowLlm: this.budget.allowLlmCritic(),
-      });
+      }));
+      clock.hit("critic_judge");
       done = r + 1;
       if (verdicts.every((v) => v.passed)) break;
 
@@ -841,11 +1289,16 @@ export class AgentLoop {
         for (const f of v.findings) this.cm.reflect(`${v.lens}/${f.code}: ${f.claim}`);
       }
 
-      const comp = await this.gw.call(node.id, refinePrompt(draft, verdicts), {
+      const comp = await clock.in("critic_refine", () => this.gw.call(node.id, refinePrompt(draft, verdicts), {
+        // Refinement is still the same domain agent.  Dropping its role/tool safety
+        // system here lets a critic retry escape the constraints enforced on the
+        // initial draft.
+        system: handler.system,
         difficulty,
         schema: handler.schema,
         key: `refine:${r}`,
-      });
+      }));
+      clock.hit("critic_refine", (comp as { usage?: { usd?: unknown } }).usage?.usd);
       if (comp.data !== null && comp.data !== undefined) {
         // 修订产物同样要过 finalize。模型重出的那版 JSON 里只有它这次改的
         // 东西 —— 规则逐行抽好的部分（一段 45 行行动表的全部 action）不在
@@ -859,9 +1312,10 @@ export class AgentLoop {
       // returned with the verdict for its predecessor, so a regression introduced
       // on that last write could be committed without ever being reviewed.
       if (r === rounds - 1) {
-        verdicts = await this.panel.judge(draft, node.critics, cctx, {
+        verdicts = await clock.in("critic_judge", () => this.panel.judge(draft, node.critics, cctx, {
           allowLlm: this.budget.allowLlmCritic(),
-        });
+        }));
+        clock.hit("critic_judge");
       }
     }
 

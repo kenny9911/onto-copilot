@@ -457,12 +457,21 @@ export class VisionParser extends Parser {
         const t = asRecord(rawTable);
         const rows = asArray(t["rows"]);
         if (rows.length === 0) continue;
-        // header / row 进 `raw` 时保持**原样**（Python 传的就是原对象），
-        // 只有拼 render 时才转字符串。
-        const headerRaw = rows[0];
-        const header = asArray(headerRaw);
+        // **raw 必须是 {列名: 值} 扁平字典（B9）。** 上一版存的是
+        // `{header, row}` 嵌套原样 —— classifyColumns 对它 Object.entries 后
+        // 得到两"列"叫 header 和 row、值是数组：列分类全掉进兜底，
+        // 形状被误判成「一行一实体」，模型对着不存在的行数较劲。
+        // pptx 表格那边（presentation.ts）早修成扁平了，这里是同族的漏网：
+        // **拍照/扫描的字段表走的就是这条路**。表头缺格用 C{n} 兜底名，
+        // 与 pptx/CSV 同一条规矩。
+        const header = asArray(rows[0]);
         for (const [ri, rawRow] of rows.slice(1).entries()) {
           const row = asArray(rawRow);
+          const flat: Record<string, string> = {};
+          row.forEach((value, i) => {
+            const name = i < header.length && pyTruthy(header[i]) ? pyStr(header[i]) : `C${i + 1}`;
+            flat[name] = pyStr(value);
+          });
           doc.chunks.push(makeChunk({
             docId: `p${pno}t${ti}r${ri}`, fileId, fileName,
             locator: {
@@ -474,7 +483,8 @@ export class VisionParser extends Parser {
               .filter((cell) => cell.i < header.length && pyTruthy(cell.value))
               .map((cell) => `${pyStr(header[cell.i])}=${pyStr(cell.value)}`)
               .join(" | "),
-            raw: { header: headerRaw, row: rawRow }, order, tags: ["ocr", "table"],
+            // tag 用 row（数据行），不是 table —— isDataRow 不挡、readiness 计得进
+            raw: flat, order, tags: ["ocr", "row"],
           }));
           order += 1;
         }

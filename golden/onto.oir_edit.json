@@ -14439,7 +14439,7 @@
      },
      "ok": false,
      "error": "OIREditError",
-     "message": "cardinality 只能是 ['ONE_TO_ONE', 'ONE_TO_MANY', 'MANY_TO_MANY']。",
+     "message": "cardinality 只能是 ['ONE_TO_ONE', 'ONE_TO_MANY', 'MANY_TO_MANY']（MANY_TO_ONE 也收，会自动对调 source/target）。",
      "unchanged": true,
      "after": {
       "objects": [
@@ -26651,7 +26651,7 @@
      },
      "ok": false,
      "error": "OIREditError",
-     "message": "「owner」不是可改字段。这个实体上可改：['actor', 'api_name', 'base_type', 'cardinality', 'definition', 'description', 'display_name', 'effects', 'parameters', 'required', 'source_endpoint', 'statement']",
+     "message": "「owner」不是可改字段。这个实体上可改：['actor', 'api_name', 'base_type', 'cardinality', 'condition', 'definition', 'description', 'display_name', 'effects', 'kind', 'parameters', 'primary_key', 'required', 'source_endpoint', 'statement']",
      "unchanged": true,
      "after": {
       "objects": [
@@ -27574,7 +27574,7 @@
      },
      "ok": false,
      "error": "OIREditError",
-     "message": "「definition」不是可改字段。这个实体上可改：['actor', 'api_name', 'base_type', 'cardinality', 'definition', 'description', 'display_name', 'effects', 'parameters', 'required', 'source_endpoint', 'statement']",
+     "message": "「definition」不是可改字段。这个实体上可改：['actor', 'api_name', 'base_type', 'cardinality', 'condition', 'definition', 'description', 'display_name', 'effects', 'kind', 'parameters', 'primary_key', 'required', 'source_endpoint', 'statement']",
      "unchanged": true,
      "after": {
       "objects": [
@@ -36355,7 +36355,8 @@
     {
      "op": "remove_object_type",
      "args": {
-      "target": "供应商"
+      "target": "供应商",
+      "confirm": true
      },
      "ok": true,
      "note": "删掉了对象「供应商」及其属性/相关关系。",
@@ -42419,7 +42420,7 @@
      },
      "ok": false,
      "error": "OIREditError",
-     "message": "不支持的 OIR 编辑 frobnicate。支持：['add_action_type', 'add_enum_value', 'add_link', 'add_object_type', 'add_property', 'add_rule', 'bind_rule', 'edit_assertion', 'remove_action_type', 'remove_link', 'remove_object_type', 'remove_property', 'remove_rule', 'set_action_scope', 'set_status']",
+     "message": "不支持的 OIR 编辑 frobnicate。支持：['add_action_type', 'add_batch', 'add_enum_value', 'add_link', 'add_object_type', 'add_property', 'add_rule', 'bind_rule', 'edit_assertion', 'merge_objects', 'remove_action_type', 'remove_link', 'remove_object_type', 'remove_property', 'remove_rule', 'set_action_scope', 'set_status', 'set_status_batch']",
      "unchanged": true,
      "after": {
       "objects": [

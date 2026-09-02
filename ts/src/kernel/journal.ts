@@ -426,7 +426,26 @@ export class FileJournal extends Journal {
     const pending = this.queue.filter((p) => p.runId === runId).map((p) => p.line);
     // 队列里的行也走一遍"序列化→反序列化"，这样 flush 前后 read() 的结果完全相同
     // （payload 里的 Map、大整数这些在落盘时会被规整，不能只有一边规整）。
-    for (const line of [...text.split("\n"), ...pending]) {
+    // 文件行与内存行分开走：**文件的最后一行**允许是撕裂的半行 —— 进程在
+    // append 中途被杀、或读者恰好赶在写者落笔一半时（committed 记账挡住了
+    // 本实例的窗口，挡不住上一个进程留下的尾巴）。WAL 语义：没写完的尾行等于
+    // 从未提交，静默丢弃。**中间行**撕裂是真损坏，照抛；内存队列里的行由本
+    // 进程刚序列化，坏了就是代码 bug，也照抛。
+    const fileLines = text.split("\n");
+    for (let i = 0; i < fileLines.length; i += 1) {
+      const s = fileLines[i]!.trim();
+      if (s === "") continue;
+      let ev: Event;
+      try {
+        ev = eventFromDict(JSON.parse(s));
+      } catch (exc) {
+        const isTail = fileLines.slice(i + 1).every((l) => l.trim() === "");
+        if (isTail && exc instanceof SyntaxError) break;
+        throw exc;
+      }
+      yield ev;
+    }
+    for (const line of pending) {
       const s = line.trim();
       if (s !== "") yield eventFromDict(JSON.parse(s));
     }

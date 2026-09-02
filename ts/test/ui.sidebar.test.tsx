@@ -46,14 +46,20 @@ beforeEach(() => {
   vi.clearAllMocks();
   delete g.__pwned;
   G.S = null;
+  G.MAIN_PAGE = "chat";
   G.MODE = "work";
   G.LANG = "zh";
   G.PROJECTS = [];
   G.PROJECTS_OK = false;
   G.SESSION_LIST = [];
   PJ_OFF.clear();
+  window.history.replaceState({ ocPage: "chat" }, "", "/");
 });
-afterEach(() => { cleanup(); });
+afterEach(() => {
+  cleanup();
+  document.body.classList.remove("knowledge-page-open");
+  window.history.replaceState({ ocPage: "chat" }, "", "/");
+});
 
 // ══════════════════════════════════════════════════════════════════
 //  接线
@@ -161,6 +167,54 @@ describe("分组", () => {
 
     expect(rowTitles()).toEqual([]);
     expect(convs().textContent).toContain("未归类");     // 段本身还在，只是收起来了
+  });
+});
+
+// ══════════════════════════════════════════════════════════════════
+//  项目知识库入口：它属于工作模式的左侧导航，不属于右侧项目上下文。
+// ══════════════════════════════════════════════════════════════════
+describe("项目知识库入口", () => {
+  it("聊天模式和不支持项目的旧后端都不显示入口", () => {
+    G.MODE = "chat";
+    G.PROJECTS_OK = true;
+    mountSidebar();
+    expect(convs().querySelector(".side-knowledge-entry")).toBeNull();
+
+    cleanup();
+    shell();
+    G.MODE = "work";
+    G.PROJECTS_OK = false;
+    mountSidebar();
+    expect(convs().querySelector(".side-knowledge-entry")).toBeNull();
+  });
+
+  it("工作模式显示入口，但未打开项目会话时不可用", () => {
+    G.PROJECTS_OK = true;
+    G.PROJECTS = [{ id: "p1", name: "采购项目" }];
+    G.S = { id: "s0" };
+    mountSidebar();
+
+    const entry = convs().querySelector(".side-knowledge-entry") as HTMLButtonElement;
+    expect(entry).not.toBeNull();
+    expect(entry.hasAttribute("disabled")).toBe(true);
+    expect(entry.textContent).toContain("请先选择项目会话");
+  });
+
+  it("入口位于项目列表之前，点击后打开独立主页面并写入可恢复的 hash", () => {
+    G.PROJECTS_OK = true;
+    G.PROJECTS = [{ id: "p1", name: "采购项目" }];
+    G.S = { id: "s1", project_id: "p1" };
+    G.SESSION_LIST = [conv({ project_id: "p1" })];
+    mountSidebar();
+
+    const entry = convs().querySelector(".side-knowledge-entry") as HTMLButtonElement;
+    expect(entry.hasAttribute("disabled")).toBe(false);
+    expect(convs().firstElementChild).toBe(entry);
+    fireEvent.click(entry);
+
+    expect(G.MAIN_PAGE).toBe("knowledge");
+    expect(window.location.hash).toBe("#knowledge");
+    expect(entry.classList.contains("on")).toBe(true);
   });
 });
 

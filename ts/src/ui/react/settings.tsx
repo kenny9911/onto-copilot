@@ -11,6 +11,7 @@
 // 输入框（给了 value 就变成受控，用户敲的字会被下一次渲染抹掉）。它们的「重置」
 // 由 CFG.seq 那个 key 负责，见 settings.ts 的注释。
 
+import { useState } from "react";
 import type { ReactElement, ReactNode } from "react";
 
 import { fmtWhen, nfmt } from "../dom.js";
@@ -18,9 +19,10 @@ import { t } from "../i18n.js";
 import { ACCENTS, accentName, effectiveDark } from "../appearance.js";
 import {
   CFG, SETB, balanceLine, resetAccent, saveConfig, setAccent, setDensity,
-  setFontScale, setTheme, setTz, setUsageDays, switchSetTab, toggleUsageRows,
+  setFontScale, setTheme, setTz, setUsageDays, setUsageOwner, switchSetTab, toggleUsageRows,
 } from "../settings.js";
 import { registerRegion } from "./app.js";
+import { LogsTab } from "./logs.js";
 import { useUi } from "./store.js";
 
 // ── tab 条 ────────────────────────────────────────────────────────
@@ -35,6 +37,10 @@ export function SettingsTabs(): ReactElement {
     <>
       {tab("appearance", t("appearance.title"))}
       {tab("usage", t("usage.title"))}
+      {/* 日志对所有登录用户都开：普通用户看自己的，管理员看全部。
+          可见范围在服务端 /api/logs/* 里判，前端不做任何过滤 —— 前端过滤
+          等于把数据发下来再假装看不见。 */}
+      {tab("logs", t("logs.title"))}
       {isAdmin ? tab("system", t("settings.gateway")) : null}
     </>
   );
@@ -167,6 +173,35 @@ export function UsageTab(): ReactElement | null {
                    : <div className="fnd">{t("usage.empty")}</div>}
       </div>
 
+      {/* 按账号分账。**只有能看全部的人才有这一块** —— 普通用户被服务端钉死在
+          自己账上，给他一张只有一行的分账表等于把 total 又说了一遍。
+          点一行钻进那个账号，再点「全部账号」回来。 */}
+      {u.can_see_all && (u.by_owner || []).length ? (
+        <div className="sgrp">
+          <div className="slabel">
+            {t("usage.byOwner")}
+            {u.owner_filter ? (
+              <button className="act" style={{ marginLeft: "8px" }}
+                onClick={() => setUsageOwner("")}>{t("usage.allOwners")}</button>
+            ) : null}
+          </div>
+          <div className="envtbl">{u.by_owner.map((o: any, i: number) => {
+            const pct = tot.tokens ? Math.round(o.tokens / tot.tokens * 100) : 0;
+            const nm = (u.owner_names || {})[o.name] || (o.name ? o.name : t("usage.noOwner"));
+            return (
+              <div className="envrow" key={i} style={{ cursor: "pointer" }}
+                onClick={() => setUsageOwner(o.name)}>
+                <b>{nm}</b>
+                <span className="ushare"><i style={{ width: pct + "%" }}></i></span>
+                <span className="unum">{nfmt(o.tokens)}</span>
+                <span className="badge">{pct}%</span>
+                <span className="badge">{o.calls} {t("usage.callsUnit")}</span>
+              </div>
+            );
+          })}</div>
+        </div>
+      ) : null}
+
       {(u.by_model || []).length ? (
         <div className="sgrp">
           <div className="slabel">{t("usage.byModel")}</div>
@@ -235,20 +270,97 @@ export function UsageTab(): ReactElement | null {
 }
 
 // ── 网关 / 模型 / 预算 / 环境变量 ─────────────────────────────────
-function TierField({ tk, tiers, catalog }: { tk: string; tiers: any; catalog: any[] }): ReactElement {
+/** 逗号/顿号分隔的候选串 → 有序去重列表（后端就是这么存的）。 */
+function parseCandidates(raw: unknown): string[] {
+  const out: string[] = [];
+  for (const part of String(raw ?? "").split(/[,、]/u)) {
+    const name = part.trim();
+    if (name && !out.includes(name)) out.push(name);
+  }
+  return out;
+}
+
+/**
+ * 一档一个多选器。
+ *
+ * 后端早就收「逗号候选串、顺序即优先序、跑的时候取目录里第一个可用的」
+ * （kernel/llm.ts 的 overrideSpec），此前界面却要用户把模型名自己打进输入框 ——
+ * 打错一个字就静默回落默认档。现在从目录里挑，序号即优先序。
+ *
+ * `#tier_<tk>` 保留成隐藏输入：saveConfig 按这个 id 读值（settings.ts），
+ * 芯片只是它的编辑器。
+ */
+function TierField({ tk, tiers, catalog, imageCatalog }: {
+  tk: string; tiers: any; catalog: any[]; imageCatalog?: string[];
+}): ReactElement {
   const cur = tiers[tk] || {};
+  const [picked, setPicked] = useState<string[]>(() => parseCandidates(cur.candidates || cur.model || ""));
   const tierLabel = "settings.tier" + tk.charAt(0).toUpperCase() + tk.slice(1);
+  const swap = (i: number, k: number): void => {
+    const next = [...picked];
+    const a = next[i]!, b = next[k]!;
+    next[i] = b; next[k] = a;
+    setPicked(next);
+  };
+  const rest = catalog.filter((m: any) => !picked.includes(String(m?.name ?? "")));
   return (
-    <div className="field">
+    <div className="field" data-tier={tk}>
       <label>{t(tierLabel)}</label>
-      <select className="input" id={"tier_" + tk} defaultValue={cur.model || ""}>
-        <option value="">{t("settings.default")}</option>
-        {catalog.map((m: any, i: number) => (
+      {/* 隐藏输入是保存契约：值永远是「按优先序的候选串」。 */}
+      <input type="hidden" id={"tier_" + tk} value={picked.join(", ")} readOnly />
+      <div className="tier-chips">
+        {picked.map((name, index) => (
+          <span className="tier-chip" key={name}>
+            <b>{index + 1}</b>{name}
+            {index > 0 ? <button type="button" className="tier-up" title="上移一位（更优先）"
+              onClick={() => swap(index, index - 1)}>↑</button> : null}
+            <button type="button" className="tier-drop" title="从这一档移除"
+              onClick={() => setPicked(picked.filter((item) => item !== name))}>×</button>
+          </span>
+        ))}
+        {picked.length === 0 ? <span className="cap">{t("settings.default")}</span> : null}
+      </div>
+      {tk === "image" ? (
+        /* 图像模型被 NOT_CHAT_RE 有意挡在聊天目录外（不该被难度路由选去回话），
+           所以这一档的候选列表来自**网关探测**（GET /api/config 的 image_catalog）。
+           探测失败列表为空 —— 手填框永远保留兜底，保存时后端按名形校验。 */
+        <>
+          {(imageCatalog ?? []).length > 0 ? (
+            <select className="qselect tier-add" value="" aria-label={t(tierLabel)}
+              onChange={(event) => {
+                const name = event.target.value;
+                if (name && !picked.includes(name)) setPicked([...picked, name]);
+              }}>
+              <option value="">＋ 加一个出图模型…</option>
+              {(imageCatalog ?? []).filter((name) => !picked.includes(name)).map((name, i) => (
+                <option key={i} value={name}>{name}</option>
+              ))}
+            </select>
+          ) : null}
+          <input className="input tier-add" placeholder="或手填网关上的出图模型，回车加入"
+            aria-label={t(tierLabel)}
+            onKeyDown={(event) => {
+              if (event.key !== "Enter") return;
+              event.preventDefault();
+              const name = event.currentTarget.value.trim();
+              if (name && !picked.includes(name)) setPicked([...picked, name]);
+              event.currentTarget.value = "";
+            }} />
+        </>
+      ) : (
+      <select className="qselect tier-add" value="" aria-label={t(tierLabel)}
+        onChange={(event) => {
+          const name = event.target.value;
+          if (name && !picked.includes(name)) setPicked([...picked, name]);
+        }}>
+        <option value="">＋ 加一个模型…</option>
+        {rest.map((m: any, i: number) => (
           <option key={i} value={m.name}>
-            {m.name}{m.vendor ? " · " + m.vendor : ""}{m.quality ? "/" + m.quality : ""}
+            {m.name}{m.vendor ? " · " + m.vendor : ""}{m.quality ? " · " + m.quality : ""}
           </option>
         ))}
       </select>
+      )}
       <span className="cap">{cur.effort || ""}{cur.overridden
         ? <span className="badge warn">{t("settings.overridden")}</span>
         : <span className="badge">{t("settings.default")}</span>}</span>
@@ -275,9 +387,13 @@ export function ConfigForm(): ReactElement {
           <span className="cap">{t("settings.apiKeyHint")}</span></div>
       </div>
       <div className="sgrp"><div className="slabel">{t("settings.models")}</div>
-        {["low", "medium", "high", "critical"].map((tk) => (
-          <TierField key={tk} tk={tk} tiers={tiers} catalog={catalog} />
+        {["low", "medium", "high", "critical", "image"].map((tk) => (
+          <TierField key={tk} tk={tk} tiers={tiers} catalog={catalog}
+            imageCatalog={c.image_catalog || []} />
         ))}
+        {/* 顺序有没有用、多配几个是什么意思，得写出来 —— 否则只能靠猜。 */}
+        <p className="cap tier-hint">每一档可以配多个模型，序号就是优先序：真正跑的时候用目录里第一个可用的那个，
+          前面的模型下线或不在网关目录里就自动顺延。一个都不配＝用系统默认档。</p>
       </div>
       <div className="sgrp"><div className="slabel">{t("settings.budget")}</div>
         <div className="field"><label>{t("settings.usdCap")}</label>
@@ -316,6 +432,7 @@ export function SettingsBody(): ReactNode {
   if (SETB.loading) return <div className="cap">{SETB.loading}</div>;
   if (G.SET_TAB === "system" && isAdmin) return <ConfigForm key={CFG.seq} />;
   if (G.SET_TAB === "usage") return <UsageTab />;
+  if (G.SET_TAB === "logs") return <LogsTab />;
   return <AppearanceTab />;
 }
 

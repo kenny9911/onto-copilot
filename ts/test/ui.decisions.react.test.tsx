@@ -147,7 +147,7 @@ describe("必须人拍板的决策", () => {
   it("元信息给的是「第几条 / 影响多少 / 可不可逆」", () => {
     G.S.state.questions = [decision()];
     const c = card();
-    expect(c.querySelector(".qm").textContent).toBe("决策 1/1 · 影响 4 个实体 · 不可逆");
+    expect(c.querySelector(".qm").textContent).toBe("第 1/1 个问题 · 涉及 4 项 · 确认后不能自动撤销");
     expect(c.querySelector(".qt").textContent).toBe("订单日期用哪个口径");
   });
 
@@ -198,7 +198,7 @@ describe("必须人拍板的决策", () => {
     const ev = c.querySelector(".ev");
     expect(ev.textContent).toBe("◧ 订单表.xlsx!Sheet1!R2C3");
     await click(ev);
-    expect(G.TAB).toBe("mat");
+    expect(G.TAB).toBe("evidence");
     expect(G.FILE).toBe("订单表.xlsx");
     expect(G.ANSWERS["d1"]).toBeUndefined();     // stopPropagation 还在
   });
@@ -214,9 +214,27 @@ describe("不阻塞的建议", () => {
     expect(icons).toEqual(["⇢", "▸"]);
   });
 
-  it("影响面与把握都写出来（把握是百分比）", () => {
+  it("涉及范围与可信度都写出来（可信度是百分比）", () => {
     G.S.state.suggestions = [suggestion()];
-    expect(card().querySelector(".sgm").textContent).toBe("影响 3 · 把握 82%");
+    expect(card().querySelector(".sgm").textContent).toBe("涉及 3 项 · 可信度 82%");
+  });
+
+  it("问题与建议只展示业务文案，不泄露内部协议和类型名", () => {
+    G.S.state.questions = [decision({
+      title: "[高][ERP顾问][blocked:sys_metaerp] 请确认系统版本 | answer:TEXT | evidence:材料#p1",
+      options: [{ id: "o1", label: "按 ObjectType 处理", rationale: "apiName 不是 lowerCamelCase" }],
+    })];
+    G.S.state.suggestions = [suggestion({
+      title: "3 个对象没有任何 ActionType",
+      rationale: "建议先补进 Ontology，**不要直接发布**",
+    })];
+    const text = card().textContent;
+    expect(text).toContain("请确认系统版本");
+    expect(text).toContain("按业务对象处理");
+    expect(text).toContain("系统名称不是首字母小写的英文名称");
+    expect(text).toContain("3 个对象没有任何业务操作");
+    expect(text).toContain("建议先补进业务模型，不要直接发布");
+    expect(text).not.toMatch(/blocked:|answer:TEXT|evidence:|ObjectType|ActionType|apiName|lowerCamelCase|Ontology|\*\*/u);
   });
 
   it("**采纳走对话通道** —— 和用户自己打字说「第 N 条建议采纳」同一条路径", async () => {
@@ -267,5 +285,47 @@ describe("敌意输入渲染成文本，不是标记", () => {
     expect(b.getAttribute("data-submit")).toBe(EVIL);
     expect(Array.from(b.attributes as any[]).map((a: any) => a.name).filter((n: string) => n.startsWith("on")))
       .toEqual([]);
+  });
+});
+
+// ══════════════════════════════════════════════════════════════════
+//  确认失败：不许静默
+//
+//  2026-08-25 用户实拍：会话正在 extracting，聊天里摆着「2 个待拍板」，
+//  选了选项点「确认」—— 什么都没发生。真相是服务端 409（跑批激活期 mutation
+//  租约必拒），而 postAnswer 没有 catch：一次人工拍板就这么无声消失了。
+//  现在服务端改成排队（glue/decisions_queue.ts），界面必须把两种结局都说出来。
+// ══════════════════════════════════════════════════════════════════
+describe("「确认」的结局必须说出来", () => {
+  it("服务端排队了 → 告诉用户已登记、跑完自动落账，而不是假装成功", async () => {
+    const said: string[] = [];
+    g.alert = (m: string) => { said.push(String(m)); };
+    G.S.state.questions = [decision()];
+    G.ANSWERS.d1 = "o1";
+    installFetch([[/\/answer$/, { queued: true, depth: 1, message: "会话正在梳理，这次确认已经登记（队列第 1 位），本轮跑完自动落账，不用重点。" }]]);
+    const c = card();
+    await click(btn(c, "确认"));
+    expect(calls.some((x) => x.url.endsWith("/answer"))).toBe(true);
+    expect(said.join("\n")).toContain("已经登记");
+    expect(said.join("\n")).not.toContain("没保存");
+  });
+
+  it("真失败 → 报出来（此前 409 被静默吞掉，用户只看到「点了没反应」）", async () => {
+    const said: string[] = [];
+    g.alert = (m: string) => { said.push(String(m)); };
+    G.S.state.questions = [decision()];
+    G.ANSWERS.d1 = "o1";
+    g.fetch = async (url: string, opts: any = {}) => {
+      calls.push({ url: String(url), method: opts.method || "GET", body: null });
+      if (String(url).endsWith("/answer")) {
+        return { ok: false, status: 409, text: async () => JSON.stringify({ detail: "问题已更新：预期 version 1，实际 3" }), json: async () => ({}) };
+      }
+      return { ok: true, status: 200, json: async () => ({}), text: async () => "{}" };
+    };
+    const c = card();
+    await click(btn(c, "确认"));
+    expect(said).toHaveLength(1);
+    expect(said[0]).toContain("没有确认成功");
+    expect(said[0]).toContain("version");
   });
 });

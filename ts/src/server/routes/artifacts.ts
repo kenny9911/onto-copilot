@@ -41,6 +41,8 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { basename, join } from "node:path";
 
 import { sha256Hex } from "../../kernel/ids.js";
+import { readSheetGrids } from "../../onto/parse/tabular.js";
+import { parseQuestionReturn, sniffQuestionReturn } from "./questions.js";
 import {
   auditSummary,
   diffChanged,
@@ -132,6 +134,15 @@ export interface ArtifactDeps {
    * 回调形 —— 进入/退出的成对性由签名保证，不靠调用方记得写 `finally`。
    */
   readonly sessionMutation: <T>(s: Session, kind: string, body: () => Promise<T>) => Promise<T>;
+  /**
+   * 访谈包回传的**唯一**落账通道（serve.ts 绑到 answerDomainQuestion）。
+   * 不给时回传件照样能预审，apply 会明确拒绝 —— 绝不在这层旁路一条写路径。
+   */
+  readonly answerQuestion?: (
+    s: Session,
+    qid: string,
+    body: { answer: string; idempotencyKey: string },
+  ) => Promise<Record<string, unknown>>;
   /** `os.getenv` 的注入口。 */
   readonly env?: (name: string) => string | undefined;
   /** `time.time()`，测试里钉住 manifest 的 `generated_at`。 */
@@ -575,6 +586,79 @@ export function registerArtifactRoutes(app: Hono, deps: ArtifactDeps): void {
 //  回传审核的正文
 // ══════════════════════════════════════════════════════════════════
 
+/**
+ * 访谈包回传的预审与应用。
+ *
+ * 预审给 FDE 看三类行：能落的（open）、已答过的、对不上号的 —— 三类都**逐条列出**，
+ * 静默丢一行意味着业务顾问白填一格。应用只动 open 那一类，且逐条走
+ * deps.answerQuestion（= answerDomainQuestion，唯一权威通道）；幂等键带文件摘要，
+ * 同一份文件传两次不会把答案落两遍。
+ */
+async function questionReturnOnce(
+  s: Session,
+  sheets: readonly { readonly rows: readonly (readonly unknown[])[] }[],
+  opts: {
+    apply: boolean;
+    deps: ArtifactDeps;
+    digest: string;
+    file: string;
+  },
+): Promise<Record<string, unknown>> {
+  const backlog = questionBacklog(s);
+  const rows = parseQuestionReturn(sheets, backlog);
+  const applicable = rows.filter((r) => r.match === "open");
+  const preview: Record<string, unknown> = {
+    kind: "question_return",
+    file: opts.file,
+    sha256: opts.digest,
+    共读到: rows.length,
+    可落账: applicable.length,
+    已答过: rows.filter((r) => r.match === "already_answered").length,
+    对不上号: rows.filter((r) => r.match === "not_found").map((r) => r.qid),
+    rows: rows.map((r) => ({
+      问题ID: r.qid,
+      问题: r.text,
+      回答: r.answer,
+      ...(r.note ? { 备注: r.note } : {}),
+      判定: r.match,
+    })),
+    apply: opts.apply,
+    applied: false,
+  };
+  if (!opts.apply) {
+    s.emit("audit.previewed", preview as JsonObject);
+    return preview;
+  }
+  if (opts.deps.answerQuestion === undefined) {
+    throw new HTTPException(501, { message: "这个部署没有接问题答复通道，只能预审访谈包回传。" });
+  }
+  let applied = 0;
+  const failures: Record<string, string>[] = [];
+  for (const r of applicable) {
+    const answer = r.note ? `${r.answer}（例外与备注：${r.note}）` : r.answer;
+    try {
+      await opts.deps.answerQuestion(s, r.qid, {
+        answer,
+        // 幂等键 = 文件摘要 + 问题：同一份回传件重复上传不会落两遍；
+        // 改过答案的新文件摘要不同，照常落新的一版。
+        idempotencyKey: `return:${opts.digest.slice(0, 16)}:${r.qid}`,
+      });
+      applied += 1;
+    } catch (exc) {
+      // 一条失败不拖垮整批 —— 但**必须逐条报**，业务顾问填的每一格都要有下落。
+      failures.push({ 问题ID: r.qid, 原因: exc instanceof Error ? exc.message : String(exc) });
+    }
+  }
+  const done: Record<string, unknown> = {
+    ...preview,
+    applied: true,
+    已落账: applied,
+    ...(failures.length > 0 ? { 落账失败: failures } : {}),
+  };
+  s.emit("audit.applied", done as JsonObject);
+  return done;
+}
+
 /** 一份上传件。定义搬到 `http422.ts`（校验与形状在一处），这里留个别名。 */
 export type Upload = UploadLike;
 
@@ -591,9 +675,6 @@ export async function auditOnce(
   const { apply, deps } = opts;
   const env = opts.env ?? ((n: string) => process.env[n]);
   const specPath = join(s.dir, "template.spec.json");
-  if (!existsSync(specPath)) {
-    throw new HTTPException(409, { message: "这个会话还没有编译出模板" });
-  }
   const up = files[0];
   if (up === undefined) throw new HTTPException(400, { message: "没有上传回传模板" });
   if (busy(s)) {
@@ -615,6 +696,26 @@ export async function auditOnce(
   const dest = join(returnedDir, `${digest.slice(0, 12)}_${safe}`);
   await writeFile(dest, raw);
 
+  // ── 按表头嗅探分流（R4）────────────────────────────────────
+  // 模板回传与访谈包回传共用这一个上传入口 —— 用户不需要知道两种回传件的区别。
+  // 识别条件 = 任一 sheet 前 8 行里出现「问题ID」+「您的回答」表头，那两列正是
+  // interview_kit 导出时铺好的回传载体。读不出 xlsx 就落回模板分支，让它用
+  // 自己的损伤报告说话。
+  let questionSheets: { rows: readonly (readonly unknown[])[] }[] | null = null;
+  try {
+    const grids = readSheetGrids(Buffer.from(raw));
+    const sheets = grids.map((g: { grid: readonly (readonly unknown[])[] }) => ({ rows: g.grid }));
+    if (sniffQuestionReturn(sheets)) questionSheets = sheets;
+  } catch {
+    questionSheets = null;
+  }
+  if (questionSheets !== null) {
+    return await questionReturnOnce(s, questionSheets, { apply, deps, digest, file: safe });
+  }
+
+  if (!existsSync(specPath)) {
+    throw new HTTPException(409, { message: "这个会话还没有编译出模板" });
+  }
   const spec = TemplateSpec.load(specPath);
   const live = s.state["_oir"] as OIR | null | undefined;
   if (live === null || live === undefined) {
@@ -733,7 +834,15 @@ export async function auditOnce(
     }
   }
   const versions = pushVersion(s, "_oir_versions", before);
-  if (changed.length === 0) versions.pop();
+  // 这版**没有**配对补丁（正式 revision 不走聊天补丁旁路）—— 标记同步压栈，
+  // oir.undo 撤到这版时就不会误弹别人的补丁。
+  const patched = s.state["_oir_version_patched"];
+  const flags: unknown[] = Array.isArray(patched) ? patched : (s.state["_oir_version_patched"] = []);
+  flags.push(false);
+  if (changed.length === 0) {
+    versions.pop();
+    flags.pop();
+  }
   s.state["oir"] = live.toDict();
 
   // 回传合并是一次正式 artifact revision，不走聊天补丁旁路。

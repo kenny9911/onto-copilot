@@ -63,7 +63,7 @@ describe("INTERVIEW 必须有门", () => {
     expect(req).not.toContain("blocker_count");
   });
 
-  it("REVIEW / EXPORT 的既有门一条不动 —— 那两处的 fail-closed 判定本来就是对的", () => {
+  it("REVIEW 保留既有质量门，EXPORT 在其上增加正式人工决定门", () => {
     const dag = buildFdeEngagementDag();
     expect([...(dag.get("REVIEW").gate as { require: readonly string[] }).require]).toEqual([
       "verdict == 'PASS'",
@@ -73,6 +73,7 @@ describe("INTERVIEW 必须有门", () => {
     ]);
     expect([...(dag.get("EXPORT").gate as { require: readonly string[] }).require]).toEqual([
       "review_passed == true",
+      "human_decided == true",
       "schema_valid == true",
       "downloadable == true",
     ]);

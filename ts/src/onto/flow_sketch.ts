@@ -55,6 +55,7 @@ import {
   NodeKind,
   makeFlowNode,
   makeStage,
+  type FlowNode,
 } from "./flow.js";
 import { inferred } from "./oir.js";
 
@@ -90,6 +91,125 @@ export function sketchTitle(domain: string): string {
 const BAD_NAME = /[\\/:*?"<>|\u0000-\u001f\u0020]/g;
 
 /** 产物文件名（第二处标注）。`ext` 不带点。 */
+/**
+ * 生成路径上的结构门禁。判据在 `FlowGraph.structureDefects()` —— 一份规则，
+ * 生成、编辑、交付三条路共用。两处各写一遍的话，"什么叫合格"迟早会漂开。
+ */
+export function sketchDefects(g: FlowGraph): string[] {
+  return g.structureDefects();
+}
+
+/**
+ * 业务合理性评审的 rubric。
+ *
+ * 与结构门禁**分工明确**（第三部分 §15.4 那张三分表）：
+ *   · 结构正确性 → 确定性规则，零模型调用，`structureDefects()`；
+ *   · 业务合理性 → 这里，要模型判，但**每条只给 0/1**，不给自由分值；
+ *   · 视觉可读性 → 渲染后交视觉模型看。
+ *
+ * 每条 0/1 而不是打分，是照 `kernel/critic.ts` 已有的纪律来的：自由分值会被
+ * 冗长偏差牵着走（LLM-as-judge 综述 arXiv:2411.15594）。
+ *
+ * 而**评审模型必须与生成模型不同**——这一点由调用方保证（`run.smart`）。
+ * 让同一个模型评自己刚写的东西，就掉进了 Huang et al. ICLR'24 那个坑：
+ * 无外部反馈的自我纠正常常让结果更差。
+ */
+export const SKETCH_REVIEW_SCHEMA: Record<string, unknown> = {
+  type: "object",
+  required: ["verdict", "checks"],
+  properties: {
+    verdict: {
+      type: "string",
+      enum: ["pass", "revise"],
+      description: "只要有一条 check 是 0 且属于主干缺失，就给 revise",
+    },
+    checks: {
+      type: "array",
+      description: "逐条 0/1，不要给中间分",
+      items: {
+        type: "object",
+        required: ["item", "ok"],
+        properties: {
+          item: {
+            type: "string",
+            enum: ["stage_coverage", "missing_key_step", "caveats_useful", "actor_sane"],
+          },
+          ok: { type: "integer", enum: [0, 1] },
+          why: { type: "string", description: "ok=0 时必须写清缺什么，一句话" },
+        },
+      },
+    },
+    missing: {
+      type: "array",
+      items: { type: "string" },
+      description: "verdict=revise 时，具体缺哪几个环节 —— 要能直接照着补",
+    },
+  },
+};
+
+export function sketchReviewPrompt(domain: string, g: FlowGraph): string {
+  const stages = [...g.stages.values()].map((st) => st.title).join(" → ");
+  const nodes = [...g.nodes.values()]
+    .map((n) => `${String(n.kind)}｜${n.label.value}${n.actor.value ? `（${n.actor.value}）` : ""}`)
+    .join("\n");
+  return [
+    `下面是一份「${domain}」领域的通用流程草案。请按行业通识审它，逐条给 0/1。`,
+    "",
+    `阶段：${stages || "（没有阶段）"}`,
+    "环节：",
+    nodes,
+    "",
+    "四条判据：",
+    "- stage_coverage：阶段划分是否覆盖这个领域的主干（只是「有阶段」不算过）",
+    "- missing_key_step：有没有漏掉行业里**普遍存在**的关键环节（如采购的比价、报销的发票查重）；漏了给 0",
+    "- caveats_useful：这份草案有没有指向各家差异最大的地方（那是拿去问业务方的价值所在）",
+    "- actor_sane：执行角色是否符合常识（如财务的活挂在采购员身上就给 0）",
+    "",
+    "**只按行业通识判，不要假设任何客户特定信息。**",
+    "有 0 就给 revise，并在 missing 里写清该补哪几个环节（用能直接建进图的说法）。",
+  ].join("\n");
+}
+
+/**
+ * 渲染回看的 schema。
+ *
+ * **只问四个具体问题，不问"你觉得怎么样"。** 开放式提问会得到一堆
+ * "整体清晰、建议优化布局"这类无法执行的话；而这四条每一条都对应一个
+ * 确定的补救动作（降 detail 档、关掉编号、按阶段拆图）。
+ *
+ * **只准改排版，不准改内容。** 图看着丑不等于流程错 —— 让视觉反馈去动业务语义
+ * 是危险的，那是把"我看不清"误当成"这里建模错了"。
+ */
+export const SKETCH_LOOK_SCHEMA: Record<string, unknown> = {
+  type: "object",
+  required: ["readable", "problems"],
+  properties: {
+    readable: { type: "boolean", description: "这张图现在能不能读清楚" },
+    problems: {
+      type: "array",
+      description: "只报看得见的排版问题，不要评论流程内容对不对",
+      items: {
+        type: "string",
+        enum: ["node_overlap", "edge_crossing", "label_truncated", "too_dense"],
+      },
+    },
+    note: { type: "string", description: "一句话说清最碍事的是哪里" },
+  },
+};
+
+export const SKETCH_LOOK_SYSTEM =
+  "你在看一张流程图的渲染结果。**只判断它能不能读清楚**，不要评论流程内容是否合理" +
+  "（那由别人判）。看四件事：节点框有没有重叠、连线有没有交叉到看不清、" +
+  "标签有没有被截断、单个阶段是不是密到读不出来。没问题就 readable=true、problems 为空。";
+
+/** 四类排版问题各自对应的**真实**补救动作 —— 我们只有这几个旋钮，不要许诺别的。 */
+export const SKETCH_LOOK_REMEDY: Readonly<Record<string, string>> = Object.freeze({
+  node_overlap: "环节太多挤在一个阶段里：把 detail 降一档，或按阶段拆成两张图",
+  edge_crossing: "连线交叉多半是阶段顺序不对：调整 stages 的先后，让边尽量只往下一阶段走",
+  label_truncated: "名字太长：把环节名改短（动词+宾语，8 字以内）",
+  too_dense: "整张图太密：detail 降一档（detailed → standard → brief），或按阶段拆图",
+});
+
 export function sketchFileName(domain: string, ext: string): string {
   // 先 trim 再替换，替换完再削掉首尾的 `_` —— 顺序反了的话「   」会清成 `___`
   // 而不是回退到「未命名」（trim 削不掉下划线）。
@@ -216,7 +336,11 @@ export function sketchPrompt(o: { domain: string; detail: SketchDetail }): strin
     "几条硬要求：",
     "1. Action 和 Event 是**两种**节点，不许合并。「提交申请」是 action，" +
       "「申请已提交」是 event —— 前者是有人要做的事，后者是做完之后别人能观测到的事实。" +
-      "关键动作后面要跟它产出的事实。",
+      "**只在别人真的要等这个结果的地方放 event，不要一个动作配一个事件。**" +
+      "连着两三步都由同一个人做完、中间没人在等的，就不要拆出事实节点 —— " +
+      "一动作一事件会把图填成一条谁都看得出是凑出来的链。",
+    "1b. 真实流程不是直线：该并行的画并行、该汇合的画汇合、驳回要连回它该回到的环节。" +
+      "如果你画出来的图从头到尾只有一条路径，那多半是没想清楚，重画。",
     "2. 有分叉的地方放一个 gateway，它的每条出边都要写条件（如「通过」「驳回」）。" +
       "驳回一类的回退边要连回它该回到的那个环节，不要留死路。",
     "3. 只用这个领域里**通用**的说法。不要编具体的系统名、单据编号规则、部门全称。",

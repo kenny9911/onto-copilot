@@ -22,6 +22,8 @@ import { fileURLToPath } from "node:url";
 
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
+
+import { BUILD_ACTIVE_CONFLICT } from "../src/server/glue/decisions_queue.js";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { makeConflict, makeOption, ConflictKind, type Conflict } from "../src/onto/conflict.js";
@@ -45,8 +47,7 @@ import { setRepoForTests } from "../src/store/deps.js";
 import {
   makeDecisionRecordRow,
   questionRowFromDomain,
-  type JsonObject,
-} from "../src/store/types.js";
+  type JsonObject, makeSessionRow } from "../src/store/types.js";
 import {
   answerDomainQuestion,
   expectedVersionOf,
@@ -58,7 +59,7 @@ import {
   type QuestionDeps,
 } from "../src/server/routes/questions.js";
 import { contentDisposition } from "../src/server/routes/artifacts.js";
-import type { AppEnv } from "../src/server/app.js";
+import type { AppEnv, RequestUser } from "../src/server/app.js";
 
 const GOLDEN = JSON.parse(
   readFileSync(
@@ -153,6 +154,26 @@ function goldenBacklog(): QuestionBacklog {
   return bag;
 }
 
+function backlogWithReleaseAcceptance(): QuestionBacklog {
+  const bag = goldenBacklog();
+  bag.add(
+    new Question({
+      id: "q-release-acceptance",
+      text: "是否正式验收并发布当前交付候选？",
+      audienceRole: "业务验收负责人",
+      answerSchema: { type: "string", enum: ["APPROVE", "REJECT"] },
+      priority: QuestionPriority.BLOCKING,
+      blockedArtifacts: ["ontology.package.json"],
+      sourceKind: "release_acceptance",
+      sourceRef: "q-release-acceptance",
+      createdAt: T0 + 5,
+      updatedAt: T0 + 5,
+    }),
+    { preserveLifecycle: false },
+  );
+  return bag;
+}
+
 /** golden 里那条 Decision。 */
 function goldenDecision(): Decision {
   return new Decision({
@@ -211,8 +232,17 @@ function makeDeps(over: Partial<QuestionDeps> = {}): QuestionDeps {
   };
 }
 
-function makeApp(over: Partial<QuestionDeps> = {}): Hono<AppEnv> {
+function makeApp(
+  over: Partial<QuestionDeps> = {},
+  principal?: RequestUser | null,
+): Hono<AppEnv> {
   const app = new Hono<AppEnv>();
+  if (principal !== undefined) {
+    app.use("*", async (c, next) => {
+      c.set("user", principal);
+      await next();
+    });
+  }
   // serve.ts 的 `app.onError`：FastAPI 的 `HTTPException(code, "文案")` 落到线上是
   // `{"detail": "文案"}`。测试要按同样的形状读回来。
   app.onError((err) => {
@@ -275,7 +305,7 @@ beforeEach(() => {
 //  交付物的字节（golden）
 // ══════════════════════════════════════════════════════════════════
 describe("问题清单三格式：同源生成", () => {
-  it("md 逐字节等于 Python 侧的产物", async () => {
+  it("md 使用稳定的人话展示格式", async () => {
     const s = makeSession("s-md", { project: "示例 ERP 项目", title: "会话标题" });
     await writeQuestionExports(s, goldenBacklog());
     expect(readFileSync(join(s.dir, "问题清单.md"), "utf8")).toBe(GOLDEN.exports.md);
@@ -290,6 +320,27 @@ describe("问题清单三格式：同源生成", () => {
       questions: { id: string }[];
     };
     expect(doc.questions.map((q) => q.id)).toEqual(["q-b", "q-a", "q-c", "q-d"]);
+  });
+
+  it("md 导出会拆掉旧问题中的机器协议，但 JSON 仍保留原文供审计", async () => {
+    const s = makeSession("s-plain-export", { project: "示例 ERP 项目" });
+    const bag = new QuestionBacklog();
+    const raw = "[高][ERP顾问][blocked:sys_metaerp] 客户使用哪个系统版本？ | answer:TEXT | evidence:材料.docx#p1";
+    bag.add(new Question({
+      id: "q.agent.1",
+      text: raw,
+      why: "由 ERP_MAP 独立分析发现，需由相应业务角色确认",
+    }), { preserveLifecycle: false });
+    await writeQuestionExports(s, bag);
+
+    const md = readFileSync(join(s.dir, "问题清单.md"), "utf8");
+    expect(md).toContain("客户使用哪个系统版本？");
+    expect(md).toContain("请谁回答：ERP顾问");
+    expect(md).toContain("出处：材料.docx#p1");
+    expect(md).not.toMatch(/q\.agent|blocked:|answer:TEXT|evidence:|ERP_MAP|状态：open|优先级：normal/u);
+
+    const json = JSON.parse(readFileSync(join(s.dir, "问题清单.json"), "utf8")) as { questions: { text: string }[] };
+    expect(json.questions[0]!.text).toBe(raw);
   });
 
   it("json 的结构等于 Python 侧的产物（schemaVersion / questions / summary）", async () => {
@@ -314,7 +365,7 @@ describe("问题清单三格式：同源生成", () => {
     const s = makeSession("s-empty");
     await writeQuestionExports(s, new QuestionBacklog());
     const md = readFileSync(join(s.dir, "问题清单.md"), "utf8");
-    expect(md).toContain("共 0 条，未关闭 0 条。");
+    expect(md).toContain("共 0 条，待处理 0 条。");
     expect(s.state["artifacts"]).toEqual(["问题清单.json", "问题清单.md", "问题清单.xlsx"]);
   });
 });
@@ -726,11 +777,21 @@ describe("POST /api/sessions/{sid}/questions/{qid}/answer", () => {
       answer: "不含税",
       answerText: "以 ERP 里的净额为准",
       actor: "fde",
+      actorRole: "财务",
+      authority: "财务总监",
       idempotencyKey: "idem-1",
     });
     expect(res.status).toBe(200);
     const body = (await res.json()) as {
-      decision: { id: string; answer: string; rationale: string; metadata: Record<string, string> };
+      decision: {
+        id: string;
+        answer: string;
+        actor: string;
+        actorRole: string;
+        authority: string;
+        rationale: string;
+        metadata: Record<string, string>;
+      };
       created: boolean;
       question: { status: string; answer: string };
       pending: number;
@@ -740,6 +801,12 @@ describe("POST /api/sessions/{sid}/questions/{qid}/answer", () => {
     expect(body.created).toBe(true);
     expect(body.decision.id.startsWith("dec_")).toBe(true);
     expect(body.decision.answer).toBe("不含税");
+    // 普通业务问题保持兼容：没有 HTTP principal 时仍沿用原 body 身份字段。
+    expect(body.decision).toMatchObject({
+      actor: "fde",
+      actorRole: "财务",
+      authority: "财务总监",
+    });
     expect(body.decision.metadata["status"]).toBe("applied");
     expect(body.question.status).toBe("answered");
     expect(body.question.answer).toBe("不含税");
@@ -754,6 +821,93 @@ describe("POST /api/sessions/{sid}/questions/{qid}/answer", () => {
     expect(revs[0]!.idempotency_key).toBe("answer:idem-1");
     expect(mutationKinds).toEqual(["question.answer"]);
     expect(mutationSawLock).toEqual([false]);
+  });
+
+  it("正式验收：普通用户即便在 body 伪造 admin 仍返回 403", async () => {
+    const s = SESSIONS.get("s1")!;
+    await seed(s, backlogWithReleaseAcceptance());
+    const res = await answer(
+      makeApp({}, { id: "user-1", username: "alice", role: "user" }),
+      "q-release-acceptance",
+      {
+        answer: "APPROVE",
+        actor: "forged-admin",
+        actorRole: "admin",
+        authority: "admin",
+        idempotencyKey: "release-forged",
+      },
+    );
+    expect(res.status).toBe(403);
+    expect(((await res.json()) as { detail: string }).detail).toBe("正式验收需要管理员权限");
+    expect(await repo.listDecisionsV1("s1")).toHaveLength(0);
+    expect((await repo.getQuestion("s1", "q-release-acceptance"))?.status).toBe(
+      QuestionStatus.OPEN,
+    );
+  });
+
+  it("正式验收：认证 admin 覆盖 body 伪造身份并把真实 principal 落进 Ledger", async () => {
+    const s = SESSIONS.get("s1")!;
+    await seed(s, backlogWithReleaseAcceptance());
+    const res = await answer(
+      makeApp({}, { id: "admin-42", username: "root", role: "admin" }),
+      "q-release-acceptance",
+      {
+        answer: "APPROVE",
+        actor: "mallory",
+        actorRole: "user",
+        authority: "业务总监",
+        idempotencyKey: "release-admin",
+      },
+    );
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { decision: Record<string, unknown> };
+    expect(body.decision).toMatchObject({
+      actor: "admin-42",
+      actorRole: "admin",
+      authority: "admin",
+    });
+    const rows = await repo.listDecisionsV1("s1");
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({
+      actor: "admin-42",
+      actor_role: "admin",
+      authority: "admin",
+    });
+  });
+
+  it("正式验收：开放模式注入的 synthetic admin 可完成签字", async () => {
+    const s = SESSIONS.get("s1")!;
+    await seed(s, backlogWithReleaseAcceptance());
+    const res = await answer(
+      makeApp({}, { id: "__local__", username: "local", role: "admin" }),
+      "q-release-acceptance",
+      { answer: "REJECT", idempotencyKey: "release-local" },
+    );
+    expect(res.status).toBe(200);
+    expect(((await res.json()) as { decision: Record<string, unknown> }).decision).toMatchObject({
+      actor: "__local__",
+      actorRole: "admin",
+      authority: "admin",
+    });
+  });
+
+  it("正式验收：内部/对话直调没有可验证 principal 时同样拒绝", async () => {
+    const s = SESSIONS.get("s1")!;
+    await seed(s, backlogWithReleaseAcceptance());
+    await expect(answerDomainQuestion(
+      s,
+      "q-release-acceptance",
+      {
+        answer: "APPROVE",
+        actor: "fde",
+        actorRole: "admin",
+        authority: "admin",
+        idempotencyKey: "release-dialogue-forged",
+      },
+      makeDeps(),
+      { mutationClaimed: true },
+    )).rejects.toMatchObject({ status: 403 });
+    expect(await repo.listDecisionsV1("s1")).toHaveLength(0);
   });
 
   it("**同一个 idempotencyKey 重放**：返回同一条 Decision，不插第二条", async () => {
@@ -860,12 +1014,58 @@ describe("POST /api/sessions/{sid}/questions/{qid}/answer", () => {
     expect(await repo.listRevisions("s1")).toHaveLength(0);
   });
 
-  it("conflict 问题但冲突还没恢复 → 409（不是 500）", async () => {
-    const res = await answer(makeApp(), "q-b", { answer: "o1", idempotencyKey: "k" });
-    expect(res.status).toBe(409);
-    expect(((await res.json()) as { detail: string }).detail).toBe(
-      "冲突 cf_2 尚未恢复，不能应用回答",
+  // 契约演进：结论必须能落账。以前 agent_analysis 一刀切 409，4000+ 条专业
+  // 分析问题一条都答不了，SOR 归属这类业务结论无处安放。现在照常进 Decision
+  // Ledger、问题转 ANSWERED，但不做任何字段级回写（无 applyDecision），并在
+  // metadata 里显式标注 manual_conclusion。
+  it("agent_analysis 回答落账为人工结论：ANSWERED + Decision，但零字段回写", async () => {
+    const s = SESSIONS.get("s1")!;
+    const bag = goldenBacklog();
+    bag.add(
+      new Question({
+        id: "q-agent-erp",
+        text: "当前 ERP 模块是什么？",
+        audienceRole: "ERP顾问",
+        priority: QuestionPriority.HIGH,
+        sourceKind: "agent_analysis",
+        sourceRef: "ERP_MAP",
+        createdAt: T0 + 5,
+        updatedAt: T0 + 5,
+      }),
+      { preserveLifecycle: false },
     );
+    await seed(s, bag);
+
+    const res = await answer(makeApp(), "q-agent-erp", {
+      answer: "MM",
+      idempotencyKey: "agent-answer-1",
+    });
+
+    expect(res.status).toBe(200);
+    const saved = (await repo.getQuestion("s1", "q-agent-erp"))!;
+    expect(saved.status).toBe(QuestionStatus.ANSWERED);
+    expect((saved.doc["metadata"] as Record<string, unknown>)["writeback"]).toBe("manual_conclusion");
+    const decisions = await repo.listDecisionsV1("s1");
+    expect(decisions).toHaveLength(1);
+    expect(decisions[0]!.affected_ids).toEqual([]);   // 零字段回写
+  });
+
+  // fail-closed 的行为不变（409，不是 500，也不是静默落一条空决定）。
+  // 契约演进：冲突没了 = 问题失去了存在理由（重跑后不再成立/已被自动修复）。
+  // 以前只甩 409 —— 而 INTERVIEW 关口正拿这类问题当 blocking，用户答一条
+  // 409 一条，HITL 永久死锁（真实案发：5 条 naming lint 引用的
+  // cf_naming_violation_* 早被 auto_repair 清掉）。现在把问题标废并如实告知。
+  it("conflict 问题但冲突找不到 → 问题标废（CANCELLED），不再 409 死锁关口", async () => {
+    const res = await answer(makeApp(), "q-b", { answer: "o1", idempotencyKey: "k" });
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { status: string; note: string; question_id: string };
+    expect(body.status).toBe("cancelled");
+    expect(body.note).toContain("cf_2");
+    expect(body.note).toContain("不需要回答");
+    // 问题真的进了终态 —— 关口的 blocking 判定不再被它拦住
+    const s = SESSIONS.get("s1")!;
+    const q = [...questionBacklog(s).questions.values()].find((x) => x.id === "q-b")!;
+    expect(q.status).toBe("cancelled");
   });
 
   it("不存在的问题 → 404", async () => {
@@ -1029,6 +1229,56 @@ describe("POST /api/sessions/{sid}/answer（兼容入口）", () => {
 // ══════════════════════════════════════════════════════════════════
 //  chat 工具那条路：mutationClaimed
 // ══════════════════════════════════════════════════════════════════
+describe("跑批时排队 —— 但只对真的在跑批的那一种冲突", () => {
+  // 2026-08-25 对抗式复查抓到的洞：第一版按中文文案分诊（/正在梳理/），而
+  // withSessionMutation 抢不到租约时的**通用**文案是「会话正在梳理或另一个领域
+  // 修改尚未提交」—— work 模式一整轮聊天独占 mutation 租约就会走这句。那种会话
+  // 根本没有 Run 会来 drain 队列：拍板被排进去 = 界面说「跑完自动落账」、实际
+  // 永远不落。比当场报错更糟，因为人以为已经交上去了。
+  const busyExc = () => new HTTPException(409, {
+    message: "会话正在梳理（parsing），本轮跑完才能保存这类修改；界面上的填写不会丢，稍后重试即可。",
+    cause: BUILD_ACTIVE_CONFLICT,
+  });
+  const genericExc = () => new HTTPException(409, {
+    message: "会话正在梳理或另一个领域修改尚未提交，请稍后重试。",
+  });
+
+  it("通用租约冲突（聊天轮持锁）→ 原样 409，不排队", async () => {
+    const s = makeSession("s1");
+    await seed(s, goldenBacklog());
+    const deps = makeDeps({ sessionMutation: async () => { throw genericExc(); } });
+    await expect(
+      answerDomainQuestion(s, "q-a", { answer: "不含税", idempotencyKey: "k-generic" }, deps),
+    ).rejects.toMatchObject({ status: 409 });
+    expect(s.state["_decision_queue"]).toBeUndefined();
+  });
+
+  it("带跑批标记、且库里状态确实在跑 → 排队并诚实回执", async () => {
+    const s = makeSession("s1");
+    await seed(s, goldenBacklog());
+    s.status = "parsing" as never;
+    // 状态复核问的是**库**，不是内存投影 —— 所以库里得有这一行
+    await repo.createSession(makeSessionRow({ id: s.id, title: "t", status: "parsing" }));
+    const deps = makeDeps({ sessionMutation: async () => { throw busyExc(); } });
+    const out = await answerDomainQuestion(
+      s, "q-a", { answer: "不含税", idempotencyKey: "k-queued" }, deps,
+    ) as Record<string, unknown>;
+    expect(out["queued"]).toBe(true);
+    expect(String(out["message"])).toContain("跑完");
+    expect((s.state["_decision_queue"] as unknown[]).length).toBe(1);
+  });
+
+  it("有标记但库里已经不在跑（那一瞬跑完了）→ 也不排队，原样报错让人重试", async () => {
+    const s = makeSession("s1");
+    await seed(s, goldenBacklog());
+    const deps = makeDeps({ sessionMutation: async () => { throw busyExc(); } });
+    await expect(
+      answerDomainQuestion(s, "q-a", { answer: "不含税", idempotencyKey: "k-stale" }, deps),
+    ).rejects.toMatchObject({ status: 409 });
+    expect(s.state["_decision_queue"]).toBeUndefined();
+  });
+});
+
 describe("answerDomainQuestion(mutationClaimed)", () => {
   it("调用方已经持有 mutation 租约时**不再抢一次**，但 questionLock 照加", async () => {
     const s = makeSession("s1");
@@ -1045,5 +1295,140 @@ describe("answerDomainQuestion(mutationClaimed)", () => {
     expect(mutationKinds).toEqual([]); // 没有再 claim 一次
     expect(persistSawLock.every((v) => v)).toBe(true); // questionLock 仍然握着
     expect(s.questionLock.isLocked).toBe(false); // 出去时释放干净
+  });
+
+  // ── 事件要带得动「改了什么」 ────────────────────────────────
+  //
+  // 前端渲染 `question.answered` 时读的是事件 payload。payload 只有
+  // `{question, decision, pending, affected}`，其中 affected 是**预测**的
+  // rid 列表（predictDecisionEffect），不是实际变更；而人要看的
+  // 「定了什么」（选中选项的原话）压根没进事件。
+  //
+  // 于是操作记录里每条「答复问题」要么空白、要么只有一串 rid。
+  it("question.answered 事件带上拍板内容与**实际**变更，不只是预测的 rid", async () => {
+    const s = makeSession("s1");
+    await seed(s, goldenBacklog());
+    await answerDomainQuestion(s, "q-a", { answer: "不含税", idempotencyKey: "k2" }, makeDeps(), {
+      mutationClaimed: true,
+    });
+    const ev = (s.events as Record<string, unknown>[]).filter(
+      (e) => e["kind"] === "question.answered",
+    );
+    expect(ev).toHaveLength(1);
+    // 老字段仍在（别打断既有消费者）
+    expect(ev[0]!["question"]).toBe("q-a");
+    // 新字段：这两个是渲染层真正要用的
+    expect(ev[0]).toHaveProperty("label");
+    expect(ev[0]).toHaveProperty("changed");
+  });
+});
+
+// ══════════════════════════════════════════════════════════════════
+//  Revision 快照：让 revision.diff 有地基
+//
+//  `snapshot_hash` 列早就存在（store/schema.ts:485，notNull 默认 ""），域字段、
+//  行投影、pg 读写全都打通、只是**没人写**。答复路径造 Revision 时不给这个键，
+//  于是每条 revision 的快照哈希都是空串 —— 两个 revision 之间没有任何可比的
+//  内容，`revision.diff` 无从谈起。
+//
+//  两条硬约束：
+//  · **快照失败绝不能让回答失败** —— 回答是这个产品里最重的一次人工输入，
+//    为了写不进一个 blob 而把它丢掉是灾难性的；
+//  · 但也**不许假装快照存在** —— 空哈希必须能与「写成功了但内容没变」区分开。
+// ══════════════════════════════════════════════════════════════════
+
+describe("Revision 快照", () => {
+  it("答复成功时把快照 ref 写进 revision.snapshotHash", async () => {
+    const s = makeSession("s1");
+    await seed(s, goldenBacklog());
+    const deps = makeDeps({ snapshot: async () => "sha256:deadbeef" });
+    await answerDomainQuestion(s, "q-a", { answer: "不含税", idempotencyKey: "k3" }, deps, {
+      mutationClaimed: true,
+    });
+    const revs = await repo.listRevisions(s.id);
+    expect(revs[revs.length - 1]!.snapshot_hash).toBe("sha256:deadbeef");
+  });
+
+  it("**快照抛错时回答照样成功** —— 不能为了一个 blob 丢掉人的输入", async () => {
+    const s = makeSession("s1");
+    await seed(s, goldenBacklog());
+    const deps = makeDeps({
+      snapshot: async () => {
+        throw new Error("blob 写不进去");
+      },
+    });
+    const out = await answerDomainQuestion(
+      s, "q-a", { answer: "不含税", idempotencyKey: "k4" }, deps, { mutationClaimed: true },
+    );
+    expect((out as { created: boolean }).created).toBe(true);
+  });
+
+  it("快照失败要**看得见** —— 发一条事件，别让空哈希冒充「没变化」", async () => {
+    const s = makeSession("s1");
+    await seed(s, goldenBacklog());
+    const deps = makeDeps({
+      snapshot: async () => {
+        throw new Error("blob 写不进去");
+      },
+    });
+    await answerDomainQuestion(s, "q-a", { answer: "不含税", idempotencyKey: "k5" }, deps, {
+      mutationClaimed: true,
+    });
+    const warn = (s.events as Record<string, unknown>[]).filter(
+      (e) => e["kind"] === "revision.snapshot_failed",
+    );
+    expect(warn).toHaveLength(1);
+    expect(String(warn[0]!["error"])).toContain("blob 写不进去");
+  });
+
+  it("没接 snapshot 依赖时一切照旧（哈希留空，不发告警）", async () => {
+    const s = makeSession("s1");
+    await seed(s, goldenBacklog());
+    await answerDomainQuestion(s, "q-a", { answer: "不含税", idempotencyKey: "k6" }, makeDeps(), {
+      mutationClaimed: true,
+    });
+    const warn = (s.events as Record<string, unknown>[]).filter(
+      (e) => e["kind"] === "revision.snapshot_failed",
+    );
+    expect(warn).toHaveLength(0);
+  });
+});
+
+// ══════════════════════════════════════════════════════════════════
+//  访谈包下载路由（发现 1：interview_kit 以前只有对话暗号一条出口）
+// ══════════════════════════════════════════════════════════════════
+
+describe("GET /questions/interview-kit", () => {
+  it("路由转交 exportKit，按附件回字节", async () => {
+    makeSession("s1");
+    const app = makeApp({
+      exportKit: async (_s, format) => ({
+        name: `访谈提纲.${format}`,
+        data: new TextEncoder().encode("kit-bytes"),
+        mediaType: "application/test",
+      }),
+    });
+    const res = await app.request("/api/sessions/s1/questions/interview-kit?format=xlsx");
+    expect(res.status).toBe(200);
+    expect(res.headers.get("Content-Type")).toBe("application/test");
+    expect(res.headers.get("Content-Disposition") ?? "").toContain("filename");
+    expect(new Uint8Array(await res.arrayBuffer())).toEqual(
+      new TextEncoder().encode("kit-bytes"),
+    );
+  });
+
+  it("组不出内容时 422 带原因 —— 不给一份空文件", async () => {
+    makeSession("s1");
+    const app = makeApp({ exportKit: async () => ({ error: "没有待确认的问题，访谈包没有内容。" }) });
+    const res = await app.request("/api/sessions/s1/questions/interview-kit");
+    expect(res.status).toBe(422);
+    expect(((await res.json()) as { detail: string }).detail).toContain("没有待确认");
+  });
+
+  it("未接线的部署 501 —— 能力缺席要说得出，不装 404", async () => {
+    makeSession("s1");
+    const app = makeApp();
+    const res = await app.request("/api/sessions/s1/questions/interview-kit");
+    expect(res.status).toBe(501);
   });
 });

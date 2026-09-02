@@ -7,6 +7,7 @@ import { applyAppearance, savePref } from "./appearance.js";
 import { fmtAmount } from "./quota.js";
 import { loadSessions } from "./sessions.js";
 import { bumpUi } from "./react/store.js";
+import { loadAndRenderLogs } from "./logs.js";
 
 // ── 设置（外观对所有人；网关/模型/预算/环境变量仅管理员） ──────────
 
@@ -28,8 +29,10 @@ export const SETB = { loading: "", error: "" };
  */
 export const CFG = { err: "", saved: false, seq: 0 };
 
-export function openSettings(){
-  G.SET_TAB = "appearance";
+/** @param tab 直接落到哪个 tab。左下角菜单的「日志」就是靠它跳过来的 ——
+ *  否则用户要先开设置、再自己找那个 tab，多一步且找不到。 */
+export function openSettings(tab = "appearance"){
+  G.SET_TAB = tab;
   $("setTitle").textContent = t("settings.title");
   $("settingsModal").style.display = "flex";
   renderSettingsShell();
@@ -44,6 +47,7 @@ export function renderSettingsShell(){
   SETB.loading = ""; SETB.error = "";
   if (G.SET_TAB === "system" && isAdmin) loadAndRenderConfig();
   else if (G.SET_TAB === "usage") loadAndRenderUsage();
+  else if (G.SET_TAB === "logs") loadAndRenderLogs();
   else renderAppearanceTab();
 }
 
@@ -67,7 +71,9 @@ export async function loadAndRenderUsage(){
   try {
     // 一天以内按小时看，否则按天 —— 30 根柱子按小时是 720 根，什么也看不出来
     const bucket = G.USAGE_DAYS <= 1 ? "hour" : "day";
-    G.USAGE = await j(`/api/usage?days=${G.USAGE_DAYS}&bucket=${bucket}`);
+    // owner 只是个"钻取"参数：服务端仍会自己判权限，普通用户传什么都会被钉回自己。
+    const own = G.USAGE_OWNER ? `&owner=${encodeURIComponent(G.USAGE_OWNER)}` : "";
+    G.USAGE = await j(`/api/usage?days=${G.USAGE_DAYS}&bucket=${bucket}${own}`);
     SETB.loading = "";
     renderUsageTab();
   } catch (e: any) {
@@ -75,6 +81,8 @@ export async function loadAndRenderUsage(){
   }
 }
 export function setUsageDays(d: any){ G.USAGE_DAYS = d; loadAndRenderUsage(); }
+/** 钻到某个账号（""=全部）。只有管理员点得到——普通用户界面上根本没有那一块。 */
+export function setUsageOwner(o: string){ G.USAGE_OWNER = o; loadAndRenderUsage(); }
 export function toggleUsageRows(){ G.USAGE_ROWS_OPEN = !G.USAGE_ROWS_OPEN; renderUsageTab(); }
 
 export function renderUsageTab(){ bumpUi(); }
@@ -124,9 +132,14 @@ export async function saveConfig(){
   // 只有用户真的敲了新值、且这个值不含"…"，才当成一次真实修改发回去。
   if (apiKey && !apiKey.includes("…")) body.api_key = apiKey;
   const models: any = {};
-  for (const tk of ["low","medium","high","critical"]) {
+  // "image" 必须在这个清单里：图像档的芯片更新的是同一套 #tier_image 隐藏输入，
+  // 这里不读它，用户加完出图模型点保存就是静默丢弃 —— 界面上看是"无法保存"。
+  for (const tk of ["low","medium","high","critical","image"]) {
     const sel = $("tier_" + tk);
-    const cur = (G.CONFIG.tiers?.[tk] || {}).model || "";
+    // 与「人配的原始候选串」比 —— 输入框默认值就是 candidates（可能是「a, b」），
+    // 拿它和单个 model 比会把没改过的多候选误判成一次修改。
+    const tierCfg = (G.CONFIG.tiers?.[tk] || {});
+    const cur = tierCfg.candidates || tierCfg.model || "";
     if (sel && sel.value !== cur) models[tk] = sel.value;
   }
   if (Object.keys(models).length) body.models = models;

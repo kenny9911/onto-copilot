@@ -146,9 +146,22 @@ function pyRepr(v: unknown): string {
 /** 列表项：`(缩进层级, 序号或"", 文本)`。 */
 export type ListItem = readonly [number, string, string];
 
-/** 一个内容块。五种写法共用同一份输入，只有 `to_*` 不同。 */
+/**
+ * 一张要嵌进导出件的位图。
+ *
+ * **只收 PNG。** xlsx/docx 的 drawing 部件认的是位图，SVG 塞进去 Excel 打不开；
+ * 调用方拿到 SVG 要先过 `onto/render.ts` 的 `svgToPng` 栅格化。宽高是像素，
+ * 写 OOXML 时按 1px = 9525 EMU 换算。
+ */
+export interface BlockImage {
+  readonly png: Uint8Array;
+  readonly width: number;
+  readonly height: number;
+}
+
+/** 一个内容块。六种写法共用同一份输入，只有 `to_*` 不同。 */
 export interface Block {
-  /** heading | para | table | code | rule */
+  /** heading | para | table | code | rule | image */
   readonly kind: string;
   readonly text: string;
   /** heading 用。 */
@@ -157,6 +170,8 @@ export interface Block {
   readonly items: readonly ListItem[];
   readonly columns: readonly string[];
   readonly rows: readonly (readonly unknown[])[];
+  /** image 用；其余块是 null。 */
+  readonly image: BlockImage | null;
 }
 
 /** 对应 Python `Block(kind, text="", level=1, items=[], columns=[], rows=[])`。 */
@@ -172,7 +187,13 @@ export function makeBlock(
     items: [...(p.items ?? [])],
     columns: [...(p.columns ?? [])],
     rows: (p.rows ?? []).map((r) => [...r]),
+    image: p.image ?? null,
   };
+}
+
+/** 一张图 + 一句图注。图注同时是 xlsx 里那张 sheet 的名字。 */
+export function imageBlock(image: BlockImage, caption = ""): Block {
+  return makeBlock("image", { text: caption, image });
 }
 
 /** 要导出的一份东西。`tables` 是**动态属性**（Python 的 `@property`）。 */
@@ -184,21 +205,83 @@ export interface ExportDoc {
   readonly tables: readonly Block[];
 }
 
+/**
+ * 文档头要回答的那几件事。**全是收件人第一时间会问的**，而答案系统里都有：
+ * 一份交到业务方手上的确认稿，看不出是谁生成的、什么时候、基于哪一版模型、
+ * 依据是客户材料还是通用假设、用了哪些材料、填完往哪回传 —— 那份文件就只能
+ * 靠发它的人当面解释一遍。
+ *
+ * 每一项都可缺省：**缺项不占行**，空着的格子比没有这一行更让人犯嘀咕。
+ */
+export interface ExportMeta {
+  /** 这份文件用来干什么。 */
+  readonly purpose?: string;
+  /** 给谁看/谁来填。 */
+  readonly audience?: string;
+  /** 生成时间。**由调用方传入** —— 模块内部读时钟会打破「同样输入同样字节」。 */
+  readonly generatedAt?: string;
+  /** 依据：客户材料 / 通用假设 / 两者混合。 */
+  readonly basis?: string;
+  /** 用到的材料。 */
+  readonly materials?: readonly string[];
+  /** 模型版本（revision）。 */
+  readonly revision?: string;
+  /** 发布状态：DRAFT / RELEASED / BLOCKED。 */
+  readonly releaseState?: string;
+  /** 填完往哪回传。 */
+  readonly returnTo?: string;
+}
+
+/**
+ * 文档头 → 块。两列表（项目/内容），排在正文最前。
+ *
+ * 一项都没有就一个块都不产 —— 不许出现一张空的文档头表。
+ */
+export function docHeaderBlocks(meta: ExportMeta): Block[] {
+  const rows: string[][] = [];
+  const put = (label: string, value: string | undefined): void => {
+    const v = pyStrip(pyStr(value ?? ""));
+    if (v && v !== "None") rows.push([label, v]);
+  };
+  put("用途", meta.purpose);
+  put("给谁看", meta.audience);
+  put("生成时间", meta.generatedAt);
+  put("依据", meta.basis);
+  put("模型版本", meta.revision);
+  put("发布状态", meta.releaseState);
+  // 材料列成一行 —— 文档头是索引不是清单，每份一行会把头撑成正文。
+  put("材料", (meta.materials ?? []).join("、"));
+  put("回传", meta.returnTo);
+  if (rows.length === 0) return [];
+  const block = makeBlock("table", { columns: ["项目", "内容"], rows });
+  // 标记出来：回执里的「表格行数」按内容表算，不该被文档头污染。
+  (block as unknown as Record<string, unknown>)["docHeader"] = true;
+  return [block];
+}
+
 export function makeExportDoc(p: {
   title: string;
   blocks?: readonly Block[];
   note?: string;
+  /** 给了就在正文最前排一张文档头；**不给则与不加这个字段之前逐字节相同**。 */
+  meta?: ExportMeta;
 }): ExportDoc {
+  const header = p.meta === undefined ? [] : docHeaderBlocks(p.meta);
   const doc: Partial<ExportDoc> = {
     title: p.title,
-    blocks: [...(p.blocks ?? [])],
+    blocks: [...header, ...(p.blocks ?? [])],
     note: p.note ?? "",
   };
   // getter 而不是构造时算好：Python 侧是 `@property`，调用方（server 那两段）
   // 拿到 doc 之后还会往 blocks 里塞东西，算死了就会拿到一份过期的表清单。
   Object.defineProperty(doc, "tables", {
     get(this: ExportDoc): readonly Block[] {
-      return this.blocks.filter((b) => b.kind === "table");
+      // 文档头虽然是表，但它不是内容 —— 回执里的「表格行数」与 xlsx 的分页
+      // 都按内容表算。
+      return this.blocks.filter(
+        (b) => b.kind === "table"
+          && (b as unknown as Record<string, unknown>)["docHeader"] !== true,
+      );
     },
     enumerable: false,
   });
@@ -372,6 +455,11 @@ export function toMarkdown(doc: ExportDoc): Uint8Array {
       out.push("---", "");
     } else if (b.kind === "code") {
       out.push("```", b.text, "```", "");
+    } else if (b.kind === "image") {
+      // data URI 而不是外链：导出件离开对话之后没有服务器给它取图，
+      // 写个相对路径等于交出去一个坏掉的图。
+      if (b.image !== null) out.push(`![${b.text || "图"}](${dataUri(b.image)})`, "");
+      if (b.text) out.push(`*${b.text}*`, "");
     } else if (b.kind === "table") {
       out.push("| " + b.columns.join(" | ") + " |");
       out.push("| " + b.columns.map(() => "---").join(" | ") + " |");
@@ -469,7 +557,17 @@ function flatten(b: Block): string[] {
     return b.items.map(([d, m, t]) => "  ".repeat(d) + (m ? `${m} ` : "· ") + t);
   }
   if (b.kind === "rule") return ["—".repeat(20)];
+  if (b.kind === "image") {
+    // csv 装不下图。**留一行说明**：静默丢掉的话，用户拿到的 csv 与他刚才看到的
+    // 内容不一致，而没有任何地方告诉他少了什么。
+    return [`［图：${b.text || "未命名"}　csv 放不下图片，请用 xlsx/docx/md］`];
+  }
   return b.text ? [b.text] : [];
+}
+
+/** PNG → data URI。md / html 两条路共用。 */
+function dataUri(image: BlockImage): string {
+  return `data:image/png;base64,${Buffer.from(image.png).toString("base64")}`;
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -610,7 +708,12 @@ interface XlsxSheet {
   headerRow: boolean;
   /** 首格用大号加粗（说明页的标题行）。 */
   titleCell: boolean;
+  /** 这张 sheet 上锚一张图（图专用页）。 */
+  image: BlockImage | null;
 }
+
+/** 1 像素 = 9525 EMU。OOXML 的 drawing 只认 EMU。 */
+const EMU_PER_PX = 9525;
 
 /**
  * 表格一张一个 sheet；正文另开一个「说明」sheet。
@@ -645,12 +748,29 @@ export function toXlsx(doc: ExportDoc): Uint8Array {
       autoFilter: true,
       headerRow: true,
       titleCell: false,
+      image: null,
     });
   });
 
+  // 图单独成页。压在表上面会让第一行不再是表头，冻结与筛选跟着一起失效；
+  // 而 FDE 要的恰恰是"表能筛、图能看"两件事同时成立。
+  for (const b of doc.blocks) {
+    if (b.kind !== "image" || b.image === null) continue;
+    sheets.push({
+      title: sheetTitle(b.text || "图", sheets.length, used),
+      rows: b.text ? [[b.text]] : [[]],
+      widths: new Map(),
+      freeze: false,
+      autoFilter: false,
+      headerRow: false,
+      titleCell: Boolean(b.text),
+      image: b.image,
+    });
+  }
+
   const prose: string[] = [];
   for (const b of doc.blocks) {
-    if (b.kind !== "table") prose.push(...flatten(b));
+    if (b.kind !== "table" && b.kind !== "image") prose.push(...flatten(b));
   }
   if (prose.length > 0 || tables.length === 0) {
     const rows: XlsxValue[][] = [[doc.title]];
@@ -665,6 +785,7 @@ export function toXlsx(doc: ExportDoc): Uint8Array {
       autoFilter: false,
       headerRow: false,
       titleCell: true,
+      image: null,
     });
   }
 
@@ -802,19 +923,56 @@ function sheetXml(sh: XlsxSheet): string {
       '<selection pane="bottomLeft"/></sheetView></sheetViews>'
     : '<sheetViews><sheetView workbookViewId="0"/></sheetViews>';
 
-  // OOXML 对子元素**有顺序要求**：autoFilter 必须排在 sheetData 之后
+  // OOXML 对子元素**有顺序要求**：autoFilter 必须排在 sheetData 之后，
+  // 而 drawing 排在两者之后。顺序错了 Excel 直接报"文件已损坏"，不是降级显示。
+  const rNs = sh.image === null
+    ? ""
+    : ' xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"';
   return (
     XML_DECL +
-    '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
+    `<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"${rNs}>` +
     `<dimension ref="${dim}"/>${views}<sheetFormatPr defaultRowHeight="15"/>` +
     `${cols}<sheetData>${body}</sheetData>` +
     (sh.autoFilter ? `<autoFilter ref="${dim}"/>` : "") +
+    (sh.image === null ? "" : '<drawing r:id="rId1"/>') +
     "</worksheet>"
+  );
+}
+
+/**
+ * 一张图的 drawing 部件。
+ *
+ * 用 oneCellAnchor（锚一个角 + 显式尺寸），不用 twoCellAnchor：后者的尺寸由两个
+ * 单元格的位置算出来，行高列宽一变图就被拉扁。图注占了第 1 行，所以从第 2 行锚起。
+ */
+function drawingXml(image: BlockImage, anchorRow: number): string {
+  const cx = Math.max(1, Math.round(image.width * EMU_PER_PX));
+  const cy = Math.max(1, Math.round(image.height * EMU_PER_PX));
+  return (
+    XML_DECL +
+    '<xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" ' +
+    'xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">' +
+    "<xdr:oneCellAnchor>" +
+    `<xdr:from><xdr:col>0</xdr:col><xdr:colOff>0</xdr:colOff>` +
+    `<xdr:row>${anchorRow}</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:from>` +
+    `<xdr:ext cx="${cx}" cy="${cy}"/>` +
+    "<xdr:pic><xdr:nvPicPr>" +
+    '<xdr:cNvPr id="1" name="Picture 1"/><xdr:cNvPicPr><a:picLocks noChangeAspect="1"/></xdr:cNvPicPr>' +
+    "</xdr:nvPicPr><xdr:blipFill>" +
+    '<a:blip xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" r:embed="rId1"/>' +
+    "<a:stretch><a:fillRect/></a:stretch></xdr:blipFill>" +
+    `<xdr:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${cx}" cy="${cy}"/></a:xfrm>` +
+    '<a:prstGeom prst="rect"><a:avLst/></a:prstGeom></xdr:spPr>' +
+    "</xdr:pic><xdr:clientData/></xdr:oneCellAnchor></xdr:wsDr>"
   );
 }
 
 function xlsxParts(sheets: readonly XlsxSheet[]): ZipEntry[] {
   const n = sheets.length;
+  // 哪几张 sheet 带图 —— drawing/media 的编号跟着这个下标走，中间没有空号。
+  const drawn = sheets
+    .map((sh, i) => ({ sh, i }))
+    .filter((x): x is { sh: XlsxSheet & { image: BlockImage }; i: number } => x.sh.image !== null);
   const types =
     XML_DECL +
     '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
@@ -830,6 +988,16 @@ function xlsxParts(sheets: readonly XlsxSheet[]): ZipEntry[] {
       .join("") +
     '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>' +
     '<Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/>' +
+    // Default 只在真有图时才写：没有图却声明 png 扩展名是死条目，
+    // 而 golden 钉的是**字节**，多一条就等于所有旧产物的 diff 全变。
+    (drawn.length === 0 ? "" : '<Default Extension="png" ContentType="image/png"/>') +
+    drawn
+      .map(
+        (_x, k) =>
+          `<Override PartName="/xl/drawings/drawing${k + 1}.xml" ` +
+          'ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/>',
+      )
+      .join("") +
     "</Types>";
 
   const rootRels =
@@ -874,6 +1042,31 @@ function xlsxParts(sheets: readonly XlsxSheet[]): ZipEntry[] {
       name: `xl/worksheets/sheet${i + 1}.xml`,
       data: utf8(sheetXml(s)),
     })),
+    ...drawn.flatMap(({ sh, i }, k) => [
+      {
+        name: `xl/worksheets/_rels/sheet${i + 1}.xml.rels`,
+        data: utf8(
+          XML_DECL +
+            '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+            `<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/drawing" Target="../drawings/drawing${k + 1}.xml"/>` +
+            "</Relationships>",
+        ),
+      },
+      {
+        name: `xl/drawings/drawing${k + 1}.xml`,
+        data: utf8(drawingXml(sh.image, sh.titleCell ? 2 : 0)),
+      },
+      {
+        name: `xl/drawings/_rels/drawing${k + 1}.xml.rels`,
+        data: utf8(
+          XML_DECL +
+            '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+            `<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="../media/image${k + 1}.png"/>` +
+            "</Relationships>",
+        ),
+      },
+      { name: `xl/media/image${k + 1}.png`, data: sh.image.png },
+    ]),
   ];
 }
 
@@ -955,6 +1148,7 @@ function paraXml(text: string, opts: { style?: string; rpr?: string } = {}): str
 
 export function toDocx(doc: ExportDoc): Uint8Array {
   const body: string[] = [];
+  const images: BlockImage[] = [];
 
   body.push(paraXml(doc.title, { style: "Title" }));
   if (doc.note) {
@@ -976,6 +1170,12 @@ export function toDocx(doc: ExportDoc): Uint8Array {
     } else if (b.kind === "table") {
       if (b.columns.length === 0) continue;
       body.push(tableXml(b));
+    } else if (b.kind === "image") {
+      if (b.image === null) continue;
+      images.push(b.image);
+      body.push(imageParaXml(b.image, images.length));
+      // 图注走 9pt 斜体，和出处那一行同一个视觉层级
+      if (b.text) body.push(paraXml(b.text, { rpr: '<w:rPr><w:i/><w:sz w:val="18"/></w:rPr>' }));
     } else if (b.items.length > 0) {
       for (const [depth, marker, txt] of b.items) {
         const style = marker ? "ListNumber" : "ListBullet";
@@ -1001,7 +1201,38 @@ export function toDocx(doc: ExportDoc): Uint8Array {
     '<w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" ' +
     'w:header="720" w:footer="720" w:gutter="0"/></w:sectPr></w:body></w:document>';
 
-  return zipBytes(docxParts(document));
+  return zipBytes(docxParts(document, images));
+}
+
+/**
+ * 一张内联图。
+ *
+ * 宽度封在正文栏宽（A4 减两侧 1 英寸页边距 = 6.27in ≈ 5972175 EMU）以内并等比缩：
+ * 一张 1600px 宽的流程图按原尺寸插进去，Word 里会有一半在页面外。
+ */
+function imageParaXml(image: BlockImage, index: number): string {
+  const MAX_EMU = 5_972_175;
+  const raw = Math.max(1, Math.round(image.width * EMU_PER_PX));
+  const scale = raw > MAX_EMU ? MAX_EMU / raw : 1;
+  const cx = Math.max(1, Math.round(raw * scale));
+  const cy = Math.max(1, Math.round(image.height * EMU_PER_PX * scale));
+  const id = index + 100;
+  return (
+    "<w:p><w:r><w:drawing>" +
+    '<wp:inline xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" ' +
+    'distT="0" distB="0" distL="0" distR="0">' +
+    `<wp:extent cx="${cx}" cy="${cy}"/><wp:docPr id="${id}" name="Picture ${index}"/>` +
+    '<a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">' +
+    '<a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">' +
+    '<pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">' +
+    `<pic:nvPicPr><pic:cNvPr id="${id}" name="Picture ${index}"/>` +
+    "<pic:cNvPicPr/></pic:nvPicPr><pic:blipFill>" +
+    '<a:blip xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" ' +
+    `r:embed="rIdImg${index}"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill>` +
+    `<pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${cx}" cy="${cy}"/></a:xfrm>` +
+    '<a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr>' +
+    "</pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p>"
+  );
 }
 
 function tableXml(b: Block): string {
@@ -1029,7 +1260,7 @@ function tableXml(b: Block): string {
   );
 }
 
-function docxParts(document: string): ZipEntry[] {
+function docxParts(document: string, images: readonly BlockImage[] = []): ZipEntry[] {
   const types =
     XML_DECL +
     '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
@@ -1039,6 +1270,7 @@ function docxParts(document: string): ZipEntry[] {
     '<Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>' +
     '<Override PartName="/word/numbering.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml"/>' +
     '<Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/>' +
+    (images.length === 0 ? "" : '<Default Extension="png" ContentType="image/png"/>') +
     "</Types>";
 
   const rootRels =
@@ -1053,6 +1285,16 @@ function docxParts(document: string): ZipEntry[] {
     '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
     '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>' +
     '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering" Target="numbering.xml"/>' +
+    // 图的 rId 用 rIdImgN 而不是接着数：document.xml 里那串 r:embed 是在
+    // 组装正文时写死的，跟着 styles/numbering 的编号走会在加块时错位。
+    images
+      .map(
+        (_img, i) =>
+          `<Relationship Id="rIdImg${i + 1}" ` +
+          'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" ' +
+          `Target="media/image${i + 1}.png"/>`,
+      )
+      .join("") +
     "</Relationships>";
 
   return [
@@ -1063,6 +1305,7 @@ function docxParts(document: string): ZipEntry[] {
     { name: "word/_rels/document.xml.rels", data: utf8(docRels) },
     { name: "word/styles.xml", data: utf8(stylesXml()) },
     { name: "word/numbering.xml", data: utf8(NUMBERING_XML) },
+    ...images.map((img, i) => ({ name: `word/media/image${i + 1}.png`, data: img.png })),
   ];
 }
 
@@ -1169,6 +1412,9 @@ export function docToHtml(doc: ExportDoc): string {
       out.push("<hr/>");
     } else if (b.kind === "code") {
       out.push(`<pre>${esc(b.text)}</pre>`);
+    } else if (b.kind === "image") {
+      if (b.image !== null) out.push(`<p><img src="${dataUri(b.image)}" alt="${esc(b.text)}"/></p>`);
+      if (b.text) out.push(`<p class="note">${esc(b.text)}</p>`);
     } else if (b.kind === "table") {
       out.push("<table><tr>" + b.columns.map((c) => `<th>${esc(c)}</th>`).join("") + "</tr>");
       for (const r of b.rows) {
@@ -1196,19 +1442,47 @@ export type PdfRenderer = (html: string, css: string) => Uint8Array;
 
 let _pdfRenderer: PdfRenderer | null = null;
 
+/** HTML + CSS → PDF 字节（异步）。真实排版器都是子进程，见 server/glue/pdf.ts。 */
+export type PdfRendererAsync = (html: string, css: string) => Promise<Uint8Array>;
+
+let _pdfRendererAsync: PdfRendererAsync | null = null;
+
 /** HTML→PDF 排版器的接线点。传 null 解除（测试里用）。 */
 export function registerPdfRenderer(fn: PdfRenderer | null): void {
   _pdfRenderer = fn;
 }
 
+/**
+ * 异步排版器的接线点。
+ *
+ * **为什么要有异步这一路**：真实的排版器是起一个无头浏览器子进程，实测热启动
+ * 2.2 秒。同步做等于把整台服务卡住两秒 —— 而这条服务是单线程的，那两秒里所有人的
+ * 请求都在排队等一个人导 PDF。同步注册点保留原样（测试与老部署仍可用），
+ * 生产走这一路。
+ */
+export function registerPdfRendererAsync(fn: PdfRendererAsync | null): void {
+  _pdfRendererAsync = fn;
+}
+
 export function toPdf(doc: ExportDoc): Uint8Array {
   if (_pdfRenderer === null) {
+    if (_pdfRendererAsync !== null) {
+      // 明说要走异步口，不静默回落成别的格式，也不假装成功。
+      throw new ExportDependencyMissing(
+        "这台机器的 PDF 排版器是异步的，请走 renderAsync()（同步 render 出不了 pdf）",
+      );
+    }
     throw new ExportDependencyMissing(
       "PDF 需要一个 HTML→PDF 排版器，当前进程没有接线 —— " +
         "换 docx / xlsx / md，或在启动时调 registerPdfRenderer() 接一个",
     );
   }
   return _pdfRenderer(docToHtml(doc), PDF_CSS);
+}
+
+/** 这个进程有没有 pdf 排版能力（同步或异步都算）。 */
+function pdfReady(): boolean {
+  return _pdfRenderer !== null || _pdfRendererAsync !== null;
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -1256,6 +1530,45 @@ const ALIAS: Readonly<Record<string, string>> = {
 
 export const FORMATS: readonly string[] = Object.keys(SPECS);
 
+/**
+ * 这个进程**真的**导得出哪几种。
+ *
+ * 与 {@link FORMATS} 的区别是产品性的，不是技术性的：`FORMATS` 是格式表的全集，
+ * 用于**解析**用户说的格式名；这个函数是运行时能力，用于**宣传**。
+ *
+ * 两者必须分开。pdf 需要外部排版器（`registerPdfRenderer`），生产进程至今没接过 ——
+ * 如果宣传口径直接用 `FORMATS`，模型会照单全收地对用户说「给你导成 PDF」，
+ * 用户点了才发现导不出来：一轮白跑加一次失信。
+ *
+ * 反过来也不能靠「把 pdf 从 SPECS 里删掉」来实现诚实 —— 删了之后
+ * `resolveFormat("pdf")` 返回空，用户问 PDF 拿到的是泛泛的「不支持的格式」，
+ * 比现在那句具体的「这台机器上没接排版器」更差。**照常能解析，只是不宣传。**
+ */
+export function availableFormats(): string[] {
+  return FORMATS.filter((f) => f !== "pdf" || pdfReady());
+}
+
+/**
+ * 装得下图片的格式。
+ *
+ * 与 {@link availableFormats} 同一条规矩：**能力要说得出**。csv 是纯文本、
+ * 没有嵌图的位置；pdf 走 HTML 那条路（data URI），排版器接上了就能带图。
+ * 模型据此决定是"照办"还是"先说清这个格式放不下图"，而不是导完让用户自己发现。
+ */
+export function imageFormats(): string[] {
+  return availableFormats().filter((f) => f !== "csv");
+}
+
+export function supportsImages(fmt: string): boolean {
+  const key = resolveFormat(fmt);
+  return key !== "" && imageFormats().includes(key);
+}
+
+/** 格式表里有、但这个进程当前给不出来的。**要说得出，不能从清单里静默消失。** */
+export function unavailableFormats(): string[] {
+  return FORMATS.filter((f) => !availableFormats().includes(f));
+}
+
 export function resolveFormat(fmt: string): string {
   // Python 是 `.strip().lower().lstrip(".")`
   let f = pyStrip(fmt || "").toLowerCase();
@@ -1271,6 +1584,26 @@ export function render(doc: ExportDoc, fmt: string): [Uint8Array, ExportSpec] {
   }
   const spec = SPECS[key]!;
   return [spec.write(doc), spec];
+}
+
+/**
+ * 异步口。**pdf 走这里，其余格式只是同步 render 的外壳。**
+ *
+ * 端口层（`server/dialogue/ports.ts` 的 ExportApiLike.render）本来就声明成 Promise，
+ * 所以接线处换成这一个函数即可，调用方一行不用改。
+ */
+export async function renderAsync(
+  doc: ExportDoc,
+  fmt: string,
+): Promise<[Uint8Array, ExportSpec]> {
+  const key = resolveFormat(fmt);
+  if (!key) {
+    throw new ValueError(`不支持的格式「${fmt}」。可用：${Object.keys(SPECS).join("/")}`);
+  }
+  if (key === "pdf" && _pdfRendererAsync !== null) {
+    return [await _pdfRendererAsync(docToHtml(doc), PDF_CSS), SPECS[key]!];
+  }
+  return render(doc, key);
 }
 
 /** 文件名里不能出现的字符（跨 Windows/macOS 取并集），外加控制字符。 */

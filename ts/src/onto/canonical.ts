@@ -1609,6 +1609,11 @@ export function validatePackage(
     });
   }
   const coll = (name: CollectionName): Set<string> => byCollection.get(name)!;
+  const checkEvidenceIds = (value: unknown, path: string): void => {
+    iterOr(value).forEach((ref, index) => {
+      check(ref, coll("evidence"), `${path}/${index}`);
+    });
+  };
 
   const allIds = new Set<string>(ids.keys());
   const processNodeIds = new Set<string>();
@@ -1646,6 +1651,15 @@ export function validatePackage(
             `${path}/dataObjectRefs/${oi}`, "error", pyStr(ref));
         }
       });
+      checkEvidenceIds(dget(node, "analysisEvidenceIds"), `${path}/analysisEvidenceIds`);
+      iterOr(dget(node, "erpMappings")).forEach((mapping, mi) => {
+        if (isMapping(mapping)) {
+          checkEvidenceIds(
+            dget(mapping, "evidenceIds"),
+            `${path}/erpMappings/${mi}/evidenceIds`,
+          );
+        }
+      });
     });
     iterOr(dget(process, "edges")).forEach((edge, ei) => {
       if (!isMapping(edge)) return;
@@ -1671,6 +1685,15 @@ export function validatePackage(
     if (!isMapping(item)) return;
     check(dget(item, "systemOfRecord"), coll("systems"), `/dataObjects/${i}/systemOfRecord`);
     check(dget(item, "ownerRole"), coll("roles"), `/dataObjects/${i}/ownerRole`);
+    checkEvidenceIds(dget(item, "analysisEvidenceIds"), `/dataObjects/${i}/analysisEvidenceIds`);
+    iterOr(dget(item, "qualityRules")).forEach((rule, qi) => {
+      if (isMapping(rule)) {
+        checkEvidenceIds(
+          dget(rule, "evidenceIds"),
+          `/dataObjects/${i}/qualityRules/${qi}/evidenceIds`,
+        );
+      }
+    });
     iterOr(dget(item, "relations")).forEach((relation, j) => {
       if (isMapping(relation)) {
         check(dget(relation, "target"), coll("dataObjects"),
@@ -1727,6 +1750,7 @@ export function validatePackage(
     iterOr(dget(item, "scope")).forEach((ref, j) => {
       check(ref, allIds, `/rules/${i}/scope/${j}`);
     });
+    checkEvidenceIds(dget(item, "analysisEvidenceIds"), `/rules/${i}/analysisEvidenceIds`);
   });
 
   iterOr(dget(data, "questions")).forEach((item, i) => {

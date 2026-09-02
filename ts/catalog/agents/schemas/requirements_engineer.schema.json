@@ -1,0 +1,237 @@
+{
+  "type": "object",
+  "required": [
+    "requirements",
+    "coverage_assessments",
+    "questions"
+  ],
+  "properties": {
+    "requirements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "type",
+          "statement",
+          "confirmation_status",
+          "priority",
+          "owner_role",
+          "stakeholder_roles",
+          "acceptance_criteria",
+          "depends_on_ids",
+          "related_artifact_ids",
+          "evidence_ids"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "BUSINESS",
+              "FUNCTIONAL",
+              "NON_FUNCTIONAL",
+              "DATA",
+              "INTEGRATION",
+              "REPORTING",
+              "CONTROL",
+              "MIGRATION",
+              "COMPLIANCE"
+            ]
+          },
+          "statement": {
+            "type": "string",
+            "minLength": 1
+          },
+          "confirmation_status": {
+            "type": "string",
+            "enum": [
+              "CONFIRMED",
+              "CANDIDATE",
+              "UNKNOWN"
+            ]
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "MUST",
+              "SHOULD",
+              "COULD",
+              "UNSET"
+            ]
+          },
+          "owner_role": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "stakeholder_roles": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "acceptance_criteria": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "depends_on_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "related_artifact_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "evidence_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      }
+    },
+    "coverage_assessments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "requirement_id",
+          "status",
+          "capability_ids",
+          "rationale",
+          "downstream_impact",
+          "evidence_ids"
+        ],
+        "properties": {
+          "requirement_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "FIT",
+              "PARTIAL_FIT",
+              "GAP",
+              "UNKNOWN"
+            ]
+          },
+          "capability_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "rationale": {
+            "type": "string",
+            "minLength": 1
+          },
+          "downstream_impact": {
+            "type": "string",
+            "minLength": 1
+          },
+          "evidence_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      }
+    },
+    "questions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "text",
+          "audience_role",
+          "priority",
+          "answer_kind",
+          "options",
+          "blocked_ids",
+          "evidence_ids"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "text": {
+            "type": "string",
+            "minLength": 1
+          },
+          "audience_role": {
+            "type": "string",
+            "minLength": 1
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "BLOCKING",
+              "HIGH",
+              "NORMAL",
+              "LOW"
+            ]
+          },
+          "answer_kind": {
+            "type": "string",
+            "enum": [
+              "TEXT",
+              "NUMBER",
+              "INTEGER",
+              "BOOLEAN",
+              "SINGLE_CHOICE"
+            ]
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "blocked_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "evidence_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -20,11 +20,58 @@
 //     里上一轮的提示会在输入框正上方闪一下再被换掉，整块跳一跳。
 // 所以 <ChatChips> 自己读 G，自己决定画不画。调用方只管把它放进消息流。
 
-import type { ReactElement, ReactNode } from "react";
+import { useId, useState, type MouseEvent, type ReactElement, type ReactNode } from "react";
 
-import { ask } from "../chat.js";
+import { prefillComposer } from "../context-sync.js";
+import { t } from "../i18n.js";
 import { Markdown } from "./markdown.js";
 import { useUi } from "./store.js";
+
+/**
+ * Markdown 里的来源编号由安全的 data-source-id 与紧随回答的来源卡对齐。事件代理让
+ * dangerouslySetInnerHTML 里生成的链接仍可用键盘/鼠标激活，又不用给不可信内容绑
+ * 行内处理器。相同 URL 在历史轮次里可能重复，所以从当前回答向后找，不能全局按 id 找。
+ */
+function revealWebCitation(event: MouseEvent<HTMLDivElement>): void {
+  // 这个工程的 server/client 共用 tsconfig，没有全量 DOM lib；运行时仍只做标准 DOM
+  // 鸭子类型判断，测试环境和浏览器都支持 closest/querySelectorAll。
+  const eventTarget = event.target as any;
+  const origin = eventTarget?.closest
+    ? eventTarget.closest("a.web-citation-link[data-source-id]") as any
+    : null;
+  const sourceId = origin?.dataset.sourceId || "";
+  if (!origin || !/^[A-Za-z0-9][A-Za-z0-9_-]{0,119}$/.test(sourceId)) return;
+
+  const focusSource = (container: any): boolean => {
+    const target = Array.from(container.querySelectorAll(".web-source-article[data-source-id]") as any[])
+      .find((item: any) => item.dataset.sourceId === sourceId) as any;
+    if (!target) return false;
+    target.scrollIntoView?.({ block: "nearest", behavior: "smooth" });
+    target.focus?.({ preventScroll: true });
+    return true;
+  };
+
+  let collapsedCard: any = null;
+  let sibling: any = (event.currentTarget as any).parentElement?.nextElementSibling ?? null;
+  while (sibling && !sibling.classList.contains("bub")) {
+    if (focusSource(sibling)) {
+      event.preventDefault();
+      return;
+    }
+    if (!collapsedCard && sibling.classList.contains("web-sources-card")
+        && sibling.querySelector('.web-source-toggle[aria-expanded="false"]')) collapsedCard = sibling;
+    sibling = sibling.nextElementSibling;
+  }
+
+  // 引用可能指向默认折叠的第 4/5 条。先展开本回答后面的那张来源卡，再在 React
+  // 提交新列表后定位；用户不必猜“先展开，再回来点一次编号”。
+  const toggle = collapsedCard?.querySelector('.web-source-toggle[aria-expanded="false"]') as any;
+  if (toggle) {
+    event.preventDefault();
+    toggle.click();
+    setTimeout(() => { focusSource(collapsedCard); }, 0);
+  }
+}
 
 /**
  * 对话气泡。与推理轨迹卡片刻意用不同的视觉语言 ——
@@ -45,7 +92,8 @@ export function Bubble({ turn }: { turn: any }): ReactElement {
   if (streaming) txt = G.STREAM.full.slice(0, G.STREAM.i);
   return (
     <div className={"bub " + (me ? "me" : "oc")}>
-      <div className="body" {...(turn.pending ? { style: { opacity: .55 } } : {})}>
+      <div className="body" onClick={me ? undefined : revealWebCitation}
+        {...(turn.pending ? { style: { opacity: .55 } } : {})}>
         {me ? txt : <>
           {turn.intent
             ? <span className={"itag" + ((turn.confidence ?? 1) < 0.6 ? " low" : "")}>{turn.intent}</span>
@@ -57,29 +105,153 @@ export function Bubble({ turn }: { turn: any }): ReactElement {
   );
 }
 
+const SENSITIVE_KEY = /(?:pass(?:word|wd)?|pwd|token|api[_. -]?key|authorization|cookie|secret|credential|client[_. -]?secret)/iu;
+const INLINE_SECRET = /((?:pass(?:word|wd)?|pwd|access[_. -]?token|refresh[_. -]?token|api[_. -]?key|authorization|cookie|secret|credential|client[_. -]?secret)\s*[:=]\s*)(?:"[^"]*"|'[^']*'|[^\s,;}\]]+)/giu;
+const AUTH_SECRET = /\b(Bearer|Basic)\s+[A-Za-z0-9._~+/=-]+/giu;
+const FIELD_TEXT_LIMIT = 12_000;
+const DISCLOSURE_TEXT_LIMIT = 48_000;
+
+function redactText(value: unknown): string {
+  return String(value ?? "")
+    .replace(AUTH_SECRET, (_all, kind: string) => `${kind} ${t("reasoning.redacted")}`)
+    .replace(INLINE_SECRET, (_all, prefix: string) => `${prefix}${t("reasoning.redacted")}`);
+}
+
+/** 深度、节点数都有上限：恶意工具结果不能靠一个巨型对象在「脱敏」阶段冻住 UI。 */
+function redactStructured(value: unknown, seen = new WeakSet<object>(), budget = { nodes: 2_000 }, depth = 0): unknown {
+  if (budget.nodes-- <= 0 || depth > 12) return t("reasoning.truncated");
+  if (typeof value === "string") return redactText(value);
+  if (value === null || typeof value !== "object") return value;
+  if (seen.has(value as object)) return "[Circular]";
+  seen.add(value as object);
+  if (Array.isArray(value)) return value.slice(0, 500).map((item) => redactStructured(item, seen, budget, depth + 1));
+  const out: Record<string, unknown> = {};
+  for (const [key, item] of Object.entries(value as Record<string, unknown>).slice(0, 500)) {
+    out[key] = SENSITIVE_KEY.test(key) ? t("reasoning.redacted") : redactStructured(item, seen, budget, depth + 1);
+  }
+  return out;
+}
+
+function jsonText(value: unknown): string {
+  try { return JSON.stringify(redactStructured(value ?? {})); }
+  catch { return redactText(value); }
+}
+
+function boundedText(value: unknown, remaining: { chars: number }, fieldLimit = FIELD_TEXT_LIMIT): string {
+  const clean = value !== null && typeof value === "object" ? jsonText(value) : redactText(value);
+  const limit = Math.max(0, Math.min(fieldLimit, remaining.chars));
+  remaining.chars -= Math.min(clean.length, limit);
+  if (clean.length <= limit) return clean;
+  return clean.slice(0, limit) + t("reasoning.truncated");
+}
+
 /**
- * 推理过程。看不见的推理和编造的区别，用户是分辨不出来的 —— 所以默认展开，
- * 而不是折叠在一个「查看详情」后面。
- *
- * 观察值截到 240 字：一次工具调用的返回可以是几十 KB，整段铺开会把对话流冲垮。
+ * 展开区里的完整步骤。结果不再只留 240 字；容器自己滚动，用户点开后才能核对
+ * Harness 想了什么、调用了哪个工具、工具返回了什么。为防巨大/恶意结果拖垮 DOM，
+ * 单字段与整块各有明确上限，且敏感字段先脱敏。所有内容仍是 JSX 文本节点。
  */
-export function StepsCard(): ReactElement {
-  const G = useUi();
-  return (
-    <div className="steps">
-      {G.STEPS.map((x: any, i: number) => (
-        <div className="stp" key={i}>
-          <div className="stt">{x.thought || ""}</div>
-          {x.tool
-            ? <div className="sto"><code>{x.tool}</code>{" "}{JSON.stringify(x.args || {})}</div>
-            : null}
-          {x.observation
-            ? <div className="stb">{String(x.observation).slice(0, 240)}</div>
-            : null}
+function StepRows({ steps }: { steps: any[] }): ReactElement {
+  if (!steps.length) return <div className="reasoning-empty">{t("reasoning.preparing")}</div>;
+  const remaining = { chars: DISCLOSURE_TEXT_LIMIT };
+  return <div className="reasoning-step-list">
+    {steps.slice().sort((a: any, b: any) => (+a?.n || 0) - (+b?.n || 0)).map((x: any, i: number) => {
+      const thought = x?.thought ? boundedText(x.thought, remaining) : "";
+      const tool = x?.tool ? boundedText(x.tool, remaining, 240) : "";
+      const args = tool ? boundedText(jsonText(x.args), remaining) : "";
+      const observation = x?.observation !== undefined && x?.observation !== null && String(x.observation) !== ""
+        ? boundedText(x.observation, remaining) : "";
+      return <div className="stp" key={`${String(x?.turn ?? "")}:${String(x?.n ?? i)}`}>
+        <div className="reasoning-step-head">
+          <span className="reasoning-step-number" aria-hidden="true">{String(x?.n ?? i + 1).padStart(2, "0")}</span>
+          {thought ? <div className="stt">{thought}</div> : null}
         </div>
-      ))}
-    </div>
+        {tool ? <div className="sto"><code>{tool}</code>{" "}{args}</div> : null}
+        {observation ? <div className="stb">{observation}</div> : null}
+      </div>;
+    })}
+  </div>;
+}
+
+interface ReasoningDisclosureProps {
+  steps: any[];
+  running: boolean;
+  status?: string;
+  question?: string;
+  className?: string;
+}
+
+/** 原生 details 保留 Enter/Space、读屏语义和浏览器自己的展开状态。 */
+function ReasoningDisclosure({ steps, running, status, question, className = "" }: ReasoningDisclosureProps): ReactElement {
+  const [expanded, setExpanded] = useState(false);
+  const detailId = useId();
+  const label = running ? (status || t("reasoning.thinking")) : t("reasoning.completed");
+  const toggleLabel = t(running ? "reasoning.toggleRunning" : "reasoning.toggleCompleted");
+  return (
+    <details className={`reasoning-disclosure ${running ? "is-running" : "is-complete"} ${className}`.trim()}
+      aria-busy={running} onToggle={(event: any) => setExpanded(!!event.currentTarget.open)}>
+      <summary className="reasoning-summary" aria-expanded={expanded} aria-controls={detailId}
+        aria-label={question ? `${toggleLabel}：${question}` : toggleLabel} title={toggleLabel}>
+        {running ? <span className="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+          : <span className="reasoning-done" aria-hidden="true">✓</span>}
+        <span className="reasoning-status">{label}</span>
+        {running ? <span className="tsec" id="tsec" aria-hidden="true"></span>
+          : <span className="reasoning-count">{t("reasoning.steps", "", { n: steps.length })}</span>}
+        <span className="reasoning-chevron" aria-hidden="true"></span>
+      </summary>
+      <div className="reasoning-details" id={detailId} role="region" aria-label={toggleLabel}>
+        {expanded ? <StepRows steps={steps} /> : null}
+      </div>
+    </details>
   );
+}
+
+/** 已结束轮次仍保留在对话时间线里，但永远默认折叠。 */
+export function StepsCard({ steps, question }: { steps?: any[]; question?: string } = {}): ReactElement {
+  const G = useUi();
+  return <ReasoningDisclosure steps={steps ?? G.STEPS} running={false} className="steps"
+    {...(question === undefined ? {} : { question })} />;
+}
+
+function sourceRows(ev: any): any[] {
+  return Array.isArray(ev?.results) ? ev.results : Array.isArray(ev?.sources) ? ev.sources : [];
+}
+
+/** 当前轮检索到的候选数；只给业务进度文案用，不把内部工具名漏到折叠摘要。 */
+export function currentWebCandidateCount(state: any, activeTurnId = ""): number {
+  if (!activeTurnId) return 0;
+  const events = state?.events || [];
+  const boundary = events.find((ev: any) =>
+    ev?.kind === "chat.step" && String(ev?.step?.turn ?? "") === activeTurnId);
+  if (!boundary) return 0;
+  const boundarySeq = Number(boundary.seq);
+  const boundaryTs = +boundary.ts || 0;
+  const ids = new Set<string>();
+  let declared = 0;
+  for (const ev of events) {
+    if (ev?.kind !== "web.sources") continue;
+    const afterBoundary = Number.isSafeInteger(boundarySeq) && Number.isSafeInteger(Number(ev.seq))
+      ? Number(ev.seq) > boundarySeq : (+ev.ts || 0) >= boundaryTs;
+    if (!afterBoundary) continue;
+    const n = Number(ev?.total);
+    if (Number.isSafeInteger(n) && n >= 0) declared = Math.max(declared, n);
+    sourceRows(ev).forEach((row: any, i: number) => {
+      const id = String(row?.source_id ?? row?.id ?? row?.url ?? `${ev?.seq ?? "ev"}:${i}`).trim();
+      if (id) ids.add(id);
+    });
+  }
+  return Math.max(ids.size, declared);
+}
+
+/** 运行摘要只说业务动作；真实 tool/args/observation 留在用户主动展开的区域。 */
+export function currentReasoningStatus(state: any, steps: any[]): string {
+  const activeTurnId = String(steps[0]?.turn ?? "");
+  const candidates = currentWebCandidateCount(state, activeTurnId);
+  if (candidates > 0) return t("reasoning.screeningWeb", "", { n: candidates });
+  const tool = String(steps[steps.length - 1]?.tool ?? "").toLowerCase();
+  if (/^(web\.|browser\.)|web[._-]?(search|read)/u.test(tool)) return t("reasoning.searchingWeb");
+  if (/(evidence|corpus|document|material|file)[._-]?(search|read|list)?/u.test(tool)) return t("reasoning.readingMaterials");
+  if (/^(oir|flow|ontology|model)[._-]/u.test(tool)) return t("reasoning.checkingModel");
+  return t("reasoning.thinking");
 }
 
 /**
@@ -96,14 +268,11 @@ export function StepsCard(): ReactElement {
  */
 export function ThinkingBubble(): ReactElement {
   const G = useUi();
-  const last = G.STEPS.length ? G.STEPS[G.STEPS.length - 1] : null;
-  const what = last && last.tool ? `正在查 ${last.tool}`
-    : last && last.thought ? String(last.thought).slice(0, 40)
-    : "正在想";
   return (
-    <div className="bub oc think"><div className="body think">
-      <span className="dots"><i></i><i></i><i></i></span>{what}
-      <span className="tsec" id="tsec"></span></div></div>
+    <div className="bub oc think">
+      <ReasoningDisclosure steps={G.STEPS} running status={currentReasoningStatus(G.S, G.STEPS)}
+        className="body think" />
+    </div>
   );
 }
 
@@ -114,8 +283,20 @@ export interface Chip {
 }
 
 /**
- * 一排推荐问题。**点一条 = 把它当成用户自己打的字发出去**，不走特殊路径 ——
- * 特殊路径会和手打的行为漂移，而漂移的那天你不知道该信哪个。
+ * 一排推荐指令。**点一条 = 把它填进输入框，不发送。**
+ *
+ * 以前是点一下直接发出去。两个毛病叠在一起，结果是这排东西不敢点：
+ *
+ *   1. 文案是问句（「要导出成访谈提纲 excel 吗？」）—— 那是**该由副驾问用户的话**。
+ *      点下去却以用户身份发出，等于他自己问自己，方向反了。文案的口径已经在
+ *      `converse.ts` 的 next_questions 契约里改成陈述/祈使；副驾自己的疑问走
+ *      `followup` 字段，两者不再混。
+ *   2. 点即发，没有反悔余地。而这些是**猜**出来的话，猜错时用户要的是改一改
+ *      再发，不是撤回一条已经发出去的消息。
+ *
+ * 所以现在统一填进输入框、光标落到末尾，发不发、改不改由他决定。**不做例外**：
+ * 一部分点即发、一部分填输入框，用户就得记住哪个是哪个 —— 记不住的结果是两个
+ * 都不敢点。
  *
  * `data-s` 保留着：旧写法是 `onclick="ask(this.dataset.s)"`，属性是那句话的**运输
  * 工具**；React 下参数直接就是值，属性已经不承担运输，但它是这批按钮在 DOM 上
@@ -127,7 +308,9 @@ export function Chips({ chips, center = false }: { chips: Chip[]; center?: boole
     <div className="pchips" {...(center ? { style: { justifyContent: "center" } } : {})}>
       {chips.map((c, i) => {
         const send = c.send || c.text;
-        return <button className="pchip" key={i} data-s={send} onClick={() => { void ask(send); }}>{c.text}</button>;
+        return <button className="pchip" key={i} data-s={send}
+          title="填进输入框，可以改了再发"
+          onClick={() => { prefillComposer(send, { mode: "replace", focusSidebar: false }); }}>{c.text}</button>;
       })}
     </div>
   );

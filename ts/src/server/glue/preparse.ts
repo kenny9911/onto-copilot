@@ -17,6 +17,13 @@ import {
 } from "../../onto/parse/index.js";
 import { citeOf, toEvidenceChunk } from "./chunks.js";
 import type { Session } from "../session.js";
+import { getDocumentServiceOptional } from "../../document/deps.js";
+import {
+  manifestPinKey,
+  projectDocumentPinsInProjection,
+  reconcileProjectDocumentProjection,
+} from "./document_projection.js";
+import { documentScope } from "./project_scope.js";
 
 /** `s.state["_chunks"]` 里一份材料的一片。**两条解析路共用这一个形状**。 */
 export interface CachedChunk {
@@ -84,6 +91,110 @@ export function indexFromChunkCache(
 }
 
 /**
+ * 只用刚刚通过 ACL 的 manifest 保留项目切片，并立即重建一份安全索引。
+ * manifest 读取失败时传 `[]`，会清掉全部项目切片但保留会话临时附件/OCR。
+ */
+export function reconcileDocumentEvidence(
+  s: { readonly state: Record<string, unknown> },
+  manifest: unknown,
+  opts: { readonly forceRebuild?: boolean } = {},
+): void {
+  const reconciled = reconcileProjectDocumentProjection(s.state, manifest, {
+    forceInvalidateDerived: opts.forceRebuild === true,
+  });
+  // 只在**真的动过**投影时重建索引。旧写法是 `opts.forceRebuild === true || …`，
+  // 于是没有项目的会话每聊一轮都要把整份 _chunks 重新灌一遍 EvidenceIndex：
+  // 真库里最大的三个会话各有 ~3.9k 切片，实测一次重建 ~140ms 冷 / ~63ms 热，
+  // 全在请求路径上，且结果和上一轮一模一样。
+  if (reconciled.invalidatedDerived || s.state["_index"] === undefined) {
+    const safe = s.state["_chunks"] as Record<string, CachedChunk[] | undefined>;
+    if (Object.values(safe).some((rows) => (rows?.length ?? 0) > 0)) {
+      s.state["_index"] = indexFromChunkCache(safe);
+    } else {
+      delete s.state["_index"];
+    }
+  }
+}
+
+/** `hydrateAttachedDocumentEvidence` 需要的最小会话形状。 */
+export interface DocumentEvidenceHost {
+  readonly id: string;
+  readonly projectId: string;
+  readonly owner: string;
+  readonly state: Record<string, unknown>;
+  /** 对话侧的 SessionLike 没有声明 emit —— 有就发事件，没有就只留 state 上的标记。 */
+  emit?(kind: string, payload?: Record<string, unknown>): unknown;
+}
+
+/**
+ * 把 manifest 里**已授权但正文还没进活会话**的那些版本加载进证据索引。
+ *
+ * 这是「用于本次分析」点了不生效的正解。旧行为下，attach 只写一行 `session_document`，
+ * 随后所有路径调的 `reconcileDocumentEvidence` 都是**纯减法**：它按 manifest 过滤
+ * `_chunks`，再从**已经缓存的东西**重建索引，没有任何一条分支会去仓储读正文。
+ * 结果是会话落到最坏的状态 —— `_document_manifest` 有这一行，于是 `contextBrief`
+ * 告诉模型「本次已固定的项目知识：某某（v2）」，严格材料门也因此打开并要求引用；
+ * 而 `_chunks`/`_index` 里一个切片都没有。模型被告知证据存在、却拿不到、还必须引用。
+ *
+ * 故意**不**把加载塞进 `reconcileDocumentEvidence`：那个函数是 fail-closed 的减法半边，
+ * `preparse` 第 148 行正是靠它「先清空再整体重灌」，让它顺带加载会在那里重复加载一次。
+ *
+ * 判定依据取自 `_chunks` 而不是某个变更计数器，所以它也顺带自愈了
+ * `refreshChatProjection` 那个洞：持久化副本里的 DOC 正文本来就被剥掉了
+ * （pipeline/persist.ts），跨 worker 状态回灌之后这里会自然把它补回来。
+ *
+ * @returns 是否真的加载了新正文（steady state 恒为 false，不碰任何东西）。
+ */
+export async function hydrateAttachedDocumentEvidence(
+  s: DocumentEvidenceHost,
+  manifest: unknown,
+): Promise<boolean> {
+  const rows = Array.isArray(manifest) ? (manifest as Record<string, unknown>[]) : [];
+  if (rows.length === 0) return false;
+  const present = projectDocumentPinsInProjection(s.state);
+  const wanted = rows.map(manifestPinKey).filter((key): key is string => key !== null);
+  // 稳定态：清单里每一版的正文都已经在活会话里 —— 什么都不做，连索引都不重建。
+  if (wanted.length > 0 && wanted.every((key) => present.has(key))) return false;
+
+  const documents = getDocumentServiceOptional();
+  if (documents === null) {
+    // fail closed：绝不能留下一条指向「加载不到的正文」的 manifest 行。
+    s.state["_document_manifest"] = [];
+    s.state["_document_manifest_error"] = "项目知识库服务尚未就绪，未使用任何历史项目切片。";
+    reconcileDocumentEvidence(s, [], { forceRebuild: true });
+    return false;
+  }
+  try {
+    // loadAttachedParsedDocs 会对每个精确版本重新鉴权并钉住 ACL revision，
+    // 所以轮中加载必须走它，而不是更便宜的仓储直读。
+    const loaded = await documents.loadAttachedParsedDocs({
+      ...(await documentScope(s)),
+      sessionId: s.id,
+    });
+    // 用刚刚重新裁决过的那份 manifest，而不是调用方传进来的。
+    s.state["_document_manifest"] = loaded.manifest;
+    delete s.state["_document_manifest_error"];
+    const cache = {
+      ...(s.state["_chunks"] as Record<string, CachedChunk[]> | undefined ?? {}),
+      ...chunkCache(loaded.documents),
+    };
+    s.state["_chunks"] = cache;
+    // 整体重建而不是增量并入：增量形态会让 buildIndex 的真实 fileId 和后续重建时的
+    // `restored_<name>` 两套键共存，`evidence.search(files=[...])` 的答案会取决于
+    // 你什么时候看。这条路径只在挂载真的变化的那一轮走。
+    s.state["_index"] = indexFromChunkCache(cache);
+    // 不删 _profiles/_endpoints：文档集合只增不减，全语料汇总仍然成立。
+    return true;
+  } catch (exc) {
+    s.state["_document_manifest"] = [];
+    s.state["_document_manifest_error"] = formatExc(exc);
+    reconcileDocumentEvidence(s, [], { forceRebuild: true });
+    s.emit?.("document.load_failed", { error: formatExc(exc) });
+    return false;
+  }
+}
+
+/**
  * 新增/同名替换材料后，旧派生状态不能继续冒充当前文件的解析结果。
  * 未变化文件的缓存与检索仍保留；profiles/endpoints 涉及全语料汇总，只能失效。
  * corpus 本身也是按文件展开的，所以保留未变化文件那部分；否则重传一份文本会把
@@ -115,6 +226,9 @@ export async function preparse(
   opts: { vision?: VisionGateway | null } = {},
 ): Promise<void> {
   const vision = opts.vision ?? null;
+  // 项目正文每次都从 DocumentService 重新鉴权并装载，绝不拿持久化旧缓存顶替。
+  // 会话临时附件（包括付费 OCR）仍保留，下面原有合并逻辑只会看到这些安全切片。
+  reconcileDocumentEvidence(s, [], { forceRebuild: true });
   let docs: ParsedDoc[];
   try {
     const reg = defaultRegistry({
@@ -127,6 +241,37 @@ export async function preparse(
     // 解析失败不该让上传失败 —— 拖了个文件进来，读不动它不该让这次上传整个失败。
     s.emit("parse.failed", { error: formatExc(exc) });
     return;
+  }
+  // OntoDocument 与会话临时附件汇入同一份证据索引，但身份绝不能混：项目文档的
+  // file_id/chunk_id 来自不可变 version，文件名只用于显示。只有显式 attach 到本会话
+  // 的精确版本会进入这里；项目库里后来出现的新版本不会自动替换。
+  const documents = getDocumentServiceOptional();
+  if (documents !== null && s.projectId) {
+    try {
+      // owner 走项目边界解析：HTTP 侧存进去的分区是项目的，这里用会话的
+      // 就会读到另一个（空的）分区。见 glue/project_scope.ts。
+      const loaded = await documents.loadAttachedParsedDocs({
+        ...(await documentScope(s)),
+        sessionId: s.id,
+      });
+      docs.push(...loaded.documents);
+      s.state["_document_manifest"] = loaded.manifest;
+      delete s.state["_document_manifest_error"];
+    } catch (exc) {
+      // 对话侧可以继续处理临时附件，但必须显式标出项目文档没有加载，不能把缺失
+      // 伪装成“知识库里没有”。严格材料门会因 manifest/项目材料存在而拒绝无证据结论。
+      s.emit("document.load_failed", { error: formatExc(exc) });
+      s.state["_document_manifest"] = [];
+      s.state["_document_manifest_error"] = formatExc(exc);
+      reconcileDocumentEvidence(s, [], { forceRebuild: true });
+    }
+  } else if (s.projectId) {
+    s.state["_document_manifest"] = [];
+    s.state["_document_manifest_error"] = "项目知识库服务尚未就绪，未使用任何历史项目切片。";
+    reconcileDocumentEvidence(s, [], { forceRebuild: true });
+  } else {
+    s.state["_document_manifest"] = [];
+    delete s.state["_document_manifest_error"];
   }
   const index = buildIndex(docs);
   const previousCorpus = asRecord(s.state["corpus"]);

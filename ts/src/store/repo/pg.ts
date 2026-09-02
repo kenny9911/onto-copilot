@@ -1892,12 +1892,16 @@ export class PgRepo implements Repo {
 
   async readEvents(sid: string, opts?: ReadEventsOpts): Promise<EventRow[]> {
     const since = opts?.since ?? 0;
+    const limit = opts?.limit;
     return this.engine.connect(async (conn) => {
-      const rows = await conn.db
+      const q = conn.db
         .select()
         .from(t.session_event)
         .where(and(eq(t.session_event.session_id, sid), gte(t.session_event.seq, since)))
-        .orderBy(asc(t.session_event.seq));
+        .orderBy(asc(t.session_event.seq))
+        .$dynamic();
+      // 不传 limit 时**一句 limit 都不拼**，SQL 与加这个字段之前逐字相同。
+      const rows = await (limit === undefined ? q : q.limit(limit));
       const out: EventRow[] = [];
       for (const raw of rows) {
         const r = asRec(raw);

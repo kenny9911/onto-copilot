@@ -28,6 +28,14 @@ export function pendingQuestions(s: Session): Question[] {
   return [...questionBacklog(s).questions.values()].filter((q) => PENDING_STATUSES.has(q.status));
 }
 
+/** 允许扣住会话状态的未决问题：只有 blocking（优先级或阻塞产物）。
+ * 真实梳理会攒下几千条普通 open 问题 —— 它们是工作清单，不是闸门；
+ * 全部计入的话 `awaiting_answer` 没有出口（4044 条谁也答不完），
+ * build.start 永远 409。与 INTERVIEW 关口的 blockers() 同一判据。 */
+export function blockingPendingQuestions(s: Session): Question[] {
+  return pendingQuestions(s).filter((q) => q.blocking);
+}
+
 export interface SyncBacklogOptions {
   readonly oir?: OIR | null;
   readonly clarification?: readonly unknown[] | null;

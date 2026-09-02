@@ -1,5 +1,5 @@
-// 事件流（EventSource）。断线重连总是 ?since=0，重放的处理写在下面。
-import { G, OPS_CAP, QUOTA_KINDS, TBL_OPEN } from "./state.js";
+// 事件流（EventSource）。首连从 0 水合；断线后从已收到的最大 durable seq 继续。
+import { G, OPS_CAP, QUOTA_KINDS } from "./state.js";
 import { API } from "./dom.js";
 import { evLabel, evDetail, evTag } from "./events.js";
 import { noteQuota, clearQuota } from "./quota.js";
@@ -10,16 +10,66 @@ import { render } from "./render.js";
 import { paint } from "./preview.js";
 
 // ── 事件流 ──────────────────────────────────────────────────────
-export function connect(){
-  if (G.ES) G.ES.close();
-  if (!G.S) return;
-  G.ES = new EventSource(`${API}/api/sessions/${G.S.id}/stream?since=0`);
-  G.ES.onmessage = (e: any) => {
+const ES_OPEN = 1;
+const RECONNECT_MS = 500;
+let streamGeneration = 0;
+let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+
+function cancelReconnect(): void {
+  if (reconnectTimer === null) return;
+  clearTimeout(reconnectTimer);
+  reconnectTimer = null;
+}
+
+/** 断点只认已落库的非负 seq；pending projection 不能变成续传游标。 */
+function nextDurableSeq(sid: string): number {
+  if (!G.S || G.S.id !== sid) return 0;
+  let latest = -1;
+  for (const ev of G.S.events || []) {
+    const seq = Number(ev?.seq);
+    if (Number.isSafeInteger(seq) && seq >= 0) latest = Math.max(latest, seq);
+  }
+  return latest + 1;
+}
+
+/**
+ * generation + sid 是同一道隔离栅：关掉 EventSource 不保证已排进事件队列的
+ * message/reset 不再回调，所以旧流的回调还必须自己失效。
+ */
+function openStream(sid: string, since: number): void {
+  cancelReconnect();
+  const previous = G.ES;
+  G.ES = null;
+  previous?.close?.();
+  const generation = ++streamGeneration;
+  if (!G.S || G.S.id !== sid) return;
+
+  const source = new EventSource(`${API}/api/sessions/${sid}/stream?since=${since}`);
+  G.ES = source;
+  const current = (): boolean =>
+    generation === streamGeneration && G.S?.id === sid && G.ES === source;
+
+  source.onopen = () => {
+    if (current()) cancelReconnect();
+  };
+  source.onerror = () => {
+    if (!current() || reconnectTimer !== null) return;
+    // 先给原生 EventSource 一个恢复窗口；若它重新 open，onopen 会撤销这次重建。
+    // 否则只有这一枚定时器换流，错误风暴也不会同时建出多条连接。
+    reconnectTimer = setTimeout(() => {
+      reconnectTimer = null;
+      if (!current() || Number(source.readyState) === ES_OPEN) return;
+      openStream(sid, nextDurableSeq(sid));
+    }, RECONNECT_MS);
+  };
+  source.onmessage = (e: any) => {
+    if (!current()) return;
     const ev = JSON.parse(e.data);
-    // 服务端从头重放前先发这一条。EventSource 掉线会自动重连（服务重启、部署、
-    // 网络抖一下都会），而重连总是 ?since=0；不清空的话新旧两轮的 seq 会交叠，
-    // 同一张表画两遍，其中一份的导出按钮指向一个已经不存在的 seq。
-    if (ev.kind === "stream.reset") { G.S.events = []; G.OPS = []; TBL_OPEN.clear(); return; }
+    // 服务端从头重放前先发这一条。事件序号现在来自持久 session_event，重启后也
+    // 不会归零；下面每条事件本来就按 seq 去重。因此这里不能先清空现有投影：历史
+    // chat.turn 总在 web.sources 之前重放，清空会让已经显示的来源卡先消失，若重放
+    // 中途断开就会一直消失到用户手动刷新。切换会话时 openSession 已负责清空。
+    if (ev.kind === "stream.reset") return;
     G.S.events = G.S.events.filter((x: any) => x.seq !== ev.seq).concat([ev]).sort((a: any,b: any)=>a.seq-b.seq);
     // 操作记录：**除了对话本身，发生的每一件事都记一笔**，给右栏「推理」用。
     // 对话内容不进来（它在聊天窗口里，抄一遍是噪声），但对话过程中 AI 调了什么
@@ -61,13 +111,23 @@ export function connect(){
     // 于是抽取跑几分钟、AI 一直在想在查，面板却是空的 —— FDE 分不清"在干活"
     // 还是"卡住了"。这里把内核事件映成同一种行结构，归到「材料梳理」这一轮下。
     if (ev.kind && ev.kind.indexOf("kernel.") === 0) {
+      // cohort（节点内并行子任务）标注：同一个节点里几条线各想各的，不标出
+      // 是谁在想，面板上就是一锅粥（P4）。
+      const coTag = (x: any) => (x.cohort_task !== undefined ? `[并行任务${x.cohort_task + 1}] ` : "");
       const KROW: Record<string, (x: any) => any> = {
-        "kernel.thought":     (x: any) => ({thought: x.detail}),
-        "kernel.plan":        (x: any) => ({thought: "计划：" + (x.detail || "")}),
-        "kernel.observation": (x: any) => ({tool: x.node || "查证", observation: x.detail}),
+        "kernel.thought":     (x: any) => ({thought: coTag(x) + x.detail}),
+        "kernel.plan":        (x: any) => (x.cohort
+          ? {thought: `${x.node || ""} 启动 ${x.cohort_tasks} 个并行分析任务：${x.detail || ""}`}
+          : {thought: "计划：" + (x.detail || "")}),
+        "kernel.observation": (x: any) => ({tool: x.node || "查证", observation: coTag(x) + x.detail}),
         "kernel.critic":      (x: any) => ({observation: "审查：" + (x.detail || "")}),
         "kernel.node_failed": (x: any) => ({observation: `${x.node || ""} 失败：${x.detail || ""}`}),
         "kernel.degraded":    (x: any) => ({observation: "降级：" + (x.detail || "")}),
+        // 完成行带耗时（投影层现算的 secs，不是心跳）——「在干活」和「卡住了」
+        // 的第三种答案是「已经干完了，花了多久」。
+        "kernel.node_completed": (x: any) => ({
+          observation: `${x.node || ""} 完成${typeof x.secs === "number" ? `（${x.secs}s）` : ""}`,
+        }),
       };
       const mk = KROW[ev.kind];
       if (mk) {
@@ -88,11 +148,66 @@ export function connect(){
     // 所以这里不再需要对轮次。
     if (ev.kind === "prompts.ready" && ev.slot === "opening") G.PROMPTS = ev.questions || [];
     if (ev.kind === "node.completed" && ev.node === "CONFLICT") G.S.state.conflicts = ev.conflicts;
-    if (["corpus.ready","corpus.restored","parse.failed","run.completed","run.failed","run.suspended","run.cancelled","artifact.ready","human.recorded","question.updated","question.answered","audit.applied"].includes(ev.kind))
-      void fetch(`${API}/api/sessions/${G.S.id}/state`).then(r=>r.json()).then((st: any) => {
-        mergeStateSnapshot(st);
-        G.S.files = (st.filelist || []).length; loadQuestions(); render(); paint();
-      }).catch(() => { /* 状态刷新失败不应打断 SSE 归约；下一个事件或手动刷新会重试。 */ });
-    render();
+    // 对话层的写入**必须**在这张表里。它们本来只进活动流（G.OPS），于是界面上
+    // 看得到"改了本体"这条记录，右栏的对象/流程计数却纹丝不动 —— 用户只能去点
+    // 刷新，而他刚刚明明看见系统说改好了。判据是"这个事件代表会话状态变了吗"，
+    // 不是"它由哪一层发出"。
+    if (["corpus.ready","corpus.restored","parse.failed","run.completed","run.failed","run.suspended","run.cancelled","artifact.ready","human.recorded","question.updated","question.answered","audit.applied","draft.initialized","draft.updated","oir.edited","flow.ready","sketch.ready","template.edited"].includes(ev.kind))
+      scheduleStateRefresh();
+    scheduleRender();
   };
+}
+
+// ── SSE 归约的两个去抖阀 ─────────────────────────────────────────
+//
+// **案发现场（2026-08-25，会话 d53cb63f7e18）**：首连是 `?since=0` 全历史回放，
+// 2016 条事件同步涌入。上面那张「状态刷新事件表」扩进了高频事件（oir.edited /
+// flow.ready / draft.updated / template.edited）之后，历史里的每一条都触发一次
+// 「拉 8MB /state + loadQuestions（数千问题）+ 全量 render+paint」；再叠加
+// 每事件一次的收尾 render —— 渲染进程 100% CPU 冻死 10 分钟以上，页面对点击
+// 无任何反应。表本身的意图是对的（状态变了要刷新），错在**每条事件都立刻全套**。
+// 去抖之后：回放风暴坍缩成一次刷新 + 每帧一次渲染；活动期的事件爆发
+// （比如 mutation queue 收尾一次 drain 多条事件）同样受益。
+
+/** 手动打开/切换会话时从头水合；自动断线才走上面的续传游标。 */
+export function connect(){
+  cancelReconnect();
+  if (!G.S) {
+    G.ES?.close?.();
+    G.ES = null;
+    streamGeneration++;
+    return;
+  }
+  openStream(G.S.id, 0);
+}
+
+/** 渲染合并：一个 tick 内的多条事件只画一次。render 是 G 的幂等投影，晚 16ms
+ *  画丢不了任何状态。 */
+let renderQueued = false;
+function scheduleRender(){
+  if (renderQueued) return;
+  renderQueued = true;
+  setTimeout(() => { renderQueued = false; render(); }, 16);
+}
+
+/** 状态刷新合并：静默 400ms 后拉**一次** /state；拉的期间又有事件到，就在
+ *  拉完后补一次（latest-wins）。绝不并发拉 —— /state 有几 MB，叠着拉是自噎。 */
+let stateTimer: ReturnType<typeof setTimeout> | null = null;
+let stateInFlight = false;
+let stateDirty = false;
+function scheduleStateRefresh(){
+  if (stateInFlight) { stateDirty = true; return; }
+  if (stateTimer !== null) return;
+  stateTimer = setTimeout(() => {
+    stateTimer = null;
+    stateInFlight = true;
+    void fetch(`${API}/api/sessions/${G.S.id}/state`).then(r=>r.json()).then((st: any) => {
+      mergeStateSnapshot(st);
+      G.S.files = (st.filelist || []).length; loadQuestions(); render(); paint();
+    }).catch(() => { /* 状态刷新失败不应打断 SSE 归约；下一个事件或手动刷新会重试。 */ })
+      .finally(() => {
+        stateInFlight = false;
+        if (stateDirty) { stateDirty = false; scheduleStateRefresh(); }
+      });
+  }, 400);
 }

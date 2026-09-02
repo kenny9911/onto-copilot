@@ -322,6 +322,30 @@ export function parseDocxContent(
     const body = rows.slice(1);
     tables.push({ index: ti, columns: header, rows: body.length });
     for (const [ri, row] of body.entries()) {
+      // **必须给 raw，形状是 {列名: 值}。**
+      //
+      // 漏了它不会报错，只会静默降级：`Segment.rows()` 判的是
+      // `isPlainDict(c.raw)`，而 makeChunk 的默认是 `raw: null` —— null 直接出局。
+      // 后果是整份 docx 的表格行对规则层**完全不可见**：rows 为空 → inferShape
+      // 走「行数 < 3」分支 → 无 rowUnit、无 yields、structuralExtract 抽 0 条 →
+      // 每一段的全部内容都当散文喂给模型。一次真实事故里这是 1553 个切片。
+      //
+      // 形状要与 tabular.ts 的表格行**逐字一致**（classifyColumns 对两边一视同仁），
+      // 别自创 {row, columns} 那种 —— 那会让列分类器拿到两列数组当输入。
+      // 空表头用 `C{n}` 兜底，与 presentation.ts 的表格行同一套规则。
+      //
+      // **不能直接拿表头当键**：真实 docx 的表头常有多个空格子，而 raw 是字典 ——
+      // 两个空列名会撞成同一个键，后一个把前一个的值覆盖掉，那一列的数据就
+      // 静默消失了。render 是字符串、不在乎重名，所以两边规则本来就不必相同：
+      // 前者是显示，后者是数据，数据要的是键唯一。
+      //
+      // 也不能跳过空列名 —— 跳过同样是丢值，而且会让各行的键集不一致，
+      // classifyColumns 的列填充率就算错了。
+      const raw: Record<string, string> = {};
+      for (let i = 0; i < Math.min(header.length, row.length); i += 1) {
+        const name = header[i] as string;
+        raw[name === "" ? `C${i + 1}` : name] = row[i] as string;
+      }
       doc.chunks.push(
         makeChunk({
           docId: `t${ti}r${ri}`,
@@ -334,6 +358,7 @@ export function parseDocxContent(
             .map((v, i) => (i < header.length && v ? `${header[i] as string}=${v}` : ""))
             .filter((s) => s !== "")
             .join(" | "),
+          raw,
           order,
           tags: ["table"],
         }),

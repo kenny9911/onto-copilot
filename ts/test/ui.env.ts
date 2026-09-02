@@ -78,10 +78,24 @@ g.prompt = () => null;
 /** connect() 造的 EventSource：把 onmessage 抓出来，测试自己往里喂事件。 */
 export class FakeEventSource {
   static last: FakeEventSource | null = null;
+  static instances: FakeEventSource[] = [];
   onmessage: ((e: { data: string }) => void) | null = null;
+  onopen: (() => void) | null = null;
+  onerror: (() => void) | null = null;
+  /** 与浏览器 EventSource 数值一致：0=CONNECTING, 1=OPEN, 2=CLOSED。 */
+  readyState = 0;
   closed = false;
-  constructor(readonly url: string) { FakeEventSource.last = this; }
-  close(): void { this.closed = true; }
+  constructor(readonly url: string) {
+    FakeEventSource.last = this;
+    FakeEventSource.instances.push(this);
+  }
+  close(): void { this.closed = true; this.readyState = 2; }
+  open(): void { this.closed = false; this.readyState = 1; this.onopen?.(); }
+  error(opts: { closed?: boolean } = {}): void {
+    this.closed = opts.closed === true;
+    this.readyState = this.closed ? 2 : 0;
+    this.onerror?.();
+  }
   /** 按 SSE 的形态送一条事件（data 是 JSON 文本）。 */
   send(ev: unknown): void { this.onmessage?.({ data: JSON.stringify(ev) }); }
 }

@@ -39,6 +39,8 @@ import {
   QuotaExhausted,
   Usage,
   type GenerateArgs,
+  type ImageGenArgs,
+  type ImageGenResult,
   type LLMBackend,
   type ModelSpec,
 } from "./llm.js";
@@ -753,6 +755,53 @@ export class OpenAICompatBackend implements LLMBackend {
     return body;
   }
 
+  /**
+   * 出图 —— `/images/generations`，与 chat completions 不是一条路。
+   *
+   * 不走 `generate` 的重试梯子：那套梯子（截断加预算、schema 反馈重试）全是为
+   * 文本设计的，对图像没有意义。这里只做一次调用 + 可读的错误 —— 展示副本
+   * 失败不影响主链，调用方如实报告即可，不值得为它烧重试预算。
+   */
+  async generateImage(args: ImageGenArgs): Promise<ImageGenResult> {
+    const body: Record<string, unknown> = {
+      model: args.model,
+      prompt: args.prompt,
+      response_format: "b64_json",
+    };
+    if (args.size) body["size"] = args.size;
+
+    let res: Response;
+    try {
+      res = await this.#fetch(`${this.baseUrl}/images/generations`, {
+        method: "POST",
+        headers: this.#headers,
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(this.#timeoutMs),
+      });
+    } catch (exc) {
+      throw new ModelError(`图像生成请求没发出去：${String(exc)}`);
+    }
+
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      // 404/400 多半是"网关上没有这个图像模型"。把话说明白 —— 用户对着
+      // 一条裸 404 只会去查网络，而其实该去设置页选一个带出图能力的模型。
+      throw new ModelError(
+        `图像生成失败（HTTP ${res.status}）。多半是网关上没有可用的图像模型，`
+        + `或所选模型不支持出图。原始信息：${cutCodePoints(text, 300)}`,
+      );
+    }
+
+    const parsed = (await res.json().catch(() => null)) as
+      | { data?: { b64_json?: string }[] }
+      | null;
+    const b64 = parsed?.data?.[0]?.b64_json ?? "";
+    if (!b64) {
+      throw new ModelError("图像生成的响应里没有图（data 为空）—— 不把空结果装成成功。");
+    }
+    return { b64 };
+  }
+
   // ── 调用 ────────────────────────────────────────────────────
   async generate(args: GenerateArgs): Promise<[string, Usage]> {
     const model = args.model;
@@ -789,7 +838,20 @@ export class OpenAICompatBackend implements LLMBackend {
 
       // httpx 的 `resp.text` 能读很多次，fetch 的 body 只能读一次 —— 所以这里
       // 一次读成字符串，后面的状态判定与 JSON 解析都用它。
-      const text = await res.text().catch(() => "");
+      //
+      // **body 读取失败不能吞成空串。** 网关先回了 200 头、随后连接悬死，
+      // AbortSignal 在读 body 时才触发 —— 以前 `.catch(() => "")` 把这种超时
+      // 变成空文本，200 分支里 `JSON.parse("")` 再抛裸 SyntaxError 逃出重试
+      // 循环，整个节点被判死（真实案发：EXTRACT.s37_27，一次调用悬挂 18 分钟）。
+      // 读不到 body 和连不上是同一类瞬时故障：退避重试。
+      let text: string;
+      try {
+        text = await res.text();
+      } catch (exc) {
+        last = new ModelError(`${model.name} 响应体读取失败（连接中断/超时）: ${pyStrException(exc)}`);
+        await this.backoff(attempt);
+        continue;
+      }
 
       if (res.status === 400) {
         const field = offendingField(text, body);
@@ -825,7 +887,19 @@ export class OpenAICompatBackend implements LLMBackend {
         );
       }
 
-      return this.parse(model, JSON.parse(text) as Record<string, unknown>);
+      // 2xx 但 body 不是合法 JSON = 网关把响应截断了（悬死连接最终吐出半个体）。
+      // 这是瞬时故障，不是程序错误 —— 裸 SyntaxError 会逃出重试循环。
+      let parsed: Record<string, unknown>;
+      try {
+        parsed = JSON.parse(text) as Record<string, unknown>;
+      } catch {
+        last = new ModelError(
+          `${model.name} 2xx 响应体不是合法 JSON（疑似截断，len=${text.length}）: ${cutCodePoints(text, 120)}`,
+        );
+        await this.backoff(attempt);
+        continue;
+      }
+      return this.parse(model, parsed);
     }
 
     throw new ModelError(

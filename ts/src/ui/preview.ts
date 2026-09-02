@@ -11,10 +11,15 @@ import { render } from "./render.js";
 import { bumpUi } from "./react/store.js";
 
 // ── 渲染：右栏 ──────────────────────────────────────────────────
+const CONTEXT_TAB: Record<string, string> = {
+  mat: "evidence", ent: "model", cf: "review", q: "review",
+  art: "delivery", flow: "model", think: "runtime",
+};
+
 export function go(t: any){
-  G.TAB = t;
+  G.TAB = CONTEXT_TAB[String(t)] || String(t);
   document.querySelectorAll(".tab").forEach((b: any) => b.classList.toggle("on", b.dataset.t === G.TAB));
-  if (t === "q" && G.S) loadQuestions(); else paint();
+  if ((G.TAB === "review" || t === "q") && G.S) loadQuestions(); else paint();
   pfade();
 }
 
@@ -53,6 +58,7 @@ export async function openSource(file: any, cite: any){
   // cite 形如「文件名!sheet!R1C2」或「文件名#p2」——从前缀兜底出文件名，
   // 否则 file='' 会命中 /source?file= 的 500，而且什么都定位不到。
   if (!file && cite) file = String(cite).split(/[!#]/)[0];
+  if (["project", "model", "review", "delivery"].includes(G.TAB)) G.CONTEXT_BACK = G.TAB;
   go("mat"); G.FILE = file; paint();
   if (file) await loadSource(file);
   if (!cite) return;

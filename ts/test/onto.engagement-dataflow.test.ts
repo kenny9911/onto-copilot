@@ -1,10 +1,10 @@
 /**
  * 冻结拓扑里**哪些依赖边真的在传数据**。
  *
- * 背景：engagement DAG 声明了 13 条依赖边，看上去像一条 8 段的认知流水线。
- * 实测（OTel 真跑）是 3 次 LLM 抽取 + 8 次规则投影，8 个节点各 1–2ms、0 次模型调用。
- * 而其中多个 handler 的 `project()` 签名是 `_inputs`（下划线 = 未使用）——
- * **节点声明依赖某个上游，却根本不读它的产出**。
+ * v3 把专业分析、决定校验、需求、架构、验收与人工签字节点接入冻结 DAG，并把
+ * GAP、CANONICALIZE、REVIEW、HUMAN_ACCEPTANCE、EXPORT 的
+ * 直接依赖展开到它们真正消费的节点。这里继续钉住确定性 seed 的数据边，避免
+ * 回退路径在升级中丢掉基础映射。
  *
  * 一条声明了却不传数据的边是**拓扑在撒谎**：它让读代码的人以为 RULES 是在
  * PROCESS 的结论之上做推理，实际两者互不相干。这个谎正是"看起来像 8 段认知
@@ -83,15 +83,14 @@ describe("承重的边：改成不读上游必须红", () => {
     expect((filled as Record<string, unknown[]>)["mappings"]).toHaveLength(1);
   });
 
-  it("ERP_MAP 从 endpoint 切出来的「产品名」其实是主机名 —— 域无关的算法穿了一身域相关的外衣", () => {
-    // `erp_mapper` 这个角色名 + `product` 这个字段名共同暗示"识别出了 ERP 产品"，
-    // 实际算法是把字符串按 `//` 和 `/` 切一刀取主机名。钉住它，免得下次有人
-    // 以为这里有真的系统识别能力而在它之上盖东西。
+  it("ERP_MAP seed 不再把 endpoint 主机名冒充 ERP 产品", () => {
+    // system_id 保留原始系统线索，product 只有模型拿到真实证据后才能填写。
     const h = new ERPMapHandler(runtime());
     const out = h.project({
       PROCESS: { steps: [{ id: "s", system_ids: ["https://erp.example.com/api/po"], evidence_ids: [] }] },
     }) as Record<string, Record<string, unknown>[]>;
-    expect(out["landscape"]![0]!["product"]).toBe("erp.example.com");
+    expect(out["landscape"]![0]!["product"]).toBeNull();
+    expect(out["landscape"]![0]!["system_id"]).toBe("sys.erp.example.com");
   });
 
   it("REVIEW 真的读上游 —— 它要审的就是 CANONICALIZE 交出来的包", () => {
@@ -125,8 +124,8 @@ describe("不承重的边：现状钉死，变了要有人看见", () => {
   }
 });
 
-describe("拓扑声明的边与实际承重的边，差多少", () => {
-  it("13 条声明边里只有少数在传数据 —— 这个差值本身就是要盯住的数", () => {
+describe("v3 拓扑把专业数据流与人工验收显式化", () => {
+  it("80 条声明边覆盖专业分析、决定校验、交付链、审查、人工验收和导出输入", () => {
     const dag = buildFdeEngagementDag();
     const declared = [...dag.nodes.keys()].reduce(
       (n, id) => n + dag.get(id).deps.length,
@@ -134,14 +133,27 @@ describe("拓扑声明的边与实际承重的边，差多少", () => {
     );
     // 声明边数是拓扑的一等事实。它变了（加节点、改依赖）就该有人重新看一遍
     // 上面那两组：新加的边是承重的，还是又一条只在暗示推理的空边。
-    expect(declared).toBe(13);
+    expect(declared).toBe(80);
   });
 
-  it("GAP 仍是同步屏障 —— 四个上游一个都不能少", () => {
-    // 这四条边不传数据，但**传控制**：GAP 必须等四个节点都完成。
-    // "不传数据"不等于"可以删"，这是删边前必须分清的两件事。
+  it("正式验收绑定完整候选，EXPORT 不能绕过 HUMAN_ACCEPTANCE", () => {
+    const dag = buildFdeEngagementDag();
+    expect(dag.get("HUMAN_ACCEPTANCE").deps).toEqual([
+      "REVIEW",
+      "CANONICALIZE",
+      "TEST_PLAN",
+      "ARCHITECTURE",
+      "REQUIREMENTS",
+      "DECISION_APPLY",
+      "DECISION_PROPOSAL",
+    ]);
+    expect(dag.get("EXPORT").deps[0]).toBe("HUMAN_ACCEPTANCE");
+    expect(dag.get("EXPORT").gate?.require).toContain("human_decided == true");
+  });
+
+  it("GAP 同时归并 Intake 与四个专业节点，一个都不能少", () => {
     expect([...buildFdeEngagementDag().get("GAP").deps].sort()).toEqual(
-      ["DATA_OBJECTS", "ERP_MAP", "PROCESS", "RULES"].sort(),
+      ["INTAKE", "DATA_OBJECTS", "ERP_MAP", "PROCESS", "RULES"].sort(),
     );
   });
 });

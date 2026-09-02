@@ -1,0 +1,53 @@
+{
+  "type": "object",
+  "required": [
+    "rules"
+  ],
+  "properties": {
+    "rules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "statement",
+          "kind",
+          "source_file",
+          "source_locator"
+        ],
+        "properties": {
+          "statement": {
+            "type": "string",
+            "description": "一条**可判定**的规则，用材料的原话，不要概括成「需要审批」这种没法执行的话"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "VALIDATION",
+              "PROCESS",
+              "AUTHORITY",
+              "CALCULATION",
+              "OTHER"
+            ]
+          },
+          "actor": {
+            "type": "string",
+            "description": "承担这条规则的角色"
+          },
+          "applies_to": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "这条规则约束的业务对象名；拿不准就留空，留空会转成反问，猜错则会污染模型"
+          },
+          "source_file": {
+            "type": "string"
+          },
+          "source_locator": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

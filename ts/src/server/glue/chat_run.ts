@@ -23,7 +23,7 @@
  * 也不需要：JS 里没有任何东西能取消一个已经开始的 `finishRun`。
  */
 
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync, renameSync } from "node:fs";
 import { join } from "node:path";
 
 import type { Budget } from "../../kernel/budget.js";
@@ -139,6 +139,40 @@ export async function chatRun<T>(
         error: isCancelled(exc) ? "cancelled" : formatExc(exc),
         budget: budgetDoc(),
       });
+    }
+    // ── B13：失败轮的写效果账本要隔离 ─────────────────────────
+    // 这轮的 recorder journal 里可能躺着**已完成的写工具 effect**（oir.add 等）。
+    // 上层 withSessionMutation 会把这轮的内存改动整体回滚 —— 但 journal 是文件，
+    // 回滚不了。用户重问同一句话时按语义指纹撞回同一个 journal、resume 命中：
+    // **工具不再执行、直接回放"已改"**，而实际什么都没改 —— 模型说做了、状态里
+    // 没有，正是「推理与行动不一致」里最难查的一种。
+    // 处理：journal 里真有 danger>0 的完成 effect 才隔离（改名成 .rolledback，
+    // 留作审计、不再被 resume 捡到）；纯读/纯 LLM 的失败轮保留 journal ——
+    // resume 省的是真金白银，回放只读结果无害。
+    try {
+      const journal = join(s.dir, "journal", `${recorderRunId}.jsonl`);
+      if (existsSync(journal)) {
+        const lines = readFileSync(journal, "utf8").split("\n");
+        const wrote = lines.some((line) => {
+          if (!line.includes('"tool.call"') || !line.includes('"completed"')) return false;
+          try {
+            const ev = JSON.parse(line) as { payload?: { danger?: string } };
+            const danger = String(ev.payload?.danger ?? "read").toLowerCase();
+            return danger !== "read";
+          } catch {
+            return false;
+          }
+        });
+        if (wrote) {
+          renameSync(journal, `${journal}.rolledback`);
+          s.emit("chat.journal_quarantined", {
+            run: recorderRunId,
+            reason: "失败轮含已完成的写工具效果；内存已回滚，重试必须重新执行",
+          });
+        }
+      }
+    } catch {
+      // 隔离失败不吞原始异常 —— 最坏情况回到老行为（有幽灵回放），不能更糟
     }
     throw exc;
   } finally {

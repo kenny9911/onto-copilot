@@ -10,6 +10,7 @@ import "./settings.js";     // #setTabs / #setBody ← renderSettingsShell() 那
 import "./accounts.js";     // #acctBody  ← renderAccounts()
 import "./identity.js";     // #identity  ← renderIdentity()
 import "./sidebar.js";      // #convs     ← paintSessions() / convRow()
+import "./knowledge-page.js"; // #knowledgePage ← 独立项目知识库页面
 import "./stream.js";       // #stream    ← render() 的中栏那一段
 import "./preview.js";      // #pbody     ← paint() / paintLegacy() 那七个分支
 // 下面两行登记的**不是** region，而是 PREVIEW_TABS 里剩下的三个 tab
@@ -17,3 +18,4 @@ import "./preview.js";      // #pbody     ← paint() / paintLegacy() 那七个�
 // 取不到就画空 —— 所以少 import 一行 = 少一整块屏幕，而且不报错。
 import "./workbench.js";    // PREVIEW_TABS.q / .art   ← questionWorkbench() / 产物 tab
 import "./think.js";        // PREVIEW_TABS.think      ← engagementProgress() / traceRow() / opsLog()
+import "./context-region.js"; // 五域项目上下文浏览器（仍由 PreviewBody 独占 #pbody）

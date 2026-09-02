@@ -2,17 +2,17 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "ontocopilot",
-      "runtimeExecutable": ".venv/bin/python",
-      "runtimeArgs": ["-m", "uvicorn", "ontocopilot.server:app", "--host", "127.0.0.1", "--port", "8080"],
-      "port": 8080
-    },
-    {
-      "name": "ontocopilot-8000",
-      "runtimeExecutable": ".venv/bin/python",
-      "runtimeArgs": ["-m", "uvicorn", "ontocopilot.server:app",
-                      "--host", "127.0.0.1", "--port", "8000", "--reload"],
-      "port": 8000
+      "_why": [
+        "只给 url 不给命令 = 挂到已经在跑的服务上，不 spawn 新进程。",
+        "8765 被 launchd 作业 com.ontocopilot.dev.8765 常驻占着（keepalive），",
+        "按名字起会 spawn 第二个 node 去抢端口，抢不到，然后你对着一个起不来的",
+        "preview debug 半天。要重启真正那台：",
+        "  launchctl kickstart -k gui/501/com.ontocopilot.dev.8765",
+        "注意它跑的是 ts/dist —— 改了 ts/src 不 tsc，kickstart 只会用同一份旧 dist 重生。"
+      ],
+      "name": "ontocopilot-ts",
+      "url": "http://127.0.0.1:8765",
+      "port": 8765
     }
   ]
 }

@@ -267,9 +267,17 @@ export async function removeMaterialOnce(
     if (s.files.length > 0) {
       await env.preparse(s);
     } else {
-      for (const k of ["_docs", "_index", "_chunks", "_profiles", "_endpoints", "corpus"]) {
-        delete s.state[k];
-      }
+      // **写空，不能 delete** —— 和下面 followups 那条是同一条纪律（persist 是
+      // 纯 upsert，缺键不删库里的旧值）。`_chunks`/`corpus` 都在持久化白名单里：
+      // delete 之后库里那份原样留着，换个 worker hydrate 一次，**被删材料的切片
+      // 重新进模型提示词** —— 用户明明删掉的文件还在被引用。
+      // 空对象/空串照写，让 upsert 把旧值盖掉。
+      s.state["_docs"] = {};
+      s.state["_index"] = null;
+      s.state["_chunks"] = {};
+      s.state["_profiles"] = {};
+      s.state["_endpoints"] = [];
+      s.state["corpus"] = "";
     }
     // 撤掉一份材料，"现在能问什么"就变了 —— 上传那条路早就带着新提示回去了，
     // 删除这条以前不带，于是 chips 还在问一份已经不存在的材料里有什么。

@@ -36,12 +36,15 @@ import { randomUUID } from "node:crypto";
 
 import { sha256Hex } from "../../kernel/ids.js";
 import type { SpokenTurns } from "../../kernel/memory/dialogue.js";
+import { FDE_CHECKPOINT_VERSION } from "../../onto/engagement.js";
 import { openingPrompts } from "../../onto/prompts.js";
 import type { FileRow, JsonObject, JsonValue, SessionRow } from "../../store/types.js";
 import { makeFileRow, makeSessionRow } from "../../store/types.js";
+import { activeScheduler } from "../pipeline/run.js";
 import type { AppEnv } from "../app.js";
 import { isolate, ownerId } from "../app.js";
 import { materialFileList } from "../material_status.js";
+import { reapZombieBuild } from "../glue/reap.js";
 import {
   SESSIONS,
   Session,
@@ -52,6 +55,7 @@ import {
 } from "../session.js";
 import type { SessionFile } from "../session.js";
 import { boolParsingError, pydanticBool, raise422 } from "../http422.js";
+import { liveBrowserRuntime } from "../live_browser.js";
 
 // ══════════════════════════════════════════════════════════════════
 //  HTTP 错误：体的形状必须是 FastAPI 的 {"detail": "…"}
@@ -362,23 +366,47 @@ export async function jsonBody(c: Context): Promise<Record<string, unknown>> {
 /** 把冻结的 FDE Engagement DAG 投影为前端可跟踪的阶段状态。 */
 export function engagementView(env: ServerEnv, s: Session): Record<string, unknown> {
   const dag = env.fdeEngagementDag();
+  const order = dag.topoOrder();
+  const execution =
+    s.state["engagement_execution"] !== null &&
+    typeof s.state["engagement_execution"] === "object" &&
+    !Array.isArray(s.state["engagement_execution"])
+      ? (s.state["engagement_execution"] as Record<string, unknown>)
+      : {};
+  const pendingHuman =
+    execution["pendingHuman"] !== null &&
+    typeof execution["pendingHuman"] === "object" &&
+    !Array.isArray(execution["pendingHuman"])
+      ? (execution["pendingHuman"] as Record<string, unknown>)
+      : {};
+  const suspendedNode = String(pendingHuman["node"] ?? "");
   const current =
     s.status === "awaiting_answer"
-      ? "INTERVIEW"
+      ? order.includes(suspendedNode)
+        ? suspendedNode
+        : "INTERVIEW"
       : s.status === "done"
         ? "EXPORT"
         : s.status === "idle" || s.status === "stopped" || s.status === "failed"
           ? "INTAKE"
           : "PROCESS";
-  const order = dag.topoOrder();
   const currentIndex = order.indexOf(current);
+  const completed = new Set(
+    Array.isArray(execution["completed"])
+      ? execution["completed"].map((node) => String(node))
+      : [],
+  );
   const plan: Record<string, unknown>[] = [];
   dag.describe().forEach((node, index) => {
     const state =
-      node["id"] === current ? "active" : index < currentIndex ? "completed" : "pending";
+      node["id"] === current
+        ? "active"
+        : completed.has(String(node["id"])) || index < currentIndex
+          ? "completed"
+          : "pending";
     plan.push({ ...node, state });
   });
-  return { version: "fde_engagement_v1", frozen: dag.frozen, current, plan };
+  return { version: FDE_CHECKPOINT_VERSION, frozen: dag.frozen, current, plan };
 }
 
 /** `{k: v for k, v in s.state.items() if not k.startswith("_")}` —— 私有键不出网。 */
@@ -435,6 +463,27 @@ export function registerSessionRoutes(app: Hono<AppEnv>, env: ServerEnv): void {
 
   // ── 设定会话对话模型 ────────────────────────────────────────────
   /** 空 / 未知则清除，回落到按难度路由。 */
+  // ── P4：停掉单个在飞节点 ─────────────────────────────────────
+  // run 级 /stop 是全停；这个是外科手术：某个节点跑飞了（转圈不出活、材料
+  // 特别脏），点它的停止 —— 协作式取消（P0-1 的信号通道），下一个循环边界
+  // 退出，不截断在飞 HTTP。后果走既有语义（节点 NodeFailure 定案），不发明
+  // 第三种终态。没有活跃调度器 = 没在跑，409；节点不在飞，404。
+  app.post("/api/sessions/:sid/run/nodes/stop", async (c) => {
+    const s = await sessAsync(c.req.param("sid"));
+    const sched = activeScheduler(s.id);
+    if (sched === null) {
+      return c.json({ error: "当前没有在跑的梳理，没有可停的节点" }, 409);
+    }
+    const body = await jsonBody(c);
+    const node = body["node"] ? String(body["node"]) : "";
+    if (!node) return c.json({ error: "缺 node" }, 400);
+    if (sched.abortNode?.(node) !== true) {
+      return c.json({ error: `节点 ${node} 不在飞（可能刚结束）` }, 404);
+    }
+    s.emit("node.stop_requested", { node });
+    return c.json({ stopped: true, node });
+  });
+
   app.post("/api/sessions/:sid/model", async (c) => {
     const s = await sessAsync(c.req.param("sid"));
     const body = await jsonBody(c);
@@ -669,6 +718,10 @@ export function registerSessionRoutes(app: Hono<AppEnv>, env: ServerEnv): void {
    */
   app.get("/api/sessions/:sid/state", async (c) => {
     const s = await sessAsync(c.req.param("sid"));
+    // 幽灵跑批复查：进程重启会留下 status=parsing 而任务已死，而回收器此前只在
+    // 启动对账与首次 hydrate 各跑一次 —— 租约在那之后过期就再没人管，界面会一直
+    // 显示「解析中」（实测挂了 54 分钟）。这是最高频的状态读，复查放这里最省事。
+    await reapZombieBuild(s, currentRepo(), () => Date.now() / 1000);
     await refreshFilesProjection(s);
     const pub = publicState(s);
     const dm = s.state["_dialogue"] as DialogueLike | null | undefined;
@@ -683,6 +736,14 @@ export function registerSessionRoutes(app: Hono<AppEnv>, env: ServerEnv): void {
     // 会猜。状态是事实，应该看得见，不该靠问。
     return c.json({
       ...s.brief(),
+      // **会话状态版本必须回给前端。** 右栏的 /context 拉取依赖它作为
+      // useEffect 的 dep（context-region.tsx），不回的话它永远是 undefined ——
+      // 于是 /context 只在进会话时取一次，之后改了本体、跑完梳理、编辑了流程图，
+      // 右栏都纹丝不动，用户只能手动刷新页面。而他刚刚明明看见系统说改好了。
+      //
+      // 不加进 brief()：那是被 golden 钉着的前端契约（server.core.json 的
+      // session_brief），修一个刷新 bug 不该顺带改它的形状。
+      state_version: s.stateVersion,
       filelist: materialFileList(s),
       state: pub,
       events: s.events.length,
@@ -718,6 +779,9 @@ export async function deleteSessionOnce(
   sid: string,
   purge: boolean,
 ): Promise<Record<string, unknown>> {
+  // Cancel pending opens first, then close every isolated Chromium context for this session.  TTL
+  // remains a leak backstop, not the normal deletion path.
+  await liveBrowserRuntime.closeSession(sid);
   const existed = await currentRepo().deleteSession(sid);
   const live = SESSIONS.get(sid) ?? null;
   SESSIONS.delete(sid);

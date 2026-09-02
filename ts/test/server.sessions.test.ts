@@ -18,6 +18,7 @@ import { setRepoForTests } from "../src/store/deps.js";
 import { MemoryRepo } from "../src/store/repo/memory.js";
 import { makeProjectMemoryRow, makeProjectRow, makeSessionRow } from "../src/store/types.js";
 import type { AppEnv, RequestUser } from "../src/server/app.js";
+import { registerActiveScheduler, unregisterActiveScheduler } from "../src/server/pipeline/run.js";
 import { SYNTHETIC_ADMIN_ID } from "../src/server/app.js";
 import {
   SESSIONS,
@@ -418,6 +419,69 @@ describe("会话", () => {
 // ══════════════════════════════════════════════════════════════════
 //  项目文件夹
 // ══════════════════════════════════════════════════════════════════
+
+describe("停掉单个在飞节点（P4）", () => {
+  it("没有在跑的梳理 → 409；有 → 命中返回 stopped，未命中 404", async () => {
+    const brief = await createSession();
+    const sid = String(brief["id"]);
+    const miss = await app.request(`/api/sessions/${sid}/run/nodes/stop`, {
+      method: "POST",
+      body: JSON.stringify({ node: "PROCESS" }),
+      headers: { "content-type": "application/json" },
+    });
+    expect(miss.status).toBe(409);
+
+    const aborted: string[] = [];
+    registerActiveScheduler(sid, {
+      abortNode: (n: string) => {
+        aborted.push(n);
+        return n === "PROCESS";
+      },
+    });
+    try {
+      const hit = await app.request(`/api/sessions/${sid}/run/nodes/stop`, {
+        method: "POST",
+        body: JSON.stringify({ node: "PROCESS" }),
+        headers: { "content-type": "application/json" },
+      });
+      expect(hit.status).toBe(200);
+      expect(await hit.json()).toEqual({ stopped: true, node: "PROCESS" });
+      expect(aborted).toEqual(["PROCESS"]);
+
+      const ghost = await app.request(`/api/sessions/${sid}/run/nodes/stop`, {
+        method: "POST",
+        body: JSON.stringify({ node: "GHOST" }),
+        headers: { "content-type": "application/json" },
+      });
+      expect(ghost.status).toBe(404);
+    } finally {
+      unregisterActiveScheduler(sid);
+    }
+  });
+
+  it("栅栏注销：旧 run 的 finally 不许删掉后继 run 刚登记的调度器", async () => {
+    const brief = await createSession();
+    const sid = String(brief["id"]);
+    const h1 = { abortNode: () => false };
+    const h2 = { abortNode: () => true };
+    registerActiveScheduler(sid, h1); // 旧 run 登记
+    registerActiveScheduler(sid, h2); // 新 run 覆盖
+    unregisterActiveScheduler(sid, h1); // 旧 run 收尾：句柄已不是自己的 → 不删
+    const hit = await app.request(`/api/sessions/${sid}/run/nodes/stop`, {
+      method: "POST",
+      body: JSON.stringify({ node: "X" }),
+      headers: { "content-type": "application/json" },
+    });
+    expect(hit.status, "新 run 的调度器必须还在（h2.abortNode 返回 true）").toBe(200);
+    unregisterActiveScheduler(sid, h2); // 新 run 收尾：是自己的 → 删
+    const gone = await app.request(`/api/sessions/${sid}/run/nodes/stop`, {
+      method: "POST",
+      body: JSON.stringify({ node: "X" }),
+      headers: { "content-type": "application/json" },
+    });
+    expect(gone.status).toBe(409);
+  });
+});
 
 describe("项目", () => {
   async function createProject(name: string): Promise<Response> {
@@ -886,7 +950,11 @@ describe("材料", () => {
     expect(s.state["followups"]).toEqual([]);
   });
 
-  it("撤掉最后一份材料会把上一轮的派生状态清干净", async () => {
+  // 判据从「键不在」改成「值为空」（B12）：persist 是纯 upsert，delete 掉内存里
+  // 的键只是让它不进本次写库，**库里那份原样留着** —— 换个 worker hydrate 一次，
+  // 被删材料的切片重新进模型提示词。写空值才能让 upsert 把旧值盖掉。
+  // followups 那几行早就写明了这条纪律，派生状态这组当时漏了。
+  it("撤掉最后一份材料会把上一轮的派生状态**写空**（不是 delete —— upsert 盖不掉缺键）", async () => {
     wireHydrator();
     const sid = String((await createSession())["id"]);
     await upload(sid, [["a.csv", "1"]]);
@@ -895,8 +963,16 @@ describe("材料", () => {
       s.state[k] = "残留";
     }
     await app.request(`/api/sessions/${sid}/files/a.csv`, { method: "DELETE" });
+    // 键还在（要随 persist 写库把旧值盖掉），值必须已清空
+    expect(s.state["_chunks"]).toEqual({});
+    expect(s.state["corpus"]).toBe("");
+    expect(s.state["_docs"]).toEqual({});
+    expect(s.state["_profiles"]).toEqual({});
+    expect(s.state["_endpoints"]).toEqual([]);
+    expect(s.state["_index"]).toBeNull();
+    // 一个「残留」都不许剩
     for (const k of ["_docs", "_index", "_chunks", "_profiles", "_endpoints", "corpus"]) {
-      expect(k in s.state).toBe(false);
+      expect(s.state[k]).not.toBe("残留");
     }
     expect(preparsed).toEqual([]); // 没材料了就不重解析
   });
@@ -915,6 +991,26 @@ describe("材料", () => {
 // ══════════════════════════════════════════════════════════════════
 
 describe("state / to_work", () => {
+  // **右栏能不能自动刷新，全看这一个字段。**
+  //
+  // context-region.tsx 的 /context 拉取用 `[sid, stateVersion]` 当 useEffect 的
+  // dep，而 stateVersion 来自 `G.S`，`G.S` 又是 mergeStateSnapshot 从 /state 的
+  // 响应体 Object.assign 进去的。/state 不回这个字段时它恒为 undefined ——
+  // 依赖数组永远不变，/context 只在进会话时取一次。
+  //
+  // 症状是"看不见的坏"：不报错、不白屏，只是改完本体、跑完梳理之后右栏纹丝不动，
+  // 用户得手动刷新页面，而他刚刚明明看见系统说改好了。
+  it("**/state 必须回 state_version** —— 右栏靠它决定要不要重取 /context", async () => {
+    wireHydrator();
+    const sid = String((await createSession())["id"]);
+    const s = SESSIONS.get(sid)!;
+    s.stateVersion = 7;
+    const d = (await (await app.request(`/api/sessions/${sid}/state`)).json()) as {
+      state_version?: number;
+    };
+    expect(d.state_version).toBe(7);
+  });
+
   it("state 带 filelist 与每份材料的解析状态", async () => {
     wireHydrator();
     const sid = String((await createSession())["id"]);
@@ -986,6 +1082,23 @@ describe("state / to_work", () => {
     };
     expect(eng1.current).toBe("INTERVIEW");
     expect(eng1.plan.map((p) => p.state)).toEqual(["completed", "completed", "active", "pending"]);
+
+    // FDE v3 还有独立的 HUMAN_ACCEPTANCE 人工门。阶段投影必须服从 Scheduler
+    // 持久化的 pendingHuman.node，不能把所有挂起一律伪装成 INTERVIEW。
+    s.state["engagement_execution"] = {
+      status: "suspended",
+      completed: ["INTAKE", "PROCESS", "INTERVIEW"],
+      pendingHuman: { node: "EXPORT", request_id: "release:hitl" },
+    };
+    const dSignoff = (await (await app.request(`/api/sessions/${sid}/state`)).json()) as never;
+    const signoffEngagement = (dSignoff["state"] as never)["engagement"] as {
+      current: string;
+      plan: { id: string; state: string }[];
+    };
+    expect(signoffEngagement.current).toBe("EXPORT");
+    expect(signoffEngagement.plan.map((p) => p.state)).toEqual([
+      "completed", "completed", "completed", "active",
+    ]);
 
     s.status = "extracting";
     const d2 = (await (await app.request(`/api/sessions/${sid}/state`)).json()) as never;

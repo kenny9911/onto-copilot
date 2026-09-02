@@ -1,0 +1,21 @@
+schema_version: 1
+base_prompt: _base.md
+agents:
+  - 01-extractor.md
+  - 02-rule-miner.md
+  - 03-aligner.md
+  - 04-conflict-hunter.md
+  - 05-clarifier.md
+  - 06-action-drafter.md
+  - 07-auditor.md
+  - 08-fde-interviewer.md
+  - 09-process-modeler.md
+  - 10-erp-mapper.md
+  - 11-rule-engineer.md
+  - 12-data-steward.md
+  - 13-delivery-reviewer.md
+  - 14-decision-integrator.md
+  - 15-requirements-engineer.md
+  - 16-solution-architect.md
+  - 17-acceptance-test-engineer.md
+  - 18-flow-modeler.md

@@ -105,6 +105,14 @@ export const Capability = {
   LONG_CONTEXT: "long_context",
   /** 单位成本低，适合大批量粗活。 */
   CHEAP: "cheap",
+  /**
+   * 能**出图**（images 端点，与 chat completions 不是一条路）。
+   *
+   * 与 `VISION` 是两回事：那个是读图（把扫描件读成文字和结构），这个是画图。
+   * 只用来出「汇报版」展示副本 —— 一张 PNG 点不开出处、改不了、走查走不了，
+   * 永远不参与校验和交付门禁。
+   */
+  IMAGE_GEN: "image_gen",
 } as const;
 
 export type Capability = (typeof Capability)[keyof typeof Capability];
@@ -116,6 +124,9 @@ export const CAPABILITIES: readonly Capability[] = Object.freeze([
   Capability.EFFORT,
   Capability.LONG_CONTEXT,
   Capability.CHEAP,
+  // 追加在**末尾**：这个顺序被 golden 逐字节钉着（capability_values），
+  // 插在中间会把既有字节全改掉，而那份 golden 记的是 Python 的事实。
+  Capability.IMAGE_GEN,
 ]);
 
 const CAPABILITY_SET: ReadonlySet<string> = new Set<string>(CAPABILITIES);
@@ -328,6 +339,25 @@ const FRONTIER_RE = re(
 /** 是不是能对话/理解的模型（排掉 embedding/tts/画图等非对话端点）。 */
 export function isChatModel(name: string): boolean {
   return !NOT_CHAT_RE.test(name);
+}
+
+/**
+ * 是不是**出图**模型（images 端点那类）。
+ *
+ * 它们被 `NOT_CHAT_RE` 有意挡在聊天卡目录外（不该被难度路由选中去回话），
+ * 所以「图像」档的配置校验走这里，而不是查目录。判据与 VISION_RE/CHEAP_RE
+ * 同性质：认模型产品的名形，宁可多认一个（网关会在真调用时报错），
+ * 也别把用户真配的型号在保存那一刻错杀。
+ */
+const IMAGE_MODEL_RE = re(
+  // `image` 按**词段**认（gpt-5.4-image-2 / gemini-3.1-flash-image）：第一版写的
+  // 是 `gpt-image`，对着真实网关一查 35 个模型零命中 —— 各家把 image 放在名字的
+  // 什么位置没有约定，赌位置就是赌错。词界挡住 imagenet 这类形近词。
+  `${BL}image${BR}|gpt-image|dall-?e|stable-?diffusion|${BL}flux${BR}|midjourney|imagen${BR}|${BL}sd(xl)?${BR}`,
+);
+
+export function isImageModel(name: string): boolean {
+  return IMAGE_MODEL_RE.test(name);
 }
 
 /**

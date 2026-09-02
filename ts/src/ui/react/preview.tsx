@@ -24,7 +24,7 @@
 // 唯一还允许命令式碰 #pbody 的是 preview.ts 的 pfade()，它改的是**容器自己**的
 // class（portal 的宿主元素不归 React 管），一个子节点都不动。
 
-import type { ReactElement, ReactNode } from "react";
+import type { ComponentType, ReactElement, ReactNode } from "react";
 import { useState } from "react";
 
 import { API } from "../dom.js";
@@ -347,6 +347,16 @@ export const PREVIEW_TABS: Record<string, () => ReactNode> = {
   flow: FlowTab,
 };
 
+// 新 FDE 上下文浏览器由独立模块实现，但 #pbody 仍只有 PreviewBody 一个主人。
+// 用显式登记而不是让两个模块都 registerRegion("pbody")，避免 React portal 冲突；
+// 旧七个 tab 继续保留为兼容渲染面，现有证据/产物动作可渐进切到五个新 section。
+let CONTEXT_SIDEBAR: ComponentType | null = null;
+const CONTEXT_SECTIONS = new Set(["project", "evidence", "model", "review", "delivery", "runtime"]);
+
+export function registerContextSidebar(Component: ComponentType): void {
+  CONTEXT_SIDEBAR = Component;
+}
+
 /**
  * 右栏整块。
  *
@@ -355,6 +365,10 @@ export const PREVIEW_TABS: Record<string, () => ReactNode> = {
  */
 export function PreviewBody(): ReactNode {
   const G = useUi();
+  if (CONTEXT_SECTIONS.has(G.TAB)) {
+    const Sidebar = CONTEXT_SIDEBAR;
+    return Sidebar ? <Sidebar /> : null;
+  }
   if (!G.S) return <Placeholder ic="PREVIEW">新建会话后这里显示材料与产物</Placeholder>;
   const Tab = PREVIEW_TABS[G.TAB];
   return Tab ? <Tab /> : null;
