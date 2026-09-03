@@ -24,12 +24,14 @@ import {
   DocumentConflict,
   DocumentError,
   DocumentNotFound,
+  cleanFolderPath,
   globalLibraryScope,
   levelOf,
   type AttachDocumentInput,
   type AttachedDocumentBundle,
   type AttachedParsedDoc,
   type DocumentAttachment,
+  type DocumentFolder,
   type DocumentListOptions,
   type DocumentManifestEntry,
   type DocumentMetadataPatch,
@@ -238,6 +240,101 @@ export class DocumentService {
     if (documentAuthorization.aclRevision !== plan.aclRevision) throw new DocumentNotFound();
     await this.assertAclRevision(scope, plan.aclRevision);
     return result;
+  }
+
+  // ── 文件夹 ────────────────────────────────────────────────────────
+  //
+  // 文件夹是**独立于文件存在的东西** —— 这是文件管理器的最小语义，也是之前
+  // 「按标签推出分组」做不到的：空文件夹无处存放，建一个立刻消失。
+
+  async listFolders(scope: DocumentScope): Promise<readonly DocumentFolder[]> {
+    safeScope(scope);
+    await this.guardAcl(() => this.acl.authorizeRead(
+      scope,
+      principalOf(scope),
+      { scopeType: "project" },
+    ));
+    return await this.repository.listFolders(scope);
+  }
+
+  /**
+   * 建一个文件夹。父级不存在时**一并建出来** —— 用户输入 `制度/采购` 时，
+   * 心里想的是这两层都该出现，而不是收到一句「父文件夹不存在」。
+   */
+  async createFolder(scope: DocumentScope, rawPath: string): Promise<readonly DocumentFolder[]> {
+    safeScope(scope);
+    const path = cleanFolderPath(rawPath);
+    if (path === "") {
+      throw new DocumentError("INVALID_ARGUMENT", "文件夹名不能为空", 400);
+    }
+    await this.guardAcl(() => this.acl.authorizeWrite(
+      scope,
+      principalOf(scope),
+      { scopeType: "project" },
+    ));
+    const createdBy = scope.actorId ?? scope.owner;
+    const now = this.now();
+    const parts = path.split("/");
+    const made: DocumentFolder[] = [];
+    for (let i = 1; i <= parts.length; i += 1) {
+      made.push(await this.repository.createFolder(scope, parts.slice(0, i).join("/"), createdBy, now));
+    }
+    return made;
+  }
+
+  /** 删文件夹**不删材料**：里面的文档挪到根目录。删一个文件夹不该顺带销毁材料。 */
+  async deleteFolder(scope: DocumentScope, rawPath: string): Promise<{ readonly movedDocuments: number }> {
+    safeScope(scope);
+    const path = cleanFolderPath(rawPath);
+    if (path === "") throw new DocumentError("INVALID_ARGUMENT", "根目录不能删除", 400);
+    await this.guardAcl(() => this.acl.authorizeWrite(
+      scope,
+      principalOf(scope),
+      { scopeType: "project" },
+    ));
+    return { movedDocuments: await this.repository.deleteFolder(scope, path, "") };
+  }
+
+  async renameFolder(
+    scope: DocumentScope,
+    rawFrom: string,
+    rawTo: string,
+  ): Promise<{ readonly folders: number }> {
+    safeScope(scope);
+    const from = cleanFolderPath(rawFrom);
+    const to = cleanFolderPath(rawTo);
+    if (from === "" || to === "") {
+      throw new DocumentError("INVALID_ARGUMENT", "文件夹名不能为空", 400);
+    }
+    if (to === from) return { folders: 0 };
+    // 把一个文件夹改名成自己的子路径，等于让它成为自己的祖先 —— 那棵树没法自洽。
+    if (to.startsWith(`${from}/`)) {
+      throw new DocumentError("INVALID_ARGUMENT", "不能把文件夹移到它自己下面", 400);
+    }
+    await this.guardAcl(() => this.acl.authorizeWrite(
+      scope,
+      principalOf(scope),
+      { scopeType: "project" },
+    ));
+    return { folders: await this.repository.renameFolder(scope, from, to) };
+  }
+
+  /** 把一份材料移到某个文件夹。目标不存在就先建出来，省得用户先建再移。 */
+  async moveDocument(
+    scope: DocumentScope,
+    documentId: string,
+    rawFolderPath: string,
+  ): Promise<DocumentSummary> {
+    safeScope(scope);
+    const cleanId = cleanText(documentId, "", "文档 ID", 2_048);
+    const path = cleanFolderPath(rawFolderPath);
+    await this.guardAcl(() => this.acl.authorizeWrite(
+      scope,
+      principalOf(scope),
+      { scopeType: "document", documentId: cleanId },
+    ));
+    if (path !== "") await this.createFolder(scope, path);
+    return await this.repository.moveDocument(scope, cleanId, path);
   }
 
   /**

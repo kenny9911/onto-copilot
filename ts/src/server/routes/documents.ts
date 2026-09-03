@@ -42,6 +42,7 @@ import {
   globalLibraryScope,
   type AttachDocumentInput,
   type DocumentAttachment,
+  type DocumentFolder,
   type DocumentListOptions,
   type DocumentMetadataPatch,
   type DocumentOpenResult,
@@ -79,6 +80,11 @@ export interface DocumentServicePort {
     scope: DocumentScope,
     options: { readonly evidenceRef: string },
   ): Promise<DocumentOpenResult>;
+  listFolders(scope: DocumentScope): Promise<readonly DocumentFolder[]>;
+  createFolder(scope: DocumentScope, path: string): Promise<readonly DocumentFolder[]>;
+  deleteFolder(scope: DocumentScope, path: string): Promise<{ readonly movedDocuments: number }>;
+  renameFolder(scope: DocumentScope, from: string, to: string): Promise<{ readonly folders: number }>;
+  moveDocument(scope: DocumentScope, documentId: string, folderPath: string): Promise<DocumentSummary>;
   publishToGlobal(
     scope: DocumentScope,
     documentId: string,
@@ -789,8 +795,13 @@ function securityAuditView(events: readonly DocumentSecurityAuditEvent[]): Recor
   };
 }
 
+function folderView(folder: DocumentFolder): Record<string, unknown> {
+  return { path: folder.path, created_at: folder.createdAt };
+}
+
 function documentView(document: DocumentSummary): Record<string, unknown> {
   return {
+    folder_path: document.folderPath,
     id: document.id,
     title: document.title,
     logical_name: document.logicalName,
@@ -1336,6 +1347,72 @@ export function registerDocumentRoutes(app: Hono<AppEnv>, deps: DocumentRouteDep
    * 必须是人点的 —— 没有任何自动调用点，AI 只能建议。公共库是跨项目共享的，
    * 让它自动生长，三个月后就是垃圾场。
    */
+  // ── 文件夹 ──────────────────────────────────────────────────────
+  app.get("/api/sessions/:sid/documents/folders", async (c) => {
+    rejectBoundaryQuery(c);
+    onlyQueryFields(c, new Set(), "文件夹");
+    const { scope } = await routeScope(c, deps);
+    const folders = await documentCall(async () => await deps.documents.listFolders(scope));
+    return c.json({ folders: folders.map(folderView) });
+  });
+
+  app.post("/api/sessions/:sid/documents/folders", async (c) => {
+    rejectBoundaryQuery(c);
+    const body = await strictJsonBody(c);
+    rejectBoundaryBody(body);
+    const { scope } = await routeScope(c, deps);
+    const made = await documentCall(async () => await deps.documents.createFolder(
+      scope,
+      requiredText(field(body, "folder"), "文件夹路径", 400),
+    ));
+    return c.json({ ok: true, folders: made.map(folderView) }, 201);
+  });
+
+  app.patch("/api/sessions/:sid/documents/folders", async (c) => {
+    rejectBoundaryQuery(c);
+    const body = await strictJsonBody(c);
+    rejectBoundaryBody(body);
+    const { scope } = await routeScope(c, deps);
+    const result = await documentCall(async () => await deps.documents.renameFolder(
+      scope,
+      requiredText(field(body, "from"), "原文件夹路径", 400),
+      requiredText(field(body, "to"), "新文件夹路径", 400),
+    ));
+    return c.json({ ok: true, message: "已重命名，里面的子文件夹和材料都跟着走了。", ...result });
+  });
+
+  app.delete("/api/sessions/:sid/documents/folders", async (c) => {
+    rejectBoundaryQuery(c);
+    onlyQueryFields(c, new Set(["folder"]), "删除文件夹");
+    const { scope } = await routeScope(c, deps);
+    const result = await documentCall(async () => await deps.documents.deleteFolder(
+      scope,
+      requiredText(c.req.query("folder"), "文件夹路径", 400),
+    ));
+    return c.json({
+      ok: true,
+      // 删文件夹不删材料 —— 这句话必须让用户看见，否则没人敢点。
+      message: `文件夹已删除；里面的 ${result.movedDocuments} 份材料移到了根目录，没有删除。`,
+      ...result,
+    });
+  });
+
+  app.patch("/api/sessions/:sid/documents/:documentId/folder", async (c) => {
+    rejectBoundaryQuery(c);
+    const body = await strictJsonBody(c);
+    rejectBoundaryBody(body);
+    const { scope } = await routeScope(c, deps);
+    const documentId = opaqueId(c.req.param("documentId"), "文档");
+    const folderPath = String(field(body, "folder") ?? "");
+    const document = await documentCall(async () =>
+      await deps.documents.moveDocument(scope, documentId, folderPath));
+    return c.json({
+      ok: true,
+      message: folderPath ? `已移动到「${folderPath}」。` : "已移动到根目录。",
+      document: documentView(document),
+    });
+  });
+
   app.post("/api/sessions/:sid/documents/:documentId/publish", async (c) => {
     rejectBoundaryQuery(c);
     onlyQueryFields(c, new Set(), "设为通用知识");
@@ -1567,6 +1644,38 @@ export function registerGlobalKnowledgeRoutes(app: Hono<AppEnv>, deps: DocumentR
       attachments: [],
       level: "global",
     });
+  });
+
+  app.get("/api/knowledge/documents/folders", async (c) => {
+    rejectBoundaryQuery(c);
+    onlyQueryFields(c, new Set(), "文件夹");
+    const { scope } = resolveGlobalScope(c);
+    const folders = await documentCall(async () => await deps.documents.listFolders(scope));
+    return c.json({ folders: folders.map(folderView) });
+  });
+
+  app.post("/api/knowledge/documents/folders", async (c) => {
+    rejectBoundaryQuery(c);
+    const body = await strictJsonBody(c);
+    rejectBoundaryBody(body);
+    const { scope } = resolveGlobalScope(c);
+    const made = await documentCall(async () => await deps.documents.createFolder(
+      scope,
+      requiredText(field(body, "folder"), "文件夹路径", 400),
+    ));
+    return c.json({ ok: true, folders: made.map(folderView) }, 201);
+  });
+
+  app.patch("/api/knowledge/documents/:documentId/folder", async (c) => {
+    rejectBoundaryQuery(c);
+    const body = await strictJsonBody(c);
+    rejectBoundaryBody(body);
+    const { scope } = resolveGlobalScope(c);
+    const documentId = opaqueId(c.req.param("documentId"), "文档");
+    const folderPath = String(field(body, "folder") ?? "");
+    const document = await documentCall(async () =>
+      await deps.documents.moveDocument(scope, documentId, folderPath));
+    return c.json({ ok: true, document: documentView(document) });
   });
 
   app.get("/api/knowledge/documents/search", async (c) => {

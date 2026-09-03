@@ -821,7 +821,9 @@ function rowAttachment(r: DbRow): DocumentAttachment {
 
 const DOC_COLUMNS =
   "id,project_id,owner,title,logical_name,source_class,tags,status,current_version_id," +
-  "adopted_version_id,revision,created_by,created_at,updated_at";
+  // folder_path 必须在这里 —— 少一列，rowDocument 读出来永远是空串，
+  // 于是「移动到某文件夹」会报成功而材料纹丝不动。
+  "adopted_version_id,revision,created_by,created_at,updated_at,folder_path";
 const VERSION_COLUMNS =
   "id,document_id,version_no,file_name,media_type,size_bytes,sha256,rel_path,doc_kind," +
   "parsed_doc,parse_status,parser_name,parser_version,index_revision,chunk_count,created_by,created_at";
@@ -1329,16 +1331,20 @@ export class SqlDocumentRepository implements DocumentRepository {
     assertScope(scope);
     return this.engine.connect(async (conn) => {
       const like = `${path}/%`;
-      // 先把里面的文档挪走再删文件夹 —— 顺序反了就会有一批文档指向一个不存在的路径。
+      // 先数**这次要移走的**，再移。移完再数目的地会把本来就在那儿的一并算进去，
+      // 于是回执写「3 份材料移到了根目录」而实际只动了 2 份 —— 这个产品别处都在
+      // 守「不把数字说大」，这里也不能例外。
+      const before = await conn.all<DbRow>(
+        "SELECT COUNT(*) AS n FROM onto_document WHERE project_id=? AND owner=? " +
+          "AND (folder_path=? OR folder_path LIKE ?)",
+        [scope.projectId, scope.owner, path, like],
+      );
+      const moved = before;
       // **不删文档**：删掉一个文件夹不该顺带销毁材料。
       await conn.exec(
         "UPDATE onto_document SET folder_path=? WHERE project_id=? AND owner=? " +
           "AND (folder_path=? OR folder_path LIKE ?)",
         [moveTo, scope.projectId, scope.owner, path, like],
-      );
-      const moved = await conn.all<DbRow>(
-        "SELECT COUNT(*) AS n FROM onto_document WHERE project_id=? AND owner=? AND folder_path=?",
-        [scope.projectId, scope.owner, moveTo],
       );
       await conn.exec(
         "DELETE FROM onto_document_folder WHERE project_id=? AND owner=? AND (path=? OR path LIKE ?)",
@@ -1352,7 +1358,11 @@ export class SqlDocumentRepository implements DocumentRepository {
     assertScope(scope);
     return this.engine.connect(async (conn) => {
       const like = `${from}/%`;
-      const cut = from.length + 1;
+      // substr 是**1 基**且按字符数（不是字节）计。要保留的尾巴是从分隔符那一位
+      // 开始的 `/子路径`，所以起点 = 前缀字符数 + 1，拼接前缀用 `to` 而不是 `to/`
+      // —— 写成 `to/` + substr(…, len+1) 会多出一个斜杠，跑出来就是 `新名//子级`。
+      // 用 [...from].length 而不是 from.length：后者数的是 UTF-16 码元。
+      const cut = [...from].length + 1;
       // 子文件夹和其中的文档跟着一起改前缀 —— 否则改完名字，下面那一层就断了根。
       await conn.exec(
         "UPDATE onto_document SET folder_path=? WHERE project_id=? AND owner=? AND folder_path=?",
@@ -1361,7 +1371,7 @@ export class SqlDocumentRepository implements DocumentRepository {
       await conn.exec(
         `UPDATE onto_document SET folder_path=? || substr(folder_path,${cut}) ` +
           "WHERE project_id=? AND owner=? AND folder_path LIKE ?",
-        [`${to}/`, scope.projectId, scope.owner, like],
+        [to, scope.projectId, scope.owner, like],
       );
       await conn.exec(
         "UPDATE onto_document_folder SET path=? WHERE project_id=? AND owner=? AND path=?",
@@ -1370,7 +1380,7 @@ export class SqlDocumentRepository implements DocumentRepository {
       await conn.exec(
         `UPDATE onto_document_folder SET path=? || substr(path,${cut}) ` +
           "WHERE project_id=? AND owner=? AND path LIKE ?",
-        [`${to}/`, scope.projectId, scope.owner, like],
+        [to, scope.projectId, scope.owner, like],
       );
       const n = await conn.all<DbRow>(
         "SELECT COUNT(*) AS n FROM onto_document_folder WHERE project_id=? AND owner=? " +

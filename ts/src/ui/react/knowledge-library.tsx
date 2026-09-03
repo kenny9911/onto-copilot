@@ -12,6 +12,7 @@ import {
   type KnowledgeLibraryApi,
   type KnowledgeMutationResult,
   type KnowledgeOpenResult,
+  type KnowledgeFolder,
   type KnowledgeSearchHit,
   type KnowledgeSearchResult,
   type KnowledgeSourceClass,
@@ -240,6 +241,8 @@ interface DocumentPreviewProps {
   onAddVersion: (fileName: string) => Promise<void>;
   /** 公共库里的材料不需要再「设为通用知识」，所以这个是可选的。 */
   onPublish?: (() => Promise<void>) | undefined;
+  onMove?: ((folderPath: string) => Promise<void>) | undefined;
+  folderOptions: readonly string[];
 }
 
 /**
@@ -252,6 +255,25 @@ interface DocumentPreviewProps {
  * 每一段都带「引用到对话」：段落复用的就是检索命中的形状，自带 evidence_ref
  * 和引用文案，所以读到哪一段就能把哪一段原样送进对话，中间不丢出处。
  */
+/** 树里的一行文件。缩进跟着层数走。 */
+function FileRow({ item, depth, selectedId, attachments, lang, onPick }: {
+  item: KnowledgeDocument;
+  depth: number;
+  selectedId: string | null;
+  attachments: KnowledgeAttachment[];
+  lang: string;
+  onPick: () => void;
+}): ReactElement {
+  return <button type="button"
+    className={`od-file${item.id === selectedId ? " on" : ""}${item.status === "archived" ? " archived" : ""}`}
+    style={{ paddingLeft: `${27 + depth * 14}px` }}
+    onClick={onPick}>
+    <span className="od-file-name">{item.title}</span>
+    {attachedVersion(item.id, attachments)
+      ? <span className="od-file-dot" title={words("本次分析在用", "In use this run", lang)} /> : null}
+  </button>;
+}
+
 /** 搜索结果占据预览区：找东西和读东西是同一个位置，不额外开一块。 */
 function SearchPane({ result, openedEvidence, evidenceError, lang, onOpen, onClear }: {
   result: KnowledgeSearchResult;
@@ -395,7 +417,7 @@ const PAGE = 50;
 
 function DocumentPreview({
   sessionId, api, onClose, document, versions, attachment, sessionFiles, busy, lang,
-  onUpdate, onArchive, onAttach, onDetach, onAdopt, onAddVersion, onPublish,
+  onUpdate, onArchive, onAttach, onDetach, onAdopt, onAddVersion, onPublish, onMove, folderOptions,
 }: DocumentPreviewProps): ReactElement {
   const [expanded, setExpanded] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -430,6 +452,12 @@ function DocumentPreview({
           onClick={() => { setEditing((v) => !v); setExpanded(false); }}>{words("编辑", "Edit", lang)}</button>
         <button type="button" className="od-link" disabled={isBusy}
           onClick={() => { setExpanded((v) => !v); setEditing(false); }}>{words("版本", "Versions", lang)}</button>
+        {onMove ? <select className="od-move" aria-label={words("移动到文件夹", "Move to folder", lang)}
+          value={document.folder_path ?? ""} disabled={isBusy}
+          onChange={(event) => void onMove(event.target.value)}>
+          <option value="">{words("根目录", "Root", lang)}</option>
+          {folderOptions.map((f) => <option key={f} value={f}>{f}</option>)}
+        </select> : null}
         <button type="button" className="od-link" disabled={isBusy} onClick={() => void onArchive()}>
           {document.status === "archived" ? words("恢复", "Restore", lang) : words("归档", "Archive", lang)}
         </button>
@@ -496,6 +524,8 @@ export function KnowledgeLibrary({
   const [selectedId, setSelectedId] = useState<string | null>(null);
   /** 收起的分组。默认全展开 —— 材料不多，先让人看见东西。 */
   const [closedFolders, setClosedFolders] = useState<Set<string>>(new Set());
+  /** 用户手工建的文件夹。空文件夹也在这里 —— 那正是「按标签推分组」做不到的。 */
+  const [folders, setFolders] = useState<KnowledgeFolder[]>([]);
   const [searching, setSearching] = useState(false);
   const [searchResult, setSearchResult] = useState<KnowledgeSearchResult | null>(null);
   const [openedEvidence, setOpenedEvidence] = useState<KnowledgeOpenResult | null>(null);
@@ -513,8 +543,13 @@ export function KnowledgeLibrary({
     setStatus("loading");
     setLoadError("");
     try {
-      const snapshot = await api.list(sessionId, includeArchived);
+      const [snapshot, folderRows] = await Promise.all([
+        api.list(sessionId, includeArchived),
+        // 文件夹单独拉：空文件夹不会出现在任何文档上，只能从这里来。
+        api.listFolders(sessionId).catch(() => [] as KnowledgeFolder[]),
+      ]);
       if (sequence !== loadSequence.current) return;
+      setFolders(folderRows);
       setDocuments(snapshot.documents || []);
       setAttachments(snapshot.attachments || []);
       setHistories(Object.fromEntries((snapshot.documents || []).map((document) => [document.id, undefined])));
@@ -589,24 +624,30 @@ export function KnowledgeLibrary({
     }
   };
 
-  // 按标签分组成文件夹。标签是这个产品里材料本来就有的语义（采购/制度/台账…），
-  // 用它当文件夹，比按上传时间或文件类型分更贴近「我在找什么」。
-  // 没有标签的归「未分类」，永远排在最后。
-  const UNFILED = words("未分类", "Untagged", lang);
-  const folders = new Map<string, KnowledgeDocument[]>();
+  // 树 = 用户手工建的文件夹 ∪ 文档自己声明的 folder_path。
+  //
+  // 两个来源缺一不可：空文件夹只存在于前者（那正是「按标签推分组」做不到的事），
+  // 而老数据的文档可能落在一个还没被显式建出来的路径上。
+  const ROOT_LABEL = words("根目录", "Root", lang);
+  const docsByFolder = new Map<string, KnowledgeDocument[]>();
   for (const item of documents) {
-    const keys = item.tags.length ? item.tags : [UNFILED];
-    for (const key of keys) {
-      const bucket = folders.get(key);
-      if (bucket) bucket.push(item);
-      else folders.set(key, [item]);
-    }
+    const key = item.folder_path ?? "";
+    const bucket = docsByFolder.get(key);
+    if (bucket) bucket.push(item); else docsByFolder.set(key, [item]);
   }
-  const folderNames = [...folders.keys()].sort((a, b) => {
-    if (a === UNFILED) return 1;
-    if (b === UNFILED) return -1;
-    return a.localeCompare(b, "zh-Hans-CN");
-  });
+  const allPaths = new Set<string>();
+  for (const f of folders) allPaths.add(f.path);
+  for (const key of docsByFolder.keys()) if (key !== "") allPaths.add(key);
+  // 祖先补全：只建了「制度/采购」时，「制度」也要出现在树上。
+  for (const p of [...allPaths]) {
+    const parts = p.split("/");
+    for (let i = 1; i < parts.length; i += 1) allPaths.add(parts.slice(0, i).join("/"));
+  }
+  const folderNames = [...allPaths].sort((a, b) => a.localeCompare(b, "zh-Hans-CN"));
+  const hiddenUnder = (path: string): boolean =>
+    path.includes("/") && [...closedFolders].some((c) => path.startsWith(`${c}/`));
+  const rootDocs = docsByFolder.get("") ?? [];
+
   const selected = documents.find((item) => item.id === selectedId) ?? null;
 
   return <section className="od-library od-fm" aria-label={words("知识库", "Knowledge library", lang)}>
@@ -624,6 +665,20 @@ export function KnowledgeLibrary({
               onClick={() => void runMutation("promote:new", async () => await api.promote(sessionId, { session_file_name: selectedUpload }))}>＋</button>
           </> : <button type="button" title={words("上传材料", "Upload material", lang)}
             onClick={() => document.getElementById("picker")?.click()}>＋</button>}
+          <button type="button" title={words("新建文件夹", "New folder", lang)}
+            onClick={() => {
+              // 在当前选中材料所在的文件夹下建 —— 和文件管理器一致：
+              // 「新建文件夹」建在你正看着的位置，不是永远建在根上。
+              const base = selected?.folder_path ?? "";
+              const name = window.prompt(
+                words("新文件夹名称", "New folder name", lang),
+                "",
+              );
+              if (!name || !name.trim()) return;
+              void runMutation("folder:new", async () =>
+                ({ ok: true, message: words(`已建文件夹「${name.trim()}」`, "Folder created", lang),
+                   ...(await api.createFolder(sessionId, base ? `${base}/${name.trim()}` : name.trim())) } as never));
+            }}>＋▤</button>
           <button type="button" title={words("全部收起", "Collapse all", lang)}
             onClick={() => setClosedFolders(new Set(folderNames))}>⌄</button>
           <button type="button" title={words("刷新", "Refresh", lang)}
@@ -656,30 +711,54 @@ export function KnowledgeLibrary({
               : words("用左上角的 ＋ 把材料加进来。", "Use ＋ above to add material.", lang)}</p>
           </div> : <div className="od-tree-body" role="tree">
             {folderNames.map((name) => {
+              // 父级收起时，子级整支不渲染 —— 缩进靠层数，不用递归组件。
+              if (hiddenUnder(name)) return null;
+              const depth = name.split("/").length - 1;
               const closed = closedFolders.has(name);
-              const items = folders.get(name) ?? [];
+              const items = docsByFolder.get(name) ?? [];
               return <div className="od-folder" key={name}>
                 <button type="button" className="od-folder-head" aria-expanded={!closed}
+                  style={{ paddingLeft: `${10 + depth * 14}px` }}
                   onClick={() => setClosedFolders((prev) => {
                     const next = new Set(prev);
                     if (next.has(name)) next.delete(name); else next.add(name);
                     return next;
                   })}>
                   <span className="od-folder-caret" aria-hidden="true">{closed ? "›" : "⌄"}</span>
-                  <span className="od-folder-name">{name}</span>
-                  <span className="od-folder-n">{items.length}</span>
+                  <span className="od-folder-name">{name.slice(name.lastIndexOf("/") + 1)}</span>
+                  <span className="od-folder-n">{items.length || ""}</span>
                 </button>
+                {level === "global" ? null : <span className="od-folder-acts">
+                  <button type="button" title={words("重命名", "Rename", lang)} onClick={() => {
+                    const next = window.prompt(words("新名称", "New name", lang), name.slice(name.lastIndexOf("/") + 1));
+                    if (!next || !next.trim()) return;
+                    const parent = name.includes("/") ? name.slice(0, name.lastIndexOf("/")) : "";
+                    void runMutation(`folder:${name}:rename`, async () =>
+                      await api.renameFolder(sessionId, name, parent ? `${parent}/${next.trim()}` : next.trim()));
+                  }}>✎</button>
+                  <button type="button" title={words("删除文件夹（材料不删）", "Delete folder (files kept)", lang)}
+                    onClick={() => {
+                      // 说清楚材料不会跟着没 —— 不然没人敢点。
+                      if (!window.confirm(words(
+                        `删除文件夹「${name}」？\n里面的材料会移到根目录，不会被删除。`,
+                        `Delete folder “${name}”? Files inside move to the root; nothing is deleted.`,
+                        lang,
+                      ))) return;
+                      void runMutation(`folder:${name}:delete`, async () =>
+                        await api.deleteFolder(sessionId, name));
+                    }}>×</button>
+                </span>}
                 {closed ? null : <div className="od-folder-body" role="group">
-                  {items.map((item) => <button type="button" key={item.id}
-                    className={`od-file${item.id === selectedId ? " on" : ""}${item.status === "archived" ? " archived" : ""}`}
-                    onClick={() => setSelectedId(item.id)}>
-                    <span className="od-file-name">{item.title}</span>
-                    {attachedVersion(item.id, attachments)
-                      ? <span className="od-file-dot" title={words("本次分析在用", "In use this run", lang)} /> : null}
-                  </button>)}
+                  {items.map((item) => <FileRow key={item.id} item={item} depth={depth + 1}
+                    selectedId={selectedId} attachments={attachments} lang={lang}
+                    onPick={() => setSelectedId(item.id)} />)}
                 </div>}
               </div>;
             })}
+            {/* 根目录的材料垫底，不套一层假文件夹 —— 那会让「没归类」看起来像个真分组。 */}
+            {rootDocs.map((item) => <FileRow key={item.id} item={item} depth={0}
+              selectedId={selectedId} attachments={attachments} lang={lang}
+              onPick={() => setSelectedId(item.id)} />)}
           </div>}
         <div className="od-fm-status">
           <span>{status === "ready"
@@ -724,6 +803,9 @@ export function KnowledgeLibrary({
             target_document_id: selected.id,
             base_version_id: selected.current_version_id,
           }))}
+          folderOptions={folderNames}
+          onMove={async (folderPath) => await runMutation(`${selected.id}:move`,
+            async () => await api.moveDocument(sessionId, selected.id, folderPath))}
           {...(level === "global" ? {} : {
             onPublish: async () => await runMutation(`${selected.id}:publish`,
               async () => await api.publish(sessionId, selected.id)),

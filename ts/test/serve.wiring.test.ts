@@ -187,6 +187,16 @@ describe("wireServer", () => {
       "GET /api/sessions/:sid/documents/:documentId/content",
       // 「设为通用知识」：把项目材料复制进公共库。人点的动作，没有自动调用点。
       "POST /api/sessions/:sid/documents/:documentId/publish",
+      // 用户手工建的文件夹。之前树里的分组是按标签推出来的，空文件夹无处存放 ——
+      // 建一个立刻消失。文件夹必须是独立于文件存在的东西。
+      "GET /api/sessions/:sid/documents/folders",
+      "POST /api/sessions/:sid/documents/folders",
+      "PATCH /api/sessions/:sid/documents/folders",
+      "DELETE /api/sessions/:sid/documents/folders",
+      "PATCH /api/sessions/:sid/documents/:documentId/folder",
+      "GET /api/knowledge/documents/folders",
+      "POST /api/knowledge/documents/folders",
+      "PATCH /api/knowledge/documents/:documentId/folder",
       // 公共知识库：**不经过会话**。产品要求「这个知识库应该可以直接去访问」——
       // 在此之前所有知识库路由都挂在 /api/sessions/:sid 下，侧栏按钮在会话没归项目时
       // 是禁用的。这一组只有读与整理；attach/promote 依赖会话语义，刻意没挂。

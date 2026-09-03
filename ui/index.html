@@ -185,6 +185,12 @@ body.knowledge-page-open .main{min-width:0;border-right:0}
 .od-folder-caret{width:10px;color:var(--ink-3);font-size:.7407rem}
 .od-folder-name{flex:1;overflow:hidden;color:var(--ink);font-size:.8519rem;text-overflow:ellipsis;white-space:nowrap}
 .od-folder-n{color:var(--ink-3);font-size:.6667rem}
+.od-folder{position:relative}
+.od-folder-acts{position:absolute;top:3px;right:6px;display:none;gap:2px}
+.od-folder:hover .od-folder-acts{display:flex}
+.od-folder-acts button{width:20px;height:20px;border-radius:5px;color:var(--ink-3);font-size:.7037rem}
+.od-folder-acts button:hover{background:var(--hover-2);color:var(--ink)}
+.od-move{max-width:150px;padding:2px 6px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink-2);font-size:.7037rem}
 .od-file{display:flex;width:100%;align-items:center;gap:7px;padding:4px 10px 4px 27px;text-align:left}
 .od-file:hover{background:var(--hover)}
 .od-file.on{background:var(--accent-tint)}
@@ -19387,6 +19393,37 @@ ${el.value}` : text4;
           { method: "POST", body: JSON.stringify(versionId ? { version_id: versionId } : {}) }
         );
       },
+      async listFolders(sessionId) {
+        const r = await request2(route2(sessionId, "/folders"));
+        return r.folders;
+      },
+      async createFolder(sessionId, path) {
+        const r = await request2(route2(sessionId, "/folders"), {
+          method: "POST",
+          body: JSON.stringify({ folder: path })
+        });
+        return r.folders;
+      },
+      async renameFolder(sessionId, from, to) {
+        if (scope === "global") notInGlobal("重命名文件夹");
+        return await request2(route2(sessionId, "/folders"), {
+          method: "PATCH",
+          body: JSON.stringify({ from, to })
+        });
+      },
+      async deleteFolder(sessionId, path) {
+        if (scope === "global") notInGlobal("删除文件夹");
+        return await request2(
+          route2(sessionId, `/folders?folder=${encodeURIComponent(path)}`),
+          { method: "DELETE" }
+        );
+      },
+      async moveDocument(sessionId, documentId, folderPath) {
+        return await request2(
+          route2(sessionId, documentSuffix(documentId, "/folder")),
+          { method: "PATCH", body: JSON.stringify({ folder: folderPath }) }
+        );
+      },
       async promote(sessionId, input) {
         if (scope === "global") notInGlobal("从会话文件入库");
         return await request2(route2(sessionId, "/promote"), {
@@ -20175,6 +20212,21 @@ ${receipt.summary}` : header;
       ] })
     ] });
   }
+  function FileRow({ item, depth, selectedId, attachments, lang, onPick }) {
+    return /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)(
+      "button",
+      {
+        type: "button",
+        className: `od-file${item.id === selectedId ? " on" : ""}${item.status === "archived" ? " archived" : ""}`,
+        style: { paddingLeft: `${27 + depth * 14}px` },
+        onClick: onPick,
+        children: [
+          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "od-file-name", children: item.title }),
+          attachedVersion(item.id, attachments) ? /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "od-file-dot", title: words("本次分析在用", "In use this run", lang) }) : null
+        ]
+      }
+    );
+  }
   function SearchPane({ result, openedEvidence, evidenceError, lang, onOpen, onClear }) {
     const total = result.total ?? result.hits.length;
     return /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)(import_jsx_runtime7.Fragment, { children: [
@@ -20331,7 +20383,9 @@ ${chunk.text}
     onDetach,
     onAdopt,
     onAddVersion,
-    onPublish
+    onPublish,
+    onMove,
+    folderOptions
   }) {
     const [expanded, setExpanded] = (0, import_react5.useState)(false);
     const [editing, setEditing] = (0, import_react5.useState)(false);
@@ -20380,6 +20434,20 @@ ${chunk.text}
               children: words("版本", "Versions", lang)
             }
           ),
+          onMove ? /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)(
+            "select",
+            {
+              className: "od-move",
+              "aria-label": words("移动到文件夹", "Move to folder", lang),
+              value: document2.folder_path ?? "",
+              disabled: isBusy,
+              onChange: (event) => void onMove(event.target.value),
+              children: [
+                /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("option", { value: "", children: words("根目录", "Root", lang) }),
+                folderOptions.map((f) => /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("option", { value: f, children: f }, f))
+              ]
+            }
+          ) : null,
           /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("button", { type: "button", className: "od-link", disabled: isBusy, onClick: () => void onArchive(), children: document2.status === "archived" ? words("恢复", "Restore", lang) : words("归档", "Archive", lang) }),
           onPublish ? /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
             "button",
@@ -20454,6 +20522,7 @@ ${chunk.text}
     const [attachedOnly, setAttachedOnly] = (0, import_react5.useState)(false);
     const [selectedId, setSelectedId] = (0, import_react5.useState)(null);
     const [closedFolders, setClosedFolders] = (0, import_react5.useState)(/* @__PURE__ */ new Set());
+    const [folders, setFolders] = (0, import_react5.useState)([]);
     const [searching, setSearching] = (0, import_react5.useState)(false);
     const [searchResult, setSearchResult] = (0, import_react5.useState)(null);
     const [openedEvidence, setOpenedEvidence] = (0, import_react5.useState)(null);
@@ -20469,8 +20538,13 @@ ${chunk.text}
       setStatus("loading");
       setLoadError("");
       try {
-        const snapshot = await api.list(sessionId, includeArchived);
+        const [snapshot, folderRows] = await Promise.all([
+          api.list(sessionId, includeArchived),
+          // 文件夹单独拉：空文件夹不会出现在任何文档上，只能从这里来。
+          api.listFolders(sessionId).catch(() => [])
+        ]);
         if (sequence !== loadSequence.current) return;
+        setFolders(folderRows);
         setDocuments(snapshot.documents || []);
         setAttachments(snapshot.attachments || []);
         setHistories(Object.fromEntries((snapshot.documents || []).map((document2) => [document2.id, void 0])));
@@ -20538,21 +20612,24 @@ ${chunk.text}
         setEvidenceError(errorMessage(error, lang));
       }
     };
-    const UNFILED2 = words("未分类", "Untagged", lang);
-    const folders = /* @__PURE__ */ new Map();
+    const ROOT_LABEL = words("根目录", "Root", lang);
+    const docsByFolder = /* @__PURE__ */ new Map();
     for (const item of documents) {
-      const keys = item.tags.length ? item.tags : [UNFILED2];
-      for (const key of keys) {
-        const bucket = folders.get(key);
-        if (bucket) bucket.push(item);
-        else folders.set(key, [item]);
-      }
+      const key = item.folder_path ?? "";
+      const bucket = docsByFolder.get(key);
+      if (bucket) bucket.push(item);
+      else docsByFolder.set(key, [item]);
     }
-    const folderNames = [...folders.keys()].sort((a, b) => {
-      if (a === UNFILED2) return 1;
-      if (b === UNFILED2) return -1;
-      return a.localeCompare(b, "zh-Hans-CN");
-    });
+    const allPaths = /* @__PURE__ */ new Set();
+    for (const f of folders) allPaths.add(f.path);
+    for (const key of docsByFolder.keys()) if (key !== "") allPaths.add(key);
+    for (const p of [...allPaths]) {
+      const parts = p.split("/");
+      for (let i = 1; i < parts.length; i += 1) allPaths.add(parts.slice(0, i).join("/"));
+    }
+    const folderNames = [...allPaths].sort((a, b) => a.localeCompare(b, "zh-Hans-CN"));
+    const hiddenUnder = (path) => path.includes("/") && [...closedFolders].some((c) => path.startsWith(`${c}/`));
+    const rootDocs = docsByFolder.get("") ?? [];
     const selected = documents.find((item) => item.id === selectedId) ?? null;
     return /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("section", { className: "od-library od-fm", "aria-label": words("知识库", "Knowledge library", lang), children: /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "od-explorer", children: [
       /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("aside", { className: "od-tree", "aria-label": words("材料目录", "Material tree", lang), children: [
@@ -20585,6 +20662,27 @@ ${chunk.text}
               title: words("上传材料", "Upload material", lang),
               onClick: () => document.getElementById("picker")?.click(),
               children: "＋"
+            }
+          ),
+          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
+            "button",
+            {
+              type: "button",
+              title: words("新建文件夹", "New folder", lang),
+              onClick: () => {
+                const base = selected?.folder_path ?? "";
+                const name = window.prompt(
+                  words("新文件夹名称", "New folder name", lang),
+                  ""
+                );
+                if (!name || !name.trim()) return;
+                void runMutation("folder:new", async () => ({
+                  ok: true,
+                  message: words(`已建文件夹「${name.trim()}」`, "Folder created", lang),
+                  ...await api.createFolder(sessionId, base ? `${base}/${name.trim()}` : name.trim())
+                }));
+              },
+              children: "＋▤"
             }
           ),
           /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
@@ -20633,44 +20731,85 @@ ${chunk.text}
         ] }) : status === "loading" && documents.length === 0 ? /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "od-library-loading", children: words("读取中…", "Loading…", lang) }) : documents.length === 0 ? /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "od-library-empty", children: [
           /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("strong", { children: level === "global" ? words("公共知识库还是空的", "The shared library is empty", lang) : words("这个项目还没有材料", "No material yet", lang) }),
           /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("p", { children: level === "global" ? words("这里放跨项目通用的东西：行业标准、通用制度、模板。", "Cross-project material lives here.", lang) : words("用左上角的 ＋ 把材料加进来。", "Use ＋ above to add material.", lang) })
-        ] }) : /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "od-tree-body", role: "tree", children: folderNames.map((name) => {
-          const closed = closedFolders.has(name);
-          const items = folders.get(name) ?? [];
-          return /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "od-folder", children: [
-            /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)(
-              "button",
-              {
-                type: "button",
-                className: "od-folder-head",
-                "aria-expanded": !closed,
-                onClick: () => setClosedFolders((prev) => {
-                  const next = new Set(prev);
-                  if (next.has(name)) next.delete(name);
-                  else next.add(name);
-                  return next;
-                }),
-                children: [
-                  /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "od-folder-caret", "aria-hidden": "true", children: closed ? "›" : "⌄" }),
-                  /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "od-folder-name", children: name }),
-                  /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "od-folder-n", children: items.length })
-                ]
-              }
-            ),
-            closed ? null : /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "od-folder-body", role: "group", children: items.map((item) => /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)(
-              "button",
-              {
-                type: "button",
-                className: `od-file${item.id === selectedId ? " on" : ""}${item.status === "archived" ? " archived" : ""}`,
-                onClick: () => setSelectedId(item.id),
-                children: [
-                  /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "od-file-name", children: item.title }),
-                  attachedVersion(item.id, attachments) ? /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "od-file-dot", title: words("本次分析在用", "In use this run", lang) }) : null
-                ]
-              },
-              item.id
-            )) })
-          ] }, name);
-        }) }),
+        ] }) : /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "od-tree-body", role: "tree", children: [
+          folderNames.map((name) => {
+            if (hiddenUnder(name)) return null;
+            const depth = name.split("/").length - 1;
+            const closed = closedFolders.has(name);
+            const items = docsByFolder.get(name) ?? [];
+            return /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "od-folder", children: [
+              /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)(
+                "button",
+                {
+                  type: "button",
+                  className: "od-folder-head",
+                  "aria-expanded": !closed,
+                  style: { paddingLeft: `${10 + depth * 14}px` },
+                  onClick: () => setClosedFolders((prev) => {
+                    const next = new Set(prev);
+                    if (next.has(name)) next.delete(name);
+                    else next.add(name);
+                    return next;
+                  }),
+                  children: [
+                    /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "od-folder-caret", "aria-hidden": "true", children: closed ? "›" : "⌄" }),
+                    /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "od-folder-name", children: name.slice(name.lastIndexOf("/") + 1) }),
+                    /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "od-folder-n", children: items.length || "" })
+                  ]
+                }
+              ),
+              level === "global" ? null : /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("span", { className: "od-folder-acts", children: [
+                /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("button", { type: "button", title: words("重命名", "Rename", lang), onClick: () => {
+                  const next = window.prompt(words("新名称", "New name", lang), name.slice(name.lastIndexOf("/") + 1));
+                  if (!next || !next.trim()) return;
+                  const parent = name.includes("/") ? name.slice(0, name.lastIndexOf("/")) : "";
+                  void runMutation(`folder:${name}:rename`, async () => await api.renameFolder(sessionId, name, parent ? `${parent}/${next.trim()}` : next.trim()));
+                }, children: "✎" }),
+                /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
+                  "button",
+                  {
+                    type: "button",
+                    title: words("删除文件夹（材料不删）", "Delete folder (files kept)", lang),
+                    onClick: () => {
+                      if (!window.confirm(words(
+                        `删除文件夹「${name}」？
+里面的材料会移到根目录，不会被删除。`,
+                        `Delete folder “${name}”? Files inside move to the root; nothing is deleted.`,
+                        lang
+                      ))) return;
+                      void runMutation(`folder:${name}:delete`, async () => await api.deleteFolder(sessionId, name));
+                    },
+                    children: "×"
+                  }
+                )
+              ] }),
+              closed ? null : /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "od-folder-body", role: "group", children: items.map((item) => /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
+                FileRow,
+                {
+                  item,
+                  depth: depth + 1,
+                  selectedId,
+                  attachments,
+                  lang,
+                  onPick: () => setSelectedId(item.id)
+                },
+                item.id
+              )) })
+            ] }, name);
+          }),
+          rootDocs.map((item) => /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
+            FileRow,
+            {
+              item,
+              depth: 0,
+              selectedId,
+              attachments,
+              lang,
+              onPick: () => setSelectedId(item.id)
+            },
+            item.id
+          ))
+        ] }),
         /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "od-fm-status", children: /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { children: status === "ready" ? words(`${documents.length} 份材料`, `${documents.length} files`, lang) : "" }) })
       ] }),
       /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "od-preview-pane", children: [
@@ -20723,6 +20862,11 @@ ${chunk.text}
               target_document_id: selected.id,
               base_version_id: selected.current_version_id
             })),
+            folderOptions: folderNames,
+            onMove: async (folderPath) => await runMutation(
+              `${selected.id}:move`,
+              async () => await api.moveDocument(sessionId, selected.id, folderPath)
+            ),
             ...level === "global" ? {} : {
               onPublish: async () => await runMutation(
                 `${selected.id}:publish`,

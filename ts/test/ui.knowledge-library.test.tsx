@@ -121,6 +121,16 @@ function fakeApi(): KnowledgeLibraryApi {
     archive: vi.fn(async () => ({ ok: true, message: "已归档这份文档。" })),
     attach: vi.fn(async () => ({ ok: true, message: "已把这个固定版本加入本次分析。" })),
     publish: vi.fn(async () => ({ ok: true, message: "已设为通用知识" })),
+    // 用户手工建的文件夹。树上的分组来自这里，不再是「按标签推出来的」。
+    listFolders: vi.fn(async () => [
+      { path: "制度", created_at: "2026-09-03T00:00:00.000Z" },
+      { path: "制度/采购", created_at: "2026-09-03T00:00:00.000Z" },
+      { path: "空文件夹", created_at: "2026-09-03T00:00:00.000Z" },
+    ]),
+    createFolder: vi.fn(async (_s: string, path: string) => [{ path, created_at: "2026-09-03T00:00:00.000Z" }]),
+    renameFolder: vi.fn(async () => ({ ok: true, message: "已重命名" })),
+    deleteFolder: vi.fn(async () => ({ ok: true, message: "文件夹已删除；里面的 0 份材料移到了根目录，没有删除。" })),
+    moveDocument: vi.fn(async () => ({ ok: true, message: "已移动" })),
     detach: vi.fn(async () => ({ ok: true, message: "已从本次分析中移除。" })),
   };
 }
@@ -209,6 +219,52 @@ describe("OntoDocument 项目知识库", () => {
       title: "采购制度（正式）",
       tags: ["采购", "正式"],
     })));
+  });
+
+  it("树上的文件夹是用户建的，不是按标签推出来的 —— 空文件夹也在", async () => {
+    const api = fakeApi();
+    const view = render(<KnowledgeLibrary sessionId="session-1" sessionFiles={[]} api={api} />);
+    await waitFor(() => expect(view.container.querySelector(".od-file-name")).not.toBeNull());
+
+    expect(api.listFolders).toHaveBeenCalledWith("session-1");
+    const names = [...view.container.querySelectorAll(".od-folder-name")].map((n) => n.textContent);
+    // 「空文件夹」里一份材料都没有，按标签推分组时它根本不会出现 —— 这正是
+    // 「用户手工建文件夹」和「按标签分组」的分界线。
+    expect(names).toContain("空文件夹");
+    // 子文件夹显示的是最后一段，不是整条路径；层级靠缩进表达。
+    expect(names).toContain("采购");
+    expect(names).toContain("制度");
+  });
+
+  it("新建文件夹建在当前所在位置，删除时说清楚材料不会跟着没", async () => {
+    const api = fakeApi();
+    const view = render(<KnowledgeLibrary sessionId="session-1" sessionFiles={[]} api={api} />);
+    await waitFor(() => expect(view.container.querySelector(".od-folder-name")).not.toBeNull());
+
+    const prompt = vi.spyOn(window, "prompt").mockReturnValue("台账");
+    fireEvent.click(view.getByTitle("新建文件夹"));
+    await waitFor(() => expect(api.createFolder).toHaveBeenCalledWith("session-1", "台账"));
+    prompt.mockRestore();
+
+    // 删除必须先说清楚「材料会移到根目录，不会被删除」—— 不然没人敢点。
+    const confirm = vi.spyOn(window, "confirm").mockImplementation((msg) => {
+      expect(String(msg)).toContain("不会被删除");
+      return true;
+    });
+    fireEvent.click(view.getAllByTitle("删除文件夹（材料不删）")[0]!);
+    await waitFor(() => expect(api.deleteFolder).toHaveBeenCalled());
+    confirm.mockRestore();
+  });
+
+  it("选中一份材料后可以把它移到别的文件夹", async () => {
+    const api = fakeApi();
+    const view = render(<KnowledgeLibrary sessionId="session-1" sessionFiles={[]} api={api} />);
+    await waitFor(() => expect(view.container.querySelector(".od-file")).not.toBeNull());
+    fireEvent.click(view.container.querySelector(".od-file") as any);
+    await waitFor(() => expect(view.container.querySelector(".od-move")).not.toBeNull());
+
+    fireEvent.change(view.container.querySelector(".od-move") as any, { target: { value: "制度/采购" } });
+    await waitFor(() => expect(api.moveDocument).toHaveBeenCalledWith("session-1", "doc-1", "制度/采购"));
   });
 
   it("不用输任何关键词就能打开一份材料读，每段都能引用到对话", async () => {

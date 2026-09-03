@@ -13,8 +13,15 @@ export type KnowledgeDocumentStatus = "active" | "archived";
 export type KnowledgeParseStatus = "ready" | "degraded";
 export type KnowledgeAttachmentRole = "reference" | "primary";
 
+export interface KnowledgeFolder {
+  path: string;
+  created_at: string;
+}
+
 export interface KnowledgeDocument {
   id: string;
+  /** 所在文件夹。空串 = 根目录。 */
+  folder_path?: string;
   title: string;
   logical_name: string;
   source_class: KnowledgeSourceClass;
@@ -160,6 +167,11 @@ export interface KnowledgeLibraryApi {
   detach(sessionId: string, documentId: string): Promise<KnowledgeMutationResult>;
   /** 设为通用知识：把这份项目材料复制进公共知识库。人点的动作。 */
   publish(sessionId: string, documentId: string, versionId?: string): Promise<KnowledgeMutationResult>;
+  listFolders(sessionId: string): Promise<KnowledgeFolder[]>;
+  createFolder(sessionId: string, path: string): Promise<KnowledgeFolder[]>;
+  renameFolder(sessionId: string, from: string, to: string): Promise<KnowledgeMutationResult>;
+  deleteFolder(sessionId: string, path: string): Promise<KnowledgeMutationResult>;
+  moveDocument(sessionId: string, documentId: string, folderPath: string): Promise<KnowledgeMutationResult>;
 }
 
 /** 会话作用域的基址：项目知识库。 */
@@ -263,6 +275,39 @@ function createKnowledgeApi(route: RouteFn, scope: "session" | "global"): Knowle
       return await request<KnowledgeMutationResult>(
         route(sessionId, documentSuffix(documentId, "/publish")),
         { method: "POST", body: JSON.stringify(versionId ? { version_id: versionId } : {}) },
+      );
+    },
+
+    async listFolders(sessionId) {
+      const r = await request<{ folders: KnowledgeFolder[] }>(route(sessionId, "/folders"));
+      return r.folders;
+    },
+
+    async createFolder(sessionId, path) {
+      const r = await request<{ folders: KnowledgeFolder[] }>(route(sessionId, "/folders"), {
+        method: "POST", body: JSON.stringify({ folder: path }),
+      });
+      return r.folders;
+    },
+
+    async renameFolder(sessionId, from, to) {
+      if (scope === "global") notInGlobal("重命名文件夹");
+      return await request<KnowledgeMutationResult>(route(sessionId, "/folders"), {
+        method: "PATCH", body: JSON.stringify({ from, to }),
+      });
+    },
+
+    async deleteFolder(sessionId, path) {
+      if (scope === "global") notInGlobal("删除文件夹");
+      return await request<KnowledgeMutationResult>(
+        route(sessionId, `/folders?folder=${encodeURIComponent(path)}`), { method: "DELETE" },
+      );
+    },
+
+    async moveDocument(sessionId, documentId, folderPath) {
+      return await request<KnowledgeMutationResult>(
+        route(sessionId, documentSuffix(documentId, "/folder")),
+        { method: "PATCH", body: JSON.stringify({ folder: folderPath }) },
       );
     },
 

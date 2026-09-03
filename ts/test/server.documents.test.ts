@@ -178,6 +178,31 @@ class FakeDocumentService implements DocumentServicePort {
     return READ;
   }
 
+  async listFolders(...args: Parameters<DocumentServicePort["listFolders"]>) {
+    this.calls.push({ method: "listFolders", args });
+    return [{ path: "制度", createdBy: "u1", createdAt: "2026-09-03T00:00:00.000Z" }];
+  }
+
+  async createFolder(...args: Parameters<DocumentServicePort["createFolder"]>) {
+    this.calls.push({ method: "createFolder", args });
+    return [{ path: String(args[1]), createdBy: "u1", createdAt: "2026-09-03T00:00:00.000Z" }];
+  }
+
+  async deleteFolder(...args: Parameters<DocumentServicePort["deleteFolder"]>) {
+    this.calls.push({ method: "deleteFolder", args });
+    return { movedDocuments: 2 };
+  }
+
+  async renameFolder(...args: Parameters<DocumentServicePort["renameFolder"]>) {
+    this.calls.push({ method: "renameFolder", args });
+    return { folders: 1 };
+  }
+
+  async moveDocument(...args: Parameters<DocumentServicePort["moveDocument"]>) {
+    this.calls.push({ method: "moveDocument", args });
+    return { ...SUMMARY, folderPath: String(args[2]) };
+  }
+
   async publishToGlobal(
     ...args: Parameters<DocumentServicePort["publishToGlobal"]>
   ): Promise<PromoteResult> {
