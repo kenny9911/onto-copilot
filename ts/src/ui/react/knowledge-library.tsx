@@ -238,6 +238,8 @@ interface DocumentPreviewProps {
   onDetach: () => Promise<void>;
   onAdopt: (version: KnowledgeDocumentVersion) => Promise<void>;
   onAddVersion: (fileName: string) => Promise<void>;
+  /** 公共库里的材料不需要再「设为通用知识」，所以这个是可选的。 */
+  onPublish?: (() => Promise<void>) | undefined;
 }
 
 /**
@@ -282,6 +284,8 @@ function SearchPane({ result, openedEvidence, evidenceError, lang, onOpen, onCle
         <span>
           <strong>{hit.document_title} · v{hit.version_no}</strong>
           {hit.level === "global" ? <span className="od-badge current">{words("总库", "Shared", lang)}</span> : null}
+          {hit.also_in_level === "global"
+            ? <span className="od-badge current">{words("总库也有", "Also shared", lang)}</span> : null}
           <small>{hit.cite}</small>
         </span>
         <p>{hit.text}</p>
@@ -391,7 +395,7 @@ const PAGE = 50;
 
 function DocumentPreview({
   sessionId, api, onClose, document, versions, attachment, sessionFiles, busy, lang,
-  onUpdate, onArchive, onAttach, onDetach, onAdopt, onAddVersion,
+  onUpdate, onArchive, onAttach, onDetach, onAdopt, onAddVersion, onPublish,
 }: DocumentPreviewProps): ReactElement {
   const [expanded, setExpanded] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -429,6 +433,11 @@ function DocumentPreview({
         <button type="button" className="od-link" disabled={isBusy} onClick={() => void onArchive()}>
           {document.status === "archived" ? words("恢复", "Restore", lang) : words("归档", "Archive", lang)}
         </button>
+        {/* 设为通用知识：把这份材料复制进公共知识库，其他项目也能检索到。
+            必须是人点的 —— AI 只能建议。公共库是共享的，让它自动生长会变成垃圾场。 */}
+        {onPublish ? <button type="button" className="od-link" disabled={isBusy}
+          title={words("复制到公共知识库，其他项目也能检索到", "Copy into the shared library", lang)}
+          onClick={() => void onPublish()}>{words("设为通用知识", "Make shared", lang)}</button> : null}
         <button type="button" className="od-link" onClick={onClose}>{words("关闭", "Close", lang)}</button>
       </div>
     </header>
@@ -715,6 +724,10 @@ export function KnowledgeLibrary({
             target_document_id: selected.id,
             base_version_id: selected.current_version_id,
           }))}
+          {...(level === "global" ? {} : {
+            onPublish: async () => await runMutation(`${selected.id}:publish`,
+              async () => await api.publish(sessionId, selected.id)),
+          })}
         /> : <div className="od-preview-idle">
           {words("在左边选一份材料，正文就显示在这里。", "Pick a file on the left to read it here.", lang)}
         </div>}

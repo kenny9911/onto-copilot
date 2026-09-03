@@ -24,6 +24,7 @@ import {
   DocumentConflict,
   DocumentError,
   DocumentNotFound,
+  globalLibraryScope,
   levelOf,
   type AttachDocumentInput,
   type AttachedDocumentBundle,
@@ -250,6 +251,273 @@ export class DocumentService {
    * 再按 chunk 逐段过滤，最后重新核对 ACL revision。**不因为「用户能看这份文档」
    * 就顺带把整版正文交出去。**
    */
+
+  /**
+   * 把一份项目材料**设为通用知识**：复制进公共知识库。
+   *
+   * 三条产品纪律写进实现里：
+   *
+   * 1. **必须是人的显式动作。** 这个方法没有任何自动调用点；AI 只能建议。
+   *    公共库是跨项目共享的，让它自动生长，三个月后就是垃圾场。
+   * 2. **是复制，不是搬走。** 项目仍然留着自己那一份 —— 那是这个客户的材料，
+   *    有自己的来源和版本链；已经固定到某个会话的版本也不能因为「有人把它设成
+   *    通用」就凭空消失。
+   * 3. **同一份内容只进一次。** 按 sha256 去重；第二次点返回 deduplicated，
+   *    不会在公共库里堆出两份一模一样的文件。
+   *
+   * 复制的是**已采用版**（没设过就是最新版）—— 和检索、阅读的默认口径一致。
+   */
+  async publishToGlobal(
+    scope: DocumentScope,
+    documentId: string,
+    options: { readonly versionId?: string } = {},
+  ): Promise<PromoteResult> {
+    safeScope(scope);
+    if (levelOf(scope) === "global") {
+      throw new DocumentError("INVALID_ARGUMENT", "这份材料已经在公共知识库里了", 400);
+    }
+    const cleanId = cleanText(documentId, "", "文档 ID", 2_048);
+    const source = await this.guardAcl(() => this.acl.readAuthorized(
+      scope,
+      principalOf(scope),
+      { scopeType: "document", documentId: cleanId },
+      async () => await this.repository.get(scope, cleanId),
+    ));
+    if (source === null) throw new DocumentNotFound();
+    const versionId = options.versionId === undefined || options.versionId === ""
+      ? source.adoptedVersionId ?? source.currentVersionId
+      : cleanText(options.versionId, "", "版本 ID", 2_048);
+    await this.guardAcl(() => this.acl.authorizeRead(
+      scope,
+      principalOf(scope),
+      { scopeType: "version", documentId: cleanId, versionId },
+    ));
+    const version = await this.repository.getVersion(scope, cleanId, versionId);
+    if (version === null) throw new DocumentNotFound("没有找到这一版材料");
+
+    // 读原件。路径守卫和会话入库那条**不共用**：这里只认「这个项目自己的文档目录」，
+    // 放宽一寸就是一个越权读文件的洞。
+    const root = await realpath(this.workspaceRoot).catch(() => this.workspaceRoot);
+    const projectDocs = resolve(
+      root,
+      "projects",
+      safeSegment(scope.projectId, "project"),
+      "documents",
+      safeSegment(cleanId, "document"),
+    );
+    const declared = resolve(root, version.relPath);
+    if (!pathInside(projectDocs, declared)) {
+      throw new DocumentError("FORBIDDEN", "这一版的原件不在该项目的文档目录里", 404);
+    }
+    const bytes = await readFile(declared).catch(() => null);
+    if (bytes === null) throw new DocumentNotFound("这一版的原件已经不在了");
+    const digest = sha256Hex(bytes);
+    if (digest !== version.sha256) {
+      throw new DocumentError("INTEGRITY_ERROR", "原件的校验值和版本记录不一致，已拒绝发布", 500);
+    }
+
+    // 公共库边界；actorId 原样带过去，ACL 仍然按真人裁决。
+    const target = globalLibraryScope(scope.actorId ?? scope.owner);
+    await this.guardAcl(() => this.acl.authorizeWrite(
+      target,
+      principalOf(target),
+      { scopeType: "project" },
+    ));
+
+    // 同一份内容只进一次。公共库通常不大，逐份比对 sha 足够，且比按标题猜可靠。
+    for (const existing of await this.repository.list(target, true)) {
+      const same = await this.repository.findVersionBySha(target, existing.id, digest);
+      if (same !== null) {
+        const { parsedDoc: _parsedDoc, ...ver } = same;
+        return { document: existing, version: ver, deduplicated: true };
+      }
+    }
+
+    return await this.commitBytes({
+      scope: target,
+      root,
+      bytes,
+      sourceName: version.fileName,
+      existing: null,
+      digest,
+      title: source.title,
+      logicalName: source.logicalName,
+      // 它进公共库靠的是人的一次判断，不是某个会话上传 —— 来源分类要说实话。
+      sourceClass: "imported",
+      tags: source.tags,
+      mediaType: version.mediaType,
+      createdBy: scope.actorId ?? scope.owner,
+    });
+  }
+
+  /**
+   * 入库的共同尾巴：把字节写成不可变版本、解析、提交。
+   *
+   * 抽出来是因为它有**两个**入口 —— 会话文件入库（promoteSessionFile）和
+   * 「设为通用知识」（publishToGlobal）。这个代码库已经因为 tokenize / coverageOf /
+   * evidenceRef 各存两份而吃过亏：两份实现迟早会漂移，而这里漂移的后果是同一份
+   * 内容在两条路径上算出不同的 index_revision 或 parse_status。
+   *
+   * 两个入口各自保留自己的路径守卫（一个只认会话目录、一个只认项目文档目录），
+   * 那部分**不共用** —— 边界检查放宽一寸就是一个越权读文件的洞。
+   */
+  private async commitBytes(opts: {
+    readonly scope: DocumentScope;
+    readonly root: string;
+    readonly bytes: Uint8Array;
+    readonly sourceName: string;
+    readonly existing: DocumentSummary | null;
+    readonly digest: string;
+    readonly title?: string | undefined;
+    readonly logicalName?: string | undefined;
+    readonly sourceClass?: DocumentSourceClass | undefined;
+    readonly parserName?: string | undefined;
+    readonly parserVersion?: string | undefined;
+    readonly createdBy?: string | undefined;
+    readonly tags?: readonly string[] | undefined;
+    readonly mediaType?: string | undefined;
+    readonly baseVersionId?: string | undefined;
+  }): Promise<PromoteResult> {
+    const { scope, root, bytes, sourceName, existing, digest } = opts;
+    const documentId = existing?.id ?? this.newId("document");
+    const versionId = this.newId("version");
+    const createdAt = this.now();
+    const projectDir = safeSegment(scope.projectId, "project");
+    const versionDir = join(
+      root,
+      "projects",
+      projectDir,
+      "documents",
+      safeSegment(documentId, "document"),
+      safeSegment(versionId, "version"),
+    );
+    const destination = join(versionDir, "original", safeFileName(sourceName));
+    await mkdir(dirname(destination), { recursive: true });
+    let persisted = false;
+    try {
+      // `wx` 是不可变版本的最后一道保险：随机 id 即使意外碰撞，也只能失败，绝不能
+      // 像 POSIX rename 那样把已有版本原文件原子覆盖掉。
+      await writeFile(destination, bytes, { flag: "wx", mode: 0o600 });
+      // 不解析会话里的可变文件，而解析刚刚落下的不可变快照，堵住 hash 与解析内容
+      // 之间的 TOCTOU 窗口。
+      let parsed: ParsedDoc;
+      try {
+        parsed = await this.parser.parse(destination, { fileId: versionId });
+      } catch (error) {
+        const detail = error instanceof Error ? error.message : String(error);
+        // 文件主库和解析器不是同一个真相层。解析器暂时不认识格式、损坏或缺少 OCR
+        // 时，仍要先保住已经通过 SHA 校验的不可变原件；否则用户会误以为文件已进
+        // 项目库，实际却什么都没留下。零切片的 degraded 版本不会被 AI 当成证据，
+        // 后续可从“处理任务”明确重试或换 OCR/解析器。
+        parsed = makeParsedDoc({ fileId: versionId, fileName: sourceName, kind: "unknown" });
+        parsed.findings.push(makeFinding(
+          "parse_failed",
+          `原文件已保存，但暂时没有读出可搜索正文：${detail}`.slice(0, 2_000),
+          { file: sourceName },
+          "warn",
+        ));
+        parsed.meta = { ingestion: "stored_unparsed" };
+      }
+      let normalized: ParsedDoc;
+      try {
+        normalized = normalizeParsedDoc(parsed, versionId, sourceName);
+      } catch (error) {
+        const detail = error instanceof Error ? error.message : String(error);
+        normalized = makeParsedDoc({ fileId: versionId, fileName: sourceName, kind: "unknown" });
+        normalized.findings.push(makeFinding(
+          "parse_result_invalid",
+          `原文件已保存，但解析结果没有通过完整性检查：${detail}`.slice(0, 2_000),
+          { file: sourceName },
+          "warn",
+        ));
+        normalized.meta = { ingestion: "stored_unparsed" };
+      }
+      const chunks = chunksOf(documentId, versionId, normalized);
+      const parserName = cleanText(opts.parserName, "default-registry", "解析器名称", 120);
+      const parserVersion = cleanText(opts.parserVersion, "1", "解析器版本", 120);
+      const indexRevision = sha256Hex(
+        canonicalJson({
+          parser_name: parserName,
+          parser_version: parserVersion,
+          chunks: chunks.map((c) => ({
+            id: c.chunkId,
+            locator: c.locator,
+            text_sha256: c.textSha256,
+          })),
+        }),
+      ).slice(0, 32);
+      const relativePath = relative(root, destination).split(sep).join("/");
+      if (relativePath.startsWith("../") || isAbsolute(relativePath)) {
+        throw new DocumentError("INTEGRITY_ERROR", "知识库文件没有落在 workspace 内", 500);
+      }
+      const sourceClass = opts.sourceClass ?? "session_upload";
+      if (!SOURCE_CLASSES.has(sourceClass)) {
+        throw new DocumentError("INVALID_ARGUMENT", "不支持的文档来源分类", 400);
+      }
+      // 图片、纯扫描 PDF 在不触发付费视觉模型的入库阶段可能得到 0 个切片，并带
+      // vision_pending/info。它们绝不能显示成“已读入”：零正文和任何降级发现都只
+      // 能标为 degraded，后续问答会因无证据 fail closed。
+      const parseStatus = normalized.chunks.length === 0 || normalized.findings.some(
+        (f) => f.severity === "warn" || f.kind === "vision_pending" || f.kind === "page_limit",
+      )
+        ? "degraded"
+        : "ready";
+      const title = cleanText(opts.title, sourceName, "标题", 200);
+      const logicalName = cleanText(
+        opts.logicalName,
+        basename(sourceName, extname(sourceName)) || sourceName,
+        "文档名称",
+        200,
+      );
+      const committed = await this.repository.commitVersion({
+        scope,
+        documentId,
+        ...(existing === null
+          ? {
+              newDocument: {
+                id: documentId,
+                title,
+                logicalName,
+                sourceClass,
+                tags: cleanTags(opts.tags),
+                createdBy: cleanText(opts.createdBy, scope.owner, "创建人", 256),
+                createdAt,
+              },
+            }
+          : {}),
+        ...(existing === null ? {} : { baseVersionId: opts.baseVersionId! }),
+        version: {
+          id: versionId,
+          documentId,
+          fileName: sourceName,
+          mediaType: cleanText(opts.mediaType, mediaType(sourceName), "媒体类型", 160),
+          sizeBytes: bytes.byteLength,
+          sha256: digest,
+          relPath: relativePath,
+          docKind: normalized.kind,
+          parsedDoc: normalized,
+          parseStatus,
+          parserName,
+          parserVersion,
+          indexRevision,
+          chunkCount: chunks.length,
+          createdBy: cleanText(opts.createdBy, scope.owner, "创建人", 256),
+          createdAt,
+        },
+        chunks,
+      });
+      persisted = !committed.deduplicated;
+      if (committed.deduplicated) await rm(versionDir, { recursive: true, force: true });
+      const { parsedDoc: _parsedDoc, ...version } = committed.version;
+      return { document: committed.document, version, deduplicated: committed.deduplicated };
+    } finally {
+      if (!persisted) {
+        // 只清理由本次随机 versionId 创建的精确目录，不碰 document/project 父目录。
+        await rm(versionDir, { recursive: true, force: true }).catch(() => undefined);
+      }
+    }
+  }
+
   async read(
     scope: DocumentScope,
     documentId: string,
@@ -500,152 +768,48 @@ export class DocumentService {
       throw new DocumentError("INVALID_ARGUMENT", "新文档不能指定 baseVersionId", 400);
     }
 
-    const documentId = existing?.id ?? this.newId("document");
-    const versionId = this.newId("version");
-    const createdAt = this.now();
-    const projectDir = safeSegment(scope.projectId, "project");
-    const versionDir = join(
+    return await this.commitBytes({
+      scope,
       root,
-      "projects",
-      projectDir,
-      "documents",
-      safeSegment(documentId, "document"),
-      safeSegment(versionId, "version"),
-    );
-    const destination = join(versionDir, "original", safeFileName(sourceName));
-    await mkdir(dirname(destination), { recursive: true });
-    let persisted = false;
-    try {
-      // `wx` 是不可变版本的最后一道保险：随机 id 即使意外碰撞，也只能失败，绝不能
-      // 像 POSIX rename 那样把已有版本原文件原子覆盖掉。
-      await writeFile(destination, bytes, { flag: "wx", mode: 0o600 });
-      // 不解析会话里的可变文件，而解析刚刚落下的不可变快照，堵住 hash 与解析内容
-      // 之间的 TOCTOU 窗口。
-      let parsed: ParsedDoc;
-      try {
-        parsed = await this.parser.parse(destination, { fileId: versionId });
-      } catch (error) {
-        const detail = error instanceof Error ? error.message : String(error);
-        // 文件主库和解析器不是同一个真相层。解析器暂时不认识格式、损坏或缺少 OCR
-        // 时，仍要先保住已经通过 SHA 校验的不可变原件；否则用户会误以为文件已进
-        // 项目库，实际却什么都没留下。零切片的 degraded 版本不会被 AI 当成证据，
-        // 后续可从“处理任务”明确重试或换 OCR/解析器。
-        parsed = makeParsedDoc({ fileId: versionId, fileName: sourceName, kind: "unknown" });
-        parsed.findings.push(makeFinding(
-          "parse_failed",
-          `原文件已保存，但暂时没有读出可搜索正文：${detail}`.slice(0, 2_000),
-          { file: sourceName },
-          "warn",
-        ));
-        parsed.meta = { ingestion: "stored_unparsed" };
-      }
-      let normalized: ParsedDoc;
-      try {
-        normalized = normalizeParsedDoc(parsed, versionId, sourceName);
-      } catch (error) {
-        const detail = error instanceof Error ? error.message : String(error);
-        normalized = makeParsedDoc({ fileId: versionId, fileName: sourceName, kind: "unknown" });
-        normalized.findings.push(makeFinding(
-          "parse_result_invalid",
-          `原文件已保存，但解析结果没有通过完整性检查：${detail}`.slice(0, 2_000),
-          { file: sourceName },
-          "warn",
-        ));
-        normalized.meta = { ingestion: "stored_unparsed" };
-      }
-      const chunks = chunksOf(documentId, versionId, normalized);
-      const parserName = cleanText(input.parserName, "default-registry", "解析器名称", 120);
-      const parserVersion = cleanText(input.parserVersion, "1", "解析器版本", 120);
-      const indexRevision = sha256Hex(
-        canonicalJson({
-          parser_name: parserName,
-          parser_version: parserVersion,
-          chunks: chunks.map((c) => ({
-            id: c.chunkId,
-            locator: c.locator,
-            text_sha256: c.textSha256,
-          })),
-        }),
-      ).slice(0, 32);
-      const relativePath = relative(root, destination).split(sep).join("/");
-      if (relativePath.startsWith("../") || isAbsolute(relativePath)) {
-        throw new DocumentError("INTEGRITY_ERROR", "知识库文件没有落在 workspace 内", 500);
-      }
-      const sourceClass = input.sourceClass ?? "session_upload";
-      if (!SOURCE_CLASSES.has(sourceClass)) {
-        throw new DocumentError("INVALID_ARGUMENT", "不支持的文档来源分类", 400);
-      }
-      // 图片、纯扫描 PDF 在不触发付费视觉模型的入库阶段可能得到 0 个切片，并带
-      // vision_pending/info。它们绝不能显示成“已读入”：零正文和任何降级发现都只
-      // 能标为 degraded，后续问答会因无证据 fail closed。
-      const parseStatus = normalized.chunks.length === 0 || normalized.findings.some(
-        (f) => f.severity === "warn" || f.kind === "vision_pending" || f.kind === "page_limit",
-      )
-        ? "degraded"
-        : "ready";
-      const title = cleanText(input.title, sourceName, "标题", 200);
-      const logicalName = cleanText(
-        input.logicalName,
-        basename(sourceName, extname(sourceName)) || sourceName,
-        "文档名称",
-        200,
-      );
-      const committed = await this.repository.commitVersion({
-        scope,
-        documentId,
-        ...(existing === null
-          ? {
-              newDocument: {
-                id: documentId,
-                title,
-                logicalName,
-                sourceClass,
-                tags: cleanTags(input.tags),
-                createdBy: cleanText(input.createdBy, scope.owner, "创建人", 256),
-                createdAt,
-              },
-            }
-          : {}),
-        ...(existing === null ? {} : { baseVersionId: input.baseVersionId! }),
-        version: {
-          id: versionId,
-          documentId,
-          fileName: sourceName,
-          mediaType: cleanText(input.mediaType, mediaType(sourceName), "媒体类型", 160),
-          sizeBytes: bytes.byteLength,
-          sha256: digest,
-          relPath: relativePath,
-          docKind: normalized.kind,
-          parsedDoc: normalized,
-          parseStatus,
-          parserName,
-          parserVersion,
-          indexRevision,
-          chunkCount: chunks.length,
-          createdBy: cleanText(input.createdBy, scope.owner, "创建人", 256),
-          createdAt,
-        },
-        chunks,
-      });
-      persisted = !committed.deduplicated;
-      if (committed.deduplicated) await rm(versionDir, { recursive: true, force: true });
-      const { parsedDoc: _parsedDoc, ...version } = committed.version;
-      return { document: committed.document, version, deduplicated: committed.deduplicated };
-    } finally {
-      if (!persisted) {
-        // 只清理由本次随机 versionId 创建的精确目录，不碰 document/project 父目录。
-        await rm(versionDir, { recursive: true, force: true }).catch(() => undefined);
-      }
-    }
+      bytes,
+      sourceName,
+      existing,
+      digest,
+      title: input.title,
+      logicalName: input.logicalName,
+      sourceClass: input.sourceClass,
+      parserName: input.parserName,
+      parserVersion: input.parserVersion,
+      createdBy: input.createdBy,
+      tags: input.tags,
+      mediaType: input.mediaType,
+      baseVersionId: input.baseVersionId,
+    });
   }
 
-  async search(scope: DocumentScope, options: DocumentSearchOptions): Promise<DocumentSearchResult> {
+
+  /**
+   * 一层的召回：选版本 → ACL 过版本 → 取切片 → ACL 过切片。
+   *
+   * 抽出来是为了两级检索能把**两层的候选并成一份语料**再打分。
+   * 绝不能分层各搜一次再按分数合并：BM25 的 df 和 avgLength 是按本次装载的语料
+   * 现算的（下面 scoreCorpus 里 idf 由 corpus.length 与 df 推出），同一个词在
+   * 项目库（语料小）和总库（语料大）里能差一个数量级，差别完全来自语料怎么切。
+   * 按名次做 RRF 同样错、而且更隐蔽：k=60 时总库第 1 名恒定压过项目库第 2 名，
+   * 而总库只增不减、任何查询几乎都能碰出个勉强沾边的第 1 名 —— 于是客户自己那条
+   * 规定被行业通用文本挤下去。那正是这个产品最不能出的错。
+   */
+  private async recallFor(
+    scope: DocumentScope,
+    query: string,
+    options: DocumentSearchOptions,
+  ): Promise<{
+    readonly candidates: readonly SearchChunkCandidate[];
+    readonly level: KnowledgeLevel;
+    readonly selectedVersions: readonly string[];
+    readonly aclRevision: number;
+  }> {
     safeScope(scope);
-    const query = cleanText(options.query, "", "搜索内容", 2_000);
-    const limit = options.limit ?? 10;
-    if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100) {
-      throw new DocumentError("INVALID_ARGUMENT", "limit 必须在 1 到 100 之间", 400);
-    }
     const requestedIds = options.documentIds?.map((id) => cleanText(id, "", "文档 ID", 2_048));
     const documentFilter = requestedIds === undefined ? null : new Set(requestedIds);
     const selected = options.sessionId === undefined
@@ -710,18 +874,67 @@ export class DocumentService {
       versionId: candidate.version.id,
       chunkId: candidate.chunk.chunkId,
     })));
-    const level = levelOf(scope);
+    return {
+      candidates,
+      level: levelOf(scope),
+      selectedVersions,
+      aclRevision: chunkPlan.aclRevision,
+    };
+  }
+
+  async search(scope: DocumentScope, options: DocumentSearchOptions): Promise<DocumentSearchResult> {
+    return await this.searchLayered([scope], options);
+  }
+
+  /**
+   * 跨层检索：把**所有给定作用域的候选并成一份语料**，只算一次 df/avgLength，
+   * 只跑一遍 BM25。
+   *
+   * 这不是折中，是唯一让分数有意义的做法 —— idf 本该是「可检索宇宙」的属性，
+   * 而不是分区方式的副产品。分层各搜一次再按分数合并，等于把两把刻度不同的尺子
+   * 读数相加；按名次做 RRF 则会让总库第 1 名恒定压过项目库第 2 名。理由完整写在
+   * `recallFor` 的注释里。
+   *
+   * ACL 仍然**逐层裁决、逐层设 fence**：安全边界一点没动，动的只是打分的语料范围。
+   * 每条命中带自己的 `level`，同分时项目层在前 —— 客户自己的规定必须压过行业通用制度。
+   */
+  async searchLayered(
+    scopes: readonly DocumentScope[],
+    options: DocumentSearchOptions,
+  ): Promise<DocumentSearchResult> {
+    if (scopes.length === 0) {
+      throw new DocumentError("INVALID_ARGUMENT", "检索至少需要一个作用域", 400);
+    }
+    const query = cleanText(options.query, "", "搜索内容", 2_000);
+    const limit = options.limit ?? 10;
+    if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100) {
+      throw new DocumentError("INVALID_ARGUMENT", "limit 必须在 1 到 100 之间", 400);
+    }
     const queryTerms = tokenize(query);
     if (queryTerms.length === 0) {
       throw new DocumentError("INVALID_ARGUMENT", "搜索内容没有可检索的文字", 400);
     }
-    const corpus = candidates.map((candidate) => ({
+
+    const recalls = [];
+    for (const scope of scopes) {
+      // sessionId（「只搜本次固定的版本」）只对项目层成立：公共库不属于任何会话。
+      let scoped = options;
+      if (levelOf(scope) === "global" && options.sessionId !== undefined) {
+        const { sessionId: _sessionId, ...rest } = options;
+        scoped = rest;
+      }
+      recalls.push({ scope, ...(await this.recallFor(scope, query, scoped)) });
+    }
+
+    // ── 并集语料。df / avgLength 只算一次。 ──────────────────────────────
+    const corpus = recalls.flatMap((r) => r.candidates.map((candidate) => ({
       candidate,
+      level: r.level,
       terms: tokenize(
         `${candidate.document.title} ${candidate.document.logicalName} ${candidate.document.tags.join(" ")} ` +
           `${candidate.chunk.context} ${candidate.chunk.render}`,
       ),
-    }));
+    })));
     const avgLength = corpus.length === 0
       ? 1
       : corpus.reduce((sum, row) => sum + row.terms.length, 0) / corpus.length;
@@ -746,30 +959,52 @@ export class DocumentService {
       }
       // 词覆盖是“这段材料能否回答问题”的透明信号；只做轻微加权，不伪装成置信度。
       score *= 0.5 + coverage.ratio * 0.5;
-      scored.push(hitOf(row.candidate, Number(score.toFixed(6)), coverage, level));
+      scored.push(hitOf(row.candidate, Number(score.toFixed(6)), coverage, row.level));
     }
     scored.sort(
       (a, b) =>
         b.score - a.score ||
+        // 同分时项目层在前：客户自己的规定压过行业通用制度，不能反过来。
+        (a.level === b.level ? 0 : a.level === "project" ? -1 : 1) ||
         a.documentId.localeCompare(b.documentId) ||
         a.versionNo - b.versionNo ||
         a.chunkId.localeCompare(b.chunkId),
     );
-    const hits = scored.slice(0, limit);
+    // 同一段正文可能同时在项目库和公共库里（「设为通用知识」是复制不是搬走），
+    // 并集打分之后它们分数完全相同、并排出现 —— 对用户就是重复的两行。
+    // 按 text_sha256 去重，保留**项目**那一份：它才有版本链，才可能被会话固定。
+    // 被丢掉的那一层记在 alsoInLevel 上，信息不丢。
+    const bySha = new Map<string, DocumentSearchHit>();
+    const deduped: DocumentSearchHit[] = [];
+    for (const hit of scored) {
+      const kept = bySha.get(hit.textSha256);
+      if (kept === undefined) {
+        bySha.set(hit.textSha256, hit);
+        deduped.push(hit);
+        continue;
+      }
+      if (kept.level !== hit.level) {
+        const merged = { ...kept, alsoInLevel: hit.level };
+        bySha.set(hit.textSha256, merged);
+        deduped[deduped.indexOf(kept)] = merged;
+      }
+    }
+    const hits = deduped.slice(0, limit);
     // 覆盖率必须按**全部命中**算，不是按截断后剩下的那些算。
     // 旧写法用 `hits`，于是一个只在被丢弃命中里出现过的词会被报成「未命中」——
     // 在一个把「没搜到 ≠ 材料里没有」写进文案的产品里，这是最不该出的那类谎。
     const matched = new Set(scored.flatMap((hit) => hit.coverage.matchedTerms));
-    await this.assertAclRevision(scope, chunkPlan.aclRevision);
+    // 逐层重新核对 ACL 代次：任何一层在这段 await 窗口里变了，整次结果都不作数。
+    for (const r of recalls) await this.assertAclRevision(r.scope, r.aclRevision);
     return {
       query,
       hits,
       // 截断前的总数。界面上写「找到 N 处材料片段」，没有这个数那句话在超过
       // limit 时就是假的。
-      total: scored.length,
+      total: deduped.length,
       // 即使某个版本还没有可搜索正文，也要如实说明它属于本次范围；否则空命中会
       // 把“选中了但没读到”伪装成“没有这份文档”。
-      searchedVersions: [...new Set(selectedVersions)].sort(),
+      searchedVersions: [...new Set(recalls.flatMap((r) => r.selectedVersions))].sort(),
       coverage: coverageOf(queryTerms, matched),
     };
   }
@@ -781,6 +1016,15 @@ export class DocumentService {
     safeScope(scope);
     const decoded = decodeEvidenceRef(options.evidenceRef);
     if (decoded === null) throw new DocumentNotFound("没有找到这条知识库证据");
+    // 引用自己说了它在哪一层，就按那一层去取。
+    //
+    // 这不是放宽边界：`actorId` 原样带过去，ACL 仍然按**真人**裁决（总库是共享的，
+    // 项目库不是）。不这么做的话，模型在项目会话里拿到一条总库引用，回头去打开
+    // 就是 `WHERE project_id=<项目>` 查一条 project_id=__global__ 的切片 —— 必然
+    // 返回「没找到」。那是给模型发一张它自己撕不开的票。
+    const effective: DocumentScope = decoded.level === "global"
+      ? globalLibraryScope(scope.actorId ?? scope.owner)
+      : scope;
     const resource: AclResource = {
       scopeType: "chunk",
       documentId: decoded.documentId,
@@ -788,11 +1032,11 @@ export class DocumentService {
       chunkId: decoded.chunkId,
     };
     const candidate = await this.guardAcl(() => this.acl.readAuthorized(
-      scope,
-      principalOf(scope),
+      effective,
+      principalOf(effective),
       resource,
       () => this.repository.getChunk(
-        scope,
+        effective,
         decoded.documentId,
         decoded.versionId,
         decoded.chunkId,
@@ -803,9 +1047,9 @@ export class DocumentService {
       throw new DocumentError("INTEGRITY_ERROR", "证据正文的校验值不一致，已拒绝返回", 500);
     }
     // search 命中和首次读取都不是长期授权票据；真正构造返回值前再加载最新 ACL。
-    await this.guardAcl(() => this.acl.authorizeRead(scope, principalOf(scope), resource));
+    await this.guardAcl(() => this.acl.authorizeRead(effective, principalOf(effective), resource));
     return {
-      ...hitOf(candidate, 1, { matchedTerms: [], missingTerms: [], queryTerms: 0, ratio: 1 }, levelOf(scope)),
+      ...hitOf(candidate, 1, { matchedTerms: [], missingTerms: [], queryTerms: 0, ratio: 1 }, decoded.level),
       raw: structuredClone(candidate.chunk.raw),
       context: candidate.chunk.context,
       tags: [...candidate.chunk.tags],
@@ -1255,21 +1499,51 @@ function decodePart(value: string): string | null {
   }
 }
 
-function evidenceRef(candidate: SearchChunkCandidate): string {
-  return `odoc.v1.${encodePart(candidate.document.id)}.${encodePart(candidate.version.id)}.${encodePart(candidate.chunk.chunkId)}`;
+/**
+ * 证据引用。v2 起带层级段：`odoc.v2.<level>.<doc>.<ver>.<chunk>`。
+ *
+ * 层级必须写进 **ref 本身**，不能只放在旁边的 JSON 字段里。两个原因：
+ *
+ * 1. **打不开。** `open()` 解出 id 之后调 `repository.getChunk(scope, …)`，那条 SQL
+ *    写死 `WHERE d.project_id=? AND d.owner=?`。拿项目作用域去打开一条总库引用会
+ *    返回 null → 「没找到这条证据」。模型于是拿到一条**它自己打不开**的引用。
+ * 2. **ref 是模型会原样抄进答案的那个字符串。** 层级只要活在旁边的字段里，
+ *    模型第一次做摘要就会把它丢掉，「这是行业通用做法还是这个客户自己的规定」
+ *    这条信息就断在链条第一环 —— 那正是这个产品最不能出的错。
+ */
+function evidenceRef(candidate: SearchChunkCandidate, level: KnowledgeLevel): string {
+  return `odoc.v2.${level}.${encodePart(candidate.document.id)}` +
+    `.${encodePart(candidate.version.id)}.${encodePart(candidate.chunk.chunkId)}`;
 }
 
-function decodeEvidenceRef(
-  value: string,
-): { readonly documentId: string; readonly versionId: string; readonly chunkId: string } | null {
+function decodeEvidenceRef(value: string): {
+  readonly level: KnowledgeLevel;
+  readonly documentId: string;
+  readonly versionId: string;
+  readonly chunkId: string;
+} | null {
   const parts = value.split(".");
-  if (parts.length !== 5 || parts[0] !== "odoc" || parts[1] !== "v1") return null;
-  const documentId = decodePart(parts[2]!);
-  const versionId = decodePart(parts[3]!);
-  const chunkId = decodePart(parts[4]!);
-  return documentId === null || versionId === null || chunkId === null
-    ? null
-    : { documentId, versionId, chunkId };
+  // v1（5 段，无层级）继续认：已经写进历史回答和产物里的引用不能一夜之间失效。
+  // 它们全部产生于只有项目库的年代，所以按 project 解。
+  if (parts.length === 5 && parts[0] === "odoc" && parts[1] === "v1") {
+    const documentId = decodePart(parts[2]!);
+    const versionId = decodePart(parts[3]!);
+    const chunkId = decodePart(parts[4]!);
+    return documentId === null || versionId === null || chunkId === null
+      ? null
+      : { level: "project", documentId, versionId, chunkId };
+  }
+  if (parts.length === 6 && parts[0] === "odoc" && parts[1] === "v2") {
+    const level = parts[2];
+    if (level !== "global" && level !== "project") return null;
+    const documentId = decodePart(parts[3]!);
+    const versionId = decodePart(parts[4]!);
+    const chunkId = decodePart(parts[5]!);
+    return documentId === null || versionId === null || chunkId === null
+      ? null
+      : { level, documentId, versionId, chunkId };
+  }
+  return null;
 }
 
 function cite(candidate: SearchChunkCandidate, level: KnowledgeLevel): string {
@@ -1300,7 +1574,7 @@ function hitOf(
     throw new DocumentError("INTEGRITY_ERROR", "检索切片的正文校验值不一致", 500);
   }
   return {
-    evidenceRef: evidenceRef(candidate),
+    evidenceRef: evidenceRef(candidate, level),
     displayCite: cite(candidate, level),
     level,
     documentId: candidate.document.id,

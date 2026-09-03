@@ -185,6 +185,8 @@ describe("wireServer", () => {
       // 打开一份材料按原文顺序读。此前知识库只有 search（要关键词）和
       // evidence/:ref/open（要一个已经拿到的引用）——存进去的文件没有打开入口。
       "GET /api/sessions/:sid/documents/:documentId/content",
+      // 「设为通用知识」：把项目材料复制进公共库。人点的动作，没有自动调用点。
+      "POST /api/sessions/:sid/documents/:documentId/publish",
       // 公共知识库：**不经过会话**。产品要求「这个知识库应该可以直接去访问」——
       // 在此之前所有知识库路由都挂在 /api/sessions/:sid 下，侧栏按钮在会话没归项目时
       // 是禁用的。这一组只有读与整理；attach/promote 依赖会话语义，刻意没挂。

@@ -419,8 +419,11 @@ function encodePart(value: string): string {
   return Buffer.from(value, "utf8").toString("base64url");
 }
 
-function evidenceRef(candidate: SearchChunkCandidate): string {
-  return `odoc.v1.${encodePart(candidate.document.id)}.${encodePart(candidate.version.id)}.${encodePart(candidate.chunk.chunkId)}`;
+/** 必须和 service.ts 的 evidenceRef 逐字一致：`sameHitContent` 逐字段比对
+ *  evidenceRef 和 displayCite，两份不一致会让每一次快照 create 都误报 SOURCE_CHANGED。 */
+function evidenceRef(candidate: SearchChunkCandidate, level: KnowledgeLevel): string {
+  return `odoc.v2.${level}.${encodePart(candidate.document.id)}` +
+    `.${encodePart(candidate.version.id)}.${encodePart(candidate.chunk.chunkId)}`;
 }
 
 function cite(candidate: SearchChunkCandidate, level: KnowledgeLevel): string {
@@ -450,7 +453,7 @@ function materializeHit(
     );
   }
   return {
-    evidenceRef: evidenceRef(candidate),
+    evidenceRef: evidenceRef(candidate, level),
     displayCite: cite(candidate, level),
     level,
     documentId: candidate.document.id,

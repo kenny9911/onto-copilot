@@ -120,6 +120,7 @@ function fakeApi(): KnowledgeLibraryApi {
     adopt: vi.fn(async () => ({ ok: true, message: "已采用这个版本。" })),
     archive: vi.fn(async () => ({ ok: true, message: "已归档这份文档。" })),
     attach: vi.fn(async () => ({ ok: true, message: "已把这个固定版本加入本次分析。" })),
+    publish: vi.fn(async () => ({ ok: true, message: "已设为通用知识" })),
     detach: vi.fn(async () => ({ ok: true, message: "已从本次分析中移除。" })),
   };
 }

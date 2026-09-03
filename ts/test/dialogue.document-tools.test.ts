@@ -62,6 +62,14 @@ function fixture() {
       documentId: "doc_1", versionId: "ver_1", role: "reference", attachedBy: "alice",
       attachedAt: "2026-09-01T00:00:00.000Z",
     }]),
+    // 两级检索：模型工具现在打的是 searchLayered（项目库 + 公共库并成一份语料）。
+    searchLayered: vi.fn(async (_scopes: unknown, input: Dict) => ({
+      query: String(input["query"] ?? ""),
+      hits: [hit],
+      total: 1,
+      searchedVersions: ["ver_1"],
+      coverage: { matchedTerms: ["采购"], missingTerms: [], queryTerms: 1, ratio: 1 },
+    })),
     search: vi.fn(async (_scope: unknown, input: Dict) => ({
       query: String(input["query"] ?? ""),
       searchedVersions: ["ver_1"],
@@ -245,7 +253,7 @@ describe("OntoDocument dialogue harness", () => {
     ) as Dict;
     expect(JSON.stringify(before)).toContain(hit.text);
 
-    service.search.mockRejectedValueOnce(
+    service.searchLayered.mockRejectedValueOnce(
       new DocumentError("FORBIDDEN", "ACL 已撤销", 404),
     );
     const resumed = new Recorder("document-read-run", journal, blobs, { resume: true });
@@ -258,7 +266,7 @@ describe("OntoDocument dialogue harness", () => {
 
     expect(after).toMatchObject({ ok: false });
     expect(JSON.stringify(after)).not.toContain(hit.text);
-    expect(service.search).toHaveBeenCalledTimes(2);
+    expect(service.searchLayered).toHaveBeenCalledTimes(2);
   });
 
   it("owner/project/path 不在模型 schema；伪造字段被丢弃且不能改变服务端 scope 或文件路径", async () => {
@@ -279,8 +287,13 @@ describe("OntoDocument dialogue harness", () => {
       project_id: "project_B",
       path: "/etc/passwd",
     }, "forged-read", false, "chat");
-    expect(service.search).toHaveBeenCalledWith(
-      { projectId: "project_A", owner: "alice", actorId: "alice" },
+    // 现在传的是**两层作用域的数组**：项目库在前、公共库在后。
+    // 伪造的 owner/project/path 一律不进作用域 —— 边界由服务端派生。
+    expect(service.searchLayered).toHaveBeenCalledWith(
+      [
+        { projectId: "project_A", owner: "alice", actorId: "alice" },
+        { projectId: "__global__", owner: "__global__", actorId: "alice" },
+      ],
       expect.objectContaining({ query: "审批" }),
     );
 

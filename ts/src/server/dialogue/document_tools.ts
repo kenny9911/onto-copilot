@@ -21,7 +21,7 @@ import { root } from "../session.js";
 import { relativeToRoot } from "../routes/sessions.js";
 import { ChatCtx } from "./ctx.js";
 import type { DialogueDeps, SessionLike } from "./ports.js";
-import { documentScope } from "../glue/project_scope.js";
+import { documentScope, layeredScopes } from "../glue/project_scope.js";
 import { hydrateAttachedDocumentEvidence, reconcileDocumentEvidence } from "../glue/preparse.js";
 
 type Dict = Record<string, unknown>;
@@ -905,8 +905,10 @@ export function registerDocumentDialogueTools(
       if (bad !== null) return bad;
       return await guarded(async () => {
         const service = getDocumentServiceOptional()!;
-        const result = await service.search(
-          await documentScope(session),
+        // 两层一起搜：项目库 + 公共库，并成一份语料只打一次分。
+        // 只搜项目层的话，模型永远看不见行业标准和通用制度 —— 而那正是公共库存在的理由。
+        const result = await service.searchLayered(
+          await layeredScopes(session),
           {
             query: text(args["query"]),
             limit: Math.max(1, Math.min(20, integer(args["limit"], 8))),

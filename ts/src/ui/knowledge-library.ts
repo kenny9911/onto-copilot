@@ -68,6 +68,8 @@ export interface KnowledgeSearchHit {
   cite: string;
   /** 这段来自总库还是项目库。缺省按项目库处理（后端旧版本没有这个字段）。 */
   level?: KnowledgeLevel;
+  /** 同一段正文在另一层也存在时，这里写着那一层。 */
+  also_in_level?: KnowledgeLevel | null;
   document_id: string;
   version_id: string;
   version_no: number;
@@ -156,6 +158,8 @@ export interface KnowledgeLibraryApi {
   archive(sessionId: string, documentId: string, archived: boolean, expectedRevision: number): Promise<KnowledgeMutationResult>;
   attach(sessionId: string, documentId: string, versionId: string, role?: KnowledgeAttachmentRole): Promise<KnowledgeMutationResult>;
   detach(sessionId: string, documentId: string): Promise<KnowledgeMutationResult>;
+  /** 设为通用知识：把这份项目材料复制进公共知识库。人点的动作。 */
+  publish(sessionId: string, documentId: string, versionId?: string): Promise<KnowledgeMutationResult>;
 }
 
 /** 会话作用域的基址：项目知识库。 */
@@ -251,6 +255,14 @@ function createKnowledgeApi(route: RouteFn, scope: "session" | "global"): Knowle
       const query = params.toString();
       return await request<KnowledgeReadResult>(
         route(sessionId, documentSuffix(documentId, `/content${query ? `?${query}` : ""}`)),
+      );
+    },
+
+    async publish(sessionId, documentId, versionId) {
+      if (scope === "global") notInGlobal("设为通用知识");
+      return await request<KnowledgeMutationResult>(
+        route(sessionId, documentSuffix(documentId, "/publish")),
+        { method: "POST", body: JSON.stringify(versionId ? { version_id: versionId } : {}) },
       );
     },
 

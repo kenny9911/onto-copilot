@@ -23,6 +23,7 @@ import {
   type DocumentSearchResult,
   type DocumentSummary,
   type DocumentVersion,
+  type PromoteResult,
 } from "../src/document/types.js";
 import type { AppEnv, RequestUser } from "../src/server/app.js";
 import type {
@@ -159,6 +160,13 @@ class FakeDocumentService implements DocumentServicePort {
     return SEARCH;
   }
 
+  async searchLayered(
+    ...args: Parameters<DocumentServicePort["searchLayered"]>
+  ): Promise<DocumentSearchResult> {
+    this.calls.push({ method: "searchLayered", args });
+    return SEARCH;
+  }
+
   async open(...args: Parameters<DocumentServicePort["open"]>): Promise<DocumentOpenResult> {
     this.calls.push({ method: "open", args });
     return OPEN;
@@ -167,6 +175,13 @@ class FakeDocumentService implements DocumentServicePort {
   async read(...args: Parameters<DocumentServicePort["read"]>): Promise<DocumentReadResult> {
     this.calls.push({ method: "read", args });
     return READ;
+  }
+
+  async publishToGlobal(
+    ...args: Parameters<DocumentServicePort["publishToGlobal"]>
+  ): Promise<PromoteResult> {
+    this.calls.push({ method: "publishToGlobal", args });
+    return { document: SUMMARY, version: VERSION, deduplicated: false };
   }
 
   async updateMetadata(
@@ -767,11 +782,29 @@ describe("检索、打开与手动管理", () => {
       text: "采购申请由部门负责人审批。",
       text_sha256: "text-sha",
     });
+    // 勾了「只搜本次固定的版本」就只查项目层 —— 那是会话语义，公共库里没有这回事。
     expect(documents.calls[0]).toEqual({
-      method: "search",
+      method: "searchLayered",
       args: [
-        { projectId: "project-1", owner: "u1", actorId: "u1" },
+        [{ projectId: "project-1", owner: "u1", actorId: "u1" }],
         { query: "审批", limit: 5, sessionId: "s1" },
+      ],
+    });
+  });
+
+  it("不勾「只搜本次固定的版本」时两层一起搜，项目库在前", async () => {
+    const response = await app.request("/api/sessions/s1/documents/search?q=%E5%AE%A1%E6%89%B9");
+    expect(response.status).toBe(200);
+    // 页面和模型必须看见同一批材料：模型走 searchLayered，页面也得走，
+    // 否则界面永远看不到公共库的材料，而模型看得到 —— 两边说的话就不一致了。
+    expect(documents.calls.at(-1)).toEqual({
+      method: "searchLayered",
+      args: [
+        [
+          { projectId: "project-1", owner: "u1", actorId: "u1" },
+          { projectId: "__global__", owner: "__global__", actorId: "u1" },
+        ],
+        { query: "审批" },
       ],
     });
   });

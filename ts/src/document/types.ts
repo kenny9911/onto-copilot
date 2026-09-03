@@ -254,6 +254,15 @@ export interface DocumentSearchHit {
    * 一次结果里同时有总库和项目库的片段，反推会把行业通用制度说成客户自己的规定。
    */
   readonly level: KnowledgeLevel;
+  /**
+   * 同一段正文在另一层也存在时，这里写着那一层。
+   *
+   * 「设为通用知识」是复制而不是搬走，所以一段内容可以同时躺在项目库和公共库里。
+   * 两级检索并成一份语料之后，它们会以**完全相同的分数**并排出现 —— 对用户就是
+   * 一模一样的两行。按 text_sha256 去重、保留项目那一份（它才有版本链、才可能被
+   * 会话固定），然后用这个字段把「总库也有」这条信息留住，而不是默默丢掉。
+   */
+  readonly alsoInLevel?: KnowledgeLevel | null;
   readonly documentId: string;
   readonly versionId: string;
   readonly versionNo: number;

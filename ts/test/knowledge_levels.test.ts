@@ -126,6 +126,148 @@ describe("总库与项目库是两个边界", () => {
     expect(inOther.hits).toHaveLength(0);
   });
 
+  it("证据引用自带层级：项目作用域也能打开一条总库引用", async () => {
+    const { service, write } = harness();
+    await service.promoteSessionFile(globalLibraryScope("alice"), {
+      source: write("通用规范.md", "行业通用：验收合格后 30 天内付款。"),
+      title: "通用规范",
+    });
+
+    const found = await service.search(globalLibraryScope("alice"), { query: "验收" });
+    const hit = found.hits[0]!;
+    expect(hit.level).toBe("global");
+    // 层级写在 ref 本身里，不是只放在旁边的字段里 —— ref 是模型会原样抄进答案的
+    // 那个字符串，层级放旁边，第一次做摘要就丢了。
+    expect(hit.evidenceRef.startsWith("odoc.v2.global.")).toBe(true);
+    // 引用文案里也要写着「总库」，读答案的人一眼分得清这是不是客户自己的规定。
+    expect(hit.displayCite).toContain("总库");
+
+    // 关键：拿**项目**作用域去打开它。旧实现会走 WHERE project_id=<项目> 查一条
+    // project_id=__global__ 的切片，必然返回「没找到」—— 等于发给模型一张
+    // 它自己撕不开的票。
+    const opened = await service.open(projectScope, { evidenceRef: hit.evidenceRef });
+    expect(opened.documentTitle).toBe("通用规范");
+    expect(opened.level).toBe("global");
+    expect(opened.text).toContain("验收合格后 30 天内付款");
+  });
+
+  it("v1 老引用继续认，按项目层解 —— 已经写进历史产物的引用不能一夜失效", async () => {
+    const { service, write } = harness();
+    await service.promoteSessionFile(projectScope, {
+      source: write("客户规定.md", "本项目：验收合格后 15 天内付款。"),
+      title: "客户规定",
+    });
+    const found = await service.search(projectScope, { query: "验收" });
+    const v2 = found.hits[0]!.evidenceRef;
+    // 把 v2 退回成 v1 的形状（去掉层级段），模拟历史产物里存着的引用。
+    const parts = v2.split(".");
+    const v1 = ["odoc", "v1", parts[3], parts[4], parts[5]].join(".");
+
+    const opened = await service.open(projectScope, { evidenceRef: v1 });
+    expect(opened.documentTitle).toBe("客户规定");
+    expect(opened.level).toBe("project");
+  });
+
+  it("设为通用知识是复制而不是搬走，且同一份内容只进一次", async () => {
+    const { service, write } = harness();
+    const created = await service.promoteSessionFile(projectScope, {
+      source: write("采购通用条款.md", "通用条款：验收合格后 30 天内付款。"),
+      title: "采购通用条款",
+      tags: ["制度"],
+    });
+
+    const published = await service.publishToGlobal(projectScope, created.document.id);
+    expect(published.deduplicated).toBe(false);
+    // 来源分类说实话：它进公共库靠的是人的一次判断，不是某个会话上传。
+    expect(published.document.sourceClass).toBe("imported");
+    expect(published.document.tags).toEqual(["制度"]);
+
+    // **复制，不是搬走**：项目仍然留着自己那一份 —— 那是这个客户的材料，
+    // 有自己的来源和版本链；已经固定到某个会话的版本也不能凭空消失。
+    const stillThere = await service.list(projectScope, {});
+    expect(stillThere.map((d) => d.title)).toEqual(["采购通用条款"]);
+    const inGlobal = await service.list(globalLibraryScope("alice"), {});
+    expect(inGlobal.map((d) => d.title)).toEqual(["采购通用条款"]);
+
+    // 第二次点不再堆一份一模一样的。
+    const again = await service.publishToGlobal(projectScope, created.document.id);
+    expect(again.deduplicated).toBe(true);
+    expect((await service.list(globalLibraryScope("alice"), {})).length).toBe(1);
+
+    // 发布之后两层都能搜到，且命中各自标着自己的层级。
+    const fromProject = await service.search(projectScope, { query: "验收" });
+    expect(fromProject.hits[0]!.level).toBe("project");
+    const fromGlobal = await service.search(globalLibraryScope("alice"), { query: "验收" });
+    expect(fromGlobal.hits[0]!.level).toBe("global");
+  });
+
+  it("设为通用知识之后不会在检索里出现两条一模一样的命中", async () => {
+    const { service, write } = harness();
+    const created = await service.promoteSessionFile(projectScope, {
+      source: write("通用条款.md", "通用条款：验收合格后 30 天内付款。"),
+      title: "通用条款",
+    });
+    await service.publishToGlobal(projectScope, created.document.id);
+
+    const merged = await service.searchLayered(
+      [projectScope, globalLibraryScope("alice")],
+      { query: "验收" },
+    );
+    // 复制之后同一段正文躺在两层里，并集打分后分数完全相同、并排出现 ——
+    // 对用户就是重复的两行。按 text_sha256 去重。
+    expect(merged.hits).toHaveLength(1);
+    expect(merged.total).toBe(1);
+    // 留下的是**项目**那一份：它才有版本链，才可能被会话固定。
+    expect(merged.hits[0]!.level).toBe("project");
+    // 但「总库也有」这条信息不能丢 —— 那正是用户判断「这是通用做法还是我们自己
+    // 的规定」时要看的东西。
+    expect(merged.hits[0]!.alsoInLevel).toBe("global");
+  });
+
+  it("公共库里的材料不能再「设为通用知识」", async () => {
+    const { service, write } = harness();
+    const created = await service.promoteSessionFile(globalLibraryScope("alice"), {
+      source: write("行业规范.md", "行业规范正文。"),
+      title: "行业规范",
+    });
+    await expect(
+      service.publishToGlobal(globalLibraryScope("alice"), created.document.id),
+    ).rejects.toThrow(/已经在公共知识库/u);
+  });
+
+  it("两级检索并成一份语料打分：客户自己的规定压得住行业通用文本", async () => {
+    const { service, write } = harness();
+    const global = globalLibraryScope("alice");
+
+    // 总库塞多份，其中一份只是**勉强沾边**地提了一句付款。
+    // 总库是部署级、只增不减的，任何查询几乎都能在里面碰出个这样的第 1 名。
+    await service.promoteSessionFile(global, {
+      source: write("行业术语表.md", "术语：付款。采购。验收。交付。结算。"),
+      title: "行业术语表",
+    });
+    await service.promoteSessionFile(global, {
+      source: write("通用合同模板.md", "第八条 其他约定。第九条 争议解决。"),
+      title: "通用合同模板",
+    });
+    // 项目里是**正面回答问题**的那一条。
+    await service.promoteSessionFile(projectScope, {
+      source: write("客户付款条款.md", "本公司付款条款：付款条件为月结 90 天，付款前须完成验收。"),
+      title: "客户付款条款",
+    });
+
+    const merged = await service.searchLayered([projectScope, global], { query: "付款条款" });
+
+    // 两层都在结果里，各自标着自己的层级。
+    expect(merged.hits.length).toBeGreaterThan(1);
+    expect(new Set(merged.hits.map((h) => h.level))).toEqual(new Set(["project", "global"]));
+    // 关键：项目那条排第一。分层各搜一次再按名次 RRF 融合的话，
+    // 总库的 rank1（1/61）会恒定压过项目的 rank2（1/62），与实际相关性无关。
+    expect(merged.hits[0]!.level).toBe("project");
+    expect(merged.hits[0]!.documentTitle).toBe("客户付款条款");
+    // searchedVersions 是两层的并集 —— 「本次搜过哪些版本」不能只报一半。
+    expect(merged.searchedVersions.length).toBe(3);
+  });
+
   it("跨层可见性必须由上层合并两个作用域，边界本身不放水", async () => {
     const { service, write } = harness();
     await service.promoteSessionFile(globalLibraryScope("alice"), {

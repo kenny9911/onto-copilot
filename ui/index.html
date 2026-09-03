@@ -14626,6 +14626,7 @@ body.dragging .preview{transition:none}
     CURRENT_USER: null,
     AUTH_MODE: "login",
     AUTH_DISMISSIBLE: false,
+    REGISTRATION_OPEN: true,
     DRAG_SID: null,
     SEEN_BUBBLES: 0,
     SEEN_SID: null,
@@ -17428,6 +17429,7 @@ ${el.value}` : text4;
     $("loginPass").setAttribute("autocomplete", reg ? "new-password" : "current-password");
     $("loginSubmit").textContent = t(reg ? "register.submit" : "login.submit");
     $("loginToggle").textContent = t(reg ? "auth.to_login" : "auth.to_register");
+    $("loginToggle").style.display = G.REGISTRATION_OPEN ? "" : "none";
     $("loginErr").style.display = "none";
     const cancel2 = $("loginCancel");
     cancel2.textContent = t("auth.later");
@@ -19378,6 +19380,13 @@ ${el.value}` : text4;
           route2(sessionId, documentSuffix(documentId, `/content${query ? `?${query}` : ""}`))
         );
       },
+      async publish(sessionId, documentId, versionId) {
+        if (scope === "global") notInGlobal("设为通用知识");
+        return await request2(
+          route2(sessionId, documentSuffix(documentId, "/publish")),
+          { method: "POST", body: JSON.stringify(versionId ? { version_id: versionId } : {}) }
+        );
+      },
       async promote(sessionId, input) {
         if (scope === "global") notInGlobal("从会话文件入库");
         return await request2(route2(sessionId, "/promote"), {
@@ -20197,6 +20206,7 @@ ${receipt.summary}` : header;
                 hit.version_no
               ] }),
               hit.level === "global" ? /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "od-badge current", children: words("总库", "Shared", lang) }) : null,
+              hit.also_in_level === "global" ? /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "od-badge current", children: words("总库也有", "Also shared", lang) }) : null,
               /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("small", { children: hit.cite })
             ] }),
             /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("p", { children: hit.text })
@@ -20320,7 +20330,8 @@ ${chunk.text}
     onAttach,
     onDetach,
     onAdopt,
-    onAddVersion
+    onAddVersion,
+    onPublish
   }) {
     const [expanded, setExpanded] = (0, import_react5.useState)(false);
     const [editing, setEditing] = (0, import_react5.useState)(false);
@@ -20370,6 +20381,17 @@ ${chunk.text}
             }
           ),
           /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("button", { type: "button", className: "od-link", disabled: isBusy, onClick: () => void onArchive(), children: document2.status === "archived" ? words("恢复", "Restore", lang) : words("归档", "Archive", lang) }),
+          onPublish ? /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
+            "button",
+            {
+              type: "button",
+              className: "od-link",
+              disabled: isBusy,
+              title: words("复制到公共知识库，其他项目也能检索到", "Copy into the shared library", lang),
+              onClick: () => void onPublish(),
+              children: words("设为通用知识", "Make shared", lang)
+            }
+          ) : null,
           /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("button", { type: "button", className: "od-link", onClick: onClose, children: words("关闭", "Close", lang) })
         ] })
       ] }),
@@ -20700,7 +20722,13 @@ ${chunk.text}
               session_file_name: fileName,
               target_document_id: selected.id,
               base_version_id: selected.current_version_id
-            }))
+            })),
+            ...level === "global" ? {} : {
+              onPublish: async () => await runMutation(
+                `${selected.id}:publish`,
+                async () => await api.publish(sessionId, selected.id)
+              )
+            }
           },
           selected.id
         ) : /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "od-preview-idle", children: words("在左边选一份材料，正文就显示在这里。", "Pick a file on the left to read it here.", lang) }),
@@ -32665,6 +32693,7 @@ ${failureExternalUrl || request3.url}`, { mode: "replace" });
       auStatus = { auth_enabled: false, bootstrap_needed: false, authenticated: true, user: null };
     }
     if (auStatus.auth_enabled && !auStatus.authenticated) {
+      G.REGISTRATION_OPEN = auStatus.registration_open !== false;
       showLogin(auStatus.first_user_is_admin ? "register" : "login");
       return;
     }

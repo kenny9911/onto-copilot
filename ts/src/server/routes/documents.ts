@@ -39,6 +39,7 @@ import {
 import { SearchSnapshotError } from "../../document/search_snapshot.js";
 import {
   DocumentError,
+  globalLibraryScope,
   type AttachDocumentInput,
   type DocumentAttachment,
   type DocumentListOptions,
@@ -70,10 +71,19 @@ export interface DocumentServicePort {
   history(scope: DocumentScope, documentId: string): Promise<readonly DocumentVersion[]>;
   promoteSessionFile(scope: DocumentScope, input: PromoteSessionFileInput): Promise<PromoteResult>;
   search(scope: DocumentScope, options: DocumentSearchOptions): Promise<DocumentSearchResult>;
+  searchLayered(
+    scopes: readonly DocumentScope[],
+    options: DocumentSearchOptions,
+  ): Promise<DocumentSearchResult>;
   open(
     scope: DocumentScope,
     options: { readonly evidenceRef: string },
   ): Promise<DocumentOpenResult>;
+  publishToGlobal(
+    scope: DocumentScope,
+    documentId: string,
+    options?: { readonly versionId?: string },
+  ): Promise<PromoteResult>;
   read(
     scope: DocumentScope,
     documentId: string,
@@ -833,6 +843,8 @@ function searchHitView(hit: DocumentSearchResult["hits"][number]): Record<string
     // 这条命中来自总库还是项目库。界面和模型都必须能分辨 ——
     // 把一份行业通用制度当成这个客户自己的规定，是这个产品最不能出的错。
     level: hit.level,
+    // 这段在另一层也有（设为通用知识是复制）。界面用它显示「总库也有」。
+    also_in_level: hit.alsoInLevel ?? null,
     document_id: hit.documentId,
     version_id: hit.versionId,
     version_no: hit.versionNo,
@@ -1290,7 +1302,14 @@ export function registerDocumentRoutes(app: Hono<AppEnv>, deps: DocumentRouteDep
         ? { sessionId: session.sessionId }
         : {}),
     };
-    const result = await documentCall(async () => await deps.documents.search(scope, options));
+    // 两层一起搜：项目库 + 公共库并成一份语料，只打一次分。页面上的每条命中都带
+    // level，总库来的那条会显示「总库」——不这么做的话，界面永远看不到公共材料，
+    // 而模型（走 searchLayered）看得到，两边说的话就不一致了。
+    // 「只搜本次固定的版本」是会话语义，勾了它就只查项目层。
+    const layered = options.sessionId === undefined
+      ? [scope, globalLibraryScope(scope.actorId ?? scope.owner)]
+      : [scope];
+    const result = await documentCall(async () => await deps.documents.searchLayered(layered, options));
     return c.json(searchView(result));
   });
 
@@ -1310,6 +1329,37 @@ export function registerDocumentRoutes(app: Hono<AppEnv>, deps: DocumentRouteDep
    * `evidence/:ref/open`（要一个已经拿到的引用）。用户刚存进去一份材料，
    * 想知道里面有什么，只能靠猜关键词。这是「知识库看不懂」最直接的一条。
    */
+  /**
+   * 「设为通用知识」：把一份项目材料复制进公共知识库。
+   *
+   * POST 而不是 PATCH：它产生的是公共库里的一份新文档，不是改这一份的属性。
+   * 必须是人点的 —— 没有任何自动调用点，AI 只能建议。公共库是跨项目共享的，
+   * 让它自动生长，三个月后就是垃圾场。
+   */
+  app.post("/api/sessions/:sid/documents/:documentId/publish", async (c) => {
+    rejectBoundaryQuery(c);
+    onlyQueryFields(c, new Set(), "设为通用知识");
+    const body = await strictJsonBody(c);
+    rejectBoundaryBody(body);
+    const { scope } = await routeScope(c, deps);
+    const documentId = opaqueId(c.req.param("documentId"), "文档");
+    const versionId = optionalText(field(body, "version_id", "versionId"), "版本 ID", 2_048);
+    const result = await documentCall(async () => await deps.documents.publishToGlobal(
+      scope,
+      documentId,
+      ...(versionId === undefined ? [] : [{ versionId }]),
+    ));
+    return c.json({
+      ok: true,
+      message: result.deduplicated
+        ? "公共知识库里已经有同样内容的材料，没有重复添加。"
+        : `已把「${result.document.title}」设为通用知识，其他项目也能检索到它。`,
+      document: documentView(result.document),
+      version: versionView(result.version),
+      deduplicated: result.deduplicated,
+    }, result.deduplicated ? 200 : 201);
+  });
+
   app.get("/api/sessions/:sid/documents/:documentId/content", async (c) => {
     rejectBoundaryQuery(c);
     onlyQueryFields(c, new Set(["version_id", "offset", "limit"]), "材料正文");

@@ -98,6 +98,9 @@ export interface UiState {
   // 主动点开的（本地模式下从账户菜单进来）可以关掉；强制鉴权弹出来的那次不行 ——
   // 那是闸，关掉只会看到一个空壳应用。
   AUTH_DISMISSIBLE: boolean;
+  /** 服务端 /api/auth/status 的 registration_open。设了 ONTOCOPILOT_AUTH 就是 false，
+   * 此时登录框不该再给"去注册"入口 —— 点进去填完只会拿 403。 */
+  REGISTRATION_OPEN: boolean;
 
   DRAG_SID: string | null;
 
@@ -141,7 +144,7 @@ export const G: UiState = {
   CHAT_ABORT: null,
   LANG: localStorage.getItem("oc_lang") || "zh",
   CURRENT_USER: null,
-  AUTH_MODE: "login", AUTH_DISMISSIBLE: false,
+  AUTH_MODE: "login", AUTH_DISMISSIBLE: false, REGISTRATION_OPEN: true,
   DRAG_SID: null,
   SEEN_BUBBLES: 0, SEEN_SID: null,
   PENDING_OPEN: true,

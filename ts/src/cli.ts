@@ -764,8 +764,16 @@ async function openRepo(): Promise<[Store, Repo]> {
   return [store, buildRepo(store)];
 }
 
-/** 建一个登录账号。**首个管理员只能用它创建** —— 没有公开的 bootstrap 路由，
- * 杜绝"谁先访问谁当管理员"的抢注竞态。助手绝不代设密码。 */
+/** 建一个登录账号。
+ *
+ * **不是唯一的建号入口** —— `POST /api/register` 是公开的自助注册路由，零账号
+ * 实例上首个注册者自动成为管理员（84b871d 按需求定的产品形态）。
+ *
+ * 设了 `ONTOCOPILOT_AUTH` 之后那条路会返回 403，这条命令才是**唯一**入口，
+ * "谁先访问谁当管理员"的抢注竞态也才真正不存在。联网部署请照这个顺序来：
+ * 先设开关，再用这条命令播种首个管理员。
+ *
+ * 助手绝不代设密码。 */
 export async function cmdUseradd(args: CmdArgs): Promise<number> {
   const username = normalizeUsername(String(args["username"]));
   if (!username) {
@@ -1041,7 +1049,7 @@ export function buildParser(): Parser {
     },
     {
       name: "useradd",
-      help: "创建登录账号（首个管理员只能用它创建）",
+      help: "创建登录账号（设了 ONTOCOPILOT_AUTH 后，这是唯一的建号入口）",
       positionals: [{ dest: "username" }],
       options: [
         { flags: ["--admin"], dest: "admin", kind: "flag", dflt: false, help: "创建为管理员" },
