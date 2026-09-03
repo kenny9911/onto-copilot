@@ -68,6 +68,18 @@ type ExactDocumentOperation =
     };
   }
   | {
+    readonly tool: "document.promote_batch";
+    readonly action: "promote";
+    readonly args: ExactToolArgs;
+    /** 签发那一刻冻结的名单与身份；模型改不了其中任何一项。 */
+    readonly sources: readonly {
+      readonly name: string;
+      readonly path: string;
+      readonly size: number;
+      readonly sha256: string;
+    }[];
+  }
+  | {
     readonly tool: "document.manage";
     readonly action:
       | "manage_title"
@@ -522,6 +534,16 @@ function resolveSessionFile(userText: string, session: SessionLike): SessionLike
   return deictic && session.files.length === 1 ? session.files[0] ?? null : null;
 }
 
+/**
+ * 用户说的是「这些 / 全部 / 这几份」而不是某一份具体文件。
+ *
+ * 这不是放宽「不许猜目标」那条纪律 —— 恰恰相反：**「本次会话里所有还没入库的
+ * 材料」是一个确定的集合**，没有可猜的余地。真正要防的是模型自己挑几份，
+ * 所以名单在签发能力票那一刻就冻住，工具调用必须逐字对上。
+ */
+const BATCH_QUANTIFIER =
+  /(?:这些|那些|这几份|这\s*\d+\s*份|全部|所有|都)|(?:all|these|every)\s+(?:the\s+)?(?:files?|materials?|documents?)/iu;
+
 function attachmentRole(userText: string): DocumentAttachmentRole {
   return /(?:主要|主材料|primary)/iu.test(userText) ? "primary" : "reference";
 }
@@ -535,7 +557,32 @@ async function resolveExactOperation(
   if (service === null || !session.projectId || !session.owner) return null;
   if (action === "promote") {
     const source = resolveSessionFile(userText, session);
-    if (source === null) return null;
+    if (source === null) {
+      // 「把这 6 份材料收进知识库」—— 一份都没点名，但目标集合是确定的。
+      if (!BATCH_QUANTIFIER.test(userText.normalize("NFKC"))) return null;
+      const scopeForBatch = await documentScope(session);
+      // 已经在库里的按 sha 跳过：promote 每调一次就新建一份文档，
+      // 不跳的话第二次「把这些收进来」会在库里堆出一模一样的第二套。
+      const known = new Set<string>();
+      for (const { history } of await readableDocuments(service, session, scopeForBatch)) {
+        for (const v of history ?? []) known.add(String(v.sha256 ?? ""));
+      }
+      const sources = session.files
+        .map((row) => ({
+          name: String(row.name),
+          path: text(row["path"]),
+          size: integer(row["size"], -1),
+          sha256: text(row["sha256"]),
+        }))
+        .filter((row) => row.path !== "" && row.size >= 0 && !known.has(row.sha256));
+      if (sources.length === 0) return null;
+      return {
+        tool: "document.promote_batch",
+        action,
+        args: { session_file_names: sources.map((row) => row.name) },
+        sources,
+      };
+    }
     const path = text(source["path"]);
     const size = integer(source["size"], -1);
     if (!path || size < 0) return null;
@@ -1136,6 +1183,92 @@ export function registerDocumentDialogueTools(
           message: detached
             ? "已从本次分析移除；项目知识库里的文档仍然保留。"
             : "本次分析原本就没有使用这份文档。",
+        };
+      });
+    },
+  );
+
+  reg.fn(
+    {
+      name: "document.promote_batch",
+      description:
+        "把当前会话里**所有还没入库的**原文件一次性原样新建到项目知识库。" +
+        "只有用户本轮明确说要把「这些／全部材料」保存时才可用；名单在确认那一刻就定死，" +
+        "不能自己增减、不能改标题标签、不能传路径或 URL。",
+      schema: {
+        type: "object",
+        required: ["session_file_names"],
+        properties: {
+          session_file_names: {
+            type: "array",
+            minItems: 1,
+            maxItems: 100,
+            items: { type: "string", minLength: 1, maxLength: 512 },
+          },
+        },
+        additionalProperties: false,
+      },
+      danger: Danger.WRITE_LOCAL,
+      scopes: RW,
+    },
+    async (args, ctx) => {
+      const names = stringList(args["session_file_names"]);
+      const requested: Dict = { session_file_names: names };
+      const matched = matchCapability(session, ctx, "document.promote_batch", requested);
+      if (!matched.ok) return matched.error;
+      const bad = unavailable(session);
+      if (bad !== null) return bad;
+      return await guarded(async () => {
+        const operation = matched.capability.operation;
+        if (operation.tool !== "document.promote_batch") return capabilityDenied("mismatch");
+        // 逐份重新核对服务端身份：确认之后有人替换了文件，这一批就整批不做。
+        for (const want of operation.sources) {
+          const file = session.files.find((row) => row.name === want.name);
+          if (
+            file === undefined ||
+            text(file["path"]) !== want.path ||
+            integer(file["size"], -1) !== want.size ||
+            text(file["sha256"]) !== want.sha256
+          ) {
+            return { ok: false, error: "确认之后有材料发生了变化，整批都没有保存。请重新确认一次。" };
+          }
+        }
+        const scope = await documentScope(session);
+        consumeCapability(matched.capability);
+        const service = getDocumentServiceOptional()!;
+        const saved: Dict[] = [];
+        const failed: Dict[] = [];
+        for (const want of operation.sources) {
+          try {
+            const result = await service.promoteSessionFile(scope, {
+              source: {
+                sessionId: session.id,
+                name: want.name,
+                relPath: relativeToRoot(root(), want.path),
+                sizeBytes: want.size,
+                ...(want.sha256 ? { sha256: want.sha256 } : {}),
+              },
+              createdBy: session.owner,
+            });
+            saved.push({
+              name: want.name,
+              document_id: result.document.id,
+              deduplicated: result.deduplicated,
+              parse_status: result.version.parseStatus,
+            });
+          } catch (error) {
+            // 一份失败不该让另外五份也白做；但**必须逐份报出来**，
+            // 否则用户会以为整批都进去了。
+            failed.push({ name: want.name, error: message(error) });
+          }
+        }
+        return {
+          ok: failed.length === 0,
+          message: failed.length === 0
+            ? `已把 ${saved.length} 份材料保存到项目知识库。`
+            : `${saved.length} 份已保存，${failed.length} 份没有保存。`,
+          saved,
+          failed,
         };
       });
     },

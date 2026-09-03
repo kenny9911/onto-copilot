@@ -76,7 +76,8 @@ export function checkCatalog(): CatalogCheckResult {
   const dag = buildFdeEngagementDag();
   const coreTools = toolPolicies("core").length;
   const dialogueTools = toolPolicies("dialogue").length;
-  if (coreTools !== 8 || dialogueTools !== 58) {
+  // dialogue 59：加了 document.promote_batch（批量入库）。
+  if (coreTools !== 8 || dialogueTools !== 59) {
     throw new Error(`工具目录数量异常: core=${coreTools}, dialogue=${dialogueTools}`);
   }
   return {

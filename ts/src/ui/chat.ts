@@ -4,6 +4,7 @@ import { $, esc, j } from "./dom.js";
 import { t } from "./i18n.js";
 import { md } from "./md.js";
 import { newSession } from "./sessions.js";
+import { closeKnowledgePage } from "./react/knowledge-page.js";
 import { render } from "./render.js";
 
 // ── 对话 ────────────────────────────────────────────────────────
@@ -56,6 +57,13 @@ export async function sendChat(){
   const el = $("cin");
   const text = (el.value || "").trim();
   if (!text) return;
+  // 在知识库页面上发一句话，回答会渲染进一个 display:none 的 .stream ——
+  // 说了看不到，是条死路。所以发送即退回聊天。
+  //
+  // ui/index.template.html 的 CSS 注释一直声称「发出去之后由 knowledge-page
+  // 负责退回聊天」，而实现里从来没有这段：closeKnowledgePage 全仓只有「返回会话」
+  // 按钮一个调用点。注释替代码作了一个它没做的承诺，现在把承诺补上。
+  if (G.MAIN_PAGE !== "chat") closeKnowledgePage({ replaceHistory: true });
   // 没会话就建一个 —— 想说话之前先点「新会话」是多余的一步
   if (!G.S) await newSession(true);
   el.value = ""; autoGrow(el);

@@ -157,7 +157,7 @@ describe("OntoDocument dialogue harness", () => {
     expect(isPureDocumentManagementRequest("保存到知识库并总结这份材料")).toBe(false);
     expect(isPureDocumentManagementRequest("请分析这份文档，不要归档它")).toBe(false);
   });
-  it("八个工具的 scopes 与 danger 固定：四个只读双模式、四个写入仅工作模式", () => {
+  it("九个工具的 scopes 与 danger 固定：四个只读双模式、五个写入仅工作模式", () => {
     const { registry } = fixture();
     const rows = registry.registrationSnapshot().filter((row) => row.name.startsWith("document."));
     expect(rows).toEqual([
@@ -168,12 +168,16 @@ describe("OntoDocument dialogue harness", () => {
       { name: "document.manage", danger: "WRITE_LOCAL", scopes: ["converse"], origin: "builtin", fingerprint: expect.any(String) },
       { name: "document.open", danger: "READ", scopes: ["converse", "chat"], origin: "builtin", fingerprint: expect.any(String) },
       { name: "document.promote", danger: "WRITE_LOCAL", scopes: ["converse"], origin: "builtin", fingerprint: expect.any(String) },
+      // 批量入库：用户说「把这些／全部材料收进知识库」时用它。名单在签发能力票
+      // 那一刻冻死 —— 这不是放宽「不许猜目标」，「本次会话里所有还没入库的材料」
+      // 本来就是个确定集合。
+      { name: "document.promote_batch", danger: "WRITE_LOCAL", scopes: ["converse"], origin: "builtin", fingerprint: expect.any(String) },
       { name: "document.search", danger: "READ", scopes: ["converse", "chat"], origin: "builtin", fingerprint: expect.any(String) },
     ]);
     expect(registry.forScope("chat").filter((tool) => tool.spec.name.startsWith("document.")))
       .toHaveLength(4);
     expect(registry.forScope("converse").filter((tool) => tool.spec.name.startsWith("document.")))
-      .toHaveLength(8);
+      .toHaveLength(9);
     expect(registry.get("document.search", "chat").spec.danger).toBe(Danger.READ);
   });
 

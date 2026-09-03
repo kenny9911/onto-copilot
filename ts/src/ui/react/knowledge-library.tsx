@@ -255,6 +255,19 @@ interface DocumentPreviewProps {
  * 每一段都带「引用到对话」：段落复用的就是检索命中的形状，自带 evidence_ref
  * 和引用文案，所以读到哪一段就能把哪一段原样送进对话，中间不丢出处。
  */
+/**
+ * 把一段原文交给 Copilot 时该说的话。
+ *
+ * **必须带 evidence_ref。** 之前只拼了「关于『引用文案』这一段：正文」——
+ * 模型侧的 `document.open` 要的是一个精确的 evidence_ref（见 document_tools.ts
+ * 里那个工具的描述），拿不到就只能自己重搜一遍去猜用户指的是哪一段。
+ * 于是「材料事实有出处」这条链，恰好断在人把材料交给模型的那一刻。
+ */
+function quoteForComposer(cite: string, text: string, evidenceRef: string): string {
+  return `关于「${cite}」这一段：\n\n${text}\n\n` +
+    `（这段的证据引用是 ${evidenceRef}，需要核对原文时用 document.open 打开它。）\n`;
+}
+
 /** 树里的一行文件。缩进跟着层数走。 */
 function FileRow({ item, depth, selectedId, attachments, lang, onPick }: {
   item: KnowledgeDocument;
@@ -324,7 +337,7 @@ function SearchPane({ result, openedEvidence, evidenceError, lang, onOpen, onCle
         {words("原文校验值", "Source text checksum", lang)}：{shortId(openedEvidence.text_sha256)}
       </small>
       <button type="button" className="od-link" onClick={() => {
-        prefillComposer(`关于「${openedEvidence.cite}」这一段：\n\n${openedEvidence.text}\n\n`, { mode: "insert" });
+        prefillComposer(quoteForComposer(openedEvidence.cite, openedEvidence.text, openedEvidence.evidence_ref), { mode: "insert" });
       }}>{words("引用到对话", "Quote in chat", lang)}</button>
     </article> : null}
   </>;
@@ -401,7 +414,7 @@ function DocumentReader({ sessionId, documentId, versionId, lang, api = knowledg
       <button type="button" className="od-link" onClick={() => {
         // 预填而不是直接发送：用户没审过的话不该替他调用模型。
         // 这条纪律和右侧上下文栏的十来个引用按钮一致（context-sync.ts 的注释）。
-        prefillComposer(`关于「${chunk.cite}」这一段：\n\n${chunk.text}\n\n`, { mode: "insert" });
+        prefillComposer(quoteForComposer(chunk.cite, chunk.text, chunk.evidence_ref), { mode: "insert" });
       }}>{words("引用到对话", "Quote in chat", lang)}</button>
     </div>)}
     {chunks.length < total ? <button type="button" className="act" disabled={more}
@@ -522,6 +535,16 @@ export function KnowledgeLibrary({
   const [attachedOnly, setAttachedOnly] = useState(false);
   /** 当前在右侧预览的文档。文件树 + 预览是这一页的主界面。 */
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  /**
+   * 选中一份材料 = 我要读它。搜索结果和预览抢同一块地方，右栏又是 searchResult 优先，
+   * 所以不清掉搜索态的话，搜过一次之后点左树只会让行变色、右边纹丝不动 ——
+   * 那是最容易被当成「点了没反应＝坏了」的一种。
+   */
+  const pickDocument = useCallback((id: string): void => {
+    setSelectedId(id);
+    setSearchResult(null);
+    setOpenedEvidence(null);
+  }, []);
   /** 收起的分组。默认全展开 —— 材料不多，先让人看见东西。 */
   const [closedFolders, setClosedFolders] = useState<Set<string>>(new Set());
   /** 用户手工建的文件夹。空文件夹也在这里 —— 那正是「按标签推分组」做不到的。 */
@@ -751,14 +774,14 @@ export function KnowledgeLibrary({
                 {closed ? null : <div className="od-folder-body" role="group">
                   {items.map((item) => <FileRow key={item.id} item={item} depth={depth + 1}
                     selectedId={selectedId} attachments={attachments} lang={lang}
-                    onPick={() => setSelectedId(item.id)} />)}
+                    onPick={() => pickDocument(item.id)} />)}
                 </div>}
               </div>;
             })}
             {/* 根目录的材料垫底，不套一层假文件夹 —— 那会让「没归类」看起来像个真分组。 */}
             {rootDocs.map((item) => <FileRow key={item.id} item={item} depth={0}
               selectedId={selectedId} attachments={attachments} lang={lang}
-              onPick={() => setSelectedId(item.id)} />)}
+              onPick={() => pickDocument(item.id)} />)}
           </div>}
         <div className="od-fm-status">
           <span>{status === "ready"
