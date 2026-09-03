@@ -34,6 +34,8 @@ import {
   localName,
 } from "./doc/xmlet.js";
 import { BadZipFile, ZipArchive, ZipMemberMissing, hasDtdMarker } from "./doc/ziplite.js";
+import type { SlidePage } from "./pptx_flow.js";
+import { slideFlowsFrom } from "./pptx_flow.js";
 
 const MAX_MEMBER_BYTES = 20 * 1024 * 1024;
 const MAX_TOTAL_BYTES = 100 * 1024 * 1024;
@@ -133,12 +135,15 @@ export async function parseOoxml(path: string, fileId: string): Promise<ParsedDo
   ooxmlMetadata(doc, archive, names);
   const slideParts = orderedSlideParts(archive, names);
   const slides: SlideData[] = [];
+  // 画在 PPT 里的流程图。`p:cxnSp` 的连接线是文件里现成的流程结构，以前整个丢弃。
+  const flowPages: SlidePage[] = [];
   let order = 0;
 
   for (const [index, part] of slideParts.entries()) {
     const page = index + 1;
     const root = readXml(archive, part, doc.findings);
     if (root === null) continue;
+    flowPages.push({ page, root });
     const slide: SlideData = { number: page, title: "", texts: [], tables: [], notes: "" };
 
     const titleCandidates: string[] = [];
@@ -207,6 +212,10 @@ export async function parseOoxml(path: string, fileId: string): Promise<ParsedDo
   }
 
   doc.structured = { slides, slide_count: slides.length };
+  // 可选发射：没有画流程图的 PPT 一个键都不多。golden 钉的是旧字节，
+  // 老材料必须原样 —— 这条纪律比"键恒定存在好写消费方"更重要。
+  const slideFlows = slideFlowsFrom(flowPages);
+  if (slideFlows.length > 0) doc.structured["slide_flows"] = slideFlows;
   if (slideParts.length === 0) {
     doc.findings.push(makeFinding(
       "empty_presentation", "PPTX 包中没有 slide part",
@@ -273,21 +282,31 @@ function emitTable(doc: ParsedDoc, args: {
   }
   for (const [bodyIndex, row] of table.data.entries()) {
     const rowNo = bodyIndex + 2;
-    const pairs = row
+    // label 只算一次，render 和 raw 共用 —— 表头为空时这里会合成 `C2` 这种兜底名，
+    // 两边各算一遍必然漂移（raw 拿到空串列名，render 拿到 C2，描述的就不是同一件事）。
+    const labeled = row
       .map((value, index) => {
         const column = columns[index];
         return { label: index < columns.length && column ? column : `C${index + 1}`, value };
       })
-      .filter((pair) => pair.value)
-      .map((pair) => `${pair.label}=${pair.value}`);
+      .filter((pair) => pair.value);
+    const pairs = labeled.map((pair) => `${pair.label}=${pair.value}`);
     if (pairs.length === 0) continue;
+    const rowRaw: Record<string, string> = {};
+    for (const pair of labeled) rowRaw[pair.label] = String(pair.value);
     const render = `PPT 第 ${page} 页表格 ${table.index} 第 ${rowNo} 行：` + pairs.join(" | ");
     doc.chunks.push(makeChunk({
       docId: `slide:${page}:table:${table.index}:row:${rowNo}`, fileId, fileName,
       locator: {
         kind: "page", page, bbox, shape_id: shapeId, table: table.index, row: rowNo,
       },
-      render, raw: { row, columns }, order, tags: textTags("table", render),
+      // raw 必须是 {列名: 值}，不能是 {row, columns}。
+      //
+      // 后者会让 classifyColumns 对它做 Object.entries，得到两列叫 `row` 和
+      // `columns`、值是数组 —— 纯垃圾输入。真实后果：列分类全部掉进 label 兜底，
+      // shape 于是告诉模型「这一段有 7 行，一行 = 一个业务对象」，而眼前只有
+      // 4 条真表格行。模型就去找不存在的第 5~7 行，把墙钟耗在跟幻觉较劲上。
+      render, raw: rowRaw, order, tags: textTags("table", render),
     }));
     order += 1;
   }

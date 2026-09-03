@@ -42,6 +42,9 @@ export function showLogin(mode?: any, dismissible?: any){
   $("loginPass").setAttribute("autocomplete", reg ? "new-password" : "current-password");
   $("loginSubmit").textContent = t(reg ? "register.submit" : "login.submit");
   $("loginToggle").textContent = t(reg ? "auth.to_login" : "auth.to_register");
+  // 注册关着时不给入口。服务端才是权威（设了 ONTOCOPILOT_AUTH 后 /api/register
+  // 返回 403），这里只是不让界面把人往一条走不通的路上引。
+  $("loginToggle").style.display = G.REGISTRATION_OPEN ? "" : "none";
   $("loginErr").style.display = "none";
   const cancel = $("loginCancel");
   cancel.textContent = t("auth.later");

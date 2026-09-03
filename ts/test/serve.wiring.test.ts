@@ -111,7 +111,138 @@ describe("wireServer", () => {
       "GET /api/config",
       "PUT /api/config",
     ];
-    const known = new Set([...PYTHON_ROUTES.map(([m, p]) => `${m} ${p}`), ...ROUTER_ROUTES]);
+    // 迁移完成后**新增**的路由 —— 它们没有 Python 对应物（Python 已经不存在了），
+    // 但同样必须逐条列出：这张清单的价值就在于"多一条路由必须有人显式认领"。
+    const POST_MIGRATION_ROUTES = [
+      // 会话分叉（借 pi 的会话树交互）：从拍板点 ordinal 复制材料+决策，重新梳理
+      "POST /api/sessions/:sid/fork",
+      // FDE 项目上下文：聚合证据、模型、审阅与交付的只读 read model
+      "GET /api/sessions/:sid/context",
+      // 统一预览清单与安全内嵌内容（材料、产物和 live model 画布）
+      "GET /api/sessions/:sid/preview",
+      "GET /api/sessions/:sid/preview/content",
+      // 挂起态只读 Ontology DRAFT snapshot 与虚拟 JSON；不进入正式 artifact/bundle
+      "GET /api/sessions/:sid/ontology/draft",
+      "GET /api/sessions/:sid/ontology/draft/artifacts/:name",
+      // 访谈包一键下载：回传闭环的正确载体（按角色分组 + 「您的回答」列）。
+      // 以前只有对话暗号（export.file source=interview_kit）一条出口，界面下载
+      // 按钮给的是问题清单.xlsx —— FDE 发错文件是结构性的。
+      "GET /api/sessions/:sid/questions/interview-kit",
+      // §7.5 节点级 fork 重跑：保留其余专业节点重放、EXTRACT 免费复用
+      "POST /api/sessions/:sid/engagement/fork",
+      // 全量日志：管理员跨账号看全部，普通用户只看自己的。
+      // **故意不挂在 /api/sessions/ 下面** —— authgate 那道按 `row.owner !== user.id`
+      // 判的中间件对管理员不豁免、且跑在路由之前，挂进去管理员只会拿到 404。
+      "GET /api/logs/sessions",
+      "GET /api/logs/sessions/:sid/events",
+      "GET /api/logs/sessions/:sid/events/:seq",
+      "GET /api/logs/sessions/:sid/runtime/runs",
+      "GET /api/logs/sessions/:sid/runtime/runs/:runId/events/:seq",
+      // P4：停掉单个在飞节点（协作式取消该 slot；run 级 /stop 是全停）
+      "POST /api/sessions/:sid/run/nodes/stop",
+      // 安全网页工作台：reader snapshot、版本化引用、翻译/总结与材料记忆。
+      "GET /api/sessions/:sid/web/pages",
+      "POST /api/sessions/:sid/web/pages",
+      "POST /api/sessions/:sid/web/live-snapshots",
+      "GET /api/sessions/:sid/web/pages/:pageId",
+      "GET /api/sessions/:sid/web/pages/:pageId/content",
+      "GET /api/sessions/:sid/web/pages/:pageId/analyses",
+      "POST /api/sessions/:sid/web/pages/:pageId/translate",
+      "POST /api/sessions/:sid/web/pages/:pageId/summarize",
+      "POST /api/sessions/:sid/web/pages/:pageId/save",
+      // 独立 Chromium Live Browser：第三方 DOM/JS 不进入 OntoCopilot origin，前端只取
+      // 同源 PNG frame；Reader 路由仍保留用于引用、翻译和总结。
+      "GET /api/sessions/:sid/live-browser/capabilities",
+      "GET /api/sessions/:sid/live-browser/sessions",
+      "POST /api/sessions/:sid/live-browser/sessions",
+      "GET /api/sessions/:sid/live-browser/sessions/:browserSessionId",
+      "GET /api/sessions/:sid/live-browser/sessions/:browserSessionId/frame",
+      "DELETE /api/sessions/:sid/live-browser/sessions/:browserSessionId",
+      "POST /api/sessions/:sid/live-browser/sessions/:browserSessionId/navigate",
+      "POST /api/sessions/:sid/live-browser/sessions/:browserSessionId/back",
+      "POST /api/sessions/:sid/live-browser/sessions/:browserSessionId/forward",
+      "POST /api/sessions/:sid/live-browser/sessions/:browserSessionId/reload",
+      "POST /api/sessions/:sid/live-browser/sessions/:browserSessionId/screenshot",
+      "POST /api/sessions/:sid/live-browser/sessions/:browserSessionId/pointer",
+      "POST /api/sessions/:sid/live-browser/sessions/:browserSessionId/scroll",
+      "POST /api/sessions/:sid/live-browser/sessions/:browserSessionId/key",
+      // OntoDocument：项目级长期知识库、不可变版本、精确会话挂载与证据读取。
+      "GET /api/sessions/:sid/documents/acl",
+      "PUT /api/sessions/:sid/documents/acl",
+      "GET /api/sessions/:sid/documents/audit",
+      "GET /api/sessions/:sid/documents",
+      "POST /api/sessions/:sid/documents/promote",
+      "GET /api/sessions/:sid/documents/search",
+      // 后台任务只开放入队/查看/取消；run/commit 留在服务端内部。
+      "POST /api/sessions/:sid/documents/jobs",
+      "GET /api/sessions/:sid/documents/jobs",
+      "GET /api/sessions/:sid/documents/jobs/:jobId",
+      "DELETE /api/sessions/:sid/documents/jobs/:jobId",
+      // 固定 exact version/index/ACL/text hash 的搜索结果与续页。
+      "POST /api/sessions/:sid/documents/search-snapshots",
+      "POST /api/sessions/:sid/documents/search-snapshots/:snapshotId/page",
+      "GET /api/sessions/:sid/documents/:documentId/history",
+      // 打开一份材料按原文顺序读。此前知识库只有 search（要关键词）和
+      // evidence/:ref/open（要一个已经拿到的引用）——存进去的文件没有打开入口。
+      "GET /api/sessions/:sid/documents/:documentId/content",
+      // 「设为通用知识」：把项目材料复制进公共库。人点的动作，没有自动调用点。
+      "POST /api/sessions/:sid/documents/:documentId/publish",
+      // 用户手工建的文件夹。之前树里的分组是按标签推出来的，空文件夹无处存放 ——
+      // 建一个立刻消失。文件夹必须是独立于文件存在的东西。
+      "GET /api/sessions/:sid/documents/folders",
+      "POST /api/sessions/:sid/documents/folders",
+      "PATCH /api/sessions/:sid/documents/folders",
+      "DELETE /api/sessions/:sid/documents/folders",
+      "PATCH /api/sessions/:sid/documents/:documentId/folder",
+      "GET /api/knowledge/documents/folders",
+      "POST /api/knowledge/documents/folders",
+      "PATCH /api/knowledge/documents/:documentId/folder",
+      // 公共知识库：**不经过会话**。产品要求「这个知识库应该可以直接去访问」——
+      // 在此之前所有知识库路由都挂在 /api/sessions/:sid 下，侧栏按钮在会话没归项目时
+      // 是禁用的。这一组只有读与整理；attach/promote 依赖会话语义，刻意没挂。
+      "GET /api/knowledge/documents",
+      "GET /api/knowledge/documents/search",
+      "GET /api/knowledge/documents/evidence/:ref/open",
+      "GET /api/knowledge/documents/:documentId/content",
+      "GET /api/knowledge/documents/:documentId/history",
+      "GET /api/sessions/:sid/documents/evidence/:ref/open",
+      "PATCH /api/sessions/:sid/documents/:documentId",
+      "PATCH /api/sessions/:sid/documents/:documentId/adopt",
+      "PATCH /api/sessions/:sid/documents/:documentId/archive",
+      "POST /api/sessions/:sid/documents/:documentId/attach",
+      "DELETE /api/sessions/:sid/documents/:documentId/attach",
+      // 不可变版本的确定性 diff/影响分析，以及独立项目 Wiki 页面。
+      "GET /api/sessions/:sid/documents/:documentId/diff",
+      "GET /api/sessions/:sid/documents/:documentId/impact",
+      "GET /api/sessions/:sid/documents/wiki/pages",
+      "POST /api/sessions/:sid/documents/wiki/pages",
+      "GET /api/sessions/:sid/documents/wiki/pages/:pageId",
+      "PATCH /api/sessions/:sid/documents/wiki/pages/:pageId",
+      "GET /api/sessions/:sid/documents/wiki/pages/:pageId/history",
+      "POST /api/sessions/:sid/documents/wiki/pages/:pageId/archive",
+      "POST /api/sessions/:sid/documents/wiki/pages/:pageId/restore",
+      "POST /api/sessions/:sid/documents/wiki/pages/:pageId/claims",
+      "PATCH /api/sessions/:sid/documents/wiki/pages/:pageId/claims/:claimId",
+      "DELETE /api/sessions/:sid/documents/wiki/pages/:pageId/claims/:claimId",
+      "POST /api/sessions/:sid/documents/wiki/pages/:pageId/claims/:claimId/confirm",
+      "GET /api/sessions/:sid/documents/wiki/pages/:pageId/export.md",
+      "GET /api/sessions/:sid/documents/wiki/export/obsidian.zip",
+      // 外部来源只保存凭据引用；真实客户端与文档 sink 由宿主注入。
+      "GET /api/sessions/:sid/document-connectors",
+      "POST /api/sessions/:sid/document-connectors",
+      "GET /api/sessions/:sid/document-connectors/:sourceId/status",
+      "PATCH /api/sessions/:sid/document-connectors/:sourceId",
+      "POST /api/sessions/:sid/document-connectors/:sourceId/enable",
+      "POST /api/sessions/:sid/document-connectors/:sourceId/disable",
+      "POST /api/sessions/:sid/document-connectors/:sourceId/archive",
+      "POST /api/sessions/:sid/document-connectors/:sourceId/restore",
+      "POST /api/sessions/:sid/document-connectors/:sourceId/sync",
+    ];
+    const known = new Set([
+      ...PYTHON_ROUTES.map(([m, p]) => `${m} ${p}`),
+      ...ROUTER_ROUTES,
+      ...POST_MIGRATION_ROUTES,
+    ]);
     expect(handlerRoutes().filter((k) => !known.has(k))).toEqual([]);
   });
 

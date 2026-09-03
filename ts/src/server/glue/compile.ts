@@ -17,6 +17,7 @@ import {
   buildPackage,
   pyJsonDumps,
   validatePackage,
+  type SkippedReview,
 } from "../../onto/canonical.js";
 import { makeIntentMatch, parseIntent } from "../../kernel/intent.js";
 import type { OIR } from "../../onto/oir.js";
@@ -27,7 +28,22 @@ import { dropReferenceMemory } from "../routes/projects.js";
 import type { Session } from "../session.js";
 import type { GlueDeps, IntentMatchLike } from "./deps.js";
 import { resumeEngagementRelease } from "./engagement.js";
-import { pendingQuestions, syncQuestionBacklog } from "./questions.js";
+import { blockingPendingQuestions, syncQuestionBacklog } from "./questions.js";
+import {
+  commitEngagementReleaseStage,
+  clearStagedEngagementDelivery,
+  createEngagementReleaseStage,
+  engagementReleaseFileOps,
+  engagementReleaseStagePath,
+  ENGAGEMENT_RELEASE_FILES,
+  finalizeEngagementReleaseCommit,
+  rollbackEngagementReleaseCommit,
+  sealEngagementReleaseStage,
+  stagedEngagementDelivery,
+  validEngagementReleaseStage,
+  type EngagementReleaseFileOpsOverride,
+  type EngagementReleaseStage,
+} from "./engagement_delivery.js";
 
 // ══════════════════════════════════════════════════════════════════
 //  Canonical 产物
@@ -73,7 +89,29 @@ export function writeCanonicalArtifacts(
     const raw = data["revision"];
     revision = truthy(raw) ? pyInt(raw) : revision;
   }
-  const report = validatePackage(data as never);
+  // A prepared package is the exact payload REVIEW/EXPORT already gated.  Keep
+  // its budget/human-review disclosure while revalidating the bytes to write;
+  // otherwise the commit step would silently rewrite "not semantically reviewed"
+  // into a clean-looking validation report.
+  const previousValidation = data["validation"];
+  const skippedReviews =
+    previousValidation !== null &&
+    typeof previousValidation === "object" &&
+    !Array.isArray(previousValidation) &&
+    Array.isArray((previousValidation as Record<string, unknown>)["skipped_reviews"])
+      ? ((previousValidation as Record<string, unknown>)["skipped_reviews"] as unknown[])
+          .filter(
+            (row): row is SkippedReview =>
+              row !== null &&
+              typeof row === "object" &&
+              !Array.isArray(row) &&
+              typeof (row as Record<string, unknown>)["what"] === "string" &&
+              typeof (row as Record<string, unknown>)["why"] === "string" &&
+              typeof (row as Record<string, unknown>)["level"] === "number" &&
+              typeof (row as Record<string, unknown>)["label"] === "string",
+          )
+      : [];
+  const report = validatePackage(data as never, skippedReviews);
   data["validation"] = report.toDict();
   if (!report.passed) {
     const findings = report.findings.filter((f) => f.severity === "error");
@@ -179,42 +217,135 @@ export async function drainQueue(s: Session, deps: GlueDeps): Promise<void> {
 export async function compile(
   s: Session,
   deps: GlueDeps,
-  opts: { leaseOwner?: string } = {},
+  opts: { leaseOwner?: string; releaseFileOps?: EngagementReleaseFileOpsOverride } = {},
 ): Promise<void> {
   const leaseOwner = opts.leaseOwner ?? "";
+  const fileOps = engagementReleaseFileOps(opts.releaseFileOps);
   const oir = s.state["_oir"] as OIR;
   const conflicts = ((s.state["_conflicts"] as Conflict[] | undefined) ?? []) as Conflict[];
+  // 先校验由 workflow 暂存的人工验收终态，再做任何文件写入。没有正式 APPROVE
+  // 的 compile 一律是 DRAFT；正式 REJECT 可以保留交付候选，但不能穿透成 RELEASED。
+  const delivery = stagedEngagementDelivery(s);
+  const committedReleaseState = delivery?.disposition === "RELEASED" ? "RELEASED" : "DRAFT";
+  s.state["release_state"] = "DRAFT";
+  // 所有 JSON 字节也在写盘前生成。这样非 JSON 模型输出会在 canonical/xlsx 之前
+  // fail closed；文件路径始终来自代码内固定白名单，不读取模型的 artifacts/name。
+  const deliveryDocuments =
+    delivery?.documents.map((document) => ({
+      name: document.name,
+      json: pyJsonDumps(document.payload, 2),
+    })) ?? [];
+  const releaseFiles = delivery === null
+    ? ENGAGEMENT_RELEASE_FILES.slice(0, 10)
+    : [...ENGAGEMENT_RELEASE_FILES];
   // Canonical artifacts and question exports must be projections of the same unified
   // backlog.  Sync first: otherwise conflict questions/answers enter the Ledger only
   // after ontology.package.json has already been written and Decisions dangle.
   await syncQuestionBacklog(s, deps, { oir, conflicts });
   s.emit("node.entered", { node: "COMPILE", title: "编译模板" });
-  const spec = compileTemplate(oir, conflicts);
-  // Release Gate 必须发生在任何可下载产物写盘之前。Canonical 包若存在悬空引用、
-  // 重复 ID 或 schema 破坏，模板/OIR 也不能先以"新版本"出现在下载接口里。
-  // 先构建并验证一次，后面把同一份数据提交，避免两次构建的 generatedAt 漂移。
-  const canonical = writeCanonicalArtifacts(s, { write: false });
-  const xlsx = await writeXlsx(spec, join(s.dir, "模板_v1.xlsx"), {
-    project: s.project || s.title,
-  });
-  spec.save(join(s.dir, "template.spec.json"));
-  writeFileSync(join(s.dir, "oir.json"), pyJsonDumps(oir.toDict(), 1), "utf-8");
-  writeCanonicalArtifacts(s, { prepared: canonical });
+  let pending = pendingCompileRelease(s, releaseFiles, committedReleaseState, fileOps);
+  if (pending === null) {
+    const spec = compileTemplate(oir, conflicts);
+    // Release Gate 必须发生在任何可下载产物写盘之前。Canonical 包若存在悬空引用、
+    // 重复 ID 或 schema 破坏，模板/OIR 也不能先以"新版本"出现在下载接口里。
+    // 先构建并验证一次，后面把同一份数据提交，避免两次构建的 generatedAt 漂移。
+    const reviewed = s.state["_engagement_package"];
+    const canonical =
+      reviewed !== null && typeof reviewed === "object" && !Array.isArray(reviewed)
+        ? writeCanonicalArtifacts(s, {
+            write: false,
+            prepared: reviewed as Record<string, unknown>,
+          })
+        : writeCanonicalArtifacts(s, { write: false });
+    const stage = createEngagementReleaseStage(s.dir, releaseFiles, fileOps);
+    try {
+      await writeXlsx(spec, engagementReleaseStagePath(stage, "模板_v1.xlsx"), {
+        project: s.project || s.title,
+      });
+      spec.save(engagementReleaseStagePath(stage, "template.spec.json"));
+      writeFileSync(
+        engagementReleaseStagePath(stage, "oir.json"),
+        pyJsonDumps(oir.toDict(), 1),
+        "utf-8",
+      );
+      writeCanonicalStage(stage, canonical);
+      for (const document of deliveryDocuments) {
+        writeFileSync(engagementReleaseStagePath(stage, document.name), document.json, "utf-8");
+      }
+      sealEngagementReleaseStage(stage, fileOps);
+      pending = {
+        schemaVersion: "1.0.0",
+        stage,
+        releaseState: committedReleaseState,
+        artifactRevision: pyInt(canonical["revision"]),
+        ontologyPackage: canonicalPackageState(canonical),
+        oir: oir.toDict(),
+        template: spec.stats() as unknown as Record<string, unknown>,
+      };
+      // 只保存代码生成的 staging 句柄；失败后继续用同一批 sealed 字节重试。
+      s.state["_engagement_release_stage"] = pending;
+    } catch (error) {
+      finalizeEngagementReleaseCommit(stage, fileOps);
+      throw error;
+    }
+  }
+
+  const beforeCommit = snapshotCompileState(s);
+  let commit;
+  try {
+    commit = commitEngagementReleaseStage(pending.stage, fileOps);
+  } catch (error) {
+    s.state["release_state"] = "DRAFT";
+    throw error;
+  }
+
+  s.state["release_state"] = pending.releaseState;
+  s.state["artifact_revision"] = pending.artifactRevision;
+  s.state["ontology_package"] = pending.ontologyPackage;
   // oir.json 写了、state 里的快照没刷 —— 前端读的是快照，于是磁盘上是新的、
   // 界面上是旧的。这种不一致只有对着文件核对才会发现。
-  s.state["oir"] = oir.toDict();
-  s.state["template"] = spec.stats();
+  s.state["oir"] = pending.oir;
+  s.state["template"] = pending.template;
   // **这一处不排序**（`[p.name for p in s.dir.iterdir() if p.is_file()]`）。
   // `_write_question_exports` / `_rewrite_flow_artifacts` 那两处是 `sorted(...)`。
   // 看起来像疏忽，但它是既有的产物形状；统一排序会改变 /state 的返回顺序，
   // 而那是前端渲染产物列表的顺序。要统一是迁移之后另开的一件事。
   s.state["artifacts"] = dirFiles(s.dir);
-  s.status = pendingQuestions(s).length > 0 ? "awaiting_answer" : "done";
-  await deps.persist(s, { leaseOwner });
+  // 只有 blocking 问题扣状态：普通 open 问题是工作清单，不是闸门（几千条
+  // 谁也答不完，awaiting_answer 会没有出口，build.start 永远 409）。
+  s.status = blockingPendingQuestions(s).length > 0 ? "awaiting_answer" : "done";
+  try {
+    await deps.persist(s, { leaseOwner });
+  } catch (persistError) {
+    let rollbackError: unknown = null;
+    try {
+      rollbackEngagementReleaseCommit(commit, fileOps);
+    } catch (error) {
+      rollbackError = error;
+    }
+    restoreCompileState(s, beforeCommit);
+    s.state["release_state"] = "DRAFT";
+    // 首次 persist 可能在远端已经部分落库后才抛错；立即用 DRAFT
+    // 覆盖，不让仓库中的 RELEASED 与已回滚文件分裂。staging 保留供重试。
+    try {
+      await deps.persist(s, { leaseOwner });
+    } catch {
+      // 内存状态仍 fail closed；原 persist 错误是最有用的根因。
+    }
+    if (rollbackError !== null) {
+      throw new AggregateError([persistError, rollbackError], "发布状态持久化与文件回滚均失败");
+    }
+    throw persistError;
+  }
+  // 成功持久化是事务提交点；此前不得清除 reviewed package、delivery 或 stage。
+  delete s.state["_engagement_package"];
+  clearStagedEngagementDelivery(s);
+  delete s.state["_engagement_release_stage"];
+  finalizeEngagementReleaseCommit(pending.stage, fileOps);
   s.emit("artifact.ready", {
     artifact: "template",
-    name: basename(xlsx),
-    stats: spec.stats() as never,
+    name: "模板_v1.xlsx",
+    stats: pending.template as never,
   });
   // 排队的动作要在"完成"**之前**执行完。放在之后的话，用户先看到「已完成」、
   // 界面停止刷新，然后产物才悄悄变了 —— 他不会知道。
@@ -281,6 +412,121 @@ export async function recompile(
 //  小工具
 // ══════════════════════════════════════════════════════════════════
 
+interface PendingCompileRelease {
+  readonly schemaVersion: "1.0.0";
+  readonly stage: EngagementReleaseStage;
+  readonly releaseState: "RELEASED" | "DRAFT";
+  readonly artifactRevision: number;
+  readonly ontologyPackage: Record<string, unknown>;
+  readonly oir: Record<string, unknown>;
+  readonly template: Record<string, unknown>;
+}
+
+function pendingCompileRelease(
+  s: Session,
+  files: readonly string[],
+  releaseState: "RELEASED" | "DRAFT",
+  ops: ReturnType<typeof engagementReleaseFileOps>,
+): PendingCompileRelease | null {
+  const raw = s.state["_engagement_release_stage"];
+  if (!isPlainObject(raw) || raw["schemaVersion"] !== "1.0.0") return null;
+  const stage = raw["stage"];
+  if (!validEngagementReleaseStage(stage, s.dir, files, ops)) return null;
+  if (raw["releaseState"] !== releaseState) return null;
+  if (
+    typeof raw["artifactRevision"] !== "number" ||
+    !isPlainObject(raw["ontologyPackage"]) ||
+    !isPlainObject(raw["oir"]) ||
+    !isPlainObject(raw["template"])
+  ) {
+    return null;
+  }
+  return raw as unknown as PendingCompileRelease;
+}
+
+function writeCanonicalStage(
+  stage: EngagementReleaseStage,
+  data: Record<string, unknown>,
+): void {
+  writeFileSync(
+    engagementReleaseStagePath(stage, "ontology.package.json"),
+    pyJsonDumps(data, 2),
+    "utf-8",
+  );
+  writeFileSync(
+    engagementReleaseStagePath(stage, "ontology-package.schema.json"),
+    pyJsonDumps(ONTOLOGY_PACKAGE_JSON_SCHEMA, 2),
+    "utf-8",
+  );
+  const revision = pyInt(data["revision"]);
+  const views = [
+    ["data-objects.json", "dataObjects"],
+    ["actions.json", "actions"],
+    ["events.json", "events"],
+    ["rules.json", "rules"],
+    ["questions.json", "questions"],
+  ] as const;
+  for (const [name, key] of views) {
+    writeFileSync(
+      engagementReleaseStagePath(stage, name),
+      pyJsonDumps({ schemaVersion: data["schemaVersion"], revision, items: data[key] }, 2),
+      "utf-8",
+    );
+  }
+}
+
+function canonicalPackageState(data: Record<string, unknown>): Record<string, unknown> {
+  const stats: Record<string, number> = {};
+  for (const key of ["dataObjects", "actions", "events", "rules", "questions"] as const) {
+    const rows = data[key];
+    stats[key] = Array.isArray(rows) ? rows.length : 0;
+  }
+  return {
+    schemaVersion: data["schemaVersion"],
+    packageId: data["packageId"],
+    revision: pyInt(data["revision"]),
+    validation: data["validation"],
+    stats,
+  };
+}
+
+const COMPILE_STATE_KEYS = [
+  "release_state",
+  "artifact_revision",
+  "ontology_package",
+  "oir",
+  "template",
+  "artifacts",
+] as const;
+
+interface CompileStateSnapshot {
+  readonly status: Session["status"];
+  readonly values: ReadonlyMap<string, { readonly existed: boolean; readonly value: unknown }>;
+}
+
+function snapshotCompileState(s: Session): CompileStateSnapshot {
+  return {
+    status: s.status,
+    values: new Map(
+      COMPILE_STATE_KEYS.map((key) => [
+        key,
+        {
+          existed: Object.prototype.hasOwnProperty.call(s.state, key),
+          value: s.state[key],
+        },
+      ]),
+    ),
+  };
+}
+
+function restoreCompileState(s: Session, snapshot: CompileStateSnapshot): void {
+  s.status = snapshot.status;
+  for (const [key, entry] of snapshot.values) {
+    if (entry.existed) s.state[key] = entry.value as never;
+    else delete s.state[key];
+  }
+}
+
 /** `[p.name for p in dir.iterdir() if p.is_file()]` —— **不排序**。 */
 function dirFiles(dir: string): string[] {
   const out: string[] = [];
@@ -292,11 +538,6 @@ function dirFiles(dir: string): string[] {
     }
   }
   return out;
-}
-
-function basename(p: string): string {
-  const i = Math.max(p.lastIndexOf("/"), p.lastIndexOf("\\"));
-  return i < 0 ? p : p.slice(i + 1);
 }
 
 function findingDict(f: { code: string; path: string; message: string; severity: string }) {

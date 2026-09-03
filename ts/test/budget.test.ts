@@ -333,3 +333,82 @@ describe("Python 侧没覆盖、但 TS 侧必须钉住的", () => {
     expect(s.spent.tokens).toBe(0);
   });
 });
+
+// ── 审查下限（**故意与 Python golden 分叉**）─────────────────────────
+//
+// `DegradeLevel.RULES_ONLY` 的枚举注释自陈语义是「跳过 LLM critic，产物标
+// 『未经语义审核』」（budget.ts:24），描述文案是「仅规则评审」。也就是说
+// **规则档 critic 本来就该继续跑**。但实现返回 0 轮，配 loop.ts 的
+// `rounds !== 0` 守卫把整个 critic 环连同 refine 一起跳过 —— 规则档也没了。
+//
+// 为什么这不是"改设计"而是"兑现契约"：同一档的 `allowLlmCritic()` 已经返回
+// false，两个方法对同一档给出互相矛盾的指令，且 `allowLlmCritic` 在这一档的
+// 分支因此永远不可达。
+//
+// 为什么这条比"少花点钱"重要：`currentLevel()` 是 latch（一旦降级永不回退），
+// 而 RULES_ONLY 档 `mustHalt()` 仍是 false —— **梳理继续进行，只是从此没有
+// 任何 critic 看过**，产物上还没有任何标记。失败方向是"静默发布未经审核的
+// 产物"，不是"明确失败"。
+//
+// HALT 档（4）返回 0 是对的：那一档本来就不该有工作在跑。
+describe("审查下限：降级不许把 critic 降到零", () => {
+  it("RULES_ONLY 仍保 1 轮规则档 critic —— 与枚举注释「仅规则评审」一致", () => {
+    const b = new Budget();
+    b.pinLevel(DegradeLevel.RULES_ONLY);
+    expect(b.criticRounds(2)).toBe(1);
+    expect(b.criticRounds(1)).toBe(1);
+    // LLM critic 确实关掉 —— 省的是那份钱，不是审查本身
+    expect(b.allowLlmCritic()).toBe(false);
+    expect(b.mustHalt()).toBe(false);
+  });
+
+  it("HALT 档才归零 —— 那一档没有工作在跑，0 是对的", () => {
+    const b = new Budget();
+    b.pinLevel(DegradeLevel.HALT);
+    expect(b.criticRounds(2)).toBe(0);
+    expect(b.mustHalt()).toBe(true);
+  });
+
+  it("节点自己要 0 轮时仍然是 0 —— 下限护的是降级，不是覆盖节点的声明", () => {
+    const b = new Budget();
+    b.pinLevel(DegradeLevel.RULES_ONLY);
+    expect(b.criticRounds(0)).toBe(0);
+  });
+
+  it("未降级时不受影响", () => {
+    const b = new Budget();
+    expect(b.criticRounds(2)).toBe(2);
+  });
+});
+
+describe("降级标记：Budget 要说得出什么没跑", () => {
+  it("未降级 → 空数组，调用方据此一个键都不往产物里加", () => {
+    expect(new Budget().skippedReviews()).toEqual([]);
+  });
+
+  it("RULES_ONLY → 报出 llm_critic 没跑，带级别与中文标签", () => {
+    const b = new Budget();
+    b.pinLevel(DegradeLevel.RULES_ONLY);
+    const s = b.skippedReviews();
+    expect(s).toHaveLength(1);
+    expect(s[0]!.what).toBe("llm_critic");
+    expect(s[0]!.level).toBe(DegradeLevel.RULES_ONLY);
+    expect(s[0]!.label).toContain("仅规则评审");
+    // 措辞要说清规则档**仍然跑了** —— 否则读的人会以为一点审查都没有
+    expect(s[0]!.why).toContain("规则档评审仍已执行");
+  });
+
+  it("轻度降级（FEWER_CRITIC_ROUNDS）不算跳过语义评审", () => {
+    const b = new Budget();
+    b.pinLevel(DegradeLevel.FEWER_CRITIC_ROUNDS);
+    expect(b.skippedReviews()).toEqual([]);
+  });
+
+  it("跟着 latch 走：曾经降到过就一直报 —— 贴标依据是这次运行发生过什么", () => {
+    const b = new Budget({ tokens: 1000 });
+    b.spend({ tokens: 900 }); // 剩 10% → RULES_ONLY
+    expect(b.skippedReviews()).toHaveLength(1);
+    b.spend({ tokens: -800 }); // 「退款」，剩余回到 90%
+    expect(b.skippedReviews()).toHaveLength(1); // 仍然报
+  });
+});

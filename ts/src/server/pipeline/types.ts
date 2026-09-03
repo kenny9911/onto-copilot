@@ -38,6 +38,7 @@
  * 停止，会话却被标成 failed 并写了一次不该写的检查点」。
  */
 
+import type { Question as ClarifyQuestion } from "../../onto/clarify.js";
 import type { Budget } from "../../kernel/budget.js";
 import type { AgentBus } from "../../kernel/bus/bus.js";
 import type { Recorder } from "../../kernel/recorder.js";
@@ -227,8 +228,15 @@ export interface FinishResult {
   readonly uncertain: unknown;
   readonly auto_repaired: unknown;
   /** `onto/clarify.ts` 的 `ClarificationSet`。**纯数据** —— 摘要走
-   *  `clarificationSummary(cs)`，不是 `cs.summary()`。 */
-  readonly clarify: { readonly questions: unknown[] };
+   *  `clarificationSummary(cs)`，不是 `cs.summary()`；单个问句转 dict 走
+   *  `questionToDict(q)`，不是 `q.toDict()`。
+   *
+   *  元素类型从 `unknown[]` 收紧成真类型（本文件开头说的"等模块落地了换成
+   *  直连 import"，clarify.ts 早就落地了）。`unknown[]` 的代价不是理论上的：
+   *  它让 `cs.questions.map((q) => (q as { toDict(): unknown }).toDict())`
+   *  编译通过，然后在**真材料**上炸成 `q.toDict is not a function` ——
+   *  空数组时 map 不执行，所以它在所有测试里都是绿的。 */
+  readonly clarify: { readonly questions: readonly ClarifyQuestion[] };
   /** `onto/gaps.ts` 的 `Gap`。**纯数据** —— 转问题走 `gapToQuestion(g)`。 */
   readonly align_gaps?: readonly unknown[];
   readonly suggestions?: unknown[];
@@ -343,6 +351,13 @@ export interface PipelineDeps {
   readonly emitAiPrompts: (s: SessionLike, opts: { slot: string }) => Promise<void>;
   /** `_persist_decisions`（本段 3338，但依赖 store.repo.DecisionRow 的领域对象）。 */
   readonly persistDecisions: (s: SessionLike, dm: unknown) => Promise<void>;
+  /** 跑中排队的人工拍板落账（`answerDomainQuestion`，glue/decisions_queue.ts）。
+   *  收尾时按序回放 —— 系统请人拍板、人也拍了，那次输入必须有归宿。 */
+  readonly answerQueuedDecision?: (
+    s: SessionLike,
+    qid: string,
+    body: Record<string, unknown>,
+  ) => Promise<unknown>;
 
   // ── 尚未移植的 onto / kernel 模块 ────────────────────────────
   /** `onto.parse.default_registry(...)`。 */
@@ -413,7 +428,14 @@ export interface HarnessPort {
    *  才知道这台机器上到底有没有沙箱。探测发生在装配工具之前，探不到就等于
    *  没有沙箱 —— 于是 `code.exec` **不进动作空间**，而不是进了之后每次调用
    *  都失败。 */
-  buildTools(opts: { evidence: EvidenceIndexLike; profiles: unknown }): Promise<unknown>;
+  buildTools(opts: {
+    evidence: EvidenceIndexLike;
+    profiles: unknown;
+    /** OIR exists only for the professional Engagement phase. */
+    oir?: OirLike | null;
+    /** Engagement agents are read-only and never need code.exec. */
+    codeact?: boolean;
+  }): Promise<unknown>;
   /** `default_agents()["extractor"].render_system(skills) + "\n\n" + skills.load(...)`。 */
   extractorSystem(): string;
   /** `ContextManager(system=…, evidence=…, budget_tokens=90_000, long_term=…)`。 */
@@ -431,9 +453,9 @@ export interface HarnessPort {
     segments: readonly SegmentLike[];
     index: EvidenceIndexLike;
     dag: unknown;
-  }): { run(runId: string): Promise<SchedulerOutcome> };
-  /** `build_fde_engagement_dag()`。 */
-  engagementDag(): { readonly name: string; describe(): unknown };
+  }): { run(runId: string, opts?: { readonly signal?: AbortSignal }): Promise<SchedulerOutcome> };
+  /** `build_fde_engagement_dag()`。`checkpointSalt` 是 §7.5 fork 的检查点隔离盐。 */
+  engagementDag(opts?: { checkpointSalt?: string }): { readonly name: string; describe(): unknown };
   /** engagement 那一档的 `EngagementRuntimeInput + AgentLoop + Scheduler`。 */
   makeEngagementRun(opts: {
     gw: Gateways["gw"];
@@ -442,7 +464,11 @@ export interface HarnessPort {
     budget: Budget;
     runtime: EngagementRuntimeInputLike;
     dag: { readonly name: string };
-  }): { run(runId: string): Promise<SchedulerOutcome> };
+    /** Registry built after OIR exists; kept separate from the extraction blackboard. */
+    tools?: unknown;
+    /** §7.5 fork：保留的专业节点 → 上一轮产出，零模型重放；缺席 = 全部活跑。 */
+    replayOutputs?: Record<string, unknown>;
+  }): { run(runId: string, opts?: { readonly signal?: AbortSignal }): Promise<SchedulerOutcome> };
 }
 
 /** `EngagementRuntimeInput` 的字段。**键名照 Python 的构造参数**。 */
@@ -457,6 +483,21 @@ export interface EngagementRuntimeInputLike {
   readonly artifactRevision: number;
   readonly generatedAt: string;
   readonly releaseDownloadable: boolean;
+  readonly evidenceRefs?: readonly string[];
+  /** Full EvidenceIndex rows for cites used by model-authored semantic deltas. */
+  readonly evidenceRecords?: readonly Record<string, unknown>[];
+  readonly materialEvidenceRequired?: boolean;
+  readonly skippedReviews?: readonly {
+    readonly what: string;
+    readonly why: string;
+    readonly level: number;
+    readonly label: string;
+  }[] | (() => readonly {
+    readonly what: string;
+    readonly why: string;
+    readonly level: number;
+    readonly label: string;
+  }[]);
 }
 
 /** `kernel.scheduler.RunOutcome` 的结构口径（直接兼容 `scheduler.ts` 的 RunOutcome）。 */

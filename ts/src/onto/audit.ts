@@ -285,6 +285,21 @@ export interface ReturnedSheet {
   maxColumn: number;
 }
 
+/** 业务方手填的基数写法 → 枚举。认不出返回 null（由调用方降级处理，不丢不收）。 */
+export function normalizeCardinality(v: string): string | null {
+  const s = v.trim().toUpperCase().replace(/\s+/gu, "");
+  const MAP: Record<string, string> = {
+    "ONE_TO_ONE": "ONE_TO_ONE", "1:1": "ONE_TO_ONE", "一对一": "ONE_TO_ONE",
+    "ONE_TO_MANY": "ONE_TO_MANY", "1:N": "ONE_TO_MANY", "1:M": "ONE_TO_MANY",
+    "一对多": "ONE_TO_MANY",
+    "MANY_TO_MANY": "MANY_TO_MANY", "N:N": "MANY_TO_MANY", "M:N": "MANY_TO_MANY",
+    "N:M": "MANY_TO_MANY", "多对多": "MANY_TO_MANY",
+    // 多对一是合法说法，但这里改的是**已存在关系的基数**、动不了两端方向 ——
+    // 归一成 ONE_TO_MANY 会悄悄反转语义，所以它归一不了，走待确认。
+  };
+  return MAP[s] ?? MAP[v.trim()] ?? null;
+}
+
 /** 读回传的表格内容，按 `(rid, 字段)` 索引取值（键见 {@link ridFieldKey}）。
  *
  * 行序、行数、列宽的任何变化都不影响结果 —— 全靠隐藏的 `_oir_rid` 对齐。
@@ -799,9 +814,21 @@ export function mergeIntoOir(oir: OIR, diffs: readonly CellDiff[]): [string[], s
       case d.field === "displayName":
         setAttr(entity, "displayName", byUser(d.after, note));
         break;
-      case d.field === "cardinality" && hasAttr(entity, "cardinality"):
-        ent["cardinality"] = byUser(d.after, note);
+      case d.field === "cardinality" && hasAttr(entity, "cardinality"): {
+        // **回传值必须过枚举闸。** 业务方在 xlsx 里填「一对多」「1:N」「多对1」
+        // 是常态，上一版把原始字符串原样包成断言写进 LinkType.cardinality ——
+        // 交付包 schema 那头没有 enum 校验（自由字符串），脏值一路穿到产物。
+        // 常见中文/记号写法先归一，归一不了的**保留原值但降级成待确认**并说明 ——
+        // 直接丢掉是把业务方填的字擦掉，直接收下是让交付包吃脏数据，都不对。
+        const normalized = normalizeCardinality(String(d.after));
+        if (normalized !== null) {
+          ent["cardinality"] = byUser(normalized, note);
+        } else {
+          ent["cardinality"] = byUser(String(d.after), `${note}（⚠ 不是合法基数写法，待确认）`);
+          ent["status"] = "candidate";
+        }
         break;
+      }
       case d.field === "owner":
         setAttr(entity, "owner", d.after);
         break;

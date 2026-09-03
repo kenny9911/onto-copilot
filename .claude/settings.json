@@ -1,0 +1,51 @@
+{
+  "_readme": [
+    "这棵工作树上长期有多个 Claude 会话并行工作，400+ 个脏文件属于不同的人。",
+    "这份文件的唯一目的，是把「靠记忆遵守」的铁律变成「机器强制」。",
+    "",
+    "为什么 checkout/restore 是 ask 而不是 deny：Bash 权限是命令前缀匹配，",
+    "deny 掉 git checkout 会连 `git checkout -b` 一起否掉，而那正是这棵树最该鼓励的操作；",
+    "这份配置还会随 git 进入 .claude/worktrees/ 下的 worktree，在那里 checkout 本来就安全。",
+    "ask 防的是「模型顺手执行」——那正是 2026-08-19 丢掉 golden/onto.converse.json 时的真实形态。",
+    "",
+    "为什么 allow 列表这么短：前缀匹配区分不了 `npm run test` 和 `npm run build:ui`，",
+    "也区分不了 `sqlite3 SELECT` 和 `sqlite3 DROP TABLE`。所以绝不要 allowlist",
+    "Bash(git:*) / Bash(npm run:*) / Bash(sqlite3:*) / Bash(npx:*) 这种粗粒度规则。",
+    "要扩充 allow，跑 /fewer-permission-prompts，但生成结果必须逐条人工过一遍再落盘。",
+    "",
+    "已知代价：ask 优先级高于 allow，所以只读的 `build-ui.mjs --check` 也会弹确认。",
+    "想让 --check 免打扰而只拦真正写盘的构建，需要一个能看整条命令的 PreToolUse hook，",
+    "前缀匹配做不到。在那之前，多按一次回车比漏掉一次误发版便宜。",
+    "",
+    "hook 目前刻意为空。一个写坏的 PreToolUse Bash hook 会打死这台机器上所有会话的 Bash，",
+    "而修它需要用 Bash。要加的话，每个脚本第一行必须是 `[ -n \"$OC_HOOKS_OFF\" ] && exit 0`，",
+    "所有异常路径 exit 0（fail-open），且不许 cat/grep .env（真密钥会进 transcript）。"
+  ],
+  "permissions": {
+    "deny": [
+      "Bash(git stash:*)",
+      "Bash(git clean:*)",
+      "Bash(git reset --hard:*)"
+    ],
+    "ask": [
+      "Bash(git checkout:*)",
+      "Bash(git restore:*)",
+      "Bash(npm run build:ui:*)",
+      "Bash(node ts/tools/build-ui.mjs:*)",
+      "Bash(npm run eval:*)",
+      "Bash(git push:*)",
+      "Bash(gh pr create:*)"
+    ],
+    "allow": [
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(git ls-files:*)",
+      "Bash(git worktree list:*)",
+      "Bash(npx tsc --noEmit:*)",
+      "Bash(npx vitest run:*)",
+      "Bash(npm run check:catalog:*)"
+    ]
+  }
+}

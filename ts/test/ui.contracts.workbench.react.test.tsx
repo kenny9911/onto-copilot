@@ -543,8 +543,8 @@ describe("证据 chip 能跳回原文", () => {
     const ev = c.querySelector(".ev");
     expect(ev.textContent).toBe("◧ 订单表.xlsx!Sheet1!R2C3");
     await click(ev);
-    // openSource 的效果：跳到材料 tab 并定位到那份文件（参数原样，没被转义动过）
-    expect(G.TAB).toBe("mat");
+    // openSource 的效果：跳到新上下文栏的「证据」域并定位到那份文件。
+    expect(G.TAB).toBe("evidence");
     expect(G.FILE).toBe("订单表.xlsx");
     expect(calls.some(x => x.url.includes("source?file=") && x.url.includes(encodeURIComponent("订单表.xlsx")))).toBe(true);
   });

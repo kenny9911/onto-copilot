@@ -29,3 +29,15 @@ dist/
 # （同一个用例红两次，排查时以为是两个问题）。
 ts/test/*.js
 ts/src/**/*.js
+
+# EvalOps 报告是每次真跑的产物，不是源码
+eval/reports/
+
+# superpowers brainstorm mockups
+.superpowers/
+
+# Claude Code 的临时 worktree 嵌在工作树内部，里面是仓库的历史快照。
+# 不忽略的话，那里 2026-08 就随 59346fa 删掉的 356 个 .py 会命中每一次全仓搜索，
+# 让人以为这还是个 Python/TS 双栈项目（这已经骗过一次审计，连派给子代理的任务简报都写错了）。
+# ripgrep 默认尊重 .gitignore，所以这一行同时修好 Grep 工具，不止修 git。
+.claude/worktrees/

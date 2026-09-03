@@ -566,7 +566,7 @@ export interface ToolRecorder {
     kind: string,
     request: Record<string, unknown>,
     fn: () => unknown | Promise<unknown>,
-    opts?: { key?: string | null },
+    opts?: { key?: string | null; replay?: "reuse" | "never" },
   ): Promise<unknown>;
 }
 
@@ -585,6 +585,15 @@ export interface FnToolInit {
   readonly outputSchema?: JsonSchema | null;
 }
 
+/** Read-only view used to verify runtime registration against the tool catalog. */
+export interface ToolRegistrationSnapshot {
+  readonly name: string;
+  readonly origin: string;
+  readonly danger: string;
+  readonly fingerprint: string;
+  readonly scopes: readonly string[];
+}
+
 /**
  * 节点可用工具的唯一来源。
  *
@@ -595,6 +604,7 @@ export interface FnToolInit {
 export class ToolRegistry {
   private readonly tools = new Map<string, Tool>();
   private readonly scopes = new Map<string, Set<string>>(); // 作用域名 → 工具名
+  private readonly toolScopes = new Map<string, readonly string[]>();
   readonly gateway: MCPGateway;
 
   constructor(gateway?: MCPGateway | null) {
@@ -623,7 +633,9 @@ export class ToolRegistry {
       if (!ok) throw new ToolDenied(`${name} 未通过 MCP 安全闸：${why}`);
     }
     this.tools.set(name, tool);
-    for (const s of opts.scopes ?? ["*"]) {
+    const granted = [...(opts.scopes ?? ["*"])];
+    this.toolScopes.set(name, granted);
+    for (const s of granted) {
       let bucket = this.scopes.get(s);
       if (bucket === undefined) {
         bucket = new Set<string>();
@@ -647,6 +659,18 @@ export class ToolRegistry {
   }
 
   // ── 查询 ────────────────────────────────────────────────────
+  registrationSnapshot(): readonly ToolRegistrationSnapshot[] {
+    return [...this.tools.values()]
+      .sort((a, b) => codePointCompare(a.spec.name, b.spec.name))
+      .map((tool) => ({
+        name: tool.spec.name,
+        origin: tool.spec.origin,
+        danger: dangerName(tool.spec.danger),
+        fingerprint: tool.spec.fingerprint(),
+        scopes: [...(this.toolScopes.get(tool.spec.name) ?? [])],
+      }));
+  }
+
   forScope(scope: string): Tool[] {
     const names = new Set([
       ...(this.scopes.get("*") ?? []),
@@ -712,8 +736,16 @@ export class ToolRegistry {
       if (ctx.pending !== undefined && ctx.pending !== null) {
         ctx.pending.push({ tool: name, args: { ...clean } });
       }
+      // 措辞别提"花钱"。这道闸判的是 `danger >= EXTERNAL`，而 EXTERNAL 的语义是
+      // **改外部世界或不可逆**，跟花不花钱无关：真正烧钱的 build.start 是
+      // WRITE_LOCAL、根本不走这里，而被挡下的 template.recompile 恰恰是零模型
+      // 调用。原来那句"会改变产物或花钱"对每个被拦的工具都是假的，模型照抄给
+      // 用户就变成凭空反问一句"要花钱吗"。
+      //
+      // "要用户确认"这四个字是契约 —— dialogue.ts 的 needsConfirm 靠它认这一轮
+      // 被拦过。改文案可以，别把它改没了。
       throw new ToolDenied(
-        `${name} 会改变产物或花钱（${dangerName(tool.spec.danger)}），要用户确认后才能执行。` +
+        `${name} 是不可逆或影响外部的动作（${dangerName(tool.spec.danger)}），要用户确认后才能执行。` +
           "请把你打算做什么、影响多大告诉他，让他说一句确认。",
       );
     }
@@ -747,7 +779,15 @@ export class ToolRegistry {
           args: clean,
         },
         invoke,
-        { key: effectKey },
+        {
+          key: effectKey,
+          // 项目知识库正文与元数据受可变 ACL 保护。Recorder 的历史结果是审计账，
+          // 不是永久 capability：恢复时必须重新进入 DocumentService 做当前权限
+          // 裁决。覆盖全部 document.* READ，避免 list/history 成为旁路。
+          ...(tool.spec.danger === Danger.READ && name.startsWith("document.")
+            ? { replay: "never" as const }
+            : {}),
+        },
       );
     }
     return await invoke();

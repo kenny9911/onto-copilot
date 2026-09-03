@@ -24,17 +24,19 @@
 // （react/chat.tsx）—— 拆到调用方去写，迟早有一个调用点只抄了一半。这里只管把它
 // 摆在消息流的哪个位置。
 
-import { useEffect, useLayoutEffect, type ReactNode } from "react";
+import { Fragment, useEffect, useLayoutEffect, type ReactNode } from "react";
 
 import { greetLine } from "../auth.js";
-import { confirmAct } from "../chat.js";
+import { confirmAct, sendQueuedNow, withdrawQueued } from "../chat.js";
+import { t } from "../i18n.js";
 import { $ } from "../dom.js";
 import { timeline } from "../events.js";
 import { G } from "../state.js";
 import { startBuild } from "../upload.js";
 import { registerRegion } from "./app.js";
 import { Bubble, ChatChips, IntroChips, StepsCard, ThinkingBubble } from "./chat.js";
-import { EvCard, TraceCard } from "./events.js";
+import { ContextReceipts } from "./context-receipts.js";
+import { EvCard } from "./events.js";
 import { PendingCard } from "./pending.js";
 import { Placeholder } from "./preview.js";
 import { bumpUi, useUi } from "./store.js";
@@ -125,12 +127,17 @@ function intro(G: any, hasChat: boolean): ReactNode {
 }
 
 /**
- * 确认闸。**挡的是模型自作主张花钱，不是挡人** —— 所以它只在模型说需要时出现，
- * 用户点按钮本身就是确认，不再多问一次。
+ * 确认闸。**挡的是模型自作主张干不可逆的事，不是挡人** —— 所以它只在模型说需要时
+ * 出现，用户点按钮本身就是确认，不再多问一次。
+ *
+ * **文案里不提花钱。** 能走到这道闸的只剩 suggestion.apply（批量标排除，代码里没有
+ * un-exclude），它一分钱不花 —— 真正烧钱的 build.start 是 WRITE_LOCAL，根本不经过
+ * 这里。原来那句"会改产物或花钱"于是对每一个被拦的动作都是假的，用户读到的是一句
+ * 凭空的"要花钱吗"。措辞跟 kernel/tools.ts 的拒绝语对齐：不可逆，不是花钱。
  */
 function ConfirmBar(): ReactNode {
   return (
-    <div className="cfm">这一步会改产物或花钱，需要你点头。
+    <div className="cfm">这一步不可逆，需要你点头。
       <button className="act pri" onClick={() => { void confirmAct(); }}>确认执行</button>
       <button className="act" onClick={() => { G.NEEDS_CONFIRM = false; bumpUi(); }}>先不要</button>
     </div>
@@ -138,6 +145,103 @@ function ConfirmBar(): ReactNode {
 }
 
 // ── 消息流整块 ───────────────────────────────────────────────────
+/**
+ * 排队中的话。
+ *
+ * **轮次在跑时发送不再硬发。** 以前直接发出去，服务端回 409，前端把那句 JSON
+ * 原样贴成一条永远不会消失的错误气泡 —— 它是 assistant 气泡，而清除逻辑只按
+ * SSE 回来的 user turn 文本匹配删，永远匹配不上，只能靠切会话才没。
+ *
+ * 每条给两个出口，对应"撤回"和"改方向"：
+ *   * **撤回** —— 文字退回输入框，不是丢掉。用户敲的字只有他自己能决定作废。
+ *   * **停止当前并发送** —— 这是"中途调整方向"唯一能兑现的形态。真正的中途注入
+ *     做不到：模型在一个已定型的上下文里推理，塞新指令要么重启（token 全废），
+ *     要么让它对着自相矛盾的上下文继续说。
+ */
+function QueuedList(): ReactNode {
+  if (!G.QUEUED.length) return null;
+  return (
+    <div className="wrap">
+      {G.QUEUED.map((text: string, i: number) => (
+        <div className="bub me queued" key={`q${i}`} style={{ opacity: 0.72 }}>
+          <div className="body">
+            <div className="cap" style={{ marginBottom: "4px" }}>{t("queue.hint")}</div>
+            <div style={{ whiteSpace: "pre-wrap" }}>{text}</div>
+            <div style={{ display: "flex", gap: "6px", marginTop: "6px", justifyContent: "flex-end" }}>
+              <button className="act" onClick={() => withdrawQueued(i)}>{t("queue.withdraw")}</button>
+              <button className="act pri" onClick={() => { void sendQueuedNow(i); }}>{t("queue.now")}</button>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export interface ChatReasoningGroup {
+  id: string;
+  question: string;
+  firstTs: number;
+  lastTs: number;
+  steps: any[];
+}
+
+/**
+ * `chat.step` 会在一步开始和工具返回后各落一条耐久事件。按 turn#n 折成最终版本，
+ * 让结束后的折叠行在刷新/重连之后仍能恢复，也不会把同一步显示两遍。
+ */
+export function groupChatReasoning(events: any[]): ChatReasoningGroup[] {
+  const groups = new Map<string, {
+    id: string; question: string; firstTs: number; lastTs: number;
+    order: number; rows: Map<string, { step: any; order: number }>;
+  }>();
+  (events || []).forEach((ev: any, eventIndex: number) => {
+    const step = ev?.kind === "chat.step" && ev?.step && typeof ev.step === "object" ? ev.step : null;
+    const id = String(step?.turn ?? "");
+    if (!step || !id || id === "aux") return;
+    const ts = +ev.ts || 0;
+    let group = groups.get(id);
+    if (!group) {
+      group = { id, question: String(step.q ?? ""), firstTs: ts, lastTs: ts,
+        order: eventIndex, rows: new Map() };
+      groups.set(id, group);
+    }
+    if (!group.question && step.q) group.question = String(step.q);
+    if (ts > 0) {
+      group.firstTs = group.firstTs > 0 ? Math.min(group.firstTs, ts) : ts;
+      group.lastTs = Math.max(group.lastTs, ts);
+    }
+    const rowKey = step.n === undefined || step.n === null
+      ? `event:${String(ev.seq ?? eventIndex)}` : `step:${String(step.n)}`;
+    const old = group.rows.get(rowKey);
+    group.rows.set(rowKey, { step: { ...(old?.step || {}), ...step }, order: old?.order ?? eventIndex });
+  });
+  return [...groups.values()].sort((a, b) => a.order - b.order).map((group) => ({
+    id: group.id,
+    question: group.question,
+    firstTs: group.firstTs,
+    lastTs: group.lastTs,
+    steps: [...group.rows.values()].sort((a, b) =>
+      (+a.step?.n || 0) - (+b.step?.n || 0) || a.order - b.order).map((row) => row.step),
+  }));
+}
+
+/** 把一轮耐久推理挂到它之后生成的第一条助手回答前面。 */
+function reasoningByAssistant(dlg: any[], activeTurnId: string): Map<any, ChatReasoningGroup[]> {
+  const assistants = (dlg || []).filter((turn: any) => turn?.speaker === "assistant")
+    .slice().sort((a: any, b: any) => (+a.ts || 0) - (+b.ts || 0));
+  const result = new Map<any, ChatReasoningGroup[]>();
+  for (const group of groupChatReasoning(G.S?.events || [])) {
+    if (activeTurnId && group.id === activeTurnId) continue;
+    const assistant = assistants.find((turn: any) => (+turn.ts || 0) >= group.lastTs);
+    if (!assistant) continue; // 仍在跑或失败且没有回答：由 ThinkingBubble / 操作记录承接。
+    const rows = result.get(assistant) || [];
+    rows.push(group);
+    result.set(assistant, rows);
+  }
+  return result;
+}
+
 export function Stream(): ReactNode {
   const G = useUi();
   useStreamEffects();
@@ -146,6 +250,8 @@ export function Stream(): ReactNode {
   const dlg = (G.S.state?.dialogue?.turns || []).filter((t: any) => t.speaker !== "system");
   const hasChat = !!(dlg.length || G.PENDING.length);
   const head = intro(G, hasChat);
+  const activeTurnId = G.THINKING ? String(G.STEPS[0]?.turn ?? "") : "";
+  const reasoning = reasoningByAssistant(dlg, activeTurnId);
 
   // 空状态也要带提示条 —— 那正是最需要它的时候：一个还没上传任何材料的人，
   // 面对的正是一个空输入框。上一次这里的 early return 把聊天气泡挡在外面，
@@ -155,17 +261,22 @@ export function Stream(): ReactNode {
   return (
     <div className="wrap">
       {head}
-      <TraceCard />
       {/* 待办（决策 + 建议）是**对话流里的一条消息**，钉在梳理刚完成、用户还没
           开口那个时间点。用户一旦提问，后面的气泡自然把它推上去 —— 它不再钉在
           最下方，而是像所有消息一样往上滚。这是一个连续的聊天窗口，不是两块区域。 */}
       <PendingCard />
-      {timeline(dlg).map((it, i) => (it.turn
-        ? <Bubble turn={it.turn} key={`t${i}`} />
-        : <EvCard ev={it.ev} key={`e${i}`} />))}
+      {timeline(dlg).map((it, i) => {
+        const before = it.turn ? reasoning.get(it.turn) || [] : [];
+        return <Fragment key={`line${i}`}>
+          {before.map((group) => <StepsCard steps={group.steps} question={group.question}
+            key={`reasoning:${group.id}`} />)}
+          {it.turn ? <Bubble turn={it.turn} /> : <EvCard ev={it.ev} />}
+        </Fragment>;
+      })}
       {G.PENDING.map((t: any, i: number) => <Bubble turn={t} key={`p${i}`} />)}
-      {G.STEPS.length ? <StepsCard /> : null}
       {G.THINKING ? <ThinkingBubble /> : null}
+      <QueuedList />
+      <ContextReceipts />
       <ChatChips />
       {G.NEEDS_CONFIRM && !G.THINKING ? <ConfirmBar /> : null}
     </div>

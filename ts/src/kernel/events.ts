@@ -29,6 +29,8 @@ export const EventKind = {
   // ── 节点 ──
   NODE_ENTERED: "node.entered",
   NODE_COMPLETED: "node.completed",
+  /** §6.1 成本归因：节点相位剖面（六桶 + 残差，之和恒等于节点墙钟）。 */
+  NODE_PROFILE: "node.profile",
   NODE_FAILED: "node.failed",
   NODE_SKIPPED: "node.skipped",
 
@@ -42,6 +44,8 @@ export const EventKind = {
   EFFECT_REQUESTED: "effect.requested",
   EFFECT_COMPLETED: "effect.completed",
   EFFECT_FAILED: "effect.failed",
+  /** keyed effect 在节点重试后被判为陈账、重新执行（不是违例）。 */
+  EFFECT_SUPERSEDED: "effect.superseded",
 
   // ── 评审 ──
   CRITIC_VERDICT: "critic.verdict",

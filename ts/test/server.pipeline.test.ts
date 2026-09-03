@@ -7,7 +7,7 @@
  * 不是一个可导出的值。
  */
 
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { Hono } from "hono";
 
 import { readFileSync, mkdtempSync, writeFileSync, mkdirSync } from "node:fs";
@@ -20,7 +20,7 @@ import type { Event } from "../src/kernel/events.js";
 import { InMemoryBlobStore, InMemoryJournal } from "../src/kernel/journal.js";
 import { Recorder } from "../src/kernel/recorder.js";
 import { Budget } from "../src/kernel/budget.js";
-import { ParserRegistry } from "../src/onto/parse/base.js";
+import { makeParsedDoc, ParserRegistry } from "../src/onto/parse/base.js";
 import { CsvParser, XlsxParser } from "../src/onto/parse/tabular.js";
 import {
   AsyncLock,
@@ -62,7 +62,11 @@ import type {
 } from "../src/server/pipeline.js";
 import type { SessionEvent } from "../src/session_events.js";
 import { ConflictKind, makeConflict } from "../src/onto/conflict.js";
-import { makeClarificationSet } from "../src/onto/clarify.js";
+import { makeClarificationSet, questionToDict } from "../src/onto/clarify.js";
+import { makeOption } from "../src/onto/conflict.js";
+import { resetDocumentService, setDocumentServiceForTests } from "../src/document/deps.js";
+
+afterEach(() => resetDocumentService());
 
 // ══════════════════════════════════════════════════════════════════
 //  golden
@@ -136,6 +140,20 @@ const OIR: Record<string, unknown> = JSON.parse(
     ],
   }) as string,
 ) as Record<string, unknown>;
+
+/**
+ * 一个真实形状的 `clarify.Question`。**普通对象，没有 toDict 方法** ——
+ * 它跟 `onto/questions.ts` 那个 Question 类同名不同物，这正是踩过的坑。
+ */
+const CLARIFY_Q = {
+  id: "q_1_abcd1234",
+  conflictRid: "c_采购方式取值不一致",
+  title: "「采购方式」在两份材料里取值不一致",
+  options: [makeOption("以制度为准", "以《采购管理制度》的取值为准", "制度是权威口径")],
+  impact: 3,
+  score: 0.82,
+  reversible: true,
+};
 
 const CSV_FIXTURES: Record<string, string> = {
   "简单.csv": "编号,名称,备注\n1,客户,\n2,订单,加急\n",
@@ -631,6 +649,45 @@ describe("pumpKernelEvents", () => {
     expect(s.state["_kernel_seq"]).toBe(3);
   });
 
+  // 上一版 `_kernel_seq` 是**会话级**的单个数字，而 `ev.seq` 是 **Recorder 实例级**
+  // 的 —— 每条 run 各自从 0 开始数。第一条 run 结束时水位已经涨到几百
+  // （EFFECT_* 这类不投影的事件也推水位），第二条 run 的事件 seq 从 0 起，
+  // `ev.seq < seen` 全部成立 → **整条推理轨迹被吞掉**，而「推理」面板是 FDE
+  // 判断"它在想什么、有没有卡住"的唯一窗口。
+  it("**换了 runId 要重新投影** —— 会话级水位会把第二条 run 整条吞掉", () => {
+    const s = fakeSession();
+    const at = (runId: string, kind: EventKind, payload: Record<string, unknown>, seq: number) =>
+      makeEvent({ runId, seq, kind, nodeId: "N", payload });
+
+    // 第一条 run：seq 跑到 200（模拟一次长抽取，大量事件推高水位）
+    const j1 = new InMemoryJournal();
+    j1.append(at("r1", EventKind.THOUGHT, { text: "run1" }, 0));
+    j1.append(at("r1", EventKind.RUN_STARTED, {}, 200));
+    pumpKernelEvents(s, { journal: j1, runId: "r1" });
+    expect(Number(s.state["_kernel_seq"])).toBeGreaterThan(100);
+    const afterFirst = s.events.length;
+
+    // 第二条 run：seq 又从 0 起
+    const j2 = new InMemoryJournal();
+    j2.append(at("r2", EventKind.THOUGHT, { text: "run2-a" }, 0));
+    j2.append(at("r2", EventKind.NODE_ENTERED, {}, 1));
+    pumpKernelEvents(s, { journal: j2, runId: "r2" });
+
+    const fresh = s.events.slice(afterFirst).map((e) => e["detail"]);
+    expect(fresh).toContain("run2-a");
+    expect(s.events.length).toBe(afterFirst + 2);
+  });
+
+  it("同一条 run 内水位照旧生效 —— 归零只在 runId 变化时发生", () => {
+    const s = fakeSession();
+    const j = new InMemoryJournal();
+    j.append(ev(EventKind.THOUGHT, { text: "a" }, 0));   // ev() 的 runId 就是 "r"
+    pumpKernelEvents(s, { journal: j, runId: "r" });
+    pumpKernelEvents(s, { journal: j, runId: "r" });
+    expect(s.events).toHaveLength(1);
+    expect(s.state["_kernel_run"]).toBe("r");
+  });
+
   it("再泵一次不会重复发（这正是「推理面板刷屏」的老 bug）", () => {
     const s = fakeSession();
     const r = rec([ev(EventKind.THOUGHT, { text: "a" }, 0)]);
@@ -728,7 +785,7 @@ describe("persist", () => {
     await persist(s, deps(repo));
     const [, arg] = repo.calls.find(([n]) => n === "saveState")!;
     const docs = (arg as { docs: Record<string, unknown> }).docs;
-    expect(Object.keys(docs).sort()).toEqual(["corpus", "oir"]);
+    expect(Object.keys(docs).sort()).toEqual(["asset_memory", "corpus", "oir"]);
   });
 
   it("私有版本栈会落库并就地封顶", async () => {
@@ -792,7 +849,7 @@ describe("persist", () => {
     await persist(s, deps(repo), { chatOwner: "c" });
     const saves = repo.calls.filter(([n]) => n === "saveChatState");
     const retry = (saves[1]![1] as { docs: Record<string, unknown> }).docs;
-    expect(Object.keys(retry)).toEqual(["followups"]);
+    expect(Object.keys(retry)).toEqual(["followups", "asset_memory"]);
     // 重试那一次显式不动冲突表
     expect((saves[1]![1] as { o: { conflicts: unknown } }).o.conflicts).toBeNull();
   });
@@ -883,6 +940,42 @@ describe("claimAndStartBuild", () => {
     ]);
   });
 
+  it("没有临时附件但固定了项目文档时仍可启动梳理", async () => {
+    setDocumentServiceForTests({
+      async manifest() {
+        return [{
+          project_id: "project_A", document_id: "doc_1", version_id: "ver_1",
+          sha256: "sha-1", index_revision: "ix-1", acl_revision: 1,
+          title: "采购制度", file_name: "采购制度.docx", version_no: 1,
+          parse_status: "ready", parser_version: "1",
+        }];
+      },
+    } as never);
+    const repo = new FakeRepo();
+    repo.renewOk = false;
+    const s = fakeSession({ projectId: "project_A", owner: "alice" });
+
+    expect(await claimAndStartBuild(s, fakeDeps(repo))).toBe("started");
+    expect(s.state["_document_manifest"]).toEqual([
+      expect.objectContaining({ document_id: "doc_1", version_id: "ver_1" }),
+    ]);
+    await s.runTask?.promise.catch(() => undefined);
+  });
+
+  it("知识库挂载关系无法核对时 fail closed 并释放 build 租约", async () => {
+    setDocumentServiceForTests({
+      async manifest() { throw new Error("ACL changed"); },
+    } as never);
+    const repo = new FakeRepo();
+    const s = fakeSession({ projectId: "project_A", owner: "alice" });
+
+    expect(await claimAndStartBuild(s, fakeDeps(repo))).toBe("failed");
+    expect(s.error).toContain("项目知识库当前无法核对");
+    expect(repo.calls.map(([name]) => name)).toEqual([
+      "claimBuildLease", "releaseBuildLease", "claimSessionStatus",
+    ]);
+  });
+
   it("claim 成功就起任务，lease token 落到 Session 上", async () => {
     const repo = new FakeRepo();
     const s = fakeSession({ files: [{ name: "a.csv" }] });
@@ -922,6 +1015,37 @@ describe("claimAndStartBuild", () => {
     ]);
     expect([a, b].filter((x) => x === "started")).toHaveLength(1);
     await s.runTask?.promise.catch(() => undefined);
+  });
+});
+
+describe("心跳丢租约 —— 别人写的 failed 不算「我自己跑完了」", () => {
+  // 2026-08-25 对抗式复查抓到的钱洞：幽灵回收器（glue/reap.ts）把过期租约的会话
+  // 写成 failed。心跳这时续租失败、读到 failed，而 failed 在「正常收尾」名单里，
+  // 于是 return —— **不 abort**。后果：这条 DAG 继续把整轮 EXTRACT 烧完（没有租约、
+  // 没人管），而 failed ∈ BUILD_STARTABLE 且租约行已被删，用户点一次「开始梳理」
+  // 就能在同一个内存 Session 上起第二条付费 DAG。
+  //
+  // 判据必须是「**这一轮自己**提交过终态吗」，而不是「库里现在是不是终态」。
+  it("跑到一半被回收器夺走租约（库里写成 failed）→ 必须 abort，不能当成自己跑完", async () => {
+    const repo = new FakeRepo();
+    // 起手那次续租要成功，否则压根走不到心跳 —— 洞就在心跳里。
+    let renews = 0;
+    repo.renewBuildLease = () => {
+      renews += 1;
+      return Promise.resolve(renews === 1);
+    };
+    // 回收器写下的正是这个：failed + 「上次运行被中断」。
+    repo.session = { status: "failed", error: "上次运行被中断（进程重启或租约过期）", state_version: 0 };
+    const s = fakeSession({ files: [{ name: "a.csv", path: "/x/a.csv" }], buildLeaseOwner: "L" });
+    const controller = new AbortController();
+    // 让这一轮活得比心跳间隔（0.01s）长，否则跑完了心跳还没响第二次 —— 洞在心跳里。
+    const deps = fakeDeps(repo, {
+      warnLowBalance: async () => { await new Promise((r) => setTimeout(r, 80)); },
+    });
+    await runPipeline(s, deps, { tier: "flow_preview", controller }).catch(() => undefined);
+    // 心跳至少响过一次（0.01s 间隔），且判定为「不是我自己收尾」→ abort
+    expect(renews).toBeGreaterThan(1);
+    expect(controller.signal.aborted).toBe(true);
   });
 });
 
@@ -1227,7 +1351,12 @@ function rig(over: Partial<PipelineDeps> = {}, outcomes: Record<string, unknown>
       // 真的 ClarificationSet（纯数据）。原本这里是 `{ questions: [], summary: () => ({}) }`，
       // 照的是**错误的端口声明** —— 真身没有 summary() 方法，摘要走
       // `clarificationSummary(cs)`。夹具形状错了，真跑就炸。
-      clarify: makeClarificationSet(),
+      //
+      // **questions 必须非空**：空数组时 `cs.questions.map(...)` 根本不执行，
+      // 这一段在所有测试里都是绿的，然后在真材料上炸成
+      // `q.toDict is not a function`（真跑抓到过一次，抽取花完钱之后才失败）。
+      // 同理，单个问句转 dict 走 `questionToDict(q)`，不是 `q.toDict()`。
+      clarify: { ...makeClarificationSet(), questions: [CLARIFY_Q] },
       suggestions: [],
     }),
     mineQuestions: () => [],
@@ -1270,10 +1399,24 @@ const RELEASED_EXPORT = {
   outputs: {
     EXPORT: {
       review_passed: true,
+      human_decided: true,
+      human_accepted: true,
       schema_valid: true,
       downloadable: true,
       releaseState: "RELEASED",
       artifacts: ["模板_v1.xlsx"],
+      acceptance: {
+        signed: true,
+        decision: "APPROVE",
+        authority: "admin",
+        package_bound: true,
+        review_passed: true,
+      },
+      decision_application: { status: "VALIDATED" },
+      requirements: { requirements: [] },
+      architecture: { components: [] },
+      acceptance_test_plan: { tests: [] },
+      package: { id: "pkg.pipeline-test", schemaVersion: "1.0.0" },
     },
   },
 };
@@ -1300,7 +1443,10 @@ describe("runPipeline · flow_preview（免费档）", () => {
   });
 
   it("PARSE 的 stats 数的是解析结果，不是别的", async () => {
-    const r = rig();
+    const parsed = makeParsedDoc({ fileId: "f-a", fileName: "a.csv", kind: "csv" });
+    const r = rig({
+      registry: () => ({ parseAll: () => Promise.resolve([parsed]) }) as never,
+    });
     const s = fakeSession({ files: [{ name: "a.csv", path: "/x/a.csv" }], buildLeaseOwner: "L" });
     await runPipeline(s, r.deps, { tier: "flow_preview", controller: new AbortController() });
     expect(s.events[1]).toEqual({
@@ -1362,6 +1508,13 @@ describe("runPipeline · full（付费档）", () => {
     expect(s.events.map((e) => e["kind"])).toEqual([
       "node.entered",       // PARSE
       "node.completed",     // PARSE
+      // 语料归一：零模型调用的确定性整理，产出数据字典。**在冻结之前** ——
+      // 它回答的是"这些材料里有哪些表和字段"，那是切段与抽取的前提。
+      "normalize.ready",
+      // 这个测试替身没有真的会话目录，所以落盘失败 —— 而**算和写是分开兜底的**，
+      // 字典本身已经算出来并进了 state。捆在一起的话，目录不可写会连算好的结果
+      // 一起丢掉，界面上什么都不显示，也说不清为什么。
+      "normalize.unsaved",
       "engagement.frozen",
       "plan.frozen",
       "node.entered",       // EXTRACT
@@ -1375,6 +1528,21 @@ describe("runPipeline · full（付费档）", () => {
       "engagement.stage",   // EXPORT
     ]);
     expect(s.state["release_state"]).toBe("RELEASED");
+  });
+
+  it("澄清问句落进 state 的是 questionToDict 的 snake_case dict，不是调 q.toDict()", async () => {
+    // clarify.Question 是**普通对象**，没有 toDict 方法 —— 写成 `q.toDict()` 时
+    // tsc 曾被 `as` 骗过、端口又把元素声明成 unknown[]，于是一路潜伏到真材料上
+    // 才炸（抽取的钱都花完了）。这里钉住两件事：不抛，且键名是下游认的那套。
+    const r = rig();
+    const s = fakeSession({ files: [{ name: "a.csv", path: "/x/a.csv" }], buildLeaseOwner: "L" });
+    await runPipeline(s, r.deps, { tier: "full", controller: new AbortController() });
+    const qs = s.state["questions"] as Record<string, unknown>[];
+    expect(qs).toEqual([questionToDict(CLARIFY_Q)]);
+    // 下游 `Question.fromDict` 认 conflict_rid —— camelCase 的 conflictRid 漏出去
+    // 不会报错，只会让问题丢掉冲突出处。
+    expect(qs[0]!["conflict_rid"]).toBe("c_采购方式取值不一致");
+    expect(qs[0]).not.toHaveProperty("conflictRid");
   });
 
   it("engagement 挂起 = awaiting_answer + run.suspended，并且 checkpoint 在收尾之前", async () => {
@@ -1410,6 +1578,60 @@ describe("runPipeline · full（付费档）", () => {
     expect(s.events.at(-2)!["pending"]).toBe(2);
   });
 
+  it("HUMAN_ACCEPTANCE 的 singular question 进入统一 backlog，节点/契约不再写死 INTERVIEW", async () => {
+    const question = {
+      id: "q.acceptance.pipeline",
+      text: "是否正式验收并发布当前交付候选？",
+      status: "open",
+      priority: "blocking",
+      blockedArtifacts: ["ontology.package.json"],
+      answerSchema: { type: "string", enum: ["APPROVE", "REJECT"] },
+      sourceKind: "release_acceptance",
+      audienceRole: "业务验收负责人",
+      createdAt: 1,
+      updatedAt: 1,
+    };
+    const r = rig({}, {
+      engagement: {
+        status: "suspended",
+        outputs: {
+          REQUIREMENTS: { requirements: [{ id: "req.1" }] },
+          ARCHITECTURE: { components: [{ id: "cmp.1" }] },
+          TEST_PLAN: { tests: [{ id: "test.1" }] },
+        },
+        pendingHuman: {
+          node: "HUMAN_ACCEPTANCE",
+          contract: "HumanAcceptanceRequest.v1",
+          question,
+        },
+      },
+    });
+    const s = fakeSession({
+      files: [{ name: "a.csv", path: "/x/a.csv" }],
+      buildLeaseOwner: "L",
+      state: { release_state: "RELEASED" },
+    });
+    await runPipeline(s, r.deps, { tier: "full", controller: new AbortController() });
+
+    const backlog = s.state["question_backlog"] as Record<string, unknown>;
+    expect((backlog["questions"] as Record<string, unknown>[]).some((row) =>
+      row["id"] === "q.acceptance.pipeline"
+    )).toBe(true);
+    expect(s.state["release_state"]).toBe("DRAFT");
+    expect(s.events.at(-2)).toMatchObject({
+      kind: "engagement.stage",
+      node: "HUMAN_ACCEPTANCE",
+      contract: "HumanAcceptanceRequest.v1",
+    });
+    const nodes = (s.state["engagement_analysis"] as Record<string, unknown>)["nodes"] as
+      Record<string, unknown>;
+    expect(nodes).toMatchObject({
+      REQUIREMENTS: { requirements: [{ id: "req.1" }] },
+      ARCHITECTURE: { components: [{ id: "cmp.1" }] },
+      TEST_PLAN: { tests: [{ id: "test.1" }] },
+    });
+  });
+
   it("EXPORT 硬门任何一项没过都阻止交付", async () => {
     for (const bad of ["review_passed", "schema_valid", "downloadable"]) {
       const plan = { ...RELEASED_EXPORT.outputs.EXPORT, [bad]: false };
@@ -1421,6 +1643,40 @@ describe("runPipeline · full（付费档）", () => {
     }
   });
 
+  it("REVIEW 通过但没有有效人工决定时仍 fail closed", async () => {
+    const plan = { ...RELEASED_EXPORT.outputs.EXPORT } as Record<string, unknown>;
+    delete plan["human_accepted"];
+    delete plan["human_decided"];
+    delete plan["acceptance"];
+    const r = rig({}, { engagement: { status: "completed", outputs: { EXPORT: plan } } });
+    const s = fakeSession({ files: [{ name: "a.csv", path: "/x/a.csv" }], buildLeaseOwner: "L" });
+    await runPipeline(s, r.deps, { tier: "full", controller: new AbortController() });
+    expect(s.status).toBe("failed");
+    expect(s.state["release_state"]).not.toBe("RELEASED");
+    expect(s.error).toContain("缺少有效人工验收决定");
+  });
+
+  it("正式 REJECT 是可保存的 DRAFT 终态，不会伪装成发布成功", async () => {
+    const plan = {
+      ...RELEASED_EXPORT.outputs.EXPORT,
+      human_accepted: false,
+      human_decided: true,
+      releaseState: "DRAFT",
+      acceptance: {
+        signed: true,
+        decision: "REJECT",
+        authority: "admin",
+        package_bound: true,
+        review_passed: true,
+      },
+    };
+    const r = rig({}, { engagement: { status: "completed", outputs: { EXPORT: plan } } });
+    const s = fakeSession({ files: [{ name: "a.csv", path: "/x/a.csv" }], buildLeaseOwner: "L" });
+    await runPipeline(s, r.deps, { tier: "full", controller: new AbortController() });
+    expect(s.status).not.toBe("failed");
+    expect(s.state["release_state"]).toBe("DRAFT");
+  });
+
   it("抽取失败 → run.failed，错误落到会话上", async () => {
     const r = rig({}, { extract: { status: "failed", error: "节点炸了" } });
     const s = fakeSession({ files: [{ name: "a.csv", path: "/x/a.csv" }], buildLeaseOwner: "L" });
@@ -1428,6 +1684,47 @@ describe("runPipeline · full（付费档）", () => {
     expect(s.status).toBe("failed");
     expect(s.error).toBe("Error: 抽取失败：节点炸了");
     expect(s.events.at(-1)).toEqual({ kind: "run.failed", error: "Error: 抽取失败：节点炸了" });
+  });
+
+  describe("段数上限（P0：fan-out 基数来自材料内容，必须有闸）", () => {
+    const fakeSegments = (n: number) =>
+      Array.from({ length: n }, (_, i) => ({
+        key: `k${i}`, label: `段${i}`, fileName: "大.xlsx", chunkIds: [`c${i}`],
+      }));
+    afterEach(() => { delete process.env["ONTOCOPILOT_MAX_SEGMENTS"]; });
+
+    it("超过上限 → 报错拒跑（不许静默截断），错误里给出段数、上限和两条出路", async () => {
+      const r = rig({ segmentCorpus: () => fakeSegments(241) });
+      const s = fakeSession({ files: [{ name: "大.xlsx", path: "/x/大.xlsx" }], buildLeaseOwner: "L" });
+      await runPipeline(s, r.deps, { tier: "full", controller: new AbortController() });
+      expect(s.status).toBe("failed");
+      expect(s.error).toContain("241 段");
+      expect(s.error).toContain("240");
+      expect(s.error).toContain("拆分材料");
+      expect(s.error).toContain("ONTOCOPILOT_MAX_SEGMENTS");
+    });
+
+    it("恰好压线不拦", async () => {
+      const r = rig({ segmentCorpus: () => fakeSegments(240) });
+      const s = fakeSession({ files: [{ name: "大.xlsx", path: "/x/大.xlsx" }], buildLeaseOwner: "L" });
+      await runPipeline(s, r.deps, { tier: "full", controller: new AbortController() });
+      expect(s.error ?? "").not.toContain("超过单轮上限");
+    });
+
+    it("环境变量可调上限；0 = 不限", async () => {
+      process.env["ONTOCOPILOT_MAX_SEGMENTS"] = "10";
+      const r = rig({ segmentCorpus: () => fakeSegments(11) });
+      const s = fakeSession({ files: [{ name: "大.xlsx", path: "/x/大.xlsx" }], buildLeaseOwner: "L" });
+      await runPipeline(s, r.deps, { tier: "full", controller: new AbortController() });
+      expect(s.error).toContain("11 段");
+      expect(s.error).toContain("10");
+
+      process.env["ONTOCOPILOT_MAX_SEGMENTS"] = "0";
+      const r2 = rig({ segmentCorpus: () => fakeSegments(241) });
+      const s2 = fakeSession({ files: [{ name: "大.xlsx", path: "/x/大.xlsx" }], buildLeaseOwner: "L" });
+      await runPipeline(s2, r2.deps, { tier: "full", controller: new AbortController() });
+      expect(s2.error ?? "").not.toContain("超过单轮上限");
+    });
   });
 
   it("没有可抽取的内容时，错误里带上每份材料读出了多少段", async () => {

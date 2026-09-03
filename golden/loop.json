@@ -1115,7 +1115,8 @@
      "passed": [
       "difficulty",
       "key",
-      "schema"
+      "schema",
+      "system"
      ],
      "system": "",
      "difficulty": "low",
@@ -1382,7 +1383,8 @@
      "passed": [
       "difficulty",
       "key",
-      "schema"
+      "schema",
+      "system"
      ],
      "system": "",
      "difficulty": "low",
@@ -2117,6 +2119,14 @@
       "mode": "codeact",
       "attempt": 0,
       "handler": "x"
+     }
+    },
+    {
+     "kind": "budget.degraded",
+     "node_id": "C",
+     "payload": {
+      "reason": "CODEACT_NO_SANDBOX",
+      "detail": "节点声明为 codeact，但动作空间里没有 code.exec（沙箱未启用）——按 react 降档运行"
      }
     },
     {
@@ -3652,7 +3662,8 @@
      "passed": [
       "difficulty",
       "key",
-      "schema"
+      "schema",
+      "system"
      ],
      "system": "",
      "difficulty": "low",

@@ -229,7 +229,8 @@ describe("溯源不被破坏", () => {
 
   it("删掉人工口述加的对象会级联删属性与相关关系", () => {
     const oir = oirFromDict(caseOf("remove_user_object_cascades").before);
-    applyOirEdit(oir, "remove_object_type", { target: "供应商" });
+    // C4 之后：有波及的级联删除必须带 confirm —— 影响面先列给人看
+    applyOirEdit(oir, "remove_object_type", { target: "供应商", confirm: true });
     expect([...oir.objects.values()].some((o) => o.apiName.value === "供应商")).toBe(false);
     expect([...oir.properties.values()].some((p) => p.apiName.value === "评级")).toBe(false);
     expect(oir.links.size).toBe(0); // 指向它的关系一起走
@@ -299,6 +300,7 @@ describe("参数校验（模型就是靠这句话学会怎么调的）", () => {
     expect([...OIR_EDIT_OPS].sort()).toEqual(
       [
         "add_action_type",
+        "add_batch",
         "add_enum_value",
         "add_link",
         "add_object_type",
@@ -306,6 +308,8 @@ describe("参数校验（模型就是靠这句话学会怎么调的）", () => {
         "add_rule",
         "bind_rule",
         "edit_assertion",
+        // 第 2 层新增（TS 侧原生，无 Python 对应）：合并抽重对象、批量拍板
+        "merge_objects",
         "remove_action_type",
         "remove_link",
         "remove_object_type",
@@ -313,6 +317,7 @@ describe("参数校验（模型就是靠这句话学会怎么调的）", () => {
         "remove_rule",
         "set_action_scope",
         "set_status",
+        "set_status_batch",
       ].sort(),
     );
   });
@@ -345,6 +350,186 @@ describe("参数校验（模型就是靠这句话学会怎么调的）", () => {
   it("可选参数不传不报错", () => {
     expect(applyOirEdit(base(), "add_object_type", { api_name: "合同" })).toBe(
       "新增对象「合同」（人工口述，标 USER 来源）。",
+    );
+  });
+});
+
+// ══════════════════════════════════════════════════════════════════
+//  add_batch：一次落一批新增
+// ══════════════════════════════════════════════════════════════════
+
+describe("applyOirEdit / add_batch", () => {
+  const 一族对象 = [
+    { op: "add_object_type", api_name: "PurchaseOrder", display_name: "采购订单" },
+    { op: "add_object_type", api_name: "Supplier", display_name: "供应商" },
+    {
+      op: "add_property",
+      object: "PurchaseOrder",
+      api_name: "amount",
+      display_name: "金额",
+      base_type: "DECIMAL",
+    },
+    { op: "add_link", source: "PurchaseOrder", target: "Supplier", cardinality: "ONE_TO_MANY" },
+    { op: "add_rule", statement: "单笔超 5000 元需总监加签", kind: "AUTHORITY" },
+  ];
+
+  it("一次调用建出一族对象 —— 这是 5 步预算下唯一能做到的方式", () => {
+    const oir = new OIR();
+    const note = applyOirEdit(oir, "add_batch", { items: 一族对象 });
+
+    expect(oir.objects).toHaveLength(2);
+    expect(oir.properties).toHaveLength(1);
+    expect(oir.links).toHaveLength(1);
+    expect(oir.rules).toHaveLength(1);
+    expect(note).toContain("一次加了 5 条");
+  });
+
+  it("**整批成功才落地** —— 属性挂到不存在的对象上，原 OIR 一个字节都不动", () => {
+    const oir = new OIR();
+    applyOirEdit(oir, "add_batch", { items: 一族对象 });
+    const before = JSON.stringify(oir.toDict());
+
+    expect(() =>
+      applyOirEdit(oir, "add_batch", {
+        items: [
+          { op: "add_object_type", api_name: "Invoice", display_name: "发票" },
+          { op: "add_property", object: "根本不存在", api_name: "x", display_name: "X" },
+        ],
+      }),
+    ).toThrow(/items\[1\]/u);
+
+    // 半份模型比没有更糟：它看起来像是完整的
+    expect(JSON.stringify(oir.toDict())).toBe(before);
+  });
+
+  it("坏在哪一条要说清楚，并提醒 items 是按顺序执行的", () => {
+    const oir = new OIR();
+    let message = "";
+    try {
+      applyOirEdit(oir, "add_batch", {
+        items: [
+          { op: "add_object_type", api_name: "Claim", display_name: "报销单" },
+          { op: "add_property", object: "还没建的对象", api_name: "y", display_name: "Y" },
+        ],
+      });
+    } catch (exc) {
+      message = (exc as Error).message;
+    }
+    expect(message).toContain("items[1]");
+    expect(message).toContain("add_property");
+    expect(message).toContain("按顺序执行");
+  });
+
+  it("**只收 add_\\*** —— 删除与改断言各有溯源讲究，不能批量绕过去", () => {
+    const oir = new OIR();
+    applyOirEdit(oir, "add_batch", { items: 一族对象 });
+    expect(() =>
+      applyOirEdit(oir, "add_batch", {
+        items: [{ op: "remove_object_type", target: "PurchaseOrder" }],
+      }),
+    ).toThrow(/不能批量做/u);
+    expect(oir.objects).toHaveLength(2); // 一条都没被删
+  });
+
+  it("空 items → 一句人话，不是静默成功", () => {
+    const oir = new OIR();
+    expect(() => applyOirEdit(oir, "add_batch", { items: [] })).toThrow(/非空数组/u);
+  });
+});
+
+// ══════════════════════════════════════════════════════════════════
+//  真实事故复现：add_batch 连着三轮"猜 → 失败 → 重试"
+// ══════════════════════════════════════════════════════════════════
+//
+// 三次失败的共同根因是同一个：批量入口的 items schema 当初只声明了 `op`，
+// 于是外层好不容易建起来的契约（enum 校验、参数清单、basis 剥离）在这条路上
+// 整个失效。下面三条各钉住其中一次。
+
+describe("add_batch：那三轮白跑的失败不许再发生", () => {
+  const seed = () => {
+    const oir = new OIR();
+    applyOirEdit(oir, "add_object_type", { api_name: "ExpenseReport", display_name: "报销单" });
+    applyOirEdit(oir, "add_object_type", { api_name: "Invoice", display_name: "发票" });
+    return oir;
+  };
+
+  it("① 每条 item 上重复写 basis 是**对的直觉**，不该被当成参数错误拒掉", () => {
+    const oir = new OIR();
+    expect(() =>
+      applyOirEdit(oir, "add_batch", {
+        items: [
+          { op: "add_object_type", api_name: "PurchaseRequisition", display_name: "采购申请", basis: "generic_assumption" },
+        ],
+      }, { source: "generic_assumption" }),
+    ).not.toThrow();
+    expect(oir.objects).toHaveLength(1);
+  });
+
+  it("② add_link 收 api_name 不收 display_name —— 报错要**说清它收什么**", () => {
+    let msg = "";
+    try {
+      applyOirEdit(seed(), "add_batch", {
+        items: [{ op: "add_link", source: "Invoice", target: "ExpenseReport", display_name: "关联报销单" }],
+      });
+    } catch (exc) {
+      msg = (exc as Error).message;
+    }
+    expect(msg).toContain("display_name");
+    // 关键：把这个 op 实际收哪些参数一起给出去，让它一次改对
+    expect(msg).toContain("必填 ['source', 'target']");
+    expect(msg).toContain("api_name");
+  });
+
+  it("③ MANY_TO_ONE 直接收下 —— 它等价于对调两端的 ONE_TO_MANY", () => {
+    const oir = seed();
+    const note = applyOirEdit(oir, "add_batch", {
+      items: [{ op: "add_link", source: "Invoice", target: "ExpenseReport", cardinality: "MANY_TO_ONE" }],
+    });
+    expect(oir.links).toHaveLength(1);
+    const link = [...oir.links.values()][0]!;
+    // 语义保住了：多张发票对一张报销单 = 报销单 --ONE_TO_MANY--> 发票
+    const byRid = new Map([...oir.objects.values()].map((o) => [o.rid, o.apiName.value]));
+    expect(byRid.get(link.source)).toBe("ExpenseReport");
+    expect(byRid.get(link.target)).toBe("Invoice");
+    expect(String(link.cardinality.value)).toBe("ONE_TO_MANY");
+    // **必须说出来**：调用方写的是 A→B，落进去的是 B→A
+    expect(note).toContain("对调");
+  });
+
+  it("真正的非法值仍然拒 —— 接住 MANY_TO_ONE 不等于什么都收", () => {
+    expect(() =>
+      applyOirEdit(seed(), "add_batch", {
+        items: [{ op: "add_link", source: "Invoice", target: "ExpenseReport", cardinality: "SOMETIMES" }],
+      }),
+    ).toThrow(/cardinality 只能是/u);
+  });
+});
+
+describe("add_action_type：actor 与 preconditions", () => {
+  it("收下并落进断言；没填时 toDict **一个键都不多**（golden 兼容）", () => {
+    const oir = new OIR();
+    applyOirEdit(oir, "add_object_type", { api_name: "ExpenseReport", display_name: "报销单" });
+    applyOirEdit(oir, "add_action_type", {
+      api_name: "PayExpense",
+      applies_to: ["ExpenseReport"],
+      actor: "资金系统/出纳",
+      preconditions: ["报销单状态为 AUDITED", "银行账号已验证"],
+      effects: ["生成 PaymentRecord"],
+    });
+    applyOirEdit(oir, "add_action_type", { api_name: "BareAction" });
+
+    const rich = [...oir.actions.values()].find((a) => a.apiName.value === "PayExpense")!;
+    expect(rich.actor.value).toBe("资金系统/出纳");
+    expect(rich.preconditions.value).toEqual(["报销单状态为 AUDITED", "银行账号已验证"]);
+
+    const dicts = (oir.toDict()["actions"] as Record<string, unknown>[]);
+    const richD = dicts.find((d) => JSON.stringify(d).includes("PayExpense"))!;
+    const bareD = dicts.find((d) => JSON.stringify(d).includes("BareAction"))!;
+    expect(Object.keys(richD)).toContain("actor");
+    expect(Object.keys(richD)).toContain("preconditions");
+    // 可选发射：老形态的 Action 序列化键集与从前完全一致
+    expect(Object.keys(bareD).sort()).toEqual(
+      ["apiName", "appliesTo", "effects", "kind", "parameters", "rid", "sourceEndpoint", "status"],
     );
   });
 });

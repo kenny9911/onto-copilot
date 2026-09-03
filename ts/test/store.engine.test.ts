@@ -3,7 +3,7 @@
  *
  * 期望值**全部来自 golden/store.engine.json** —— 那是 Python 侧 `Store.open()` 真跑出来
  * 的库形状（PRAGMA 快照），不是我对 engine.py 的理解。手写"这张表应该有几列"是最不可信
- * 的一类断言：schema 有 23 张表、200 多列，抄错一个 NOT NULL 谁也看不出来。
+ * 的一类断言：schema 有 27 张表、200 多列，抄错一个 NOT NULL 谁也看不出来。
  *
  * 比对的是 `table_info` / `index_list` / `index_info` / `foreign_key_list`，不是 DDL 文本：
  * TS 侧给所有标识符加引号、SQLAlchemy 只给保留字加，那是同一个库的两种写法。
@@ -11,7 +11,16 @@
  * 从 engine.py 抄的字面量，ALTER 也是同一条语句），所以连 `sql` 一起钉住。
  */
 
-import { mkdtempSync, rmSync, readFileSync } from "node:fs";
+import { spawn } from "node:child_process";
+import {
+  chmodSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
@@ -76,6 +85,18 @@ interface Golden {
 const golden = JSON.parse(
   readFileSync(new URL("../../golden/store.engine.json", import.meta.url), "utf8"),
 ) as Golden;
+
+/** 在**另一个进程**里拿 EXCLUSIVE 锁握 400ms 再放。写成字符串喂给 `node -e` 是因为
+ * 它必须是独立进程：node:sqlite 同步 API 在同进程里握锁会把事件循环一起冻住。 */
+const HOLD_EXCLUSIVE = [
+  'const { DatabaseSync } = require("node:sqlite");',
+  "const d = new DatabaseSync(process.env.OC_TEST_DB);",
+  'd.exec("PRAGMA locking_mode=EXCLUSIVE");',
+  'd.exec("BEGIN IMMEDIATE");',
+  'd.exec("CREATE TABLE IF NOT EXISTS _lockprobe(a)");',
+  'process.stdout.write("LOCKED\\n");',
+  'setTimeout(() => { d.exec("COMMIT"); d.close(); }, 400);',
+].join("\n");
 
 let dir: string;
 beforeAll(() => {
@@ -440,6 +461,82 @@ describe("引擎能真的用（repo 层要的那一半）", () => {
     expect(busy).toBe(30000);
     await store.close();
   });
+
+  it("别的进程握着排他锁时，借连接要等而不是当场抛（那 91 条 database is locked 的回归用例）", async () => {
+    // 生产上 /tmp/ontocopilot-8765.stderr.log 里累计 91 条 `database is locked`，
+    // 栈顶**无一例外**是 openRaw 里 `PRAGMA journal_mode=WAL` 那一行。
+    //
+    // 那一行会抛**跟 WAL 转换无关**：`new DatabaseSync()` 和 `PRAGMA foreign_keys`
+    // 都不碰文件（SQLite 惰性打开），`PRAGMA journal_mode` 要读 schema，于是它成了
+    // 第一条真正对库文件加锁的语句 —— 任何锁争用都会把栈顶钉在那儿。
+    // 而 `PRAGMA busy_timeout` 写在它**下一行**，所以撞锁的那一刻 busy handler
+    // 还没装上：0 重试、亚毫秒直接抛。实测同一竞争下，顺序一换就从"0ms 抛"变成"等 514ms 成功"。
+    //
+    // 争用窗口是 engine 自己造的：文件库每次借出新开连接、用完就 close，而 WAL 库
+    // 关掉**最后一条**连接时 SQLite 会 checkpoint 并 unlink -wal/-shm，全程持排他锁。
+    // 进程内有 gate 互斥所以自己不撞自己，但只要出现第二个进程（一条 sqlite3 只读
+    // 查询就够格），命中率就是两位数百分比。
+    const path = join(dir, "busy.db");
+    const store = await Store.open(urlFor(path), { createAll: true });
+    const engine = store.engine!;
+    // 先借一次再还，让库落到"是 WAL、但一条连接都不开着"的静止态 —— 就是生产的样子。
+    await engine.connect(async (conn) => conn.scalar("SELECT 1"));
+
+    // node:sqlite 是同步 API，同进程里握锁会把事件循环一起冻住，所以必须真开一个进程。
+    const child = spawn(process.execPath, ["-e", HOLD_EXCLUSIVE], {
+      env: { ...process.env, OC_TEST_DB: path },
+      stdio: ["ignore", "pipe", "inherit"],
+    });
+    await new Promise<void>((resolve, reject) => {
+      child.stdout.on("data", (b: Buffer) => {
+        if (b.toString().includes("LOCKED")) resolve();
+      });
+      child.once("error", reject);
+      child.once("exit", () => reject(new Error("子进程没拿到锁就退了")));
+    });
+
+    const t0 = Date.now();
+    await expect(engine.connect(async (conn) => conn.scalar("SELECT 1"))).resolves.toBe(1);
+    // 真的等了才算数：若锁没握住，这一句会瞬间返回，测试就没有测到东西。
+    expect(Date.now() - t0).toBeGreaterThan(100);
+
+    await new Promise((r) => child.once("exit", r));
+    await store.close();
+  });
+
+  // root 无视目录权限位，造不出下面那个"必定抛"的条件。
+  it.skipIf(process.getuid?.() === 0 || !existsSync("/dev/fd"))(
+    "openRaw 抛错时不许漏掉连接句柄",
+    async () => {
+      // openRaw 里 `new DatabaseSync()` 成功、后面某条 PRAGMA 抛了的话，那个句柄
+      // 没有任何人再去 close —— 每抛一次漏一个 fd。上面那条 busy_timeout 修复让
+      // 撞锁不再抛，但错误路径本身还在：撞锁超过 30 秒、或库文件/目录不可写都会走到。
+      //
+      // 确定性触发器：把库所在目录改成只读。WAL 要在同目录建 -wal/-shm，建不了就抛
+      // SQLITE_READONLY_DIRECTORY(1544)，而且抛在 `new DatabaseSync()` **之后**，
+      // 正好是漏句柄的那个窗口。
+      const sub = join(dir, "leaky");
+      mkdirSync(sub);
+      const path = join(sub, "leak.db");
+      const seed = await Store.open(urlFor(path), { createAll: true });
+      const engine = seed.engine!;
+      await engine.connect(async (conn) => conn.scalar("SELECT 1"));
+
+      chmodSync(sub, 0o555);
+      try {
+        const before = readdirSync("/dev/fd").length;
+        let threw = 0;
+        for (let i = 0; i < 5; i++) {
+          await engine.connect(async (conn) => conn.scalar("SELECT 1")).catch(() => threw++);
+        }
+        expect(threw).toBe(5); // 触发器没生效的话，下面那条断言就是白给的
+        expect(readdirSync("/dev/fd").length).toBeLessThanOrEqual(before);
+      } finally {
+        chmodSync(sub, 0o755);
+        await seed.close();
+      }
+    },
+  );
 
   it("dialect 用的是 repo 比较的那个字面量", async () => {
     // repo.py:1418 是 `self.mode = engine.dialect.name`，拿去和 "postgresql" 比。

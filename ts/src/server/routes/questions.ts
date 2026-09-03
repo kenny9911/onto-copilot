@@ -54,6 +54,15 @@ import type { Conflict } from "../../onto/conflict.js";
 import { cmpCodePoint } from "../../onto/difflib.js";
 import { byUser, type OIR } from "../../onto/oir.js";
 import {
+  plainQuestionCopy,
+  plainQuestionPriority,
+  plainQuestionRole,
+  plainQuestionStatus,
+  plainQuestionWhy,
+  plainUserFacingCopy,
+} from "../../onto/plain_language.js";
+import { RELEASE_ACCEPTANCE_ROLE } from "../../onto/release_authority.js";
+import {
   Decision,
   IdempotencyConflict,
   KeyError,
@@ -75,8 +84,9 @@ import {
   type JsonObject,
   type JsonValue,
 } from "../../store/types.js";
-import type { AppEnv } from "../app.js";
+import type { AppEnv, RequestUser } from "../app.js";
 import { currentRepo, sessAsync, type Session } from "../session.js";
+import { enqueueDecision, isBuildActiveConflict } from "../glue/decisions_queue.js";
 import { contentDisposition } from "./artifacts.js";
 import { pyJsonIndent } from "../dialogue/pyutil.js";
 import { intParsingError, jsonObjectBody, pydanticInt, raise422 } from "../http422.js";
@@ -111,6 +121,62 @@ export interface QuestionDeps {
   ) => Promise<QuestionBacklog>;
   /** `time.time()`。测试里钉住 `updated_at`。 */
   readonly now?: () => number;
+  /**
+   * 把**当前**本体状态存成一个内容寻址的 blob，返回它的 ref。
+   *
+   * 存在的理由是 `revision.diff`：`snapshot_hash` 列早就有（`store/schema.ts:485`），
+   * 域字段与读写全打通，只是从来没人写 —— 于是每条 revision 的哈希都是空串，
+   * 两个版本之间没有任何可比的内容。
+   *
+   * **为什么是一个函数而不是一个 BlobStore**：这条路由不该知道快照怎么编译
+   * （`buildDraftOntologyPackage`）、怎么序列化、blob 怎么分片。一个依赖一件事：
+   * 「给我当前状态的内容哈希」。
+   *
+   * 不给就是不做快照（老部署、测试）。**抛错不会让回答失败** —— 见调用点。
+   */
+  readonly snapshot?: (s: Session) => Promise<string>;
+  /**
+   * 组装并渲染访谈包（`export_doc.ts` 的 interview_kit）。
+   *
+   * 存在的理由：访谈包是**回传闭环的正确载体**（按角色分组 + 「您的回答」列），
+   * 但它以前只有对话暗号一条出口（`export.file source=interview_kit`），界面
+   * 下载按钮给的是问题清单.xlsx —— FDE 顺手发错文件是结构性的，不是粗心。
+   * 这条端口让 UI 一键拿到正确的那份。
+   *
+   * 不给就是这台部署没接排版侧（路由回 501，能力缺席要说得出）。
+   */
+  readonly exportKit?: (
+    s: Session,
+    format: string,
+  ) => Promise<{ name: string; data: Uint8Array; mediaType: string } | { error: string }>;
+}
+
+/** Verified request identity supplied by the authentication boundary. */
+export interface AnswerDomainQuestionOptions {
+  readonly mutationClaimed?: boolean;
+  readonly principal?: RequestUser | null;
+}
+
+interface ReleaseAcceptanceIdentity {
+  readonly actor: string;
+  readonly actorRole: string;
+  readonly authority: string;
+}
+
+function releaseAcceptanceIdentity(
+  q: Question,
+  principal: RequestUser | null | undefined,
+): ReleaseAcceptanceIdentity | null {
+  if (q.sourceKind !== "release_acceptance") return null;
+  const actor = principal?.id.trim() ?? "";
+  if (actor === "" || principal?.role !== RELEASE_ACCEPTANCE_ROLE) {
+    throw new HTTPException(403, { message: "正式验收需要管理员权限" });
+  }
+  return {
+    actor,
+    actorRole: RELEASE_ACCEPTANCE_ROLE,
+    authority: RELEASE_ACCEPTANCE_ROLE,
+  };
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -336,20 +402,31 @@ export async function saveQuestionDomain(
   await deps.persist(s);
 }
 
-/** `问题清单.xlsx` 的表头与列宽（server.py:4060/4068）。 */
-const EXPORT_HEADERS: readonly string[] = [
+/**
+ * `问题清单.xlsx` 的表头与列宽（server.py:4060/4068）。
+ *
+ * 末尾两列是**回传载体**：`sniffQuestionReturn` 认「问题ID + 您的回答」两列，
+ * `parseQuestionReturn` 按「您的回答 / 例外与备注」取值。以前这份文件没有这两列，
+ * 而界面「问题清单 XLSX」按钮给的恰恰是它 —— FDE 顺手发给业务方，对方填在旁边
+ * 空列传回来，嗅探认不出、落进模板审核分支报结构损伤。铺上这两列之后，界面上
+ * 任何一份问题清单填完都能从 /audit 走回 answerDomainQuestion。
+ * （导出供测试钉住：回传闭环的两端必须共享同一份列名。）
+ */
+export const EXPORT_HEADERS: readonly string[] = [
   "编号",
   "问题",
   "状态",
   "优先级",
-  "回答对象",
+  "请谁回答",
   "负责人",
-  "为什么问",
-  "依赖问题",
-  "阻塞产物",
+  "为什么需要确认",
+  "需先确认的问题",
+  "不确认会影响",
   "问题ID",
+  "您的回答（请填写）",
+  "例外与备注",
 ];
-const EXPORT_WIDTHS: readonly number[] = [8, 52, 13, 12, 18, 18, 36, 24, 32, 28];
+const EXPORT_WIDTHS: readonly number[] = [8, 52, 13, 12, 18, 18, 36, 24, 32, 28, 32, 24];
 
 /**
  * `_write_question_exports`（server.py:4033）：问题清单三格式始终同源生成；
@@ -384,45 +461,60 @@ export async function writeQuestionExports(s: Session, backlog: QuestionBacklog)
   const all = [...backlog.questions.values()];
   const unclosed = all.filter((q) => !q.terminal).length;
   const lines: string[] = [
-    `# ${s.project || s.title} · 待澄清问题`,
+    `# ${s.project || s.title} · 待确认问题`,
     "",
-    `共 ${rows.length} 条，未关闭 ${unclosed} 条。`,
+    `共 ${rows.length} 条，待处理 ${unclosed} 条。`,
     "",
   ];
   all.forEach((q, i) => {
+    const copy = plainQuestionCopy(q.text);
+    const role = q.audienceRole || copy.audienceRole;
     lines.push(
-      `## ${i + 1}. ${q.text}`,
+      `## ${i + 1}. ${plainUserFacingCopy(copy.text)}`,
       "",
-      `- 状态：${q.status}`,
-      `- 优先级：${q.priority}`,
-      `- 回答对象：${q.audienceRole || "待分派"}`,
+      `- 状态：${plainQuestionStatus(q.status)}`,
+      `- 优先级：${plainQuestionPriority(copy.priority || q.priority)}`,
+      `- 请谁回答：${role ? plainQuestionRole(role) : "待分派"}`,
       `- 负责人：${q.ownerUserId || "待分派"}`,
     );
-    if (pyTruthy(q.why)) lines.push(`- 为什么问：${q.why}`);
+    if (pyTruthy(q.why)) {
+      lines.push(`- 为什么需要确认：${plainUserFacingCopy(plainQuestionWhy(q.why, role))}`);
+    }
+    if (copy.evidenceRef) lines.push(`- 出处：${copy.evidenceRef}`);
     if (q.blockedArtifacts.length > 0) {
-      lines.push(`- 阻塞产物：${q.blockedArtifacts.join("、")}`);
+      lines.push(`- 不确认会影响：${q.blockedArtifacts.join("、")}`);
     }
     lines.push("");
   });
   writeFileSync(join(s.dir, "问题清单.md"), lines.join("\n"), "utf8");
 
   const wb = new ExcelJS.Workbook();
-  const ws = wb.addWorksheet("待澄清问题");
+  const ws = wb.addWorksheet("待确认问题");
   ws.addRow([...EXPORT_HEADERS]);
   all.forEach((q, i) => {
+    const copy = plainQuestionCopy(q.text);
+    const role = q.audienceRole || copy.audienceRole;
+    const dependencyText = q.dependencies.map((id) => {
+      const dependency = backlog.questions.get(id);
+      return dependency ? plainUserFacingCopy(plainQuestionCopy(dependency.text).text) : id;
+    });
+    const why = plainUserFacingCopy(plainQuestionWhy(q.why, role));
     // openpyxl 的 `value=""` 落盘就是一个没有值的格；写成空串会让 ISBLANK /
     // COUNTA 的结果变掉，而业务方的表里常有这类公式。
     const values: (string | number | null)[] = [
       i + 1,
-      q.text,
-      String(q.status),
-      String(q.priority),
-      q.audienceRole,
+      plainUserFacingCopy(copy.text),
+      plainQuestionStatus(q.status),
+      plainQuestionPriority(copy.priority || q.priority),
+      role ? plainQuestionRole(role) : "待分派",
       q.ownerUserId,
-      q.why,
-      q.dependencies.join("、"),
+      copy.evidenceRef ? [why, `出处：${copy.evidenceRef}`].filter(Boolean).join("\n") : why,
+      dependencyText.join("、"),
       q.blockedArtifacts.join("、"),
       q.id,
+      // 回传载体两列留空给业务方填 —— null 不是 ""，见上面 ISBLANK 的说明。
+      null,
+      null,
     ];
     ws.addRow(values.map((v) => (v === "" ? null : v)));
   });
@@ -548,8 +640,10 @@ export async function questionUpdateOnce(
     await deps.recompile(s, { preserveQuestionRows: true });
     [authoritative, active] = await refreshAuthoritativeQuestionState(s);
   }
-  const pending = [...authoritative.questions.values()].filter((x) =>
-    PENDING_STATUSES.has(x.status),
+  // 只有 blocking 问题扣状态（与 INTERVIEW 关口 blockers() 同判据）：
+  // 普通 open 问题是工作清单，不是闸门。
+  const pending = [...authoritative.questions.values()].filter(
+    (x) => PENDING_STATUSES.has(x.status) && x.blocking,
   ).length;
   s.status = pending ? "awaiting_answer" : "done";
   await deps.persist(s);
@@ -675,17 +769,31 @@ export async function answerDomainQuestionOnce(
   qid: string,
   body: Record<string, unknown>,
   deps: QuestionDeps,
+  opts: AnswerDomainQuestionOptions = {},
 ): Promise<Record<string, unknown>> {
   const repo = currentRepo();
   const [backlog] = await loadQuestionDomain(s);
   const q = backlog.questions.get(qid);
   if (q === undefined) throw new HTTPException(404, { message: `没有问题 ${qid}` });
+  // Formal release identity is a server-side authentication fact.  Never let
+  // the request body (or a dialogue tool's model-authored arguments) assert it.
+  const releaseIdentity = releaseAcceptanceIdentity(q, opts.principal);
   const expected = expectedVersionOf(body);
   const originalVersion = q.version;
   if (expected !== null && q.version !== expected) {
     throw new HTTPException(409, {
       message: `问题已更新：预期 version ${expected}，实际 ${q.version}`,
     });
+  }
+  // Professional-agent questions carry no deterministic field-level writeback
+  // target.  以前这里直接 409 —— 后果是 4000+ 条专业分析问题**一条都答不了**：
+  // 业务方给出的 SOR 归属这类关键结论无处安放，唯一去处是永远 open，访谈
+  // 死路。结论必须能落账：照常走 Decision Ledger、问题转 ANSWERED，但**不做
+  // 任何字段级回写**（target 保持 null → affectedIds 为空、applyDecision 不
+  // 执行），并在问题上显式标注 —— 下游 REVIEW/GAP 读得到「这是人工结论，
+  // 字段未动」，不会误当成已回写。
+  if (q.sourceKind === "agent_analysis") {
+    q.metadata["writeback"] = "manual_conclusion";
   }
   const answerValue = getChain(body, ["answer", "option_id", "answerText"]) ?? null;
   if (answerValue === null || answerValue === "") {
@@ -700,9 +808,11 @@ export async function answerDomainQuestionOnce(
   const idem = pyStrip(pyStr(pyTruthy(getChain(body, ["idempotencyKey", "idempotency_key"])) ? getChain(body, ["idempotencyKey", "idempotency_key"]) : ""));
   if (!idem) throw new HTTPException(400, { message: "idempotencyKey 必填" });
 
-  const actor = pyStr(pyTruthy(body["actor"]) ? body["actor"] : "fde");
-  const actorRole = pyStr(pyTruthy(body["actorRole"]) ? body["actorRole"] : q.audienceRole);
-  const authority = pyStr(pyTruthy(body["authority"]) ? body["authority"] : "");
+  const actor = releaseIdentity?.actor ?? pyStr(pyTruthy(body["actor"]) ? body["actor"] : "fde");
+  const actorRole = releaseIdentity?.actorRole ??
+    pyStr(pyTruthy(body["actorRole"]) ? body["actorRole"] : q.audienceRole);
+  const authority = releaseIdentity?.authority ??
+    pyStr(pyTruthy(body["authority"]) ? body["authority"] : "");
   const sourceTurn = pyStr(pyTruthy(body["sourceTurn"]) ? body["sourceTurn"] : "");
   const rationale = pyStr(
     pyTruthy(body["answerText"]) ? body["answerText"] : pyTruthy(body["note"]) ? body["note"] : "",
@@ -744,7 +854,21 @@ export async function answerDomainQuestionOnce(
     const conflicts = (pyTruthy(s.state["_conflicts"]) ? s.state["_conflicts"] : []) as Conflict[];
     target = conflicts.find((c) => c.rid === q.sourceRef) ?? null;
     if (target === null) {
-      throw new HTTPException(409, { message: `冲突 ${q.sourceRef} 尚未恢复，不能应用回答` });
+      // 冲突没了 = 问题失去了存在理由（模型重跑后不再成立、或已被自动修复）。
+      // 以前这里只甩 409 —— 而 INTERVIEW 关口正拿这类问题当 blocking：
+      // 用户答一条 409 一条，**HITL 永久死锁**（真实案发：5 条 naming lint
+      // 引用的 cf_naming_violation_* 早被 auto_repair 清掉）。正确动作是把
+      // 问题标废（CANCELLED）并如实告知 —— 关口的 ready()/blocking 判定
+      // 认终态，死问题不再拦人。
+      q.transition(QuestionStatus.CANCELLED);
+      q.metadata["cancelled_reason"] =
+        `源冲突 ${q.sourceRef} 已不存在（重跑后不再成立或已被自动修复），回答无处应用`;
+      await saveQuestionDomain(s, q, { expected: null, deps });
+      return {
+        status: "cancelled",
+        question_id: q.id,
+        note: `冲突 ${q.sourceRef} 已不存在，这条问题随之作废 —— 不需要回答。`,
+      };
     }
   }
   const affectedIds = predictDecisionEffect(q, target, optionId);
@@ -830,6 +954,28 @@ export async function answerDomainQuestionOnce(
     answered.add(q.sourceRef);
     s.state["answered"] = [...answered].sort(cmpCodePoint);
   }
+  // 内容寻址一份**回写之后**的快照，写进 revision.snapshotHash —— `revision.diff`
+  // 的全部地基。放在 OIR 回写之后、appendRevision 之前：这时状态已经是新的，
+  // 而 revision 还没定型。
+  //
+  // **抛错绝不能让回答失败。** 回答是这个产品里最重的一次人工输入，
+  // 为了写不进一个 blob 就把它丢掉是灾难性的 —— 那比没有 diff 严重得多。
+  // 但也不许静默：空哈希与「快照写成功但内容没变」在下游是两回事，
+  // 失败必须发一条事件，否则 `revision.diff` 会把「不知道」读成「没变化」。
+  let snapshotHash = "";
+  if (deps.snapshot !== undefined) {
+    try {
+      snapshotHash = pyStr(await deps.snapshot(s));
+    } catch (exc) {
+      snapshotHash = "";
+      s.emit("revision.snapshot_failed", {
+        question: q.id,
+        decision: decision.id,
+        error: `${excName(exc)}: ${excMessage(exc)}`,
+      });
+    }
+  }
+
   // 回答本身形成一个耐久 revision，供工作台查看与 artifact lineage 引用。
   // id/ordinal 只是 placeholder，repo.appendRevision 持有 session 锁发号。
   const rev = new Revision({
@@ -848,6 +994,7 @@ export async function answerDomainQuestionOnce(
       reason: decision.rationale,
     }),
     changedIds: decision.affectedIds,
+    snapshotHash,
     invalidatedArtifacts: q.blockedArtifacts,
     actor: decision.actor,
     sourceTurn: decision.sourceTurn,
@@ -861,8 +1008,9 @@ export async function answerDomainQuestionOnce(
     await deps.recompile(s, { preserveQuestionRows: true });
     [authoritative, active] = await refreshAuthoritativeQuestionState(s);
   }
-  const pending = [...authoritative.questions.values()].filter((row) =>
-    PENDING_STATUSES.has(row.status),
+  // 只有 blocking 问题扣状态（与 INTERVIEW 关口/transition 路由同判据）。
+  const pending = [...authoritative.questions.values()].filter(
+    (row) => PENDING_STATUSES.has(row.status) && row.blocking,
   ).length;
   s.status = pending ? "awaiting_answer" : "done";
   await deps.persist(s);
@@ -870,7 +1018,13 @@ export async function answerDomainQuestionOnce(
     question: q.id,
     decision: decision.id,
     pending,
+    // `affected` 是 predictDecisionEffect 的**预测**，保留是为了不打断既有消费者。
     affected: decision.affectedIds as unknown as JsonValue,
+    // 下面两个才是渲染层要用的：`label` 是被选中那个选项的原话（人要看的是
+    // 「定了什么」，不是「哪条问题」），`changed` 是 applyDecision 观察到的
+    // **实际**变更。两者在 applyDecision 那一刻就有了，不带上就等于当场丢掉。
+    label: pyStr(applied === null ? "" : (applied["label"] ?? "")),
+    changed: (applied === null ? [] : (applied["changed"] ?? [])) as unknown as JsonValue,
   });
   const row = authoritative.questions.get(q.id);
   if (row === undefined) throw new KeyError(q.id);
@@ -924,22 +1078,131 @@ async function echoPrior(
  * `mutationClaimed` 表示调用方（chat 工具那条路）已经持有 mutation 租约，
  * 这时只加 question_lock —— 再抢一次租约会被自己挡在 409 上。
  */
+/**
+ * 访谈包回传件（R4）：业务顾问填完「您的回答」的 xlsx 传回来，逐条对回台账。
+ *
+ * 与模板回传共用同一个上传入口（/audit）：服务端**按表头嗅探**分流，用户不需要
+ * 知道两种回传件的区别。识别条件 = 任一 sheet 的表头同时含「问题ID」和
+ * 「您的回答」两列 —— 这两列正是 interview_kit 导出时铺好的回传载体。
+ *
+ * **应用必须走 answerDomainQuestion**：那是唯一权威的答复通道（台账、Decision、
+ * recompile、revision 全在里面）。这里只做解析、匹配与逐条转发 —— 在旁边再造
+ * 一条写路径，就是第二套状态机。
+ */
+export interface QuestionReturnRow {
+  readonly qid: string;
+  readonly answer: string;
+  readonly note: string;
+  /** open|answered|missing —— 预审时告诉 FDE 这条会发生什么。 */
+  readonly match: "open" | "already_answered" | "not_found";
+  readonly text: string;
+}
+
+/** 表头行允许出现在前 8 行 —— 业务方在顶上加标题/说明是最常见的动作，
+ *  模板审核（audit.ts 的 ANCHOR_SCAN_ROWS）已经学过这一课，这里同一个口径。 */
+const HEAD_SCAN_ROWS = 8;
+
+function findHead(
+  sh: { readonly rows: readonly (readonly unknown[])[] },
+): { readonly head: string[]; readonly at: number } | null {
+  for (let i = 0; i < Math.min(HEAD_SCAN_ROWS, sh.rows.length); i += 1) {
+    const head = (sh.rows[i] ?? []).map((v) => String(v ?? ""));
+    if (head.some((h) => h.includes("问题ID")) && head.some((h) => h.includes("您的回答"))) {
+      return { head, at: i };
+    }
+  }
+  return null;
+}
+
+export function sniffQuestionReturn(
+  sheets: readonly { readonly rows: readonly (readonly unknown[])[] }[],
+): boolean {
+  return sheets.some((sh) => findHead(sh) !== null);
+}
+
+export function parseQuestionReturn(
+  sheets: readonly { readonly rows: readonly (readonly unknown[])[] }[],
+  backlog: QuestionBacklog,
+): QuestionReturnRow[] {
+  const out: QuestionReturnRow[] = [];
+  const seen = new Set<string>();
+  for (const sh of sheets) {
+    const found = findHead(sh);
+    if (found === null) continue;
+    const col = (needle: string): number => found.head.findIndex((h) => h.includes(needle));
+    const cid = col("问题ID");
+    const cans = col("您的回答");
+    const cnote = col("例外与备注");
+    for (const row of sh.rows.slice(found.at + 1)) {
+      const qid = String(row[cid] ?? "").trim();
+      const answer = String(row[cans] ?? "").trim();
+      if (!qid || !answer || seen.has(qid)) continue;
+      seen.add(qid);
+      const q = backlog.questions.get(qid) ?? null;
+      out.push({
+        qid,
+        answer,
+        note: cnote >= 0 ? String(row[cnote] ?? "").trim() : "",
+        match: q === null ? "not_found" : q.terminal ? "already_answered" : "open",
+        text: q === null ? "" : q.text,
+      });
+    }
+  }
+  return out;
+}
+
 export async function answerDomainQuestion(
   s: Session,
   qid: string,
   body: Record<string, unknown>,
   deps: QuestionDeps,
-  opts: { mutationClaimed?: boolean } = {},
+  opts: AnswerDomainQuestionOptions = {},
 ): Promise<Record<string, unknown>> {
   if (opts.mutationClaimed === true) {
-    return await s.questionLock.run(async () => await answerDomainQuestionOnce(s, qid, body, deps));
+    return await s.questionLock.run(
+      async () => await answerDomainQuestionOnce(s, qid, body, deps, opts),
+    );
   }
-  return await deps.sessionMutation(
-    s,
-    "question.answer",
-    async () =>
-      await s.questionLock.run(async () => await answerDomainQuestionOnce(s, qid, body, deps)),
-  );
+  try {
+    return await deps.sessionMutation(
+      s,
+      "question.answer",
+      async () =>
+        await s.questionLock.run(
+          async () => await answerDomainQuestionOnce(s, qid, body, deps, opts),
+        ),
+    );
+  } catch (exc) {
+    // 跑批激活期租约必拒 —— 而系统恰恰在这时把决策卡摆出来请人拍板。
+    // 拒绝等于丢掉这个产品里最贵的一次输入，所以改成**登记下来**，Run 收尾按序
+    // 落账（glue/decisions_queue.ts）。
+    //
+    // 两道闸，缺一不可：
+    //  1. 机器可读标记 —— 不认文案。通用租约冲突（聊天轮持锁、另一个领域修改）
+    //     的文案里同样有「正在梳理」，而那些会话根本没有 Run 会来 drain 队列，
+    //     排进去就是「界面说跑完自动落账、实际永远不落」。
+    //  2. 入队前再问一次库：状态确实 ∈ BUILD_ACTIVE 才排。标记与真实状态之间
+    //     隔着一次抢锁失败，中间那一瞬跑批可能刚结束 —— 那就该原样报错让人重试。
+    if (!isBuildActiveConflict(exc)) throw exc;
+    const rowStatus = (await currentRepo().getSession(s.id).catch(() => null))?.status ?? "";
+    if (!["queued", "parsing", "extracting"].includes(rowStatus)) throw exc;
+    // HUMAN_ACCEPTANCE only exists after the run suspended.  Never queue a
+    // formal signature without its verified principal: the queue deliberately
+    // stores domain answers, not authentication credentials.
+    const [authoritative] = await loadQuestionDomain(s);
+    const queuedQuestion = authoritative.questions.get(qid);
+    if (queuedQuestion?.sourceKind === "release_acceptance") {
+      releaseAcceptanceIdentity(queuedQuestion, opts.principal);
+      throw exc;
+    }
+    const depth = enqueueDecision(s as never, { qid, body });
+    s.emit("decision.queued", { question: qid, depth });
+    return {
+      queued: true,
+      depth,
+      message: `会话正在梳理，这次确认已经登记（队列第 ${depth} 位），本轮跑完自动落账，不用重点。`,
+    };
+  }
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -1079,6 +1342,23 @@ export function registerQuestionRoutes(app: Hono<AppEnv>, deps: QuestionDeps): v
     });
   });
 
+  // 访谈包下载。与上面的问题清单是**两份东西**：清单是台账全量（现在也铺了回传
+  // 载体列），访谈包按受访角色分组、附当前流程图，是带去工作坊的那份。
+  app.get("/api/sessions/:sid/questions/interview-kit", async (c) => {
+    const sid = c.req.param("sid");
+    const format = (c.req.query("format") ?? "xlsx").toLowerCase();
+    const s = await sessAsync(sid);
+    if (deps.exportKit === undefined) {
+      throw new HTTPException(501, { message: "这台部署没接访谈包导出（exportKit 未接线）" });
+    }
+    const got = await deps.exportKit(s, format);
+    if ("error" in got) throw new HTTPException(422, { message: got.error });
+    return c.body(new Uint8Array(got.data).buffer as ArrayBuffer, 200, {
+      "Content-Type": got.mediaType,
+      "Content-Disposition": contentDisposition(got.name),
+    });
+  });
+
   app.get("/api/sessions/:sid/questions", async (c) => {
     const sid = c.req.param("sid");
     const limit = queryInt(c.req.query("limit"), 0, "limit");
@@ -1138,7 +1418,9 @@ export function registerQuestionRoutes(app: Hono<AppEnv>, deps: QuestionDeps): v
     const s = await sessAsync(c.req.param("sid"));
     const qid = c.req.param("qid");
     const body = await jsonBody(c);
-    return c.json((await answerDomainQuestion(s, qid, body, deps)) as JsonObject);
+    return c.json((await answerDomainQuestion(s, qid, body, deps, {
+      principal: c.get("user"),
+    })) as JsonObject);
   });
 
   // ── 版本流水 ────────────────────────────────────────────────────

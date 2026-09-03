@@ -1,0 +1,145 @@
+{
+  "type": "object",
+  "required": [
+    "data_objects",
+    "quality_rules",
+    "questions"
+  ],
+  "properties": {
+    "data_objects": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "classification",
+          "business_keys",
+          "system_of_record",
+          "owner_role",
+          "lifecycle_states",
+          "sensitivity",
+          "evidence_ids"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "classification": {
+            "type": "string",
+            "enum": [
+              "BUSINESS_OBJECT",
+              "DOCUMENT",
+              "MASTER_DATA",
+              "TRANSACTION",
+              "DERIVED_DATA"
+            ]
+          },
+          "business_keys": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "system_of_record": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "owner_role": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "lifecycle_states": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "sensitivity": {
+            "type": "string",
+            "enum": [
+              "PUBLIC",
+              "INTERNAL",
+              "CONFIDENTIAL",
+              "RESTRICTED",
+              "UNKNOWN"
+            ]
+          },
+          "evidence_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      }
+    },
+    "quality_rules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "data_object_id",
+          "dimension",
+          "expression",
+          "threshold",
+          "evidence_ids"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "data_object_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "dimension": {
+            "type": "string",
+            "enum": [
+              "COMPLETENESS",
+              "UNIQUENESS",
+              "VALIDITY",
+              "CONSISTENCY",
+              "TIMELINESS"
+            ]
+          },
+          "expression": {
+            "type": "string",
+            "minLength": 1
+          },
+          "threshold": {
+            "type": "number"
+          },
+          "evidence_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      }
+    },
+    "questions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  }
+}

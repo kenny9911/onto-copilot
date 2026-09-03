@@ -768,3 +768,24 @@ function normalizeAxes(s: string): string {
   const tail = at < 0 ? "" : body.slice(at);
   return DIVERGENCE_HEAD + axes.split("、").sort().join("、") + tail;
 }
+
+describe("B10：回传基数过枚举闸", () => {
+  it("常见手填写法归一：一对多/1:N/M:N", async () => {
+    const { normalizeCardinality } = await import("../src/onto/audit.js");
+    expect(normalizeCardinality("一对多")).toBe("ONE_TO_MANY");
+    expect(normalizeCardinality("1:n")).toBe("ONE_TO_MANY");
+    expect(normalizeCardinality(" M:N ")).toBe("MANY_TO_MANY");
+    expect(normalizeCardinality("one_to_one")).toBe("ONE_TO_ONE");
+  });
+
+  it("**多对一归一不了** —— 这里改的是已存在关系的基数、动不了方向，悄悄转成一对多会反转语义", async () => {
+    const { normalizeCardinality } = await import("../src/onto/audit.js");
+    expect(normalizeCardinality("多对一")).toBeNull();
+    expect(normalizeCardinality("N:1")).toBeNull();
+  });
+
+  it("认不出的写法返回 null —— 由调用方降级成待确认，不丢不收", async () => {
+    const { normalizeCardinality } = await import("../src/onto/audit.js");
+    expect(normalizeCardinality("大概一对多吧")).toBeNull();
+  });
+});

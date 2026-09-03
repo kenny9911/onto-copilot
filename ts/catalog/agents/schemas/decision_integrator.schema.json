@@ -1,0 +1,247 @@
+{
+  "type": "object",
+  "required": [
+    "base_revision",
+    "decision_assessments",
+    "patch_proposals",
+    "unresolved_items"
+  ],
+  "properties": {
+    "base_revision": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "decision_assessments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "decision_id",
+          "state",
+          "summary",
+          "target_ids",
+          "supersedes_decision_ids",
+          "evidence_ids",
+          "rationale"
+        ],
+        "properties": {
+          "decision_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "APPLICABLE",
+              "NO_CHANGE",
+              "AMBIGUOUS",
+              "STALE",
+              "CONFLICTING"
+            ]
+          },
+          "summary": {
+            "type": "string",
+            "minLength": 1
+          },
+          "target_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "supersedes_decision_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "evidence_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "rationale": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "patch_proposals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "decision_id",
+          "operation",
+          "target_kind",
+          "target_id",
+          "field_path",
+          "before_summary",
+          "after_summary",
+          "preconditions",
+          "affected_ids",
+          "risk",
+          "evidence_ids"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "decision_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "operation": {
+            "type": "string",
+            "enum": [
+              "ADD",
+              "REPLACE",
+              "REMOVE",
+              "LINK",
+              "UNLINK"
+            ]
+          },
+          "target_kind": {
+            "type": "string",
+            "enum": [
+              "OBJECT",
+              "PROPERTY",
+              "LINK",
+              "ACTION",
+              "EVENT",
+              "RULE",
+              "PROCESS",
+              "PROCESS_STEP",
+              "DATA_OBJECT",
+              "ERP_MAPPING",
+              "REQUIREMENT",
+              "INTEGRATION_CONTRACT",
+              "TEST_CASE",
+              "OTHER"
+            ]
+          },
+          "target_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "field_path": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "before_summary": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "after_summary": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "preconditions": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "affected_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "risk": {
+            "type": "string",
+            "enum": [
+              "LOW",
+              "MEDIUM",
+              "HIGH"
+            ]
+          },
+          "evidence_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      }
+    },
+    "unresolved_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "decision_id",
+          "code",
+          "message",
+          "owner_role",
+          "blocked_artifact_ids",
+          "evidence_ids"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "decision_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "code": {
+            "type": "string",
+            "enum": [
+              "MISSING_TARGET",
+              "AMBIGUOUS_ANSWER",
+              "STALE_BASE",
+              "CONFLICTING_DECISION",
+              "MISSING_EVIDENCE",
+              "UNSUPPORTED_CHANGE"
+            ]
+          },
+          "message": {
+            "type": "string",
+            "minLength": 1
+          },
+          "owner_role": {
+            "type": "string",
+            "minLength": 1
+          },
+          "blocked_artifact_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "evidence_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      }
+    }
+  }
+}

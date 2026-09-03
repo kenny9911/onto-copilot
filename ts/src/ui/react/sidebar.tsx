@@ -42,6 +42,7 @@ import {
 import { dropSession, openSession, renameSession, statusText } from "../sessions.js";
 import { PJ_OFF, UNFILED } from "../state.js";
 import { registerRegion } from "./app.js";
+import { openKnowledgePage } from "./knowledge-page.js";
 import { useUi } from "./store.js";
 
 /** 嵌套按钮：外层 .conv 整行可点，里面的按钮不能顺带把会话也打开。 */
@@ -134,8 +135,23 @@ export function Sidebar(): ReactNode {
   // 侧栏和从前一模一样，唯一入口是一个不起眼的 ＋。
   if (G.MODE !== "work" || !G.PROJECTS_OK) return <Flat list={G.SESSION_LIST} hint={emptyHint} />;
 
+  const currentProject = G.PROJECTS.find((project: any) => project.id === G.S?.project_id);
+  // 知识库**恒可打开**。原来它在会话没归项目时是禁用的，提示写着「请先打开一个
+  // 已归入项目的会话」—— 想看一眼公共材料，得先建会话、再把会话归进某个项目。
+  // 现在：有项目就进那个项目的库，没有就进公共库；两层在页头一键互切。
+  const knowledgeEntry = <button
+    type="button"
+    className={`side-knowledge-entry${G.MAIN_PAGE === "knowledge" ? " on" : ""}`}
+    title={currentProject ? `打开「${currentProject.name}」的知识库` : "打开公共知识库"}
+    onClick={() => openKnowledgePage(currentProject ? "project" : "global")}
+  >
+    <span className="side-knowledge-icon" aria-hidden="true">▤</span>
+    <span><strong>知识库</strong><small>{currentProject?.name ?? "公共"}</small></span>
+  </button>;
+
   if (!G.PROJECTS.length) return (
     <>
+      {knowledgeEntry}
       <div className="pjsec">{t("project.section")}</div>
       <button className="pjcreate" onClick={() => newProject(null)}>{t("project.createFirst")}</button>
       <div className="pjsec">{t("project.unfiled")}</div>
@@ -149,6 +165,7 @@ export function Sidebar(): ReactNode {
   const loose = G.SESSION_LIST.filter((s: any) => !known.has(s.project_id || ""));
   return (
     <>
+      {knowledgeEntry}
       {G.PROJECTS.map((p: any) => {
         const mine = G.SESSION_LIST.filter((s: any) => (s.project_id || "") === p.id);
         return (

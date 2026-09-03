@@ -1,0 +1,295 @@
+{
+  "type": "object",
+  "required": [
+    "test_cases",
+    "traceability",
+    "coverage_gaps",
+    "readiness"
+  ],
+  "properties": {
+    "test_cases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "kind",
+          "priority",
+          "status",
+          "requirement_ids",
+          "rule_ids",
+          "process_step_ids",
+          "integration_contract_ids",
+          "preconditions",
+          "given",
+          "when",
+          "then",
+          "test_data_requirements",
+          "evidence_ids",
+          "automation_candidate"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "BUSINESS_SCENARIO",
+              "BUSINESS_RULE",
+              "INTEGRATION",
+              "DATA_QUALITY",
+              "AUTHORIZATION",
+              "SOD",
+              "NEGATIVE",
+              "REGRESSION"
+            ]
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "BLOCKING",
+              "HIGH",
+              "NORMAL",
+              "LOW"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "DRAFT",
+              "READY_FOR_REVIEW",
+              "BLOCKED"
+            ]
+          },
+          "requirement_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "rule_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "process_step_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "integration_contract_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "preconditions": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "given": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "field",
+                "value"
+              ],
+              "properties": {
+                "field": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "value": {
+                  "type": [
+                    "string",
+                    "number",
+                    "boolean",
+                    "null"
+                  ]
+                }
+              }
+            }
+          },
+          "when": {
+            "type": "string",
+            "minLength": 1
+          },
+          "then": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "test_data_requirements": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "evidence_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "automation_candidate": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "traceability": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "requirement_id",
+          "test_case_ids",
+          "coverage",
+          "evidence_ids"
+        ],
+        "properties": {
+          "requirement_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "test_case_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "coverage": {
+            "type": "string",
+            "enum": [
+              "COVERED",
+              "PARTIAL",
+              "UNCOVERED",
+              "BLOCKED"
+            ]
+          },
+          "evidence_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      }
+    },
+    "coverage_gaps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "type",
+          "message",
+          "owner_role",
+          "blocked_test_case_ids",
+          "related_requirement_ids",
+          "evidence_ids"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "MISSING_TEST",
+              "MISSING_EXPECTED_RESULT",
+              "MISSING_TEST_DATA",
+              "MISSING_ENVIRONMENT",
+              "MISSING_TRACE",
+              "CONFLICTING_CRITERIA"
+            ]
+          },
+          "message": {
+            "type": "string",
+            "minLength": 1
+          },
+          "owner_role": {
+            "type": "string",
+            "minLength": 1
+          },
+          "blocked_test_case_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "related_requirement_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "evidence_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      }
+    },
+    "readiness": {
+      "type": "object",
+      "required": [
+        "recommendation",
+        "blocking_gap_ids",
+        "rationale"
+      ],
+      "properties": {
+        "recommendation": {
+          "type": "string",
+          "enum": [
+            "READY_FOR_HUMAN_REVIEW",
+            "NOT_READY"
+          ]
+        },
+        "blocking_gap_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "rationale": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  }
+}

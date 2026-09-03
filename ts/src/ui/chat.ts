@@ -9,6 +9,49 @@ import { render } from "./render.js";
 // ── 对话 ────────────────────────────────────────────────────────
 // 输入框在梳理进行中也可用。发出去的话不阻塞流水线，后端按意图决定是立即执行
 // 还是排到本轮结束 —— 前端不做这个判断。
+/** 轮次是不是正在路上。CHAT_ABORT 非空 = 这条 fetch 还没回来。 */
+function chatInFlight(): boolean { return !!G.CHAT_ABORT; }
+
+/** 排队。**不发也不丢** —— 硬发会撞服务端的 409，而那条错误会永久卡在气泡流里。 */
+export function enqueueChat(text: string){
+  G.QUEUED.push(text);
+  render();
+}
+
+/** 撤回一条排队的话。**文字退回输入框**，不是丢掉 —— 用户敲的字只有他自己能决定作废。 */
+export function withdrawQueued(i: number){
+  const text = G.QUEUED[i];
+  if (text === undefined) return;
+  G.QUEUED.splice(i, 1);
+  const el = $("cin");
+  if (el) {
+    el.value = el.value ? `${text}\n${el.value}` : text;
+    autoGrow(el);
+    el.focus();
+  }
+  render();
+}
+
+/** 插队：停掉当前这一轮，立刻发这条。
+ *
+ * **这是"中途调整方向"唯一能兑现的形态。** 真正的中途注入做不到：模型正在一个
+ * 已经定型的上下文里推理，把新指令塞进去要么得重启这一轮（刚烧的 token 全废），
+ * 要么追加到它已经推理过的上下文后面（输出前后矛盾）。停止 + 重发是确定的。 */
+export async function sendQueuedNow(i: number){
+  const text = G.QUEUED[i];
+  if (text === undefined) return;
+  G.QUEUED.splice(i, 1);
+  if (chatInFlight()) await stopChat();
+  await deliverChat(text);
+}
+
+/** 轮次落地后把队首发出去。停止后**不自动发** —— 他按停止是有理由的，
+ *  队列还在，要发自己点。 */
+function drainQueue(){
+  const next = G.QUEUED.shift();
+  if (next !== undefined) void deliverChat(next);
+}
+
 export async function sendChat(){
   const el = $("cin");
   const text = (el.value || "").trim();
@@ -16,6 +59,20 @@ export async function sendChat(){
   // 没会话就建一个 —— 想说话之前先点「新会话」是多余的一步
   if (!G.S) await newSession(true);
   el.value = ""; autoGrow(el);
+  // 轮次还在跑：排队，别硬发。以前这里直接发，服务端回 409，前端把那句 JSON
+  // 原样贴成一条**永远不会消失**的错误气泡（它是 assistant 气泡，而清除逻辑
+  // 只按 SSE 回来的 user turn 文本匹配删 —— 永远匹配不上）。
+  if (chatInFlight()) { enqueueChat(text); return; }
+  await deliverChat(text);
+}
+
+/** 真正发出去的那一段。sendChat / 队列出队 / 插队 三条路都汇到这里。 */
+async function deliverChat(text: string){
+  if (!G.S) await newSession(true);
+  // 上一次失败留下的错误气泡在这一刻作废 —— 它讲的是上一次的事，
+  // 留着会让人以为这一轮也失败了。
+  G.PENDING = G.PENDING.filter((x: any) => !x.error);
+  let landed = false;
   // 乐观上屏：网络往返期间用户要能看见自己说了什么，否则会以为没发出去
   G.PENDING.push({speaker:"user", text, pending:true});
   G.STEPS = [];
@@ -39,14 +96,30 @@ export async function sendChat(){
     G.FOLLOWUPS = res.followups || [];
     if (res.stopped) return;
     G.NEEDS_CONFIRM = !!res.needs_confirm;
+    // **只有真的跑完一轮才继续排队。** 这个标记不能省：见下面 finally 的注释。
+    landed = true;
   } catch (e: any) {
     // 是我们自己 abort 的（点了停止），不是错误 —— 别弹"没发出去"
     if (e.name === "AbortError") return;
+    // 409 = 会话忙（多开一个标签页、或上一轮的租约还没还）。这不是错误，是时序：
+    // 把这句话放回队列，等当前那轮落地自己会发出去。**绝不能把用户的字弄丢。**
+    if (e.status === 409) { enqueueChat(text); return; }
+    // 其余才是真错。e.message 现在是服务端那句人话，不再是 JSON 原文（见 dom.ts 的 j）。
     G.PENDING.push({speaker:"assistant", text:"没发出去：" + e.message, error:true});
   } finally {
     G.CHAT_ABORT = null;
     stopThinking();
     render();
+    // **只在这一轮真的落地后才出队。**
+    //
+    // 无条件出队会炸：409 时上面刚把这句话放回队列，finally 立刻又把它取出来重发，
+    // 又 409、又入队、又取出 —— 转个不停。而且递归那一层开头的
+    // `PENDING.filter(x => !x.error)` 还会把刚推上去的错误气泡擦掉，于是屏幕上
+    // 既没有错误提示也没有排队项，用户只看到自己的话凭空消失了。
+    //
+    // 失败和停止都不自动续发：那两种情况下用户需要先看一眼发生了什么，
+    // 队列还在，要发他自己点。
+    if (landed) drainQueue();
   }
 }
 
@@ -57,14 +130,19 @@ export function paintSendBtn(){
   if (!btn) return;
   const hasText = ($("cin")?.value || "").trim().length > 0;
   const runActive = ["queued","parsing","extracting"].includes(G.S?.status);
-  const mode = G.THINKING ? "stopChat"
-             : hasText  ? "send"
+  // **有字就先管字。** 原来是 `G.THINKING ? "stopChat" : …`，于是轮次在跑时按钮
+  // 一律变成停止 —— 而回车走的是 sendChat（现在会排队）。同一个动作两条路两种
+  // 结果，用户没法预期。现在的规则是一句话：**输入框里有字，按钮就作用于那些字；
+  // 没字才作用于正在跑的东西。**
+  const mode = hasText ? "send"
+             : G.THINKING ? "stopChat"
              : runActive ? "stopRun"
              : "send";
   const stop = mode !== "send";
   btn.classList.toggle("stop", stop);
   btn.textContent = stop ? "■" : "↑";
   btn.title = stop ? t("composer.stop","停止") : t("composer.send","发送");
+  btn.setAttribute("aria-label", btn.title);
   btn.disabled = !G.S;
   btn.onclick = mode === "stopChat" ? stopChat
               : mode === "stopRun"  ? stopRun
@@ -72,6 +150,7 @@ export function paintSendBtn(){
   // 输入框的流光跟"有没有事在跑"同步。**状态源就用这里已经算好的两个** ——
   // 另起一套判断迟早会和按钮的形态对不上（按钮显示■、边框却不亮）。
   document.querySelector(".cbox")?.classList.toggle("thinking", G.THINKING || runActive);
+  document.getElementById("stream")?.setAttribute("aria-busy", String(G.THINKING || runActive));
 }
 
 // 停对话轮：abort 掉自己那条 fetch（立刻不等），再并发 /stop 让服务端真的停下来。

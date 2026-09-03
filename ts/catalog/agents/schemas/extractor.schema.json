@@ -1,0 +1,318 @@
+{
+  "type": "object",
+  "required": [
+    "objects",
+    "properties",
+    "links"
+  ],
+  "properties": {
+    "objects": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "api_name",
+          "display_name",
+          "source_file",
+          "source_locator"
+        ],
+        "properties": {
+          "api_name": {
+            "type": "string"
+          },
+          "display_name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "primary_key": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "主键属性的 api_name（复合主键给多个）。**材料里明确标了**主键/唯一编号才给 —— 猜的不算，猜错的主键比没有主键更难发现"
+          },
+          "classification": {
+            "type": "string",
+            "enum": [
+              "BUSINESS_OBJECT",
+              "DOCUMENT",
+              "MASTER_DATA",
+              "TRANSACTION",
+              "DERIVED_DATA"
+            ],
+            "description": "对象分类：业务对象/单据/主数据/事务/派生数据。拿不准就不给"
+          },
+          "source_file": {
+            "type": "string"
+          },
+          "source_locator": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "properties": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "parent_api_name",
+          "api_name",
+          "display_name",
+          "base_type",
+          "definition",
+          "source_file",
+          "source_locator"
+        ],
+        "properties": {
+          "parent_api_name": {
+            "type": "string"
+          },
+          "api_name": {
+            "type": "string"
+          },
+          "display_name": {
+            "type": "string"
+          },
+          "base_type": {
+            "type": "string",
+            "enum": [
+              "STRING",
+              "INTEGER",
+              "DECIMAL",
+              "DATE",
+              "TIMESTAMP",
+              "BOOLEAN",
+              "ENUM"
+            ]
+          },
+          "definition": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "value_domain": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "枚举取值域。材料里**列出了**状态/类型的取值表才给（如「草稿/待审/已批准」）—— 这是生成状态机和校验代码的原料"
+          },
+          "semantic_type": {
+            "type": "string",
+            "description": "语义类型：金额/日期/编号/状态/数量/比率/名称 之类的一个词"
+          },
+          "source_file": {
+            "type": "string"
+          },
+          "source_locator": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "links": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "api_name",
+          "from_api_name",
+          "to_api_name",
+          "cardinality",
+          "source_file",
+          "source_locator"
+        ],
+        "properties": {
+          "api_name": {
+            "type": "string"
+          },
+          "from_api_name": {
+            "type": "string"
+          },
+          "to_api_name": {
+            "type": "string"
+          },
+          "cardinality": {
+            "type": "string",
+            "enum": [
+              "ONE_TO_ONE",
+              "ONE_TO_MANY",
+              "MANY_TO_MANY",
+              "MANY_TO_ONE"
+            ]
+          },
+          "join_key": {
+            "type": "object",
+            "required": [
+              "from_property",
+              "to_property"
+            ],
+            "properties": {
+              "from_property": {
+                "type": "string"
+              },
+              "to_property": {
+                "type": "string"
+              }
+            },
+            "description": "靠哪两个字段连（外键关系）。DDL 的 FK、两表同名编号列都是依据 —— **没有 join_key 的关系只是「有关系」，生成不了 JOIN**"
+          },
+          "source_file": {
+            "type": "string"
+          },
+          "source_locator": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "actions": {
+      "type": "array",
+      "description": "业务动作：谁在什么条件下对哪张单据做什么。动词不要抽成对象",
+      "items": {
+        "type": "object",
+        "required": [
+          "api_name",
+          "source_file",
+          "source_locator"
+        ],
+        "properties": {
+          "api_name": {
+            "type": "string",
+            "description": "动词短语的驼峰名，如 SubmitRequisition"
+          },
+          "display_name": {
+            "type": "string"
+          },
+          "applies_to": {
+            "type": "string",
+            "description": "作用在哪个对象上（对象的 api_name）"
+          },
+          "actor": {
+            "type": "string",
+            "description": "执行角色（岗位，不是人名）"
+          },
+          "preconditions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "effects": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "endpoint": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "这个动作在系统里由哪个接口/事务码/菜单完成（如 SAP事务码=MIR7、POST /v1/approve）；材料里没写就给 null，不要猜"
+          },
+          "source_file": {
+            "type": "string"
+          },
+          "source_locator": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "events": {
+      "type": "array",
+      "description": "业务事件：动作做完之后**可观测的事实**（名字用「已…」的说法）。「审批通过后通知采购员」这句话里藏着一个「采购申请已批准」事件",
+      "items": {
+        "type": "object",
+        "required": [
+          "api_name",
+          "display_name",
+          "source_file",
+          "source_locator"
+        ],
+        "properties": {
+          "api_name": {
+            "type": "string",
+            "description": "如 RequisitionApproved"
+          },
+          "display_name": {
+            "type": "string",
+            "description": "如「采购申请已批准」"
+          },
+          "emitted_by": {
+            "type": "string",
+            "description": "产生它的动作（action 的 api_name）"
+          },
+          "payload_objects": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "事件带着哪些对象的数据（对象 api_name）"
+          },
+          "source_file": {
+            "type": "string"
+          },
+          "source_locator": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "rules": {
+      "type": "array",
+      "description": "业务规则与约束。表格的说明列里「金额超过 5 万需二级审批」这类句子",
+      "items": {
+        "type": "object",
+        "required": [
+          "statement",
+          "source_file",
+          "source_locator"
+        ],
+        "properties": {
+          "statement": {
+            "type": "string",
+            "description": "规则原话，可判定的说法"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "VALIDATION",
+              "PROCESS",
+              "AUTHORITY",
+              "CALCULATION",
+              "OTHER"
+            ]
+          },
+          "actor": {
+            "type": "string"
+          },
+          "applies_to": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "condition": {
+            "type": "string",
+            "description": "可判定的那一半，如 `estimatedAmount > 50000`。写不出来就不给"
+          },
+          "source_file": {
+            "type": "string"
+          },
+          "source_locator": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

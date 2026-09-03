@@ -93,7 +93,7 @@ describe("形状", () => {
     expect(h).toContain('<div class="qbar" id="quotaBar" hidden></div>');
     const headEnd = h.indexOf("</div>", h.indexOf('<div class="mhead">'));
     const barAt = h.indexOf('id="quotaBar"');
-    const stream = h.indexOf('<div class="stream" id="stream">');
+    const stream = h.indexOf('<div class="stream" id="stream"');
     expect(headEnd).toBeLessThan(barAt);
     expect(barAt).toBeLessThan(stream);
   });

@@ -1614,8 +1614,16 @@ export class CsvParser extends Parser {
     } catch {
       delim = extname(fileName).toLowerCase() === ".tsv" ? "\t" : ",";
     }
-    const rows = csvReader(pySplitlines(text), delim)
-      .filter((r) => r.some((x) => pyStrip(x) !== ""));
+    // **先记录每条记录在过滤前的序号，再滤空行。** 上一版先 filter 再按
+    // 过滤后的下标算行号：材料里夹着空行时，locator/cite 指向错误的物理行 ——
+    // 「出处点得回原文」是全产品的地基，出处错一行就是指着别人的字段说话。
+    const parsedAll = csvReader(pySplitlines(text), delim);
+    const keptIdx: number[] = [];
+    const rows = parsedAll.filter((r, i) => {
+      const keep = r.some((x) => pyStrip(x) !== "");
+      if (keep) keptIdx.push(i);
+      return keep;
+    });
     if (rows.length === 0) {
       doc.structured["columns"] = [];
       doc.structured["rows"] = 0;
@@ -1641,9 +1649,10 @@ export class CsvParser extends Parser {
 
     // 大表不逐行切片 —— 几万行会把索引撑爆且毫无检索价值。
     // 给表头 + 画像 + 少量样本行，这才是抽取需要看的东西。
+    const physOf = (logical: number): number => (keptIdx[logical] ?? logical) + 1;
     doc.chunks.push(makeChunk({
       docId: "schema", fileId: opts.fileId, fileName,
-      locator: { kind: "range", sheet: stem, rows: [h + 1, h + 1] },
+      locator: { kind: "range", sheet: stem, rows: [physOf(h), physOf(h)] },
       render:
         "列：" +
         Object.entries(profile)
@@ -1654,11 +1663,22 @@ export class CsvParser extends Parser {
       raw: profile, order: 0, tags: ["schema"],
     }));
     body.slice(0, 20).forEach((row, ri) => {
+      // **raw 必须带、tag 必须是 row** —— 与 xlsx 行切片同一份契约。
+      // 上一版这里没传 raw（落成 null）且 tag 写成 sample：
+      // `Segment.rows()` 只收 raw 是扁平字典的切片、readiness 按 "row" 计数 ——
+      // 于是**整份 CSV 在形状推断里等于零行、在就绪度评估里等于零数据**。
+      // 同一份材料换个扩展名（.xlsx ↔ .csv）就从"能抽"变"不能抽"，
+      // 而且没有任何报错 —— 用户只会看到"CSV 传了但什么都没抽出来"。
+      const raw: Record<string, string> = {};
+      for (let i = 0; i < Math.min(header.length, row.length); i++) {
+        raw[header[i]!] = row[i]!;
+      }
+      const phys = physOf(h + 1 + ri);
       doc.chunks.push(makeChunk({
-        docId: `r${h + 2 + ri}`, fileId: opts.fileId, fileName,
-        locator: { kind: "range", sheet: stem, rows: [h + 2 + ri, h + 2 + ri] },
+        docId: `r${phys}`, fileId: opts.fileId, fileName,
+        locator: { kind: "range", sheet: stem, rows: [phys, phys] },
         render: renderPairs(header, row).join(" | "),
-        order: ri + 1, tags: ["sample"],
+        raw, order: ri + 1, tags: ["row"],
       }));
     });
     if (body.length > 20) {

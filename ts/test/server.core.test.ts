@@ -482,6 +482,24 @@ describe("runIdFor（golden）", () => {
     runIdFor(s);
     expect(s.files[0]!.sha256).toBe("missing:gone.xlsx:7");
   });
+
+  it("项目文档按会话固定版本参与指纹，新版本不会静默改写旧 Run", () => {
+    const s = new Session("sess-doc");
+    s.state["_document_manifest"] = [{
+      document_id: "doc-policy",
+      version_id: "dv-1",
+      sha256: "sha-v1",
+    }];
+    const v1 = runIdFor(s);
+    // 项目库即使已有 v2，只要本会话仍固定 v1，manifest 不变，Run 也不变。
+    expect(runIdFor(s)).toBe(v1);
+    s.state["_document_manifest"] = [{
+      document_id: "doc-policy",
+      version_id: "dv-2",
+      sha256: "sha-v2",
+    }];
+    expect(runIdFor(s)).not.toBe(v1);
+  });
 });
 
 describe("chatRecorderRunId（golden）", () => {
@@ -525,7 +543,9 @@ describe("Session.emit", () => {
   });
 
   it("卡片事件保留状态投影，且只留最后 CAP 条", () => {
-    expect([...CARD_EVENT_KINDS]).toEqual(GOLDEN.card_event.kinds);
+    expect([...CARD_EVENT_KINDS].filter((kind) => kind !== "web.sources"))
+      .toEqual(GOLDEN.card_event.kinds);
+    expect(CARD_EVENT_KINDS).toContain("web.sources");
     expect(CARD_EVENT_CAP).toBe(GOLDEN.card_event.cap);
 
     const s = new Session("s1");
@@ -770,8 +790,12 @@ describe("GET /api/usage", () => {
     const res = await app.request("/api/usage?days=3&bucket=day");
     expect(res.status).toBe(200);
     const body = (await res.json()) as Record<string, unknown>;
+    // by_owner / can_see_all / owner_filter / owner_names 是"管理员监控全部账号用量"
+    // 那一批：前者是分账，后三个告诉界面**它现在看到的是谁的账** —— 少了它，
+    // 管理员看到一份只有自己的报表却以为是全站的，而界面上没有任何迹象。
     expect(Object.keys(body).sort()).toEqual(
-      ["by_kind", "by_model", "bucket", "cost_note", "days", "rows", "series", "total", "truncated"].sort(),
+      ["by_kind", "by_model", "by_owner", "bucket", "can_see_all", "cost_note", "days",
+       "owner_filter", "owner_names", "rows", "series", "total", "truncated"].sort(),
     );
     expect(body["days"]).toBe(3);
     expect(body["cost_note"]).toBe("none");
@@ -813,5 +837,57 @@ describe("GET /api/usage", () => {
     await app.request("/api/usage");
     // 开放模式（合成管理员）看全部 —— null 就是"不按归属过滤"
     expect(seen.at(-1)).toBe(null);
+  });
+
+  // 「管理员监控全部账号的 token 用量」那一批。
+  //
+  // 这里以前有个静默的坑：判据只写 `isolate(c) ? ownerId(c) : null`，而 isolate 只
+  // 排除合成管理员 —— **真管理员也被钉在自己账上**，于是他看到的是一份只有自己的
+  // 报表，界面上却没有任何迹象说明这不是全站。
+  describe("按角色的可见范围", () => {
+    const seen: Array<string | null | undefined> = [];
+    const install = (): void => {
+      seen.length = 0;
+      setRepoForTests({
+        async usageSince(_since: number, opts?: { owner?: string | null }): Promise<UsageRow[]> {
+          seen.push(opts?.owner ?? null);
+          return [];
+        },
+      });
+    };
+    const as = (user: { id: string; role?: string }): void => {
+      registerAuthMiddleware(async (c, next) => {
+        c.set("user", user as unknown as Parameters<typeof c.set>[1]);
+        await next();
+      });
+    };
+
+    it("管理员不带参数 = 全部账号（null，不按归属过滤）", async () => {
+      install(); as({ id: "a1", role: "admin" });
+      const res = await app.request("/api/usage");
+      expect(seen.at(-1)).toBe(null);
+      expect((await res.json() as any).can_see_all).toBe(true);
+    });
+
+    it("管理员的 ?owner= 能钻到某个账号", async () => {
+      install(); as({ id: "a1", role: "admin" });
+      await app.request("/api/usage?owner=u42");
+      expect(seen.at(-1)).toBe("u42");
+    });
+
+    it("**普通用户带 ?owner= 仍然只查自己** —— 越权参数被吃掉", async () => {
+      install(); as({ id: "u42", role: "user" });
+      const res = await app.request("/api/usage?owner=a1");
+      expect(seen.at(-1)).toBe("u42");
+      expect((await res.json() as any).can_see_all).toBe(false);
+    });
+
+    it("拿不到账号名不该让整个接口挂掉 —— 名字是装饰，数字才是意义", async () => {
+      install(); as({ id: "a1", role: "admin" });
+      // 假 repo 只有 usageSince，没有 listUsers
+      const res = await app.request("/api/usage");
+      expect(res.status).toBe(200);
+      expect((await res.json() as any).owner_names).toEqual({});
+    });
   });
 });

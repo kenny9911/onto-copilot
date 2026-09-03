@@ -44,7 +44,7 @@ const { hasCard, timeline } = await import("../src/ui/events.js");
 const { render: paintMiddle } = await import("../src/ui/render.js");
 const { registeredRegions } = await import("../src/ui/react/app.js");
 const { EvCard, TraceCard } = await import("../src/ui/react/events.js");
-const { Stream } = await import("../src/ui/react/stream.js");
+const { Stream, groupChatReasoning } = await import("../src/ui/react/stream.js");
 
 const EVIL = `"><img src=x onerror=alert(1)>`;
 
@@ -231,13 +231,18 @@ describe("提示气泡（chips）", () => {
     expect(mount().textContent).toContain("开场");
   });
 
-  it("chip 的发送文本走 data-s，优先 send 字段", () => {
+  it("chip 的文本走 data-s，优先 send 字段；点一下填进输入框而不是发出去", () => {
     chat();
-    G.FOLLOWUPS = [{ text: "显示的", send: "真正发出去的" }];
+    document.getElementById("cin")?.remove();
+    const cin = document.createElement("textarea");
+    cin.id = "cin";
+    document.body.appendChild(cin);
+    G.FOLLOWUPS = [{ text: "显示的", send: "真正要发的" }];
     const btn = mount().querySelector(".pchip") as any;
-    expect(btn.dataset.s).toBe("真正发出去的");
+    expect(btn.dataset.s).toBe("真正要发的");
     fireEvent.click(btn);
-    expect(ask).toHaveBeenCalledWith("真正发出去的");
+    expect(cin.value).toBe("真正要发的");
+    expect(ask).not.toHaveBeenCalled();
   });
 
   it("这一轮还在路上时不画 chips（否则输入框正上方整块跳一跳）", () => {
@@ -260,12 +265,41 @@ describe("提示气泡（chips）", () => {
 // ══════════════════════════════════════════════════════════════════
 //  确认闸
 // ══════════════════════════════════════════════════════════════════
+describe("会话已恢复", () => {
+  // 每次服务重启/水合都会发一条**持久** session.restored，于是它们在事件表里
+  // 累积（真实库里同一会话见过 5 条），流里就叠出 5 张一模一样的卡。
+  it("**同一会话只画最新一条**，不叠成一摞", () => {
+    G.S.state.dialogue.turns = [turn("user", 1, "问")];
+    G.S.events = [
+      { seq: 1, kind: "session.restored", ts: 1, files: 0, stats: { objects: 3 } },
+      { seq: 2, kind: "session.restored", ts: 2, files: 0, stats: { objects: 8 } },
+      { seq: 3, kind: "session.restored", ts: 3, files: 0, stats: { objects: 8 } },
+    ] as any;
+    const c = mount();
+    const cards = [...c.querySelectorAll(".card")].filter((x) => x.textContent?.includes("会话已恢复"));
+    expect(cards.length).toBe(1);
+  });
+
+  it("能关掉 —— 它是状态陈述，读过就没用了", () => {
+    G.S.state.dialogue.turns = [turn("user", 1, "问")];
+    G.S.events = [{ seq: 9, kind: "session.restored", ts: 1, files: 2, stats: { objects: 1 } }] as any;
+    const c = mount();
+    const btn = [...c.querySelectorAll("button")].find((b) => b.getAttribute("aria-label") === "关掉这条");
+    expect(btn, "应该有一个关掉的出口").toBeDefined();
+    fireEvent.click(btn!);
+    const after = mount();
+    expect([...after.querySelectorAll(".card")].some((x) => x.textContent?.includes("会话已恢复"))).toBe(false);
+  });
+});
+
 describe("确认闸", () => {
   it("需要点头时出现在流尾，「确认执行」走的是对话通道", () => {
     G.S.state.dialogue.turns = [turn("user", 1, "问")];
     G.NEEDS_CONFIRM = true;
     const c = mount();
-    expect(c.querySelector(".cfm")!.textContent).toContain("这一步会改产物或花钱");
+    // 文案不提花钱：能走到这道闸的只剩 suggestion.apply，它不可逆但一分钱不花。
+    expect(c.querySelector(".cfm")!.textContent).toContain("这一步不可逆");
+    expect(c.querySelector(".cfm")!.textContent).not.toContain("花钱");
     fireEvent.click(c.querySelector(".cfm .act.pri")!);
     expect(confirmAct).toHaveBeenCalled();
   });
@@ -305,14 +339,19 @@ describe("事件卡与气泡在同一条时间线上", () => {
     expect(tbl).toBeGreaterThan(asst);
   });
 
-  it("乐观上屏的气泡排在历史之后、推理卡与思考占位之前", () => {
+  it("乐观上屏的气泡排在历史之后；当前步骤折叠进唯一的思考占位", () => {
     G.S.state.dialogue.turns = [turn("user", 1, "历史")];
     G.PENDING = [{ speaker: "user", text: "刚打的这句", pending: true }];
     G.STEPS = [{ thought: "先查一下" }];
     G.THINKING = true;
     const c = mount();
     const cls = ([...c.querySelector(".wrap")!.children] as any[]).map(e => e.className);
-    expect(cls).toEqual(["bub me", "bub me", "steps", "bub oc think"]);
+    expect(cls).toEqual(["bub me", "bub me", "bub oc think"]);
+    expect(c.querySelectorAll(".reasoning-disclosure")).toHaveLength(1);
+    expect(c.querySelector(".bub.oc.think summary")!.textContent).not.toContain("先查一下");
+    expect(c.querySelector(".bub.oc.think .reasoning-details")!.textContent).toBe("");
+    fireEvent.click(c.querySelector(".bub.oc.think summary")!);
+    expect(c.querySelector(".bub.oc.think .reasoning-details")!.textContent).toContain("先查一下");
     expect(c.querySelectorAll(".bub.me")[1]!.querySelector(".body").style.opacity).toBe("0.55");
   });
 
@@ -326,6 +365,43 @@ describe("事件卡与气泡在同一条时间线上", () => {
     const c = mount();
     expect(c.querySelector(".steps")).toBeNull();
     expect(c.textContent).not.toContain("想推荐问题");
+  });
+
+  it("回答落地后仍保留本轮推理，默认折叠并挂在对应助手回答之前", () => {
+    G.S.state.dialogue.turns = [
+      turn("user", 100, "查一下采购监督"),
+      turn("assistant", 200, "这是整理后的结论"),
+    ];
+    G.S.events = [
+      { seq: 1, ts: 120, kind: "chat.step",
+        step: { turn: "run-1", q: "查一下采购监督", n: 1, thought: "先找权威资料", tool: "web.search", args: { q: "采购监督" } } },
+      { seq: 2, ts: 160, kind: "chat.step",
+        step: { turn: "run-1", q: "查一下采购监督", n: 1, thought: "先找权威资料", tool: "web.search", args: { q: "采购监督" }, observation: "找到 5 条" } },
+    ];
+    const c = mount();
+    const kids = [...c.querySelector(".wrap")!.children] as any[];
+    const reasoningIndex = kids.findIndex((node) => node.classList.contains("steps"));
+    const assistantIndex = kids.findIndex((node) => node.textContent.includes("这是整理后的结论"));
+    expect(reasoningIndex).toBeGreaterThan(-1);
+    expect(reasoningIndex).toBeLessThan(assistantIndex);
+    const details = kids[reasoningIndex] as any;
+    expect(details.open).toBe(false);
+    expect(details.querySelector("summary").textContent).not.toContain("web.search");
+    expect(details.querySelector(".reasoning-details").textContent).toBe("");
+    fireEvent.click(details.querySelector("summary"));
+    expect(details.querySelector(".reasoning-details").textContent).toContain("web.search");
+    expect(details.querySelectorAll(".stp")).toHaveLength(1);
+    expect(details.querySelector(".stb").textContent).toBe("找到 5 条");
+  });
+
+  it("持久步骤按 turn#n 合并，aux 后台轮不进入聊天披露", () => {
+    const groups = groupChatReasoning([
+      { seq: 1, ts: 10, kind: "chat.step", step: { turn: "r1", n: 1, thought: "想" } },
+      { seq: 2, ts: 11, kind: "chat.step", step: { turn: "r1", n: 1, thought: "想", observation: "完成" } },
+      { seq: 3, ts: 12, kind: "chat.step", step: { turn: "aux", n: 1, thought: "推荐问题" } },
+    ]);
+    expect(groups).toHaveLength(1);
+    expect(groups[0]!.steps).toEqual([{ turn: "r1", n: 1, thought: "想", observation: "完成" }]);
   });
 });
 
@@ -381,6 +457,198 @@ describe("<EvCard>", () => {
     expect(a.getAttribute("href")).toBe("/api/sessions/s1/exports/%E6%B8%85%E5%8D%95.xlsx");
   });
 
+  it("Image 2 的 display-only 图从 exports 受保护路由内嵌，不冒充正式 artifact", () => {
+    G.S.id = "会话/1";
+    const c = card({
+      seq: 1, kind: "artifact.ready", name: "采购 报销#视觉版.png",
+      source: "generic_reference", display_only: true, storage: "exports", stats: {},
+    });
+    const expected = "/api/sessions/%E4%BC%9A%E8%AF%9D%2F1/exports/" +
+      "%E9%87%87%E8%B4%AD%20%E6%8A%A5%E9%94%80%23%E8%A7%86%E8%A7%89%E7%89%88.png";
+    expect(c.querySelector("img")?.getAttribute("src")).toBe(expected);
+    expect(c.querySelector("img")?.getAttribute("alt")).toBe("采购 报销#视觉版.png");
+    expect([...c.querySelectorAll("a")].find((a: any) => a.textContent === "看大图")?.getAttribute("href"))
+      .toBe(expected);
+    expect([...c.querySelectorAll("a")].find((a: any) => a.textContent === "下载 PNG")?.getAttribute("href"))
+      .toBe(expected);
+    expect(c.textContent).toContain("通用参考");
+    expect(c.textContent).toContain("仅供展示");
+    expect(c.textContent).not.toContain("0 张表");
+  });
+
+  it("artifact.ready 优先采用服务端给的预览/下载 URL，两者可以不同", () => {
+    const c = card({
+      seq: 1, kind: "artifact.ready", name: "视觉版.webp", storage: "exports",
+      preview_url: "/api/sessions/s1/exports/%E8%A7%86%E8%A7%89%E7%89%88.webp?inline=1",
+      download_url: "/api/sessions/s1/exports/%E8%A7%86%E8%A7%89%E7%89%88.webp?download=1",
+    });
+    expect(c.querySelector("img")?.getAttribute("src"))
+      .toBe("/api/sessions/s1/exports/%E8%A7%86%E8%A7%89%E7%89%88.webp?inline=1");
+    expect([...c.querySelectorAll("a")].find((a: any) => a.textContent === "下载 WEBP")?.getAttribute("href"))
+      .toBe("/api/sessions/s1/exports/%E8%A7%86%E8%A7%89%E7%89%88.webp?download=1");
+  });
+
+  it("点击生成图打开无裁切大图层，Escape/遮罩/关闭按钮都能退出并归还焦点", () => {
+    const c = card({
+      seq: 2, kind: "artifact.ready", name: "采购报销.png", storage: "exports",
+      preview_url: "/api/sessions/s1/exports/preview.png",
+      download_url: "/api/sessions/s1/exports/download.png",
+    });
+    const trigger = c.querySelector('button[aria-haspopup="dialog"]') as HTMLButtonElement;
+    expect(trigger.getAttribute("aria-label")).toBe("放大预览：采购报销.png");
+
+    trigger.focus();
+    fireEvent.click(trigger);
+    let dialog = document.querySelector('[data-image-lightbox="true"]') as HTMLElement;
+    expect(dialog?.getAttribute("role")).toBe("dialog");
+    expect(dialog?.getAttribute("aria-modal")).toBe("true");
+    expect(dialog.querySelector("img")?.getAttribute("src")).toBe("/api/sessions/s1/exports/preview.png");
+    expect(document.body.style.overflow).toBe("hidden");
+    expect((document.activeElement as HTMLElement)?.getAttribute("aria-label")).toBe("关闭大图预览");
+
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(document.querySelector('[data-image-lightbox="true"]')).toBeNull();
+    expect(document.body.style.overflow).toBe("");
+    expect(document.activeElement).toBe(trigger);
+
+    fireEvent.click(trigger);
+    dialog = document.querySelector('[data-image-lightbox="true"]') as HTMLElement;
+    fireEvent.mouseDown(dialog);
+    expect(document.querySelector('[data-image-lightbox="true"]')).toBeNull();
+
+    fireEvent.click(trigger);
+    fireEvent.click(document.querySelector('button[aria-label="关闭大图预览"]')!);
+    expect(document.querySelector('[data-image-lightbox="true"]')).toBeNull();
+
+    // 原来的独立查看与下载入口仍然保留，不被 lightbox 替代。
+    expect([...c.querySelectorAll("a")].find((a: any) => a.textContent === "看大图")).toBeTruthy();
+    expect([...c.querySelectorAll("a")].find((a: any) => a.textContent === "下载 PNG")).toBeTruthy();
+  });
+
+  it("记忆召回图与流程草图也使用同一套点击预览", () => {
+    const recalled = card({
+      seq: 3, kind: "asset.recalled", name: "历史流程.webp", asset_kind: "image",
+      preview_url: "/api/sessions/s1/memory/assets/history/preview",
+    });
+    const recalledTrigger = recalled.querySelector('button[aria-haspopup="dialog"]') as HTMLButtonElement;
+    fireEvent.click(recalledTrigger);
+    expect(document.querySelector('[role="dialog"] img')?.getAttribute("src"))
+      .toBe("/api/sessions/s1/memory/assets/history/preview");
+    fireEvent.keyDown(document, { key: "Escape" });
+    cleanup();
+
+    const sketch = card({
+      seq: 4, kind: "sketch.ready", name: "采购草图.svg", title: "采购参考流程",
+    });
+    fireEvent.click(sketch.querySelector('button[aria-haspopup="dialog"]')!);
+    expect(document.querySelector('[role="dialog"] img')?.getAttribute("src"))
+      .toBe("/api/sessions/s1/exports/%E9%87%87%E8%B4%AD%E8%8D%89%E5%9B%BE.svg");
+    expect(document.querySelector('[role="dialog"] figcaption')?.textContent).toBe("采购参考流程");
+  });
+
+  it("artifact.ready 只内嵌 png/jpg/jpeg/webp/gif，其他后缀保持原下载卡", () => {
+    for (const name of ["a.svg", "a.pdf", "a.png.exe", "a"] as const) {
+      const c = card({ seq: 1, kind: "artifact.ready", name, stats: { sheets: 2, business_required: 3 } });
+      expect(c.querySelector("img"), name).toBeNull();
+      expect(c.querySelector("a.act")?.textContent, name).toBe("下载");
+      expect(c.textContent, name).toContain("2 张表 · 3 格待业务方填写");
+    }
+    expect(card({ seq: 1, kind: "artifact.ready", name: "A.JPG", stats: {} }).querySelector("img")).not.toBeNull();
+  });
+
+  it("asset.recalled 取回图片时内嵌记忆预览，并保留来源和展示属性", () => {
+    const c = card({
+      seq: 12, kind: "asset.recalled", name: "采购报销视觉版.png", kind_name: "image",
+      asset_kind: "image", mime: "image/png", source: "项目记忆 · 采购ERP",
+      preview_url: "/api/sessions/s1/memory/assets/a%2Fb/preview",
+      download_url: "/api/sessions/s1/memory/assets/a%2Fb/download",
+      display_only: true, generic_reference: true,
+    });
+    expect(c.querySelector("img")?.getAttribute("src"))
+      .toBe("/api/sessions/s1/memory/assets/a%2Fb/preview");
+    expect(c.textContent).toContain("来源：项目记忆 · 采购ERP");
+    expect(c.textContent).toContain("通用参考");
+    expect(c.textContent).toContain("仅供展示");
+    expect([...c.querySelectorAll("a")].find((a: any) => a.textContent === "下载")?.getAttribute("href"))
+      .toBe("/api/sessions/s1/memory/assets/a%2Fb/download");
+  });
+
+  it("asset.recalled 取回材料/文档时不冒充图片，显示来源、打开和下载", () => {
+    const c = card({
+      seq: 13, kind: "asset.recalled", name: "采购制度.pdf", asset_kind: "material",
+      mime: "application/pdf", source: "客户材料：采购制度",
+      url: "/api/sessions/s1/memory/assets/m1",
+      preview_url: "/api/sessions/s1/memory/assets/m1/preview",
+      download_url: "/api/sessions/s1/memory/assets/m1/download",
+    });
+    expect(c.querySelector("img")).toBeNull();
+    expect(c.textContent).toContain("材料");
+    expect(c.textContent).toContain("来源：客户材料：采购制度");
+    expect([...c.querySelectorAll("a")].find((a: any) => a.textContent === "打开")?.getAttribute("href"))
+      .toBe("/api/sessions/s1/memory/assets/m1/preview");
+    expect([...c.querySelectorAll("a")].find((a: any) => a.textContent === "下载")?.getAttribute("href"))
+      .toBe("/api/sessions/s1/memory/assets/m1/download");
+  });
+
+  it("asset.recalled 不把 javascript/data 地址放进 img 或链接", () => {
+    const c = card({
+      seq: 14, kind: "asset.recalled", name: "x.png", asset_kind: "image", mime: "image/png",
+      preview_url: "javascript:alert(1)", download_url: "data:text/html,boom",
+    });
+    expect(c.querySelector("img")).toBeNull();
+    expect(c.querySelector("a")).toBeNull();
+  });
+
+  it("导出卡（P3 迭代）：模型前进后亮「基于第 N 版 · 模型已到第 M 版」并给一键重导", () => {
+    (G.S.state as any).artifact_revision = 9;
+    const c = card({ seq: 1, kind: "export.ready", name: "确认稿.docx", title: "业务确认稿",
+      label: "Word", size: 2048, revision: 7 });
+    expect(c.textContent).toContain("基于第 7 版");
+    expect(c.textContent).toContain("模型已到第 9 版");
+    const btn = [...c.querySelectorAll("button")].find((b: any) => b.textContent!.includes("重新导出"));
+    expect(btn).toBeTruthy();
+    // 一键重导 = 预填一句带文件名保持指令的话进输入框（走对话权限，不绕过模型）。
+    // 应用壳可能已经有 #cin（渲染残留），必须复用同一个 —— getElementById 只认第一个。
+    const existing = document.getElementById("cin") as HTMLTextAreaElement | null;
+    const input = existing ?? (() => {
+      const el = document.createElement("textarea");
+      el.id = "cin";
+      document.body.appendChild(el);
+      return el;
+    })();
+    input.value = "";
+    fireEvent.click(btn!);
+    expect(input.value).toContain("业务确认稿");
+    expect(input.value).toContain("确认稿.docx");
+    expect(input.value).toContain("最新");
+    if (existing === null) input.remove(); else input.value = "";
+  });
+
+  it("导出卡：同名文件已被重导覆盖 → 旧卡标「已被第 M 版重导覆盖」，撤下重导按钮", () => {
+    (G.S.state as any).artifact_revision = 9;
+    (G.S.state as any).export_meta = { "确认稿.docx": { revision: 9 } };
+    const c = card({ seq: 1, kind: "export.ready", name: "确认稿.docx", title: "业务确认稿",
+      size: 1, revision: 7 });
+    expect(c.textContent).toContain("已被第 9 版重导覆盖");
+    expect(c.textContent).not.toContain("模型已到");
+    expect([...c.querySelectorAll("button")].some((b: any) => b.textContent!.includes("重新导出"))).toBe(false);
+    delete (G.S.state as any).export_meta;
+  });
+
+  it("导出卡：版本没动只标「基于第 N 版」，不催重导", () => {
+    (G.S.state as any).artifact_revision = 7;
+    const c = card({ seq: 1, kind: "export.ready", name: "a.xlsx", size: 1, revision: 7 });
+    expect(c.textContent).toContain("基于第 7 版");
+    expect(c.textContent).not.toContain("模型已到");
+    expect([...c.querySelectorAll("button")].some((b: any) => b.textContent!.includes("重新导出"))).toBe(false);
+  });
+
+  it("导出卡：老事件没有 revision → 完全不出版本徽标", () => {
+    (G.S.state as any).artifact_revision = 9;
+    const c = card({ seq: 1, kind: "export.ready", name: "a.xlsx", size: 1 });
+    expect(c.textContent).not.toContain("基于第");
+  });
+
   it("没有 findings 的 corpus.ready 不占一张卡", () => {
     expect(card({ seq: 1, kind: "corpus.ready", findings: [], stats: {} }).innerHTML).toBe("");
   });
@@ -397,6 +665,8 @@ describe("<EvCard>", () => {
       { seq: 1, kind: "parse.failed", error: "炸了" },
       { seq: 1, kind: "human.recorded", conflict: "c1", label: "选了甲", changed: ["A"] },
       { seq: 1, kind: "artifact.ready", name: "模板.xlsx", stats: {} },
+      { seq: 1, kind: "asset.recalled", name: "记忆图片.png", asset_kind: "image",
+        preview_url: "/api/sessions/s1/memory/assets/1/preview" },
       { seq: 1, kind: "audit.applied", revision: 2, changed: 3, dropped: [] },
       { seq: 1, kind: "ui.table", title: "t", columns: ["a"], rows: [["1"]] },
       { seq: 1, kind: "export.ready", name: "x.xlsx", size: 1 },
@@ -437,13 +707,14 @@ describe("<TraceCard>", () => {
       { seq: 2, ts: 2, kind: "corpus.ready", stats: { files: 1 } },
     ];
     const c = trace();
-    expect(c.querySelector("summary")!.textContent).toBe("推理轨迹 · 1 条");
+    expect(c.querySelector("summary")!.textContent).toBe("运行详情 · 1 条");
     expect((c.querySelector("details") as any).open).toBe(false);
+    expect(c.querySelector("summary")!.getAttribute("aria-expanded")).toBe("false");
   });
 
-  it("事件多了默认展开 —— 看不见的推理和编造的区别，用户是分辨不出来的", () => {
+  it("事件再多也默认折叠，聊天主线不被 Harness 运行记录淹没", () => {
     G.S.events = Array.from({ length: 5 }, (_, i) => ({ seq: i, ts: i, kind: "node.entered", node: "N" }));
-    expect((trace().querySelector("details") as any).open).toBe(true);
+    expect((trace().querySelector("details") as any).open).toBe(false);
   });
 
   it("没有事件时不占位置", () => {
@@ -454,9 +725,19 @@ describe("<TraceCard>", () => {
   it("失败一眼看得出来（.tag.err），要点里的标记是文本", () => {
     G.S.events = [{ seq: 1, ts: 1, kind: "persist.failed", error: EVIL }];
     const c = trace();
+    expect(c.querySelector(".step")).toBeNull();
+    fireEvent.click(c.querySelector("summary")!);
     expect(c.querySelector(".step > .tag.err")!.textContent).toBe("落库失败");
     expect(c.querySelector("img")).toBeNull();
     expect(c.querySelector(".sub")!.textContent).toBe(EVIL);
+  });
+});
+
+describe("运行详情的位置", () => {
+  it("聊天主线不再渲染全局运行详情，明细由右侧运行页承载", () => {
+    G.S.events = [{ seq: 1, ts: 1, kind: "node.entered", node: "PARSE" }];
+    G.S.state.dialogue.turns = [turn("user", 2, "开始")];
+    expect(mount().querySelector(".trace")).toBeNull();
   });
 });
 

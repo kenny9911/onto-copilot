@@ -165,7 +165,7 @@ export function QCard({ q, i }: { q: any; i: number }): ReactElement {
           {(q.priority === "high" || q.priority === "blocking" ? "高" : q.priority === "low" ? "低" : "普通") + "优先级"}
         </span>
         {q.code ? <span className="qbadge">{q.code}</span> : null}
-        <span className="qbadge">{q.source}</span>
+        <span className="qbadge">{q.sourceLabel || q.source}</span>
       </div>
       <div className="qtext">{q.text}</div>
       {q.why ? <div className="qwhy">为什么问：{q.why}</div> : null}

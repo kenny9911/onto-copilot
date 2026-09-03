@@ -313,6 +313,27 @@ export interface GenerateArgs {
 export interface LLMBackend {
   /** 返回 `[文本, 用量]`。 */
   generate(args: GenerateArgs): Promise<[string, Usage]>;
+  /**
+   * 出图（images 端点，与 chat completions 不是一条路）。
+   *
+   * **可选**：Anthropic、Scripted 和各测试替身都不出图，逼它们实现只会得到一排
+   * `throw new Error("unsupported")`。调用方先探测（`backend.generateImage !== undefined`）
+   * 再调；把调用包进 `rec.effect()`，超长的 base64 会走 Recorder 既有的
+   * BlobStore 溢出机制（INLINE_LIMIT），重放免费。
+   */
+  generateImage?(args: ImageGenArgs): Promise<ImageGenResult>;
+}
+
+export interface ImageGenArgs {
+  readonly model: string;
+  readonly prompt: string;
+  /** 如 `1024x1024`。不传由网关取默认。 */
+  readonly size?: string;
+}
+
+export interface ImageGenResult {
+  /** PNG 的 base64（不带 data: 前缀）。 */
+  readonly b64: string;
 }
 
 /** ScriptedBackend 的一条规则：`[Python 风格的正则源码 或 RegExp, 响应]`。 */
@@ -614,11 +635,23 @@ export function overrideSpec(
   catalog: CatalogLike | null | undefined,
   diff: Difficulty,
 ): ModelSpec {
-  const card = catalog != null ? catalog.get(modelName) : null;
+  // 一档可配**多候选**（逗号/顿号分隔），人手写的顺序就是优先序：取目录里第一个
+  // 存在的。这是「由人配、不靠内置档位区间」的手动选型 —— 网关下架某个模型时
+  // 自动落到下一候选，而不是整档失效。**选型发生在建路由表时**（每个 Run 一次），
+  // 不在调用中途换模型 —— 中途换会让同一请求的 effect 指纹漂移，重放就断了。
+  const candidates = modelName
+    .split(/[,、]/)
+    .map((s) => s.trim())
+    .filter((s) => s !== "");
+  const chosen =
+    catalog != null
+      ? (candidates.find((name) => catalog.get(name) != null) ?? candidates[0] ?? modelName)
+      : (candidates[0] ?? modelName);
+  const card = catalog != null ? catalog.get(chosen) : null;
   if (card == null) {
     // 目录里没有 → 保守：无 effort、中档定价（定价只用于兜底估算）。
     return makeModelSpec({
-      name: modelName,
+      name: chosen,
       tier: "mid",
       usd_per_mtok_in: 3.0,
       usd_per_mtok_out: 15.0,
@@ -628,7 +661,7 @@ export function overrideSpec(
   }
   const supportsEffort = card.spec.effort !== null;
   return makeModelSpec({
-    name: modelName,
+    name: chosen,
     tier: card.spec.tier,
     usd_per_mtok_in: card.spec.usd_per_mtok_in,
     usd_per_mtok_out: card.spec.usd_per_mtok_out,
@@ -848,6 +881,51 @@ interface FiredState {
 }
 
 /** 所有模型调用的唯一入口。 */
+/**
+ * 网关全局并发上限（P0）。
+ *
+ * 调度器的信号量只管**节点**并发；节点内部再并行（cohort、只读并行批、
+ * 四 critic 视角）时，真实 HTTP 并发 = 节点并发 × 节点内并发，而对上游只有
+ * 429/欠费的被动分支。这道闸设在唯一的网络收口点（backend.generate，位于
+ * rec.effect 内侧）：重放不经过 generate，所以**重放不被限流** —— 重放本该
+ * 0 网络 0 等待。
+ *
+ * FIFO 语义与 scheduler 的 Semaphore 同款：release 把 permit 直接交给下一个
+ * 等待者，先到先服务。默认不限（null）—— 老部署零影响；由 serve 启动时按
+ * 配置注入，测试用 setGatewayMaxConcurrency 开关。
+ */
+class GatewaySemaphore {
+  private permits: number;
+  private readonly waiters: (() => void)[] = [];
+  constructor(permits: number) {
+    this.permits = permits;
+  }
+  async acquire(): Promise<() => void> {
+    if (this.permits > 0) this.permits -= 1;
+    else await new Promise<void>((resolve) => this.waiters.push(resolve));
+    let released = false;
+    return () => {
+      if (released) return; // 幂等：finally 放一次，别的路径再放不会多出 permit
+      released = true;
+      const next = this.waiters.shift();
+      if (next === undefined) this.permits += 1;
+      else next();
+    };
+  }
+}
+
+let _gatewaySem: GatewaySemaphore | null = null;
+
+/** 设/撤全局并发上限。null = 不限（默认）。进程级：多个 gateway 实例共享同一上游。 */
+export function setGatewayMaxConcurrency(limit: number | null): void {
+  _gatewaySem = limit === null || limit <= 0 ? null : new GatewaySemaphore(limit);
+}
+
+/** 拿一个 permit（不限流时是零开销直通）。 */
+async function acquireGatewayPermit(): Promise<(() => void) | null> {
+  return _gatewaySem === null ? null : await _gatewaySem.acquire();
+}
+
 export class ModelGateway {
   readonly backend: LLMBackend;
   readonly rec: LlmRecorder;
@@ -868,6 +946,34 @@ export class ModelGateway {
     this.budget = opts.budget ?? new Budget();
     this.maxSchemaRetries = opts.maxSchemaRetries ?? 2;
     this.usageSink = opts.usageSink ?? null;
+  }
+
+  /**
+   * 出一张图（images 端点）。所有出图调用的**唯一收口**，与 {@link call} 平级。
+   *
+   * 包进 `rec.effect(kind="image.call")`：重放时直接回放上次结果、不再打后端
+   * （同一张图不付两次钱）；base64 超过 INLINE_LIMIT 走 Recorder 既有的
+   * BlobStore 溢出，不撑爆事件日志。
+   *
+   * **费用如实说**：images 端点按张计价，不产生 token 用量 —— 这里不写
+   * `llm_usage` 台账（那本账的键是 tok_in/tok_out）。调用方要在产物说明里
+   * 披露"图像费用未计入 token 台账"，不许装作免费。
+   */
+  async generateImage(nodeId: string, args: ImageGenArgs): Promise<ImageGenResult> {
+    const fn = this.backend.generateImage?.bind(this.backend);
+    if (fn === undefined) {
+      throw new ModelError(
+        "当前后端不支持出图（generateImage 缺席）。图像生成需要 OpenAI 兼容网关的 images 端点。",
+      );
+    }
+    // 键名 snake_case：这个 dict 会被 fingerprint（同 call 的 req），改一个
+    // 字母就是历史 effect 全部对不上（DeterminismViolation）。
+    const req: Record<string, unknown> = {
+      model: args.model,
+      prompt: args.prompt,
+      size: args.size ?? null,
+    };
+    return (await this.rec.effect(nodeId, "image.call", req, () => fn(args))) as ImageGenResult;
   }
 
   /** 调一次模型。 */
@@ -906,6 +1012,14 @@ export class ModelGateway {
 
     const doCall = async (): Promise<EffectResult> => {
       let lastErr = "";
+      // **起跑前预检（P0）**：tokens/usd 两维过去只有事后记账（chargeUsage），
+      // 没有任何 check 点 —— 账面早已爆表的一轮大 fan-out 还能继续开新调用。
+      // 这里在真实网络调用发出前先问一次剩余额度。位置在 effect 回调**内侧**
+      // 是刻意的：重放不执行回调，超支的历史 journal 才恢复得回去（chargeUsage
+      // 重放时照记账是既有语义，动不得）。放在 fired.hit 置位之前 —— 被预检
+      // 拦下的调用一个包都没出去，不该被当成"打过但失败"记账。
+      this.budget.check("tokens");
+      this.budget.check("usd");
       fired.hit = true;
       // **每一次重试都是真金白银。** 以前只把最后一次的 usage 带出去，于是
       // 一次调用重试三回、账上只算一回。schema 不合重试、截断加预算重试都
@@ -949,6 +1063,7 @@ export class ModelGateway {
               "请只输出符合 schema 的 JSON，不要任何解释文字。";
         let text: string;
         let usage: Usage;
+        const releasePermit = await acquireGatewayPermit();
         try {
           [text, usage] = await this.backend.generate({
             model: spec,
@@ -969,6 +1084,10 @@ export class ModelGateway {
           budget = Math.min(budget * 3, 64_000);
           lastErr = exc.message;
           continue;
+        } finally {
+          // permit 只包住网络那一下：schema 解析、重试判定都不占并发额度。
+          // finally 保证异常/截断/成功三条路都归还，闸不会漏气。
+          releasePermit?.();
         }
         bill(usage);
         const out = {

@@ -11,7 +11,7 @@
  * 覆盖的是"接线可能错、而 SQLite 那边永远看不出来"的那些地方：
  *   * 占位符改写（错位 = 越权，见 `toPgPlaceholders` 的注释）；
  *   * 三类值形态（jsonb / boolean / bigint）在 sqlite 列解码器下的还原；
- *   * 迁移能真的把 23 张表建出来，且第二次跑是空操作；
+ *   * 迁移能真的把 27 张表建出来，且第二次跑是空操作；
  *   * **双方言一致性**：同一串仓储操作，SQLite 与 Postgres 给出同样的结果。
  */
 
@@ -152,18 +152,18 @@ describe.skipIf(!PG_UP)("Postgres 真库", () => {
       expect(empty.ok).toBe(false);
 
       const ran = await upgrade(store.engine as unknown as PgEngine);
-      expect(ran).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]);
+      expect(ran).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]);
       // 第二次是空操作 —— 迁移不是幂等的话，滚动发布第二个副本就会重建表。
       expect(await upgrade(store.engine as unknown as PgEngine)).toEqual([]);
 
       const health = await store.healthcheck();
-      expect(health).toEqual({ mode: "postgres", ok: true, schema_version: 13 });
+      expect(health).toEqual({ mode: "postgres", ok: true, schema_version: 19 });
     } finally {
       await store.close();
     }
   }, 60_000);
 
-  it("迁移建出来的表覆盖 schema.ts 声明的 23 张", async () => {
+  it("迁移建出来的表覆盖 schema.ts 声明的 27 张", async () => {
     await ensureSchema();
     const engine = new PgEngine(PG_URL, POOL);
     try {

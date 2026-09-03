@@ -25,10 +25,33 @@ import { httpError, requireAdmin } from "./authgate.js";
 import type { AuthEnv, RepoGetter } from "./authgate.js";
 import { defaultRepoGetter } from "./authgate.js";
 import * as gatewayBalance from "./kernel/gateway_balance.js";
+import { isImageModel } from "./kernel/catalog.js";
 import { Difficulty } from "./kernel/dag.js";
 import { gatewayRouting } from "./kernel/llm.js";
 import type { CatalogLike } from "./kernel/llm.js";
 import type { JsonValue } from "./store/types.js";
+
+/** 候选串的第一个候选；没配给 null。 */
+function firstCandidate(candidates: string): string | null {
+  for (const raw of candidates.split(/[,、]/)) {
+    const name = raw.trim();
+    if (name !== "") return name;
+  }
+  return null;
+}
+
+/**
+ * 目录名单里第一个**出图**模型。
+ *
+ * 注意：图像模型被 NOT_CHAT_RE 有意挡在聊天卡目录外，所以内置目录里通常没有 ——
+ * 返回 null 时设置页如实显示"无默认"，让用户自己填网关上的型号。
+ */
+function firstImageModel(cat: ConfigCatalog): string | null {
+  for (const name of cat.names()) {
+    if (isImageModel(name)) return name;
+  }
+  return null;
+}
 
 const TIER_DIFF: Readonly<Record<string, Difficulty>> = {
   low: Difficulty.LOW,
@@ -159,6 +182,51 @@ export async function balanceView(): Promise<gatewayBalance.BalanceDict> {
   }
 }
 
+/**
+ * 「图像」档下拉的可选列表 —— 来自**网关本身**的 `/v1/models`，按名形筛出出图型号。
+ *
+ * 为什么不用聊天目录：图像模型被 NOT_CHAT_RE 有意挡在外面（不该被难度路由选去
+ * 回话），所以那份目录里永远没有它们。列表只能问网关要。
+ *
+ * 纪律与余额探测（{@link balanceView}）同一条：**任何失败都回空列表** ——
+ * 网关挂了/超时/没配 key 都不该让设置页打不开；空列表时前端回落到手填框。
+ * 60 秒 TTL 缓存：设置页每开一次都打网关会把网关刷爆。
+ */
+let _imageCatalogCache: { at: number; list: string[] } | null = null;
+const IMAGE_CATALOG_TTL_MS = 60_000;
+
+export function imageCatalogCacheReset(): void {
+  _imageCatalogCache = null;
+}
+
+export async function imageCatalogView(): Promise<string[]> {
+  const now = Date.now();
+  if (_imageCatalogCache !== null && now - _imageCatalogCache.at < IMAGE_CATALOG_TTL_MS) {
+    return _imageCatalogCache.list;
+  }
+  const [base, key] = gatewayCreds();
+  if (!base || !key) return [];
+  let list: string[] = [];
+  try {
+    const r = await fetch(`${base.replace(/\/+$/, "")}/models`, {
+      headers: { Authorization: `Bearer ${key}` },
+      signal: AbortSignal.timeout(PROBE_TIMEOUT_MS),
+    });
+    if (r.ok) {
+      const body = (await r.json()) as { data?: { id?: unknown }[] };
+      list = (body.data ?? [])
+        .map((m) => (typeof m.id === "string" ? m.id : ""))
+        .filter((id) => id !== "" && isImageModel(id))
+        .sort();
+    }
+  } catch {
+    // 探测不是设置页的必要条件 —— 回空列表，前端有手填框兜底
+    list = [];
+  }
+  _imageCatalogCache = { at: now, list };
+  return list;
+}
+
 export function snapshot(): Record<string, unknown> {
   const cat = _newCatalog();
   const overrides = appconfig.modelOverrides();
@@ -171,9 +239,24 @@ export function snapshot(): Record<string, unknown> {
       model: spec.name,
       effort: spec.effort,
       overridden: key in overrides,
+      // 人配的原始候选串（可能是「a, b」多候选）；model 是当前目录下真正生效的那一个
+      ...(key in overrides ? { candidates: overrides[key] } : {}),
       default: defaults.modelFor(diff).name,
     };
   }
+  // 「图像」档：与四档并排展示，但生效值不走难度路由 —— 取候选串里第一个在目录的；
+  // default 是目录里第一个带出图能力的模型。都没有就如实给 null，设置页照实显示
+  // "当前网关没有可用的图像模型"，而不是编一个默认值。
+  const imageCandidates = appconfig.imageModelOverride();
+  const imageDefault = firstImageModel(cat);
+  tiers["image"] = {
+    // 生效值 = 第一个候选。不查目录：图像模型被 NOT_CHAT_RE 有意挡在聊天卡
+    // 目录外，查了永远 null。填错型号由运行时的 images 调用报可读错误。
+    model: firstCandidate(imageCandidates) ?? imageDefault,
+    overridden: imageCandidates !== "",
+    ...(imageCandidates !== "" ? { candidates: imageCandidates } : {}),
+    default: imageDefault,
+  };
   const [base, rawKey] = gatewayCreds();
   return {
     gateway: {
@@ -235,7 +318,13 @@ export function configRouter(repoOf: RepoGetter = defaultRepoGetter): Hono<AuthE
 
   r.get("/api/config", async (c) => {
     // 按需查，**不在 lifespan 里查**：启动依赖外部网络就成了"网关不通 → 服务起不来"。
-    return c.json({ ...snapshot(), balance: await balanceView() });
+    return c.json({
+      ...snapshot(),
+      balance: await balanceView(),
+      // 「图像」档下拉的数据源。放在路由层而不是 snapshot()：snapshot 是同步的、
+      // 且形状被 golden 逐字段钉着；这里加键不惊动它。
+      image_catalog: await imageCatalogView(),
+    });
   });
 
   r.put("/api/config", async (c) => {
@@ -269,17 +358,39 @@ export function configRouter(repoOf: RepoGetter = defaultRepoGetter): Hono<AuthE
     const models = body["models"];
     if (models !== null && typeof models === "object" && !Array.isArray(models)) {
       for (const [tier, raw] of Object.entries(models as Record<string, unknown>)) {
-        if (!(tier in TIER_DIFF)) throw httpError(400, `未知难度档：${tier}`);
+        // 「图像」档与四个难度档同键形（gateway.model.image）、同校验规则，
+        // 但不进难度路由 —— 出图走 images 端点，没有 Difficulty 可映射。
+        if (!(tier in TIER_DIFF) && tier !== "image") throw httpError(400, `未知难度档：${tier}`);
         const name = (raw === null || raw === undefined || raw === false || raw === 0 || raw === ""
           ? ""
           : String(raw)
         ).trim();
         if (!name) {
           updates[`gateway.model.${tier}`] = null; // 清覆盖 → 回默认
-        } else if (catNames.has(name)) {
-          updates[`gateway.model.${tier}`] = name;
         } else {
-          throw httpError(400, `模型不在目录中：${name}`);
+          // 一档可配多候选（逗号/顿号分隔）：人写的顺序就是优先序，运行时取
+          // 目录里第一个在的（kernel/llm.ts overrideSpec）。这里逐个校验 ——
+          // 名字打错要在保存那一刻被打回，而不是运行时静默落到下一候选。
+          const candidates = name
+            .split(/[,、]/)
+            .map((x) => x.trim())
+            .filter((x) => x !== "");
+          for (const cand of candidates) {
+            if (tier === "image") {
+              // 图像档不查聊天目录（图像模型被 NOT_CHAT_RE 有意挡在外面，
+              // 查了永远打回）。改按名形校验：把聊天模型误填进图像档要在保存
+              // 那一刻被拦下，而不是等运行时 images 端点 400。
+              if (!isImageModel(cand)) {
+                throw httpError(
+                  400,
+                  `不是图像模型：${cand}（这一档只收出图模型，如 gpt-image-2、dall-e-3、flux）`,
+                );
+              }
+            } else if (!catNames.has(cand)) {
+              throw httpError(400, `模型不在目录中：${cand}`);
+            }
+          }
+          updates[`gateway.model.${tier}`] = candidates.join(", ");
         }
       }
     }
@@ -298,7 +409,15 @@ export function configRouter(repoOf: RepoGetter = defaultRepoGetter): Hono<AuthE
     await appconfig.apply(repoOf(), updates);
     // 换了 base/密钥还显示上一个账户的余额是纯误导 —— 存完就把缓存清掉再探一次。
     gatewayBalance.invalidateCache();
-    return c.json({ ...snapshot(), balance: await balanceView() });
+    // 图像清单同理：换了网关，上一个网关的出图型号列表就是错的。
+    imageCatalogCacheReset();
+    return c.json({
+      ...snapshot(),
+      balance: await balanceView(),
+      // 「图像」档下拉的数据源。放在路由层而不是 snapshot()：snapshot 是同步的、
+      // 且形状被 golden 逐字段钉着；这里加键不惊动它。
+      image_catalog: await imageCatalogView(),
+    });
   });
 
   return r;

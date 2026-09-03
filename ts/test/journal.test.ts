@@ -474,3 +474,33 @@ describe("BlobStore 的内容寻址", () => {
     expect(await mem.getJson(ref)).toEqual({ when: String(new Date(0)) });
   });
 });
+
+describe("撕裂尾行（WAL 语义：没写完的尾行 = 从未提交）", () => {
+  it("文件最后一行是半行 JSON → 静默丢弃，前面的行照读", async () => {
+    const { j } = fileJournal();
+    const good = eventLine(makeEvent({ runId: "r1", seq: 0, kind: EventKind.RUN_STARTED, tsMs: 1 }));
+    const torn = '{"run_id": "r1", "seq": 1, "kind": "node.entered", "payload": {"text": "写到一半被';
+    writeFileSync(join(dir, "journal", "r1.jsonl"), good + "\n" + torn, "utf8");
+    const got = [...j.read("r1")];
+    expect(got).toHaveLength(1);
+    expect(got[0]!.kind).toBe(EventKind.RUN_STARTED);
+  });
+
+  it("中间行撕裂是真损坏 —— 照抛，不许静默跳过", () => {
+    const { j } = fileJournal();
+    const good = eventLine(makeEvent({ runId: "r1", seq: 0, kind: EventKind.RUN_STARTED, tsMs: 1 }));
+    const torn = '{"run_id": "r1", "seq": 1, "kind": "node.';
+    writeFileSync(join(dir, "journal", "r1.jsonl"), torn + "\n" + good + "\n", "utf8");
+    expect(() => [...j.read("r1")]).toThrow();
+  });
+
+  it("尾行撕裂 + 内存队列有新行：文件尾行丢弃、内存行照出", async () => {
+    const { j } = fileJournal();
+    const torn = '{"run_id": "r1", "seq": 0, "kind": "run.started", "payload": {"x": "半';
+    writeFileSync(join(dir, "journal", "r1.jsonl"), torn, "utf8");
+    j.append(makeEvent({ runId: "r1", seq: 1, kind: EventKind.NODE_ENTERED, tsMs: 2 }));
+    const got = [...j.read("r1")];
+    expect(got.map((e) => e.kind)).toEqual([EventKind.NODE_ENTERED]);
+    await j.flush();
+  });
+});

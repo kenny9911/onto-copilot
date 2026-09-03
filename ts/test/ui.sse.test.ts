@@ -14,8 +14,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { G, OPS_CAP, TBL_OPEN } from "../src/ui/state.js";
 import { connect } from "../src/ui/sse.js";
+import { timeline } from "../src/ui/events.js";
+import { parseWebSourcesEvent } from "../src/ui/web-search.js";
 
 function freshSession(): void {
+  FakeEventSource.instances.length = 0;
+  FakeEventSource.last = null;
   G.S = { id: "s1", title: "T", mode: "work", status: "done", files: 0, state: {}, events: [] };
   G.OPS = [];
   G.TRACE = [];
@@ -50,7 +54,7 @@ describe("connect() 的事件分派", () => {
     expect(G.S.events.map((e: any) => e.seq)).toEqual([1, 2]);
   });
 
-  it("stream.reset 清空事件、操作记录和表格展开态", () => {
+  it("stream.reset 保留已显示的持久事件，历史重放仍按 seq 去重", () => {
     const es = open();
     es.send(ev({ seq: 1, kind: "ui.table", title: "清单", columns: ["a"], rows: [["1"]] }));
     TBL_OPEN.add(1);
@@ -58,9 +62,32 @@ describe("connect() 的事件分派", () => {
     expect(G.OPS.length).toBe(1);
 
     es.send(ev({ seq: 0, kind: "stream.reset" }));
-    expect(G.S.events).toEqual([]);
-    expect(G.OPS).toEqual([]);
-    expect(TBL_OPEN.size).toBe(0);
+    expect(G.S.events).toHaveLength(1);
+    expect(G.OPS).toHaveLength(1);
+    expect(TBL_OPEN.has(1)).toBe(true);
+
+    // since=0 的历史回放不会复制事件或操作记录。
+    es.send(ev({ seq: 1, kind: "ui.table", title: "清单", columns: ["a"], rows: [["1"]] }));
+    expect(G.S.events).toHaveLength(1);
+    expect(G.OPS).toHaveLength(1);
+  });
+
+  it("asset.recalled 在 SSE 历史重放/重连后仍是同一张可显示卡", () => {
+    const first = open();
+    const recalled = ev({
+      seq: 8, kind: "asset.recalled", name: "采购报销.png", asset_kind: "image",
+      mime: "image/png", preview_url: "/api/sessions/s1/memory/assets/a/preview",
+      download_url: "/api/sessions/s1/memory/assets/a/download",
+    });
+    first.send(recalled);
+    expect(timeline([]).filter((item: any) => item.ev?.kind === "asset.recalled")).toHaveLength(1);
+    expect(G.OPS.filter((item: any) => item.kind === "asset.recalled")).toHaveLength(1);
+
+    const replay = open();
+    replay.send({ kind: "stream.reset", seq: -1, ts: 0 });
+    replay.send(recalled);
+    expect(timeline([]).filter((item: any) => item.ev?.kind === "asset.recalled")).toHaveLength(1);
+    expect(G.OPS.filter((item: any) => item.kind === "asset.recalled")).toHaveLength(1);
   });
 
   it("对话事件不进操作记录（它在聊天窗口里，抄一遍是噪声）", () => {
@@ -164,6 +191,24 @@ describe("connect() 的事件分派", () => {
     expect(G.TRACE[2].tool).toBe("SQL");
   });
 
+  it("cohort 标注进轨迹：并行子任务的行带前缀，计划行说「启动 N 个并行分析任务」（P4）", () => {
+    const es = open();
+    es.send(ev({ seq: 1, kind: "kernel.plan", node: "PROCESS", detail: "查A；查B", cohort: true, cohort_tasks: 2 }));
+    es.send(ev({ seq: 2, kind: "kernel.thought", detail: "想A", cohort_task: 0 }));
+    es.send(ev({ seq: 3, kind: "kernel.observation", node: "PROCESS", detail: "12 行", cohort_task: 1 }));
+    expect(G.TRACE[0].thought).toBe("PROCESS 启动 2 个并行分析任务：查A；查B");
+    expect(G.TRACE[1].thought).toBe("[并行任务1] 想A");
+    expect(G.TRACE[2].observation).toBe("[并行任务2] 12 行");
+  });
+
+  it("节点完成进轨迹并带耗时（P4）", () => {
+    const es = open();
+    es.send(ev({ seq: 1, kind: "kernel.node_completed", node: "PROCESS", detail: "", secs: 13 }));
+    es.send(ev({ seq: 2, kind: "kernel.node_completed", node: "GAP", detail: "" }));
+    expect(G.TRACE[0].observation).toBe("PROCESS 完成（13s）");
+    expect(G.TRACE[1].observation).toBe("GAP 完成");
+  });
+
   it("没有映射的 kernel.* 事件不进轨迹（只进操作记录）", () => {
     const es = open();
     es.send(ev({ seq: 1, kind: "kernel.unknown", detail: "x" }));
@@ -201,5 +246,80 @@ describe("connect() 的事件分派", () => {
     const second = open();
     expect(first.closed).toBe(true);
     expect(second.closed).toBe(false);
+  });
+
+  it("CLOSED 后自动续传，新流的 web.sources 不刷新就进入时间线", () => {
+    vi.useFakeTimers();
+    try {
+      const first = open();
+      first.send(ev({ seq: 5, kind: "node.entered", node: "SEARCH" }));
+      first.error({ closed: true });
+
+      vi.advanceTimersByTime(500);
+      const second = FakeEventSource.last!;
+      expect(second).not.toBe(first);
+      expect(second.url).toBe("/api/sessions/s1/stream?since=6");
+
+      second.open();
+      second.send({
+        seq: 6, ts: 200, kind: "web.sources", query: "采购监督", total: 1,
+        results: [{
+          source_id: "web_1", title: "权威资料", url: "https://example.com/reference",
+          domain: "example.com", snippet: "摘要", content_status: "fetched",
+        }],
+      });
+      second.send({
+        seq: 7, ts: 300, kind: "chat.turn",
+        turn: { speaker: "assistant", text: "请看 WEB[web_1]", ts: 300 },
+      });
+
+      const card = timeline(G.S.state.dialogue.turns)
+        .find((item: any) => item.ev?.kind === "web.sources")?.ev;
+      expect(parseWebSourcesEvent(card)).not.toBeNull();
+      expect(G.S.events.map((event: any) => event.seq)).toEqual([5, 6, 7]);
+    } finally {
+      vi.runOnlyPendingTimers();
+      vi.useRealTimers();
+    }
+  });
+
+  it("旧流关闭后延迟到达的 message/reset 不污染新会话", () => {
+    const old = open();
+    G.S = { id: "s2", title: "T2", mode: "work", status: "done", files: 0, state: {}, events: [] };
+    const current = open();
+
+    // close() 之前已排进浏览器任务队列的回调仍可能在这一刻执行。
+    old.send({ seq: -1, ts: 0, kind: "stream.reset" });
+    old.send(ev({ seq: 99, kind: "web.sources", results: [{
+      source_id: "stale", title: "旧资料", url: "https://old.example/a",
+    }] }));
+    expect(G.S.events).toEqual([]);
+
+    current.send(ev({ seq: 0, kind: "node.entered", node: "CURRENT" }));
+    expect(G.S.events.map((event: any) => event.seq)).toEqual([0]);
+  });
+
+  it("同一条坏流重复 error 只排一次重连，onopen 可撤销", () => {
+    vi.useFakeTimers();
+    try {
+      const first = open();
+      first.error();
+      first.error();
+      first.error();
+      expect(FakeEventSource.instances).toHaveLength(1);
+
+      // 原生 EventSource 自己恢复时不再额外建一条。
+      first.open();
+      vi.advanceTimersByTime(500);
+      expect(FakeEventSource.instances).toHaveLength(1);
+
+      first.error({ closed: true });
+      first.error({ closed: true });
+      vi.advanceTimersByTime(500);
+      expect(FakeEventSource.instances).toHaveLength(2);
+    } finally {
+      vi.runOnlyPendingTimers();
+      vi.useRealTimers();
+    }
   });
 });

@@ -434,10 +434,13 @@ export function buildFlow(
       );
       g.connect(act.rid, evt.rid, { evidence: [prov] });
       produced.push([norm(ename), evt.rid, st.no]);
-      for (const extra of outs.slice(1, 3)) {
-        // 其余产物记在事件的 objects 上，不单独画节点
-        evt.objects.push(pyTrim(extra));
-      }
+      // 并列产物**不再**写进 `evt.objects`。那个字段的契约是"业务对象 rid"
+      // （flow.ts:174），塞原始标签串进去不是显示问题而是静默失效：
+      // `autoBindObjects` 的第一句是 `if (n.objects.length > 0) continue`，
+      // 它把"已经绑过"当作跳过的理由 —— 于是这些事件**永远**绑不上对象，
+      // impact.trace 和 flow.walk 在它们身上都少报一截，而且不报错。
+      // 真实库 fdaced8ca9df 因此攒了 18 个脏值，其中一个是裸换行符。
+      // 并列产物的信息仍在该节点的 evidence 原文里，不会丢。
     }
   }
 
@@ -778,13 +781,44 @@ function cmpCodePoint(a: string, b: string): number {
  * 不是结果引导词，它是「无需」的后半个字。少了这道前瞻，条件会被切成
  * 「所需服务/物资无」—— 一个读不懂的半截短语，画在菱形里比不画还糟。
  */
+/** 条件从句的引导词。**与 `COND_RE` 和 `mayHaveCondition` 共用这一份。** */
+const COND_HEAD_SRC = "如果?|若|倘若|当|一旦";
+/** 结果从句的引导词。同上，只此一份。 */
+const COND_THEN_SRC = "则|即|就需?|需要?|应当?|自动|会|方可|才能";
+
 const COND_RE = new RegExp(
-  `(?:^|[，,；;。：:、${SP}])(?:如果?|若|倘若|当|一旦)${S}*` +
+  `(?:^|[，,；;。：:、${SP}])(?:${COND_HEAD_SRC})${S}*` +
     `(?<cond>[^，,；;。：]{3,40}?)${S}*[，,]?${S}*` +
-    `(?<![无不未])(?:则|即|就需?|需要?|应当?|自动|会|方可|才能)${S}*` +
+    `(?<![无不未])(?:${COND_THEN_SRC})${S}*` +
     `(?<then>[^，,；;。]{2,50})`,
   "u",
 );
+
+/**
+ * 便宜的条件句预筛 —— 上游用它决定要不要把一段文本喂进 `parseGateways`。
+ *
+ * **必须与 `COND_RE` 认同一批词。** 这里曾经被写死成
+ * `includes("如") && (includes("则") || includes("否则"))`，而 `COND_RE` 认的是
+ * 「若 / 倘若 / 当 / 一旦」和「即 / 就 / 需 / 应 / 自动 / 会 / 方可 / 才能」。
+ * 于是用「若…需…」写规则的材料，一个分支都抽不出来 —— 而且不报错，
+ * 看上去就像"这份材料里没有分支"。
+ *
+ * 所以两者的词形从同一对常量派生：改一处，另一处跟着走。
+ * 这只是**预筛**，允许放行后由 `COND_RE` 再拒；不允许的是反过来把它认得的句子挡掉。
+ */
+const COND_HEAD_LITERALS = literalsOf(COND_HEAD_SRC);
+const COND_THEN_LITERALS = literalsOf(COND_THEN_SRC);
+
+/** 把 `如果?|若` 这类正则备选拆成可用 `includes` 匹配的最短字面量。
+ *  `X?` 表示 X 可有可无，所以去掉可选字符后剩下的部分才是必然出现的。 */
+function literalsOf(src: string): string[] {
+  return src.split("|").map((alt) => alt.replace(/.\?/gu, ""));
+}
+
+export function mayHaveCondition(text: string): boolean {
+  return COND_HEAD_LITERALS.some((h) => text.includes(h))
+    && COND_THEN_LITERALS.some((t) => text.includes(t));
+}
 
 /** 条件的结尾。以这些字收尾说明这句话被切断了 —— 「单一来源等」后面还有内容，
  * 「采购物资和」更是明显只剩半句。宁可丢一个网关，也不要在图上放一句读不懂的话。 */

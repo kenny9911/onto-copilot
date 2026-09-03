@@ -2,6 +2,23 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "_why": [
+        "只给 url 不给命令 = 挂到已经在跑的服务上，不 spawn 新进程。",
+        "8765 被 launchd 作业 com.ontocopilot.dev.8765 常驻占着（keepalive），",
+        "按名字起会 spawn 第二个 node 去抢端口，抢不到，然后你对着一个起不来的",
+        "preview debug 半天。要重启真正那台：",
+        "  launchctl kickstart -k gui/501/com.ontocopilot.dev.8765",
+        "注意它跑的是 ts/dist —— 改了 ts/src 不 tsc，kickstart 只会用同一份旧 dist 重生。"
+      ],
+      "name": "ontocopilot-ts",
+      "url": "http://127.0.0.1:8765",
+      "port": 8765
+    },
+    {
+      "_why": [
+        "上面那条是挂到常驻实例；这两条是**自己起一个**，用 DEFAULT_PORT(3594)，",
+        "跟 8765 那台互不打架。改了 ts/src 立刻生效（tsx 直接跑源码，不经过 dist）。"
+      ],
       "name": "ontocopilot",
       "runtimeExecutable": "ts/node_modules/.bin/tsx",
       "runtimeArgs": ["ts/src/main.ts"],

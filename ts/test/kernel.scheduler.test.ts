@@ -40,7 +40,7 @@ import {
   type GateSpec,
   type NodeSpec,
 } from "../src/kernel/dag.js";
-import { HumanInputRequired, NodeFailure, pyRepr } from "../src/kernel/errors.js";
+import { BudgetExhausted, HumanInputRequired, NodeFailure, pyRepr } from "../src/kernel/errors.js";
 import { EventKind, eventToDict, makeEvent, type Event } from "../src/kernel/events.js";
 import { InMemoryBlobStore, InMemoryJournal } from "../src/kernel/journal.js";
 import { QuotaExhausted } from "../src/kernel/llm.js";
@@ -499,6 +499,19 @@ async function replay(input: CaseInput): Promise<Replayed> {
   for (const ev of journal.read(runId)) {
     const d = eventToDict(ev);
     const payload = d.payload ?? {};
+    if (d.kind === "run.started") {
+      // 拓扑指纹是确定性的，但每个 case 的图形状都不同 —— golden 里放占位符，
+      // 这里先钉住真实形状（16 位 hex + 整数节点数）再归一，别把校验一起抹掉。
+      const fp = payload["topology_fp"];
+      if (typeof fp !== "string" || !/^[0-9a-f]{16}$/.test(fp)) {
+        throw new Error(`run.started 缺合法 topology_fp: ${JSON.stringify(fp)}`);
+      }
+      if (!Number.isInteger(payload["node_count"])) {
+        throw new Error("run.started 缺整数 node_count");
+      }
+      payload["topology_fp"] = "<fp>";
+      payload["node_count"] = "<node_count>";
+    }
     events.push({
       seq: d.seq,
       kind: d.kind,
@@ -899,6 +912,38 @@ describe("取消：Node 上没有真正的任务取消（CONTRACT §2.2）", () 
     // 取消，正是 CONTRACT §2.2 说的「不假装有」。
     expect(started).toEqual(["A", "B"]);
   });
+
+  // ── 节点墙钟不含排队 ───────────────────────────────────────────
+  //
+  // 真实事故：219 个 EXTRACT 段无依赖、一次性全部入队，concurrency 4，单段实测
+  // 66~120s。墙钟原来定在 acquire **之前**，于是 219 个节点的 420s 倒计时在 t=0
+  // 同时启动 —— 第 12 个之后的节点拿到 permit 时配额已经烧光。失败的那个在
+  // t=376.2s 才进场，只跑了 44 秒、只发出 1 次模型调用，就被判「超过节点墙钟上限」。
+  //
+  // 它不慢，它只是排在后面。整份 DAG 的时间上界由 Run 级 runDeadline 兜着，
+  // 节点级墙钟管的是「单个节点别卡死」，不该变成队列位置抽签。
+  it("**节点墙钟从拿到 permit 起算，排队时间不算在节点头上**", async () => {
+    const ran: string[] = [];
+    const loop: AgentLoopLike = {
+      async run(spec) {
+        ran.push(spec.id);
+        await sleep(30);
+        return { output: {} };
+      },
+    };
+    // concurrency=1，每个节点墙钟 60ms、各跑 30ms。
+    // 排队算进去的话：B 等 30ms + 跑 30ms 刚好卡线，C 等 60ms 直接必死。
+    // 不算排队的话：三个都从各自开跑起算，都只用 30ms，全过。
+    const short = { budget: makeNodeBudget({ wallclockS: 0.06 }) };
+    const { sched } = harness(
+      [node("A", [], short), node("B", [], short), node("C", [], short)],
+      loop,
+      { concurrency: 1 },
+    );
+    const out = await sched.run("r1");
+    expect(ran.sort()).toEqual(["A", "B", "C"]);
+    expect(out.status).toBe(RunStatus.COMPLETED);
+  });
 });
 
 describe("降级广播", () => {
@@ -1019,5 +1064,72 @@ describe("HumanInputRequired 是挂起信号，不是失败", () => {
     expect(calls).toBe(1); // 挂起不是失败，一次都不该重试
     expect(out.pendingHuman).toEqual({ node: "A", request_id: "A:hitl", q: ["要几个口径？"] });
     expect([...journal.read("r1")].some((e) => e.kind === EventKind.NODE_FAILED)).toBe(false);
+  });
+});
+
+describe("BudgetExhausted 的重试纪律（与 isQuota 同构）", () => {
+  it("预算耗尽一次都不重试 —— 额度不会因为重跑就长回来", async () => {
+    let calls = 0;
+    const loop: AgentLoopLike = {
+      run: async () => {
+        calls += 1;
+        throw new BudgetExhausted("tokens", 100, 120);
+      },
+    };
+    const { sched } = harness([node("A", [], { retries: 5 })], loop);
+    const out = await sched.run("r1");
+    expect(out.status).toBe(RunStatus.FAILED);
+    // 走 else 兜底会烧满 retries+1 次。扇出型节点（EXTRACT 219 段）每白跑一次
+    // 都是整段节点执行 —— 用户为一个必然失败的结果多等好几分钟。
+    expect(calls).toBe(1);
+    expect(String(out.error)).toContain("预算耗尽");
+  });
+});
+
+describe("外部停止信号（/stop 案发：报了已停止，DAG 照跑）", () => {
+  it("跑到一半 abort → 立刻定案 FAILED，不派新节点、在飞产出不采纳", async () => {
+    const controller = new AbortController();
+    let started = 0;
+    const loop: AgentLoopLike = {
+      async run(spec) {
+        started += 1;
+        if (spec.id === "A") {
+          // 第一个节点跑到一半时外部喊停
+          setTimeout(() => controller.abort(), 10);
+          await sleep(60);
+        }
+        return { output: { n: 1 } };
+      },
+    };
+    const nodes = [node("A"), node("B", ["A"]), node("C", ["A"])];
+    const { sched } = harness(nodes, loop, { concurrency: 1 });
+    const out = await sched.run("r1", { signal: controller.signal });
+    expect(out.status).toBe(RunStatus.FAILED);
+    expect(String(out.error)).toContain("外部停止");
+    expect(started).toBe(1);           // B、C 从未被派出去
+    expect(out.outputs["A"]).toBeUndefined(); // 在飞产出不采纳
+  });
+
+  it("进门前就已 abort → 一个节点都不跑", async () => {
+    const controller = new AbortController();
+    controller.abort();
+    let started = 0;
+    const loop: AgentLoopLike = {
+      async run() {
+        started += 1;
+        return { output: {} };
+      },
+    };
+    const { sched } = harness([node("A")], loop);
+    const out = await sched.run("r1", { signal: controller.signal });
+    expect(out.status).toBe(RunStatus.FAILED);
+    expect(started).toBe(0);
+  });
+
+  it("不传 signal 时行为原样（回归保护）", async () => {
+    const loop: AgentLoopLike = { async run() { return { output: { n: 1 } }; } };
+    const { sched } = harness([node("A"), node("B", ["A"])], loop);
+    const out = await sched.run("r1");
+    expect(runOutcomeOk(out)).toBe(true);
   });
 });

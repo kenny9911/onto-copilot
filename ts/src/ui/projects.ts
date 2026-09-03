@@ -2,7 +2,7 @@
 import { G, PJ_OFF } from "./state.js";
 import { $, API, j } from "./dom.js";
 import { t } from "./i18n.js";
-import { loadSessions, newSession, paintSessions, renameSession } from "./sessions.js";
+import { forkSession, loadSessions, newSession, paintSessions, renameSession } from "./sessions.js";
 
 // ── 项目文件夹 ──────────────────────────────────────────────────
 // 拉项目列表。**故意不走 j()**：j() 对非 2xx 直接抛、401 还会弹登录框，而这个
@@ -85,6 +85,9 @@ export function sessionMenu(ev: any, sid: any){
   // 悬浮字），菜单是它被发现的地方。聊天模式下这颗 ⋯ 根本不存在（R5：那里
   // 一点项目痕迹都不能有），所以双击才是**每种模式都在**的那条路。
   const items: any[] = [{label: t("session.rename"), run: () => renameSession(sid)},
+                 // 分叉：复制材料+已拍板的决策到新会话，重新梳理。放在改名旁边 ——
+                 // 它们同属「对这个会话本身的操作」，项目归属那一段是另一类。
+                 {label: t("session.fork"), run: () => forkSession(sid)},
                  {sec: t("project.moveTo")}];
   if (G.PROJECTS.length) {
     for (const p of G.PROJECTS) items.push({

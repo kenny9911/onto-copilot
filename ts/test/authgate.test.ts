@@ -457,6 +457,110 @@ describe("门禁", () => {
     expect(await dup.json()).toEqual({ detail: "用户名已存在" });
   });
 
+  // ── ONTOCOPILOT_AUTH=1 ⇒ 注册关闭 ──────────────────────────────
+  //
+  // 这条闸是**给联网部署用的**。`.env.example` 承诺"从首次启动起就锁死"，
+  // 而在这条闸存在之前，AUTH=1 + 零账号时 `POST /api/register` 照样返回 200
+  // 并把 role 设成 admin —— 谁先访问谁当管理员，正是文件头声称已经杜绝的那个竞态。
+  //
+  // 闸判据是 `authForced()`（显式开关），**不是** `enforce()`：不设 AUTH 但库里
+  // 已有账号的本机实例，自助注册照旧开着（84b871d 定下的产品形态，不动）。
+
+  it("AUTH=1 + 零账号：注册被拒 403，且**一个账号都没建出来**", async () => {
+    const repo = new MemoryRepo();
+    process.env["ONTOCOPILOT_AUTH"] = "1";
+    try {
+      const a = app(repo);
+      const r = await post(a, "/api/register", {
+        username: "attacker",
+        password: "pw123456",
+        display_name: "路人甲",
+      });
+      expect(r.status).toBe(403);
+      // 最要命的不是状态码，是"有没有真的落库" —— 403 但建成了等于没拦。
+      expect(await repo.countUsers()).toBe(0);
+    } finally {
+      delete process.env["ONTOCOPILOT_AUTH"];
+    }
+  });
+
+  it("AUTH=1 + 已有账号：注册同样关闭（不是只挡首个）", async () => {
+    const repo = new MemoryRepo();
+    await repo.createUser(
+      makeUserRow({
+        id: "u1",
+        username: "root",
+        password_hash: await hashPasswordAsync("pw123456"),
+        role: "admin",
+      }),
+    );
+    process.env["ONTOCOPILOT_AUTH"] = "1";
+    try {
+      const r = await post(app(repo), "/api/register", {
+        username: "later",
+        password: "pw123456",
+        display_name: "后来的",
+      });
+      expect(r.status).toBe(403);
+      expect(await repo.countUsers()).toBe(1);
+    } finally {
+      delete process.env["ONTOCOPILOT_AUTH"];
+    }
+  });
+
+  it("不设 AUTH：开放注册一个字没变 —— 首个即管理员", async () => {
+    const repo = new MemoryRepo();
+    const r = await post(app(repo), "/api/register", {
+      username: "first",
+      password: "pw123456",
+      display_name: "第一个",
+    });
+    expect(r.status).toBe(200);
+    expect((await r.json()) as Record<string, unknown>).toMatchObject({
+      user: { username: "first", role: "admin" },
+    });
+  });
+
+  it("不设 AUTH 但已有账号：仍可自助注册，且拿到的是普通用户", async () => {
+    const repo = new MemoryRepo();
+    const a = app(repo);
+    await post(a, "/api/register", { username: "first", password: "pw123456", display_name: "甲" });
+    resetLoginThrottle();
+    const second = await post(a, "/api/register", {
+      username: "second",
+      password: "pw123456",
+      display_name: "乙",
+    });
+    expect(second.status).toBe(200);
+    expect((await second.json()) as Record<string, unknown>).toMatchObject({
+      user: { username: "second", role: "user" },
+    });
+  });
+
+  it("auth/status 如实报注册开关 —— 前端靠它决定给不给注册表单", async () => {
+    const repo = new MemoryRepo();
+
+    const open = (await (await app(repo).request("/api/auth/status")).json()) as Record<string, unknown>;
+    expect(open).toMatchObject({ registration_open: true });
+
+    process.env["ONTOCOPILOT_AUTH"] = "1";
+    try {
+      const shut = (await (await app(repo).request("/api/auth/status")).json()) as Record<
+        string,
+        unknown
+      >;
+      // 注册关着的时候 first_user_is_admin 必须也是 false，否则前端会默认弹出
+      // 一个注册表单、填完拿 403 —— 界面在教用户走一条走不通的路。
+      expect(shut).toMatchObject({
+        auth_enabled: true,
+        registration_open: false,
+        first_user_is_admin: false,
+      });
+    } finally {
+      delete process.env["ONTOCOPILOT_AUTH"];
+    }
+  });
+
   it("auth/status 带 display_name —— 漏了的表现是库里存着、界面永远空白", async () => {
     const repo = new MemoryRepo();
     const a = app(repo);

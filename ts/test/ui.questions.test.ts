@@ -73,6 +73,24 @@ describe("normalizeQuestion", () => {
     expect(normalizeQuestion({ id: "q" }, "l").text).toBe("（未命名问题）");
   });
 
+  it("旧问题里的机器协议只保留在 raw，卡片显示可直接询问的正文", () => {
+    const q = normalizeQuestion({
+      id: "q.agent.1",
+      text: "[高][ERP顾问][blocked:sys.erp] 客户使用哪个 ERP 版本？ | answer:TEXT | evidence:a#p1",
+      why: "由 ERP_MAP 独立分析发现，需由相应业务角色确认",
+      sourceKind: "agent_analysis",
+    }, "ledger");
+    expect(q).toMatchObject({
+      text: "客户使用哪个 ERP 版本？",
+      priority: "high",
+      role: "ERP顾问",
+      why: "材料里的系统信息没有说明清楚，需要请ERP顾问确认。",
+      source: "agent_analysis",
+      sourceLabel: "材料分析",
+    });
+    expect(q.raw.text).toContain("blocked:sys.erp");
+  });
+
   it("下划线与驼峰两套字段名都认", () => {
     const q = normalizeQuestion(
       { id: "q", text: "t", owner_user_id: "u1", audience_role: "业务", applies_to: ["A"], blocked_artifacts: "B" }, "l");
@@ -135,5 +153,111 @@ describe("releaseView / bundleLink", () => {
     const html = bundleLink("导出交付包");
     expect(html).toContain('href="/api/sessions/s1/bundle"');
     expect(html).toContain("· DRAFT");
+  });
+});
+
+// ══════════════════════════════════════════════════════════════════
+//  qRequest 的 409 分诊自愈
+//
+//  2026-08-25 事故：审阅面板保存答复，客户端把**一切** 409 都翻译成
+//  「问题已被其他人更新，请刷新后重试」。可实测里那次 409 根本不是版本冲突，
+//  是跑批在途、mutation 租约必拒 —— 刷新一万次也没用，用户被误导。
+//  这里钉三条：跑批在途要诚实转述且不重试；真版本落后要自动拉新重试一次；
+//  拉新后发现已终态要说真话、不许再写。
+// ══════════════════════════════════════════════════════════════════
+
+import { qRequest } from "../src/ui/questions.js";
+
+type FakeResponse = { ok: boolean; status: number; text: () => Promise<string>; json: () => Promise<unknown> };
+
+function resp(status: number, body: unknown): FakeResponse {
+  const raw = JSON.stringify(body);
+  return {
+    ok: status >= 200 && status < 300,
+    status,
+    text: async () => raw,
+    json: async () => JSON.parse(raw),
+  };
+}
+
+describe("qRequest 409 自愈", () => {
+  const calls: Array<{ method: string; url: string; body: Record<string, unknown> | null }> = [];
+  let alerts: string[];
+  let script: Array<(c: { method: string; url: string }) => FakeResponse>;
+
+  beforeEach(() => {
+    calls.length = 0;
+    alerts = [];
+    script = [];
+    G.S = { id: "s1", status: "awaiting_answer", state: {} };
+    G.Q_API = true;
+    G.TAB = "";
+    G.Q_BACKLOG = [{ id: "q1", text: "口径", status: "open", revision: 3, options: [] }];
+    (globalThis as unknown as { alert: (m: string) => void }).alert = (m) => { alerts.push(String(m)); };
+    (globalThis as unknown as { fetch: unknown }).fetch = async (url: string, init?: RequestInit) => {
+      const method = init?.method || "GET";
+      calls.push({ method, url, body: init?.body ? JSON.parse(String(init.body)) : null });
+      const step = script.shift();
+      if (!step) throw new Error(`fetch 脚本用完了：${method} ${url}`);
+      return step({ method, url });
+    };
+  });
+
+  const listBody = (over: Record<string, unknown> = {}) => ({
+    questions: [{ id: "q1", text: "口径", status: "open", version: 5, ...over }],
+    nextBatch: [],
+  });
+
+  it("真版本落后：自动拉新 revision 重试一次，成功后不打扰用户", async () => {
+    script = [
+      () => resp(409, { detail: "问题已更新：预期 version 3，实际 5" }),
+      () => resp(200, listBody()),                       // 拉新
+      () => resp(200, { question: { id: "q1" } }),       // 重试成功
+      () => resp(200, listBody()),                       // 成功后的常规刷新
+    ];
+    const ok = await qRequest(0, "", "PATCH", { priority: "high" });
+    expect(ok).toBe(true);
+    expect(alerts).toEqual([]);
+    const patches = calls.filter((c) => c.method === "PATCH");
+    expect(patches.length).toBe(2);
+    expect(patches[0]!.body!.expected_revision).toBe(3);
+    expect(patches[1]!.body!.expected_revision).toBe(5); // 用的是拉新后的版本
+    expect(patches[1]!.body!.priority).toBe("high");     // 用户意图原样带上
+  });
+
+  it("跑批在途：不重试、不说「已被其他人更新」，诚实转述并保住草稿", async () => {
+    script = [
+      () => resp(409, { detail: "会话正在梳理（parsing），本轮跑完才能保存这类修改，请稍后重试。" }),
+    ];
+    const ok = await qRequest(0, "", "PATCH", { priority: "high" });
+    expect(ok).toBe(false);
+    expect(calls.filter((c) => c.method === "PATCH").length).toBe(1); // 明知必败不重试
+    expect(alerts.length).toBe(1);
+    expect(alerts[0]).toContain("梳理");
+    expect(alerts[0]).not.toContain("已被其他人更新");
+  });
+
+  it("拉新后发现已被别处回答 → 说真话，不再覆写", async () => {
+    script = [
+      () => resp(409, { detail: "问题已更新：预期 version 3，实际 6" }),
+      () => resp(200, listBody({ status: "answered", version: 6, activeDecision: { answer: "别人答的" } })),
+    ];
+    const ok = await qRequest(0, "", "PATCH", { priority: "high" });
+    expect(ok).toBe(false);
+    expect(calls.filter((c) => c.method === "PATCH").length).toBe(1);
+    expect(alerts.length).toBe(1);
+    expect(alerts[0]).toContain("回答");
+  });
+
+  it("重试仍冲突 → 放弃并告知，不无限循环", async () => {
+    script = [
+      () => resp(409, { detail: "问题已更新：预期 version 3，实际 5" }),
+      () => resp(200, listBody()),
+      () => resp(409, { detail: "问题已更新：预期 version 5，实际 7" }),
+    ];
+    const ok = await qRequest(0, "", "PATCH", { priority: "high" });
+    expect(ok).toBe(false);
+    expect(calls.filter((c) => c.method === "PATCH").length).toBe(2);
+    expect(alerts.length).toBe(1);
   });
 });

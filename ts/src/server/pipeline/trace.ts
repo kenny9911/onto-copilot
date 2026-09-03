@@ -73,10 +73,27 @@ function pyReprAny(v: unknown): string {
 //  投影
 // ══════════════════════════════════════════════════════════════════
 
-/** 把内核事件日志里的新事件投影到会话事件流。 */
+/**
+ * 把内核事件日志里的新事件投影到会话事件流。
+ *
+ * **水位必须跟 runId 绑定。** 上一版 `_kernel_seq` 是会话级的单个数字，
+ * 而它比较的 `ev.seq` 是 **Recorder 实例级**的 —— 每条 run 各自从 0 开始数。
+ * 于是第一条 run 结束时水位已经涨到几百几千（EFFECT_* 这类不投影的事件也推水位），
+ * 第二条 run 的事件 seq 从 0 起，`ev.seq < seen` 全部成立 ——
+ * **整条推理轨迹被吞掉，「推理」面板在这一轮里全程是空的**，
+ * 而 FDE 判断"它到底在想什么、有没有卡住"就只有这一个窗口。
+ *
+ * 换了 runId 就把水位归零：水位的语义是"这条 run 我投影到哪儿了"，
+ * 不是"这个会话见过多少事件"。
+ */
 export function pumpKernelEvents(s: SessionLike, rec: TraceRecorder): void {
   // `setdefault` —— 键不在就写 0 再取；已有值原样用
   if (!("_kernel_seq" in s.state)) s.state["_kernel_seq"] = 0;
+  // runId 变了说明是新的 Recorder，它的 seq 重新从 0 数，旧水位对它没有意义
+  if (s.state["_kernel_run"] !== rec.runId) {
+    s.state["_kernel_run"] = rec.runId;
+    s.state["_kernel_seq"] = 0;
+  }
   const seen = s.state["_kernel_seq"] as number;
   let latest = seen;
   for (const ev of rec.journal.read(rec.runId)) {
@@ -86,7 +103,38 @@ export function pumpKernelEvents(s: SessionLike, rec: TraceRecorder): void {
       continue;
     }
     latest = Math.max(latest, ev.seq + 1);
-    s.emit(name, { node: ev.nodeId ?? "", detail: traceDetail(ev) });
+    // ── P4 富化（都是投影层现算，持久事件流里绝不进按秒增长的心跳）──
+    // cohort 标注：哪条思考/工具行属于哪个并行子任务；计划是不是 cohort。
+    const extras: Record<string, unknown> = {};
+    if (ev.payload["cohort_task"] !== undefined) extras["cohort_task"] = ev.payload["cohort_task"];
+    if (ev.kind === EventKind.PLAN_CREATED && ev.payload["cohort"] === true) {
+      extras["cohort"] = true;
+      extras["cohort_tasks"] = ev.payload["cohort_tasks"] ?? 0;
+    }
+    // 节点耗时：entered 的时刻记在会话私有状态里（跨多次泵仍在），completed
+    // 时相减。没见过 entered 就不硬造 —— 假耗时比没有耗时更误导。
+    if (ev.kind === EventKind.NODE_ENTERED && ev.nodeId) {
+      const marks = (s.state["_kernel_entered"] ??= {}) as Record<string, number>;
+      marks[ev.nodeId] = ev.tsMs;
+    }
+    if (ev.kind === EventKind.NODE_COMPLETED && ev.nodeId) {
+      const marks = (s.state["_kernel_entered"] ?? {}) as Record<string, number>;
+      const at = marks[ev.nodeId];
+      if (typeof at === "number") {
+        extras["secs"] = Math.round((ev.tsMs - at) / 1000);
+        delete marks[ev.nodeId];
+      }
+    }
+    // run_id + ts_ms 一并带出（P4 四键中的另两键）：跨 run 恢复时前端要能分清
+    // "这行是哪次 run 的"；ts_ms 是内核时刻，不是投影时刻 —— 恢复重泵的旧行
+    // 用它才不会看起来像刚刚发生。handler 不在 Event 上，不硬造。
+    s.emit(name, {
+      node: ev.nodeId ?? "",
+      detail: traceDetail(ev),
+      run_id: rec.runId,
+      ts_ms: ev.tsMs,
+      ...extras,
+    });
   }
   s.state["_kernel_seq"] = latest;
 }
@@ -138,11 +186,23 @@ export async function runWithLiveTrace<T>(
           },
         );
       });
-      pumpKernelEvents(s, rec); // 每拍泵一次，异常不吞（泵失败要暴露）
+      // 泵是**观测面**，不是工作负载：它读日志、发 UI 事件，失败的代价应该是
+      // 「推理面板少几行」，绝不是把一条 $40 的 run 判死。真实案发：泵在读者
+      // 与写者赛跑时撕裂读到半行 JSON，裸 SyntaxError 从这里冒出去，整条
+      // run 的状态落成 failed —— 而 journal 事后看完好无损。
+      try {
+        pumpKernelEvents(s, rec);
+      } catch (exc) {
+        s.emit("trace.pump_failed", { error: exc instanceof Error ? exc.message : String(exc) });
+      }
     }
     return await task;
   } finally {
-    pumpKernelEvents(s, rec); // 收尾再泵一次，别漏最后几条
+    try {
+      pumpKernelEvents(s, rec); // 收尾再泵一次，别漏最后几条
+    } catch (exc) {
+      s.emit("trace.pump_failed", { error: exc instanceof Error ? exc.message : String(exc) });
+    }
   }
 }
 

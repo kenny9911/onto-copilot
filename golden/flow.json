@@ -2074,7 +2074,7 @@
    }
   },
   {
-   "name": "status_is_dropped",
+   "name": "status_round_trips",
    "data": {
     "nodes": [
      {
@@ -2110,7 +2110,7 @@
       },
       "objects": [],
       "endpoint": "",
-      "status": "candidate",
+      "status": "confirmed",
       "grounded": false
      }
     ],
@@ -2221,9 +2221,7 @@
       "confidence": 0.4,
       "evidence": []
      },
-     "objects": [
-      "\\n"
-     ],
+     "objects": [],
      "endpoint": "",
      "status": "candidate",
      "grounded": true
@@ -2306,9 +2304,7 @@
       "confidence": 0.4,
       "evidence": []
      },
-     "objects": [
-      "\\n"
-     ],
+     "objects": [],
      "endpoint": "",
      "status": "candidate",
      "grounded": true
@@ -2391,9 +2387,7 @@
       "confidence": 0.4,
       "evidence": []
      },
-     "objects": [
-      "\\n"
-     ],
+     "objects": [],
      "endpoint": "",
      "status": "candidate",
      "grounded": true
@@ -2650,9 +2644,7 @@
       "confidence": 0.4,
       "evidence": []
      },
-     "objects": [
-      "\\n"
-     ],
+     "objects": [],
      "endpoint": "",
      "status": "candidate",
      "grounded": true
@@ -2735,9 +2727,7 @@
       "confidence": 0.4,
       "evidence": []
      },
-     "objects": [
-      "\\n"
-     ],
+     "objects": [],
      "endpoint": "",
      "status": "candidate",
      "grounded": true
@@ -2820,9 +2810,7 @@
       "confidence": 0.4,
       "evidence": []
      },
-     "objects": [
-      "\\n"
-     ],
+     "objects": [],
      "endpoint": "",
      "status": "candidate",
      "grounded": true
@@ -3028,9 +3016,7 @@
        "confidence": 0.4,
        "evidence": []
       },
-      "objects": [
-       "\\n"
-      ],
+      "objects": [],
       "endpoint": "",
       "status": "candidate",
       "grounded": true
@@ -3115,9 +3101,7 @@
        "confidence": 0.4,
        "evidence": []
       },
-      "objects": [
-       "\\n"
-      ],
+      "objects": [],
       "endpoint": "",
       "status": "candidate",
       "grounded": true
@@ -3202,9 +3186,7 @@
        "confidence": 0.4,
        "evidence": []
       },
-      "objects": [
-       "\\n"
-      ],
+      "objects": [],
       "endpoint": "",
       "status": "candidate",
       "grounded": true
@@ -5230,9 +5212,9 @@
     {
      "rid": "fn_apievt_importall",
      "kind": "event",
-     "code": "EVT-GEN-C499",
+     "code": "EVT-GEN-F62F",
      "label": {
-      "value": "单据已导入",
+      "value": "All已导入",
       "origin": "extracted",
       "confidence": 0.8,
       "evidence": [
@@ -5308,9 +5290,9 @@
     {
      "rid": "fn_apievt_syncall",
      "kind": "event",
-     "code": "EVT-GEN-1A62",
+     "code": "EVT-GEN-0406",
      "label": {
-      "value": "单据已同步",
+      "value": "All已同步",
       "origin": "extracted",
       "confidence": 0.8,
       "evidence": [
@@ -7128,9 +7110,9 @@
      {
       "rid": "fn_apievt_importall",
       "kind": "event",
-      "code": "EVT-GEN-C499",
+      "code": "EVT-GEN-F62F",
       "label": {
-       "value": "单据已导入",
+       "value": "All已导入",
        "origin": "extracted",
        "confidence": 0.8,
        "evidence": [
@@ -7206,9 +7188,9 @@
      {
       "rid": "fn_apievt_syncall",
       "kind": "event",
-      "code": "EVT-GEN-1A62",
+      "code": "EVT-GEN-0406",
       "label": {
-       "value": "单据已同步",
+       "value": "All已同步",
        "origin": "extracted",
        "confidence": 0.8,
        "evidence": [

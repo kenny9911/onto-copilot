@@ -240,7 +240,7 @@ export interface SessionBrief {
 }
 
 /** 少数保留状态投影的内容事件 —— 兼容迁移前的会话（Python server.py:3153）。 */
-export const CARD_EVENT_KINDS: readonly string[] = ["ui.table", "export.ready"];
+export const CARD_EVENT_KINDS: readonly string[] = ["ui.table", "export.ready", "web.sources"];
 export const CARD_EVENT_CAP = 12;
 
 /**
@@ -569,6 +569,21 @@ export function runIdFor(s: Session): string {
       f.sha256 = digest;
     }
     sig.push([f.name, digest]);
+  }
+  // 项目知识库文档不在 Session.files 里，但同样是本轮梳理的输入。会话钉的是精确
+  // version；项目里上传 v2 不应改变仍钉 v1 的 Run，而 attach/升级到 v2 必须产生
+  // 新指纹，绝不能重放 v1 的模型调用。
+  const manifest = s.state["_document_manifest"];
+  if (Array.isArray(manifest)) {
+    for (const raw of manifest) {
+      if (raw === null || typeof raw !== "object" || Array.isArray(raw)) continue;
+      const row = raw as Record<string, unknown>;
+      const documentId = String(row["document_id"] ?? "").trim();
+      const versionId = String(row["version_id"] ?? "").trim();
+      if (!documentId || !versionId) continue;
+      const digest = String(row["sha256"] ?? row["content_sha256"] ?? versionId);
+      sig.push([`document:${documentId}:${versionId}`, digest]);
+    }
   }
   sig.sort((a, b) => cmpCodepoints(a[0], b[0]) || cmpCodepoints(a[1], b[1]));
   return `run_${s.id}_${fingerprint(sig).slice(0, 8)}`;

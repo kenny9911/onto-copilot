@@ -4,7 +4,8 @@
   "structured",
   "effort",
   "long_context",
-  "cheap"
+  "cheap",
+  "image_gen"
  ],
  "card_from_name": [
   {

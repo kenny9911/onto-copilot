@@ -18,17 +18,38 @@
  * 容器运行时在吗。这两件事任一为否，返回 `null`。
  */
 
+import { FlowGraph } from "../../onto/flow.js";
+import { flowDependents } from "../../onto/flow_link.js";
 import { accessSync, constants } from "node:fs";
 import { join } from "node:path";
 
-import { scopesForTool } from "../../kernel/agents.js";
+import {
+  assertManagedToolRegistrations,
+  managedToolRegistrar,
+  scopesForTool,
+} from "../../catalog/tools.js";
 import type { EvidenceIndex } from "../../kernel/memory/evidence.js";
 import { Danger, ToolRegistry, type ToolCallCtx } from "../../kernel/tools.js";
-import { cpSlice } from "../../onto/parse/base.js";
 import {
-  ContainerSandbox,
+  actionToDict,
+  linkToDict,
+  objectToDict,
+  propertyToDict,
+  ruleToDict,
+  type ActionType,
+  type BusinessRule,
+  type LinkType,
+  type ObjectType,
+  type PropertyType,
+} from "../../onto/oir.js";
+import { cpSlice } from "../../onto/parse/base.js";
+// 「差在哪几个字」全仓只有这一份实现（由 golden/onto.conflict.json 钉住）。
+// **不在这里另写一个相似度切片** —— 换一个「看起来差不多」的算法，报出来的
+// 片段就变了，而片段是这条差异可信的全部理由。
+import { undescribedDiff } from "../../onto/conflict.js";
+import {
   asSandboxLike,
-  defaultSandbox,
+  bestContainerSandbox,
   type ExecResultDict,
 } from "../../kernel/sandbox.js";
 import { pyReprList, pyUnquote } from "../pipeline/tables.js";
@@ -86,6 +107,9 @@ export interface BuiltinRegistryOptions {
   readonly oir?: OirLike | null;
   readonly profiles?: Record<string, unknown> | null;
   readonly sandbox?: SandboxLike | null;
+  /** 会话当前的 FlowGraph（可缺）。impact.trace 的流程段用 —— 改对象会波及
+   *  哪些**流程环节**，桥是 FlowNode.objects（autoBindObjects 补的）。 */
+  readonly flow?: () => unknown;
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -102,6 +126,13 @@ const OIR_BUCKETS: Readonly<Record<string, string>> = {
   rules: "rule",
 };
 
+/** 单数名 → 桶名。**不能靠 `kind + "s"` 拼**：property 的桶叫 properties 不叫 propertys，
+ * 拼错的后果是整个桶查不到、每个字段读成 null，然后被判成「两边都空 = 没有差异」——
+ * 静默的假阴性，比报错难发现得多。 */
+const BUCKET_OF_KIND: Readonly<Record<string, string>> = Object.freeze(
+  Object.fromEntries(Object.entries(OIR_BUCKETS).map(([bucket, singular]) => [singular, bucket])),
+);
+
 /** `getattr(oir, bucket, None) or {}` —— 取不到就是空表。 */
 function bucketOf(oir: OirLike, name: string): Map<string, unknown> {
   const raw = (oir as unknown as Record<string, unknown>)[name];
@@ -114,6 +145,24 @@ function assertionValue(item: unknown, attr: string): unknown {
   const holder = (item as Record<string, unknown>)[attr];
   if (holder === null || typeof holder !== "object") return null;
   return (holder as Record<string, unknown>)["value"] ?? null;
+}
+
+/** OIR 的 TS 成员是 plain interfaces，不是带 `toDict()` 的 Python 实例。 */
+function oirItemToDict(kind: string, item: unknown): Record<string, unknown> {
+  switch (kind) {
+    case "objects":
+      return objectToDict(item as ObjectType);
+    case "properties":
+      return propertyToDict(item as PropertyType);
+    case "links":
+      return linkToDict(item as LinkType);
+    case "actions":
+      return actionToDict(item as ActionType);
+    case "rules":
+      return ruleToDict(item as BusinessRule);
+    default:
+      throw new Error(`OIR 没有 ${kind} 这个桶`);
+  }
 }
 
 export function ridKind(oir: OirLike, rid: string): string {
@@ -163,6 +212,91 @@ export function resolveRid(oir: OirLike, target: string): string | null {
 }
 
 // ══════════════════════════════════════════════════════════════════
+//  entity.compare 的小工具
+// ══════════════════════════════════════════════════════════════════
+
+/** `model.lint` 查哪几类。**导出成常量而不是散在代码里**：工具要如实回答
+ * 「查了什么」，而「没报出来」有两种性质完全不同的情况 —— 查过确实没有，
+ * 和根本没查。 */
+const CHECKED_LINTS: readonly string[] = [
+  "orphan_object", "broken_link", "orphan_property", "action_no_host",
+  "object_no_primary_key", "object_no_description",
+];
+
+/** 每一类实体拿哪些字段并排。**顺序有意义**：口径类字段排在前面，先看见最贵的差异。 */
+const COMPARE_FIELDS: Readonly<Record<string, readonly string[]>> = {
+  object: ["displayName", "apiName", "description", "primaryKey", "aliases", "owner", "status"],
+  property: [
+    "definition", "displayName", "apiName", "baseType", "semanticType", "unit",
+    "valueDomain", "required", "parent", "owner", "status",
+  ],
+  link: ["apiName", "source", "target", "cardinality", "joinKey", "status"],
+  action: ["apiName", "appliesTo", "effects", "parameters", "status"],
+  rule: ["statement", "apiName", "status"],
+};
+
+/**
+ * 读一个字段的值。字段可能是 `Assertion<T>`（有 `.value`）也可能是裸值
+ * （`source` / `owner` / `status` / `aliases` 这些）。两种都要认，否则
+ * 裸值字段会全部读成 null 然后被判成「两边都空 = 一样」—— 静默的假阴性。
+ */
+function fieldValue(item: unknown, attr: string): unknown {
+  if (item === null || typeof item !== "object") return null;
+  const raw = (item as Record<string, unknown>)[attr];
+  if (raw !== null && typeof raw === "object" && !Array.isArray(raw) && "value" in raw) {
+    return (raw as Record<string, unknown>)["value"] ?? null;
+  }
+  return raw ?? null;
+}
+
+/** 字段上挂的出处。裸值字段没有，返回空。 */
+function fieldEvidence(item: unknown, attr: string): readonly Record<string, unknown>[] {
+  if (item === null || typeof item !== "object") return [];
+  const raw = (item as Record<string, unknown>)[attr];
+  if (raw === null || typeof raw !== "object") return [];
+  const ev = (raw as Record<string, unknown>)["evidence"];
+  return Array.isArray(ev) ? (ev as Record<string, unknown>[]) : [];
+}
+
+/** 判等按**归一后的 JSON**：数组顺序无关的比较留给调用方，这里只要稳定可复现。 */
+function sameValue(a: unknown, b: unknown): boolean {
+  if (a === b) return true;
+  if (a === null || b === null || a === undefined || b === undefined) {
+    return (a ?? null) === (b ?? null);
+  }
+  if (Array.isArray(a) && Array.isArray(b)) {
+    return a.length === b.length && a.every((x, i) => sameValue(x, b[i]));
+  }
+  if (typeof a === "object" && typeof b === "object") {
+    return JSON.stringify(sortedKeys(a)) === JSON.stringify(sortedKeys(b));
+  }
+  return String(a) === String(b);
+}
+
+function sortedKeys(v: unknown): unknown {
+  if (Array.isArray(v)) return v.map(sortedKeys);
+  if (v !== null && typeof v === "object") {
+    const out: Record<string, unknown> = {};
+    for (const k of Object.keys(v as Record<string, unknown>).sort(cmpCodePoint)) {
+      out[k] = sortedKeys((v as Record<string, unknown>)[k]);
+    }
+    return out;
+  }
+  return v;
+}
+
+/** 某个对象下所有属性的 apiName。粒度差异靠属性集合才看得出来。 */
+function propApiNames(oir: OirLike, objectRid: string): string[] {
+  const out: string[] = [];
+  for (const pt of bucketOf(oir, "properties").values()) {
+    if (fieldValue(pt, "parent") !== objectRid) continue;
+    const api = fieldValue(pt, "apiName");
+    if (api !== null && api !== "") out.push(String(api));
+  }
+  return [...new Set(out)].sort(cmpCodePoint);
+}
+
+// ══════════════════════════════════════════════════════════════════
 //  参数取值（Python 是 `fn(ctx, **args)` + 签名默认值）
 // ══════════════════════════════════════════════════════════════════
 
@@ -205,7 +339,9 @@ function preview(text: string): string {
  * 这个系统在正常运行中不需要访问互联网。
  */
 export function builtinRegistry(opts: BuiltinRegistryOptions = {}): ToolRegistry {
-  const reg = new ToolRegistry();
+  const registry = new ToolRegistry();
+  const reg = managedToolRegistrar(registry, "core");
+  const flowOf = opts.flow ?? (() => null);
   const evidence = (opts.evidence ?? null) as EvidenceLike | null;
   const oir = opts.oir ?? null;
   const profiles = opts.profiles ?? null;
@@ -239,6 +375,7 @@ export function builtinRegistry(opts: BuiltinRegistryOptions = {}): ToolRegistry
           },
         },
         danger: Danger.READ,
+        scopes: scopesForTool("evidence.search"),
       },
       (args) => {
         const query = argStr(args, "query");
@@ -322,6 +459,7 @@ export function builtinRegistry(opts: BuiltinRegistryOptions = {}): ToolRegistry
           },
         },
         danger: Danger.READ,
+        scopes: scopesForTool("evidence.rows"),
       },
       (args) => {
         const file = argStr(args, "file");
@@ -335,7 +473,15 @@ export function builtinRegistry(opts: BuiltinRegistryOptions = {}): ToolRegistry
           const hi = toRow ?? 10 ** 9;
           span = [Math.min(lo, hi), Math.max(lo, hi)];
         }
-        const hits = evidence.byLocator({ file, container, rows: span, limit });
+        // **一个过滤条件都没给 = 参数名多半写错了。**
+        //
+        // 网关的 validateArgs 会把未声明的键**静默剥掉**（那是刻意的安全设计：
+        // 报错等于告诉调用方边界在哪）。于是模型写错参数名时，这里收到的是一个
+        // 空过滤器，byLocator 会老老实实返回"全库前 60 片" —— 模型看到一堆
+        // 不相干的内容，以为工具坏了或者材料不对，然后换个说法反复重试。
+        // 一次真实事故里这正是把节点墙钟耗光的那几轮。
+        const noFilter = !file && !container && span === null;
+        const hits = noFilter ? [] : evidence.byLocator({ file, container, rows: span, limit });
         if (hits.length === 0) {
           // 空结果最危险：模型会据此断言"材料里没有"。把实际存在的容器名
           // 报回去，它才知道是位置写错了、还是真的没有。
@@ -370,37 +516,69 @@ export function builtinRegistry(opts: BuiltinRegistryOptions = {}): ToolRegistry
     reg.fn(
       {
         name: "oir.query",
-        description: "查当前 OIR 里已有的对象/属性/关系。用来避免重复抽取同一个概念。",
+        description:
+          "分页查询当前 OIR 的对象、属性、关系、行动和规则。支持按业务名、物理名或规则原文搜索；" +
+          "返回 total/returned/truncated，不能把第一页误当全集。",
         schema: {
           type: "object",
           required: ["kind"],
           properties: {
             kind: {
               type: "string",
-              enum: ["objects", "properties", "links", "actions", "stats"],
+              enum: ["objects", "properties", "links", "actions", "rules", "stats"],
             },
-            name_contains: { type: "string" },
+            name_contains: {
+              type: "string",
+              description: "匹配 apiName、displayName 或规则 statement（不区分大小写）",
+            },
+            q: {
+              type: "string",
+              description: "name_contains 的简写；匹配业务名、物理名或规则原文",
+            },
+            offset: { type: "integer", description: "从第几条开始，默认 0" },
+            limit: { type: "integer", description: "本页条数，默认 60，最大 200" },
           },
         },
         danger: Danger.READ,
+        scopes: scopesForTool("oir.query"),
       },
       (args) => {
         const kind = argStr(args, "kind");
-        const nameContains = argStr(args, "name_contains");
+        // q is easier for model tool use; keep name_contains for callers that
+        // already depend on the original contract.
+        const nameContains = argStr(args, "q") || argStr(args, "name_contains");
         if (kind === "stats") return oir.stats();
+        const offset = Math.max(0, argInt(args, "offset", 0));
+        const limit = Math.max(1, Math.min(200, argInt(args, "limit", 60)));
         // Python 是 `getattr(oir, kind)` —— 桶不存在就 AttributeError。这里
         // 同样显式炸：schema 已经把 kind 限死在五个值里，出现别的值是内部错误。
         const bucket = (oir as unknown as Record<string, unknown>)[kind];
         if (!(bucket instanceof Map)) throw new Error(`OIR 没有 ${kind} 这个桶`);
         const items: unknown[] = [];
         for (const e of bucket.values()) {
-          const api = assertionValue(e, "apiName");
-          if (nameContains && !String(api).toLowerCase().includes(nameContains.toLowerCase())) {
-            continue;
+          if (nameContains) {
+            const needle = nameContains.toLowerCase();
+            const hay = ["apiName", "displayName", "statement"]
+              .map((field) => assertionValue(e, field))
+              .filter((value) => value !== null && value !== undefined)
+              .map(String)
+              .join("\n")
+              .toLowerCase();
+            if (!hay.includes(needle)) continue;
           }
-          items.push((e as { toDict(): unknown }).toDict());
+          items.push(oirItemToDict(kind, e));
         }
-        return { count: items.length, items: items.slice(0, 60) };
+        const page = items.slice(offset, offset + limit);
+        return {
+          count: items.length,
+          total: items.length,
+          returned: page.length,
+          offset,
+          limit,
+          truncated: offset + page.length < items.length,
+          next_offset: offset + page.length < items.length ? offset + page.length : null,
+          items: page,
+        };
       },
     );
 
@@ -421,6 +599,7 @@ export function builtinRegistry(opts: BuiltinRegistryOptions = {}): ToolRegistry
           },
         },
         danger: Danger.READ,
+        scopes: scopesForTool("impact.trace"),
       },
       (args) => {
         const target = argStr(args, "target");
@@ -475,15 +654,381 @@ export function builtinRegistry(opts: BuiltinRegistryOptions = {}): ToolRegistry
         const affected = [...items].sort(
           (a, b) => a.hops - b.hops || cmpCodePoint(a.kind, b.kind),
         );
+        // 流程段（C2）：改这些对象会波及哪些**流程环节**。桥是 FlowNode.objects
+        // （autoBindObjects 在建图收尾补、bind_auto 可手动触发）。绑定为空的
+        // 老会话这里自然是空 —— 空不等于「不波及」，note 里说清。
+        const flowGraph = flowOf();
+        const oirObjects = (oir as { objects?: Map<string, unknown> }).objects;
+        const objRids =
+          oirObjects === undefined
+            ? []
+            : [rid, ...items.map((it) => it.rid)].filter((r) => oirObjects.has(r));
+        const flowHits =
+          flowGraph instanceof FlowGraph && objRids.length > 0
+            ? flowDependents(flowGraph, objRids)
+            : [];
         return {
           target: { rid, kind: ridKind(oir, rid), name: ridName(oir, rid) },
           total: items.length,
           counts,
           affected: affected.slice(0, 60),
+          ...(flowHits.length > 0
+            ? {
+                波及流程环节: flowHits.slice(0, 20).map((h) => h.label),
+              }
+            : flowGraph instanceof FlowGraph && objRids.length > 0
+              ? { 波及流程环节: [], 流程段说明: "流程图的对象绑定为空（老会话）——用 flow.edit 的 bind_auto 先把桥搭上再看。" }
+              : {}),
           note:
             items.length > 0
               ? "这是**结构**上的影响面，不含「业务上谁会不高兴」。口径类的影响要另外看冲突清单。"
               : "顺着依赖走不到任何东西 —— 要么它确实是叶子，要么关系还没抽出来。",
+        };
+      },
+    );
+    reg.fn(
+      {
+        name: "entity.compare",
+        description:
+          "把两个对象/属性/关系/行动**逐字段并排**，报出差在哪、依据是什么。" +
+          "**回答「这两个是不是一回事」「该合还是该拆」之前先调它** —— " +
+          "同名不同义的口径差异看原文是看不出来的（两段话都在说「金额」），" +
+          "而合并不可逆，是这个岗位最贵的错误之一。",
+        schema: {
+          type: "object",
+          required: ["a", "b"],
+          properties: {
+            a: { type: "string", description: "rid，或 apiName、中文名" },
+            b: { type: "string", description: "rid，或 apiName、中文名" },
+          },
+        },
+        danger: Danger.READ,
+        scopes: scopesForTool("entity.compare"),
+      },
+      (args) => {
+        const rawA = argStr(args, "a");
+        const rawB = argStr(args, "b");
+        const ridA = resolveRid(oir, rawA);
+        const ridB = resolveRid(oir, rawB);
+        const missing = [
+          ridA === null ? rawA : null,
+          ridB === null ? rawB : null,
+        ].filter((x): x is string => x !== null);
+        if (missing.length > 0) {
+          return {
+            error: `OIR 里找不到${missing.map((m) => `「${m}」`).join("、")}`,
+            note: "先用 oir.query 看现有的名字，别照着材料里的写法猜 rid",
+          };
+        }
+        const kindA = ridKind(oir, ridA!);
+        const kindB = ridKind(oir, ridB!);
+        const sideA = { rid: ridA!, kind: kindA, name: ridName(oir, ridA!) };
+        const sideB = { rid: ridB!, kind: kindB, name: ridName(oir, ridB!) };
+
+        if (kindA !== kindB) {
+          return {
+            a: sideA,
+            b: sideB,
+            comparable: false,
+            note:
+              `不是同一类实体（${kindA} vs ${kindB}），逐字段并排没有意义。` +
+              "要问的多半是「这个属性该不该挂到那个对象上」——那用 impact.trace 看依赖。",
+          };
+        }
+
+        const bucket = BUCKET_OF_KIND[kindA] ?? "";
+        const itemA = bucketOf(oir, bucket).get(ridA!);
+        const itemB = bucketOf(oir, bucket).get(ridB!);
+        const fields = COMPARE_FIELDS[kindA] ?? ["apiName", "displayName", "status"];
+
+        const differences: Record<string, unknown>[] = [];
+        const same: string[] = [];
+        const evidence: Record<string, unknown>[] = [];
+        for (const f of fields) {
+          const va = fieldValue(itemA, f);
+          const vb = fieldValue(itemB, f);
+          // 两边都空的字段既不算「相同」也不算「不同」—— 它只是没抽出来。
+          // 混进 same 会把「查不到」伪装成「已确认一致」。
+          const emptyA = va === null || va === "" || (Array.isArray(va) && va.length === 0);
+          const emptyB = vb === null || vb === "" || (Array.isArray(vb) && vb.length === 0);
+          if (emptyA && emptyB) continue;
+          if (sameValue(va, vb)) {
+            same.push(f);
+            continue;
+          }
+          // 长文本不吐原文：真实数据里 description 存的是几百字抽取理由，
+          // 两边一起吐能把上下文撑爆，而 FDE 要的是「差在哪」不是两堵墙。
+          const TEXT_CAP = 140;
+          const isLongText =
+            typeof va === "string" && typeof vb === "string" &&
+            (va.length > TEXT_CAP || vb.length > TEXT_CAP);
+          let row: Record<string, unknown> = { field: f, a: va, b: vb };
+          if (isLongText) {
+            const sa = String(va);
+            const sb = String(vb);
+            row = {
+              field: f,
+              a: cpSlice(sa, 0, TEXT_CAP),
+              b: cpSlice(sb, 0, TEXT_CAP),
+              截断: true,
+            };
+            // 一边有一边空**不是**「差在哪几个字」—— 那时 opcodes 只会把
+            // 有内容那一边整段当成片段吐出来，比不给还糟。真实数据上就是这样：
+            // 一条 description 为空的对象，片段里出现了对方 250 字的全文。
+            if (sa.trim() === "" || sb.trim() === "") {
+              row["单边"] = sa.trim() === "" ? "b" : "a";
+            } else {
+              // 片段也要封顶：两段完全不共享内容时，opcodes 给的是整段级别的大块。
+              row["差在"] = undescribedDiff(sa, sb).map((x) => cpSlice(x, 0, 60));
+            }
+          }
+          differences.push(row);
+          for (const [side, item] of [["a", itemA], ["b", itemB]] as const) {
+            for (const ev of fieldEvidence(item, f)) {
+              evidence.push({
+                side,
+                field: f,
+                file: String(ev["fileName"] ?? ev["fileId"] ?? ""),
+                snippet: String(ev["snippet"] ?? ""),
+                locator: ev["locator"] ?? null,
+              });
+            }
+          }
+        }
+
+        const out: Record<string, unknown> = {
+          a: sideA,
+          b: sideB,
+          comparable: true,
+          differences,
+          same: same.sort(cmpCodePoint),
+          evidence: evidence.slice(0, 40),
+        };
+
+        if (kindA === "object") {
+          const pa = propApiNames(oir, ridA!);
+          const pb = propApiNames(oir, ridB!);
+          const sa = new Set(pa);
+          const sb = new Set(pb);
+          out["shared_properties"] = pa.filter((x) => sb.has(x));
+          out["only_in_a"] = pa.filter((x) => !sb.has(x));
+          out["only_in_b"] = pb.filter((x) => !sa.has(x));
+        }
+
+        // **信号不是结论。** 合并不可逆，工具报到「值得问一句」为止；
+        // 真要合，走 oir.edit 或记一条 decision，由人点头。
+        //
+        // 优先级有意义（真实数据打脸出来的）：那份 175 对象的 OIR 里有 4 对
+        // **显示名完全相同、只有 apiName 不同**的对象。它们是全模型最该合并的
+        // 候选，初版却给了和「真的不同」一样的 `differs` —— 读起来正好反了。
+        // 但口径冲突必须**压过**它：同名而口径不同时若读成「只是编码不一样」，
+        // 就会把最贵的那类错误（合并两个不同口径）伪装成一次无害的重命名。
+        const nameOf = (item: unknown): string => String(fieldValue(item, "displayName") ?? "");
+        const sameDisplayName = nameOf(itemA) !== "" && nameOf(itemA) === nameOf(itemB);
+        const calibreFields = new Set(["definition", "unit", "baseType", "cardinality"]);
+        const signal =
+          differences.some((d) => calibreFields.has(String(d["field"])))
+            ? "caliber_conflict"
+            : differences.length === 0
+              ? "high_similarity"
+              : sameDisplayName && differences.every((d) => d["field"] !== "displayName")
+                ? "naming_variance"
+                : "differs";
+        out["signal"] = signal;
+        out["note"] =
+          signal === "naming_variance"
+            ? "**业务名完全相同，差的是技术编码** —— 这是最强的合并候选那一类。" +
+              "但**合并不可逆**：先确认两边指的确实是同一个业务对象，再决定留哪个 apiName。"
+            : signal === "high_similarity"
+            ? "并排的字段没有差异 —— 但**合并不可逆**，这只是「值得问一句」，不是「就是同一个」。" +
+              "空字段没参与比较：两边都没抽出来的字段不算一致。"
+            : signal === "caliber_conflict"
+              ? "口径或单位不同 —— 这类同名不同义**合了就再也分不开**，" +
+                "合并不可逆，先拿证据去问业务方哪个口径算数。"
+              : "有差异。要判断该合还是该拆，先看 differences 里的字段和它们的出处。";
+        return out;
+      },
+    );
+    reg.fn(
+      {
+        name: "model.lint",
+        description:
+          "查当前本体模型里的结构病灶：孤儿对象、断链关系、无宿主属性、挂空的行动、" +
+          "缺主键、缺描述。**纯图检查、零模型** —— 每条都指向 OIR 里真实存在的 rid。" +
+          "回答「现在模型有什么问题」「能不能开始出交付物」之前先调它。",
+        schema: {
+          type: "object",
+          properties: {
+            kind: { type: "string", description: "只看某一类病灶；留空看全部" },
+          },
+        },
+        danger: Danger.READ,
+        scopes: scopesForTool("model.lint"),
+      },
+      (args) => {
+        const only = argStr(args, "kind");
+        const objects = bucketOf(oir, "objects");
+        const properties = bucketOf(oir, "properties");
+        const links = bucketOf(oir, "links");
+        const actions = bucketOf(oir, "actions");
+
+        const findings: Record<string, unknown>[] = [];
+        const add = (kind: string, rid: string, why: string) => {
+          findings.push({ kind, rid, name: ridName(oir, rid), why });
+        };
+
+        // 关系两端连了谁 —— 孤儿判定要用
+        const linked = new Set<string>();
+        for (const [rid, l] of links) {
+          const src = String(fieldValue(l, "source") ?? "");
+          const dst = String(fieldValue(l, "target") ?? "");
+          linked.add(src);
+          linked.add(dst);
+          const dangling = [src, dst].filter((x) => x !== "" && !objects.has(x));
+          if (dangling.length > 0) {
+            add("broken_link", rid, `两端指向不存在的对象：${dangling.join("、")}`);
+          }
+        }
+
+        for (const [rid, o] of objects) {
+          if (!linked.has(rid)) {
+            add("orphan_object", rid, "没有任何关系连到它 —— 要么关系还没抽出来，要么它不该独立成对象");
+          }
+          const pk = fieldValue(o, "primaryKey");
+          if (pk === null || (Array.isArray(pk) && pk.length === 0)) {
+            add("object_no_primary_key", rid, "没有主键 —— 下游没法稳定引用它");
+          }
+          const desc = fieldValue(o, "description");
+          if (desc === null || String(desc).trim() === "") {
+            add("object_no_description", rid, "没有业务定义 —— 同名不同义的风险全靠人记");
+          }
+        }
+
+        for (const [rid, pt] of properties) {
+          const parent = String(fieldValue(pt, "parent") ?? "");
+          if (parent === "" || !objects.has(parent)) {
+            add("orphan_property", rid, `parent 指向不存在的对象：${parent || "(空)"}`);
+          }
+        }
+
+        for (const [rid, at] of actions) {
+          const applies = fieldValue(at, "appliesTo");
+          const list = Array.isArray(applies) ? applies.map(String) : [];
+          const missing = list.filter((x) => !objects.has(x));
+          if (list.length === 0) {
+            add("action_no_host", rid, "没有声明作用在哪个对象上");
+          } else if (missing.length > 0) {
+            add("action_no_host", rid, `作用的对象不存在：${missing.join("、")}`);
+          }
+        }
+
+        // **全量分布**：过滤视图不能让人以为别的病灶不存在
+        const counts: Record<string, number> = {};
+        for (const f of findings) {
+          const k = String(f["kind"]);
+          counts[k] = (counts[k] ?? 0) + 1;
+        }
+
+        // ── 系统性缺失 vs 个体病灶 ────────────────────────────
+        //
+        // 真实数据打脸出来的：一份 175 对象 / 0 关系的 OIR 会报 175 条「孤儿对象」
+        // + 175 条「没有主键」。那不是 350 个病灶，是**两个系统性事实**：关系层
+        // 没抽出来、主键从来没填过。逐条报的后果是名额被占满、别的病灶一条都露不出来，
+        // 而「links 是零」这个真正的结论反而没人说。
+        //
+        // 判据：某一类命中了几乎全体（≥90%）且基数够大（≥10），就收敛成一条带
+        // 计数和例子的结论。少数命中（3/175）仍然逐条报 —— 那才是信号。
+        const SYSTEMIC_RATIO = 0.9;
+        const SYSTEMIC_MIN = 10;
+        const POPULATION: Readonly<Record<string, number>> = {
+          orphan_object: objects.size,
+          object_no_primary_key: objects.size,
+          object_no_description: objects.size,
+          orphan_property: properties.size,
+          broken_link: links.size,
+          action_no_host: actions.size,
+        };
+        const systemic: Record<string, unknown>[] = [];
+        const collapsed = new Set<string>();
+        for (const [kind, n] of Object.entries(counts)) {
+          const pop = POPULATION[kind] ?? 0;
+          if (pop < SYSTEMIC_MIN || n / pop < SYSTEMIC_RATIO) continue;
+          collapsed.add(kind);
+          systemic.push({
+            kind,
+            count: n,
+            of: pop,
+            examples: findings
+              .filter((f) => f["kind"] === kind)
+              .slice(0, 3)
+              .map((f) => String(f["name"])),
+            why:
+              kind === "orphan_object" && links.size === 0
+                ? "**整份模型一条关系都没有** —— 这不是 " +
+                  `${n} 个孤儿，是关系层根本没抽出来。先补关系，别逐个去查对象。`
+                : `${n}/${pop} 全都这样 —— 这是一次系统性缺失（某个抽取环节没填这个字段），` +
+                  "不是逐个实体的问题。逐条查没有意义，要回到抽取。",
+          });
+        }
+        // 零关系是**结构事实**，不是「90% 的对象碰巧是孤儿」。即使对象数不到 10，
+        // 也要单独说 —— 否则一个 5 对象 0 关系的模型会安静地什么都不报。
+        if (objects.size > 0 && links.size === 0 && !collapsed.has("orphan_object")) {
+          systemic.push({
+            kind: "no_links_at_all",
+            count: objects.size,
+            of: objects.size,
+            examples: [],
+            why: "整份模型一条关系都没有 —— 关系层没抽出来。",
+          });
+        }
+        if (links.size === 0 && collapsed.has("orphan_object")) {
+          systemic[systemic.findIndex((x) => x["kind"] === "orphan_object")]!["kind"] =
+            "no_links_at_all";
+        }
+
+        // 收敛是**默认视图**的降噪，不是审查权限。他点名要看某一类，就给他逐条 ——
+        // 否则「显式筛 orphan_object」会拿到空结果，读起来像「没有孤儿」。
+        let pool = only
+          ? findings.filter((f) => f["kind"] === only)
+          : findings.filter((f) => !collapsed.has(String(f["kind"])));
+
+        // **分层截断。** 按迭代顺序切前 80 条，会让第一类占满名额、后面的类
+        // 一条都露不出来（真实数据上就是这样：80 条全是 orphan_object）。
+        const CAP = 80;
+        const byKind = new Map<string, Record<string, unknown>[]>();
+        for (const f of pool) {
+          const k = String(f["kind"]);
+          if (!byKind.has(k)) byKind.set(k, []);
+          byKind.get(k)!.push(f);
+        }
+        const shown: Record<string, unknown>[] = [];
+        let round = 0;
+        while (shown.length < CAP) {
+          let added = false;
+          for (const rows of byKind.values()) {
+            if (round >= rows.length) continue;
+            if (shown.length >= CAP) break;
+            shown.push(rows[round]!);
+            added = true;
+          }
+          if (!added) break;
+          round += 1;
+        }
+
+        const empty = objects.size === 0 && properties.size === 0 && links.size === 0;
+        return {
+          total: findings.length,
+          counts,
+          systemic,
+          findings: shown,
+          // 「没报出来」有两种：查过确实没有，和根本没查。把查了哪几项说出来。
+          checked: CHECKED_LINTS,
+          note: empty
+            ? "OIR 是空的 —— **还没抽过**，不是「已确认健康」。先跑梳理或用 oir.add 手工补。"
+            : findings.length === 0
+              ? `查了 ${CHECKED_LINTS.length} 类结构病灶，都没命中。注意这只覆盖**结构**，` +
+                "口径矛盾要另外看冲突清单。"
+              : "这些都是**结构**问题（引用断了、缺必要字段）。口径类分歧不在这里，看冲突清单。",
         };
       },
     );
@@ -505,6 +1050,7 @@ export function builtinRegistry(opts: BuiltinRegistryOptions = {}): ToolRegistry
           properties: { column: { type: "string", description: "形如 表名.列名" } },
         },
         danger: Danger.READ,
+        scopes: scopesForTool("profile.column"),
       },
       (args) => {
         const column = argStr(args, "column");
@@ -559,7 +1105,8 @@ export function builtinRegistry(opts: BuiltinRegistryOptions = {}): ToolRegistry
     );
   }
 
-  return reg;
+  assertManagedToolRegistrations(registry.registrationSnapshot(), "core");
+  return registry;
 }
 
 /**
@@ -581,11 +1128,20 @@ export async function sandboxForTools(
   const flag = String(env["ONTOCOPILOT_ENABLE_CODEACT"] ?? "").toLowerCase();
   if (!["1", "true", "yes"].includes(flag)) return null;
   try {
-    const executor = defaultSandbox({ production: true });
-    // **探一次再注册。** 容器沙箱要外部运行时；`docker` 不在 PATH 上时它每次
-    // 调用都抛 SandboxError —— 那正是文件头说的"模型反复重试一个永远不会成功
-    // 的工具"。
-    if (executor instanceof ContainerSandbox && !onPath(executor.docker, env)) return null;
+    // **探一次再注册，而且要探到运行时那一层。**
+    //
+    // 原来这里是 `defaultSandbox({production:true})`（写死 gVisor）+ 只查
+    // `docker` 在不在 PATH。实测下来这个组合有个洞：Docker Desktop 装了、
+    // docker 在 PATH 上、探活通过，但 `docker run --runtime runsc` 报
+    // `unknown or invalid runtime name: runsc` —— 于是 code.exec 进了动作空间、
+    // 每次调用必然失败，正是文件头说的"模型反复重试一个永远不会成功的工具"。
+    //
+    // 现在按**实际可用的运行时**挑最强的那一档（microvm > gvisor > runc），
+    // 一个都没有就返回 null。runc 档不冒充 production_safe（那个判据只认
+    // gvisor/microvm），但它是真的容器边界，好过完全没有。
+    const executor = bestContainerSandbox({});
+    if (executor === null) return null;
+    if (!onPath(executor.docker, env)) return null;
     return asSandboxLike(executor);
   } catch {
     // 装配失败等同于"没有沙箱"。抛上去会让整条对话/梳理起不来，

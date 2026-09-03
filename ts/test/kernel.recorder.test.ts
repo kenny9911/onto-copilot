@@ -282,6 +282,57 @@ describe("请求摘要", () => {
   });
 });
 
+describe("完整请求 blob 捕获", () => {
+  it("显式开启时 requested.ref 指向原始结构，payload 仍保留可扫列表的 digest", async () => {
+    const journal = new InMemoryJournal();
+    const blobs = new InMemoryBlobStore();
+    const rec = new Recorder("r1", journal, blobs, { captureRequestBlobs: true });
+    const request = {
+      prompt: "采".repeat(520),
+      schema: { type: "object", required: ["answer"] },
+      nested: { api_key: "只用于验证原始结构没有在存储前被改写" },
+    };
+
+    await expect(rec.effect("N", "llm.call", request, () => ({ ok: true }))).resolves.toEqual({ ok: true });
+
+    const requested = [...journal.read("r1")].find((event) => event.kind === EventKind.EFFECT_REQUESTED);
+    expect(requested?.ref).toMatch(/^blob:/u);
+    expect(requested?.payload["request_fidelity"]).toBe("full");
+    expect((requested?.payload["request"] as Record<string, string>)["prompt"]).toContain("…(+120)");
+    expect(await blobs.getJson(requested!.ref!)).toEqual(request);
+  });
+
+  it("request blob 写失败只降级审计 fidelity，effect 仍执行并正常完成", async () => {
+    class RejectingBlobStore extends InMemoryBlobStore {
+      override put(_data: Uint8Array | string): Promise<string> {
+        return Promise.reject(new Error("request blob unavailable"));
+      }
+    }
+
+    const journal = new InMemoryJournal();
+    const rec = new Recorder("r1", journal, new RejectingBlobStore(), {
+      captureRequestBlobs: true,
+    });
+    let calls = 0;
+    const out = await rec.effect("N", "tool.call", { query: "采购审批" }, () => {
+      calls += 1;
+      return { ok: true };
+    });
+
+    expect(out).toEqual({ ok: true });
+    expect(calls).toBe(1);
+    const events = [...journal.read("r1")];
+    const requested = events.find((event) => event.kind === EventKind.EFFECT_REQUESTED);
+    expect(requested?.ref).toBeNull();
+    expect(requested?.payload).toMatchObject({
+      request: { query: "采购审批" },
+      request_fidelity: "digest",
+      request_capture_error: "Error: request blob unavailable",
+    });
+    expect(events.some((event) => event.kind === EventKind.EFFECT_COMPLETED)).toBe(true);
+  });
+});
+
 describe("时间与随机走 effect", () => {
   for (const g of G.clock) {
     it(`${g.call} 的 effect 形状（key/kind/fp/摘要）`, async () => {
@@ -421,6 +472,44 @@ describe("single-flight", () => {
       .filter((e) => e.kind === EventKind.EFFECT_COMPLETED)
       .map((e) => e.payload["key"]);
     expect(new Set(keys)).toEqual(new Set(["N#0", "N#1"]));
+  });
+});
+
+describe("不可缓存的权限敏感 effect", () => {
+  it("崩溃后恢复仍实时执行，撤权前结果只留审计、不能被重放", async () => {
+    const journal = new InMemoryJournal();
+    const blobs = new InMemoryBlobStore();
+    const beforeCrash = new Recorder("acl-run", journal, blobs);
+    let calls = 0;
+    expect(await beforeCrash.effect(
+      "TOOL",
+      "tool.call",
+      { tool: "document.open", evidence_ref: "odoc.v1.doc.ver.chunk" },
+      () => {
+        calls += 1;
+        return { ok: true, text: "撤权前正文" };
+      },
+      { replay: "never" },
+    )).toEqual({ ok: true, text: "撤权前正文" });
+
+    // 模拟进程崩溃后 ACL 已撤销：同一个 run、同一个 effect key、同一个请求。
+    const resumed = new Recorder("acl-run", journal, blobs, { resume: true });
+    expect(await resumed.effect(
+      "TOOL",
+      "tool.call",
+      { tool: "document.open", evidence_ref: "odoc.v1.doc.ver.chunk" },
+      () => {
+        calls += 1;
+        return { ok: false, error: "当前账号已无权读取" };
+      },
+      { replay: "never" },
+    )).toEqual({ ok: false, error: "当前账号已无权读取" });
+    expect(calls).toBe(2);
+
+    const completed = [...journal.read("acl-run")]
+      .filter((event) => event.kind === EventKind.EFFECT_COMPLETED);
+    expect(completed).toHaveLength(2);
+    expect(completed.every((event) => event.payload["replay_policy"] === "never")).toBe(true);
   });
 });
 

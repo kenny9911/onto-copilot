@@ -444,15 +444,47 @@ export function findingToDict(f: ValidationFinding): Dict {
 
 const DEFAULT_VALIDATORS = ["schema-shape", "global-id-uniqueness", "reference-integrity"];
 
+/**
+ * 一项**没有跑**的评审。
+ *
+ * `DegradeLevel.RULES_ONLY` 的枚举注释（`kernel/budget.ts:24`）承诺"产物标
+ * 「未经语义审核」"，`budget.ts:263` 又写着这个标记"不该悄悄消失" —— 而在此
+ * 之前 grep 全仓，**这个标记根本不存在**。注释在描述一个没实现的功能，而 latch
+ * 的存在会让读代码的人以为它实现了。
+ */
+export interface SkippedReview {
+  /** 没跑的是什么。例："llm_critic"。 */
+  readonly what: string;
+  /** 为什么没跑。给人看的一句话。 */
+  readonly why: string;
+  /** 触发跳过时的降级级别（`DegradeLevel` 的数值）。 */
+  readonly level: number;
+  /** 该级别的中文标签。 */
+  readonly label: string;
+}
+
 export class ValidationReport {
   readonly findings: ValidationFinding[];
   readonly validators: string[];
+  /**
+   * 本次**没有跑**的评审。
+   *
+   * 放在 validation 里而不是新开一个包顶层字段，两个理由：
+   *   1. **语义**：`validators` 本来就在宣称"这些检查跑过了"。一份只列 findings、
+   *      却不说"语义评审整段没跑"的验证报告，恰恰就是缺陷本身。
+   *   2. **兼容**：包的 JSON schema 是 `additionalProperties: false`（见
+   *      `ONTOLOGY_PACKAGE_JSON_SCHEMA`），加顶层字段要改 schema 版本；
+   *      而 `validation` 的子 schema 是 `{"type":"object"}`，完全开放。
+   */
+  readonly skippedReviews: SkippedReview[];
 
   constructor(p: { findings?: ValidationFinding[] | undefined;
-    validators?: string[] | undefined } = {}) {
+    validators?: string[] | undefined;
+    skippedReviews?: readonly SkippedReview[] | undefined } = {}) {
     // 每次新数组：Python 的 default_factory 语义，共享引用会让两份报告串味。
     this.findings = [...(p.findings ?? [])];
     this.validators = [...(p.validators ?? DEFAULT_VALIDATORS)];
+    this.skippedReviews = [...(p.skippedReviews ?? [])];
   }
 
   get passed(): boolean {
@@ -460,11 +492,22 @@ export class ValidationReport {
   }
 
   toDict(): Dict {
-    return {
+    const out: Dict = {
       status: this.passed ? "passed" : "failed",
       validators: [...this.validators],
       findings: this.findings.map(findingToDict),
     };
+    // **一项都没跳过时一个键都不加** —— 未降级的运行产出逐字节不变，
+    // golden/canonical.json 的 from_dict_roundtrip 一动不动。
+    //
+    // 注意 status **不**因为跳过评审就变 failed：混淆"有 error"和"没审过"
+    // 会让 fail-closed 的门开始误报，而 ExportHandler 那条判定是这个代码库里
+    // 少数真正做对的地方，不该被这件事波及。
+    if (this.skippedReviews.length > 0) {
+      out["semantically_reviewed"] = false;
+      out["skipped_reviews"] = this.skippedReviews.map((s) => ({ ...s }));
+    }
+    return out;
   }
 }
 
@@ -888,6 +931,8 @@ export interface BuildPackageOptions {
   decisions?: Iterable<unknown> | undefined;
   questions?: unknown;
   backlog?: unknown;
+  /** 本次**没有跑**的评审。空数组 = 全跑了，产物里一个键都不加。 */
+  skippedReviews?: readonly SkippedReview[] | undefined;
 }
 
 /**
@@ -999,18 +1044,49 @@ export function buildPackage(
   // ── 角色 / 系统：出现即登记，最后按名字排序输出 ──────────────────
   const roleIds = new Map<string, string>();
   const systemIds = new Map<string, string>();
+  // slug 有长度上限，不同长名称/URL 可能收敛成同一个 canonical id。无碰撞时必须
+  // 保持既有 golden；只有“不同 identity 占用同一个 id”时追加稳定 hash 后缀。
+  const roleIdentityById = new Map<string, string>();
+  const systemIdentityById = new Map<string, string>();
+  const collisionSafeId = (
+    preferred: string,
+    identity: string,
+    occupied: Map<string, string>,
+  ): string => {
+    const owner = occupied.get(preferred);
+    if (owner === undefined || owner === identity) {
+      occupied.set(preferred, identity);
+      return preferred;
+    }
+    // 8 hex 已足够作为正常后缀；仍防御极端 hash 前缀碰撞，逐步加长而不是覆盖。
+    const digest = sha256Hex(identity);
+    for (let width = 8; width <= digest.length; width += 4) {
+      const candidate = `${preferred}.h${digest.slice(0, width)}`;
+      const candidateOwner = occupied.get(candidate);
+      if (candidateOwner === undefined || candidateOwner === identity) {
+        occupied.set(candidate, identity);
+        return candidate;
+      }
+    }
+    // sha256 全长仍冲突只可能是同 hash 的不同 identity；保留确定性且显式区分长度。
+    const fallback = `${preferred}.h${digest}.${identity.length}`;
+    occupied.set(fallback, identity);
+    return fallback;
+  };
 
   const roleFor = (name: unknown): string | null => {
     const text = pyStrip(pyStr(pyOr(pyValue(name), "")));
     if (!pyTruthy(text)) return null;
     if (text.startsWith("role.")) {
       const bare = text.slice("role.".length);
-      if (!roleIds.has(bare)) roleIds.set(bare, text);
-      return text;
+      if (!roleIds.has(bare)) {
+        roleIds.set(bare, collisionSafeId(text, bare, roleIdentityById));
+      }
+      return roleIds.get(bare)!;
     }
-    const rid = canonicalId("role", text);
+    const rid = collisionSafeId(canonicalId("role", text), text, roleIdentityById);
     if (!roleIds.has(text)) roleIds.set(text, rid);
-    return rid;
+    return roleIds.get(text)!;
   };
 
   const systemFor = (endpoint: unknown): string | null => {
@@ -1019,9 +1095,9 @@ export function buildPackage(
     const afterScheme = splitOnce(text, "//").at(-1)!;
     const head = splitOnce(afterScheme, "/")[0]!;
     const identity = pyTruthy(head) ? head : text;
-    const rid = canonicalId("sys", identity);
+    const rid = collisionSafeId(canonicalId("sys", identity), identity, systemIdentityById);
     if (!systemIds.has(identity)) systemIds.set(identity, rid);
-    return rid;
+    return systemIds.get(identity)!;
   };
 
   // ── 行动 ───────────────────────────────────────────────────────
@@ -1453,7 +1529,7 @@ export function buildPackage(
   const sortedSystems = [...systemIds.entries()].sort((a, b) => cmpCodePoint(a[0], b[0]));
   pkg.systems = sortedSystems.map(([name, rid]) => ({ id: rid, name }));
   pkg.evidence = [...evidence.items.values()];
-  pkg.validation = validatePackage(pkg);
+  pkg.validation = validatePackage(pkg, options.skippedReviews ?? []);
   return pkg;
 }
 
@@ -1466,7 +1542,10 @@ function removePrefix(s: string, prefix: string): string {
 // ══════════════════════════════════════════════════════════════════
 
 /** 校验稳定形状与每一条 canonical 交叉引用。 */
-export function validatePackage(pkg: OntologyPackage | Dict): ValidationReport {
+export function validatePackage(
+  pkg: OntologyPackage | Dict,
+  skippedReviews: readonly SkippedReview[] = [],
+): ValidationReport {
   // Python 侧对 Mapping 只做**浅**拷贝（`dict(package)`），照抄 —— 深拷贝会让
   // export_package 里"改 data['validation']"的副作用形态变掉。
   const data: Dict = pkg instanceof OntologyPackage ? pkg.toDict() : { ...pkg };
@@ -1530,6 +1609,11 @@ export function validatePackage(pkg: OntologyPackage | Dict): ValidationReport {
     });
   }
   const coll = (name: CollectionName): Set<string> => byCollection.get(name)!;
+  const checkEvidenceIds = (value: unknown, path: string): void => {
+    iterOr(value).forEach((ref, index) => {
+      check(ref, coll("evidence"), `${path}/${index}`);
+    });
+  };
 
   const allIds = new Set<string>(ids.keys());
   const processNodeIds = new Set<string>();
@@ -1567,6 +1651,15 @@ export function validatePackage(pkg: OntologyPackage | Dict): ValidationReport {
             `${path}/dataObjectRefs/${oi}`, "error", pyStr(ref));
         }
       });
+      checkEvidenceIds(dget(node, "analysisEvidenceIds"), `${path}/analysisEvidenceIds`);
+      iterOr(dget(node, "erpMappings")).forEach((mapping, mi) => {
+        if (isMapping(mapping)) {
+          checkEvidenceIds(
+            dget(mapping, "evidenceIds"),
+            `${path}/erpMappings/${mi}/evidenceIds`,
+          );
+        }
+      });
     });
     iterOr(dget(process, "edges")).forEach((edge, ei) => {
       if (!isMapping(edge)) return;
@@ -1592,6 +1685,15 @@ export function validatePackage(pkg: OntologyPackage | Dict): ValidationReport {
     if (!isMapping(item)) return;
     check(dget(item, "systemOfRecord"), coll("systems"), `/dataObjects/${i}/systemOfRecord`);
     check(dget(item, "ownerRole"), coll("roles"), `/dataObjects/${i}/ownerRole`);
+    checkEvidenceIds(dget(item, "analysisEvidenceIds"), `/dataObjects/${i}/analysisEvidenceIds`);
+    iterOr(dget(item, "qualityRules")).forEach((rule, qi) => {
+      if (isMapping(rule)) {
+        checkEvidenceIds(
+          dget(rule, "evidenceIds"),
+          `/dataObjects/${i}/qualityRules/${qi}/evidenceIds`,
+        );
+      }
+    });
     iterOr(dget(item, "relations")).forEach((relation, j) => {
       if (isMapping(relation)) {
         check(dget(relation, "target"), coll("dataObjects"),
@@ -1648,6 +1750,7 @@ export function validatePackage(pkg: OntologyPackage | Dict): ValidationReport {
     iterOr(dget(item, "scope")).forEach((ref, j) => {
       check(ref, allIds, `/rules/${i}/scope/${j}`);
     });
+    checkEvidenceIds(dget(item, "analysisEvidenceIds"), `/rules/${i}/analysisEvidenceIds`);
   });
 
   iterOr(dget(data, "questions")).forEach((item, i) => {
@@ -1692,5 +1795,5 @@ export function validatePackage(pkg: OntologyPackage | Dict): ValidationReport {
     }
   };
   walk(data);
-  return new ValidationReport({ findings });
+  return new ValidationReport({ findings, skippedReviews });
 }

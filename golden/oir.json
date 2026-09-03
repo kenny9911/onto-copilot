@@ -1298,6 +1298,7 @@
   "dependents": {
    "ot_purchase_plan_header": [
     "at_createpbp",
+    "br_amount_gate",
     "lt_plan_contract",
     "pt_plan_amount_budget",
     "pt_plan_id"

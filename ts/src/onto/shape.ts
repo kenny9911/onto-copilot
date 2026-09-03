@@ -200,6 +200,7 @@ export const ColumnRole = {
   REQUIRED: "required",       // 是否必填之类的布尔列
   PROSE: "prose",             // 长文本：定义、规则、职责
   ENUM: "enum",               // 取值很少的短枚举
+  CARDINALITY: "cardinality", // 基数：1:N / M:N / 一对多 —— 关系表的**决定性**信号
   QUESTION: "question",       // 问句列 —— 问卷的主体
   OPTIONS: "options",         // 参考选项列（①②③）
   ANSWER_SLOT: "answer_slot", // 待填答复列：整列空，就是它把这张表标成"待填"
@@ -262,6 +263,10 @@ function normType(v: string): string {
 /** 布尔取值。同样只看取值。 */
 const BOOL_WORDS = new Set(["是", "否", "y", "n", "yes", "no", "true", "false", "1", "0",
   "必填", "非必填", "可空", "不可空", "√", "×"]);
+
+/** 基数取值：1:1 / 1:N / N:1 / M:N / 一对多 / 0..1 / 1..*。
+ * 比对前先把全角冒号换成半角、去空白（roleOf 里做）。 */
+const CARDINALITY_RE = /^(?:[01nm][:.][1nm*]|[01]\.\.[1n*]|一对一|一对多|多对一|多对多|n[:.]m|m[:.]n)$/i;
 
 // 末尾的 `\n?` 不是手滑：Python 的 `$` 也匹配"结尾换行之前"，JS 的不。
 // 取值在这里已经 strip 过，实际到不了这一步 —— 但留着，免得哪天有人拿没 strip
@@ -363,6 +368,14 @@ function roleOf(name: string, values: readonly string[]):
   // 布尔
   if (frac((v) => BOOL_WORDS.has(v)) >= 0.8 && distinct <= 4) {
     return [ColumnRole.REQUIRED, fill, dratio, meanLen];
+  }
+
+  // 基数：1:N / M:N / 一对多 …… 整列都是这样的取值，这张表就是**关系表**。
+  // 必须判在 ENUM 之前 —— 基数取值又短又高度重复，落进短枚举分支之后
+  // 「一行一条关系」这个信号就永远丢了（真实案发：40 行的关联关系表被判成
+  // 实体登记表，39 条带基数的关系一条都没抽出来）。
+  if (frac((v) => CARDINALITY_RE.test(v.replace(/：/g, ":").replace(/\s+/g, ""))) >= 0.6) {
+    return [ColumnRole.CARDINALITY, fill, dratio, meanLen];
   }
 
   // 散文
@@ -577,7 +590,8 @@ export function parseYield(v: string): Yield {
 }
 
 /** 一行对应一个什么。null = 说不准。 */
-export type RowUnit = "object" | "property" | "action" | "rule" | "question" | null;
+export type RowUnit =
+  "object" | "property" | "action" | "rule" | "question" | "link" | null;
 
 export interface SegmentShapeDict {
   row_count: number;
@@ -643,6 +657,7 @@ export class SegmentShape {
       object: "一个业务对象", property: "一个字段/属性",
       action: "一个行动（有接口）", rule: "一段业务规则",
       question: "一个待澄清的问题（不是实体）",
+      link: "一条对象间的关系（源对象→目标对象+基数，不是实体）",
     };
     const u = unit[this.rowUnit ?? ""] ?? "不确定的单元";
     const ys = [...this.yields].sort().join("、") || "（不确定）";
@@ -707,6 +722,11 @@ export function inferShape(rows: readonly unknown[]): SegmentShape {
   const structural = shape.columns.filter(
     (c) => c.role !== ColumnRole.PROSE && c.role !== ColumnRole.EMPTY);
 
+  // 关系表：有基数列 + 至少两根名称列。判在 hasType 之后 —— 「数据类型列的
+  // 存在压过一切」是本模块开篇立的规矩；FK 规格表（字段/类型/基数）先算字段表。
+  const cardCol = shape.col(ColumnRole.CARDINALITY);
+  const [linkSrc, linkDst] = linkColumns(shape);
+
   if (hasType) {
     shape.rowUnit = "property";
     shape.yields.add(Yield.PROPERTIES);
@@ -723,6 +743,18 @@ export function inferShape(rows: readonly unknown[]): SegmentShape {
     // 迟早会出现"开关开了但抽取选不出列"（或反过来）的静默空转。
     const [pf, ph] = propertyColumns(shape);
     if (pf !== null && ph !== null) shape.ruleDecidable.add(Yield.PROPERTIES);
+  } else if (cardCol !== null && linkSrc !== null && linkDst !== null) {
+    // 一列整列是 1:N / M:N，旁边还有两根名称列 —— 这是**关系表**，一行一条
+    // 对象间关系。以前没有这个形状，它落进「实体登记表」：critic 追着它按行
+    // 数要**对象**，40 行专门写关系的表产出零关系，还多出几十个假对象。
+    // 源/目标/基数三列俱全时，每一行映射成哪条关系是完全确定的 —— 规则抽，
+    // 不花模型的钱，也不给它漏行的机会。
+    shape.rowUnit = "link";
+    shape.yields.add(Yield.LINKS);
+    shape.ruleDecidable.add(Yield.LINKS);
+    shape.note = "有基数列（1:N / M:N）和两根对象名称列 —— 这是**关系表**，"
+      + "一行是一条对象间关系，不是实体。**这段的产出是 links，一行一条；"
+      + "两端对象在别的表里登记过，这里不要再抽对象。**";
   } else if (hasEndpoint && (ident || label)) {
     shape.rowUnit = "action";
     shape.yields.add(Yield.ACTIONS);
@@ -734,12 +766,33 @@ export function inferShape(rows: readonly unknown[]): SegmentShape {
     shape.note = "有接口列 —— 每一行是一个行动，编码列装的是**行动码**不是实体码；"
       + "宿主对象在重复出现的名称列里，需要按命名规范起 apiName。"
       + "这段没有字段可抽。";
+  } else if (ident && ident.fill >= 0.6 && TCODE_NAME_RE.test(ident.name)) {
+    // 标识符列自称是事务码/交易码 —— 这是**功能清单**（SAP 事务码、菜单、
+    // 报表），一行是系统的一个功能入口，不是业务对象。真实案发：1414 行的
+    // 事务码表被当实体登记表，critic 按行数逼着模型造出 900 个假对象
+    // （displayName='15' 这种行号都进了 OIR）。功能入口是 Action 的素材；
+    // 值得建模的那部分让模型挑，不做逐行覆盖压力。
+    shape.rowUnit = "action";
+    shape.yields.add(Yield.ACTIONS);
+    shape.note = "标识符列是**事务码/功能代码** —— 这是功能清单，一行是一个"
+      + "系统功能入口，**不是业务对象，不要一行造一个对象**。产出是 actions："
+      + "挑出与业务域相关的功能抽成行动，宿主对象从功能描述里判断。";
   } else if (ident && ident.fill >= 0.6) {
     shape.rowUnit = "object";
     shape.yields.add(Yield.OBJECTS);
     shape.ruleDecidable.add(Yield.OBJECTS);
     shape.note = "有唯一标识符列但没有数据类型列 —— 这是**实体登记表**，"
       + "一行一个对象。**这段没有属性可抽，零属性是正确结果。**";
+    const attrCol = attrListColumn(shape);
+    if (attrCol !== null) {
+      // 登记表带「关键属性」列：顿号/逗号分隔的字段清单，每个词是一个属性、
+      // 宿主是本行对象 —— 映射完全确定，规则抽（真实案发：9 个主数据对象
+      // 44 个关键属性全军覆没，因为这条通道不存在）。类型/口径留给模型补。
+      shape.yields.add(Yield.PROPERTIES);
+      shape.note = "有唯一标识符列但没有数据类型列 —— 这是**实体登记表**，"
+        + `一行一个对象。「${attrCol.name}」列是分隔符隔开的**字段清单**：`
+        + "每个词已由规则抽成本行对象的属性，你要补的是类型与口径。";
+    }
   } else if (prose.length > 0 && prose.length >= Math.max(1, structural.length)) {
     shape.rowUnit = "rule";
     shape.yields.add(Yield.RULES);
@@ -748,6 +801,16 @@ export function inferShape(rows: readonly unknown[]): SegmentShape {
     shape.rowUnit = "object";
     shape.yields.add(Yield.OBJECTS);
     shape.note = "只有名称列，没有编码也没有类型 —— 对象名要靠命名规范生成。";
+    const attrCol = attrListColumn(shape);
+    if (attrCol !== null) {
+      // 「MD-01」这类带连字符的编号不过 IDENT_RE，主数据清单走的是这条名称
+      // 分支 —— 关键属性列的通道两条分支都要有，缺这边就是 44 个关键属性
+      // 全军覆没的那半个成因。
+      shape.yields.add(Yield.PROPERTIES);
+      shape.note = "只有名称列，没有编码也没有类型 —— 对象名要靠命名规范生成。"
+        + `「${attrCol.name}」列是分隔符隔开的**字段清单**：每个词已由规则抽成`
+        + "本行对象的属性（宿主用本行的中文名），你要补的是类型与口径。";
+    }
   }
 
   // 散文列在任何形状下都可能藏规则
@@ -839,6 +902,21 @@ export function structuralExtract(
   if (shape.ruleDecidable.has(Yield.PROPERTIES)) {
     extractProperties(rows, cites, shape, out, carryMap);
     return out;
+  }
+
+  if (shape.ruleDecidable.has(Yield.LINKS)) {
+    extractLinks(rows, cites, shape, out);
+    return out;
+  }
+
+  // 登记表带「关键属性」列时，属性抽取**不依赖**对象是否规则可判 ——
+  // 主数据清单的编号是「MD-01」这种带连字符的样式，过不了 IDENT_RE，
+  // 对象走模型；但每行的字段清单照样是确定映射，规则抽，宿主用本行中文名
+  // （buildOir 按显示名解析宿主）。
+  const attrColPre = shape.yields.has(Yield.PROPERTIES)
+    && !shape.ruleDecidable.has(Yield.PROPERTIES) ? attrListColumn(shape) : null;
+  if (attrColPre !== null) {
+    extractAttrListProperties(rows, cites, shape, out, attrColPre);
   }
 
   if (!shape.ruleDecidable.has(Yield.OBJECTS)
@@ -939,6 +1017,137 @@ export function baseTypeOf(raw: unknown): string {
   const stem = normType(pyTruthy(raw) ? pyStr(raw) : "");
   return Object.prototype.hasOwnProperty.call(BASE_TYPE, stem)
     ? BASE_TYPE[stem]! : "STRING";
+}
+
+/** 关系表里可能装对象名的列角色。IDENTIFIER 也算 —— 编码化的对象名（ASCII
+ * camelCase）在两端列里同样合法。 */
+const LINK_NAMEISH = new Set<ColumnRole>([
+  ColumnRole.LABEL, ColumnRole.GROUP, ColumnRole.ENUM,
+  ColumnRole.IDENTIFIER, ColumnRole.UNKNOWN,
+]);
+const LINK_SRC_RE = /(源|from|上游|左)/iu;
+const LINK_DST_RE = /(目标|target|to|下游|被|右)/iu;
+
+/** 标识符列自称事务码/交易码 —— 功能清单（不是实体登记表）的判据。 */
+const TCODE_NAME_RE = /(事务码|事务代码|交易码|交易代码|t[-_]?code|功能代码)/iu;
+
+/** 实体登记表里的「关键属性」列：分隔符隔开的字段清单。
+ * 只按列名认 —— 取值判据（长文本、含顿号）会把「L4逻辑数据实体」这类
+ * 同样是顿号清单、但装的是**实体名**的列误收进来。 */
+const ATTR_LIST_NAME_RE = /(关键|主要|核心)属性|属性清单|属性列表|字段清单|关键字段/u;
+
+export function attrListColumn(shape: SegmentShape): ColumnView | null {
+  return shape.columns.find((c) =>
+    ATTR_LIST_NAME_RE.test(c.name)
+    && (c.role === ColumnRole.PROSE || c.role === ColumnRole.UNKNOWN
+      || c.role === ColumnRole.LABEL)
+    && c.fill >= 0.5) ?? null;
+}
+
+/** 登记表「关键属性」列的宿主列：优先列名点名（对象/名称/实体），
+ * 其次编码列，最后第一根名称样的列。 */
+const ATTR_HOST_NAME_RE = /(对象|名称|实体)/u;
+
+function attrHostColumn(shape: SegmentShape, attrCol: ColumnView): ColumnView | null {
+  const cand = shape.columns.filter((c) =>
+    c !== attrCol && LINK_NAMEISH.has(c.role) && c.fill >= 0.5);
+  return cand.find((c) => ATTR_HOST_NAME_RE.test(c.name))
+    ?? cand.find((c) => c.role === ColumnRole.IDENTIFIER)
+    ?? cand[0] ?? null;
+}
+
+/** 登记表的「关键属性」列逐行拆词成属性，宿主用本行的名称格。
+ * base_type 给 STRING —— 那是 buildOir 对缺席类型的既有缺省，不是这里新编的；
+ * 口径（definition）留空，由模型补（outstanding() 会为此继续索要 PROPERTIES）。 */
+function extractAttrListProperties(
+  rows: readonly unknown[],
+  cites: readonly string[],
+  shape: SegmentShape,
+  out: ExtractOut,
+  attrCol: ColumnView,
+): void {
+  const host = attrHostColumn(shape, attrCol);
+  if (host === null) return;
+  const n = Math.min(rows.length, cites.length);
+  for (let i = 0; i < n; i += 1) {
+    const row = rows[i];
+    if (!isRow(row)) continue;
+    const parent = pyStrip(rowStr(row, host.name));
+    if (!parent) continue;
+    const seen = new Set<string>();
+    for (const tok of pyStrip(rowStr(row, attrCol.name)).split(/[、，,;；/｜|]/u)) {
+      const name = pyStrip(tok);
+      if (!name || cpLen(name) > 24 || seen.has(name)) continue;
+      seen.add(name);
+      out.properties.push({
+        parent_api_name: parent, api_name: name, display_name: name,
+        base_type: "STRING", definition: "", required: false,
+        source_locator: cites[i]!, _origin: "rule",
+      });
+    }
+  }
+}
+
+/** 关系表里哪一列是**源对象**、哪一列是**目标对象**。
+ *
+ * 先按列名认（源/from/上游 vs 目标/to/下游）；两根都认出来才按名字配对。
+ * 认不全就按列序取前两根名称列 —— 中文关系表的书写习惯是源在左、目标在右，
+ * 只认出一半时按名字配对反而容易错位。
+ * inferShape 判 ruleDecidable 和 extractLinks 选列用的是**同一个**判据 ——
+ * 两处各判一次，迟早出现「开关开了但抽取选不出列」的静默空转。 */
+export function linkColumns(shape: SegmentShape): [ColumnView | null, ColumnView | null] {
+  const names = shape.columns.filter((c) => LINK_NAMEISH.has(c.role) && c.fill >= 0.6);
+  if (names.length < 2) return [null, null];
+  const src = names.find((c) => LINK_SRC_RE.test(c.name)) ?? null;
+  const dst = names.find((c) => c !== src && LINK_DST_RE.test(c.name)) ?? null;
+  if (src !== null && dst !== null) return [src, dst];
+  return [names[0]!, names[1]!];
+}
+
+/** 材料里写的基数 → OIR 的 Cardinality 名。认不出就不给 —— 编一个基数比
+ * 留空更难发现（buildOir 对缺席基数有自己的缺省语义）。 */
+const CARD_MAP: Record<string, string> = {
+  "1:1": "ONE_TO_ONE", "一对一": "ONE_TO_ONE",
+  "1:n": "ONE_TO_MANY", "1:m": "ONE_TO_MANY", "一对多": "ONE_TO_MANY", "1..*": "ONE_TO_MANY",
+  // 真实材料两种写法并存：「N:1」和「M:1」是同一个意思（监造计划 M:1 采购合同）
+  "n:1": "MANY_TO_ONE", "m:1": "MANY_TO_ONE", "多对一": "MANY_TO_ONE",
+  "m:n": "MANY_TO_MANY", "n:m": "MANY_TO_MANY", "多对多": "MANY_TO_MANY",
+};
+
+/** 关系表逐行抽 links。一行 = 一条 (源对象, 目标对象, 基数)。 */
+function extractLinks(
+  rows: readonly unknown[],
+  cites: readonly string[],
+  shape: SegmentShape,
+  out: ExtractOut,
+): void {
+  const [src, dst] = linkColumns(shape);
+  const cardCol = shape.col(ColumnRole.CARDINALITY);
+  if (src === null || dst === null) return;
+  const seen = new Set<string>();
+  const n = Math.min(rows.length, cites.length);
+  for (let i = 0; i < n; i += 1) {
+    const row = rows[i];
+    if (!isRow(row)) continue;
+    const a = pyStrip(rowStr(row, src.name));
+    const b = pyStrip(rowStr(row, dst.name));
+    if (!a || !b) continue;
+    const api = `${a}_${b}`;
+    if (seen.has(api)) continue; // 同一对出现两次：保留先出现的那行
+    seen.add(api);
+    const rawCard = cardCol !== null
+      ? pyStrip(rowStr(row, cardCol.name)).replace(/：/g, ":").replace(/\s+/g, "").toLowerCase()
+      : "";
+    const card = CARD_MAP[rawCard];
+    out.links.push({
+      api_name: api,
+      from_api_name: a,
+      to_api_name: b,
+      ...(card !== undefined ? { cardinality: card } : {}),
+      source_locator: cites[i]!,
+      _origin: "rule",
+    });
+  }
 }
 
 /** 宿主列的取值是对象名，不会很长。超过这个长度的列是口径/说明，不是宿主。 */

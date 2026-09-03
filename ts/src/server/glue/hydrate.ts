@@ -15,7 +15,7 @@ import { join } from "node:path";
 import { HTTPException } from "hono/http-exception";
 
 import { sha256Hex } from "../../kernel/ids.js";
-import { flowFromDict } from "../../onto/flow.js";
+import { FlowGraph, flowFromDict } from "../../onto/flow.js";
 import { oirFromDict } from "../../onto/oir.js";
 import { QuestionBacklog } from "../../onto/questions.js";
 import { eventRowAsSse } from "../../store/types.js";
@@ -24,6 +24,9 @@ import { SESSIONS, Session, root, withHydrateLock } from "../session.js";
 import type { SessionFile } from "../session.js";
 import type { GlueDeps } from "./deps.js";
 import { syncQuestionBacklog } from "./questions.js";
+import { loadOrMigrateAssetMemory, syncAssetMemory } from "../asset_memory.js";
+import { getDocumentServiceOptional } from "../../document/deps.js";
+import { reconcileDocumentEvidence } from "./preparse.js";
 
 /** Single-flight 地把库里/盘上的会话变回一个活的 {@link Session}。 */
 export async function hydrate(sid: string, deps: GlueDeps): Promise<Session> {
@@ -112,6 +115,34 @@ export async function hydrateInto(
     if (qrows.length > 0) {
       s.state["question_backlog"] = QuestionBacklog.fromDict(qrows.map((r) => r.doc)).toDict();
     }
+    // 冲突也要恢复。它不在 PERSISTED 白名单里（那份注释说私有键"要么是活对象、
+    // 要么是能重算的"），但**没有人重算它**，而三个读侧都直接读 `s.state`：
+    //   · routes/questions.ts 读不到 `_conflicts` → 冲突来源的问题一律 409
+    //     「尚未恢复」，而那句文案预设了一条用户看不见的恢复动作；
+    //   · dialogue/tools.ts 拿 `Array.isArray(state.conflicts)` 当"跑没跑过"的判据
+    //     → 对一个检出过 463 条冲突的会话回「还没跑过冲突检测」；
+    //   · routes/context.ts 的评审面板显示 0 条。
+    // 真实库里 conflict 表有 1137 行分布在 4 个会话，而 session_state 里
+    // **压根没有 conflicts 这个键** —— 表是只写不读的。
+    // listConflicts 在这之前全仓零生产调用点，这里给它第一个。
+    // 参考图活对象从快照重建（快照经 PERSISTED 已在 loadState 里回来了）
+    const sk = s.state["sketch"] as Record<string, unknown> | undefined;
+    if (sk && typeof sk === "object" && sk["graph"] && !(s.state["_sketch"] instanceof FlowGraph)) {
+      try {
+        s.state["_sketch"] = flowFromDict(sk["graph"] as Record<string, unknown>);
+      } catch (exc) {
+        s.emit("hydrate.partial", { error: `sketch 快照读不回来：${excMessage(exc)}` });
+      }
+    }
+    const crows = await deps.repo().listConflicts(sid);
+    if (crows.length > 0) {
+      // 两个键都要：`conflicts` 是给面板/工具读的投影，`_conflicts` 是
+      // routes/questions.ts 按 rid 找的那份。`Conflict` 是纯 interface
+      // （不是 class，见 onto/conflict.ts:244），而 doc 列存的就是它的字面形态，
+      // 所以这里不需要反序列化器 —— 直接就是它。
+      s.state["conflicts"] = crows;
+      s.state["_conflicts"] = crows;
+    }
     // 多 worker 下不能因本 worker 没有 Task 就宣布运行死亡。只有 lease 已过期
     // （或迁移前根本没有 lease）的运行才可回收；健康 worker 的 heartbeat 必须保留。
     if (["queued", "parsing", "extracting"].includes(s.status)) {
@@ -134,6 +165,22 @@ export async function hydrateInto(
       // 读不回来要说，不能假装会话是好的
       s.emit("hydrate.partial", { error: `oir.json 读不回来：${excMessage(exc)}` });
     }
+  } else if (
+    s.state["oir"] !== null &&
+    s.state["oir"] !== undefined &&
+    typeof s.state["oir"] === "object" &&
+    !Array.isArray(s.state["oir"])
+  ) {
+    // 挂起在 INTERVIEW 的会话还没写过 oir.json 产物 —— 权威 OIR 只在 state
+    // 文档里。只恢复 dict 快照、不恢复活对象的话，重启后的 worker 上一切
+    // 回写全部失灵：applyDecision 崩「Cannot read properties of undefined
+    // (reading 'properties')」，transition 的 recompile 因 `_oir` 缺席**静默
+    // 跳过** —— 3784 次问题处置没有一次触发过重算（真实案发）。
+    try {
+      s.state["_oir"] = oirFromDict(s.state["oir"] as Record<string, unknown>);
+    } catch (exc) {
+      s.emit("hydrate.partial", { error: `state.oir 建不回活对象：${excMessage(exc)}` });
+    }
   }
   const flowJson = join(d, "flow.json");
   if (existsSync(flowJson)) {
@@ -149,7 +196,37 @@ export async function hydrateInto(
     }
   }
 
-  if (s.files.length > 0) await deps.preparse(s); // 证据索引重建，零模型调用
+  // 项目知识库挂载不属于 Session.files。重启后即使没有临时附件，也要刷新并加载
+  // 精确版本，否则“只用项目知识库”的会话会看起来像没有材料，严格证据门也会失效。
+  const documentStore = getDocumentServiceOptional();
+  let hasAttachedDocuments = false;
+  if (documentStore !== null && s.projectId) {
+    try {
+      const manifest = await documentStore.manifest({
+        sessionId: s.id,
+        projectId: s.projectId,
+        owner: s.owner,
+      });
+      s.state["_document_manifest"] = manifest;
+      delete s.state["_document_manifest_error"];
+      reconcileDocumentEvidence(s, manifest);
+      hasAttachedDocuments = manifest.length > 0;
+    } catch (exc) {
+      s.state["_document_manifest"] = [];
+      s.state["_document_manifest_error"] = excMessage(exc);
+      reconcileDocumentEvidence(s, [], { forceRebuild: true });
+      s.emit("document.manifest_failed", { error: excMessage(exc) });
+    }
+  } else if (s.projectId) {
+    s.state["_document_manifest"] = [];
+    s.state["_document_manifest_error"] = "项目知识库服务尚未就绪，未使用任何历史项目切片。";
+    reconcileDocumentEvidence(s, [], { forceRebuild: true });
+  } else {
+    s.state["_document_manifest"] = [];
+    delete s.state["_document_manifest_error"];
+    reconcileDocumentEvidence(s, [], { forceRebuild: true });
+  }
+  if (s.files.length > 0 || hasAttachedDocuments) await deps.preparse(s); // 证据索引重建，零模型调用
   if (s.state["_oir"] !== null && s.state["_oir"] !== undefined && !truthy(s.state["question_backlog"])) {
     await syncQuestionBacklog(s, deps);
   }
@@ -161,6 +238,44 @@ export async function hydrateInto(
     for (const c of (s.state["_cards"] as Record<string, unknown>[] | undefined) ?? []) {
       s.events.push({ ...c, seq: s.events.length } as never);
     }
+  }
+  // 旧会话升级：从文件、问题台账和 durable 内容事件重建统一资产目录，并为仍在
+  // 使用固定文件名的历史产物补不可变快照。索引失败要显式可见，但不能让一份本来
+  // 可打开的旧会话因为辅助记忆迁移而整体 500。
+  const rawAssetMemory = s.state["asset_memory"];
+  const needsAssetMigration =
+    rawAssetMemory === null ||
+    typeof rawAssetMemory !== "object" ||
+    Array.isArray(rawAssetMemory) ||
+    (rawAssetMemory as Record<string, unknown>)["$schema"] !== "ontocopilot.asset-memory/1" ||
+    (rawAssetMemory as Record<string, unknown>)["sessionId"] !== sid ||
+    !Array.isArray((rawAssetMemory as Record<string, unknown>)["assets"]);
+  try {
+    syncAssetMemory(s);
+    if (needsAssetMigration && row !== null) {
+      const migrated = await loadOrMigrateAssetMemory(
+        deps.repo(),
+        sid,
+        { owner: s.owner, projectId: s.projectId },
+        { directory: d },
+      );
+      if (migrated.memory !== null) s.state["asset_memory"] = migrated.memory.toDict();
+      // 只有迁移读到的 base 就是当前 hydrate 投影时，才可推进本地 CAS 游标。
+      // 若中途有另一个 worker 写过，保留旧游标，下一次结构性操作会按既有刷新路径
+      // 重载全量 state；绝不能只推进版本号、却把其它内存文档留在旧版本。
+      if (
+        migrated.status === "persisted" &&
+        migrated.basedOnVersion === s.stateVersion &&
+        migrated.stateVersion !== null
+      ) {
+        s.stateVersion = migrated.stateVersion;
+      }
+      if (migrated.status === "conflict") {
+        s.emit("hydrate.partial", { error: "资产记忆迁移遇到并发更新，已保留对方状态，稍后会重试。" });
+      }
+    }
+  } catch (exc) {
+    s.emit("hydrate.partial", { error: `资产记忆重建失败：${excMessage(exc)}` });
   }
   // single-flight 保证并发冷启动只走一次这里。恢复完成本身是 API 返回语义的一部分，
   // 不能仅把事件排进后台队列就发布 Session：否则进程恰在返回后退出时，用户已经看见

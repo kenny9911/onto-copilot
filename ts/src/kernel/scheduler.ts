@@ -79,6 +79,7 @@ import type { Dag, GateSpec, NodeSpec } from "./dag.js";
 import { BudgetExhausted, HumanInputRequired, NodeFailure, pyRepr } from "./errors.js";
 import { EventKind } from "./events.js";
 import { QuotaExhausted } from "./llm.js";
+import { fingerprint } from "./ids.js";
 import { WorkingSet } from "./memory/short_term.js";
 
 export { Decision };
@@ -218,6 +219,7 @@ export interface AgentLoopLike {
       readonly deps: string[];
       readonly runId: string;
       readonly signal?: AbortSignal;
+      readonly checkpointVersion?: string | null;
     },
   ): Promise<NodeResultLike>;
 }
@@ -236,9 +238,19 @@ export interface RecorderLike {
       readonly ref?: string | null;
     },
   ): unknown;
-  nodeIsComplete(nodeId: string): boolean;
-  nodeOutput(nodeId: string): unknown;
-  completeNode(nodeId: string, output: unknown): void | Promise<void>;
+  nodeIsComplete(nodeId: string, version?: string | null): boolean;
+  /**
+   * 本 journal 里**同名 DAG** 最近一次 RUN_STARTED 携带的拓扑指纹。
+   * 可选：老的 RecorderLike 实现不必提供，调度器视为"无历史可核对"。
+   * 按 dag 名分桶是嵌套调度器的现实 —— 子图与外层共用一个 Recorder/journal。
+   */
+  lastTopologyFp?(dagName: string): { readonly fp: string; readonly nodeCount: number } | null;
+  nodeOutput(nodeId: string, version?: string | null): unknown;
+  completeNode(
+    nodeId: string,
+    output: unknown,
+    version?: string | null,
+  ): void | Promise<void>;
   /** 历史里有答案就返回答案，否则发 HUMAN_REQUESTED 并抛 {@link HumanInputRequired}。 */
   askHuman(nodeId: string, requestId: string, payload: Record<string, unknown>): Promise<unknown>;
 }
@@ -250,6 +262,19 @@ export interface BusLike {
     readonly topic: string;
     readonly payload?: Record<string, unknown>;
   }): unknown;
+}
+
+/**
+ * 拓扑指纹：**只看结构**（节点 id + 解析后的依赖边），不看 checkpointVersion。
+ *
+ * 不掺 version 是刻意的：§7.5 的掺盐 fork 正是"同一张图、换一套检查点"，
+ * 盐一变 version 全变 —— 指纹若包含它，每次 fork 都会撞上 fail-closed 拦截，
+ * 盐就废了。结构不变时换检查点本来就安全（effect 键含 version，旧账自然
+ * 失配、零重放），指纹要抓的是另一类事故：**图变了还想沿用旧账**。
+ */
+export function topologyFingerprint(dag: Dag): string {
+  const rows = [...dag.nodes.keys()].sort().map((nid) => [nid, [...dag.resolveDeps(nid)].sort()]);
+  return fingerprint(rows);
 }
 
 /**
@@ -290,6 +315,11 @@ export function metricsFromVerdicts(verdicts: readonly VerdictLike[]): Record<st
     findings_by_lens: findingsByLens,
     codes: sortedCp(codes),
   };
+}
+
+function checkpointVersion(node: NodeSpec): string | null {
+  const value = node.params["checkpoint_version"];
+  return typeof value === "string" && value !== "" ? value : null;
 }
 
 /**
@@ -460,6 +490,15 @@ export interface SchedulerOptions {
   readonly concurrency?: number;
   /** 欠费判据。默认 `e instanceof QuotaExhausted`，见 {@link isQuotaExhausted}。 */
   readonly isQuotaExhausted?: (e: unknown) => boolean;
+  /**
+   * 是否由本调度器把真实流逝时间记进共享 Budget（默认 true）。
+   *
+   * **嵌套/并行调度器必须设 false**：外层循环在子图运行期间同样在
+   * accountWallclock，同一段秒数两边各记一次 —— 探针实测 1.99×。墙钟
+   * 该由**最外层**独记；子图的时限强制力不靠记账，靠 runDeadline
+   * （绝对时刻，见 run() 开头）与外层持续推进的 budget.check。
+   */
+  readonly accountsWallclock?: boolean;
 }
 
 export class Scheduler {
@@ -471,6 +510,9 @@ export class Scheduler {
 
   private readonly sem: Semaphore;
   private readonly isQuota: (e: unknown) => boolean;
+  private readonly accountsWallclock: boolean;
+  /** 本轮 run() 的在飞集合。run 之外为 null；只给 abortNode 用，别拿去调度。 */
+  private inflight: Set<Inflight> | null = null;
 
   private level: DegradeLevel = DegradeLevel.NONE;
   private runDeadline: number | null = null;
@@ -499,6 +541,7 @@ export class Scheduler {
     this.budget = budget;
     this.sem = new Semaphore(options.concurrency ?? DEFAULT_CONCURRENCY);
     this.isQuota = options.isQuotaExhausted ?? isQuotaExhausted;
+    this.accountsWallclock = options.accountsWallclock ?? true;
   }
 
   /**
@@ -518,10 +561,29 @@ export class Scheduler {
     return { ...this.budget.snapshot() };
   }
 
-  async run(runId: string, opts: { readonly seed?: Record<string, unknown> } = {}): Promise<RunOutcome> {
+  async run(
+    runId: string,
+    opts: { readonly seed?: Record<string, unknown>; readonly signal?: AbortSignal } = {},
+  ): Promise<RunOutcome> {
     this.wallclockMark = this.nowS();
     this.runDeadline = this.wallclockMark + this.budget.remaining("wallclock_s");
-    this.rec.emit(EventKind.RUN_STARTED, { payload: { dag: this.dag.name } });
+    // ── 拓扑指纹核对（P0，fail closed）────────────────────────
+    // 恢复一轮跑批时，"现在这张图"必须和检查点落下来那张是同一张。嵌套
+    // 子 DAG 按材料内容运行时编译：材料一变图就变，混用旧账是无声错账。
+    // 核对必须在发出本轮 RUN_STARTED **之前**，否则读到的是自己。
+    const topologyFp = topologyFingerprint(this.dag);
+    const prevTopology = this.rec.lastTopologyFp?.(this.dag.name) ?? null;
+    if (prevTopology !== null && prevTopology.fp !== topologyFp) {
+      throw new Error(
+        `拒绝恢复 ${this.dag.name}：拓扑指纹不一致（journal 里是 ${prevTopology.fp}/` +
+          `${prevTopology.nodeCount} 节点，现在是 ${topologyFp}/${this.dag.nodes.size} 节点）。` +
+          `旧检查点属于另一张图，混用会把不同拓扑的产物错接在一起。` +
+          `出路：换一个新 runId 重跑，或恢复成原来的拓扑再续。`,
+      );
+    }
+    this.rec.emit(EventKind.RUN_STARTED, {
+      payload: { dag: this.dag.name, topology_fp: topologyFp, node_count: this.dag.nodes.size },
+    });
 
     const working = new WorkingSet();
     const seed = opts.seed ?? {};
@@ -532,13 +594,18 @@ export class Scheduler {
     const done = new Set<string>(Object.keys(seed));
     const pending = new Set<string>(this.dag.nodes.keys());
     const running = new Set<Inflight>();
+    // try/finally 收口在本方法末尾：fail/suspend 的每个早退出口都带着未收割的
+    // Inflight 返回，不复位的话 abortNode 会对一条已定案的 run 报 stopped:true。
+    this.inflight = running;
+    try {
     /** 已结束、等待调度循环收割的节点，按**实际结束顺序**排队。 */
     const finishedQueue: Inflight[] = [];
 
     // 先把历史里已完成的节点恢复出来，不重跑也不重新付费
     for (const nid of this.dag.topoOrder()) {
-      if (this.rec.nodeIsComplete(nid)) {
-        working.put(nid, await this.rec.nodeOutput(nid));
+      const version = checkpointVersion(this.dag.nodes.get(nid)!);
+      if (this.rec.nodeIsComplete(nid, version)) {
+        working.put(nid, await this.rec.nodeOutput(nid, version));
         done.add(nid);
         pending.delete(nid);
         skipped.push(nid);
@@ -553,8 +620,18 @@ export class Scheduler {
     const abandonAll = (): void => {
       for (const inf of running) inf.abort.abort();
     };
+    // 外部停止（/stop 路由 abort 掉 runTask 的 controller）。以前这个信号
+    // 只在阶段边界被看一眼 —— DAG 一旦开跑，几十分钟里没有任何 await 点
+    // 检查它：用户点了停止、HTTP 层报了「已停止」，抽取照常烧钱。
+    // 挂 listener 是为了让在飞节点立刻收到软承诺（下一个 await 点退出），
+    // 循环头的检查则保证收割后不再派新节点。
+    opts.signal?.addEventListener("abort", abandonAll, { once: true });
 
     while (pending.size > 0 || running.size > 0) {
+      if (opts.signal?.aborted === true) {
+        abandonAll();
+        return this.fail(results, skipped, "外部停止请求（用户停止了梳理）");
+      }
       this.accountWallclock();
       try {
         this.budget.check("wallclock_s");
@@ -611,7 +688,11 @@ export class Scheduler {
 
         results[inf.nid] = settled.value;
         working.put(inf.nid, settled.value.output, settled.value.digest);
-        await this.rec.completeNode(inf.nid, settled.value.output);
+        await this.rec.completeNode(
+          inf.nid,
+          settled.value.output,
+          checkpointVersion(this.dag.nodes.get(inf.nid)!),
+        );
         done.add(inf.nid);
       }
     }
@@ -630,6 +711,10 @@ export class Scheduler {
       skipped,
       budget: this.snap(),
     });
+    } finally {
+      // 恢复 515 行声明的不变量：「run 之外为 null」。
+      this.inflight = null;
+    }
   }
 
   // ── 单节点 ──────────────────────────────────────────────────
@@ -668,18 +753,27 @@ export class Scheduler {
   ): Promise<NodeResultLike> {
     const spec = this.dag.get(nid);
     const deps = this.dag.resolveDeps(nid);
+    const version = checkpointVersion(spec);
     let last: unknown = null;
-    // 截止时刻在**抢信号量之前**就定了（Python 同）：排队等 permit 的时间算在
-    // 节点头上，一个排在长队后面的节点可能还没开跑就已经超时。这是原件的行为，
-    // 不是笔误 —— 节点墙钟的语义是「从被调度算起」，改成从开跑算起会让整份 DAG
-    // 的时间上界失去意义。
-    const nodeDeadline = this.nowS() + spec.budget.wallclockS;
-
     const release = await this.sem.acquire();
     try {
       // 排队期间 Run 可能已经定案。Python 侧等信号量的任务被 cancel 后连协程体
       // 都不会进，这里手工对齐 —— 这是「取消」唯一能真正省下钱的地方。
       if (signal.aborted) throw ABANDONED;
+
+      // 节点墙钟**从拿到 permit 起算**，不含排队。
+      //
+      // 原来定在 acquire 之前（与 Python 原件一致），注释里的理由是「从开跑算起
+      // 会让整份 DAG 的时间上界失去意义」。那个理由不成立：DAG 的时间上界由
+      // Run 级 `runDeadline` 保证（见下面 remaining 里的 min），那才是总闸；
+      // 节点级墙钟的用途是「单个节点别卡死」。
+      //
+      // 而从入队算起，在 **fan-out 宽度 >> 并发度** 时会把它变成「队列位置抽签」：
+      // 一次真实事故里 219 个 EXTRACT 段（无依赖、一次性全部入队）配 concurrency 4、
+      // 单段实测 66~120s —— 第 12 个之后的节点拿到 permit 时配额已经烧光。
+      // 失败的 s111_0 在 t=376.2s 才进场，只跑了 44 秒、只发出 1 次模型调用，
+      // 然后被判「超过节点墙钟上限 420s」。它不慢，它只是排在后面。
+      const nodeDeadline = this.nowS() + spec.budget.wallclockS;
 
       for (let attempt = 0; attempt <= spec.retries; attempt += 1) {
         try {
@@ -689,7 +783,13 @@ export class Scheduler {
           }
           if (remaining <= 0) throw new NodeTimeout();
           const result = await withTimeout(
-            this.loop.run(spec, { working, deps, runId, signal }),
+            this.loop.run(spec, {
+              working,
+              deps,
+              runId,
+              signal,
+              checkpointVersion: version,
+            }),
             remaining,
           );
           await this.applyGate(nid, result);
@@ -712,6 +812,14 @@ export class Scheduler {
             last = exc;
             break;
           }
+          if (exc instanceof BudgetExhausted) {
+            // 与 isQuota 同构：预算耗尽不是「这次不巧」，额度不会因为重跑就长
+            // 回来 —— 走下面的兜底分支会白烧满 retries+1 次节点执行（EXTRACT
+            // 那种按 segment 扇出的贵活尤其疼）。同样不能裸抛：包进 NodeFailure
+            // 链定案，cause 保留真异常给上层判信号。
+            last = exc;
+            break;
+          }
           if (exc instanceof NodeFailure) {
             last = exc;
             if (!exc.retryable || attempt >= spec.retries) break;
@@ -727,6 +835,7 @@ export class Scheduler {
             attempt,
             error: `${pyTypeName(last)}: ${pyStr(last)}`,
             will_retry: attempt < spec.retries,
+            ...(version === null ? {} : { checkpoint_version: version }),
           },
         });
       }
@@ -744,12 +853,33 @@ export class Scheduler {
     throw failure;
   }
 
+  /**
+   * P4：协作式停掉**一个**在飞节点（用户在面板上点某个 slot 的停止）。
+   *
+   * 只发取消信号（P0-1 的 AbortSignal 通道）：节点在下一个循环边界退出，
+   * 在飞的 HTTP 不截断。后果走既有语义 —— 节点以 NodeFailure(retryable=false)
+   * 定案，该 fail 的 run 照 fail，不为"局部停止"发明第三种终态。
+   * 返回是否真的有这个在飞节点。
+   */
+  abortNode(nodeId: string): boolean {
+    if (this.inflight === null) return false;
+    let hit = false;
+    for (const inf of this.inflight) {
+      if (inf.nid === nodeId) {
+        inf.abort.abort();
+        hit = true;
+      }
+    }
+    return hit;
+  }
+
   /** 真实流逝的 Run 时间只记一次，与节点并发数无关。 */
   private accountWallclock(): void {
     if (this.wallclockMark === null) return;
     const now = this.nowS();
     const elapsed = Math.max(0.0, now - this.wallclockMark);
-    if (elapsed) this.budget.spend({ wallclock_s: elapsed });
+    // 嵌套档（accountsWallclock=false）只推进水位标，不花钱 —— 记账权在最外层。
+    if (elapsed && this.accountsWallclock) this.budget.spend({ wallclock_s: elapsed });
     this.wallclockMark = now;
   }
 
@@ -815,7 +945,9 @@ export class Scheduler {
       failed,
       metrics,
       output: result.output,
-      actions: ["pass", "revise", "abort"],
+      // round_trip 一直在 HITL_CHOICES 里被接受，但提示里从不给人看 ——
+      // 一个存在但不被展示的选项等于不存在。
+      actions: ["pass", "revise", "abort", "round_trip"],
     });
     const choice = pyStrip(pyStr(answerField(answer, "decision"))).toLowerCase();
     const mapped = HITL_CHOICES[choice];
@@ -846,7 +978,9 @@ export class Scheduler {
         reason: result.reason,
         detail: result.detail,
         output: nodeResult.output,
-        actions: ["pass", "revise", "abort"],
+        // round_trip 一直在 HITL_CHOICES 里被接受，但提示里从不给人看 ——
+      // 一个存在但不被展示的选项等于不存在。
+      actions: ["pass", "revise", "abort", "round_trip"],
       });
       const choice = pyStrip(pyStr(answerField(answer, "decision"))).toLowerCase();
       const failed = pyList(result.detail["failed"]);
@@ -877,6 +1011,22 @@ export class Scheduler {
     }
     if (result.decision === Decision.REVISE || result.decision === Decision.AUTO_REPAIR) {
       throw new NodeFailure(nid, `质量门「${name}」要求重做：${result.reason}`, true);
+    }
+    // ROUND_TRIP：打回业务方补料。它在枚举和 HITL 选项映射里一直存在，
+    // 但**没有任何处理分支** —— 人在 gate 上选它，落到下面那条 NodeFailure，
+    // 整条 Run 报失败、engagement 检查点作废，已花的抽取钱买了一条错误消息。
+    // 而语义上它要的是「挂起 → 导补料清单 → 回传后 resume」——
+    // 挂起/恢复的全套基础设施（HumanInputRequired → SUSPENDED → 重放续跑）
+    // 都是现成的，这里只是把它接上。requestId 用 :roundtrip 后缀区别于 :gate ——
+    // 同一个节点先问 gate 再挂补料，两个请求不能撞幂等键。
+    if (result.decision === Decision.ROUND_TRIP) {
+      throw new HumanInputRequired(nid, `${nid}:roundtrip`, {
+        kind: "round_trip",
+        gate: name,
+        reason: result.reason,
+        detail: result.detail,
+        指路: "导出补料清单发业务方（export.file source=readiness / interview_kit），回传后继续这条 Run。",
+      });
     }
     throw new NodeFailure(nid, `质量门「${name}」未通过：${result.reason}`, false);
   }

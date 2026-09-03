@@ -1,121 +1,175 @@
 {
  "catalog": [
   {
+   "version": 1,
+   "name": "init",
+   "filename": "0001_init.sql",
    "bytes": 18647,
    "chars": 13371,
    "checksum": "27a17e96e05bb858a73011136b1806b7",
-   "filename": "0001_init.sql",
-   "name": "init",
-   "sha256_full": "27a17e96e05bb858a73011136b1806b7fe85d01a6ede21a154982a2481142a0f",
-   "version": 1
+   "sha256_full": "27a17e96e05bb858a73011136b1806b7fe85d01a6ede21a154982a2481142a0f"
   },
   {
+   "version": 2,
+   "name": "accounts",
+   "filename": "0002_accounts.sql",
    "bytes": 2269,
    "chars": 1743,
    "checksum": "46ffe645946faedad43d94f45e597b38",
-   "filename": "0002_accounts.sql",
-   "name": "accounts",
-   "sha256_full": "46ffe645946faedad43d94f45e597b38f1bb7b18b6c0139ff1852d1cf642dea9",
-   "version": 2
+   "sha256_full": "46ffe645946faedad43d94f45e597b38f1bb7b18b6c0139ff1852d1cf642dea9"
   },
   {
+   "version": 3,
+   "name": "app_settings",
+   "filename": "0003_app_settings.sql",
    "bytes": 640,
    "chars": 494,
    "checksum": "14845d6e0bff9e3e04348a388bca5cd0",
-   "filename": "0003_app_settings.sql",
-   "name": "app_settings",
-   "sha256_full": "14845d6e0bff9e3e04348a388bca5cd05b810a710a51a64aab6b86af0ef21f2c",
-   "version": 3
+   "sha256_full": "14845d6e0bff9e3e04348a388bca5cd05b810a710a51a64aab6b86af0ef21f2c"
   },
   {
+   "version": 4,
+   "name": "session_owner",
+   "filename": "0004_session_owner.sql",
    "bytes": 687,
    "chars": 407,
    "checksum": "038d2a9f433702d02e615d608633fda1",
-   "filename": "0004_session_owner.sql",
-   "name": "session_owner",
-   "sha256_full": "038d2a9f433702d02e615d608633fda1fdfcc9e5e632440637d0c1f33477ed17",
-   "version": 4
+   "sha256_full": "038d2a9f433702d02e615d608633fda1fdfcc9e5e632440637d0c1f33477ed17"
   },
   {
+   "version": 5,
+   "name": "question_decision_revision",
+   "filename": "0005_question_decision_revision.sql",
    "bytes": 3980,
    "chars": 3854,
    "checksum": "064970b39b5eca9d0736390bb8c8c447",
-   "filename": "0005_question_decision_revision.sql",
-   "name": "question_decision_revision",
-   "sha256_full": "064970b39b5eca9d0736390bb8c8c447f9c50ffed29259af8d0ca4ac3ac5c77f",
-   "version": 5
+   "sha256_full": "064970b39b5eca9d0736390bb8c8c447f9c50ffed29259af8d0ca4ac3ac5c77f"
   },
   {
+   "version": 6,
+   "name": "session_status",
+   "filename": "0006_session_status.sql",
    "bytes": 553,
    "chars": 405,
    "checksum": "770a704a20ef04a4ae4d1f82b7d9948b",
-   "filename": "0006_session_status.sql",
-   "name": "session_status",
-   "sha256_full": "770a704a20ef04a4ae4d1f82b7d9948b0b73a3bf5019907787ffd3eabb7d6cbe",
-   "version": 6
+   "sha256_full": "770a704a20ef04a4ae4d1f82b7d9948b0b73a3bf5019907787ffd3eabb7d6cbe"
   },
   {
+   "version": 7,
+   "name": "session_event_idempotency",
+   "filename": "0007_session_event_idempotency.sql",
    "bytes": 437,
    "chars": 331,
    "checksum": "824749f15d1ed492f5d3bb3c80daeae2",
-   "filename": "0007_session_event_idempotency.sql",
-   "name": "session_event_idempotency",
-   "sha256_full": "824749f15d1ed492f5d3bb3c80daeae2019cfc328ee979ddebfd0ace6517138b",
-   "version": 7
+   "sha256_full": "824749f15d1ed492f5d3bb3c80daeae2019cfc328ee979ddebfd0ace6517138b"
   },
   {
+   "version": 8,
+   "name": "build_lease",
+   "filename": "0008_build_lease.sql",
    "bytes": 787,
    "chars": 627,
    "checksum": "5425cd63c3294dbdb1004ec7a7ef380b",
-   "filename": "0008_build_lease.sql",
-   "name": "build_lease",
-   "sha256_full": "5425cd63c3294dbdb1004ec7a7ef380b03dfce9f15dc762611230ff5d256b31d",
-   "version": 8
+   "sha256_full": "5425cd63c3294dbdb1004ec7a7ef380b03dfce9f15dc762611230ff5d256b31d"
   },
   {
+   "version": 9,
+   "name": "chat_lease",
+   "filename": "0009_chat_lease.sql",
    "bytes": 782,
    "chars": 652,
    "checksum": "e8fe8e8b73c278500d5beb4f91843adc",
-   "filename": "0009_chat_lease.sql",
-   "name": "chat_lease",
-   "sha256_full": "e8fe8e8b73c278500d5beb4f91843adc175be4d765eb61f26c8783998d0d5435",
-   "version": 9
+   "sha256_full": "e8fe8e8b73c278500d5beb4f91843adc175be4d765eb61f26c8783998d0d5435"
   },
   {
+   "version": 10,
+   "name": "llm_usage",
+   "filename": "0010_llm_usage.sql",
    "bytes": 2845,
    "chars": 2289,
    "checksum": "773cd8deb06e68460884214938be6322",
-   "filename": "0010_llm_usage.sql",
-   "name": "llm_usage",
-   "sha256_full": "773cd8deb06e68460884214938be632280f1f832842b1a4d330f422cb330b49b",
-   "version": 10
+   "sha256_full": "773cd8deb06e68460884214938be632280f1f832842b1a4d330f422cb330b49b"
   },
   {
+   "version": 11,
+   "name": "mutation_lease",
+   "filename": "0011_mutation_lease.sql",
    "bytes": 728,
    "chars": 612,
    "checksum": "43912930aff919eb59e7490c6c507fbc",
-   "filename": "0011_mutation_lease.sql",
-   "name": "mutation_lease",
-   "sha256_full": "43912930aff919eb59e7490c6c507fbc761fb3201f492d162c79e80f568143aa",
-   "version": 11
+   "sha256_full": "43912930aff919eb59e7490c6c507fbc761fb3201f492d162c79e80f568143aa"
   },
   {
+   "version": 12,
+   "name": "user_display_name",
+   "filename": "0012_user_display_name.sql",
    "bytes": 793,
    "chars": 431,
    "checksum": "951df186ba8557a536b7dc659574dc8a",
-   "filename": "0012_user_display_name.sql",
-   "name": "user_display_name",
-   "sha256_full": "951df186ba8557a536b7dc659574dc8aacc1f2fe7be7158f37e4494489dadddc",
-   "version": 12
+   "sha256_full": "951df186ba8557a536b7dc659574dc8aacc1f2fe7be7158f37e4494489dadddc"
   },
   {
+   "version": 13,
+   "name": "project_folders",
+   "filename": "0013_project_folders.sql",
    "bytes": 3457,
    "chars": 2467,
    "checksum": "23192ac3f42b16b864bb16f70b5c82d2",
-   "filename": "0013_project_folders.sql",
-   "name": "project_folders",
-   "sha256_full": "23192ac3f42b16b864bb16f70b5c82d27898f2de9fc955c3912f4c284b2cb009",
-   "version": 13
+   "sha256_full": "23192ac3f42b16b864bb16f70b5c82d27898f2de9fc955c3912f4c284b2cb009"
+  },
+  {
+   "version": 14,
+   "name": "onto_document",
+   "filename": "0014_onto_document.sql",
+   "bytes": 4277,
+   "chars": 3917,
+   "checksum": "a2189b935023f34655f035d40b9e69d9",
+   "sha256_full": "a2189b935023f34655f035d40b9e69d90966894712adac6589a560ee0000b723"
+  },
+  {
+   "version": 15,
+   "name": "onto_document_acl",
+   "filename": "0015_onto_document_acl.sql",
+   "bytes": 4538,
+   "chars": 4378,
+   "checksum": "b7b9ab4649c1a10961ce741952c3fd70",
+   "sha256_full": "b7b9ab4649c1a10961ce741952c3fd70a1a150fb06f5a38b5a8b7be11a3771ea"
+  },
+  {
+   "version": 16,
+   "name": "onto_document_jobs_search",
+   "filename": "0016_onto_document_jobs_search.sql",
+   "bytes": 4694,
+   "chars": 4484,
+   "checksum": "da6cf03dc7569c365aefe63e11a63088",
+   "sha256_full": "da6cf03dc7569c365aefe63e11a630889cdab4c00d7637fb0e0dc663f5f96f47"
+  },
+  {
+   "version": 17,
+   "name": "onto_document_wiki",
+   "filename": "0017_onto_document_wiki.sql",
+   "bytes": 2857,
+   "chars": 2683,
+   "checksum": "d8e4247869e32f76141e4832e242dd08",
+   "sha256_full": "d8e4247869e32f76141e4832e242dd087e97fec745829ac217f6a5985c8bd561"
+  },
+  {
+   "version": 18,
+   "name": "onto_document_connectors",
+   "filename": "0018_onto_document_connectors.sql",
+   "bytes": 2306,
+   "chars": 2126,
+   "checksum": "99fc5fc89d103f4a827673279b0b8542",
+   "sha256_full": "99fc5fc89d103f4a827673279b0b85420541d6dd85d6fbb0f63abe5e4c50e4a4"
+  },
+  {
+   "version": 19,
+   "name": "onto_document_folders",
+   "filename": "0019_onto_document_folders.sql",
+   "bytes": 1551,
+   "chars": 981,
+   "checksum": "65a30d292d3fc6e5fd0db58c592c9bcd",
+   "sha256_full": "65a30d292d3fc6e5fd0db58c592c9bcdf61e158e620932524bc44a94c89f10c7"
   }
  ],
  "checksum_cases": [
@@ -189,7 +243,7 @@
    "label": "status_none",
    "rc": 0,
    "stderr": "",
-   "stdout": "[ ] 0001_init\n[ ] 0002_accounts\n[ ] 0003_app_settings\n[ ] 0004_session_owner\n[ ] 0005_question_decision_revision\n[ ] 0006_session_status\n[ ] 0007_session_event_idempotency\n[ ] 0008_build_lease\n[ ] 0009_chat_lease\n[ ] 0010_llm_usage\n[ ] 0011_mutation_lease\n[ ] 0012_user_display_name\n[ ] 0013_project_folders\n"
+   "stdout": "[ ] 0001_init\n[ ] 0002_accounts\n[ ] 0003_app_settings\n[ ] 0004_session_owner\n[ ] 0005_question_decision_revision\n[ ] 0006_session_status\n[ ] 0007_session_event_idempotency\n[ ] 0008_build_lease\n[ ] 0009_chat_lease\n[ ] 0010_llm_usage\n[ ] 0011_mutation_lease\n[ ] 0012_user_display_name\n[ ] 0013_project_folders\n[ ] 0014_onto_document\n[ ] 0015_onto_document_acl\n[ ] 0016_onto_document_jobs_search\n[ ] 0017_onto_document_wiki\n[ ] 0018_onto_document_connectors\n[ ] 0019_onto_document_folders\n"
   },
   {
    "argv": [
@@ -224,7 +278,7 @@
    "label": "status_partial",
    "rc": 0,
    "stderr": "",
-   "stdout": "[✓] 0001_init\n[✓] 0002_accounts\n[✓] 0003_app_settings\n[✓] 0004_session_owner\n[✓] 0005_question_decision_revision\n[ ] 0006_session_status\n[ ] 0007_session_event_idempotency\n[ ] 0008_build_lease\n[ ] 0009_chat_lease\n[ ] 0010_llm_usage\n[ ] 0011_mutation_lease\n[ ] 0012_user_display_name\n[ ] 0013_project_folders\n"
+   "stdout": "[✓] 0001_init\n[✓] 0002_accounts\n[✓] 0003_app_settings\n[✓] 0004_session_owner\n[✓] 0005_question_decision_revision\n[ ] 0006_session_status\n[ ] 0007_session_event_idempotency\n[ ] 0008_build_lease\n[ ] 0009_chat_lease\n[ ] 0010_llm_usage\n[ ] 0011_mutation_lease\n[ ] 0012_user_display_name\n[ ] 0013_project_folders\n[ ] 0014_onto_document\n[ ] 0015_onto_document_acl\n[ ] 0016_onto_document_jobs_search\n[ ] 0017_onto_document_wiki\n[ ] 0018_onto_document_connectors\n[ ] 0019_onto_document_folders\n"
   },
   {
    "argv": [
@@ -283,6 +337,30 @@
      [
       13,
       "23192ac3f42b16b864bb16f70b5c82d2"
+     ],
+     [
+      14,
+      "a2189b935023f34655f035d40b9e69d9"
+     ],
+     [
+      15,
+      "b7b9ab4649c1a10961ce741952c3fd70"
+     ],
+     [
+      16,
+      "da6cf03dc7569c365aefe63e11a63088"
+     ],
+     [
+      17,
+      "d8e4247869e32f76141e4832e242dd08"
+     ],
+     [
+      18,
+      "99fc5fc89d103f4a827673279b0b8542"
+     ],
+     [
+      19,
+      "65a30d292d3fc6e5fd0db58c592c9bcd"
      ]
     ],
     "table_exists": true,
@@ -291,7 +369,7 @@
    "label": "status_all",
    "rc": 0,
    "stderr": "",
-   "stdout": "[✓] 0001_init\n[✓] 0002_accounts\n[✓] 0003_app_settings\n[✓] 0004_session_owner\n[✓] 0005_question_decision_revision\n[✓] 0006_session_status\n[✓] 0007_session_event_idempotency\n[✓] 0008_build_lease\n[✓] 0009_chat_lease\n[✓] 0010_llm_usage\n[✓] 0011_mutation_lease\n[✓] 0012_user_display_name\n[✓] 0013_project_folders\n"
+   "stdout": "[✓] 0001_init\n[✓] 0002_accounts\n[✓] 0003_app_settings\n[✓] 0004_session_owner\n[✓] 0005_question_decision_revision\n[✓] 0006_session_status\n[✓] 0007_session_event_idempotency\n[✓] 0008_build_lease\n[✓] 0009_chat_lease\n[✓] 0010_llm_usage\n[✓] 0011_mutation_lease\n[✓] 0012_user_display_name\n[✓] 0013_project_folders\n[✓] 0014_onto_document\n[✓] 0015_onto_document_acl\n[✓] 0016_onto_document_jobs_search\n[✓] 0017_onto_document_wiki\n[✓] 0018_onto_document_connectors\n[✓] 0019_onto_document_folders\n"
   },
   {
    "argv": [],
@@ -348,6 +426,30 @@
      [
       13,
       "23192ac3f42b16b864bb16f70b5c82d2"
+     ],
+     [
+      14,
+      "a2189b935023f34655f035d40b9e69d9"
+     ],
+     [
+      15,
+      "b7b9ab4649c1a10961ce741952c3fd70"
+     ],
+     [
+      16,
+      "da6cf03dc7569c365aefe63e11a63088"
+     ],
+     [
+      17,
+      "d8e4247869e32f76141e4832e242dd08"
+     ],
+     [
+      18,
+      "99fc5fc89d103f4a827673279b0b8542"
+     ],
+     [
+      19,
+      "65a30d292d3fc6e5fd0db58c592c9bcd"
      ]
     ],
     "table_exists": true,
@@ -391,7 +493,7 @@
    "label": "upgrade_partial",
    "rc": 0,
    "stderr": "",
-   "stdout": "应用了 8 个迁移: [6, 7, 8, 9, 10, 11, 12, 13]\n"
+   "stdout": "应用了 14 个迁移: [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]\n"
   },
   {
    "argv": [
@@ -454,7 +556,7 @@
    "label": "upgrade_one",
    "rc": 0,
    "stderr": "",
-   "stdout": "应用了 1 个迁移: [13]\n"
+   "stdout": "应用了 7 个迁移: [13, 14, 15, 16, 17, 18, 19]\n"
   },
   {
    "argv": [],
@@ -648,7 +750,13 @@
     10,
     11,
     12,
-    13
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19
    ],
    "dry_run": false,
    "input": {
@@ -681,186 +789,270 @@
      "sql": "SELECT to_regclass('public.schema_migration') IS NOT NULL"
     },
     {
-     "chars": 13371,
      "op": "script",
+     "chars": 13371,
      "sha256": "27a17e96e05bb858a73011136b1806b7fe85d01a6ede21a154982a2481142a0f"
     },
     {
      "op": "execute",
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)",
      "params": {
-      "c": "27a17e96e05bb858a73011136b1806b7",
+      "v": 1,
       "n": "init",
-      "v": 1
-     },
-     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+      "c": "27a17e96e05bb858a73011136b1806b7"
+     }
     },
     {
-     "chars": 1743,
      "op": "script",
+     "chars": 1743,
      "sha256": "46ffe645946faedad43d94f45e597b38f1bb7b18b6c0139ff1852d1cf642dea9"
     },
     {
      "op": "execute",
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)",
      "params": {
-      "c": "46ffe645946faedad43d94f45e597b38",
+      "v": 2,
       "n": "accounts",
-      "v": 2
-     },
-     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+      "c": "46ffe645946faedad43d94f45e597b38"
+     }
     },
     {
-     "chars": 494,
      "op": "script",
+     "chars": 494,
      "sha256": "14845d6e0bff9e3e04348a388bca5cd05b810a710a51a64aab6b86af0ef21f2c"
     },
     {
      "op": "execute",
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)",
      "params": {
-      "c": "14845d6e0bff9e3e04348a388bca5cd0",
+      "v": 3,
       "n": "app_settings",
-      "v": 3
-     },
-     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+      "c": "14845d6e0bff9e3e04348a388bca5cd0"
+     }
     },
     {
-     "chars": 407,
      "op": "script",
+     "chars": 407,
      "sha256": "038d2a9f433702d02e615d608633fda1fdfcc9e5e632440637d0c1f33477ed17"
     },
     {
      "op": "execute",
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)",
      "params": {
-      "c": "038d2a9f433702d02e615d608633fda1",
+      "v": 4,
       "n": "session_owner",
-      "v": 4
-     },
-     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+      "c": "038d2a9f433702d02e615d608633fda1"
+     }
     },
     {
-     "chars": 3854,
      "op": "script",
+     "chars": 3854,
      "sha256": "064970b39b5eca9d0736390bb8c8c447f9c50ffed29259af8d0ca4ac3ac5c77f"
     },
     {
      "op": "execute",
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)",
      "params": {
-      "c": "064970b39b5eca9d0736390bb8c8c447",
+      "v": 5,
       "n": "question_decision_revision",
-      "v": 5
-     },
-     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+      "c": "064970b39b5eca9d0736390bb8c8c447"
+     }
     },
     {
-     "chars": 405,
      "op": "script",
+     "chars": 405,
      "sha256": "770a704a20ef04a4ae4d1f82b7d9948b0b73a3bf5019907787ffd3eabb7d6cbe"
     },
     {
      "op": "execute",
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)",
      "params": {
-      "c": "770a704a20ef04a4ae4d1f82b7d9948b",
+      "v": 6,
       "n": "session_status",
-      "v": 6
-     },
-     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+      "c": "770a704a20ef04a4ae4d1f82b7d9948b"
+     }
     },
     {
-     "chars": 331,
      "op": "script",
+     "chars": 331,
      "sha256": "824749f15d1ed492f5d3bb3c80daeae2019cfc328ee979ddebfd0ace6517138b"
     },
     {
      "op": "execute",
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)",
      "params": {
-      "c": "824749f15d1ed492f5d3bb3c80daeae2",
+      "v": 7,
       "n": "session_event_idempotency",
-      "v": 7
-     },
-     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+      "c": "824749f15d1ed492f5d3bb3c80daeae2"
+     }
     },
     {
-     "chars": 627,
      "op": "script",
+     "chars": 627,
      "sha256": "5425cd63c3294dbdb1004ec7a7ef380b03dfce9f15dc762611230ff5d256b31d"
     },
     {
      "op": "execute",
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)",
      "params": {
-      "c": "5425cd63c3294dbdb1004ec7a7ef380b",
+      "v": 8,
       "n": "build_lease",
-      "v": 8
-     },
-     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+      "c": "5425cd63c3294dbdb1004ec7a7ef380b"
+     }
     },
     {
-     "chars": 652,
      "op": "script",
+     "chars": 652,
      "sha256": "e8fe8e8b73c278500d5beb4f91843adc175be4d765eb61f26c8783998d0d5435"
     },
     {
      "op": "execute",
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)",
      "params": {
-      "c": "e8fe8e8b73c278500d5beb4f91843adc",
+      "v": 9,
       "n": "chat_lease",
-      "v": 9
-     },
-     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+      "c": "e8fe8e8b73c278500d5beb4f91843adc"
+     }
     },
     {
-     "chars": 2289,
      "op": "script",
+     "chars": 2289,
      "sha256": "773cd8deb06e68460884214938be632280f1f832842b1a4d330f422cb330b49b"
     },
     {
      "op": "execute",
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)",
      "params": {
-      "c": "773cd8deb06e68460884214938be6322",
+      "v": 10,
       "n": "llm_usage",
-      "v": 10
-     },
-     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+      "c": "773cd8deb06e68460884214938be6322"
+     }
     },
     {
-     "chars": 612,
      "op": "script",
+     "chars": 612,
      "sha256": "43912930aff919eb59e7490c6c507fbc761fb3201f492d162c79e80f568143aa"
     },
     {
      "op": "execute",
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)",
      "params": {
-      "c": "43912930aff919eb59e7490c6c507fbc",
+      "v": 11,
       "n": "mutation_lease",
-      "v": 11
-     },
-     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+      "c": "43912930aff919eb59e7490c6c507fbc"
+     }
     },
     {
-     "chars": 431,
      "op": "script",
+     "chars": 431,
      "sha256": "951df186ba8557a536b7dc659574dc8aacc1f2fe7be7158f37e4494489dadddc"
     },
     {
      "op": "execute",
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)",
      "params": {
-      "c": "951df186ba8557a536b7dc659574dc8a",
+      "v": 12,
       "n": "user_display_name",
-      "v": 12
-     },
-     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+      "c": "951df186ba8557a536b7dc659574dc8a"
+     }
     },
     {
-     "chars": 2467,
      "op": "script",
+     "chars": 2467,
      "sha256": "23192ac3f42b16b864bb16f70b5c82d27898f2de9fc955c3912f4c284b2cb009"
     },
     {
      "op": "execute",
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)",
      "params": {
-      "c": "23192ac3f42b16b864bb16f70b5c82d2",
+      "v": 13,
       "n": "project_folders",
-      "v": 13
-     },
-     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+      "c": "23192ac3f42b16b864bb16f70b5c82d2"
+     }
+    },
+    {
+     "op": "script",
+     "chars": 3917,
+     "sha256": "a2189b935023f34655f035d40b9e69d90966894712adac6589a560ee0000b723"
+    },
+    {
+     "op": "execute",
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)",
+     "params": {
+      "v": 14,
+      "n": "onto_document",
+      "c": "a2189b935023f34655f035d40b9e69d9"
+     }
+    },
+    {
+     "op": "script",
+     "chars": 4378,
+     "sha256": "b7b9ab4649c1a10961ce741952c3fd70a1a150fb06f5a38b5a8b7be11a3771ea"
+    },
+    {
+     "op": "execute",
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)",
+     "params": {
+      "v": 15,
+      "n": "onto_document_acl",
+      "c": "b7b9ab4649c1a10961ce741952c3fd70"
+     }
+    },
+    {
+     "op": "script",
+     "chars": 4484,
+     "sha256": "da6cf03dc7569c365aefe63e11a630889cdab4c00d7637fb0e0dc663f5f96f47"
+    },
+    {
+     "op": "execute",
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)",
+     "params": {
+      "v": 16,
+      "n": "onto_document_jobs_search",
+      "c": "da6cf03dc7569c365aefe63e11a63088"
+     }
+    },
+    {
+     "op": "script",
+     "chars": 2683,
+     "sha256": "d8e4247869e32f76141e4832e242dd087e97fec745829ac217f6a5985c8bd561"
+    },
+    {
+     "op": "execute",
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)",
+     "params": {
+      "v": 17,
+      "n": "onto_document_wiki",
+      "c": "d8e4247869e32f76141e4832e242dd08"
+     }
+    },
+    {
+     "op": "script",
+     "chars": 2126,
+     "sha256": "99fc5fc89d103f4a827673279b0b85420541d6dd85d6fbb0f63abe5e4c50e4a4"
+    },
+    {
+     "op": "execute",
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)",
+     "params": {
+      "v": 18,
+      "n": "onto_document_connectors",
+      "c": "99fc5fc89d103f4a827673279b0b8542"
+     }
+    },
+    {
+     "op": "script",
+     "chars": 981,
+     "sha256": "65a30d292d3fc6e5fd0db58c592c9bcdf61e158e620932524bc44a94c89f10c7"
+    },
+    {
+     "op": "execute",
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)",
+     "params": {
+      "v": 19,
+      "n": "onto_document_folders",
+      "c": "65a30d292d3fc6e5fd0db58c592c9bcd"
+     }
     },
     {
      "op": "execute",
@@ -888,7 +1080,13 @@
     10,
     11,
     12,
-    13
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19
    ],
    "dry_run": true,
    "input": {
@@ -946,7 +1144,13 @@
     10,
     11,
     12,
-    13
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19
    ],
    "dry_run": false,
    "input": {
@@ -984,186 +1188,270 @@
      "sql": "SELECT version, checksum FROM schema_migration"
     },
     {
-     "chars": 13371,
      "op": "script",
+     "chars": 13371,
      "sha256": "27a17e96e05bb858a73011136b1806b7fe85d01a6ede21a154982a2481142a0f"
     },
     {
      "op": "execute",
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)",
      "params": {
-      "c": "27a17e96e05bb858a73011136b1806b7",
+      "v": 1,
       "n": "init",
-      "v": 1
-     },
-     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+      "c": "27a17e96e05bb858a73011136b1806b7"
+     }
     },
     {
-     "chars": 1743,
      "op": "script",
+     "chars": 1743,
      "sha256": "46ffe645946faedad43d94f45e597b38f1bb7b18b6c0139ff1852d1cf642dea9"
     },
     {
      "op": "execute",
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)",
      "params": {
-      "c": "46ffe645946faedad43d94f45e597b38",
+      "v": 2,
       "n": "accounts",
-      "v": 2
-     },
-     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+      "c": "46ffe645946faedad43d94f45e597b38"
+     }
     },
     {
-     "chars": 494,
      "op": "script",
+     "chars": 494,
      "sha256": "14845d6e0bff9e3e04348a388bca5cd05b810a710a51a64aab6b86af0ef21f2c"
     },
     {
      "op": "execute",
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)",
      "params": {
-      "c": "14845d6e0bff9e3e04348a388bca5cd0",
+      "v": 3,
       "n": "app_settings",
-      "v": 3
-     },
-     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+      "c": "14845d6e0bff9e3e04348a388bca5cd0"
+     }
     },
     {
-     "chars": 407,
      "op": "script",
+     "chars": 407,
      "sha256": "038d2a9f433702d02e615d608633fda1fdfcc9e5e632440637d0c1f33477ed17"
     },
     {
      "op": "execute",
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)",
      "params": {
-      "c": "038d2a9f433702d02e615d608633fda1",
+      "v": 4,
       "n": "session_owner",
-      "v": 4
-     },
-     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+      "c": "038d2a9f433702d02e615d608633fda1"
+     }
     },
     {
-     "chars": 3854,
      "op": "script",
+     "chars": 3854,
      "sha256": "064970b39b5eca9d0736390bb8c8c447f9c50ffed29259af8d0ca4ac3ac5c77f"
     },
     {
      "op": "execute",
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)",
      "params": {
-      "c": "064970b39b5eca9d0736390bb8c8c447",
+      "v": 5,
       "n": "question_decision_revision",
-      "v": 5
-     },
-     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+      "c": "064970b39b5eca9d0736390bb8c8c447"
+     }
     },
     {
-     "chars": 405,
      "op": "script",
+     "chars": 405,
      "sha256": "770a704a20ef04a4ae4d1f82b7d9948b0b73a3bf5019907787ffd3eabb7d6cbe"
     },
     {
      "op": "execute",
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)",
      "params": {
-      "c": "770a704a20ef04a4ae4d1f82b7d9948b",
+      "v": 6,
       "n": "session_status",
-      "v": 6
-     },
-     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+      "c": "770a704a20ef04a4ae4d1f82b7d9948b"
+     }
     },
     {
-     "chars": 331,
      "op": "script",
+     "chars": 331,
      "sha256": "824749f15d1ed492f5d3bb3c80daeae2019cfc328ee979ddebfd0ace6517138b"
     },
     {
      "op": "execute",
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)",
      "params": {
-      "c": "824749f15d1ed492f5d3bb3c80daeae2",
+      "v": 7,
       "n": "session_event_idempotency",
-      "v": 7
-     },
-     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+      "c": "824749f15d1ed492f5d3bb3c80daeae2"
+     }
     },
     {
-     "chars": 627,
      "op": "script",
+     "chars": 627,
      "sha256": "5425cd63c3294dbdb1004ec7a7ef380b03dfce9f15dc762611230ff5d256b31d"
     },
     {
      "op": "execute",
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)",
      "params": {
-      "c": "5425cd63c3294dbdb1004ec7a7ef380b",
+      "v": 8,
       "n": "build_lease",
-      "v": 8
-     },
-     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+      "c": "5425cd63c3294dbdb1004ec7a7ef380b"
+     }
     },
     {
-     "chars": 652,
      "op": "script",
+     "chars": 652,
      "sha256": "e8fe8e8b73c278500d5beb4f91843adc175be4d765eb61f26c8783998d0d5435"
     },
     {
      "op": "execute",
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)",
      "params": {
-      "c": "e8fe8e8b73c278500d5beb4f91843adc",
+      "v": 9,
       "n": "chat_lease",
-      "v": 9
-     },
-     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+      "c": "e8fe8e8b73c278500d5beb4f91843adc"
+     }
     },
     {
-     "chars": 2289,
      "op": "script",
+     "chars": 2289,
      "sha256": "773cd8deb06e68460884214938be632280f1f832842b1a4d330f422cb330b49b"
     },
     {
      "op": "execute",
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)",
      "params": {
-      "c": "773cd8deb06e68460884214938be6322",
+      "v": 10,
       "n": "llm_usage",
-      "v": 10
-     },
-     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+      "c": "773cd8deb06e68460884214938be6322"
+     }
     },
     {
-     "chars": 612,
      "op": "script",
+     "chars": 612,
      "sha256": "43912930aff919eb59e7490c6c507fbc761fb3201f492d162c79e80f568143aa"
     },
     {
      "op": "execute",
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)",
      "params": {
-      "c": "43912930aff919eb59e7490c6c507fbc",
+      "v": 11,
       "n": "mutation_lease",
-      "v": 11
-     },
-     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+      "c": "43912930aff919eb59e7490c6c507fbc"
+     }
     },
     {
-     "chars": 431,
      "op": "script",
+     "chars": 431,
      "sha256": "951df186ba8557a536b7dc659574dc8aacc1f2fe7be7158f37e4494489dadddc"
     },
     {
      "op": "execute",
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)",
      "params": {
-      "c": "951df186ba8557a536b7dc659574dc8a",
+      "v": 12,
       "n": "user_display_name",
-      "v": 12
-     },
-     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+      "c": "951df186ba8557a536b7dc659574dc8a"
+     }
     },
     {
-     "chars": 2467,
      "op": "script",
+     "chars": 2467,
      "sha256": "23192ac3f42b16b864bb16f70b5c82d27898f2de9fc955c3912f4c284b2cb009"
     },
     {
      "op": "execute",
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)",
      "params": {
-      "c": "23192ac3f42b16b864bb16f70b5c82d2",
+      "v": 13,
       "n": "project_folders",
-      "v": 13
-     },
-     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+      "c": "23192ac3f42b16b864bb16f70b5c82d2"
+     }
+    },
+    {
+     "op": "script",
+     "chars": 3917,
+     "sha256": "a2189b935023f34655f035d40b9e69d90966894712adac6589a560ee0000b723"
+    },
+    {
+     "op": "execute",
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)",
+     "params": {
+      "v": 14,
+      "n": "onto_document",
+      "c": "a2189b935023f34655f035d40b9e69d9"
+     }
+    },
+    {
+     "op": "script",
+     "chars": 4378,
+     "sha256": "b7b9ab4649c1a10961ce741952c3fd70a1a150fb06f5a38b5a8b7be11a3771ea"
+    },
+    {
+     "op": "execute",
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)",
+     "params": {
+      "v": 15,
+      "n": "onto_document_acl",
+      "c": "b7b9ab4649c1a10961ce741952c3fd70"
+     }
+    },
+    {
+     "op": "script",
+     "chars": 4484,
+     "sha256": "da6cf03dc7569c365aefe63e11a630889cdab4c00d7637fb0e0dc663f5f96f47"
+    },
+    {
+     "op": "execute",
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)",
+     "params": {
+      "v": 16,
+      "n": "onto_document_jobs_search",
+      "c": "da6cf03dc7569c365aefe63e11a63088"
+     }
+    },
+    {
+     "op": "script",
+     "chars": 2683,
+     "sha256": "d8e4247869e32f76141e4832e242dd087e97fec745829ac217f6a5985c8bd561"
+    },
+    {
+     "op": "execute",
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)",
+     "params": {
+      "v": 17,
+      "n": "onto_document_wiki",
+      "c": "d8e4247869e32f76141e4832e242dd08"
+     }
+    },
+    {
+     "op": "script",
+     "chars": 2126,
+     "sha256": "99fc5fc89d103f4a827673279b0b85420541d6dd85d6fbb0f63abe5e4c50e4a4"
+    },
+    {
+     "op": "execute",
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)",
+     "params": {
+      "v": 18,
+      "n": "onto_document_connectors",
+      "c": "99fc5fc89d103f4a827673279b0b8542"
+     }
+    },
+    {
+     "op": "script",
+     "chars": 981,
+     "sha256": "65a30d292d3fc6e5fd0db58c592c9bcdf61e158e620932524bc44a94c89f10c7"
+    },
+    {
+     "op": "execute",
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)",
+     "params": {
+      "v": 19,
+      "n": "onto_document_folders",
+      "c": "65a30d292d3fc6e5fd0db58c592c9bcd"
+     }
     },
     {
      "op": "execute",
@@ -1186,7 +1474,13 @@
     10,
     11,
     12,
-    13
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19
    ],
    "dry_run": false,
    "input": {
@@ -1245,116 +1539,200 @@
      "sql": "SELECT version, checksum FROM schema_migration"
     },
     {
-     "chars": 405,
      "op": "script",
+     "chars": 405,
      "sha256": "770a704a20ef04a4ae4d1f82b7d9948b0b73a3bf5019907787ffd3eabb7d6cbe"
     },
     {
      "op": "execute",
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)",
      "params": {
-      "c": "770a704a20ef04a4ae4d1f82b7d9948b",
+      "v": 6,
       "n": "session_status",
-      "v": 6
-     },
-     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+      "c": "770a704a20ef04a4ae4d1f82b7d9948b"
+     }
     },
     {
-     "chars": 331,
      "op": "script",
+     "chars": 331,
      "sha256": "824749f15d1ed492f5d3bb3c80daeae2019cfc328ee979ddebfd0ace6517138b"
     },
     {
      "op": "execute",
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)",
      "params": {
-      "c": "824749f15d1ed492f5d3bb3c80daeae2",
+      "v": 7,
       "n": "session_event_idempotency",
-      "v": 7
-     },
-     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+      "c": "824749f15d1ed492f5d3bb3c80daeae2"
+     }
     },
     {
-     "chars": 627,
      "op": "script",
+     "chars": 627,
      "sha256": "5425cd63c3294dbdb1004ec7a7ef380b03dfce9f15dc762611230ff5d256b31d"
     },
     {
      "op": "execute",
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)",
      "params": {
-      "c": "5425cd63c3294dbdb1004ec7a7ef380b",
+      "v": 8,
       "n": "build_lease",
-      "v": 8
-     },
-     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+      "c": "5425cd63c3294dbdb1004ec7a7ef380b"
+     }
     },
     {
-     "chars": 652,
      "op": "script",
+     "chars": 652,
      "sha256": "e8fe8e8b73c278500d5beb4f91843adc175be4d765eb61f26c8783998d0d5435"
     },
     {
      "op": "execute",
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)",
      "params": {
-      "c": "e8fe8e8b73c278500d5beb4f91843adc",
+      "v": 9,
       "n": "chat_lease",
-      "v": 9
-     },
-     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+      "c": "e8fe8e8b73c278500d5beb4f91843adc"
+     }
     },
     {
-     "chars": 2289,
      "op": "script",
+     "chars": 2289,
      "sha256": "773cd8deb06e68460884214938be632280f1f832842b1a4d330f422cb330b49b"
     },
     {
      "op": "execute",
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)",
      "params": {
-      "c": "773cd8deb06e68460884214938be6322",
+      "v": 10,
       "n": "llm_usage",
-      "v": 10
-     },
-     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+      "c": "773cd8deb06e68460884214938be6322"
+     }
     },
     {
-     "chars": 612,
      "op": "script",
+     "chars": 612,
      "sha256": "43912930aff919eb59e7490c6c507fbc761fb3201f492d162c79e80f568143aa"
     },
     {
      "op": "execute",
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)",
      "params": {
-      "c": "43912930aff919eb59e7490c6c507fbc",
+      "v": 11,
       "n": "mutation_lease",
-      "v": 11
-     },
-     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+      "c": "43912930aff919eb59e7490c6c507fbc"
+     }
     },
     {
-     "chars": 431,
      "op": "script",
+     "chars": 431,
      "sha256": "951df186ba8557a536b7dc659574dc8aacc1f2fe7be7158f37e4494489dadddc"
     },
     {
      "op": "execute",
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)",
      "params": {
-      "c": "951df186ba8557a536b7dc659574dc8a",
+      "v": 12,
       "n": "user_display_name",
-      "v": 12
-     },
-     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+      "c": "951df186ba8557a536b7dc659574dc8a"
+     }
     },
     {
-     "chars": 2467,
      "op": "script",
+     "chars": 2467,
      "sha256": "23192ac3f42b16b864bb16f70b5c82d27898f2de9fc955c3912f4c284b2cb009"
     },
     {
      "op": "execute",
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)",
      "params": {
-      "c": "23192ac3f42b16b864bb16f70b5c82d2",
+      "v": 13,
       "n": "project_folders",
-      "v": 13
-     },
-     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)"
+      "c": "23192ac3f42b16b864bb16f70b5c82d2"
+     }
+    },
+    {
+     "op": "script",
+     "chars": 3917,
+     "sha256": "a2189b935023f34655f035d40b9e69d90966894712adac6589a560ee0000b723"
+    },
+    {
+     "op": "execute",
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)",
+     "params": {
+      "v": 14,
+      "n": "onto_document",
+      "c": "a2189b935023f34655f035d40b9e69d9"
+     }
+    },
+    {
+     "op": "script",
+     "chars": 4378,
+     "sha256": "b7b9ab4649c1a10961ce741952c3fd70a1a150fb06f5a38b5a8b7be11a3771ea"
+    },
+    {
+     "op": "execute",
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)",
+     "params": {
+      "v": 15,
+      "n": "onto_document_acl",
+      "c": "b7b9ab4649c1a10961ce741952c3fd70"
+     }
+    },
+    {
+     "op": "script",
+     "chars": 4484,
+     "sha256": "da6cf03dc7569c365aefe63e11a630889cdab4c00d7637fb0e0dc663f5f96f47"
+    },
+    {
+     "op": "execute",
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)",
+     "params": {
+      "v": 16,
+      "n": "onto_document_jobs_search",
+      "c": "da6cf03dc7569c365aefe63e11a63088"
+     }
+    },
+    {
+     "op": "script",
+     "chars": 2683,
+     "sha256": "d8e4247869e32f76141e4832e242dd087e97fec745829ac217f6a5985c8bd561"
+    },
+    {
+     "op": "execute",
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)",
+     "params": {
+      "v": 17,
+      "n": "onto_document_wiki",
+      "c": "d8e4247869e32f76141e4832e242dd08"
+     }
+    },
+    {
+     "op": "script",
+     "chars": 2126,
+     "sha256": "99fc5fc89d103f4a827673279b0b85420541d6dd85d6fbb0f63abe5e4c50e4a4"
+    },
+    {
+     "op": "execute",
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)",
+     "params": {
+      "v": 18,
+      "n": "onto_document_connectors",
+      "c": "99fc5fc89d103f4a827673279b0b8542"
+     }
+    },
+    {
+     "op": "script",
+     "chars": 981,
+     "sha256": "65a30d292d3fc6e5fd0db58c592c9bcdf61e158e620932524bc44a94c89f10c7"
+    },
+    {
+     "op": "execute",
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)",
+     "params": {
+      "v": 19,
+      "n": "onto_document_folders",
+      "c": "65a30d292d3fc6e5fd0db58c592c9bcd"
+     }
     },
     {
      "op": "execute",
@@ -1426,6 +1804,30 @@
      [
       13,
       "23192ac3f42b16b864bb16f70b5c82d2"
+     ],
+     [
+      14,
+      "a2189b935023f34655f035d40b9e69d9"
+     ],
+     [
+      15,
+      "b7b9ab4649c1a10961ce741952c3fd70"
+     ],
+     [
+      16,
+      "da6cf03dc7569c365aefe63e11a63088"
+     ],
+     [
+      17,
+      "d8e4247869e32f76141e4832e242dd08"
+     ],
+     [
+      18,
+      "99fc5fc89d103f4a827673279b0b8542"
+     ],
+     [
+      19,
+      "65a30d292d3fc6e5fd0db58c592c9bcd"
      ]
     ],
     "table_exists": true
@@ -1528,6 +1930,30 @@
      [
       13,
       "23192ac3f42b16b864bb16f70b5c82d2"
+     ],
+     [
+      14,
+      "a2189b935023f34655f035d40b9e69d9"
+     ],
+     [
+      15,
+      "b7b9ab4649c1a10961ce741952c3fd70"
+     ],
+     [
+      16,
+      "da6cf03dc7569c365aefe63e11a63088"
+     ],
+     [
+      17,
+      "d8e4247869e32f76141e4832e242dd08"
+     ],
+     [
+      18,
+      "99fc5fc89d103f4a827673279b0b8542"
+     ],
+     [
+      19,
+      "65a30d292d3fc6e5fd0db58c592c9bcd"
      ]
     ],
     "table_exists": true
@@ -1819,8 +2245,32 @@
       "23192ac3f42b16b864bb16f70b5c82d2"
      ],
      [
+      14,
+      "a2189b935023f34655f035d40b9e69d9"
+     ],
+     [
+      15,
+      "b7b9ab4649c1a10961ce741952c3fd70"
+     ],
+     [
+      16,
+      "da6cf03dc7569c365aefe63e11a63088"
+     ],
+     [
       103,
       "ffffffffffffffffffffffffffffffff"
+     ],
+     [
+      17,
+      "d8e4247869e32f76141e4832e242dd08"
+     ],
+     [
+      18,
+      "99fc5fc89d103f4a827673279b0b8542"
+     ],
+     [
+      19,
+      "65a30d292d3fc6e5fd0db58c592c9bcd"
      ]
     ],
     "table_exists": true
@@ -1923,6 +2373,30 @@
      [
       "13",
       "23192ac3f42b16b864bb16f70b5c82d2"
+     ],
+     [
+      "14",
+      "a2189b935023f34655f035d40b9e69d9"
+     ],
+     [
+      "15",
+      "b7b9ab4649c1a10961ce741952c3fd70"
+     ],
+     [
+      "16",
+      "da6cf03dc7569c365aefe63e11a63088"
+     ],
+     [
+      "17",
+      "d8e4247869e32f76141e4832e242dd08"
+     ],
+     [
+      "18",
+      "99fc5fc89d103f4a827673279b0b8542"
+     ],
+     [
+      "19",
+      "65a30d292d3fc6e5fd0db58c592c9bcd"
      ]
     ],
     "table_exists": true

@@ -29,6 +29,9 @@ import {
   docToHtml,
   makeBlock,
   makeExportDoc,
+  availableFormats,
+  imageFormats,
+  supportsImages,
   registerPdfRenderer,
   render,
   resolveFormat,
@@ -534,7 +537,10 @@ describe("接缝", () => {
     };
     const dialogue: ExportApi = {
       FORMATS,
+      availableFormats,
       resolveFormat,
+      imageFormats,
+      supportsImages,
       render: async (doc, fmt) => render(doc as unknown as ExportDoc, fmt),
       safeName,
     };

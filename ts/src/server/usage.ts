@@ -33,6 +33,8 @@ import type { CatalogLike, UsageSinkRow } from "../kernel/llm.js";
 import type { LLMConfig } from "../kernel/config.js";
 import { makeLLMConfig } from "../kernel/config.js";
 import { FileBlobStore, FileJournal } from "../kernel/journal.js";
+import type { Event } from "../kernel/events.js";
+import { bridgeFromEnv } from "../kernel/otel.js";
 import { Recorder } from "../kernel/recorder.js";
 import { makeUsageRow, usageTotal } from "../store/types.js";
 import type { UsageRow } from "../store/types.js";
@@ -59,6 +61,11 @@ export interface AppConfigPort {
   resolvedLlmConfig(): LLMConfig;
   usdCap(): number;
   chatUsdCap(): number;
+  /** 一次梳理的墙钟与工具调用上限。**可选** —— 老的接线没传时退回 DEFAULT_LIMITS，
+   *  与加它之前逐字一致。 */
+  runWallclockS?(): number;
+  runToolCalls?(): number;
+  runTokens?(): number;
   /** 各难度档的模型覆盖（只含设置页真正配了的档）。 */
   modelOverrides(): Record<string, string>;
   /** 从仓储重新载入设置缓存（原子替换）。 */
@@ -353,13 +360,28 @@ export function gateways(
   o: { resume?: boolean; sessionId?: string; kind?: string; owner?: string } = {},
 ): Gateways {
   const cfg = _appConfig.resolvedLlmConfig(); // 设置 → env → 抛错
+  // OTel 旁路：没配 OTEL_EXPORTER_OTLP_ENDPOINT 时 bridgeFromEnv 返回 null，
+  // observer 整个不挂 —— 关掉就是真的零开销，不是"发到本地然后每条都失败"。
+  const bridge = bridgeFromEnv(runId);
   const rec = new Recorder(
     runId,
     new FileJournal(join(out, "journal")),
     new FileBlobStore(join(out, "blobs")),
-    { resume: o.resume ?? false },
+    {
+      resume: o.resume ?? false,
+      captureRequestBlobs: true,
+      ...(bridge !== null ? { observer: (e: Event) => bridge.observe(e) } : {}),
+    },
   );
-  const budget = new Budget({ tokens: 4_000_000, usd: _appConfig.usdCap() });
+  // wallclock_s / tool_calls 以前不传，静默走 DEFAULT_LIMITS（3600 / 500）。
+  // 一份切出 219 段的材料光 EXTRACT 就要 ~8300 秒、1000+ 次工具调用，两条都会
+  // 在中途把整个 Run 判死，而报错只说"预算耗尽"，不说是哪一维、更不说那是默认值。
+  const budget = new Budget({
+    tokens: _appConfig.runTokens?.() ?? 4_000_000,
+    usd: _appConfig.usdCap(),
+    wallclock_s: _appConfig.runWallclockS?.() ?? 3600,
+    tool_calls: _appConfig.runToolCalls?.() ?? 500,
+  });
   const backend = new OpenAICompatBackend(cfg.baseUrl, cfg.apiKey);
   // 启动时按网关可用模型过滤过的目录 —— 视觉选型据此落到网关真有的视觉模型上
   const catalog = _catalog.current();
@@ -514,6 +536,10 @@ export interface UsageReport {
   series: UsageBucket[];
   by_model: UsageGroup[];
   by_kind: UsageGroup[];
+  /** 按账号分账。**只在没有按 owner 过滤时才有意义** —— 过滤成单个账号时它必然
+   * 只有一项，等于把 total 又说了一遍。管理员视角靠它回答"这个月谁烧的 token"。
+   * name 是 app_user.id；显示成人名是路由的事（它才有 listUsers）。 */
+  by_owner: UsageGroup[];
   rows: UsageDetailRow[];
   truncated: boolean;
   /** billed | partial | none —— 金额可信度，界面据此决定显示还是打问号。 */
@@ -567,6 +593,7 @@ export async function usageReport(
   };
   const byModel = new Map<string, UsageGroup>();
   const byKind = new Map<string, UsageGroup>();
+  const byOwner = new Map<string, UsageGroup>();
   const series = new Map<string, UsageBucket>();
 
   for (const r of rows) {
@@ -584,6 +611,9 @@ export async function usageReport(
     for (const [grp, name] of [
       [byModel, r.model],
       [byKind, r.kind],
+      // owner 为空串的流水是迁移前/开放模式留下的，归到 "" 这一档而不是丢掉 ——
+      // 丢掉会让分账之和小于 total，而对不上的账比没有账更让人不敢信。
+      [byOwner, r.owner],
     ] as const) {
       let g = grp.get(name);
       if (g === undefined) {
@@ -630,6 +660,7 @@ export async function usageReport(
     series: filled,
     by_model: top,
     by_kind: [...byKind.values()].sort((a, b) => b.tokens - a.tokens),
+    by_owner: [...byOwner.values()].sort((a, b) => b.tokens - a.tokens),
     // 明细给最近这些条；界面上是流水表，也是导出的来源
     rows: rows.slice(0, 300).map((r) => ({
       ts: r.ts,

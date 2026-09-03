@@ -14,7 +14,7 @@
  * 都不碰 DOM，换宿主不该动它们。
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render } from "@testing-library/react";
+import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 
 // 点 chip = 把它当成用户自己打的字发出去。这里要断的是「发出去的是哪一串」，
 // 所以把 ask 换成假的；importOriginal 保住同模块里被别处依赖的导出。
@@ -28,6 +28,7 @@ const { addTurn, ask, mergeStateSnapshot } = await import("../src/ui/chat.js");
 const { Bubble, ChatChips, Chips, IntroChips, StepsCard, ThinkingBubble } =
   await import("../src/ui/react/chat.js");
 const { Markdown } = await import("../src/ui/react/markdown.js");
+const { WebSourcesCard } = await import("../src/ui/react/web-search.js");
 
 const EVIL = `"><img src=x onerror=alert(1)>`;
 
@@ -84,6 +85,46 @@ describe("<Bubble>", () => {
     expect(container.querySelector(".itag")).toBeNull();
   });
 
+  it("点击正文来源编号会定位并聚焦紧随本回答的对应来源，而不是历史同名来源", () => {
+    const scrollIntoView = vi.fn();
+    const focus = vi.fn();
+    const { container } = render(<>
+      <Bubble turn={{ speaker: "assistant", text: "结论 WEB[web_0123456789abcdef]" }} />
+      <section className="web-sources-card">
+        <article className="web-source-article" data-source-id="web_0123456789abcdef" tabIndex={-1}>来源标题</article>
+      </section>
+    </>);
+    const article = container.querySelector("article") as HTMLElement;
+    article.scrollIntoView = scrollIntoView;
+    article.focus = focus;
+
+    fireEvent.click(container.querySelector("a.web-citation-link")!);
+    expect(scrollIntoView).toHaveBeenCalledWith({ block: "nearest", behavior: "smooth" });
+    expect(focus).toHaveBeenCalledWith({ preventScroll: true });
+    expect(container.textContent).not.toContain("WEB[");
+  });
+
+  it("编号指向折叠来源时会自动展开卡片并定位，不要求用户先手动展开", async () => {
+    const rows = Array.from({ length: 5 }, (_, i) => ({
+      id: `web_000000000000000${i}`,
+      title: `来源 ${i + 1}`,
+      url: `https://example${i + 1}.com/a`,
+      snippet: `摘要 ${i + 1}`,
+    }));
+    const wanted = rows[4]!.id;
+    const { container } = render(<>
+      <Bubble turn={{ speaker: "assistant", text: `结论 WEB[${wanted}]` }} />
+      <WebSourcesCard ev={{ kind: "web.sources", total: 5, results: rows }} />
+    </>);
+    expect(container.querySelector(`article[data-source-id="${wanted}"]`)).toBeNull();
+
+    fireEvent.click(container.querySelector("a.web-citation-link")!);
+    await waitFor(() => {
+      expect(container.querySelector(`article[data-source-id="${wanted}"]`)).not.toBeNull();
+      expect(container.querySelector(".web-source-toggle")?.getAttribute("aria-expanded")).toBe("true");
+    });
+  });
+
   it("乐观上屏的那条半透明 —— 用户要能看出「还没落地」", () => {
     const { container } = render(<Bubble turn={{ speaker: "user", text: "问", pending: true }} />);
     expect((container.querySelector(".body") as any).style.opacity).toBe("0.55");
@@ -106,31 +147,43 @@ describe("<Bubble>", () => {
 //  推理卡
 // ══════════════════════════════════════════════════════════════════
 describe("<StepsCard>", () => {
-  it("结构是 .steps > .stp > (.stt/.sto/.stb)，工具名在 <code> 里", () => {
+  it("默认折叠，summary 有明确展开语义；展开区保留思考、工具与结果", () => {
     G.STEPS = [{ thought: "先查一下", tool: "search", args: { q: "订单" }, observation: "找到 3 条" }];
     const { container } = render(<StepsCard />);
-    expect(container.querySelector(".steps > .stp > .stt")!.textContent).toBe("先查一下");
+    const details = container.querySelector("details.steps") as any;
+    const summary = container.querySelector(".reasoning-summary")!;
+    expect(details.open).toBe(false);
+    expect(summary.getAttribute("aria-expanded")).toBe("false");
+    expect(summary.textContent).toContain("已完成思考");
+    expect(container.querySelector(".reasoning-step-list")).toBeNull();
+    fireEvent.click(summary);
+    expect(container.querySelector(".reasoning-step-list .stt")!.textContent).toBe("先查一下");
     expect(container.querySelector(".sto > code")!.textContent).toBe("search");
     expect(container.querySelector(".sto")!.textContent).toContain('{"q":"订单"}');
     expect(container.querySelector(".stb")!.textContent).toBe("找到 3 条");
+    expect(details.open).toBe(true);
+    expect(summary.getAttribute("aria-expanded")).toBe("true");
   });
 
   it("没调工具就不出 .sto，没有观察值就不出 .stb", () => {
     G.STEPS = [{ thought: "只是想了想" }];
     const { container } = render(<StepsCard />);
+    fireEvent.click(container.querySelector("summary")!);
     expect(container.querySelector(".sto")).toBeNull();
     expect(container.querySelector(".stb")).toBeNull();
   });
 
-  it("观察值截到 240 字 —— 一次工具返回能有几十 KB，整段铺开会把对话流冲垮", () => {
+  it("结果全文留在展开区，视觉层用滚动封顶而不是把审计内容截掉", () => {
     G.STEPS = [{ thought: "t", observation: "x".repeat(500) }];
     const { container } = render(<StepsCard />);
-    expect(container.querySelector(".stb")!.textContent).toHaveLength(240);
+    fireEvent.click(container.querySelector("summary")!);
+    expect(container.querySelector(".stb")!.textContent).toHaveLength(500);
   });
 
   it("工具名与观察值里的标记是文本，不是元素", () => {
     G.STEPS = [{ thought: EVIL, tool: EVIL, args: { a: EVIL }, observation: EVIL }];
     const { container } = render(<StepsCard />);
+    fireEvent.click(container.querySelector("summary")!);
     expect(container.querySelector("img")).toBeNull();
     expect(container.querySelector(".stt")!.textContent).toBe(EVIL);
     expect([...attrNames(container.querySelector(".steps")!)].filter(n => n.startsWith("on"))).toEqual([]);
@@ -156,25 +209,96 @@ describe("<ThinkingBubble>", () => {
     expect(sec.textContent).toBe("");
   });
 
-  it("说得出在查什么就说，说不出就说「正在想」", () => {
-    expect(render(<ThinkingBubble />).container.textContent).toContain("正在想");
+  it("折叠摘要只说业务进度，不泄露内部工具名或思考正文", () => {
+    let c = render(<ThinkingBubble />).container;
+    expect(c.querySelector("summary")!.textContent).toContain("思考中");
+    expect(c.querySelector("summary")!.textContent).not.toContain("正在准备推理步骤");
     cleanup();
-    G.STEPS = [{ thought: "先看看材料", tool: "search" }];
-    expect(render(<ThinkingBubble />).container.textContent).toContain("正在查 search");
+    G.STEPS = [{ thought: "先看看材料", tool: "web.search" }];
+    c = render(<ThinkingBubble />).container;
+    expect(c.querySelector("summary")!.textContent).toContain("正在搜索公开资料");
+    expect(c.querySelector("summary")!.textContent).not.toContain("web.search");
+    fireEvent.click(c.querySelector("summary")!);
+    expect(c.querySelector(".sto > code")!.textContent).toBe("web.search");
     cleanup();
     G.STEPS = [{ thought: "只是在想这件事" }];
-    expect(render(<ThinkingBubble />).container.textContent).toContain("只是在想这件事");
+    c = render(<ThinkingBubble />).container;
+    expect(c.querySelector("summary")!.textContent).toContain("思考中");
+    expect(c.querySelector("summary")!.textContent).not.toContain("只是在想这件事");
   });
 
-  it("思路太长只取前 40 字，工具名里的标记也是文本", () => {
+  it("完整思路只在展开区，工具名里的标记也是文本", () => {
     G.STEPS = [{ thought: "长".repeat(80) }];
-    expect(render(<ThinkingBubble />).container.querySelector(".body")!.textContent)
-      .toContain("长".repeat(40));
+    const first = render(<ThinkingBubble />).container;
+    expect(first.querySelector("summary")!.textContent).not.toContain("长");
+    fireEvent.click(first.querySelector("summary")!);
+    expect(first.querySelector(".reasoning-details")!.textContent).toContain("长".repeat(80));
     cleanup();
     G.STEPS = [{ tool: EVIL }];
     const { container } = render(<ThinkingBubble />);
+    fireEvent.click(container.querySelector("summary")!);
     expect(container.querySelector("img")).toBeNull();
     expect(container.textContent).toContain(EVIL);
+  });
+
+  it("检索候选实时变成业务进度，去重后不把文章标题铺在摘要里", () => {
+    G.S.state.dialogue.turns = [{ speaker: "user", ts: 100, text: "查资料" }];
+    G.STEPS = [{ turn: "run-2", n: 1, tool: "web.search" }];
+    G.S.events = [
+      { seq: 10, kind: "chat.step", ts: 110, step: { turn: "run-2", n: 1, tool: "web.search" } },
+      { seq: 11, kind: "web.sources", ts: 120, total: 3, results: [
+      { source_id: "a", title: "候选甲" }, { source_id: "b", title: "候选乙" },
+      { source_id: "a", title: "重复甲" },
+      ] },
+    ];
+    const { container } = render(<ThinkingBubble />);
+    const summary = container.querySelector("summary")!;
+    expect(summary.textContent).toContain("已找到 3 条候选，正在筛选");
+    expect(summary.textContent).not.toContain("候选甲");
+    expect(summary.getAttribute("aria-expanded")).toBe("false");
+    expect(container.querySelector(".reasoning-status")!.hasAttribute("aria-live")).toBe(false);
+  });
+
+  it("连续两轮时，新 user turn 尚未收到 chat.step 不会沿用上一轮候选数", () => {
+    G.S.state.dialogue.turns = [
+      { speaker: "user", ts: 100, text: "第一轮" },
+      { speaker: "assistant", ts: 180, text: "第一轮答复" },
+    ];
+    G.S.events = [
+      { seq: 1, ts: 110, kind: "chat.step", step: { turn: "run-1", n: 1, tool: "web.search" } },
+      { seq: 2, ts: 120, kind: "web.sources", total: 5, results: [{ source_id: "old" }] },
+    ];
+    G.PENDING = [{ speaker: "user", text: "第二轮", pending: true }];
+    G.STEPS = [];
+    let c = render(<ThinkingBubble />).container;
+    expect(c.querySelector("summary")!.textContent).toContain("思考中");
+    expect(c.querySelector("summary")!.textContent).not.toContain("5 条候选");
+    cleanup();
+
+    G.STEPS = [{ turn: "run-2", n: 1, tool: "web.search" }];
+    G.S.events.push(
+      { seq: 3, ts: 200, kind: "chat.step", step: { turn: "run-2", n: 1, tool: "web.search" } },
+      { seq: 4, ts: 210, kind: "web.sources", total: 2, results: [{ source_id: "new-a" }, { source_id: "new-b" }] },
+    );
+    c = render(<ThinkingBubble />).container;
+    expect(c.querySelector("summary")!.textContent).toContain("已找到 2 条候选，正在筛选");
+    expect(c.querySelector("summary")!.textContent).not.toContain("5 条候选");
+  });
+
+  it("展开区脱敏并限制单字段长度，收起状态不把明文挂进 DOM", () => {
+    G.STEPS = [{ turn: "r", n: 1, thought: "核对凭证", tool: "http.call",
+      args: { apiKey: "sk-secret", nested: { password: "123456", ok: "safe" } },
+      observation: `Authorization: Bearer top-secret\nCookie=session=abc\n${"x".repeat(20_000)}` }];
+    const { container } = render(<ThinkingBubble />);
+    expect(container.textContent).not.toContain("sk-secret");
+    expect(container.textContent).not.toContain("top-secret");
+    fireEvent.click(container.querySelector("summary")!);
+    expect(container.textContent).toContain("已隐藏敏感信息");
+    expect(container.textContent).not.toContain("sk-secret");
+    expect(container.textContent).not.toContain("123456");
+    expect(container.textContent).not.toContain("top-secret");
+    expect(container.textContent).toContain("内容过长，已截断");
+    expect(container.querySelector(".stb")!.textContent!.length).toBeLessThan(13_000);
   });
 });
 
@@ -238,17 +362,37 @@ describe("<Chips> 发出去的是哪一串", () => {
     expect(btn.dataset.s).toBe("真正发出去的");
   });
 
-  it("没有 send 就发 text 本身", () => {
+  /** chips 现在填输入框而不是直接发，所以断言要看 #cin。 */
+  function composer(): HTMLTextAreaElement {
+    document.getElementById("cin")?.remove();
+    const el = document.createElement("textarea");
+    el.id = "cin";
+    document.body.appendChild(el);
+    return el as HTMLTextAreaElement;
+  }
+
+  it("点一下只填进输入框，**不发送** —— 猜出来的话要留给他改", () => {
+    const cin = composer();
     const { container } = render(<Chips chips={[{ text: "就这句" }]} />);
     fireEvent.click(container.querySelector(".pchip")!);
-    expect(ask).toHaveBeenCalledWith("就这句");
+    expect(cin.value).toBe("就这句");
+    // 点即发是旧行为：这些是猜的，猜错时要能改，而不是撤回已发出的消息。
+    expect(ask).not.toHaveBeenCalled();
   });
 
-  it("点下去 ask 收到的是**原样的值**，一个字符都没被转义动过", () => {
+  it("没有 send 就用 text 本身；有 send 就用 send", () => {
+    const cin = composer();
+    const { container } = render(<Chips chips={[{ text: "显示的", send: "真正要发的" }]} />);
+    fireEvent.click(container.querySelector(".pchip")!);
+    expect(cin.value).toBe("真正要发的");
+  });
+
+  it("填进输入框的是**原样的值**，一个字符都没被转义动过", () => {
     const evil = `x','');globalThis.__pwned=1;//`;
+    const cin = composer();
     const { container } = render(<Chips chips={[{ text: "问这个", send: evil }]} />);
     fireEvent.click(container.querySelector(".pchip")!);
-    expect(ask).toHaveBeenCalledWith(evil);
+    expect(cin.value).toBe(evil);
     expect((globalThis as any).__pwned).toBeUndefined();
   });
 
@@ -259,8 +403,13 @@ describe("<Chips> 发出去的是哪一串", () => {
     // **判据是属性名集合，不是 innerHTML 里有没有 "onerror="。** 这一串正是被
     // 原样存进 data-s 的值（React 把里面那个 `"` 转成了 &quot;，闭不掉属性），
     // 序列化出来当然看得见它 —— 看得见是对的，长成一个真属性才是事故。
+    // title 是新加的静态提示（"填进输入框，可以改了再发"），无害；判据没变 ——
+    // 这里要挡的是 onclick/onerror 之类**内联处理器**长成真属性，白名单里
+    // 一个 on* 都不能出现。
     expect([...attrNames(container.querySelector(".pchips")!)].sort())
-      .toEqual(["class", "data-s"]);
+      .toEqual(["class", "data-s", "title"]);
+    expect([...attrNames(container.querySelector(".pchips")!)].filter((n) => n.startsWith("on")))
+      .toEqual([]);
     expect((container.querySelector(".pchip") as any).dataset.s).toBe(EVIL);
   });
 });

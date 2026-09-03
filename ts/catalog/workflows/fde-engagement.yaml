@@ -1,0 +1,177 @@
+schema_version: 1
+name: fde_engagement_v3
+checkpoint_version: fde-engagement-v3
+freeze_before: INTAKE
+required_agents:
+  - fde_interviewer
+  - process_modeler
+  - erp_mapper
+  - rule_engineer
+  - data_steward
+  - decision_integrator
+  - requirements_engineer
+  - solution_architect
+  - acceptance_test_engineer
+  - delivery_reviewer
+
+nodes:
+  - id: INTAKE
+    agent: fde_interviewer
+    evidence_top_k: 40
+
+  - id: PROCESS
+    agent: process_modeler
+    deps: [INTAKE]
+    evidence_top_k: 48
+    # P2 试点：节点内受限 Cohort（kernel/loop.ts runCohort）。
+    # 外层图不变；PROCESS 内部至多 2 个只读并行分析子任务，工具额度均分
+    # （20 → 每个 10），结论必须逐字接地于各自的工具返回。
+    params:
+      cohort_max: 2
+
+  - id: ERP_MAP
+    agent: erp_mapper
+    deps: [PROCESS]
+    evidence_top_k: 40
+
+  - id: RULES
+    agent: rule_engineer
+    deps: [PROCESS]
+    evidence_top_k: 40
+
+  - id: DATA_OBJECTS
+    agent: data_steward
+    deps: [PROCESS]
+    evidence_top_k: 40
+
+  - id: GAP
+    mode: deterministic
+    handler: engagement.collect_gaps
+    deps: [INTAKE, PROCESS, ERP_MAP, RULES, DATA_OBJECTS]
+    evidence_top_k: 0
+    budget: { tokens: 0, iterations: 1, wallclock_s: 60, tool_calls: 0 }
+    retries: 0
+    params:
+      output_contract: QuestionBacklog
+      rank_by: [downstream_blocking, blast_radius, irreversibility, evidence_gap]
+
+  - id: INTERVIEW
+    mode: hitl
+    handler: engagement.interview
+    deps: [GAP]
+    evidence_top_k: 0
+    budget: { tokens: 0, iterations: 1, wallclock_s: 604800, tool_calls: 0 }
+    difficulty: low
+    gate:
+      kind: auto
+      require:
+        - "contract == 'DecisionLedger'"
+        - "resolved == true"
+    retries: 0
+    params:
+      input_contract: QuestionBacklog
+      output_contract: DecisionLedger
+      batching: progressive
+
+  - id: DECISION_PROPOSAL
+    agent: decision_integrator
+    deps: [INTERVIEW, GAP, INTAKE, PROCESS, ERP_MAP, RULES, DATA_OBJECTS]
+    evidence_top_k: 32
+    params:
+      output_contract: DecisionChangeProposal.v1
+      mutation_authority: none
+
+  - id: DECISION_APPLY
+    mode: deterministic
+    handler: engagement.validate_decision_application
+    deps: [DECISION_PROPOSAL, INTERVIEW, INTAKE, PROCESS, ERP_MAP, RULES, DATA_OBJECTS]
+    evidence_top_k: 0
+    budget: { tokens: 0, iterations: 1, wallclock_s: 60, tool_calls: 0 }
+    gate:
+      kind: auto
+      require:
+        - "safe_to_continue == true"
+        - "untargeted_write_count == 0"
+        - "mutation_count == 0"
+        - "claimed_applied_count == 0"
+    retries: 0
+    params:
+      input_contract: DecisionChangeProposal.v1
+      output_contract: DecisionApplicationValidation.v1
+      mutation_authority: none
+
+  - id: REQUIREMENTS
+    agent: requirements_engineer
+    deps: [DECISION_APPLY, DECISION_PROPOSAL, INTAKE, PROCESS, ERP_MAP, RULES, DATA_OBJECTS]
+    evidence_top_k: 40
+
+  - id: ARCHITECTURE
+    agent: solution_architect
+    deps: [REQUIREMENTS, DECISION_APPLY, PROCESS, ERP_MAP, DATA_OBJECTS]
+    evidence_top_k: 40
+
+  - id: TEST_PLAN
+    agent: acceptance_test_engineer
+    deps: [ARCHITECTURE, REQUIREMENTS, DECISION_APPLY, PROCESS, RULES]
+    evidence_top_k: 40
+
+  - id: CANONICALIZE
+    mode: deterministic
+    handler: engagement.canonicalize
+    deps: [TEST_PLAN, ARCHITECTURE, REQUIREMENTS, DECISION_APPLY, DECISION_PROPOSAL, INTERVIEW, INTAKE, PROCESS, ERP_MAP, RULES, DATA_OBJECTS, GAP]
+    evidence_top_k: 0
+    budget: { tokens: 0, iterations: 1, wallclock_s: 120, tool_calls: 0 }
+    retries: 0
+    params:
+      output_contract: OntologyPackage.v1
+
+  - id: REVIEW
+    agent: delivery_reviewer
+    deps: [CANONICALIZE, TEST_PLAN, ARCHITECTURE, REQUIREMENTS, DECISION_APPLY, DECISION_PROPOSAL, INTAKE, PROCESS, ERP_MAP, RULES, DATA_OBJECTS, GAP]
+    evidence_top_k: 24
+    gate:
+      kind: auto
+      require:
+        - "verdict == 'PASS'"
+        - "blocker_count == 0"
+        - "all_passed == true"
+        - "high_findings == 0"
+
+  - id: HUMAN_ACCEPTANCE
+    mode: hitl
+    handler: engagement.human_acceptance
+    deps: [REVIEW, CANONICALIZE, TEST_PLAN, ARCHITECTURE, REQUIREMENTS, DECISION_APPLY, DECISION_PROPOSAL]
+    evidence_top_k: 0
+    budget: { tokens: 0, iterations: 1, wallclock_s: 604800, tool_calls: 0 }
+    difficulty: low
+    gate:
+      kind: auto
+      require:
+        - "contract == 'HumanAcceptance.v1'"
+        - "signed == true"
+        - "decision_recorded == true"
+        - "package_bound == true"
+        - "review_passed == true"
+    retries: 0
+    params:
+      input_contract: ReleaseCandidate.v1
+      output_contract: HumanAcceptance.v1
+      durable_answer: DecisionLedger
+
+  - id: EXPORT
+    mode: deterministic
+    handler: engagement.export
+    deps: [HUMAN_ACCEPTANCE, CANONICALIZE, REVIEW, TEST_PLAN, ARCHITECTURE, REQUIREMENTS, DECISION_APPLY, DECISION_PROPOSAL]
+    evidence_top_k: 0
+    budget: { tokens: 0, iterations: 1, wallclock_s: 180, tool_calls: 0 }
+    gate:
+      kind: auto
+      require:
+        - "review_passed == true"
+        - "human_decided == true"
+        - "schema_valid == true"
+        - "downloadable == true"
+    retries: 0
+    params:
+      formats: [json, xlsx, md, mermaid]
+      input_contract: OntologyPackage.v1

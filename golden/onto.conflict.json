@@ -1859,337 +1859,333 @@
     "detect_all_messy": {
       "conflicts": [
         {
-          "detector": "rule:NAME-01",
-          "evidence": [
-            {
-              "cite": "实体梳理.xlsx!业务对象实体梳理!R2CF",
-              "confidence": 0.94,
-              "extractor": "docling",
-              "file_id": "f3",
-              "file_name": "实体梳理.xlsx",
-              "locator": {
-                "col": "F",
-                "kind": "cell",
-                "row": 2,
-                "sheet": "业务对象实体梳理"
-              },
-              "snippet": "y"
-            }
-          ],
-          "handling": "auto_repair",
-          "kind": "naming_violation",
-          "options": [
-            {
-              "effect": {
-                "set_api_name": "采购合同"
-              },
-              "evidence": [],
-              "id": "apply",
-              "label": "改为 采购合同",
-              "rationale": "可逆、零语义损失"
-            }
-          ],
-          "owner": null,
           "rid": "cf_naming_violation_0d48b2902a",
+          "kind": "naming_violation",
           "subjects": [
             "ot_bad"
           ],
-          "summary": "ot_bad: apiName 含中文"
-        },
-        {
-          "detector": "rule:NAME-01",
+          "summary": "ot_bad: apiName 含中文",
+          "handling": "round_trip",
           "evidence": [
             {
-              "cite": "实体梳理.xlsx!业务对象实体梳理!R3CF",
-              "confidence": 0.94,
-              "extractor": "docling",
               "file_id": "f3",
               "file_name": "实体梳理.xlsx",
               "locator": {
-                "col": "F",
                 "kind": "cell",
-                "row": 3,
-                "sheet": "业务对象实体梳理"
+                "sheet": "业务对象实体梳理",
+                "row": 2,
+                "col": "F"
               },
-              "snippet": "z"
+              "snippet": "y",
+              "extractor": "docling",
+              "confidence": 0.94,
+              "cite": "实体梳理.xlsx!业务对象实体梳理!R2CF"
             }
           ],
-          "handling": "auto_repair",
-          "kind": "naming_violation",
           "options": [
             {
-              "effect": {
-                "set_api_name": "po"
-              },
+              "id": "rename",
+              "label": "请给这个对象的英文译名（lowerCamelCase）",
+              "rationale": "机器只会做标识符归一，给不出译名；中文 apiName 交付不了，需要人定",
               "evidence": [],
-              "id": "apply",
-              "label": "改为 po",
-              "rationale": "可逆、零语义损失"
+              "effect": {}
             }
           ],
           "owner": null,
+          "detector": "rule:NAME-01"
+        },
+        {
           "rid": "cf_naming_violation_09482e99ee",
+          "kind": "naming_violation",
           "subjects": [
             "ot_abbr"
           ],
-          "summary": "ot_abbr: 疑似未登记缩写"
-        },
-        {
-          "detector": "rule:NAME-01",
+          "summary": "ot_abbr: 疑似未登记缩写",
+          "handling": "round_trip",
           "evidence": [
             {
-              "cite": "实体梳理.xlsx!业务对象实体梳理!R9CF",
-              "confidence": 0.94,
-              "extractor": "docling",
               "file_id": "f3",
               "file_name": "实体梳理.xlsx",
               "locator": {
-                "col": "F",
                 "kind": "cell",
-                "row": 9,
-                "sheet": "业务对象实体梳理"
+                "sheet": "业务对象实体梳理",
+                "row": 3,
+                "col": "F"
               },
-              "snippet": "含税，年度累计"
+              "snippet": "z",
+              "extractor": "docling",
+              "confidence": 0.94,
+              "cite": "实体梳理.xlsx!业务对象实体梳理!R3CF"
             }
           ],
-          "handling": "auto_repair",
-          "kind": "naming_violation",
           "options": [
             {
-              "effect": {
-                "set_api_name": "planAmount"
-              },
+              "id": "rename",
+              "label": "请给这个对象的英文译名（lowerCamelCase）",
+              "rationale": "机器只会做标识符归一，给不出译名；中文 apiName 交付不了，需要人定",
               "evidence": [],
-              "id": "apply",
-              "label": "改为 planAmount",
-              "rationale": "可逆、零语义损失"
+              "effect": {}
             }
           ],
           "owner": null,
+          "detector": "rule:NAME-01"
+        },
+        {
           "rid": "cf_naming_violation_42a891a467",
+          "kind": "naming_violation",
           "subjects": [
             "pt_snake"
           ],
-          "summary": "pt_snake: apiName 不是 lowerCamelCase"
+          "summary": "pt_snake: apiName 不是 lowerCamelCase",
+          "handling": "auto_repair",
+          "evidence": [
+            {
+              "file_id": "f3",
+              "file_name": "实体梳理.xlsx",
+              "locator": {
+                "kind": "cell",
+                "sheet": "业务对象实体梳理",
+                "row": 9,
+                "col": "F"
+              },
+              "snippet": "含税，年度累计",
+              "extractor": "docling",
+              "confidence": 0.94,
+              "cite": "实体梳理.xlsx!业务对象实体梳理!R9CF"
+            }
+          ],
+          "options": [
+            {
+              "id": "apply",
+              "label": "改为 planAmount",
+              "rationale": "可逆、零语义损失",
+              "evidence": [],
+              "effect": {
+                "set_api_name": "planAmount"
+              }
+            }
+          ],
+          "owner": null,
+          "detector": "rule:NAME-01"
         },
         {
-          "detector": "rule:REQ-01",
-          "evidence": [],
-          "handling": "round_trip",
-          "kind": "missing_required",
-          "options": [],
-          "owner": "李强",
           "rid": "cf_missing_required_c13bda09f5",
+          "kind": "missing_required",
           "subjects": [
             "pt_nodef"
           ],
-          "summary": "contractAmount: 缺 口径定义、显示名"
+          "summary": "contractAmount: 缺 口径定义、显示名",
+          "handling": "round_trip",
+          "evidence": [],
+          "options": [],
+          "owner": "李强",
+          "detector": "rule:REQ-01"
         },
         {
-          "detector": "rule:REQ-02",
-          "evidence": [],
-          "handling": "round_trip",
-          "kind": "missing_required",
-          "options": [],
-          "owner": null,
           "rid": "cf_missing_required_341f04ec6a",
+          "kind": "missing_required",
           "subjects": [
             "ot_bad"
           ],
-          "summary": "采购合同: 未声明主键"
-        },
-        {
-          "detector": "rule:GRAPH-01",
-          "evidence": [
-            {
-              "cite": "实体梳理.xlsx!业务对象实体梳理!R1CF",
-              "confidence": 0.94,
-              "extractor": "docling",
-              "file_id": "f3",
-              "file_name": "实体梳理.xlsx",
-              "locator": {
-                "col": "F",
-                "kind": "cell",
-                "row": 1,
-                "sheet": "业务对象实体梳理"
-              },
-              "snippet": "x"
-            }
-          ],
-          "handling": "hint",
-          "kind": "orphan",
+          "summary": "采购合同: 未声明主键",
+          "handling": "round_trip",
+          "evidence": [],
           "options": [],
           "owner": null,
+          "detector": "rule:REQ-02"
+        },
+        {
           "rid": "cf_orphan_c205650bd0",
+          "kind": "orphan",
           "subjects": [
             "ot_good"
           ],
-          "summary": "purchasePlan 与任何对象都没有关系，可能是遗漏"
-        },
-        {
-          "detector": "rule:GRAPH-01",
+          "summary": "purchasePlan 与任何对象都没有关系，可能是遗漏",
+          "handling": "hint",
           "evidence": [
             {
-              "cite": "实体梳理.xlsx!业务对象实体梳理!R2CF",
-              "confidence": 0.94,
-              "extractor": "docling",
               "file_id": "f3",
               "file_name": "实体梳理.xlsx",
               "locator": {
-                "col": "F",
                 "kind": "cell",
-                "row": 2,
-                "sheet": "业务对象实体梳理"
+                "sheet": "业务对象实体梳理",
+                "row": 1,
+                "col": "F"
               },
-              "snippet": "y"
+              "snippet": "x",
+              "extractor": "docling",
+              "confidence": 0.94,
+              "cite": "实体梳理.xlsx!业务对象实体梳理!R1CF"
             }
           ],
-          "handling": "hint",
-          "kind": "orphan",
           "options": [],
           "owner": null,
+          "detector": "rule:GRAPH-01"
+        },
+        {
           "rid": "cf_orphan_0d48b2902a",
+          "kind": "orphan",
           "subjects": [
             "ot_bad"
           ],
-          "summary": "采购合同 与任何对象都没有关系，可能是遗漏"
-        },
-        {
-          "detector": "rule:GRAPH-01",
+          "summary": "采购合同 与任何对象都没有关系，可能是遗漏",
+          "handling": "hint",
           "evidence": [
             {
-              "cite": "实体梳理.xlsx!业务对象实体梳理!R3CF",
-              "confidence": 0.94,
-              "extractor": "docling",
               "file_id": "f3",
               "file_name": "实体梳理.xlsx",
               "locator": {
-                "col": "F",
                 "kind": "cell",
-                "row": 3,
-                "sheet": "业务对象实体梳理"
+                "sheet": "业务对象实体梳理",
+                "row": 2,
+                "col": "F"
               },
-              "snippet": "z"
+              "snippet": "y",
+              "extractor": "docling",
+              "confidence": 0.94,
+              "cite": "实体梳理.xlsx!业务对象实体梳理!R2CF"
             }
           ],
-          "handling": "hint",
-          "kind": "orphan",
           "options": [],
           "owner": null,
+          "detector": "rule:GRAPH-01"
+        },
+        {
           "rid": "cf_orphan_09482e99ee",
+          "kind": "orphan",
           "subjects": [
             "ot_abbr"
           ],
-          "summary": "po 与任何对象都没有关系，可能是遗漏"
-        },
-        {
-          "detector": "rule:ACT-01",
-          "evidence": [],
-          "handling": "ask_user",
-          "kind": "missing_action",
-          "options": [
+          "summary": "po 与任何对象都没有关系，可能是遗漏",
+          "handling": "hint",
+          "evidence": [
             {
-              "effect": {},
-              "evidence": [],
-              "id": "leave_blank",
-              "label": "留空让业务自己填",
-              "rationale": "预计完成率低于 30%"
+              "file_id": "f3",
+              "file_name": "实体梳理.xlsx",
+              "locator": {
+                "kind": "cell",
+                "sheet": "业务对象实体梳理",
+                "row": 3,
+                "col": "F"
+              },
+              "snippet": "z",
+              "extractor": "docling",
+              "confidence": 0.94,
+              "cite": "实体梳理.xlsx!业务对象实体梳理!R3CF"
             }
           ],
+          "options": [],
           "owner": null,
+          "detector": "rule:GRAPH-01"
+        },
+        {
           "rid": "cf_missing_action_fca19ca7fd",
+          "kind": "missing_action",
           "subjects": [
             "ot_bad",
             "ot_abbr"
           ],
-          "summary": "2 个对象没有任何 ActionType；OpenAPI 里没有可用端点"
+          "summary": "2 个对象没有任何 ActionType；OpenAPI 里没有可用端点",
+          "handling": "ask_user",
+          "evidence": [],
+          "options": [
+            {
+              "id": "leave_blank",
+              "label": "留空让业务自己填",
+              "rationale": "预计完成率低于 30%",
+              "evidence": [],
+              "effect": {}
+            }
+          ],
+          "owner": null,
+          "detector": "rule:ACT-01"
         }
       ],
       "oir_after": {
-        "actions": [
-          {
-            "apiName": "submitPlan",
-            "apiNameOrigin": "extracted",
-            "appliesTo": [
-              "ot_good"
-            ],
-            "rid": "at_submit"
-          }
-        ],
-        "links": [],
         "objects": [
           {
-            "aliases": [],
+            "rid": "ot_good",
             "apiName": "purchasePlan",
             "apiNameOrigin": "extracted",
-            "conflicts": [
-              "cf_orphan_c205650bd0"
-            ],
             "displayName": "采购计划",
+            "aliases": [],
             "properties": [
               "pt_ok",
               "pt_snake"
             ],
-            "rid": "ot_good"
+            "conflicts": [
+              "cf_orphan_c205650bd0"
+            ]
           },
           {
-            "aliases": [],
+            "rid": "ot_bad",
             "apiName": "采购合同",
             "apiNameOrigin": "extracted",
+            "displayName": "采购合同",
+            "aliases": [],
+            "properties": [
+              "pt_nodef"
+            ],
             "conflicts": [
               "cf_naming_violation_0d48b2902a",
               "cf_missing_required_341f04ec6a",
               "cf_orphan_0d48b2902a",
               "cf_missing_action_fca19ca7fd"
-            ],
-            "displayName": "采购合同",
-            "properties": [
-              "pt_nodef"
-            ],
-            "rid": "ot_bad"
+            ]
           },
           {
-            "aliases": [],
+            "rid": "ot_abbr",
             "apiName": "po",
             "apiNameOrigin": "extracted",
+            "displayName": "采购订单",
+            "aliases": [],
+            "properties": [],
             "conflicts": [
               "cf_naming_violation_09482e99ee",
               "cf_orphan_09482e99ee",
               "cf_missing_action_fca19ca7fd"
-            ],
-            "displayName": "采购订单",
-            "properties": [],
-            "rid": "ot_abbr"
+            ]
           }
         ],
         "properties": [
           {
+            "rid": "pt_ok",
+            "parent": "ot_good",
             "apiName": "planId",
             "apiNameOrigin": "extracted",
-            "conflicts": [],
             "definition": "计划编号，主键",
-            "parent": "ot_good",
-            "rid": "pt_ok"
+            "conflicts": []
           },
           {
+            "rid": "pt_snake",
+            "parent": "ot_good",
             "apiName": "plan_amount",
             "apiNameOrigin": "extracted",
+            "definition": "含税，年度累计",
             "conflicts": [
               "cf_naming_violation_42a891a467"
-            ],
-            "definition": "含税，年度累计",
-            "parent": "ot_good",
-            "rid": "pt_snake"
+            ]
           },
           {
+            "rid": "pt_nodef",
+            "parent": "ot_bad",
             "apiName": "contractAmount",
             "apiNameOrigin": "extracted",
+            "definition": "   ",
             "conflicts": [
               "cf_missing_required_c13bda09f5"
-            ],
-            "definition": "   ",
-            "parent": "ot_bad",
-            "rid": "pt_nodef"
+            ]
+          }
+        ],
+        "links": [],
+        "actions": [
+          {
+            "rid": "at_submit",
+            "apiName": "submitPlan",
+            "apiNameOrigin": "extracted",
+            "appliesTo": [
+              "ot_good"
+            ]
           }
         ]
       }
@@ -2386,196 +2382,190 @@
     ],
     "naming_messy": [
       {
-        "detector": "rule:NAME-01",
-        "evidence": [
-          {
-            "cite": "实体梳理.xlsx!业务对象实体梳理!R2CF",
-            "confidence": 0.94,
-            "extractor": "docling",
-            "file_id": "f3",
-            "file_name": "实体梳理.xlsx",
-            "locator": {
-              "col": "F",
-              "kind": "cell",
-              "row": 2,
-              "sheet": "业务对象实体梳理"
-            },
-            "snippet": "y"
-          }
-        ],
-        "handling": "auto_repair",
-        "kind": "naming_violation",
-        "options": [
-          {
-            "effect": {
-              "set_api_name": "采购合同"
-            },
-            "evidence": [],
-            "id": "apply",
-            "label": "改为 采购合同",
-            "rationale": "可逆、零语义损失"
-          }
-        ],
-        "owner": null,
         "rid": "cf_naming_violation_0d48b2902a",
+        "kind": "naming_violation",
         "subjects": [
           "ot_bad"
         ],
-        "summary": "ot_bad: apiName 含中文"
-      },
-      {
-        "detector": "rule:NAME-01",
+        "summary": "ot_bad: apiName 含中文",
+        "handling": "round_trip",
         "evidence": [
           {
-            "cite": "实体梳理.xlsx!业务对象实体梳理!R3CF",
-            "confidence": 0.94,
-            "extractor": "docling",
             "file_id": "f3",
             "file_name": "实体梳理.xlsx",
             "locator": {
-              "col": "F",
               "kind": "cell",
-              "row": 3,
-              "sheet": "业务对象实体梳理"
+              "sheet": "业务对象实体梳理",
+              "row": 2,
+              "col": "F"
             },
-            "snippet": "z"
+            "snippet": "y",
+            "extractor": "docling",
+            "confidence": 0.94,
+            "cite": "实体梳理.xlsx!业务对象实体梳理!R2CF"
           }
         ],
-        "handling": "auto_repair",
-        "kind": "naming_violation",
         "options": [
           {
-            "effect": {
-              "set_api_name": "po"
-            },
+            "id": "rename",
+            "label": "请给这个对象的英文译名（lowerCamelCase）",
+            "rationale": "机器只会做标识符归一，给不出译名；中文 apiName 交付不了，需要人定",
             "evidence": [],
-            "id": "apply",
-            "label": "改为 po",
-            "rationale": "可逆、零语义损失"
+            "effect": {}
           }
         ],
         "owner": null,
+        "detector": "rule:NAME-01"
+      },
+      {
         "rid": "cf_naming_violation_09482e99ee",
+        "kind": "naming_violation",
         "subjects": [
           "ot_abbr"
         ],
-        "summary": "ot_abbr: 疑似未登记缩写"
-      },
-      {
-        "detector": "rule:NAME-01",
+        "summary": "ot_abbr: 疑似未登记缩写",
+        "handling": "round_trip",
         "evidence": [
           {
-            "cite": "实体梳理.xlsx!业务对象实体梳理!R9CF",
-            "confidence": 0.94,
-            "extractor": "docling",
             "file_id": "f3",
             "file_name": "实体梳理.xlsx",
             "locator": {
-              "col": "F",
               "kind": "cell",
-              "row": 9,
-              "sheet": "业务对象实体梳理"
+              "sheet": "业务对象实体梳理",
+              "row": 3,
+              "col": "F"
             },
-            "snippet": "含税，年度累计"
+            "snippet": "z",
+            "extractor": "docling",
+            "confidence": 0.94,
+            "cite": "实体梳理.xlsx!业务对象实体梳理!R3CF"
           }
         ],
-        "handling": "auto_repair",
-        "kind": "naming_violation",
         "options": [
           {
-            "effect": {
-              "set_api_name": "planAmount"
-            },
+            "id": "rename",
+            "label": "请给这个对象的英文译名（lowerCamelCase）",
+            "rationale": "机器只会做标识符归一，给不出译名；中文 apiName 交付不了，需要人定",
             "evidence": [],
-            "id": "apply",
-            "label": "改为 planAmount",
-            "rationale": "可逆、零语义损失"
+            "effect": {}
           }
         ],
         "owner": null,
+        "detector": "rule:NAME-01"
+      },
+      {
         "rid": "cf_naming_violation_42a891a467",
+        "kind": "naming_violation",
         "subjects": [
           "pt_snake"
         ],
-        "summary": "pt_snake: apiName 不是 lowerCamelCase"
+        "summary": "pt_snake: apiName 不是 lowerCamelCase",
+        "handling": "auto_repair",
+        "evidence": [
+          {
+            "file_id": "f3",
+            "file_name": "实体梳理.xlsx",
+            "locator": {
+              "kind": "cell",
+              "sheet": "业务对象实体梳理",
+              "row": 9,
+              "col": "F"
+            },
+            "snippet": "含税，年度累计",
+            "extractor": "docling",
+            "confidence": 0.94,
+            "cite": "实体梳理.xlsx!业务对象实体梳理!R9CF"
+          }
+        ],
+        "options": [
+          {
+            "id": "apply",
+            "label": "改为 planAmount",
+            "rationale": "可逆、零语义损失",
+            "evidence": [],
+            "effect": {
+              "set_api_name": "planAmount"
+            }
+          }
+        ],
+        "owner": null,
+        "detector": "rule:NAME-01"
       }
     ],
     "naming_with_dictionary": [
       {
-        "detector": "rule:NAME-01",
-        "evidence": [
-          {
-            "cite": "实体梳理.xlsx!业务对象实体梳理!R2CF",
-            "confidence": 0.94,
-            "extractor": "docling",
-            "file_id": "f3",
-            "file_name": "实体梳理.xlsx",
-            "locator": {
-              "col": "F",
-              "kind": "cell",
-              "row": 2,
-              "sheet": "业务对象实体梳理"
-            },
-            "snippet": "y"
-          }
-        ],
-        "handling": "auto_repair",
-        "kind": "naming_violation",
-        "options": [
-          {
-            "effect": {
-              "set_api_name": "采购合同"
-            },
-            "evidence": [],
-            "id": "apply",
-            "label": "改为 采购合同",
-            "rationale": "可逆、零语义损失"
-          }
-        ],
-        "owner": null,
         "rid": "cf_naming_violation_0d48b2902a",
+        "kind": "naming_violation",
         "subjects": [
           "ot_bad"
         ],
-        "summary": "ot_bad: apiName 含中文"
-      },
-      {
-        "detector": "rule:NAME-01",
+        "summary": "ot_bad: apiName 含中文",
+        "handling": "round_trip",
         "evidence": [
           {
-            "cite": "实体梳理.xlsx!业务对象实体梳理!R9CF",
-            "confidence": 0.94,
-            "extractor": "docling",
             "file_id": "f3",
             "file_name": "实体梳理.xlsx",
             "locator": {
-              "col": "F",
               "kind": "cell",
-              "row": 9,
-              "sheet": "业务对象实体梳理"
+              "sheet": "业务对象实体梳理",
+              "row": 2,
+              "col": "F"
             },
-            "snippet": "含税，年度累计"
+            "snippet": "y",
+            "extractor": "docling",
+            "confidence": 0.94,
+            "cite": "实体梳理.xlsx!业务对象实体梳理!R2CF"
           }
         ],
-        "handling": "auto_repair",
-        "kind": "naming_violation",
         "options": [
           {
-            "effect": {
-              "set_api_name": "planAmount"
-            },
+            "id": "rename",
+            "label": "请给这个对象的英文译名（lowerCamelCase）",
+            "rationale": "机器只会做标识符归一，给不出译名；中文 apiName 交付不了，需要人定",
             "evidence": [],
-            "id": "apply",
-            "label": "改为 planAmount",
-            "rationale": "可逆、零语义损失"
+            "effect": {}
           }
         ],
         "owner": null,
+        "detector": "rule:NAME-01"
+      },
+      {
         "rid": "cf_naming_violation_42a891a467",
+        "kind": "naming_violation",
         "subjects": [
           "pt_snake"
         ],
-        "summary": "pt_snake: apiName 不是 lowerCamelCase"
+        "summary": "pt_snake: apiName 不是 lowerCamelCase",
+        "handling": "auto_repair",
+        "evidence": [
+          {
+            "file_id": "f3",
+            "file_name": "实体梳理.xlsx",
+            "locator": {
+              "kind": "cell",
+              "sheet": "业务对象实体梳理",
+              "row": 9,
+              "col": "F"
+            },
+            "snippet": "含税，年度累计",
+            "extractor": "docling",
+            "confidence": 0.94,
+            "cite": "实体梳理.xlsx!业务对象实体梳理!R9CF"
+          }
+        ],
+        "options": [
+          {
+            "id": "apply",
+            "label": "改为 planAmount",
+            "rationale": "可逆、零语义损失",
+            "evidence": [],
+            "effect": {
+              "set_api_name": "planAmount"
+            }
+          }
+        ],
+        "owner": null,
+        "detector": "rule:NAME-01"
       }
     ],
     "orphans_base": [],
@@ -5772,6 +5762,22 @@
         "ratio": 0.0
       },
       "b": "babababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababa"
+    }
+  ],
+  "deliberate_changes": [
+    {
+      "id": "name01-only-real-repairs",
+      "what": "NAME-01 对**修不了**的命名违规不再发「改为 <它自己>」的自动修选项，改发「请给译名」；handlingOf 相应把这类冲突从 auto_repair 降到 ask_user",
+      "python_was": "一律 makeOption('apply', , '可逆、零语义损失', {set_api_name})，handling 按 kind 恒为 auto_repair",
+      "why": "2026-08-25 真库审计（3b06cae04490）：27 个对象报 25 条命名违规，全部走「apiName 含中文」分支。其中 23 条的 toCamel 是恒等 —— autoRepair 因 old === new 短路，冲突却顶着 auto_repair 的名分永远消化不掉，长期占住三成派生积压；另外 2 条真被改了，且改坏了：toCamel 按 [_-空白] 切分再拼接，把区间号吃掉，「节点偏差扩大，按期概率50%-85%」变成「…50%85%」—— 而 AUTO_REPAIR 的契约白纸黑字是「可逆、零语义损失」。",
+      "why_not_downgrade_detection": "中文 apiName 仍然照报违规。真实语料里 7 个会话有 4 个 CJK 命中为零、且 NAME-01 在那里给出的都是正确修法 —— 把检测降级会抹掉「上游没罗马化」这个唯一信号。改的是**处置**，不是**检测**。",
+      "toCamel_untouched": "toCamel 本身一个字没动（它对 kebab/snake 的归一是对的，20 条 rules/to_camel 向量原样通过）。变的是「什么时候有资格用它的结果去自动改数据」。",
+      "affected_keys": [
+        "naming_messy",
+        "naming_with_dictionary",
+        "detect_all_messy"
+      ],
+      "handling": "修不了的落 round_trip（不是 ask_user）—— 见 golden/onto.clarify.json 同名条目的理由"
     }
   ]
 }

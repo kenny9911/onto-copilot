@@ -72,8 +72,9 @@ export const HARNESS: HarnessPort = {
   async buildTools(opts) {
     return builtinRegistry({
       evidence: seam<EvidenceIndex>(opts.evidence),
+      oir: seam(opts.oir ?? null),
       profiles: seam<Record<string, unknown> | null>(opts.profiles ?? null),
-      sandbox: await sandboxForTools(),
+      sandbox: opts.codeact === false ? null : await sandboxForTools(),
     });
   },
 
@@ -99,7 +100,9 @@ export const HARNESS: HarnessPort = {
     // 出处看每条断言是不是都带 file!locator。它们挡的是"抽得又快又多但没有一条
     // 说得出出处"那种产物。
     const panel = new CriticPanel(
-      { coverage: new CoverageCritic(segments, index), provenance: provenanceCritic() },
+      // provenance 也拿索引：不给索引它只判「字段非空」，而**格式对、却在索引里
+      // 指不到切片**的 cite 正是「证据 = 它自己的名字」那种静默退化的来源。
+      { coverage: new CoverageCritic(segments, index), provenance: provenanceCritic(seam(opts.index)) },
       seam(opts.gw.rec),
     );
     const loop = new AgentLoop({
@@ -120,16 +123,15 @@ export const HARNESS: HarnessPort = {
       seam(opts.gw.rec),
       seam(opts.bus),
       opts.budget,
-      { concurrency: 4 },
+      { concurrency: 8 },
     );
   },
 
-  engagementDag: () => buildFdeEngagementDag(),
+  engagementDag: (opts) => buildFdeEngagementDag(null, opts ?? {}),
 
-  // `EngagementRuntimeInput + AgentLoop(engagement_handlers) + Scheduler`
-  // （server.py:2460–2493）。这一档的 handler/critic 全是确定性投影，模型调用为零 ——
-  // 但节点调度、checkpoint、HITL 与 release gate 走的是**真的** Scheduler，
-  // 不是拿 UI 进度事件演一遍。
+  // `EngagementRuntimeInput + AgentLoop(engagement_handlers) + Scheduler`.
+  // Professional nodes run independent semantic analysis in the initial build;
+  // deterministic projections remain their coverage/fail-safe baseline.
   makeEngagementRun(opts) {
     const r = opts.runtime;
     const runtime = new EngagementRuntimeInput({
@@ -143,6 +145,10 @@ export const HARNESS: HarnessPort = {
       artifactRevision: r.artifactRevision,
       generatedAt: r.generatedAt,
       releaseDownloadable: r.releaseDownloadable,
+      evidenceRefs: r.evidenceRefs,
+      evidenceRecords: r.evidenceRecords,
+      materialEvidenceRequired: r.materialEvidenceRequired,
+      skippedReviews: r.skippedReviews,
     });
     const loop = new AgentLoop({
       gateway: seam(opts.gw),
@@ -151,7 +157,12 @@ export const HARNESS: HarnessPort = {
       bus: seam(opts.bus),
       recorder: seam(opts.gw.rec),
       budget: opts.budget,
-      handlers: engagementHandlers(runtime),
+      handlers: engagementHandlers(runtime, {
+        modelAnalysis: true,
+        tools: seam(opts.tools ?? null),
+        // §7.5 fork：保留节点零模型重放，被 fork 的照常走活模型
+        ...(opts.replayOutputs !== undefined ? { replayOutputs: seam(opts.replayOutputs) } : {}),
+      }),
       newScratchpad: (t) => new Scratchpad({ budgetTokens: t }),
     });
     return new Scheduler(
@@ -160,7 +171,7 @@ export const HARNESS: HarnessPort = {
       seam(opts.gw.rec),
       seam(opts.bus),
       opts.budget,
-      { concurrency: 4 },
+      { concurrency: 8 },
     );
   },
 };

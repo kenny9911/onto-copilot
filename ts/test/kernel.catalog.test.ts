@@ -38,6 +38,7 @@ import {
   ensureCatalog,
   inferCapabilities,
   isChatModel,
+  isImageModel,
   makeCatalogPort,
   parseCapability,
   resetCatalogCache,
@@ -301,6 +302,27 @@ describe("catalog / denialCapability", () => {
 describe("catalog / 按名字推断", () => {
   it.each(G.is_chat_model)("isChatModel($name)", ({ name, out }) => {
     expect(isChatModel(name)).toBe(out);
+  });
+
+  /**
+   * 图像模型的名形判据 —— 「图像」档的保存校验靠它。
+   * 图像模型被 NOT_CHAT_RE 有意挡在聊天卡目录外，所以不能查目录，只能认名形。
+   * 判据宁可多认（网关会在真调用时报错），不许把聊天模型放进图像档。
+   */
+  it("isImageModel：认得住主流出图型号，拦得住聊天模型", () => {
+    for (const yes of ["openai/gpt-image-2", "dall-e-3", "DALL-E-2", "black-forest-labs/flux-1.1-pro",
+      "stability/stable-diffusion-xl", "google/imagen-3",
+      // 真实网关（New-API 风格）上的实名：版本号夹在中间、image 是一个词段。
+      // 第一版判据写的是 `gpt-image`，对着真网关一查 35 个模型零命中 —— 判据
+      // 必须认「名字里含 image 词段」，不能赌各家把 image 放在哪个位置。
+      "openai/gpt-5.4-image-2", "google/gemini-3.1-flash-image", "google/gemini-3-pro-image"]) {
+      expect(isImageModel(yes), yes).toBe(true);
+    }
+    for (const no of ["google/gemini-3.5-flash", "claude-opus-4.8", "gpt-5.4-mini", "a/b",
+      // imagenet / pixtral 这类含形近词的不该被误伤
+      "meta/imagenet-classifier", "mistral/pixtral-12b"]) {
+      expect(isImageModel(no), no).toBe(false);
+    }
   });
 
   it.each(G.infer_capabilities)("inferCapabilities($name)", ({ name, out }) => {

@@ -8,8 +8,13 @@
  *     "建过账号却没鉴权"这种状态不可能出现 —— 一旦有人存在，门就永远是关的。
  *   * 两者都不满足（全新实例、零账号）⇒ 开放模式，注入一个合成管理员，
  *     行为与加鉴权之前**完全一致**，本地零配置可用；启动时打一条醒目告警。
- *   * 首个管理员**只能用宿主机 CLI**（`ontocopilot useradd --admin`）创建 ——
- *     没有公开的 bootstrap 路由，杜绝"谁先访问谁当管理员"的抢注竞态。
+ *   * **建号有两条路**：`POST /api/register`（公开自助注册，见 `PUBLIC_PATHS`）
+ *     和宿主机 CLI `ontocopilot useradd --admin`。零账号实例上，自助注册的
+ *     **首个账号自动成为管理员** —— 这是 84b871d 按需求改的产品形态。
+ *   * **`ONTOCOPILOT_AUTH` 为真时自助注册整个关掉**（`/api/register` 返回 403），
+ *     此时首个管理员只能用 CLI 播种，"谁先访问谁当管理员"的抢注竞态才真正不存在。
+ *     联网部署**必须**在建号前就把这个开关设上 —— 只靠"库里有账号就强制鉴权"
+ *     挡不住第一个访问者，那道门在零账号时是敞开的。
  *
  * **SSE**：`EventSource` 发不了 Authorization 头，但会自动带上同源 cookie，
  * 所以 `/stream` 走 cookie、无需任何特殊处理。
@@ -411,8 +416,27 @@ export function authRouter(repoOf: RepoGetter = defaultRepoGetter): Hono<AuthEnv
   });
 
   /** 自助注册。**首个注册的账号自动成为管理员**（可改网关/全局配置），其余为普通
-   * 用户。开放注册：任何人都能建号（联网部署请自行评估是否加邀请码）。 */
+   * 用户。
+   *
+   * **`ONTOCOPILOT_AUTH` 为真时这条路整个关掉**（403），首个管理员只能用
+   * `ontocopilot useradd --admin` 在宿主机上播种。
+   *
+   * 闸判据是 {@link authForced}（显式开关）而**不是** {@link enforce}：不设开关、
+   * 但库里已有账号的本机实例，自助注册照旧开着 —— 那是 84b871d 定下的产品形态
+   * （"anyone can register, first account is admin"），不动它。
+   *
+   * 为什么非得有这条闸：`.env.example` 对联网部署的承诺是"从首次启动起就锁死"，
+   * 而在这之前 `AUTH=1` 只挡住了 `/api/sessions` 那些路由 —— `/api/register` 在
+   * `PUBLIC_PATHS` 里，零账号实例上**第一个访问者照样能注册并拿到 admin**。
+   * 那正是本文件头声称已经杜绝的"谁先访问谁当管理员"竞态。 */
   r.post("/api/register", async (c) => {
+    // 先于 throttle 判断：关着的门不该消耗登录限流的额度。
+    if (authForced()) {
+      throw httpError(
+        403,
+        "本实例已关闭自助注册（ONTOCOPILOT_AUTH 已开启）。请用 `ontocopilot useradd --admin <用户名>` 在宿主机上创建首个管理员。",
+      );
+    }
     throttle(c);
     const repo = repoOf();
     const body = await readBody(c);
@@ -484,11 +508,14 @@ export function authRouter(repoOf: RepoGetter = defaultRepoGetter): Hono<AuthEnv
     const enforced = await enforce(repo);
     const user = c.get("user") ?? null;
     const n = await repo.countUsers();
+    // 注册开关必须如实上报：前端靠它决定给不给注册表单。谎报 true 的表现是
+    // 界面弹一个注册框、用户填完拿 403 —— 等于在教人走一条走不通的路。
+    const registrationOpen = !authForced();
     return c.json({
       auth_enabled: enforced,
-      // 开放自助注册：前端在登录页始终提供"注册"。零账号时首个注册者即管理员。
-      registration_open: true,
-      first_user_is_admin: enforced && n === 0,
+      registration_open: registrationOpen,
+      // "现在注册的话会不会是管理员"。注册关着时必须是 false。
+      first_user_is_admin: registrationOpen && enforced && n === 0,
       authenticated: user !== null,
       // 前端唯一无条件调用的身份端点就是这里 —— 空状态那句问候语的名字只能从
       // 这个投影拿到。漏了 display_name 的表现是：库里存着、界面上永远空白。

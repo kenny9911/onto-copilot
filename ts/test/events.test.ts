@@ -32,9 +32,9 @@ const G: Golden = JSON.parse(
 ) as Golden;
 
 describe("EventKind 与 Python StrEnum 同值同序", () => {
-  it("全部 27 种，顺序一致", () => {
+  it("全部 29 种，顺序一致（TS 新增 node.profile —— §6.1 相位剖面）", () => {
     expect(EVENT_KINDS).toEqual(G.kinds);
-    expect(EVENT_KINDS).toHaveLength(27);
+    expect(EVENT_KINDS).toHaveLength(29);
   });
 
   it("没有重名值（两个 kind 撞同一个字符串会让重放选错分支）", () => {

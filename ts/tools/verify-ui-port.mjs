@@ -42,6 +42,157 @@ function norm(s) {
 
 // 原件里**不该**在模块里逐行找到的行，以及为什么。
 const EXPECTED = new Map([
+  // ── 迁移后被重构、但**逻辑逐条核对过仍然在**的行 ────────────────
+  [
+    'text:String(qval(raw.text)||raw.title||raw.q||"（未命名问题）"),',
+    "questions.ts / context-model.ts 仍按原顺序读取问题文本，但现在先经过 plainQuestionCopy；" +
+      "权威 raw 保持不变，界面不再显示 blocked/evidence/answer 等机器协议。",
+  ],
+  [
+    'role:String(raw.audienceRole||raw.audience_role||raw.role||raw.audience||raw.askedBy||""),',
+    "问题角色仍按原字段顺序读取；显示前增加协议内角色回退与 FDE/业务部门的人话标签。",
+  ],
+  [
+    'why:String(raw.why||raw.rationale||raw.group||raw.reason||""),',
+    "为什么问仍按原字段顺序读取；显示前会把 ERP_MAP 等内部节点生成的模板改成业务说明。",
+  ],
+  [
+    'source:String(raw.sourceKind||raw.source_kind||raw.source||source||"system"),conflictRid:raw.conflict_rid||raw.conflictRid||"",',
+    "source/conflictRid 的原值仍保留；新增 sourceLabel 只负责把 system/agent/erp_map 等来源显示成人话。",
+  ],
+  [
+    '<spanclass="qbadge">${esc(q.source)}</span>',
+    "问题来源徽标现在优先显示 sourceLabel，缺少展示标签时仍回退 q.source，避免内部枚举直接露给用户。",
+  ],
+  [
+    'if(k.endsWith("completed")||k.endsWith(".ready")||k==="corpus.ready")return"ok";',
+    "events.ts 的 evTag 保留原三项成功判据，并新增 asset.recalled：从持久化资产记忆" +
+      "召回成功也应显示绿色成功标签，而不是运行中。",
+  ],
+  [
+    'for(consttkof["low","medium","high","critical"]){',
+    "settings.ts saveConfig：档位清单补了第五档 image（gateway.model.image，" +
+      "设置页的「图像」档）。原来的四档循环是一个实 bug —— 用户在图像档加完" +
+      "出图模型点保存，#tier_image 的值根本不被读取，保存等于静默丢弃。" +
+      "四个难度档的读取逻辑逐字未动，只是清单多了一项。",
+  ],
+  [
+    '"kernel.thought":x=>({thought:x.detail}),',
+    "sse.ts 的 KROW（P4 cohort 可观测性）：thought 行加了并行子任务前缀 " +
+      "coTag(x)+x.detail；无 cohort_task 时 coTag 为空串，原行为逐字保留",
+  ],
+  [
+    '"kernel.plan":x=>({thought:"计划："+(x.detail||"")}),',
+    "sse.ts 的 KROW：cohort 计划改说「启动 N 个并行分析任务」，非 cohort 分支" +
+      "仍是原样的「计划：」前缀 —— 原行为在 else 分支里逐字保留",
+  ],
+  [
+    '"kernel.observation":x=>({tool:x.node||"查证",observation:x.detail}),',
+    "sse.ts 的 KROW：observation 行加并行子任务前缀 coTag(x)+x.detail；" +
+      "无 cohort_task 时与原行为逐字一致",
+  ],
+  // 加这一批之前我逐条去 ts/src/ui 里找了对应件，确认不是"丢了"而是"换了形状"。
+  // 为不理解的改动写豁免理由，等于用这道闸自己去掩盖回归 —— 那比让它红着更糟。
+  [
+    'if(k==="question.answered")returnev.question_id||ev.qid||"";',
+    "events.ts:161 改成了 if 块（要同时读 question_id/qid 再做别的事），单行 return 形态不在了",
+  ],
+  [
+    "constasc=dlg.map(t=>({ts:+t.ts||0,a:isAsst(t)})).sort((x,y)=>x.ts-y.ts);",
+    "events.ts 的 timeline：同一助手轮的 web.search/web.read 要聚合成一张来源卡，" +
+      "所以 asc 在原有 ts/a 上补了稳定下标 i 与原 turn，并以 i 处理同时间戳；" +
+      "原有按 ts 排序和 nextTurn 归属判据不变",
+  ],
+  [
+    "if(ES)ES.close();",
+    "sse.ts 的 openStream：关闭旧连接仍保留，但先清 G.ES、再 close，并配合 " +
+      "generation/session/source 三重校验，使旧流已经排队的延迟回调也不能污染当前会话",
+  ],
+  [
+    "ES=newEventSource(`${API}/api/sessions/${S.id}/stream?since=0`);",
+    "sse.ts 的 openStream：首连与手动切会话仍从 since=0 水合；自动断线改从已收到的" +
+      "最大持久 seq+1 续传，避免整段历史重放再次遮掉刚出现的来源卡",
+  ],
+  [
+    "ES.onmessage=e=>{",
+    "sse.ts 的 openStream：message handler 仍在，现与 onopen/onerror 一起注册，并在处理前" +
+      "检查 generation/session/source，支撑断线自愈与旧连接隔离",
+  ],
+  [
+    "//服务端从头重放前先发这一条。EventSource掉线会自动重连（服务重启、部署、",
+    "sse.ts 注释随重连策略更新：应用层现在会在原生 EventSource 未恢复时主动重建连接",
+  ],
+  [
+    "//网络抖一下都会），而重连总是?since=0；不清空的话新旧两轮的seq会交叠，",
+    "sse.ts 注释随游标策略更新：只有首连从 0，自动重连从最大 durable seq+1 继续",
+  ],
+  [
+    "//同一张表画两遍，其中一份的导出按钮指向一个已经不存在的seq。",
+    "sse.ts 注释随持久序号语义更新：session_event 的 seq 重启后不归零，事件归约也按 seq 去重",
+  ],
+  [
+    'if(ev.kind==="stream.reset"){S.events=[];OPS=[];TBL_OPEN.clear();return;}',
+    "sse.ts 有意改变行为：stream.reset 不再先清空已显示的持久投影；切会话仍由 " +
+      "openSession 清空，历史重放仍按 seq 去重，从而避免 web.sources 卡片消失到手动刷新",
+  ],
+  [
+    "constlast=STEPS.length?STEPS[STEPS.length-1]:null;",
+    "react/chat.tsx 的 ThinkingBubble 有意不再把最后一步的内部 tool/thought 裸露在摘要；" +
+      "currentReasoningStatus 只显示业务进度，完整步骤在用户主动展开后由 StepRows 懒渲染",
+  ],
+  [
+    ':"正在想";',
+    "react/chat.tsx 的运行摘要统一走 i18n reasoning.thinking，并改成默认折叠的原生 details；" +
+      "这不是漏掉兜底文案，而是同时支持中英文、键盘与 aria-expanded",
+  ],
+  [
+    "//三栏可调：会话栏收起、预览栏收起+拖拽调宽。宽度记进localStorage，",
+    "注释：这段能力整体搬进 layout.ts，文件头有更完整的说明",
+  ],
+  [
+    'constsaved=parseInt(localStorage.getItem("oc_pv_w")||"400",10);',
+    "layout.ts:38 同一句，默认值提成 PREVIEW_DEFAULT 常量",
+  ],
+  [
+    "constw=(saved>=320&&saved<=900)?saved:400;",
+    "layout.ts 用 PREVIEW_MIN/PREVIEW_MAX 常量夹取，不再写字面量 320/900",
+  ],
+  [
+    "}elseif(saved>=320&&saved<=900){",
+    "同上：区间判断改用常量，分支结构也随收起/展开两态重写",
+  ],
+  [
+    'pv.style.width=saved+"px";pv.style.flexBasis=saved+"px";',
+    "layout.ts:20 拆成 applyWidth()，width 与 flexBasis 仍然一起设",
+  ],
+  [
+    "constw=Math.min(900,Math.max(320,window.innerWidth-e.clientX));",
+    "layout.ts:68 同一个夹取，边界换成 PREVIEW_MIN/PREVIEW_MAX",
+  ],
+  [
+    'localStorage.setItem("oc_pv_w",String(parseInt(pv.style.width,10)||400));',
+    "layout.ts:23 落盘同一个键，值改从已夹取的 next 取（不再回读 style 再 parse）",
+  ],
+  [
+    "TAB=t;",
+    "preview.ts 的 go()：赋值仍在，但与 review/q 的分支合并成一句（见下一条）",
+  ],
+  [
+    'if(t==="q"&&S)loadQuestions();elsepaint();',
+    'preview.ts:22 改成 (TAB==="review"||t==="q")，新的五域导航里问题页叫 review',
+  ],
+  [
+    "functionopenSettings(){",
+    "settings.ts:34 加了 tab 参数（openSettings(tab=\"appearance\")），签名不再是无参",
+  ],
+  [
+    'SET_TAB="appearance";',
+    "settings.ts:35 改成 SET_TAB = tab，默认值移到形参上",
+  ],
+  [
+    "USAGE=awaitj(`/api/usage?days=${USAGE_DAYS}&bucket=${bucket}`);",
+    "settings.ts:76 同一个请求，多拼了一个 own 过滤参数",
+  ],
   ["letS=null,TAB=\"mat\",FILE=null,SRC={},ES=null,ANSWERS={};", "顶层 let 全部搬进 state.ts 的 G"],
   ["letQ_BACKLOG=[],Q_API=false,Q_FILTER=\"open\",Q_LIMIT=40,Q_BUSY=newSet();", "同上（Q_BUSY 是独立导出的 const Set）"],
   ["letQ_NEXT=[],RETURN_AUDIT=null,RETURN_FILE=null,RETURN_BUSY=false;", "同上"],
@@ -154,6 +305,63 @@ const EXPECTED = new Map([
   ["functionsetLang(l){", "i18n.ts：l:string"],
   ["functionapplyI18n(){", "i18n.ts：加了 void 返回类型"],
   ["constset=(id,txt)=>{constel=$(id);if(el)el.textContent=txt;};", "i18n.ts：加了参数类型"],
+  [
+    'document.querySelector(".sidebar").classList.toggle("hidden");',
+    "layout.ts：移动端改为可重新打开的 off-canvas mobile-open；桌面端仍切 hidden，并同步 aria-expanded",
+  ],
+
+  // ── 2026-08-25：qRequest 的 409 分诊自愈（questions.ts）────────────────
+  // 原件把**一切** 409 都翻译成「问题已被其他人更新，请刷新后重试」，而实测那次
+  // 409 是跑批在途、租约必拒 —— 刷新一万次也没用。改成：先分诊（跑批 vs 版本落后），
+  // 版本落后自动拉新重试一次，跑批说真话且不重试。逻辑逐条都在，形状变了：
+  // 单次 fetch 变成至多两轮的循环，于是这几行的单行形态不复存在。
+  ["constq=qRow(i);", "questions.ts:qRequest 改成 q0/q 两个变量（重试要换成拉新后的那一份）"],
+  ["if(!q||!S||Q_BUSY.has(q.id))returnfalse;", "同上：判据不变，读的是 q0"],
+  ["Q_BUSY.add(q.id);paint();", "同上：改用循环外捕获的 qid，避免重试后 finally 释放错的键"],
+  ["constr=awaitfetch(`${API}/api/sessions/${S.id}/questions/${encodeURIComponent(q.id)}${path}`,{", "同上：同一个请求挪进重试循环，url 用 qid"],
+  ['if(r.status===409)thrownewError("问题已被其他人更新，请刷新后重试");', "同上：409 改为分诊 —— 跑批在途说梳理中、版本落后拉新重试一次，两轮都冲突才提示"],
+  ["if(!r.ok)thrownewError((awaitr.text()).slice(0,240)||`HTTP${r.status}`);", "同上：错误体先解 detail 再截断（服务端回的是 {detail}，原样念给用户是 JSON）"],
+  ["finally{Q_BUSY.delete(q.id);paint();}", "同上：释放的是循环外的 qid"],
+
+  // ── 2026-08-25：工作树里在途的聊天排队 / 错误分诊改动 ─────────────────
+  // 这几条不是本会话写的，但闸红着就等于没有闸，所以逐条核过之后登记。
+  // 核法：把 `git show HEAD:<file>` 的版本按同一套 norm() 比对 —— 六行在 HEAD 上
+  // 全部命中，也就是说它们的落点确实存在，只是工作树版本把形状改了。
+  [
+    "if(!r.ok)thrownewError((awaitr.text()).slice(0,300));",
+    "dom.ts 的 j()：单行抛错展开成 409/500 分诊块。截断仍是 300，但先从 " +
+      "{detail|error|message} 里取人话再截（原来把整条 JSON 念给用户听），并挂 " +
+      "err.status/err.body —— 聊天排队要靠 status 分辨「会话忙」和「真出事」",
+  ],
+  [
+    "S.state={};S.events=[];ANSWERS={};SRC={};FILE=null;PENDING=[];MAT_N=100;",
+    "sessions.ts 的 newSession：原有七项清空一项不少，中间插了 G.QUEUED = []" +
+      "（新增的待发队列）—— 不清会把上一个会话排队没发的话带进新会话",
+  ],
+  [
+    "S=st;S.events=[];ANSWERS={};SRC={};FILE=null;PENDING=[];MAT_N=100;",
+    "sessions.ts 的 openSession：同上，切会话必须清待发队列，否则会把给 A 会话敲的话发进 B",
+  ],
+  // 下面两行是**行为改变**，不是重排 —— 这道闸设计出来就是抓这种的，所以理由
+  // 必须说清改成了什么、代价是什么，而不是含糊成「形状变了」。
+  [
+    "constmode=THINKING?\"stopChat\"",
+    "chat.ts 有意把判据顺序翻了：hasText 优先于 THINKING。原来轮次在跑时按钮一律变" +
+      "「停止」，而回车走 sendChat（现在会排队）—— 同一个动作两条路两种结果。" +
+      "新规则：输入框有字，按钮就作用于那些字；没字才作用于正在跑的东西。" +
+      "停止仍可达（清空输入框按钮即回到停止），代价是多一步",
+  ],
+  [
+    ":hasText?\"send\"",
+    "同上，是翻转后的第二分支；三元链后两个分支（runActive / send）原样未动，故只有这两行报缺",
+  ],
+  [
+    "constcur=(CONFIG.tiers?.[tk]||{}).model||\"\";",
+    "settings.ts：`|| {}` 守卫与 `.model || \"\"` 兜底原样，前面加了 tierCfg.candidates 优先。" +
+      "模型分档从单个输入框改成多选芯片（react/settings.tsx）之后，隐藏输入 #tier_<tk> " +
+      "的值是按优先序的候选串 picked.join(\", \")，与服务端 configapi 存的归一化串同形；" +
+      "基准若还用单个 model，多候选档没动过也会被判成一次修改重发",
+  ],
 ]);
 
 // 被 React 组件取代的原始行。**格式和 EXPECTED 一样：归一化后的整行 → 理由**，

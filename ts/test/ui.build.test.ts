@@ -22,8 +22,11 @@ function run(tool: string, ...args: string[]): string {
 }
 
 describe("ui 构建", () => {
-  it("CSS 与 HTML 逐字节未变", () => {
-    expect(run("verify-ui-shell.mjs")).toContain("CSS 与 HTML 逐字节未变");
+  // 这道闸原来断言"CSS 与 HTML 逐字节未变"，钉死在迁移期的 blob 上。产品开始
+  // 正常演进样式之后它就永远红着 —— 而一道永远红的灯只会教会所有人忽略红灯。
+  // 现在拆成两半：骨架两头仍钉死在原件上，CSS 与 body 改钉可更新的基线。
+  it("文档骨架的两头仍钉死在原件上，CSS/body 与基线一致", () => {
+    expect(run("verify-ui-shell.mjs")).toContain("骨架两头未变，CSS 与 body 均与基线一致");
   });
 
   it("原件的每一行内联 JS 都在移植件里", () => {

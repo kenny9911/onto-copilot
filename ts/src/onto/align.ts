@@ -225,7 +225,26 @@ export class EntityAligner {
           continue;
         }
         if (!result.merged.has(b.rid)) result.merged.set(b.rid, a.rid); // setdefault
-      } else if (total >= this.policy.reviewAt) {
+        continue;
+      }
+      // **显示名逐字相等**是材料自己写下的身份，不是模型起的名 —— 它不该被
+      // 相似度公式稀释：同名对若一侧还没有结构，name=1.0 也只有 total=0.6，
+      // 连 mergeAt 都够不着，于是「采购品类」×4 永远静默并存（一个挂着 14 个
+      // 属性、三个裸的）。凭分数能合并的对不走这里（审计轨迹原样）；纪律也
+      // 不破：两侧**都有**结构且毫无交集时仍交人确认，不自动合并。
+      const an = (a.displayName.value ?? "").trim();
+      const bn = (b.displayName.value ?? "").trim();
+      if (an !== "" && an === bn) {
+        if (a.properties.length > 0 && b.properties.length > 0 && s.structure <= 0) {
+          s.reasons.push("显示名逐字相等，但两侧各有结构且毫无交集 —— 交人确认");
+          result.uncertain.push(s);
+          continue;
+        }
+        s.reasons.push("显示名逐字相等（材料自身身份），无结构冲突，合并");
+        if (!result.merged.has(b.rid)) result.merged.set(b.rid, a.rid);
+        continue;
+      }
+      if (total >= this.policy.reviewAt) {
         result.uncertain.push(s);
       }
     }
@@ -268,6 +287,20 @@ export class EntityAligner {
         }
         for (const at of oir.actions.values()) {
           at.appliesTo = at.appliesTo.map((x) => (x === rid ? repRid : x));
+        }
+        // B7：规则和问题的引用也要改挂。上一版只管了 properties/links/actions ——
+        // 被并对象从 objects 里删掉后，rules.appliesTo / questions.applies 里还
+        // 指着那个 rid：**悬空引用**。后果是「改这个对象会影响哪些规则」查不到、
+        // 右栏把规则算成未绑对象、审阅问题定位不到实体。同一次合并要改挂
+        // **全部**引用方 —— 少一类就多一类幽灵。
+        for (const br of oir.rules.values()) {
+          br.appliesTo = br.appliesTo.map((x) => (x === rid ? repRid : x));
+        }
+        for (const q of oir.questions.values()) {
+          q.appliesTo = q.appliesTo.map((x) => (x === rid ? repRid : x));
+        }
+        for (const ev of oir.events.values()) {
+          ev.payload = ev.payload.map((x) => (x === rid ? repRid : x));
         }
         // 别名不能丢：它是下次遇到同一材料时能立刻认出来的依据
         for (const alias of [other.apiName.value, other.displayName.value, ...other.aliases]) {

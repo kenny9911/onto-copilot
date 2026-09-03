@@ -25,6 +25,7 @@
 import { pyRepr } from "../../kernel/errors.js";
 import { pyJsonDumps } from "../../kernel/journal.js";
 import { cpLen, cpSlice, readTextGuess } from "../../onto/parse/base.js";
+import { plainQuestionCopy } from "../../onto/plain_language.js";
 import type { ParserRegistry } from "../../onto/parse/base.js";
 import {
   csvReader,
@@ -222,7 +223,7 @@ export const OIR_COLS: Readonly<Record<string, readonly ColSpec[]>> = {
     ["角色", (r) => oirVal(r["actor"])],
   ],
   questions: [
-    ["问题", (q) => oirVal(q["text"])],
+    ["问题", (q) => plainQuestionCopy(oirVal(q["text"])).text],
     ["答复", (q) => oirVal(q["answer"])],
     ["编号", (q) => plain(q, "code")],
   ],
@@ -640,6 +641,9 @@ export async function conversationTables(
  * 用户点了名（"导出成 Excel：AI 招聘业务流程梳理及访谈提问框架"）却还是拿最后
  * 一张，就会把**另一张**表发给他 —— 他会以为系统记错了，实际是代码没听。
  */
+/** 模糊兜底的「明显胜出」阈值：第一名比第二名至少高这么多才算认出来。 */
+const FUZZY_MARGIN = 0.12;
+
 export function pickTable(
   tables: readonly Record<string, unknown>[],
   name: string,
@@ -657,7 +661,100 @@ export function pickTable(
     const hit = tables.filter((r) => match(pyStrip(pyStr(r["title"] ?? "")).toLowerCase()));
     if (hit.length > 0) return hit[hit.length - 1]!;
   }
-  return null;
+  // 三档都不中时按相似度兜一次。模型手上的名字是它**自己转述**的：屏幕上写着
+  // 「采购报销工作流控制链路（Action 与 Event 映射）」，它会喊成「采购报销通用
+  // Action 与 Event 流程映射表」—— 字面一个都对不上，指的却是同一张。不兜这一下
+  // 就是猜名字→失败→读候选→再猜，白烧一轮。
+  const scored = tables
+    .map((r) => ({ row: r, score: distinctiveSimilarity(key, pyStr(r["title"] ?? ""), tables) }))
+    .filter((x) => x.score >= 0.34)
+    .sort((a, b) => a.score - b.score);
+  if (scored.length === 0) return null;
+  const best = scored[scored.length - 1]!;
+  // **兜底必须是「明显胜出」，不能是「排序最后一个」。**
+  //
+  // 2026-08-25 实拍：同一个会话里每张表的标题都以话题前缀「采购过程监督流程」
+  // 开头，于是模型转述的名字对三张毫不相干的表分别打出 0.457 / 0.400 / 0.400 ——
+  // 全部越过 0.34，而胜出的那张只赢了 0.057。用户要的是「补料与提问框架」，
+  // 拿到的是一张 1 行的业务规则表（列名「规则/类别/角色」），文件名却还写着他要的那个。
+  //
+  // 分数挨在一起意味着「这个名字在这堆表里指不明确」，那是该问的时刻，不是该猜的
+  // 时刻 —— 调用方（export_doc 的 last_table 分支）拿到 null 会把候选清单摆给模型。
+  const runnerUp = scored.length > 1 ? scored[scored.length - 2]!.score : 0;
+  return best.score - runnerUp >= FUZZY_MARGIN ? best.row : null;
+}
+
+/**
+ * 按**候选集**给二元组加权之后的相似度。
+ *
+ * 纯 Dice 有一个在真实会话里必然出现的失效模式：同一个会话里每张表的标题都带同一个
+ * 话题前缀（「采购过程监督流程 - ×××草案（待验证假设）」），于是「采购/过程/监督/
+ * 流程」这些字组在每张表里都有，却贡献了大部分分数 —— 2026-08-25 实拍：模型要的
+ * 「补料与提问框架」得 0.389，而毫不相干的「业务规则草案」靠前缀得 0.457，导出的
+ * Excel 于是变成一张 1 行的规则表。
+ *
+ * 判据要落在**区分度**上：一个字组出现在越多候选标题里，它越不能用来区分这几张表
+ * （极端情形 —— 每张都有 —— 权重为 0）。这就是 idf，只是语料就是"这几张表"本身。
+ */
+function distinctiveSimilarity(
+  query: string,
+  title: string,
+  corpus: readonly Record<string, unknown>[],
+): number {
+  const n = corpus.length;
+  if (n <= 1) return titleSimilarity(query, title);
+  const df = new Map<string, number>();
+  for (const row of corpus) {
+    for (const g of bigrams(pyStr(row["title"] ?? ""))) df.set(g, (df.get(g) ?? 0) + 1);
+  }
+  // 查询里出现、候选里一个都没有的字组：按"只有一张表会有"算，不让它权重发散。
+  const weight = (g: string): number => Math.log(n / Math.min(df.get(g) ?? 1, n)) || 0;
+  const ga = bigrams(query);
+  const gb = bigrams(title);
+  if (ga.size === 0 || gb.size === 0) return 0;
+  let shared = 0;
+  let queryTotal = 0;
+  for (const g of ga) queryTotal += weight(g);
+  for (const g of ga) if (gb.has(g)) shared += weight(g);
+  // 权重全为 0（所有字组每张表都有）时退回纯 Dice —— 那种情况下区分度信息为零，
+  // 硬判会把所有候选都算成 0 分，反而不如按字面像不像来。
+  if (queryTotal === 0) return titleSimilarity(query, title);
+  // **覆盖率而不是对称的 Dice**：问的是「这张表覆盖了用户名字里多少区分度」。
+  // 对称 Dice 的分母含候选自己那一堆字组，于是标题越长越吃亏 —— 实测事故里
+  // 正确的表用 Dice 只比错的高 0.03（判不出来），用覆盖率高 0.14（判得出来）。
+  return shared / queryTotal;
+}
+
+/** 归一化：大小写、空白、全半角括号与常见连接词都不该影响"指的是不是同一张表"。 */
+function normalizeTitle(title: string): string {
+  return pyStrip(title)
+    .toLowerCase()
+    .replace(/[（）()【】\[\]「」《》、，,。.·\-—_/\\|:：;；'"`]/gu, "")
+    .replace(/\s+/gu, "")
+    .replace(/与|和|及|的|表|清单|列表|map|mapping|table|list/gu, "");
+}
+
+/**
+ * 二元组 Dice 系数。
+ *
+ * 中文没有词边界，按字切太散（"表"能和任何标题匹配上）、整串比又太严；相邻两字
+ * 组成的二元组是这两者之间那个刚好的粒度，对"抄短了/抄长了/换了个说法"都稳。
+ */
+function bigrams(x: string): Set<string> {
+  const chars = [...normalizeTitle(x)];
+  const out = new Set<string>();
+  for (let i = 0; i + 1 < chars.length; i += 1) out.add(chars[i]! + chars[i + 1]!);
+  if (out.size === 0 && chars.length > 0) out.add(chars[0]!);
+  return out;
+}
+
+export function titleSimilarity(a: string, b: string): number {
+  const ga = bigrams(a);
+  const gb = bigrams(b);
+  if (ga.size === 0 || gb.size === 0) return 0;
+  let shared = 0;
+  for (const g of ga) if (gb.has(g)) shared += 1;
+  return (2 * shared) / (ga.size + gb.size);
 }
 
 /**

@@ -52,6 +52,12 @@ export function Identity(): ReactElement | null {
           <button className="acctitem" onClick={() => { closeAcctMenu(); openAccounts(); }}>
             <span className="ai">◉</span>{t("auth.accounts")}</button>
         ) : null}
+        {/* 日志对**所有**登录用户可见：普通用户看自己的，管理员看全部。
+            不加 isAdmin 判 —— "只有管理员能看日志"会让普通用户连自己跟 AI 说过
+            什么都查不到，而那本来就是他自己的数据。可见范围由服务端
+            /api/logs/* 判，这里只负责把入口露出来。 */}
+        <button className="acctitem" onClick={() => { closeAcctMenu(); openSettings("logs"); }}>
+          <span className="ai">▤</span>{t("auth.logs")}</button>
         <div className="acctsep"></div>
         {local ? (
           // **本地模式下也要有一个登录入口。** 后端的注册/登录一直是通的，但界面上

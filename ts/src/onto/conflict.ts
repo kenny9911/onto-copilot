@@ -285,7 +285,23 @@ export function conflictPolicy(c: Conflict): KindPolicy {
 }
 
 export function handlingOf(c: Conflict): Handling {
-  return conflictPolicy(c).handling;
+  const base = conflictPolicy(c).handling;
+  // **处置档位要对得上这条冲突自己有没有可执行的自动选项。**
+  //
+  // NAMING_VIOLATION 按 kind 一律是 AUTO_REPAIR，可含中文的名字机器给不出译名
+  // （detectNaming 那里已经不再发「改为 <它自己>」这种死选项）。档位若还留在
+  // auto_repair，这些冲突就顶着「系统会自己修」的名分永远消化不掉 —— 真库里
+  // 25 条命名违规有 23 条是这种，长期占住三成派生积压。没有可自动执行的选项，
+  // 它就是要问人的那一档。
+  if (base === Handling.AUTO_REPAIR) {
+    const appliable = c.options.some((o) => o.effect["set_api_name"] !== undefined);
+    // **ROUND_TRIP，不是 ASK_USER。** 第一版写成 ask_user，测试当场抓到后果：
+    // 「必须我拍板」的条数从 1 条涨到 77 条 —— 真决策被一堆待译名淹掉，
+    // 比卡在 auto_repair 更糟。中文 apiName 要的是**业务方回填一个译名**，
+    // 那是回传模板那一档的事，不是 FDE 现场拍板的事。
+    if (!appliable) return Handling.ROUND_TRIP;
+  }
+  return base;
 }
 
 export function irreversibilityOf(c: Conflict): number {
@@ -530,6 +546,30 @@ export function detectNaming(oir: OIR, dictionary: Iterable<string> = []): Confl
     if (cpLength(name) <= 3 && !known.has(name)) why.push("疑似未登记缩写");
     if (why.length === 0) continue;
     const fixed = toCamel(name);
+    // **能自动修的才给自动修的选项。**
+    //
+    // toCamel 做的是标识符归一（切 `[_\-\s]+` 再驼峰拼），对 latin 标识符是
+    // 「可逆、零语义损失」的；对含中文的名字它两头不着：
+    //   · 多数情况恒等（真库 25 条里 23 条），option 变成「改为 <它自己>」——
+    //     autoRepair 因 old === new 短路，这条冲突就永远消化不掉；
+    //   · 少数情况把名字里的连字符当分隔符吃掉 ——「按期概率50%-85%」
+    //     变成「50%85%」，区间号没了，那不是归一，是改数据。
+    // 中文名要的是一个**译名**，机器给不出来。所以照报违规（上游没罗马化是
+    // 真信号），但把动作交回给人。
+    const repairable = fixed !== name && !HAS_CJK.test(name);
+    const options = repairable
+      ? [
+          makeOption("apply", `改为 ${fixed}`, "可逆、零语义损失", {
+            effect: { set_api_name: fixed },
+          }),
+        ]
+      : [
+          makeOption(
+            "rename",
+            "请给这个对象的英文译名（lowerCamelCase）",
+            "机器只会做标识符归一，给不出译名；中文 apiName 交付不了，需要人定",
+          ),
+        ];
     out.push(
       makeConflict(
         cid(ConflictKind.NAMING_VIOLATION, entity.rid),
@@ -538,11 +578,7 @@ export function detectNaming(oir: OIR, dictionary: Iterable<string> = []): Confl
         `${entity.rid}: ${why.join("；")}`,
         {
           evidence: [...entity.apiName.evidence],
-          options: [
-            makeOption("apply", `改为 ${fixed}`, "可逆、零语义损失", {
-              effect: { set_api_name: fixed },
-            }),
-          ],
+          options,
           detector: "rule:NAME-01",
         },
       ),

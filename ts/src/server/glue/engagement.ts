@@ -2,7 +2,7 @@
  * `_resume_engagement_release`（`server.py:3440`）—— Question/Decision 改动之后
  * 恢复那份冻结的 FDE Engagement。
  *
- * 只有**预期之内的 INTERVIEW 挂起**才返回 `false`；REVIEW/EXPORT 硬门不过一律抛，
+ * 只有**预期之内的 HITL 挂起**才返回 `false`；REVIEW/EXPORT 硬门不过一律抛，
  * 因此不可能被转换成一次"成功"的 HTTP 回答。抽取节点从内容寻址的 journal 恢复，
  * engagement 投影本身是确定性的，**零模型调用**。
  *
@@ -28,6 +28,8 @@ import { AgentLoop } from "../../kernel/loop.js";
 import { ContextManager } from "../../kernel/memory/context.js";
 import { Scratchpad } from "../../kernel/memory/short_term.js";
 import type { EvidenceIndex } from "../../kernel/memory/evidence.js";
+import type { Event } from "../../kernel/events.js";
+import { bridgeFromEnv } from "../../kernel/otel.js";
 import { Recorder } from "../../kernel/recorder.js";
 import { RunStatus, Scheduler, runOutcomeOk } from "../../kernel/scheduler.js";
 import { buildFdeEngagementDag } from "../../onto/engagement.js";
@@ -44,6 +46,15 @@ import { runIdFor, type Session } from "../session.js";
 import { builtinRegistry } from "./tools.js";
 import { questionBacklog } from "../routes/questions.js";
 import { seam, type GlueDeps } from "./deps.js";
+import { syncQuestionBacklog } from "./questions.js";
+import {
+  FDE_ANALYSIS_NODES,
+  FDE_REPLAYABLE_AGENT_NODES,
+  mergePendingHumanQuestion,
+  pendingHumanContract,
+  pendingHumanNode,
+} from "./engagement_handoff.js";
+import { stageEngagementDelivery } from "./engagement_delivery.js";
 
 export interface ResumeEngagementOptions {
   readonly backlog?: QuestionBacklog | null;
@@ -66,6 +77,39 @@ export async function resumeEngagementRelease(
   const baseRunId = runIdFor(s);
   const recordedRunId = String(s.state["engagement_run_id"] ?? "");
   const baseJournal = join(s.dir, "journal", `${baseRunId}.jsonl`);
+  const index = (s.state["_index"] as EvidenceIndex | undefined) ?? null;
+  const evidenceRecords = (index?.allChunks() ?? []).map((chunk) => ({
+    cite: chunk.cite(),
+    file_id: chunk.fileId,
+    file_name: chunk.fileName,
+    locator: { ...chunk.locator },
+    // Claim-level grounding needs the actual source phrase, not only the first
+    // 300 characters of a chunk. Chunks are already bounded upstream.
+    snippet: [...chunk.render].slice(0, 1_200).join(""),
+    extractor: "evidence-index",
+    confidence: 1,
+  }));
+  const evidenceRefs = evidenceRecords.map((row) => row.cite);
+  const storedAnalysis = s.state["engagement_analysis"];
+  const storedAnalysisRow =
+    storedAnalysis !== null && typeof storedAnalysis === "object" && !Array.isArray(storedAnalysis)
+      ? (storedAnalysis as Record<string, unknown>)
+      : {};
+  const currentSourceFingerprint = fingerprint({
+    oir: (s.state["_oir"] as OIR).toDict(),
+    flow: s.state["_flow"] ?? null,
+    artifactRevision: pyInt(s.state["artifact_revision"]),
+    evidence: evidenceRecords,
+  });
+  const storedSourceFingerprint =
+    typeof storedAnalysisRow["sourceFingerprint"] === "string"
+      ? storedAnalysisRow["sourceFingerprint"]
+      : "";
+  const sourceFingerprintMatches =
+    storedSourceFingerprint === "" || storedSourceFingerprint === currentSourceFingerprint;
+  const sourceMatches =
+    storedAnalysisRow["modelBacked"] === true &&
+    storedSourceFingerprint === currentSourceFingerprint;
   let runId: string;
   if (recordedRunId) {
     runId = recordedRunId;
@@ -101,27 +145,39 @@ export async function resumeEngagementRelease(
     runId = `${baseRunId}_engagement_${mutation}`;
     resume = existsSync(join(s.dir, "journal", `${runId}.jsonl`));
   }
+  if (resume && !sourceFingerprintMatches) {
+    // A suspended INTERVIEW shares the original run namespace.  Once an answer
+    // or edit changes OIR/Flow, restoring its old professional checkpoints would
+    // bypass the replay-output fingerprint guard entirely: Scheduler restores a
+    // completed node before its handler runs.  Move the changed source to a
+    // content-addressed namespace so no stale model delta can masquerade as
+    // analysis of the current source.
+    runId = `${baseRunId}_engagement_${currentSourceFingerprint.slice(0, 12)}`;
+    resume = existsSync(join(s.dir, "journal", `${runId}.jsonl`));
+  }
   s.state["engagement_run_id"] = runId;
 
-  // Python 侧这里有一个 `backend = None` + `finally: if backend is not None:
-  // await backend.aclose()` —— 但那个变量**从头到尾没被赋过值**（这一档用的是
-  // 进程内的 ScriptedBackend，没有连接要关）。照搬一个恒为 null 的 finally 只会
-  // 让下一个读代码的人以为这里有个 HTTP 后端要收尾，所以不搬。
-  {
+  // append() only queues journal bytes.  Every exit, including another HITL
+  // suspension or a failed gate, must durably flush before the caller persists a
+  // session state that claims those checkpoints exist.
+  try {
     // Every engagement handler and critic is deterministic/skip_model.  Resume
     // needs a Recorder, not an API key or a paid backend—even when its journal
     // also contains the mature extraction checkpoints.
+    const engBridge = bridgeFromEnv(runId);
     const rec = new Recorder(runId, journalStore, new FileBlobStore(join(s.dir, "blobs")), {
       resume,
+      captureRequestBlobs: true,
+      ...(engBridge !== null ? { observer: (e: Event) => engBridge.observe(e) } : {}),
     });
     const budget = new Budget({ tokens: 1_000_000, usd: 1 });
     const offlineBackend = new ScriptedBackend();
     const gw = new ModelGateway(offlineBackend, rec, { routing: stubRouting(), budget });
     if (!resume) s.emit("engagement.checkpoint_migrated", { runId });
-    const index = (s.state["_index"] as EvidenceIndex | undefined) ?? null;
     const bus = new AgentBus(rec);
     const tools = builtinRegistry({
       evidence: index,
+      oir: s.state["_oir"] as OIR,
       profiles: (s.state["_profiles"] as Record<string, unknown> | undefined) ?? null,
       sandbox: null,
     });
@@ -136,6 +192,22 @@ export async function resumeEngagementRelease(
       longTerm: pmem !== null ? pmem.store : null,
     });
 
+    const storedSkipped = Array.isArray(storedAnalysisRow["skippedReviews"])
+      ? (storedAnalysisRow["skippedReviews"] as Array<{
+          what: string;
+          why: string;
+          level: number;
+          label: string;
+        }>).filter(
+          (row) =>
+            row !== null &&
+            typeof row === "object" &&
+            typeof row.what === "string" &&
+            typeof row.why === "string" &&
+            typeof row.level === "number" &&
+            typeof row.label === "string",
+        )
+      : [];
     const runtime = new EngagementRuntimeInput({
       sessionId: s.id,
       project: s.project || s.title,
@@ -148,7 +220,44 @@ export async function resumeEngagementRelease(
       generatedAt: pyIsoUtc(s.created),
       // `os.access(s.dir, os.W_OK)` —— 目录不可写就不该说产物"可下载"。
       releaseDownloadable: writable(s.dir),
+      evidenceRefs,
+      evidenceRecords,
+      // 降级过就让产物自己说出来（budget.ts 的注释承诺过的那个标记）
+      skippedReviews: () => [
+        ...storedSkipped,
+        ...budget.skippedReviews(),
+        {
+          what: "delivery_reviewer",
+          why: "HITL/修订恢复采用确定性 Release Review，未重新调用语义 Reviewer",
+          level: 0,
+          label: "确定性恢复",
+        },
+        ...(sourceMatches
+          ? []
+          : [
+              {
+                what: "professional_analysis",
+                why: "当前 OIR/Flow 与已持久化模型分析指纹不一致，未复用旧语义增强",
+                level: 0,
+                label: "来源已变化",
+              },
+            ]),
+      ],
     });
+    const storedNodes =
+      storedAnalysisRow["nodes"] !== null &&
+      typeof storedAnalysisRow["nodes"] === "object" &&
+      !Array.isArray(storedAnalysisRow["nodes"])
+        ? (storedAnalysisRow["nodes"] as Record<string, unknown>)
+        : {};
+    const replayOutputs = Object.fromEntries(
+      (sourceMatches ? FDE_REPLAYABLE_AGENT_NODES : [])
+        .filter((node) => {
+          const value = storedNodes[node];
+          return value !== null && typeof value === "object" && !Array.isArray(value);
+        })
+        .map((node) => [node, storedNodes[node]]),
+    );
     const loop = new AgentLoop({
       gateway: gw,
       ctxManager: cm,
@@ -156,7 +265,11 @@ export async function resumeEngagementRelease(
       bus,
       recorder: rec,
       budget,
-      handlers: engagementHandlers(runtime),
+      handlers: engagementHandlers(runtime, {
+        modelAnalysis: false,
+        tools,
+        replayOutputs,
+      }),
       newScratchpad: (t) => new Scratchpad({ budgetTokens: t }),
     });
     const outcome = await runWithLiveTrace(
@@ -166,6 +279,10 @@ export async function resumeEngagementRelease(
         concurrency: 4,
       }).run(runId),
     );
+    // A completed Scheduler result is not durable until FileJournal drains its
+    // queue.  Flush before compile writes release files/session state, otherwise
+    // a crash can publish bytes whose REVIEW/EXPORT checkpoints never landed.
+    await journalStore.flush();
     if (offlineBackend.calls.length > 0) {
       throw new Error("确定性 FDE Engagement 恢复意外触发了模型调用");
     }
@@ -175,13 +292,41 @@ export async function resumeEngagementRelease(
       restored: [...outcome.skipped].sort(cmpCodePoint),
       pendingHuman: outcome.pendingHuman,
     };
+    s.state["engagement_analysis"] = {
+      schemaVersion: "1.0.0",
+      runId,
+      sourceFingerprint: currentSourceFingerprint,
+      modelBacked: sourceMatches && Object.keys(replayOutputs).length > 0,
+      replayedNodes: Object.keys(replayOutputs).sort(cmpCodePoint),
+      skippedReviews: runtime.skippedReviews,
+      nodes: Object.fromEntries(
+        FDE_ANALYSIS_NODES
+          .filter((node) => Object.prototype.hasOwnProperty.call(outcome.outputs, node))
+          .map((node) => [node, outcome.outputs[node]]),
+      ),
+    };
     if (outcome.status === RunStatus.SUSPENDED) {
-      s.emit("engagement.stage", { node: "INTERVIEW", contract: "QuestionBacklog" });
+      const pendingHuman = outcome.pendingHuman ?? {};
+      // `opts.backlog` 可能刚从 repo 重新加载，先以它为底，再合入 Scheduler 的
+      // singular question；随后仍走唯一的 question 同步器写 repo/state/导出件。
+      s.state["question_backlog"] = backlog.toDict();
+      if (mergePendingHumanQuestion(s, pendingHuman)) {
+        await syncQuestionBacklog(s, deps, {
+          oir: s.state["_oir"] as OIR,
+          conflicts: (s.state["_conflicts"] as readonly unknown[] | undefined) ?? [],
+        });
+      }
+      s.state["release_state"] = "DRAFT";
+      s.emit("engagement.stage", {
+        node: pendingHumanNode(pendingHuman),
+        contract: pendingHumanContract(pendingHuman),
+      });
       return false;
     }
     if (!runOutcomeOk(outcome)) {
       throw new Error(`FDE Engagement 恢复失败：${outcome.error}`);
     }
+    s.state["release_state"] = "DRAFT";
     const exportPlan = (outcome.outputs["EXPORT"] ?? {}) as Record<string, unknown>;
     if (
       !(
@@ -192,16 +337,28 @@ export async function resumeEngagementRelease(
     ) {
       throw new Error("FDE Engagement EXPORT 硬门未通过，已阻止交付");
     }
-    s.state["release_state"] = String(
-      truthy(exportPlan["releaseState"]) ? exportPlan["releaseState"] : "RELEASED",
-    );
+    const packageToCommit = exportPlan["package"];
+    if (
+      packageToCommit === null ||
+      typeof packageToCommit !== "object" ||
+      Array.isArray(packageToCommit)
+    ) {
+      throw new Error("FDE Engagement EXPORT 未携带已审查的 OntologyPackage，已阻止交付");
+    }
+    const deliveryDisposition = stageEngagementDelivery(s, exportPlan);
+    const committedReleaseState = deliveryDisposition === "RELEASED" ? "RELEASED" : "DRAFT";
     s.emit("engagement.stage", {
       node: "EXPORT",
       contract: "OntologyPackage.v1",
       artifacts: (truthy(exportPlan["artifacts"]) ? exportPlan["artifacts"] : []) as never,
+      release_state: committedReleaseState as never,
     });
+    s.state["_engagement_package"] = packageToCommit;
     await opts.compile(s, { leaseOwner });
+    s.state["release_state"] = committedReleaseState;
     return true;
+  } finally {
+    await journalStore.flush();
   }
 }
 

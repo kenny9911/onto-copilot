@@ -36,6 +36,8 @@ mountApp();
   catch (e: any) { auStatus = {auth_enabled:false, bootstrap_needed:false, authenticated:true, user:null}; }
 
   if (auStatus.auth_enabled && !auStatus.authenticated) {
+    // 设了 ONTOCOPILOT_AUTH 时服务端会关掉自助注册，这里要跟着把"去注册"藏起来。
+    G.REGISTRATION_OPEN = auStatus.registration_open !== false;
     // 零账号时默认进注册（首个注册者即管理员）；否则登录。两者共用同一个可切换的表单。
     showLogin(auStatus.first_user_is_admin ? "register" : "login");
     return;

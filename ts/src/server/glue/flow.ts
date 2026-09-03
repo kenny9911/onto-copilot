@@ -9,7 +9,7 @@
 import { existsSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { toMermaid, toSvg } from "../../onto/diagram.js";
+import { resolveDiagramStyle, toMermaid, toSvg } from "../../onto/diagram.js";
 import { FlowEditError, applyFlowEdit } from "../../onto/flow_edit.js";
 import {
   applySceneTitles,
@@ -17,6 +17,7 @@ import {
   buildFlow,
   gapsToQuestions,
   looksLikeProcess,
+  mayHaveCondition,
   parseGateways,
   parseSteps,
   sceneHeaders,
@@ -27,11 +28,14 @@ import {
   type ProcessStep,
 } from "../../onto/flow_extract.js";
 import { flowFromBpmnDocs } from "../../onto/flow_bpmn.js";
+import { assertEvidenceDiscipline } from "../../onto/flow_evidence.js";
+import { toLaneSvg } from "../../onto/diagram_lanes.js";
 import { attachEndpoints, coverageGaps, flowFromActions, linkReportSummary } from "../../onto/flow_link.js";
 import { OIREditError, applyOirEdit } from "../../onto/oir_edit.js";
 import { pyJsonDumps } from "../../onto/canonical.js";
 import type { FlowGraph } from "../../onto/flow.js";
-import type { OIR } from "../../onto/oir.js";
+import { autoBindObjects } from "../../onto/flow_link.js";
+import { OIR } from "../../onto/oir.js";
 import type { Gap } from "../../onto/flow_link.js";
 import type { ParsedDoc } from "../../onto/parse/base.js";
 import { citeOf } from "./chunks.js";
@@ -47,7 +51,9 @@ export function replayOirPatches(s: Session, oir: OIR): Record<string, unknown>[
   const stale: Record<string, unknown>[] = [];
   for (const patch of patchLog(s.state["_oir_patch_log"])) {
     try {
-      applyOirEdit(oir, String(patch["op"]), argsOf(patch));
+      applyOirEdit(oir, String(patch["op"]), argsOf(patch), {
+        source: patch["source"] === "generic_assumption" ? "generic_assumption" : "user",
+      });
     } catch (exc) {
       if (!(exc instanceof OIREditError)) throw exc;
       stale.push({ ...patch, why: exc.message });
@@ -70,7 +76,9 @@ export function replayFlowPatches(s: Session, g: FlowGraph): Record<string, unkn
   const stale: Record<string, unknown>[] = [];
   for (const p of patchLog(s.state["_flow_patch_log"])) {
     try {
-      applyFlowEdit(g, String(p["op"]), argsOf(p));
+      applyFlowEdit(g, String(p["op"]), argsOf(p), {
+        source: p["source"] === "generic_assumption" ? "generic_assumption" : "user",
+      });
     } catch (exc) {
       if (!(exc instanceof FlowEditError)) throw exc;
       stale.push({ ...p, why: exc.message });
@@ -93,19 +101,43 @@ export function replayFlowPatches(s: Session, g: FlowGraph): Record<string, unkn
  * 主干等于全图，旧的主干文件要删掉，否则留着一张过期的图冒充当前主干。
  */
 export function rewriteFlowArtifacts(s: Session, g: FlowGraph): void {
+  // 落盘前的最后一道：声称来自材料却没有出处的断言，一个都不许出门。
+  // 放这里而不是放在各生成策略里，是因为这里是**唯一**的落盘出口 ——
+  // 加一条新策略不需要记得再加一次校验，它天然被这道门管住。
+  assertEvidenceDiscipline(g);
   const title = `${s.project || s.title} · Action + Event 业务流程`;
-  writeFileSync(join(s.dir, "流程图.svg"), toSvg(g, { title }), "utf-8");
-  writeFileSync(join(s.dir, "流程图.mmd"), toMermaid(g), "utf-8");
+  const style = resolveDiagramStyle(g, { title, template: "auto" });
+  writeFileSync(
+    join(s.dir, "流程图.svg"),
+    toSvg(g, { title, palette: style.palette, layout: style.layout }),
+    "utf-8",
+  );
+  writeFileSync(join(s.dir, "流程图.mmd"), toMermaid(g, { direction: style.layout.direction }), "utf-8");
   const main = g.mainPath();
   const mainSvg = join(s.dir, "流程图_主干.svg");
   if (main.nodes.size < g.nodes.size) {
+    const mainTitle = `${s.project || s.title} · 主干流程（仅有依据的环节）`;
+    const mainStyle = resolveDiagramStyle(main, { title: mainTitle, template: "auto" });
     writeFileSync(
       mainSvg,
-      toSvg(main, { title: `${s.project || s.title} · 主干流程（仅有依据的环节）` }),
+      toSvg(main, { title: mainTitle, palette: mainStyle.palette, layout: mainStyle.layout }),
       "utf-8",
     );
   } else if (existsSync(mainSvg)) {
     rmSync(mainSvg); // 主干不再区别于全图，删掉过期文件
+  }
+  // 泳道图：actor 数据一直都有，从来没画过。只在真有人标了执行者时才出 ——
+  // 全是「未指定」的一张图没有信息量，出了反而像系统认真分过工。
+  const laneSvg = join(s.dir, "流程图_泳道.svg");
+  const hasActor = [...g.nodes.values()].some((n) => n.actor.value.trim() !== "");
+  if (hasActor) {
+    writeFileSync(
+      laneSvg,
+      toLaneSvg(g, { title: `${s.project || s.title} · 按执行者分泳道` }),
+      "utf-8",
+    );
+  } else if (existsSync(laneSvg)) {
+    rmSync(laneSvg); // 执行者被删光了，别留一张过期的泳道图
   }
   writeFileSync(join(s.dir, "flow.json"), pyJsonDumps(g.toDict(), 1), "utf-8");
   s.state["_flow"] = g;
@@ -113,11 +145,33 @@ export function rewriteFlowArtifacts(s: Session, g: FlowGraph): void {
   s.state["artifacts"] = sortedArtifacts(s.dir);
 }
 
+/**
+ * 一旦材料管线真的产出/链接了一张图，就不能继续沿用初始化草案的 `generic`
+ * 会话标记。混入的通用补丁仍保持零 evidence，context 投影会据此正确显示 mixed；
+ * 这里写成可持久化的 material 标记（不能 delete：repo 的 state 文档是 merge/upsert，
+ * 缺键不会删除旧值），从而不再把整张图强制判成 generic。
+ */
+function clearGenericFlowOverride(s: Session): void {
+  s.state["flow_provenance"] = "material";
+}
+
 // ══════════════════════════════════════════════════════════════════
 //  建图
 // ══════════════════════════════════════════════════════════════════
 
 /** `_build_flow_diagram` 中「出图 + 报缺口」那一段，BPMN 与规则抽取两条路共用。 */
+/**
+ * 建图后自动补对象↔环节绑定（C2 前置）。OIR 还没建出来（flow 在 PARSE 后、
+ * EXTRACT 前就出图）时静默跳过 —— 下一次重建或对话里的 bind_auto 会补上。
+ * 只补空的，人工/BPMN 绑定不动（见 onto/flow_link.ts）。
+ */
+function autoBindFlow(s: Session, g: FlowGraph): void {
+  const oir = s.state["_oir"];
+  if (!(oir instanceof OIR)) return;
+  const n = autoBindObjects(g, oir);
+  if (n > 0) s.emit("flow.autobind", { bound: n });
+}
+
 function publishFlow(s: Session, g: FlowGraph, fileName: string): void {
   s.state["_flow_gaps"] = gapsToQuestions(g, { fileName });
   // 产物列表要立刻刷 —— 流程图在 PARSE 之后就出来了，而 artifacts 原来只在
@@ -156,6 +210,8 @@ export function buildFlowDiagram(s: Session, docs: readonly ParsedDoc[]): void {
   const bpmnGraph = flowFromBpmnDocs(docs);
   if (bpmnGraph !== null) {
     reportStale(s, replayFlowPatches(s, bpmnGraph));
+    clearGenericFlowOverride(s);
+    autoBindFlow(s, bpmnGraph);
     rewriteFlowArtifacts(s, bpmnGraph);
     const sourceNames = docs.filter((d) => d.kind === "bpmn").map((d) => d.file_name);
     const source = sourceNames.join("、");
@@ -205,7 +261,10 @@ export function buildFlowDiagram(s: Session, docs: readonly ParsedDoc[]): void {
             });
           }
         }
-        if (text.includes("如") && (text.includes("则") || text.includes("否则"))) {
+        // 预筛与 COND_RE 共用词形（见 flow_extract.mayHaveCondition）。
+        // 曾经写死成 includes("如")+includes("则")，把「若…需…」「当…就…」
+        // 写的规则整段挡在门外 —— 症状是"这份材料一个分支都没有"，不报错。
+        if (mayHaveCondition(text)) {
           ruleTexts.push([text, citeOf(c)]);
         }
       }
@@ -285,6 +344,8 @@ export function buildFlowDiagram(s: Session, docs: readonly ParsedDoc[]): void {
   // 重放人工编辑 —— 补料重跑不能吞掉 FDE 上一轮手动补的节点/边
   reportStale(s, replayFlowPatches(s, g));
   // 全图 + 主干 + mermaid + flow.json 一把落地（和 flow.edit/flow.undo 共用同一条）
+  clearGenericFlowOverride(s);
+  autoBindFlow(s, g); // 此时多半还没有 OIR（静默跳过）；linkFlowToApi 那一站会真正补上
   rewriteFlowArtifacts(s, g);
   // 流程图上标黄的每一处缺口，都是一个 FDE 本该问客户却容易漏掉的问题。
   // 暂存起来 —— OIR 这时候还没建，等它建好把这些问题合流进问题容器，
@@ -320,6 +381,11 @@ export function linkFlowToApi(s: Session, oir: OIR): Gap[] {
     });
   }
   const report = attachEndpoints(g, oir);
+  // C2 前置的真正落点：这一站 OIR 已建好 —— 对象↔环节的桥在这里搭上，
+  // impact.trace 的流程段与 flow.walk 的对象视角都靠它。只补空的。
+  const bound = autoBindObjects(g, oir);
+  if (bound > 0) s.emit("flow.autobind", { bound });
+  clearGenericFlowOverride(s);
   rewriteFlowArtifacts(s, g);
   const gaps = coverageGaps(report, oir);
   s.emit("flow.linked", { ...linkReportSummary(report), gaps: gaps.length });

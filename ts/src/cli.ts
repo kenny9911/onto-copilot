@@ -23,19 +23,15 @@
  *   * `Ctrl-C` 退 130。
  *
  * ══════════════════════════════════════════════════════════════════════════
- *  分叉：doctor / parse / build 依赖尚未迁移的模块
+ *  只剩 `build` 没接线
  * ══════════════════════════════════════════════════════════════════════════
  *
- * 这三条命令要用的 `onto/parse/__init__`（`default_registry` / `build_index` /
- * `collect_endpoints` / `collect_profiles` / `corpus_summary`）、`kernel/skills`、
- * `kernel/agents` 在 TS 侧**还不存在**。
+ * `doctor` 与 `parse` 曾因为 `onto/parse`、`kernel/skills`、`kernel/agents` 还没
+ * 迁移而空着；这三处早就落地了，两条命令现在跑的是真实现。
  *
- * 所以它们现在**如实报"尚未迁移"并退 1**，而不是：
- *   * 假装成功 —— 那会让 `build` 静默产出空模板；
- *   * 现在就照猜出来的形状写一层适配器 —— 那五个模块落地时形状必然对不上，
- *     而一层没人验证过的适配器比没有更糟。
- * 参数解析、退出码、其余五条命令都是完整的；那三条只差把真实现接进
- * {@link cmdDoctor} / {@link cmdParse} / {@link cmdBuild} 的函数体。
+ * `build` 仍然红着，而且**是有意的** —— 理由写在 {@link cmdBuild} 上：照 `cli.py`
+ * 直译的"截断 + 单次大调用"在真实材料上抽出过 0 属性 0 关系，真流水线
+ * （`onto/pipeline.ts`）今天只由 `serve.ts` 驱动。静默产出空模板比报错难查得多。
  */
 
 import { randomUUID } from "node:crypto";
@@ -49,7 +45,16 @@ import type { AuditResult } from "./onto/audit.js";
 import { diffChanged } from "./onto/audit.js";
 import { OIR, makeObjectType, makePropertyType, parseOrigin } from "./onto/oir.js";
 import type { Assertion, BaseType } from "./onto/oir.js";
+import { corpusSummary, defaultRegistry } from "./onto/parse/index.js";
 import { TemplateSpec } from "./onto/template.js";
+import { defaultAgents } from "./kernel/agents.js";
+import { OpenAICompatBackend } from "./kernel/backends.js";
+import { ConfigError, insecureTransport, llmConfig, redactedKey } from "./kernel/config.js";
+import { Difficulty } from "./kernel/dag.js";
+import { GATEWAY_MODELS, gatewayRouting } from "./kernel/llm.js";
+import { pyFloatRepr } from "./kernel/pyfmt.js";
+import { defaultSandbox } from "./kernel/sandbox.js";
+import { defaultLibrary } from "./kernel/skills.js";
 import { hashPassword, normalizeUsername } from "./auth.js";
 import { adoptLocalSessions } from "./authgate.js";
 import { Store, databaseUrl } from "./store/engine.js";
@@ -307,36 +312,159 @@ export class Parser {
 }
 
 // ══════════════════════════════════════════════════════════════════
-//  doctor / parse / build —— 命令本身还没接线
+//  doctor
+// ══════════════════════════════════════════════════════════════════
+
+/** 探针的 max_tokens 给足：Gemini Flash 这类模型即便关了 thinking 也会先吐一段
+ * reasoning，探针太小会 finish_reason=length、没轮到正文，把好模型误报成红叉。 */
+const DOCTOR_PROBE_TOKENS = 1024;
+
+export async function cmdDoctor(args: CmdArgs): Promise<number> {
+  rule("环境自检");
+  let rc = 0;
+
+  let cfg;
+  try {
+    cfg = llmConfig();
+  } catch (exc) {
+    if (!(exc instanceof ConfigError)) throw exc;
+    p(`${BAD} 配置   ${exc.message}`);
+    return 1;
+  }
+  p(`${OK} 网关   ${cfg.baseUrl}  凭证 ${redactedKey(cfg)}`);
+  if (insecureTransport(cfg)) {
+    p(`${WARN} 网关是明文 HTTP，凭证在链路上不加密`);
+  }
+
+  const backend = new OpenAICompatBackend(cfg.baseUrl, cfg.apiKey);
+  const routing = gatewayRouting();
+  for (const [tier, label] of [
+    ["flash", "便宜档"],
+    ["sonnet", "高难档"],
+    ["judge_openai", "评委"],
+  ] as const) {
+    const spec = GATEWAY_MODELS[tier]!;
+    try {
+      const [, u] = await backend.generate({
+        model: spec,
+        prompt: "回答两个字：就绪",
+        maxTokens: DOCTOR_PROBE_TOKENS,
+      });
+      p(
+        `${OK} ${ljust(label, 5)} ${ljust(spec.name, 30)} effort=${ljust(spec.effort ?? "-", 6)} ` +
+          `${u.tok_in}→${u.tok_out} tok  $${(u.usd ?? 0).toFixed(5)}`,
+      );
+    } catch (exc) {
+      const name = exc instanceof Error ? exc.constructor.name : typeof exc;
+      const msg = [...String(exc instanceof Error ? exc.message : exc)].slice(0, 90).join("");
+      p(`${BAD} ${ljust(label, 5)} ${ljust(spec.name, 30)} ${name}: ${msg}`);
+      rc = 1;
+    }
+  }
+
+  const gen = routing.modelFor(Difficulty.HIGH);
+  p(`${OK} 异构评委 生成 ${gen.name} → 评委 ${routing.judgeFor(gen).name}`);
+
+  const sbx = defaultSandbox({ production: Boolean(args["production"]) });
+  const d = sbx.describe();
+  const productionSafe = Boolean(d["production_safe"]);
+  p(
+    `${productionSafe ? OK : WARN} 沙箱   ${d["name"]}  隔离=${d["isolation"]}  ` +
+      `生产可用=${productionSafe}`,
+  );
+  if (!productionSafe) {
+    p("      本地沙箱无内核隔离，只可用于开发。生产请用 --production（gVisor）。");
+  }
+  try {
+    // 沙箱跑的是 **JavaScript**（子进程 + `node --permission`），不是 Python。
+    const res = await sbx.exec("emit({ ok: 1 })");
+    p(`${res.ok ? OK : BAD} 沙箱执行 ${JSON.stringify(res.result)}  ${res.durationMs}ms`);
+    if (!res.ok) rc = 1;
+  } catch (exc) {
+    p(`${BAD} 沙箱执行 ${exc instanceof Error ? exc.message : String(exc)}`);
+    rc = 1;
+  }
+
+  const lib = defaultLibrary();
+  p(`${OK} 技能   ${lib.size} 个：${lib.names().join("、")}`);
+  const agents = defaultAgents();
+  p(`${OK} Agent  ${agents.names().length} 个：${agents.names().join("、")}`);
+
+  await backend.aclose();
+  return rc;
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  parse
+// ══════════════════════════════════════════════════════════════════
+
+export async function cmdParse(args: CmdArgs): Promise<number> {
+  const files = expandFiles(args["files"] as string[]);
+  if (files.length === 0) {
+    p(`${BAD} 没有找到任何文件`);
+    return 1;
+  }
+  const dialect = args["dialect"] as string | null;
+  const docs = await defaultRegistry({ sqlDialect: dialect }).parseAll(files);
+  const s = corpusSummary(docs);
+
+  rule(`解析 ${files.length} 份材料 → ${s.chunks} 个切片`);
+  for (const f of s.files) {
+    const extra = Object.fromEntries(
+      Object.entries(f).filter(([k]) => !["file", "kind", "chunks", "findings"].includes(k)),
+    );
+    p(
+      `  ${ljust(String(f["kind"]), 8)} ${ljust(String(f["file"]), 28)} ` +
+        `${String(f["chunks"]).padStart(4)} 切片  ${pyDictAny(extra)}`,
+    );
+  }
+
+  if (s.findings.length > 0) {
+    rule("解析发现（每一条都可能改变你对产物的信任程度）");
+    for (const fd of s.findings) {
+      p(`  [${fd.severity === "warn" ? WARN : "·"}] ${fd.file}：${fd.message}`);
+    }
+  }
+
+  const jsonOut = args["json"] as string | null;
+  if (jsonOut) {
+    await writeJson(jsonOut, s);
+    p(`\n写出 ${jsonOut}`);
+  }
+  return 0;
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  build —— 还没接线
 // ══════════════════════════════════════════════════════════════════
 
 /**
- * **说清楚卡在哪一步。** 这几条命令原来报的是"还缺 kernel/skills.ts、
- * kernel/agents.ts、onto/parse 的 default_registry…"，而那些模块**后来都落地了** ——
- * 消息没跟着改，于是它点名的每一个文件如今都存在，读的人会去找一个不存在的缺口。
- * 真正没做的只是**把命令接到这些模块上**这一步。
+ * `build` 是**唯一**还没接线的命令，而且不接是**有意**的。
  *
- * 也不能再叫人去跑 `python -m ontocopilot.cli` ——  Python 实现已经不在本仓库了，
- * 照着做只会撞上 "No module named ontocopilot"。整条流程目前走 Web UI。
+ * 照 `cli.py` 直译一版很容易：解析 → 把语料截到 `--evidence-top-k` 条 → 一次
+ * `EXTRACT` 大调用 → 对齐/冲突/澄清/模板。问题是那条路**在真实材料上已经失败
+ * 过**：一份 326 切片的梳理表被截到 60 条，抽出 58 个对象、**0 属性 0 关系**
+ * （见 `onto/pipeline.ts` 顶部）。`onto/pipeline.ts` 就是为了修它才存在的 ——
+ * 按 sheet/章节切段、fan-out 成多个抽取节点、节点内跑 agent loop、critic 拦
+ * "看起来跑完了其实什么都没抽到"。
+ *
+ * 而那条真流水线今天由 `serve.ts` 驱动，依赖 session/store/SSE 一整圈上下文
+ * （`buildDag` / `segmentCorpus` / `buildOir` / `finish` 都在那里接线）。把它
+ * 拆成一个能脱离服务跑的入口是一件正经工作，不是补一个函数体。
+ *
+ * 所以这里**宁可红着**：直译会让 `build` 看起来能跑、实则静默产出空模板，
+ * 那比报错难查得多。
  */
-function notMigrated(command: string): number {
+export function cmdBuild(_args: CmdArgs): number {
   process.stderr.write(
-    `${BAD} ${PROG} ${command} 尚未迁移到 TS：依赖的模块都已就绪，只差把这条命令接上去。\n` +
-      `  在那之前请走 Web UI（\`./restart.sh\` 后打开首页），整条解析→模板的流程都在那里。\n`,
+    `${BAD} ${PROG} build 尚未接线。\n` +
+      `  真正的抽取流水线（切段 → fan-out → critic）在 onto/pipeline.ts，目前只由\n` +
+      `  服务端 serve.ts 驱动，还没有脱离 session/store/SSE 的命令行入口。\n` +
+      `  照 cli.py 直译的"截断 + 单次大调用"那条路**不会**补上来：它在真实材料上\n` +
+      `  抽出过 0 属性 0 关系，静默产出空模板比这里报错难查得多。\n` +
+      `  现在要跑全流程请起服务：\`./restart.sh\` 然后在页面里梳理。\n`,
   );
   return 1;
-}
-
-export function cmdDoctor(_args: CmdArgs): number {
-  return notMigrated("doctor");
-}
-
-export function cmdParse(_args: CmdArgs): number {
-  return notMigrated("parse");
-}
-
-export function cmdBuild(_args: CmdArgs): number {
-  return notMigrated("build");
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -437,6 +565,22 @@ function pyDict(d: Record<string, number>): string {
 /** `str(list[str])` —— `['a', 'b']`。 */
 function pyList(xs: readonly string[]): string {
   return `[${xs.map((x) => `'${x}'`).join(", ")}]`;
+}
+
+/** 单个值的 `repr()`。`docStats` 的 structured 透传项类型是混的（多数是计数，
+ * 但非数组/非对象的标量会原样过来），所以不能照 {@link pyDict} 只当数字印。 */
+function pyReprValue(v: unknown): string {
+  if (v === null || v === undefined) return "None";
+  if (typeof v === "boolean") return v ? "True" : "False";
+  if (typeof v === "number") return Number.isInteger(v) ? String(v) : pyFloatRepr(v);
+  return `'${String(v)}'`;
+}
+
+/** `str(dict)`，值走 {@link pyReprValue}。 */
+function pyDictAny(d: Record<string, unknown>): string {
+  return `{${Object.entries(d)
+    .map(([k, v]) => `'${k}': ${pyReprValue(v)}`)
+    .join(", ")}}`;
 }
 
 function dirname_(pth: string): string {
@@ -620,8 +764,16 @@ async function openRepo(): Promise<[Store, Repo]> {
   return [store, buildRepo(store)];
 }
 
-/** 建一个登录账号。**首个管理员只能用它创建** —— 没有公开的 bootstrap 路由，
- * 杜绝"谁先访问谁当管理员"的抢注竞态。助手绝不代设密码。 */
+/** 建一个登录账号。
+ *
+ * **不是唯一的建号入口** —— `POST /api/register` 是公开的自助注册路由，零账号
+ * 实例上首个注册者自动成为管理员（84b871d 按需求定的产品形态）。
+ *
+ * 设了 `ONTOCOPILOT_AUTH` 之后那条路会返回 403，这条命令才是**唯一**入口，
+ * "谁先访问谁当管理员"的抢注竞态也才真正不存在。联网部署请照这个顺序来：
+ * 先设开关，再用这条命令播种首个管理员。
+ *
+ * 助手绝不代设密码。 */
 export async function cmdUseradd(args: CmdArgs): Promise<number> {
   const username = normalizeUsername(String(args["username"]));
   if (!username) {
@@ -897,7 +1049,7 @@ export function buildParser(): Parser {
     },
     {
       name: "useradd",
-      help: "创建登录账号（首个管理员只能用它创建）",
+      help: "创建登录账号（设了 ONTOCOPILOT_AUTH 后，这是唯一的建号入口）",
       positionals: [{ dest: "username" }],
       options: [
         { flags: ["--admin"], dest: "admin", kind: "flag", dflt: false, help: "创建为管理员" },

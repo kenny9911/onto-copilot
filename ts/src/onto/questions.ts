@@ -33,6 +33,8 @@
 import { canonicalJson, sha256Hex } from "../kernel/ids.js";
 import { pyRepr } from "../kernel/errors.js";
 import { type OpenQuestion as OirOpenQuestion, questionToDict } from "./oir.js";
+// triage.ts 只 import type 本文件（无运行时回边），这条 import 不构成循环。
+import { fillTriageSignals, isLintConflictRef } from "./triage.js";
 
 export const SCHEMA_VERSION = "1.0.0";
 
@@ -1152,7 +1154,15 @@ export function buildQuestionBacklog(
     const q = Question.fromLegacy(item);
     q.sourceKind = "conflict";
     q.sourceRef = q.sourceRef || q.id;
-    q.priority = QuestionPriority.BLOCKING;
+    // 单选项且选项自带机器可执行的 effect（典型：naming lint 的「改为 xx／
+    // apply」，rationale 写着可逆、零语义损失）——这不是要人拍板的决策，是
+    // 一条可自动施加的修复通知，压到 LOW。以前这里无差别盖 BLOCKING，HITL
+    // 关口拿到的 5 条 blocking 全是命名琐事，真正要业务方拍板的 SOR 归属
+    // 问题反而进不了关口。单选项但**没有** effect 的卡（「审批边界不明确」
+    // 这类，选项只是建议、可自由作答）仍是真问题，保持 BLOCKING。
+    const only = q.options.length === 1 ? q.options[0] : null;
+    const machineApplicable = isMapping(only) && pyTruthy((only as Record<string, unknown>)["effect"]);
+    q.priority = machineApplicable ? QuestionPriority.LOW : QuestionPriority.BLOCKING;
     byConflict.set(q.sourceRef, q);
     backlog.add(q);
   }
@@ -1183,11 +1193,21 @@ export function buildQuestionBacklog(
         id: digest("q", { conflict: ref }),
         conflict_rid: ref,
         title,
-        priority: "blocking",
+        // 逐行 lint（未声明主键 / 孤立对象 / 命名不合规 / 疑似敷衍）降 NORMAL：
+        // 实测一轮真实梳理产出 3906 条这类 conflict，无差别 BLOCKING 的后果是
+        // awaiting_answer 没有出口、HITL 关口全被琐事占满（与上面澄清卡把机器
+        // 可执行的命名修复压 LOW 是同一条先例的延伸）。它们仍是工作清单 ——
+        // triage 会按 kind 折叠成模式级问题浮上来，不是消失。解析不出 kind 的
+        // 老式引用保持 BLOCKING（保守：拿不准的不降档）。
+        priority: isLintConflictRef(ref) ? "normal" : "blocking",
       }),
     );
   }
   for (const item of opts.openQuestions ?? []) backlog.add(Question.fromLegacy(item));
+  // 排序信号的确定性生产者（informationGain/blastRadius/group/code，只填空不覆盖）。
+  // 放在合流之后统一跑：existing 里带回来的 agent_analysis 行也在这里补上信号 ——
+  // 此前 informationGain 全仓无生产者，next() 的排序键第二位恒 0。
+  for (const q of backlog.questions.values()) fillTriageSignals(q);
   return backlog;
 }
 

@@ -73,7 +73,8 @@ import type { ColDefault, ColKind, ColSpec, IndexSpec, TableName, TableSpec } fr
 
 export const DEFAULT_POOL_SIZE = 5;
 export const DEFAULT_MAX_OVERFLOW = 5;
-export const SQLITE_SCHEMA_VERSION = 13;
+// 19：onto_document.folder_path + onto_document_folder（用户手工建的文件夹）。
+export const SQLITE_SCHEMA_VERSION = 19;
 
 // ══════════════════════════════════════════════════════════════════
 //  URL
@@ -281,14 +282,43 @@ class SqliteEngine implements Engine {
    * （`node:sqlite` 的构造参数默认是 true，但这条纪律不能靠某个驱动的默认值。） */
   private openRaw(foreignKeys: boolean): DatabaseSync {
     const raw = new DatabaseSync(this.filename, { enableForeignKeyConstraints: foreignKeys });
-    raw.exec(`PRAGMA foreign_keys=${foreignKeys ? "ON" : "OFF"}`);
-    if (!this.memory) {
-      // 现在是真的多连接了，得让它们能好好共处：WAL 让读不再挡写（SSE 一直在轮询读），
-      // busy_timeout 让偶发争用等一下而不是直接抛 "database is locked"。
-      raw.exec("PRAGMA journal_mode=WAL");
-      raw.exec("PRAGMA busy_timeout=30000");
+    try {
+      // busy_timeout 必须是连上之后的**第一条**语句 —— 顺序是有意的，别调回去，理由见下。
+      if (!this.memory) raw.exec("PRAGMA busy_timeout=30000");
+      raw.exec(`PRAGMA foreign_keys=${foreignKeys ? "ON" : "OFF"}`);
+      if (!this.memory) {
+        // 现在是真的多连接了，得让它们能好好共处：WAL 让读不再挡写（SSE 一直在轮询读），
+        // busy_timeout 让偶发争用等一下而不是直接抛 "database is locked"。
+        //
+        // ── 为什么 busy_timeout 必须在前 ────────────────────────────────
+        // 曾经它写在这一行**后面**，结果是生产日志里 91 条 `database is locked`，
+        // 栈顶无一例外钉在下面这行 journal_mode 上。那**跟 WAL 转换无关**：
+        // `new DatabaseSync()` 和 `PRAGMA foreign_keys` 都不碰文件（SQLite 惰性打开），
+        // 而 `PRAGMA journal_mode` 要读 schema —— 它才是第一条真正对库文件加锁的语句，
+        // 于是任何锁争用都会把栈顶钉在这儿。busy_timeout 设在它之后，等于撞锁那一刻
+        // busy handler 还没装上：0 重试、亚毫秒直接抛。实测同一竞争下，仅调换顺序
+        // 就从"0ms 抛"变成"等 514ms 成功"。
+        //
+        // 争用窗口是本类自己造的：文件库每次借出新开连接、用完就 close（见 checkout），
+        // 而 WAL 库关掉**最后一条**连接时 SQLite 会 checkpoint 并 unlink -wal/-shm，
+        // 全程持排他锁。gate 那把互斥保证进程内不自撞，但只要出现第二个进程
+        // （一条 `sqlite3 db "SELECT …"` 就够格），命中率就是两位数百分比。
+        // 回归用例见 test/store.engine.test.ts「别的进程握着排他锁时…」。
+        raw.exec("PRAGMA journal_mode=WAL");
+      }
+      return raw;
+    } catch (err) {
+      // 句柄这时已经开着了，而 checkout 的 release 闭包是在本函数**返回之后**才建的 ——
+      // 直接把异常抛出去就再没人 close 它，每抛一次漏一个 fd。（上面的 busy_timeout
+      // 修复让撞锁不再抛，但错误路径本身还在：撞锁超过 30 秒、或库目录不可写都会走到。）
+      // close 自己再抛的话不许盖掉原始错误 —— 原因是那个，不是收尾没收干净。
+      try {
+        raw.close();
+      } catch {
+        /* 原始错误更重要 */
+      }
+      throw err;
     }
-    return raw;
   }
 
   private checkout(foreignKeys: boolean): { raw: DatabaseSync; release: () => void } {
@@ -364,7 +394,7 @@ async function makePgEngine(url: string, pool: PgPoolOptions): Promise<Engine> {
 //
 // Drizzle 没有运行时的建表 API（drizzle-kit 是构建期工具，本轮没装），所以这里从
 // `schema.ts` 的中立 `TABLE_SPECS` 直接生成 DDL —— **同一份来源**，不会与 repo 查询
-// 用的那 23 张表漂移。
+// 用的那 33 张表漂移。
 //
 // 类型名与默认值的渲染**照抄 SQLAlchemy 在 SQLite 上的输出**（`BIGINT DEFAULT '0'`
 // 是带引号的，因为 schema.py 的 server_default 传的就是字符串；`BOOLEAN DEFAULT 0`
@@ -517,6 +547,17 @@ export async function upgradeSqliteCompat(conn: Conn): Promise<void> {
     sessionColumns.add("project_id");
   }
 
+  // 0019：知识库文档加 folder_path（用户手工建的文件夹）。空串 = 根目录，
+  // 所以既有数据不会因为这次升级而"消失"到某个新分组里。
+  // 和上面两条一样是可空/带默认的普通列，就地 ADD 是安全的；
+  // onto_document_folder 那张新表由 createAllSqlite 的 IF NOT EXISTS 负责。
+  if (tables.has("onto_document")) {
+    const documentColumns = new Set(await columnNamesOf("onto_document"));
+    if (!documentColumns.has("folder_path")) {
+      await conn.exec(`ALTER TABLE "onto_document" ADD COLUMN folder_path TEXT NOT NULL DEFAULT ''`);
+    }
+  }
+
   // 0006：SQLite 改不了具名 CHECK 约束。只在存下来的 CREATE 语句里还没有
   // queued/stopped 时才重建，且逐列保住现有数据。
   const sessionSql = String(
@@ -579,8 +620,8 @@ export async function upgradeSqliteCompat(conn: Conn): Promise<void> {
     }
   }
 
-  // 紧跟其后的 create_all 会补上 0008–0013 引入的那些只增不改的表/索引（含 0013 的
-  // project / project_memory —— 它们是**新表**，create_all 建得出来；只有加到既有表
+  // 紧跟其后的 create_all 会补上 0008–0017 引入的那些只增不改的表/索引（含 0013 的
+  // project / project_memory 与 OntoDocument 表 —— 它们是**新表**，create_all 建得出来；只有加到既有表
   // 上的列才需要上面那些补丁）。先跑这个函数，才分得清老库。
 }
 

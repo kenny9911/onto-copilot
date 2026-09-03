@@ -9,6 +9,8 @@ export function applyMode(){
   document.querySelector(".app").classList.toggle("mode-chat", G.MODE === "chat");
   document.querySelectorAll("#modetog button").forEach((b: any) =>
     b.classList.toggle("on", b.dataset.mode === G.MODE));
+  document.querySelectorAll("#modetog button").forEach((b: any) =>
+    b.setAttribute("aria-pressed", String(b.dataset.mode === G.MODE)));
 }
 // 聊天 = 纯对话（右侧工作面板收起、无材料/产物）；工作 = 完整工作台。
 export function setMode(m: any){

@@ -53,6 +53,7 @@ import {
   STRATEGY_LABEL_EN,
   SYSTEM,
   checkGrounding,
+  guardCanvasCompletion,
   needsReasoning,
   parseArgs,
   pickStrategy,
@@ -191,10 +192,74 @@ function ctx(): Dict {
 //  converse —— 契约本体
 // ══════════════════════════════════════════════════════════════════
 describe("converse / 产出契约", () => {
-  it("三个 schema 与 Python 逐字段一致", () => {
-    expect(ANSWER_SCHEMA).toEqual(C["answer_schema"]);
-    expect(STEP_SCHEMA).toEqual(C["step_schema"]);
+  it("三个 schema 与 Python 字段一致；用户文案与并行批是 TS 产品层覆盖", () => {
+    const pyAnswer = C["answer_schema"] as Dict;
+    const pyAnswerProps = pyAnswer["properties"] as Dict;
+    const answerProps = ANSWER_SCHEMA["properties"] as Dict;
+    expect({
+      ...ANSWER_SCHEMA,
+      properties: {
+        ...answerProps,
+        answer: {
+          ...(answerProps["answer"] as Dict),
+          description: (pyAnswerProps["answer"] as Dict)["description"],
+        },
+        next_questions: {
+          ...(answerProps["next_questions"] as Dict),
+          description: (pyAnswerProps["next_questions"] as Dict)["description"],
+        },
+        // TS 对话网关额外把 0..1 做成结构校验；Python golden 只写在 description 里。
+        confidence: {
+          ...(answerProps["confidence"] as Dict),
+          minimum: undefined,
+          maximum: undefined,
+        },
+      },
+    }).toEqual(pyAnswer);
     expect(PLAN_SCHEMA).toEqual(C["plan_schema"]);
+
+    // `tools` 是 TS 侧新增的只读并行批，Python 那边没有这条路。照本文件已有的
+    // 先例（见下面 SYSTEM 那条）：新增能力不再与旧 Python 逐字节相等，
+    // **但除它以外必须仍然逐字段一致** —— 把它摘掉再比，漂移照样拦得住。
+    const { tools, tool, ...rest } = STEP_SCHEMA["properties"] as Dict;
+    const pyStep = C["step_schema"] as Dict;
+    const { tool: pyToolField, ...pyRest } = pyStep["properties"] as Dict;
+    const normalizedRest = {
+      ...rest,
+      answer: {
+        ...(rest["answer"] as Dict),
+        description: (pyRest["answer"] as Dict)["description"],
+      },
+      next_questions: {
+        ...(rest["next_questions"] as Dict),
+        description: (pyRest["next_questions"] as Dict)["description"],
+      },
+    };
+    expect({ ...STEP_SCHEMA, properties: normalizedRest }).toEqual({ ...pyStep, properties: pyRest });
+    expect(tools).toBeDefined();
+    // `tool` 的描述也跟着并行批改了一句 —— 它是同一个能力的另一半（模型得知道
+    // 什么时候该改用 tools）。所以这里**不放过它，只是分开比**：Python 那句必须
+    // 一字不差地还在，新增的部分必须确实是在指路 tools。除此以外的任何改动照样红。
+    const pyDesc = String((pyToolField as Dict)["description"]);
+    const nowDesc = String((tool as Dict)["description"]);
+    expect(nowDesc.startsWith(pyDesc)).toBe(true);
+    expect(nowDesc.slice(pyDesc.length)).toBe("；一次要查多样时改用 tools");
+    expect({ ...(tool as Dict), description: pyDesc }).toEqual(pyToolField);
+    expect(String((answerProps["answer"] as Dict)["description"])).toContain("日常中文");
+    expect(String((answerProps["answer"] as Dict)["description"])).toContain("不得展示 q.agent");
+    expect(String((answerProps["next_questions"] as Dict)["description"])).toContain("不超过 28 个字");
+  });
+
+  it("并行批的安全边界写在 schema 里，不靠模型自觉", () => {
+    const batch = (STEP_SCHEMA["properties"] as Dict)["tools"] as Dict;
+    expect(batch["type"]).toBe("array");
+    // 一次最多 4 个：再多就不是"顺手一起查"，而是在拿并行当计划用
+    expect(batch["maxItems"]).toBe(4);
+    const desc = String(batch["description"]);
+    expect(desc).toContain("只读");
+    expect(desc).toContain("退回串行");
+    // 依赖关系也要说清 —— 后一步要用前一步结果时不能并行
+    expect(desc).toContain("后一步要用前一步结果");
   });
 
   it("两个 schema 都要有 next_questions —— 只加最终 schema 的话最常见的一步就答上来拿不到", () => {
@@ -206,9 +271,61 @@ describe("converse / 产出契约", () => {
     }
   });
 
-  it("系统提示词逐字节一致（它是产品行为的一部分，不是文案）", () => {
-    expect(SYSTEM).toBe(C["system"]);
-    expect(CHAT_SYSTEM).toBe(C["chat_system"]);
+  it("系统提示保留 FDE 基线，并显式约束无材料通用草案的来源边界", () => {
+    // 通用草案是 TS 产品新增能力，故不再与旧 Python 文案逐字节相等；其它 schema
+    // 仍走 golden。这里钉住新增能力最容易退化、也最危险的四条语义。
+    expect(SYSTEM).toContain("面对的是一位 FDE 工程师");
+    expect(SYSTEM).toContain("draft.initialize");
+    expect(SYSTEM).toContain("`basis` 设为 `generic_assumption`");
+    expect(SYSTEM).toContain("发布状态只能是 DRAFT");
+    expect(SYSTEM).toContain("不要给假设编 cite");
+    expect(CHAT_SYSTEM).toContain("通用的 AI 助手");
+    expect(CHAT_SYSTEM).toContain("web.search");
+    expect(SYSTEM).toContain("`scope=global`");
+    expect(SYSTEM).toContain("改写成简洁英文查询");
+    expect(SYSTEM).toContain("不代表搜索提供商就是 Google");
+    expect(SYSTEM).toContain("图片/生图/Image 2/视觉版/PPT/好看");
+    expect(SYSTEM).toContain("先 `flow.sketch`、再 `flow.render`");
+    expect(SYSTEM).toContain("为了生图不得先");
+    expect(SYSTEM).toContain("`theme` / `layout` / `visual_brief`");
+    expect(SYSTEM).toContain("不得在同一轮用相同参数重复调用 `flow.render`");
+    expect(SYSTEM).toContain("surface=chat_card+reference_canvas");
+    expect(SYSTEM).toContain("reference_canvas_visible=true");
+    expect(CHAT_SYSTEM).toContain("`scope=regional`");
+    expect(CHAT_SYSTEM).toContain("不能凭记忆伪造网页或 URL");
+  });
+
+  it("canvas_updated=false 时会删掉‘右侧画布已更新’的虚假完成声明", () => {
+    const lie = "我已经根据行业经验生成参考图，该图已经呈现在您屏幕右侧的画布上。";
+    const guarded = guardCanvasCompletion(lie, [{
+      tool: "flow.sketch",
+      observation: '{"surface": "chat_card", "canvas_updated": false}',
+    }]);
+
+    expect(guarded).not.toContain("已经呈现在您屏幕右侧的画布");
+    expect(guarded).toContain("参考图已显示在聊天主线");
+    expect(guarded).toContain("右侧工作流画布尚未更新");
+  });
+
+  it("参考只读层可见时，完成声明会区分参考层与正式画布", () => {
+    const lie = "流程图已经呈现在右侧工作流画布。";
+    const guarded = guardCanvasCompletion(lie, [{
+      tool: "flow.sketch",
+      observation:
+        '{"surface":"chat_card+reference_canvas","reference_canvas_visible":true,"canvas_updated":false}',
+    }]);
+
+    expect(guarded).toContain("右侧“通用参考”只读层");
+    expect(guarded).toContain("正式工作流画布尚未更新");
+  });
+
+  it("同一轮真有 formal flow 写入回执时，不误杀右侧画布完成声明", () => {
+    const answer = "参考图已经转正，右侧工作流画布已更新。";
+    const guarded = guardCanvasCompletion(answer, [
+      { tool: "flow.sketch", observation: '{"canvas_updated": false}' },
+      { tool: "draft.adopt", observation: '{"canvas_updated": true}' },
+    ]);
+    expect(guarded).toBe(answer);
   });
 
   it("lang=en 只追加一行输出语言指令，领域术语不动", () => {
@@ -217,7 +334,12 @@ describe("converse / 产出契约", () => {
       tools: registry(),
       lang: "en",
     });
-    expect(en.system).toBe(C["system_en"]);
+    expect(en.system).toBe(
+      SYSTEM +
+        "\n\n[Output language] Reply to the user in English. " +
+        "Keep extracted domain terms (entity names, calibers, " +
+        "field names) in their original language.",
+    );
     const overridden = new ConversationAgent({
       gateway: null as never,
       tools: registry(),
@@ -338,7 +460,11 @@ describe("converse / 提示词", () => {
       final: boolean;
       out: string;
     }[]) {
-      expect(agent.prompt("问句", row.context, row.transcript, specs, row.final)).toBe(row.out);
+      const plainLanguageSuffix = row.final
+        ? "先用一句常用中文说结论，再给必要细节；删掉内部 ID、协议标签、未解释的英文缩写和顾问腔。"
+        : "";
+      expect(agent.prompt("问句", row.context, row.transcript, specs, row.final))
+        .toBe(row.out + plainLanguageSuffix);
     }
   });
 
@@ -368,13 +494,29 @@ describe("converse / 推理循环", () => {
         ctx: ctx(),
         onStep: (rec) => seen.push(rec),
       });
-      expect(turn.toDict()).toEqual(run["turn"]);
+      // TS 产品层比旧 Python golden 更严格：一旦发现伪造出处，不再保留“结论请自行
+      // 复核”的原草稿。轨迹与 finding 仍逐字段对齐，只覆盖这个安全收口结果。
+      const expectedTurn = name === "fabricated_citation_stripped"
+        ? {
+            ...(run["turn"] as Dict),
+            answer: "这次回答有出处没有通过核对。为避免把没有依据的内容当成事实，我先不发布这份结论。请让我重新检索后再答。",
+            citations: [],
+            confidence: 0,
+          }
+        : run["turn"];
+      expect(turn.toDict()).toEqual(expectedTurn);
       expect(seen).toEqual(run["steps_seen"]);
       expect(
         gw.calls.map((c) => ({ node_id: c.nodeId, key: c.key ?? null, schema_required: c.required })),
       ).toEqual(run["gw_calls"]);
       // 提示词也钉住：它是模型真正看到的东西，改一个字就是换了一个产品
-      expect(gw.calls.map((c) => c.prompt)).toEqual(run["prompts"]);
+      expect(gw.calls.map((c) => c.prompt)).toEqual(
+        (run["prompts"] as string[]).map((prompt) => prompt.endsWith(
+          "现在给出回答。**出处只能写你上面真的查到过的**，一条都没查到就给空数组、并在回答里说明你没查到。",
+        )
+          ? prompt + "先用一句常用中文说结论，再给必要细节；删掉内部 ID、协议标签、未解释的英文缩写和顾问腔。"
+          : prompt),
+      );
     });
   }
 
@@ -383,6 +525,70 @@ describe("converse / 推理循环", () => {
     expect((run["gw_calls"] as unknown[]).length).toBe(3);
     const steps = (run["turn"] as Dict)["steps"] as Dict[];
     expect(steps.at(-1)!["kind"]).toBe("answer");
+  });
+
+  it("计划中的写入未调用或只收到失败回执时，不能被最终回答冒充为已完成", async () => {
+    const reg = new ToolRegistry();
+    reg.fn({
+      name: "oir.edit", description: "编辑规则", schema: { type: "object", properties: {} },
+      danger: Danger.WRITE_LOCAL, scopes: ["converse"],
+    }, () => ({ error: "目标不存在", 改动: "无" }));
+    reg.fn({
+      name: "flow.edit", description: "编辑流程", schema: { type: "object", properties: {} },
+      danger: Danger.WRITE_LOCAL, scopes: ["converse"],
+    }, () => ({ 已改: "流程" }));
+    const gw = new ScriptGateway([
+      { steps: [
+        { goal: "把退款阈值参数化", tool: "oir.edit" },
+        { goal: "删除旧动作并新增失败终态", tool: "flow.edit" },
+      ] },
+      { kind: "tool", thought: "先改规则", tool: "oir.edit", args_json: "{}" },
+      { kind: "answer", thought: "全部完成", answer: "两项都已经完成。", citations: [], confidence: 1 },
+    ]);
+    const agent = new ConversationAgent({
+      gateway: gw,
+      tools: reg,
+      scope: "converse",
+      strategy: "plan_execute",
+      maxSteps: 2,
+    });
+
+    const turn = await agent.run("改规则并改流程", { ctx: ctx() });
+
+    expect(turn.answer).toContain("尚未落地");
+    expect(turn.answer).toContain("把退款阈值参数化");
+    expect(turn.answer).toContain("删除旧动作并新增失败终态");
+  });
+
+  it("复合写入的持久化回执是最终权威状态，模型总结说反了也看得见真结果", async () => {
+    const reg = new ToolRegistry();
+    reg.fn({
+      name: "flow.edit", description: "编辑流程", schema: {
+        type: "object", properties: { op: { type: "string" } },
+      },
+      danger: Danger.WRITE_LOCAL, scopes: ["converse"],
+    }, (args) => args["op"] === "remove"
+      ? { 已改: "删掉了节点「旧动作」及其相连的 1 条边。", 当前: { actions: 5 } }
+      : { 已改: "新增了事件「退款失败」，并连到「退款及金额分摊」。", 当前: { events: 3 } });
+    const gw = new ScriptGateway([
+      { kind: "tool", thought: "先删除", tool: "flow.edit", args_json: '{"op":"remove"}' },
+      { kind: "tool", thought: "再新增", tool: "flow.edit", args_json: '{"op":"add"}' },
+      {
+        kind: "answer", thought: "总结", answer: "旧动作不存在，所以没有删除。",
+        citations: [], confidence: 1,
+      },
+    ]);
+    const agent = new ConversationAgent({
+      gateway: gw, tools: reg, scope: "converse", strategy: "react", maxSteps: 3,
+    });
+
+    const turn = await agent.run("删除旧动作并新增退款失败事件", { ctx: ctx() });
+
+    expect(turn.answer).toContain("系统核对的实际写入回执");
+    expect(turn.answer).toContain("删掉了节点「旧动作」及其相连的 1 条边。");
+    expect(turn.answer).toContain("新增了事件「退款失败」，并连到「退款及金额分摊」。");
+    expect(turn.answer).toContain("若与上文表述冲突，请以此清单为准");
+    expect(turn.answer).not.toContain("flow.edit");
   });
 
   it("收尾步永远在轨迹里 —— 一步就答上来的问题也看得见它想了什么", () => {
@@ -741,8 +947,49 @@ describe("engagement_runtime / handlers", () => {
   });
 });
 
+/** Run the deterministic v3 delivery projections exactly in frozen-DAG order. */
+async function v3DeliveryInputs(
+  runtime: EngagementRuntimeInput,
+  hs: ReturnType<typeof engagementHandlers>,
+): Promise<Dict> {
+  const project = (key: string, inputs: Dict): Dict =>
+    (hs[key] as unknown as Projection).project(inputs);
+  const execute = async (key: string, inputs: Dict): Promise<Dict> =>
+    await hs[key]!.execute(inputs, fakeCtx(key)) as Dict;
+  const out: Dict = {};
+  out["INTAKE"] = project("agent.fde_interviewer", out);
+  out["PROCESS"] = project("agent.process_modeler", out);
+  out["ERP_MAP"] = project("agent.erp_mapper", out);
+  out["RULES"] = project("agent.rule_engineer", out);
+  out["DATA_OBJECTS"] = project("agent.data_steward", out);
+  out["GAP"] = await execute("engagement.collect_gaps", out);
+  out["INTERVIEW"] = hs["engagement.interview"]!.skipModel(out);
+  out["DECISION_PROPOSAL"] = project("agent.decision_integrator", out);
+  out["DECISION_APPLY"] = await execute("engagement.validate_decision_application", out);
+  out["REQUIREMENTS"] = project("agent.requirements_engineer", out);
+  out["ARCHITECTURE"] = project("agent.solution_architect", out);
+  out["TEST_PLAN"] = project("agent.acceptance_test_engineer", out);
+  out["CANONICALIZE"] = await execute("engagement.canonicalize", out);
+  out["REVIEW"] = project("agent.delivery_reviewer", out);
+  const acceptanceRequest = hs["engagement.human_acceptance"]!.humanRequest(null, out);
+  const acceptanceQuestion = acceptanceRequest["question"] as Dict;
+  expect(Array.isArray(runtime.decisions)).toBe(true);
+  (runtime.decisions as unknown[]).push({
+    id: "d.acceptance.golden",
+    questionId: acceptanceQuestion["id"],
+    answer: "APPROVE",
+    actor: "Golden Reviewer",
+    actorRole: "admin",
+    authority: "admin",
+    createdAt: 1_776_000_000,
+  });
+  out["HUMAN_ACCEPTANCE"] = hs["engagement.human_acceptance"]!.skipModel(out) as Dict;
+  out["EXPORT"] = await execute("engagement.export", out);
+  return out;
+}
+
 describe("engagement_runtime / 门禁指标", () => {
-  it("阻塞问题清零后：CANONICALIZE / REVIEW / EXPORT 三段整包一致", async () => {
+  it("阻塞问题清零后：v3 专业交付链、人工验收与 EXPORT 整包一致", async () => {
     const rt = runtimeOf({ backlog: clearBacklog() });
     const hs = engagementHandlers(rt);
     const want = ER["clear"] as Dict;
@@ -751,18 +998,13 @@ describe("engagement_runtime / 门禁指标", () => {
     expect(rt.pending().map((q) => q.id)).toEqual(want["pending"]);
     expect(rt.blockers().map((q) => q.id)).toEqual(want["blockers"]);
 
-    const canon = (await hs["engagement.canonicalize"]!.execute({}, fakeCtx("CANONICALIZE"))) as Dict;
+    const delivery = await v3DeliveryInputs(rt, hs);
+    const canon = delivery["CANONICALIZE"] as Dict;
     expect(canon).toEqual(want["CANONICALIZE"]);
-
-    const review = (hs["agent.delivery_reviewer"] as unknown as Projection).project({
-      CANONICALIZE: canon,
-    });
+    const review = delivery["REVIEW"] as Dict;
     expect(review).toEqual(want["REVIEW"]);
-
-    const exported = await hs["engagement.export"]!.execute(
-      { CANONICALIZE: canon, REVIEW: review },
-      fakeCtx("EXPORT"),
-    );
+    expect(delivery["HUMAN_ACCEPTANCE"]).toEqual(want["HUMAN_ACCEPTANCE"]);
+    const exported = delivery["EXPORT"];
     expect(exported).toEqual(want["EXPORT"]);
     expect(traceability(canon)).toEqual(want["traceability"]);
   });
@@ -771,30 +1013,19 @@ describe("engagement_runtime / 门禁指标", () => {
     const rt = runtimeOf({ backlog: clearBacklog(), downloadable: false });
     const hs = engagementHandlers(rt);
     const want = ER["not_downloadable"] as Dict;
-    const canon = (await hs["engagement.canonicalize"]!.execute({}, fakeCtx("CANONICALIZE"))) as Dict;
-    const review = (hs["agent.delivery_reviewer"] as unknown as Projection).project({
-      CANONICALIZE: canon,
-    });
+    const delivery = await v3DeliveryInputs(rt, hs);
+    const review = delivery["REVIEW"] as Dict;
     expect(review).toEqual(want["REVIEW"]);
     expect(review["verdict"]).toBe("BLOCKED");
-    const exported = (await hs["engagement.export"]!.execute(
-      { CANONICALIZE: canon, REVIEW: review },
-      fakeCtx("EXPORT"),
-    )) as Dict;
+    const exported = delivery["EXPORT"] as Dict;
     expect(exported).toEqual(want["EXPORT"]);
     expect(exported["downloadable"]).toBe(false);
   });
 
   it("仍有阻塞问题 → REVIEW 多一条 OPEN_BLOCKING_QUESTIONS", async () => {
-    const clear = engagementHandlers(runtimeOf({ backlog: clearBacklog() }));
-    const canon = (await clear["engagement.canonicalize"]!.execute(
-      {},
-      fakeCtx("CANONICALIZE"),
-    )) as Dict;
-    const hs = engagementHandlers(runtimeOf({}));
-    const review = (hs["agent.delivery_reviewer"] as unknown as Projection).project({
-      CANONICALIZE: canon,
-    });
+    const rt = runtimeOf({});
+    const hs = engagementHandlers(rt);
+    const review = (await v3DeliveryInputs(rt, hs))["REVIEW"] as Dict;
     expect(review["blockers"]).toEqual(((ER["blocked"] as Dict)["REVIEW"] as Dict)["blockers"]);
   });
 
@@ -949,7 +1180,12 @@ function engagementScheduler(
 }
 
 function liveRuntime(
-  opts: { pending?: boolean; blocking?: boolean; downloadable?: boolean } = {},
+  opts: {
+    pending?: boolean;
+    blocking?: boolean;
+    downloadable?: boolean;
+    decisions?: unknown[];
+  } = {},
 ): EngagementRuntimeInput {
   const backlog = new QuestionBacklog();
   if (opts.pending === true) {
@@ -972,6 +1208,7 @@ function liveRuntime(
     oir: FIXTURE["oir"] as Dict,
     flow: null,
     backlog,
+    decisions: opts.decisions ?? [],
     generatedAt: "2026-08-12T00:00:00+00:00",
     releaseDownloadable: opts.downloadable ?? true,
   });
@@ -985,25 +1222,58 @@ function completedNodes(journal: InMemoryJournal): Set<string> {
   return out;
 }
 
+function recordAcceptance(
+  decisions: unknown[],
+  suspended: { pendingHuman: Dict | null },
+  answer: "APPROVE" | "REJECT",
+): void {
+  const question = suspended.pendingHuman?.["question"] as Dict | undefined;
+  expect(question?.["id"]).toEqual(expect.any(String));
+  decisions.push({
+    id: `d.acceptance.${answer.toLowerCase()}`,
+    questionId: question!["id"],
+    answer,
+    actor: "Alice",
+    actorRole: "admin",
+    authority: "admin",
+    rationale: answer === "REJECT" ? "验收范围尚需调整" : "验收通过",
+    createdAt: 1_777_000_000,
+  });
+}
+
 describe("engagement_runtime / 端到端（真 Scheduler + AgentLoop）", () => {
-  it("冻结 DAG 的每个节点都跑完，且专业投影一次模型都没调", async () => {
-    const { sched, journal, backend } = engagementScheduler(liveRuntime());
-    const outcome = await sched.run("engagement-run");
+  it("冻结 DAG 在精确 APPROVE Decision 后跑完，且专业投影一次模型都没调", async () => {
+    const decisions: unknown[] = [];
+    const runtime = liveRuntime({ decisions });
+    const first = engagementScheduler(runtime);
+    const suspended = await first.sched.run("engagement-run");
+    expect(suspended.status).toBe(RunStatus.SUSPENDED);
+    expect(suspended.pendingHuman?.["node"]).toBe("HUMAN_ACCEPTANCE");
+    expect(Object.keys(suspended.outputs)).not.toContain("EXPORT");
+    recordAcceptance(decisions, suspended, "APPROVE");
+    const resumed = engagementScheduler(runtime, {
+      journal: first.journal,
+      blobs: first.blobs,
+      resume: true,
+    });
+    const outcome = await resumed.sched.run("engagement-run");
 
     expect(outcome.status).toBe(RunStatus.COMPLETED);
     const expected = new Set(buildFdeEngagementDag().topoOrder());
-    expect(completedNodes(journal)).toEqual(expected);
+    expect(completedNodes(first.journal)).toEqual(expected);
     expect(new Set(Object.keys(outcome.outputs))).toEqual(expected);
     expect((outcome.outputs["PROCESS"] as Dict)["source"]).toBe("mature_extract_composite");
     for (const k of ["review_passed", "schema_valid", "downloadable"]) {
       expect((outcome.outputs["EXPORT"] as Dict)[k], k).toBe(true);
     }
     // 抽取那一轮已经为同一份证据付过钱了 —— 这里再调一次就是重复付费
-    expect(backend.calls).toEqual([]);
+    expect(first.backend.calls).toEqual([]);
+    expect(resumed.backend.calls).toEqual([]);
   });
 
   it("有阻塞问题时 INTERVIEW 真的挂起；问题清掉后重放只跑剩下的节点", async () => {
-    const runtime = liveRuntime({ pending: true });
+    const decisions: unknown[] = [];
+    const runtime = liveRuntime({ pending: true, decisions });
     const first = engagementScheduler(runtime);
     const suspended = await first.sched.run("engagement-run");
 
@@ -1022,16 +1292,30 @@ describe("engagement_runtime / 端到端（真 Scheduler + AgentLoop）", () => 
       blobs: first.blobs,
       resume: true,
     });
-    const outcome = await second.sched.run("engagement-run");
-
-    expect(outcome.status).toBe(RunStatus.COMPLETED);
+    const acceptanceSuspended = await second.sched.run("engagement-run");
+    expect(acceptanceSuspended.status).toBe(RunStatus.SUSPENDED);
+    expect(acceptanceSuspended.pendingHuman?.["node"]).toBe("HUMAN_ACCEPTANCE");
     for (const n of ["INTAKE", "PROCESS", "ERP_MAP", "RULES", "DATA_OBJECTS", "GAP"]) {
-      expect(outcome.skipped, n).toContain(n);
+      expect(acceptanceSuspended.skipped, n).toContain(n);
     }
-    for (const n of ["INTERVIEW", "CANONICALIZE", "REVIEW", "EXPORT"]) {
-      expect(Object.keys(outcome.results), n).toContain(n);
+    for (const n of ["INTERVIEW", "DECISION_PROPOSAL", "DECISION_APPLY", "REQUIREMENTS", "ARCHITECTURE", "TEST_PLAN", "CANONICALIZE", "REVIEW"]) {
+      expect(Object.keys(acceptanceSuspended.results), n).toContain(n);
     }
+    recordAcceptance(decisions, acceptanceSuspended, "APPROVE");
+    const third = engagementScheduler(runtime, {
+      journal: first.journal,
+      blobs: first.blobs,
+      resume: true,
+    });
+    const outcome = await third.sched.run("engagement-run");
+    expect(outcome.status).toBe(RunStatus.COMPLETED);
+    expect(outcome.outputs["HUMAN_ACCEPTANCE"]).toMatchObject({
+      decision: "APPROVE",
+      package_bound: true,
+      releaseState: "RELEASED",
+    });
     expect(second.backend.calls).toEqual([]);
+    expect(third.backend.calls).toEqual([]);
   });
 
   it("交付目录不可写时 REVIEW 的门禁拦住 EXPORT，且失败节点不进 checkpoint", async () => {
@@ -1048,23 +1332,322 @@ describe("engagement_runtime / 端到端（真 Scheduler + AgentLoop）", () => 
     expect(backend.calls).toEqual([]);
   });
 
-  it("普通未决问题只把交付件标成 DRAFT，不挂起 —— 一份问卷几百条开放问题是常态", async () => {
-    const { sched, journal, backend } = engagementScheduler(
-      liveRuntime({ pending: true, blocking: false }),
-    );
-    const outcome = await sched.run("engagement-run");
+  it("普通未决问题不阻塞分析；人工 REJECT 后以 DRAFT 正常结束", async () => {
+    const decisions: unknown[] = [];
+    const runtime = liveRuntime({ pending: true, blocking: false, decisions });
+    const first = engagementScheduler(runtime);
+    const suspended = await first.sched.run("engagement-run");
+    expect(suspended.status).toBe(RunStatus.SUSPENDED);
+    expect(suspended.pendingHuman?.["node"]).toBe("HUMAN_ACCEPTANCE");
+    expect((suspended.outputs["INTERVIEW"] as Dict)["releaseState"]).toBe("DRAFT");
+    recordAcceptance(decisions, suspended, "REJECT");
+    const resumed = engagementScheduler(runtime, {
+      journal: first.journal,
+      blobs: first.blobs,
+      resume: true,
+    });
+    const outcome = await resumed.sched.run("engagement-run");
 
     expect(outcome.status).toBe(RunStatus.COMPLETED);
-    for (const n of ["INTERVIEW", "REVIEW", "EXPORT"]) {
+    for (const n of ["INTERVIEW", "HUMAN_ACCEPTANCE", "EXPORT"]) {
       expect((outcome.outputs[n] as Dict)["releaseState"], n).toBe("DRAFT");
     }
+    expect(outcome.outputs["HUMAN_ACCEPTANCE"]).toMatchObject({
+      decision: "REJECT",
+      decision_recorded: true,
+      package_bound: true,
+    });
+    expect(outcome.outputs["EXPORT"]).toMatchObject({
+      human_decided: true,
+      human_accepted: false,
+    });
     expect((outcome.outputs["EXPORT"] as Dict)["downloadable"]).toBe(true);
     expect(
       ((outcome.outputs["EXPORT"] as Dict)["warnings"] as string[]).some((w) =>
         w.includes("非阻塞问题"),
       ),
     ).toBe(true);
-    expect(completedNodes(journal)).toEqual(new Set(buildFdeEngagementDag().topoOrder()));
-    expect(backend.calls).toEqual([]);
+    expect(completedNodes(first.journal)).toEqual(new Set(buildFdeEngagementDag().topoOrder()));
+    expect(first.backend.calls).toEqual([]);
+    expect(resumed.backend.calls).toEqual([]);
+  });
+});
+
+// ══════════════════════════════════════════════════════════════════
+//  只读并行：Danger 是前提，不是装饰
+// ══════════════════════════════════════════════════════════════════
+
+describe("converse / 只读并行", () => {
+  /** 一个能按名字给 danger 的假注册表，外加调用顺序观测点。 */
+  function toolsWith(
+    dangers: Record<string, number>,
+    log: { order: string[]; concurrent: number; peak: number },
+  ) {
+    return {
+      forScope: () =>
+        Object.entries(dangers).map(([name, danger]) => ({
+          spec: { render: () => name, name, danger },
+        })),
+      async call(name: string) {
+        log.order.push(name);
+        log.concurrent += 1;
+        log.peak = Math.max(log.peak, log.concurrent);
+        await new Promise((r) => setTimeout(r, 5));
+        log.concurrent -= 1;
+        return { ok: name };
+      },
+    };
+  }
+
+  /** 让 gateway 先给一个批，再给一个 answer。 */
+  function gatewayGiving(first: Record<string, unknown>) {
+    let n = 0;
+    return {
+      async call() {
+        n += 1;
+        return {
+          data:
+            n === 1
+              ? { thought: "一起查", kind: "tool", tool: "", args_json: "{}", ...first }
+              : { thought: "答", kind: "answer", tool: "", args_json: "{}", answer: "好了" },
+          usd: 0,
+        };
+      },
+    };
+  }
+
+  it("三个只读工具**真的并发跑** —— 这才是 3.7× 的来源", async () => {
+    const log = { order: [] as string[], concurrent: 0, peak: 0 };
+    const agent = new ConversationAgent({
+      gateway: gatewayGiving({
+        tools: [
+          { tool: "ui.table", args_json: "{}" },
+          { tool: "flow.query", args_json: "{}" },
+          { tool: "question.next", args_json: "{}" },
+        ],
+      }) as never,
+      tools: toolsWith({ "ui.table": 0, "flow.query": 0, "question.next": 0 }, log) as never,
+      scope: "converse",
+    });
+    const turn = await agent.run("现在什么情况", { ctx: { turnId: "t1" } });
+
+    expect(log.order).toHaveLength(3);
+    expect(log.peak).toBe(3); // 同时在跑 —— 不是串行
+    expect(turn.steps[0]!["tool"]).toBe("ui.table + flow.query + question.next");
+  });
+
+  it("**混进一个会改东西的就整批退回串行** —— 这条是并行成立的唯一前提", async () => {
+    const log = { order: [] as string[], concurrent: 0, peak: 0 };
+    const agent = new ConversationAgent({
+      gateway: gatewayGiving({
+        // oir.add 是 WRITE_LOCAL（danger 2）
+        tools: [
+          { tool: "ui.table", args_json: "{}" },
+          { tool: "oir.add", args_json: "{}" },
+        ],
+        tool: "ui.table",
+        args_json: "{}",
+      }) as never,
+      tools: toolsWith({ "ui.table": 0, "oir.add": 2 }, log) as never,
+      scope: "converse",
+    });
+    await agent.run("加个对象", { ctx: { turnId: "t1" } });
+
+    // 退回串行：只跑了单工具那条路，且并发峰值是 1
+    expect(log.peak).toBe(1);
+    expect(log.order).toEqual(["ui.table"]);
+  });
+
+  it("**认不出的工具也退回串行** —— fail closed，不拿不确定的东西去并发", async () => {
+    const log = { order: [] as string[], concurrent: 0, peak: 0 };
+    const agent = new ConversationAgent({
+      gateway: gatewayGiving({
+        tools: [
+          { tool: "ui.table", args_json: "{}" },
+          { tool: "根本没这个工具", args_json: "{}" },
+        ],
+        tool: "ui.table",
+        args_json: "{}",
+      }) as never,
+      tools: toolsWith({ "ui.table": 0 }, log) as never,
+      scope: "converse",
+    });
+    await agent.run("查点东西", { ctx: { turnId: "t1" } });
+    expect(log.peak).toBe(1);
+  });
+
+  it("只给一个工具时不走并行路（一个也谈不上并行）", async () => {
+    const log = { order: [] as string[], concurrent: 0, peak: 0 };
+    const agent = new ConversationAgent({
+      gateway: gatewayGiving({
+        tools: [{ tool: "ui.table", args_json: "{}" }],
+        tool: "ui.table",
+        args_json: "{}",
+      }) as never,
+      tools: toolsWith({ "ui.table": 0 }, log) as never,
+      scope: "converse",
+    });
+    const turn = await agent.run("查一下", { ctx: { turnId: "t1" } });
+    expect(turn.steps[0]!["tool"]).toBe("ui.table"); // 不是 "ui.table + ..."
+  });
+
+  it("批里某个工具失败不拖垮其它 —— 各自的错各自回给模型", async () => {
+    const log = { order: [] as string[], concurrent: 0, peak: 0 };
+    const tools = toolsWith({ a: 0, b: 0 }, log);
+    const orig = tools.call.bind(tools);
+    tools.call = async (name: string) => {
+      if (name === "b") throw new Error("b 挂了");
+      return await orig(name);
+    };
+    const agent = new ConversationAgent({
+      gateway: gatewayGiving({
+        tools: [
+          { tool: "a", args_json: "{}" },
+          { tool: "b", args_json: "{}" },
+        ],
+      }) as never,
+      tools: tools as never,
+      scope: "converse",
+    });
+    const turn = await agent.run("查", { ctx: { turnId: "t1" } });
+    const obs = String(turn.steps[0]!["observation"]);
+    expect(obs).toContain("b 挂了");
+    expect(obs).toContain("ok");
+  });
+});
+
+describe("converse / 同轮副作用去重", () => {
+  function renderTools(
+    result: (n: number, args: Dict) => unknown = () => ({ 已生成: "视觉版.png" }),
+  ) {
+    const calls: Dict[] = [];
+    return {
+      calls,
+      port: {
+        forScope: () => [{
+          spec: {
+            render: () => "flow.render",
+            name: "flow.render",
+            danger: Danger.WRITE_LOCAL,
+          },
+        }],
+        async call(_name: string, args: Dict) {
+          calls.push(args);
+          return result(calls.length, args);
+        },
+      },
+    };
+  }
+
+  const renderStep = (style: string) => ({
+    thought: "调用图像模型生成指定风格的流程图",
+    kind: "tool",
+    tool: "flow.render",
+    args_json: JSON.stringify({ style }),
+  });
+
+  it("相同参数成功一次后立刻阻止重复执行，不再生成多个同图版本", async () => {
+    const tools = renderTools();
+    const gateway = new ScriptGateway([
+      renderStep("flat-modern"),
+      renderStep("flat-modern"),
+      // 若闸没生效，循环才会读到这条；测试同时钉住它应提前结束。
+      renderStep("flat-modern"),
+    ]);
+    const agent = new ConversationAgent({
+      gateway,
+      tools: tools.port as never,
+      scope: "converse",
+      strategy: "react",
+      maxSteps: 6,
+    });
+
+    const turn = await agent.run("换成扁平现代风格", { ctx: { turnId: "dup-1" } });
+
+    expect(tools.calls).toHaveLength(1);
+    expect(gateway.calls).toHaveLength(2);
+    expect(turn.answer).toContain("已阻止本轮重复调用");
+    expect(turn.answer).toContain("风格、主题、布局或视觉要求");
+    expect(turn.steps.some((x) => x["duplicate_blocked"] === true)).toBe(true);
+  });
+
+  it("第一次失败不记作成功，允许用相同参数重试", async () => {
+    const tools = renderTools((n) => n === 1 ? { error: "图像网关临时失败" } : { 已生成: "成功.png" });
+    const gateway = new ScriptGateway([
+      renderStep("editorial"),
+      renderStep("editorial"),
+      {
+        thought: "第二次已经成功，可以如实回答",
+        kind: "answer",
+        tool: "",
+        args_json: "{}",
+        answer: "已经生成成功。",
+        citations: [],
+        confidence: 0.6,
+      },
+    ]);
+    const agent = new ConversationAgent({
+      gateway,
+      tools: tools.port as never,
+      scope: "converse",
+      strategy: "react",
+      maxSteps: 4,
+    });
+
+    const turn = await agent.run("换成编辑插画风格", { ctx: { turnId: "retry-1" } });
+
+    expect(tools.calls).toHaveLength(2);
+    expect(turn.answer).toBe("已经生成成功。");
+    expect(turn.steps.some((x) => x["duplicate_blocked"] === true)).toBe(false);
+  });
+
+  it("只要求一张时，即使模型偷偷换了参数也只能付费生成一次", async () => {
+    const tools = renderTools();
+    const gateway = new ScriptGateway([
+      renderStep("minimal"),
+      renderStep("isometric"),
+      renderStep("editorial"),
+    ]);
+    const agent = new ConversationAgent({
+      gateway,
+      tools: tools.port as never,
+      scope: "converse",
+      strategy: "react",
+      maxSteps: 6,
+    });
+
+    const turn = await agent.run("换一种图片风格", { ctx: { turnId: "single-image-1" } });
+
+    expect(tools.calls).toEqual([{ style: "minimal" }]);
+    expect(gateway.calls).toHaveLength(2);
+    expect(turn.answer).toContain("已阻止本轮重复调用");
+  });
+
+  it("同一工具但风格参数不同会分别执行", async () => {
+    const tools = renderTools();
+    const gateway = new ScriptGateway([
+      renderStep("minimal"),
+      renderStep("isometric"),
+      {
+        thought: "两个明确不同的视觉版本都已生成",
+        kind: "answer",
+        tool: "",
+        args_json: "{}",
+        answer: "两个不同风格版本都已生成。",
+        citations: [],
+        confidence: 0.6,
+      },
+    ]);
+    const agent = new ConversationAgent({
+      gateway,
+      tools: tools.port as never,
+      scope: "converse",
+      strategy: "react",
+      maxSteps: 4,
+    });
+
+    await agent.run("生成两个不同风格", { ctx: { turnId: "styles-1" } });
+
+    expect(tools.calls).toEqual([{ style: "minimal" }, { style: "isometric" }]);
   });
 });

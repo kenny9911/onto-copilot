@@ -87,9 +87,7 @@
     "confidence": 0.4,
     "evidence": []
    },
-   "objects": [
-    "\\n"
-   ],
+   "objects": [],
    "endpoint": "",
    "status": "candidate",
    "grounded": true
@@ -172,9 +170,7 @@
     "confidence": 0.4,
     "evidence": []
    },
-   "objects": [
-    "\\n"
-   ],
+   "objects": [],
    "endpoint": "",
    "status": "candidate",
    "grounded": true
@@ -257,9 +253,7 @@
     "confidence": 0.4,
     "evidence": []
    },
-   "objects": [
-    "\\n"
-   ],
+   "objects": [],
    "endpoint": "",
    "status": "candidate",
    "grounded": true

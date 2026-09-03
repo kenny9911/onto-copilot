@@ -202,6 +202,13 @@ export interface AppendEventOpts {
 export interface ReadEventsOpts {
   /** Python 默认 0 = 从头读。 */
   readonly since?: number | undefined;
+  /** 按 seq 升序最多取 N 条。缺席 = 不限，与加它之前**逐字一致**。
+   *
+   * **为什么是加字段而不是新开一个方法**：`REPO_METHOD_NAMES` 被
+   * `store.repo.protocol.test.ts` 钉死在固定个数上，期望值来自
+   * `golden/python.frozen.json` —— 多一个方法就要同时改 golden 和那两条断言。
+   * 而分页本来就是"读取参数"，不是一项新能力。 */
+  readonly limit?: number | undefined;
 }
 
 export interface FinishRunOpts {

@@ -457,7 +457,9 @@ describe("upgrade", () => {
   it("每跑完一个迁移就立刻写版本行（脚本 → INSERT 交替），失败时停在哪一目了然", async () => {
     const { eng } = await runScenario(scenario("partial"));
     const shape = eng.trace.filter((t) => isScript(t) || isInsert(t)).map((t) => t.op);
-    expect(shape).toEqual(Array.from({ length: 16 }, (_, i) => (i % 2 ? "execute" : "script")));
+    // partial 场景已经应用 1..5；剩余迁移必须逐个保持 script → INSERT 交替。
+    const pending = G.catalog.filter((migration) => migration.version > 5).length;
+    expect(shape).toEqual(Array.from({ length: pending * 2 }, (_, i) => (i % 2 ? "execute" : "script")));
     const inserts = eng.trace.filter(isInsert);
     expect(inserts.map((t) => t.params)).toEqual(
       G.catalog.slice(5).map((c) => [c.version, c.name, c.checksum]),

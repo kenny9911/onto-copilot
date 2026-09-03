@@ -514,7 +514,13 @@ export class MemoryRepo implements Repo {
     const row = this.sessions.get(sid);
     if (row === undefined || LIVE_BUILD_STATUSES.has(row.status)) return false;
     const build = this.buildLeases.get(sid);
-    if (build !== undefined && build.expiresAt > ts) return false;
+    // **已请求取消的 build 租约不挡编辑** —— 与 PgRepo 同一个条件
+    // （pg.ts 的 isNull(cancel_requested_at)）。上一版漏了这半句：
+    // 用户点了「停止」之后，SQLite/内存档上编辑仍被挡到租约自然过期，
+    // 而 PG 档上立刻能编 —— 同一个动作两种后端两种表现。
+    if (build !== undefined && build.expiresAt > ts && build.cancelRequestedAt === null) {
+      return false;
+    }
     const chat = this.chatLeases.get(sid);
     // 同一个 owner 的 chat 租约不挡自己 —— 改写本来就是从对话里发起的。
     if (chat !== undefined && chat.owner !== owner && chat.expiresAt > ts) return false;
@@ -1019,7 +1025,12 @@ export class MemoryRepo implements Repo {
   async readEvents(sid: string, opts?: ReadEventsOpts): Promise<EventRow[]> {
     // Array.slice 与 Python 的列表切片在负数起点上语义相同（都从尾部数），
     // 越界也同样给空数组 —— 这里可以直接对应，不需要额外夹紧。
-    return (this.eventsBag.get(sid) ?? []).slice(opts?.since ?? 0);
+    //
+    // **注意 since 的语义两个实现本来就不同**：Pg 判的是 `seq >= since`，这里是
+    // 数组下标。内存里 seq 恰好等于下标所以碰巧一致 —— 加 limit 不加剧这个分叉，
+    // 但别把两者当等价物去写测试。
+    const rows = (this.eventsBag.get(sid) ?? []).slice(opts?.since ?? 0);
+    return opts?.limit === undefined ? rows : rows.slice(0, opts.limit);
   }
 
   async countEvents(sid: string): Promise<number> {

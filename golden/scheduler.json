@@ -460,10 +460,14 @@
      "node_id": null,
      "ref": null,
      "payload": {
-      "dag": "t"
+      "dag": "t",
+      "topology_fp": "<fp>",
+      "node_count": "<node_count>"
      },
      "payload_keys": [
-      "dag"
+      "dag",
+      "topology_fp",
+      "node_count"
      ]
     },
     {
@@ -628,10 +632,14 @@
      "node_id": null,
      "ref": null,
      "payload": {
-      "dag": "t"
+      "dag": "t",
+      "topology_fp": "<fp>",
+      "node_count": "<node_count>"
      },
      "payload_keys": [
-      "dag"
+      "dag",
+      "topology_fp",
+      "node_count"
      ]
     },
     {
@@ -763,10 +771,14 @@
      "node_id": null,
      "ref": null,
      "payload": {
-      "dag": "t"
+      "dag": "t",
+      "topology_fp": "<fp>",
+      "node_count": "<node_count>"
      },
      "payload_keys": [
-      "dag"
+      "dag",
+      "topology_fp",
+      "node_count"
      ]
     },
     {
@@ -898,10 +910,14 @@
      "node_id": null,
      "ref": null,
      "payload": {
-      "dag": "t"
+      "dag": "t",
+      "topology_fp": "<fp>",
+      "node_count": "<node_count>"
      },
      "payload_keys": [
-      "dag"
+      "dag",
+      "topology_fp",
+      "node_count"
      ]
     },
     {
@@ -990,10 +1006,14 @@
      "node_id": null,
      "ref": null,
      "payload": {
-      "dag": "t"
+      "dag": "t",
+      "topology_fp": "<fp>",
+      "node_count": "<node_count>"
      },
      "payload_keys": [
-      "dag"
+      "dag",
+      "topology_fp",
+      "node_count"
      ]
     },
     {
@@ -1065,10 +1085,14 @@
      "node_id": null,
      "ref": null,
      "payload": {
-      "dag": "t"
+      "dag": "t",
+      "topology_fp": "<fp>",
+      "node_count": "<node_count>"
      },
      "payload_keys": [
-      "dag"
+      "dag",
+      "topology_fp",
+      "node_count"
      ]
     },
     {
@@ -1183,10 +1207,14 @@
      "node_id": null,
      "ref": null,
      "payload": {
-      "dag": "t"
+      "dag": "t",
+      "topology_fp": "<fp>",
+      "node_count": "<node_count>"
      },
      "payload_keys": [
-      "dag"
+      "dag",
+      "topology_fp",
+      "node_count"
      ]
     },
     {
@@ -1302,10 +1330,14 @@
      "node_id": null,
      "ref": null,
      "payload": {
-      "dag": "t"
+      "dag": "t",
+      "topology_fp": "<fp>",
+      "node_count": "<node_count>"
      },
      "payload_keys": [
-      "dag"
+      "dag",
+      "topology_fp",
+      "node_count"
      ]
     },
     {
@@ -1432,10 +1464,14 @@
      "node_id": null,
      "ref": null,
      "payload": {
-      "dag": "t"
+      "dag": "t",
+      "topology_fp": "<fp>",
+      "node_count": "<node_count>"
      },
      "payload_keys": [
-      "dag"
+      "dag",
+      "topology_fp",
+      "node_count"
      ]
     },
     {
@@ -1574,10 +1610,14 @@
      "node_id": null,
      "ref": null,
      "payload": {
-      "dag": "t"
+      "dag": "t",
+      "topology_fp": "<fp>",
+      "node_count": "<node_count>"
      },
      "payload_keys": [
-      "dag"
+      "dag",
+      "topology_fp",
+      "node_count"
      ]
     },
     {
@@ -1705,10 +1745,14 @@
      "node_id": null,
      "ref": null,
      "payload": {
-      "dag": "t"
+      "dag": "t",
+      "topology_fp": "<fp>",
+      "node_count": "<node_count>"
      },
      "payload_keys": [
-      "dag"
+      "dag",
+      "topology_fp",
+      "node_count"
      ]
     },
     {
@@ -1826,10 +1870,14 @@
      "node_id": null,
      "ref": null,
      "payload": {
-      "dag": "t"
+      "dag": "t",
+      "topology_fp": "<fp>",
+      "node_count": "<node_count>"
      },
      "payload_keys": [
-      "dag"
+      "dag",
+      "topology_fp",
+      "node_count"
      ]
     },
     {
@@ -1967,10 +2015,14 @@
      "node_id": null,
      "ref": null,
      "payload": {
-      "dag": "t"
+      "dag": "t",
+      "topology_fp": "<fp>",
+      "node_count": "<node_count>"
      },
      "payload_keys": [
-      "dag"
+      "dag",
+      "topology_fp",
+      "node_count"
      ]
     },
     {
@@ -2069,10 +2121,14 @@
      "node_id": null,
      "ref": null,
      "payload": {
-      "dag": "t"
+      "dag": "t",
+      "topology_fp": "<fp>",
+      "node_count": "<node_count>"
      },
      "payload_keys": [
-      "dag"
+      "dag",
+      "topology_fp",
+      "node_count"
      ]
     },
     {
@@ -2180,7 +2236,8 @@
      "actions": [
       "pass",
       "revise",
-      "abort"
+      "abort",
+      "round_trip"
      ]
     },
     "error": "",
@@ -2214,10 +2271,14 @@
      "node_id": null,
      "ref": null,
      "payload": {
-      "dag": "t"
+      "dag": "t",
+      "topology_fp": "<fp>",
+      "node_count": "<node_count>"
      },
      "payload_keys": [
-      "dag"
+      "dag",
+      "topology_fp",
+      "node_count"
      ]
     },
     {
@@ -2258,7 +2319,8 @@
       "actions": [
        "pass",
        "revise",
-       "abort"
+       "abort",
+       "round_trip"
       ]
      },
      "payload_keys": [
@@ -2375,10 +2437,14 @@
      "node_id": null,
      "ref": null,
      "payload": {
-      "dag": "t"
+      "dag": "t",
+      "topology_fp": "<fp>",
+      "node_count": "<node_count>"
      },
      "payload_keys": [
-      "dag"
+      "dag",
+      "topology_fp",
+      "node_count"
      ]
     },
     {
@@ -2523,10 +2589,14 @@
      "node_id": null,
      "ref": null,
      "payload": {
-      "dag": "t"
+      "dag": "t",
+      "topology_fp": "<fp>",
+      "node_count": "<node_count>"
      },
      "payload_keys": [
-      "dag"
+      "dag",
+      "topology_fp",
+      "node_count"
      ]
     },
     {
@@ -2675,10 +2745,14 @@
      "node_id": null,
      "ref": null,
      "payload": {
-      "dag": "t"
+      "dag": "t",
+      "topology_fp": "<fp>",
+      "node_count": "<node_count>"
      },
      "payload_keys": [
-      "dag"
+      "dag",
+      "topology_fp",
+      "node_count"
      ]
     },
     {
@@ -2749,10 +2823,14 @@
      "node_id": null,
      "ref": null,
      "payload": {
-      "dag": "t"
+      "dag": "t",
+      "topology_fp": "<fp>",
+      "node_count": "<node_count>"
      },
      "payload_keys": [
-      "dag"
+      "dag",
+      "topology_fp",
+      "node_count"
      ]
     },
     {
@@ -2874,10 +2952,14 @@
      "node_id": null,
      "ref": null,
      "payload": {
-      "dag": "t"
+      "dag": "t",
+      "topology_fp": "<fp>",
+      "node_count": "<node_count>"
      },
      "payload_keys": [
-      "dag"
+      "dag",
+      "topology_fp",
+      "node_count"
      ]
     },
     {
@@ -3057,10 +3139,14 @@
      "node_id": null,
      "ref": null,
      "payload": {
-      "dag": "t"
+      "dag": "t",
+      "topology_fp": "<fp>",
+      "node_count": "<node_count>"
      },
      "payload_keys": [
-      "dag"
+      "dag",
+      "topology_fp",
+      "node_count"
      ]
     },
     {
@@ -3149,10 +3235,14 @@
      "node_id": null,
      "ref": null,
      "payload": {
-      "dag": "t"
+      "dag": "t",
+      "topology_fp": "<fp>",
+      "node_count": "<node_count>"
      },
      "payload_keys": [
-      "dag"
+      "dag",
+      "topology_fp",
+      "node_count"
      ]
     },
     {
@@ -3279,10 +3369,14 @@
      "node_id": null,
      "ref": null,
      "payload": {
-      "dag": "t"
+      "dag": "t",
+      "topology_fp": "<fp>",
+      "node_count": "<node_count>"
      },
      "payload_keys": [
-      "dag"
+      "dag",
+      "topology_fp",
+      "node_count"
      ]
     },
     {
@@ -3386,10 +3480,14 @@
      "node_id": null,
      "ref": null,
      "payload": {
-      "dag": "t"
+      "dag": "t",
+      "topology_fp": "<fp>",
+      "node_count": "<node_count>"
      },
      "payload_keys": [
-      "dag"
+      "dag",
+      "topology_fp",
+      "node_count"
      ]
     },
     {
@@ -3507,10 +3605,14 @@
      "node_id": null,
      "ref": null,
      "payload": {
-      "dag": "t"
+      "dag": "t",
+      "topology_fp": "<fp>",
+      "node_count": "<node_count>"
      },
      "payload_keys": [
-      "dag"
+      "dag",
+      "topology_fp",
+      "node_count"
      ]
     },
     {
@@ -3571,6 +3673,14 @@
      ]
     }
    ]
+  }
+ ],
+ "deliberate_changes": [
+  {
+   "id": "run-started-topology-fp",
+   "what": "RUN_STARTED payload 新增 topology_fp（结构指纹，16 位 hex）与 node_count；golden 里以 <fp>/<node_count> 占位，TS 测试先断言真实形状再归一",
+   "python_was": "payload 只有 dag 一个键",
+   "why": "恢复一轮跑批时没人核对『现在这张图』和『检查点落下来那张』是否同一张。嵌套子 DAG 按材料内容运行时编译，材料一变图就变，旧检查点混新拓扑重放是无声错账。调度器现在在发 RUN_STARTED 前先比对本 journal 同名 DAG 上一枚指纹，不一致 fail closed。指纹只看结构（节点 id + 解析后依赖边），不含 checkpoint_version —— §7.5 掺盐 fork 是『同图脱检查点』，指纹掺盐会把 fork 一律误拦。"
   }
  ]
 }
