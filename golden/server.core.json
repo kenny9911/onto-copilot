@@ -1,3929 +1,3931 @@
 {
-  "card_event": {
-    "cap": 12,
-    "kinds": [
-      "ui.table",
-      "export.ready"
-    ]
-  },
-  "chat_recorder_run_id": [
-    {
-      "input": {
-        "text": "你好"
-      },
-      "kind": "reason",
-      "name": "simple",
-      "run_id": "chat_sess-1_reason_ac72dedbe8e0d53d"
-    },
-    {
-      "input": [
-        "a",
-        "b"
-      ],
-      "kind": "wording",
-      "name": "list_input",
-      "run_id": "chat_sess-1_wording_0473ef2dc0d324ab"
-    },
-    {
-      "input": null,
-      "kind": "recommend",
-      "name": "empty",
-      "run_id": "chat_sess-1_recommend_74234e98afe7498f"
-    }
-  ],
-  "lease_ttl": [
-    {
-      "build_heartbeat": 10.0,
-      "chat_heartbeat": 5.0,
-      "env": null,
-      "ttl": 30.0
-    },
-    {
-      "build_heartbeat": 10.0,
-      "chat_heartbeat": 5.0,
-      "env": "30",
-      "ttl": 30.0
-    },
-    {
-      "build_heartbeat": 1.6666666666666667,
-      "chat_heartbeat": 1.6666666666666667,
-      "env": "5",
-      "ttl": 5.0
-    },
-    {
-      "build_heartbeat": 1.6666666666666667,
-      "chat_heartbeat": 1.6666666666666667,
-      "env": "1",
-      "ttl": 5.0
-    },
-    {
-      "build_heartbeat": 1.6666666666666667,
-      "chat_heartbeat": 1.6666666666666667,
-      "env": "0",
-      "ttl": 5.0
-    },
-    {
-      "build_heartbeat": 1.6666666666666667,
-      "chat_heartbeat": 1.6666666666666667,
-      "env": "-3",
-      "ttl": 5.0
-    },
-    {
-      "build_heartbeat": 10.0,
-      "chat_heartbeat": 5.0,
-      "env": "600",
-      "ttl": 600.0
-    },
-    {
-      "build_heartbeat": 10.0,
-      "chat_heartbeat": 5.0,
-      "env": "abc",
-      "ttl": 30.0
-    },
-    {
-      "build_heartbeat": 10.0,
-      "chat_heartbeat": 5.0,
-      "env": "",
-      "ttl": 30.0
-    },
-    {
-      "build_heartbeat": 4.166666666666667,
-      "chat_heartbeat": 4.166666666666667,
-      "env": "12.5",
-      "ttl": 12.5
-    }
-  ],
-  "money_failure": [
-    {
-      "name": "quota_direct",
-      "signal": [
-        "quota",
-        "insufficient_quota: 余额不足"
-      ]
-    },
-    {
-      "name": "cap_direct",
-      "signal": [
-        "cap",
-        ""
-      ]
-    },
-    {
-      "name": "tokens_not_money",
-      "signal": [
-        "",
-        ""
-      ]
-    },
-    {
-      "name": "quota_via_cause",
-      "signal": [
-        "quota",
-        "insufficient_quota: 余额不足"
-      ]
-    },
-    {
-      "name": "cap_via_two_causes",
-      "signal": [
-        "cap",
-        ""
-      ]
-    },
-    {
-      "name": "flattened_quota_text",
-      "signal": [
-        "quota",
-        "QuotaExhausted: openai/gpt-5.5 网关账户余额/配额已耗尽（HTTP 402）：insufficient_quota: 余额不足"
-      ]
-    },
-    {
-      "name": "flattened_cap_text",
-      "signal": [
-        "cap",
-        ""
-      ]
-    },
-    {
-      "name": "unrelated",
-      "signal": [
-        "",
-        ""
-      ]
-    }
-  ],
-  "run_id": [
-    {
-      "files": [],
-      "name": "empty",
-      "run_id": "run_sess-1_4f53cda1"
-    },
-    {
-      "files": [
-        {
-          "name": "a.xlsx",
-          "path": "/x/a.xlsx",
-          "sha256": "aa",
-          "size": 1
-        }
-      ],
-      "name": "one",
-      "run_id": "run_sess-1_4339892a"
-    },
-    {
-      "files": [
-        {
-          "name": "b.csv",
-          "path": "/x/b.csv",
-          "sha256": "bb",
-          "size": 2
-        },
-        {
-          "name": "a.xlsx",
-          "path": "/x/a.xlsx",
-          "sha256": "aa",
-          "size": 1
-        }
-      ],
-      "name": "two",
-      "run_id": "run_sess-1_a5d35962"
-    },
-    {
-      "files": [
-        {
-          "name": "a.xlsx",
-          "path": "/x/a.xlsx",
-          "sha256": "aa",
-          "size": 1
-        },
-        {
-          "name": "b.csv",
-          "path": "/x/b.csv",
-          "sha256": "bb",
-          "size": 2
-        }
-      ],
-      "name": "two_reordered",
-      "run_id": "run_sess-1_a5d35962"
-    },
-    {
-      "files": [
-        {
-          "name": "gone.xlsx",
-          "path": "/nonexistent/__gone__.xlsx",
-          "sha256": "missing:gone.xlsx:7",
-          "size": 7
-        }
-      ],
-      "name": "missing",
-      "run_id": "run_sess-1_83fdbcb6"
-    },
-    {
-      "files": [
-        {
-          "name": "材料 一.xlsx",
-          "path": "/x/1",
-          "sha256": "cc",
-          "size": 3
-        }
-      ],
-      "name": "cjk",
-      "run_id": "run_sess-1_94f80cbf"
-    }
-  ],
-  "session_brief": [
-    {
-      "brief": {
-        "created": 1768480496.0,
-        "error": "",
-        "files": 0,
-        "id": "sess-1",
-        "mode": "work",
-        "project": "",
-        "project_id": "",
-        "status": "idle",
-        "title": "新建会话"
-      },
-      "name": "defaults"
-    },
-    {
-      "brief": {
-        "created": 1768480496.0,
-        "error": "boom",
-        "files": 1,
-        "id": "sess-2",
-        "mode": "chat",
-        "project": "ACME",
-        "project_id": "p1",
-        "status": "done",
-        "title": "订单主数据"
-      },
-      "name": "populated"
-    }
-  ],
-  "usage_report": [
-    {
-      "name": "day/all",
-      "query": [
-        {
-          "limit": 5000,
-          "owner": null,
-          "since": 1768048496.0
-        }
-      ],
-      "report": {
-        "bucket": "day",
-        "by_kind": [
-          {
-            "calls": 2,
-            "name": "build",
-            "tok_in": 1100,
-            "tok_out": 2050,
-            "tokens": 3165
-          },
-          {
-            "calls": 1,
-            "name": "chat",
-            "tok_in": 7,
-            "tok_out": 3,
-            "tokens": 10
-          }
-        ],
-        "by_model": [
-          {
-            "calls": 1,
-            "name": "google/gemini-3.5-flash",
-            "tok_in": 1000,
-            "tok_out": 2000,
-            "tokens": 3000
-          },
-          {
-            "calls": 2,
-            "name": "openai/gpt-5.5",
-            "tok_in": 107,
-            "tok_out": 53,
-            "tokens": 175
-          }
-        ],
-        "by_owner": [
-          {
-            "calls": 3,
-            "name": "",
-            "tok_in": 1107,
-            "tok_out": 2053,
-            "tokens": 3175
-          }
-        ],
-        "cost_note": "partial",
-        "days": 5,
-        "rows": [
-          {
-            "attempts": 1,
-            "kind": "build",
-            "model": "openai/gpt-5.5",
-            "node": "n1",
-            "session_id": "s1",
-            "status": "ok",
-            "tok_in": 100,
-            "tok_out": 50,
-            "tokens": 165,
-            "ts": 1768480496.0
-          },
-          {
-            "attempts": 1,
-            "kind": "chat",
-            "model": "openai/gpt-5.5",
-            "node": "n2",
-            "session_id": "s1",
-            "status": "failed",
-            "tok_in": 7,
-            "tok_out": 3,
-            "tokens": 10,
-            "ts": 1768476896.0
-          },
-          {
-            "attempts": 3,
-            "kind": "build",
-            "model": "google/gemini-3.5-flash",
-            "node": "n3",
-            "session_id": "s2",
-            "status": "ok",
-            "tok_in": 1000,
-            "tok_out": 2000,
-            "tokens": 3000,
-            "ts": 1768307696.0
-          }
-        ],
-        "series": [
-          {
-            "calls": 0,
-            "t": "2026-01-10",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-11",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-12",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 1,
-            "t": "2026-01-13",
-            "tok_in": 1000,
-            "tok_out": 2000,
-            "tokens": 3000
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-14",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 2,
-            "t": "2026-01-15",
-            "tok_in": 107,
-            "tok_out": 53,
-            "tokens": 175
-          }
-        ],
-        "total": {
-          "billed_calls": 2,
-          "cache_read": 10,
-          "cache_write": 5,
-          "calls": 3,
-          "failed": 1,
-          "tok_in": 1107,
-          "tok_out": 2053,
-          "tokens": 3175,
-          "usd_billed": 0.52
-        },
-        "truncated": false
-      }
-    },
-    {
-      "name": "hour",
-      "query": [
-        {
-          "limit": 5000,
-          "owner": null,
-          "since": 1768394096.0
-        }
-      ],
-      "report": {
-        "bucket": "hour",
-        "by_kind": [
-          {
-            "calls": 2,
-            "name": "build",
-            "tok_in": 1100,
-            "tok_out": 2050,
-            "tokens": 3165
-          },
-          {
-            "calls": 1,
-            "name": "chat",
-            "tok_in": 7,
-            "tok_out": 3,
-            "tokens": 10
-          }
-        ],
-        "by_model": [
-          {
-            "calls": 1,
-            "name": "google/gemini-3.5-flash",
-            "tok_in": 1000,
-            "tok_out": 2000,
-            "tokens": 3000
-          },
-          {
-            "calls": 2,
-            "name": "openai/gpt-5.5",
-            "tok_in": 107,
-            "tok_out": 53,
-            "tokens": 175
-          }
-        ],
-        "by_owner": [
-          {
-            "calls": 3,
-            "name": "",
-            "tok_in": 1107,
-            "tok_out": 2053,
-            "tokens": 3175
-          }
-        ],
-        "cost_note": "partial",
-        "days": 1,
-        "rows": [
-          {
-            "attempts": 1,
-            "kind": "build",
-            "model": "openai/gpt-5.5",
-            "node": "n1",
-            "session_id": "s1",
-            "status": "ok",
-            "tok_in": 100,
-            "tok_out": 50,
-            "tokens": 165,
-            "ts": 1768480496.0
-          },
-          {
-            "attempts": 1,
-            "kind": "chat",
-            "model": "openai/gpt-5.5",
-            "node": "n2",
-            "session_id": "s1",
-            "status": "failed",
-            "tok_in": 7,
-            "tok_out": 3,
-            "tokens": 10,
-            "ts": 1768476896.0
-          },
-          {
-            "attempts": 3,
-            "kind": "build",
-            "model": "google/gemini-3.5-flash",
-            "node": "n3",
-            "session_id": "s2",
-            "status": "ok",
-            "tok_in": 1000,
-            "tok_out": 2000,
-            "tokens": 3000,
-            "ts": 1768307696.0
-          }
-        ],
-        "series": [
-          {
-            "calls": 0,
-            "t": "2026-01-14 12:00",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-14 13:00",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-14 14:00",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-14 15:00",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-14 16:00",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-14 17:00",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-14 18:00",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-14 19:00",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-14 20:00",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-14 21:00",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-14 22:00",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-14 23:00",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-15 00:00",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-15 01:00",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-15 02:00",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-15 03:00",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-15 04:00",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-15 05:00",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-15 06:00",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-15 07:00",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-15 08:00",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-15 09:00",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-15 10:00",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 1,
-            "t": "2026-01-15 11:00",
-            "tok_in": 7,
-            "tok_out": 3,
-            "tokens": 10
-          },
-          {
-            "calls": 1,
-            "t": "2026-01-15 12:00",
-            "tok_in": 100,
-            "tok_out": 50,
-            "tokens": 165
-          }
-        ],
-        "total": {
-          "billed_calls": 2,
-          "cache_read": 10,
-          "cache_write": 5,
-          "calls": 3,
-          "failed": 1,
-          "tok_in": 1107,
-          "tok_out": 2053,
-          "tokens": 3175,
-          "usd_billed": 0.52
-        },
-        "truncated": false
-      }
-    },
-    {
-      "name": "empty",
-      "query": [
-        {
-          "limit": 5000,
-          "owner": null,
-          "since": 1768221296.0
-        }
-      ],
-      "report": {
-        "bucket": "day",
-        "by_kind": [],
-        "by_model": [],
-        "by_owner": [],
-        "cost_note": "none",
-        "days": 3,
-        "rows": [],
-        "series": [
-          {
-            "calls": 0,
-            "t": "2026-01-12",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-13",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-14",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-15",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          }
-        ],
-        "total": {
-          "billed_calls": 0,
-          "cache_read": 0,
-          "cache_write": 0,
-          "calls": 0,
-          "failed": 0,
-          "tok_in": 0,
-          "tok_out": 0,
-          "tokens": 0,
-          "usd_billed": 0.0
-        },
-        "truncated": false
-      }
-    },
-    {
-      "name": "billed",
-      "query": [
-        {
-          "limit": 5000,
-          "owner": null,
-          "since": 1768307696.0
-        }
-      ],
-      "report": {
-        "bucket": "day",
-        "by_kind": [
-          {
-            "calls": 1,
-            "name": "build",
-            "tok_in": 100,
-            "tok_out": 50,
-            "tokens": 165
-          }
-        ],
-        "by_model": [
-          {
-            "calls": 1,
-            "name": "openai/gpt-5.5",
-            "tok_in": 100,
-            "tok_out": 50,
-            "tokens": 165
-          }
-        ],
-        "by_owner": [
-          {
-            "calls": 1,
-            "name": "",
-            "tok_in": 100,
-            "tok_out": 50,
-            "tokens": 165
-          }
-        ],
-        "cost_note": "billed",
-        "days": 2,
-        "rows": [
-          {
-            "attempts": 1,
-            "kind": "build",
-            "model": "openai/gpt-5.5",
-            "node": "n1",
-            "session_id": "s1",
-            "status": "ok",
-            "tok_in": 100,
-            "tok_out": 50,
-            "tokens": 165,
-            "ts": 1768480496.0
-          }
-        ],
-        "series": [
-          {
-            "calls": 0,
-            "t": "2026-01-13",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-14",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 1,
-            "t": "2026-01-15",
-            "tok_in": 100,
-            "tok_out": 50,
-            "tokens": 165
-          }
-        ],
-        "total": {
-          "billed_calls": 1,
-          "cache_read": 10,
-          "cache_write": 5,
-          "calls": 1,
-          "failed": 0,
-          "tok_in": 100,
-          "tok_out": 50,
-          "tokens": 165,
-          "usd_billed": 0.02
-        },
-        "truncated": false
-      }
-    },
-    {
-      "name": "truncated",
-      "query": [
-        {
-          "limit": 3,
-          "owner": null,
-          "since": 1768307696.0
-        }
-      ],
-      "report": {
-        "bucket": "day",
-        "by_kind": [
-          {
-            "calls": 2,
-            "name": "build",
-            "tok_in": 1100,
-            "tok_out": 2050,
-            "tokens": 3165
-          },
-          {
-            "calls": 1,
-            "name": "chat",
-            "tok_in": 7,
-            "tok_out": 3,
-            "tokens": 10
-          }
-        ],
-        "by_model": [
-          {
-            "calls": 1,
-            "name": "google/gemini-3.5-flash",
-            "tok_in": 1000,
-            "tok_out": 2000,
-            "tokens": 3000
-          },
-          {
-            "calls": 2,
-            "name": "openai/gpt-5.5",
-            "tok_in": 107,
-            "tok_out": 53,
-            "tokens": 175
-          }
-        ],
-        "by_owner": [
-          {
-            "calls": 3,
-            "name": "",
-            "tok_in": 1107,
-            "tok_out": 2053,
-            "tokens": 3175
-          }
-        ],
-        "cost_note": "partial",
-        "days": 2,
-        "rows": [
-          {
-            "attempts": 1,
-            "kind": "build",
-            "model": "openai/gpt-5.5",
-            "node": "n1",
-            "session_id": "s1",
-            "status": "ok",
-            "tok_in": 100,
-            "tok_out": 50,
-            "tokens": 165,
-            "ts": 1768480496.0
-          },
-          {
-            "attempts": 1,
-            "kind": "chat",
-            "model": "openai/gpt-5.5",
-            "node": "n2",
-            "session_id": "s1",
-            "status": "failed",
-            "tok_in": 7,
-            "tok_out": 3,
-            "tokens": 10,
-            "ts": 1768476896.0
-          },
-          {
-            "attempts": 3,
-            "kind": "build",
-            "model": "google/gemini-3.5-flash",
-            "node": "n3",
-            "session_id": "s2",
-            "status": "ok",
-            "tok_in": 1000,
-            "tok_out": 2000,
-            "tokens": 3000,
-            "ts": 1768307696.0
-          }
-        ],
-        "series": [
-          {
-            "calls": 1,
-            "t": "2026-01-13",
-            "tok_in": 1000,
-            "tok_out": 2000,
-            "tokens": 3000
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-14",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 2,
-            "t": "2026-01-15",
-            "tok_in": 107,
-            "tok_out": 53,
-            "tokens": 175
-          }
-        ],
-        "total": {
-          "billed_calls": 2,
-          "cache_read": 10,
-          "cache_write": 5,
-          "calls": 3,
-          "failed": 1,
-          "tok_in": 1107,
-          "tok_out": 2053,
-          "tokens": 3175,
-          "usd_billed": 0.52
-        },
-        "truncated": true
-      }
-    },
-    {
-      "name": "clamped",
-      "query": [
-        {
-          "limit": 5000,
-          "owner": null,
-          "since": 1765888496.0
-        }
-      ],
-      "report": {
-        "bucket": "day",
-        "by_kind": [],
-        "by_model": [],
-        "by_owner": [],
-        "cost_note": "none",
-        "days": 30,
-        "rows": [],
-        "series": [
-          {
-            "calls": 0,
-            "t": "2025-12-16",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-12-17",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-12-18",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-12-19",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-12-20",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-12-21",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-12-22",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-12-23",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-12-24",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-12-25",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-12-26",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-12-27",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-12-28",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-12-29",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-12-30",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-12-31",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-01",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-02",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-03",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-04",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-05",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-06",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-07",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-08",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-09",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-10",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-11",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-12",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-13",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-14",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-15",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          }
-        ],
-        "total": {
-          "billed_calls": 0,
-          "cache_read": 0,
-          "cache_write": 0,
-          "calls": 0,
-          "failed": 0,
-          "tok_in": 0,
-          "tok_out": 0,
-          "tokens": 0,
-          "usd_billed": 0.0
-        },
-        "truncated": false
-      }
-    },
-    {
-      "name": "clamped_hi",
-      "query": [
-        {
-          "limit": 50000,
-          "owner": null,
-          "since": 1736944496.0
-        }
-      ],
-      "report": {
-        "bucket": "day",
-        "by_kind": [],
-        "by_model": [],
-        "by_owner": [],
-        "cost_note": "none",
-        "days": 365,
-        "rows": [],
-        "series": [
-          {
-            "calls": 0,
-            "t": "2025-01-15",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-01-16",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-01-17",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-01-18",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-01-19",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-01-20",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-01-21",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-01-22",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-01-23",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-01-24",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-01-25",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-01-26",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-01-27",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-01-28",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-01-29",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-01-30",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-01-31",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-02-01",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-02-02",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-02-03",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-02-04",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-02-05",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-02-06",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-02-07",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-02-08",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-02-09",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-02-10",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-02-11",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-02-12",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-02-13",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-02-14",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-02-15",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-02-16",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-02-17",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-02-18",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-02-19",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-02-20",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-02-21",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-02-22",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-02-23",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-02-24",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-02-25",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-02-26",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-02-27",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-02-28",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-03-01",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-03-02",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-03-03",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-03-04",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-03-05",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-03-06",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-03-07",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-03-08",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-03-09",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-03-10",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-03-11",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-03-12",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-03-13",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-03-14",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-03-15",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-03-16",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-03-17",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-03-18",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-03-19",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-03-20",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-03-21",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-03-22",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-03-23",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-03-24",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-03-25",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-03-26",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-03-27",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-03-28",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-03-29",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-03-30",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-03-31",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-04-01",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-04-02",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-04-03",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-04-04",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-04-05",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-04-06",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-04-07",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-04-08",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-04-09",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-04-10",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-04-11",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-04-12",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-04-13",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-04-14",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-04-15",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-04-16",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-04-17",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-04-18",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-04-19",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-04-20",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-04-21",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-04-22",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-04-23",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-04-24",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-04-25",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-04-26",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-04-27",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-04-28",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-04-29",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-04-30",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-05-01",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-05-02",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-05-03",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-05-04",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-05-05",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-05-06",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-05-07",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-05-08",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-05-09",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-05-10",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-05-11",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-05-12",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-05-13",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-05-14",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-05-15",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-05-16",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-05-17",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-05-18",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-05-19",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-05-20",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-05-21",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-05-22",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-05-23",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-05-24",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-05-25",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-05-26",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-05-27",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-05-28",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-05-29",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-05-30",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-05-31",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-06-01",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-06-02",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-06-03",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-06-04",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-06-05",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-06-06",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-06-07",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-06-08",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-06-09",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-06-10",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-06-11",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-06-12",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-06-13",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-06-14",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-06-15",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-06-16",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-06-17",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-06-18",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-06-19",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-06-20",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-06-21",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-06-22",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-06-23",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-06-24",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-06-25",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-06-26",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-06-27",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-06-28",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-06-29",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-06-30",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-07-01",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-07-02",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-07-03",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-07-04",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-07-05",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-07-06",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-07-07",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-07-08",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-07-09",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-07-10",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-07-11",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-07-12",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-07-13",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-07-14",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-07-15",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-07-16",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-07-17",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-07-18",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-07-19",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-07-20",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-07-21",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-07-22",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-07-23",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-07-24",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-07-25",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-07-26",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-07-27",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-07-28",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-07-29",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-07-30",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-07-31",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-08-01",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-08-02",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-08-03",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-08-04",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-08-05",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-08-06",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-08-07",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-08-08",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-08-09",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-08-10",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-08-11",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-08-12",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-08-13",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-08-14",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-08-15",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-08-16",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-08-17",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-08-18",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-08-19",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-08-20",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-08-21",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-08-22",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-08-23",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-08-24",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-08-25",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-08-26",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-08-27",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-08-28",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-08-29",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-08-30",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-08-31",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-09-01",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-09-02",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-09-03",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-09-04",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-09-05",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-09-06",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-09-07",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-09-08",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-09-09",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-09-10",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-09-11",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-09-12",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-09-13",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-09-14",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-09-15",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-09-16",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-09-17",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-09-18",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-09-19",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-09-20",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-09-21",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-09-22",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-09-23",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-09-24",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-09-25",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-09-26",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-09-27",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-09-28",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-09-29",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-09-30",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-10-01",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-10-02",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-10-03",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-10-04",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-10-05",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-10-06",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-10-07",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-10-08",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-10-09",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-10-10",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-10-11",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-10-12",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-10-13",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-10-14",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-10-15",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-10-16",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-10-17",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-10-18",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-10-19",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-10-20",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-10-21",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-10-22",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-10-23",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-10-24",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-10-25",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-10-26",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-10-27",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-10-28",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-10-29",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-10-30",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-10-31",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-11-01",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-11-02",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-11-03",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-11-04",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-11-05",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-11-06",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-11-07",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-11-08",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-11-09",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-11-10",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-11-11",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-11-12",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-11-13",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-11-14",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-11-15",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-11-16",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-11-17",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-11-18",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-11-19",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-11-20",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-11-21",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-11-22",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-11-23",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-11-24",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-11-25",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-11-26",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-11-27",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-11-28",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-11-29",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-11-30",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-12-01",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-12-02",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-12-03",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-12-04",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-12-05",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-12-06",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-12-07",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-12-08",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-12-09",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-12-10",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-12-11",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-12-12",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-12-13",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-12-14",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-12-15",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-12-16",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-12-17",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-12-18",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-12-19",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-12-20",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-12-21",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-12-22",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-12-23",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-12-24",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-12-25",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-12-26",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-12-27",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-12-28",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-12-29",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-12-30",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2025-12-31",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-01",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-02",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-03",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-04",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-05",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-06",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-07",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-08",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-09",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-10",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-11",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-12",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-13",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-14",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          },
-          {
-            "calls": 0,
-            "t": "2026-01-15",
-            "tok_in": 0,
-            "tok_out": 0,
-            "tokens": 0
-          }
-        ],
-        "total": {
-          "billed_calls": 0,
-          "cache_read": 0,
-          "cache_write": 0,
-          "calls": 0,
-          "failed": 0,
-          "tok_in": 0,
-          "tok_out": 0,
-          "tokens": 0,
-          "usd_billed": 0.0
-        },
-        "truncated": false
-      }
-    }
-  ],
-  "usage_sink": [
-    {
-      "kwargs": {
-        "kind": "build",
-        "owner": "u1",
-        "session_id": "s1"
-      },
-      "rec": {
-        "attempts": 2,
-        "cache_read": 90,
-        "cache_write": 10,
-        "effort": "high",
-        "model": "openai/gpt-5.5",
-        "node_id": "extract.0",
-        "run_id": "run_s1_abcd1234",
-        "status": "ok",
-        "tok_in": 1200,
-        "tok_out": 340,
-        "usd": 0.0123,
-        "usd_source": "gateway"
-      },
-      "row": {
-        "attempts": 2,
-        "cache_read": 90,
-        "cache_write": 10,
-        "day": "2026-01-15",
-        "effort": "high",
-        "id": "deadbeefdeadbeefdeadbeefdeadbeef",
-        "kind": "build",
-        "model": "openai/gpt-5.5",
-        "node_id": "extract.0",
-        "owner": "u1",
-        "run_id": "run_s1_abcd1234",
-        "session_id": "s1",
-        "status": "ok",
-        "tok_in": 1200,
-        "tok_out": 340,
-        "ts": 1768480496.0,
-        "usd": 0.0123,
-        "usd_source": "gateway"
-      },
-      "total": 1640
-    },
-    {
-      "kwargs": {},
-      "rec": {},
-      "row": {
-        "attempts": 1,
-        "cache_read": 0,
-        "cache_write": 0,
-        "day": "2026-01-15",
-        "effort": "",
-        "id": "deadbeefdeadbeefdeadbeefdeadbeef",
-        "kind": "build",
-        "model": "?",
-        "node_id": "",
-        "owner": "",
-        "run_id": "",
-        "session_id": "",
-        "status": "ok",
-        "tok_in": 0,
-        "tok_out": 0,
-        "ts": 1768480496.0,
-        "usd": 0.0,
-        "usd_source": "estimated"
-      },
-      "total": 0
-    },
-    {
-      "kwargs": {
-        "kind": "chat",
-        "owner": "",
-        "session_id": "s2"
-      },
-      "rec": {
-        "attempts": 1,
-        "model": "google/gemini-3.5-flash",
-        "status": "failed",
-        "tok_in": 7,
-        "usd": 0.0,
-        "usd_source": "estimated"
-      },
-      "row": {
-        "attempts": 1,
-        "cache_read": 0,
-        "cache_write": 0,
-        "day": "2026-01-15",
-        "effort": "",
-        "id": "deadbeefdeadbeefdeadbeefdeadbeef",
-        "kind": "chat",
-        "model": "google/gemini-3.5-flash",
-        "node_id": "",
-        "owner": "",
-        "run_id": "",
-        "session_id": "s2",
-        "status": "failed",
-        "tok_in": 7,
-        "tok_out": 0,
-        "ts": 1768480496.0,
-        "usd": 0.0,
-        "usd_source": "estimated"
-      },
-      "total": 7
-    }
+ "card_event": {
+  "cap": 12,
+  "kinds": [
+   "ui.table",
+   "export.ready"
   ]
+ },
+ "chat_recorder_run_id": [
+  {
+   "input": {
+    "text": "你好"
+   },
+   "kind": "reason",
+   "name": "simple",
+   "run_id": "chat_sess-1_reason_ac72dedbe8e0d53d"
+  },
+  {
+   "input": [
+    "a",
+    "b"
+   ],
+   "kind": "wording",
+   "name": "list_input",
+   "run_id": "chat_sess-1_wording_0473ef2dc0d324ab"
+  },
+  {
+   "input": null,
+   "kind": "recommend",
+   "name": "empty",
+   "run_id": "chat_sess-1_recommend_74234e98afe7498f"
+  }
+ ],
+ "lease_ttl": [
+  {
+   "build_heartbeat": 10.0,
+   "chat_heartbeat": 5.0,
+   "env": null,
+   "ttl": 30.0
+  },
+  {
+   "build_heartbeat": 10.0,
+   "chat_heartbeat": 5.0,
+   "env": "30",
+   "ttl": 30.0
+  },
+  {
+   "build_heartbeat": 1.6666666666666667,
+   "chat_heartbeat": 1.6666666666666667,
+   "env": "5",
+   "ttl": 5.0
+  },
+  {
+   "build_heartbeat": 1.6666666666666667,
+   "chat_heartbeat": 1.6666666666666667,
+   "env": "1",
+   "ttl": 5.0
+  },
+  {
+   "build_heartbeat": 1.6666666666666667,
+   "chat_heartbeat": 1.6666666666666667,
+   "env": "0",
+   "ttl": 5.0
+  },
+  {
+   "build_heartbeat": 1.6666666666666667,
+   "chat_heartbeat": 1.6666666666666667,
+   "env": "-3",
+   "ttl": 5.0
+  },
+  {
+   "build_heartbeat": 10.0,
+   "chat_heartbeat": 5.0,
+   "env": "600",
+   "ttl": 600.0
+  },
+  {
+   "build_heartbeat": 10.0,
+   "chat_heartbeat": 5.0,
+   "env": "abc",
+   "ttl": 30.0
+  },
+  {
+   "build_heartbeat": 10.0,
+   "chat_heartbeat": 5.0,
+   "env": "",
+   "ttl": 30.0
+  },
+  {
+   "build_heartbeat": 4.166666666666667,
+   "chat_heartbeat": 4.166666666666667,
+   "env": "12.5",
+   "ttl": 12.5
+  }
+ ],
+ "money_failure": [
+  {
+   "name": "quota_direct",
+   "signal": [
+    "quota",
+    "insufficient_quota: 余额不足"
+   ]
+  },
+  {
+   "name": "cap_direct",
+   "signal": [
+    "cap",
+    ""
+   ]
+  },
+  {
+   "name": "tokens_not_money",
+   "signal": [
+    "",
+    ""
+   ]
+  },
+  {
+   "name": "quota_via_cause",
+   "signal": [
+    "quota",
+    "insufficient_quota: 余额不足"
+   ]
+  },
+  {
+   "name": "cap_via_two_causes",
+   "signal": [
+    "cap",
+    ""
+   ]
+  },
+  {
+   "name": "flattened_quota_text",
+   "signal": [
+    "quota",
+    "QuotaExhausted: openai/gpt-5.5 网关账户余额/配额已耗尽（HTTP 402）：insufficient_quota: 余额不足"
+   ]
+  },
+  {
+   "name": "flattened_cap_text",
+   "signal": [
+    "cap",
+    ""
+   ]
+  },
+  {
+   "name": "unrelated",
+   "signal": [
+    "",
+    ""
+   ]
+  }
+ ],
+ "run_id": [
+  {
+   "files": [],
+   "name": "empty",
+   "run_id": "run_sess-1_4f53cda1"
+  },
+  {
+   "files": [
+    {
+     "name": "a.xlsx",
+     "path": "/x/a.xlsx",
+     "sha256": "aa",
+     "size": 1
+    }
+   ],
+   "name": "one",
+   "run_id": "run_sess-1_4339892a"
+  },
+  {
+   "files": [
+    {
+     "name": "b.csv",
+     "path": "/x/b.csv",
+     "sha256": "bb",
+     "size": 2
+    },
+    {
+     "name": "a.xlsx",
+     "path": "/x/a.xlsx",
+     "sha256": "aa",
+     "size": 1
+    }
+   ],
+   "name": "two",
+   "run_id": "run_sess-1_a5d35962"
+  },
+  {
+   "files": [
+    {
+     "name": "a.xlsx",
+     "path": "/x/a.xlsx",
+     "sha256": "aa",
+     "size": 1
+    },
+    {
+     "name": "b.csv",
+     "path": "/x/b.csv",
+     "sha256": "bb",
+     "size": 2
+    }
+   ],
+   "name": "two_reordered",
+   "run_id": "run_sess-1_a5d35962"
+  },
+  {
+   "files": [
+    {
+     "name": "gone.xlsx",
+     "path": "/nonexistent/__gone__.xlsx",
+     "sha256": "missing:gone.xlsx:7",
+     "size": 7
+    }
+   ],
+   "name": "missing",
+   "run_id": "run_sess-1_83fdbcb6"
+  },
+  {
+   "files": [
+    {
+     "name": "材料 一.xlsx",
+     "path": "/x/1",
+     "sha256": "cc",
+     "size": 3
+    }
+   ],
+   "name": "cjk",
+   "run_id": "run_sess-1_94f80cbf"
+  }
+ ],
+ "session_brief": [
+  {
+   "brief": {
+    "created": 1768480496.0,
+    "error": "",
+    "files": 0,
+    "attached": 0,
+    "id": "sess-1",
+    "mode": "work",
+    "project": "",
+    "project_id": "",
+    "status": "idle",
+    "title": "新建会话"
+   },
+   "name": "defaults"
+  },
+  {
+   "brief": {
+    "created": 1768480496.0,
+    "error": "boom",
+    "files": 1,
+    "attached": 0,
+    "id": "sess-2",
+    "mode": "chat",
+    "project": "ACME",
+    "project_id": "p1",
+    "status": "done",
+    "title": "订单主数据"
+   },
+   "name": "populated"
+  }
+ ],
+ "usage_report": [
+  {
+   "name": "day/all",
+   "query": [
+    {
+     "limit": 5000,
+     "owner": null,
+     "since": 1768048496.0
+    }
+   ],
+   "report": {
+    "bucket": "day",
+    "by_kind": [
+     {
+      "calls": 2,
+      "name": "build",
+      "tok_in": 1100,
+      "tok_out": 2050,
+      "tokens": 3165
+     },
+     {
+      "calls": 1,
+      "name": "chat",
+      "tok_in": 7,
+      "tok_out": 3,
+      "tokens": 10
+     }
+    ],
+    "by_model": [
+     {
+      "calls": 1,
+      "name": "google/gemini-3.5-flash",
+      "tok_in": 1000,
+      "tok_out": 2000,
+      "tokens": 3000
+     },
+     {
+      "calls": 2,
+      "name": "openai/gpt-5.5",
+      "tok_in": 107,
+      "tok_out": 53,
+      "tokens": 175
+     }
+    ],
+    "by_owner": [
+     {
+      "calls": 3,
+      "name": "",
+      "tok_in": 1107,
+      "tok_out": 2053,
+      "tokens": 3175
+     }
+    ],
+    "cost_note": "partial",
+    "days": 5,
+    "rows": [
+     {
+      "attempts": 1,
+      "kind": "build",
+      "model": "openai/gpt-5.5",
+      "node": "n1",
+      "session_id": "s1",
+      "status": "ok",
+      "tok_in": 100,
+      "tok_out": 50,
+      "tokens": 165,
+      "ts": 1768480496.0
+     },
+     {
+      "attempts": 1,
+      "kind": "chat",
+      "model": "openai/gpt-5.5",
+      "node": "n2",
+      "session_id": "s1",
+      "status": "failed",
+      "tok_in": 7,
+      "tok_out": 3,
+      "tokens": 10,
+      "ts": 1768476896.0
+     },
+     {
+      "attempts": 3,
+      "kind": "build",
+      "model": "google/gemini-3.5-flash",
+      "node": "n3",
+      "session_id": "s2",
+      "status": "ok",
+      "tok_in": 1000,
+      "tok_out": 2000,
+      "tokens": 3000,
+      "ts": 1768307696.0
+     }
+    ],
+    "series": [
+     {
+      "calls": 0,
+      "t": "2026-01-10",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-11",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-12",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 1,
+      "t": "2026-01-13",
+      "tok_in": 1000,
+      "tok_out": 2000,
+      "tokens": 3000
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-14",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 2,
+      "t": "2026-01-15",
+      "tok_in": 107,
+      "tok_out": 53,
+      "tokens": 175
+     }
+    ],
+    "total": {
+     "billed_calls": 2,
+     "cache_read": 10,
+     "cache_write": 5,
+     "calls": 3,
+     "failed": 1,
+     "tok_in": 1107,
+     "tok_out": 2053,
+     "tokens": 3175,
+     "usd_billed": 0.52
+    },
+    "truncated": false
+   }
+  },
+  {
+   "name": "hour",
+   "query": [
+    {
+     "limit": 5000,
+     "owner": null,
+     "since": 1768394096.0
+    }
+   ],
+   "report": {
+    "bucket": "hour",
+    "by_kind": [
+     {
+      "calls": 2,
+      "name": "build",
+      "tok_in": 1100,
+      "tok_out": 2050,
+      "tokens": 3165
+     },
+     {
+      "calls": 1,
+      "name": "chat",
+      "tok_in": 7,
+      "tok_out": 3,
+      "tokens": 10
+     }
+    ],
+    "by_model": [
+     {
+      "calls": 1,
+      "name": "google/gemini-3.5-flash",
+      "tok_in": 1000,
+      "tok_out": 2000,
+      "tokens": 3000
+     },
+     {
+      "calls": 2,
+      "name": "openai/gpt-5.5",
+      "tok_in": 107,
+      "tok_out": 53,
+      "tokens": 175
+     }
+    ],
+    "by_owner": [
+     {
+      "calls": 3,
+      "name": "",
+      "tok_in": 1107,
+      "tok_out": 2053,
+      "tokens": 3175
+     }
+    ],
+    "cost_note": "partial",
+    "days": 1,
+    "rows": [
+     {
+      "attempts": 1,
+      "kind": "build",
+      "model": "openai/gpt-5.5",
+      "node": "n1",
+      "session_id": "s1",
+      "status": "ok",
+      "tok_in": 100,
+      "tok_out": 50,
+      "tokens": 165,
+      "ts": 1768480496.0
+     },
+     {
+      "attempts": 1,
+      "kind": "chat",
+      "model": "openai/gpt-5.5",
+      "node": "n2",
+      "session_id": "s1",
+      "status": "failed",
+      "tok_in": 7,
+      "tok_out": 3,
+      "tokens": 10,
+      "ts": 1768476896.0
+     },
+     {
+      "attempts": 3,
+      "kind": "build",
+      "model": "google/gemini-3.5-flash",
+      "node": "n3",
+      "session_id": "s2",
+      "status": "ok",
+      "tok_in": 1000,
+      "tok_out": 2000,
+      "tokens": 3000,
+      "ts": 1768307696.0
+     }
+    ],
+    "series": [
+     {
+      "calls": 0,
+      "t": "2026-01-14 12:00",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-14 13:00",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-14 14:00",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-14 15:00",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-14 16:00",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-14 17:00",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-14 18:00",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-14 19:00",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-14 20:00",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-14 21:00",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-14 22:00",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-14 23:00",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-15 00:00",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-15 01:00",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-15 02:00",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-15 03:00",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-15 04:00",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-15 05:00",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-15 06:00",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-15 07:00",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-15 08:00",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-15 09:00",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-15 10:00",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 1,
+      "t": "2026-01-15 11:00",
+      "tok_in": 7,
+      "tok_out": 3,
+      "tokens": 10
+     },
+     {
+      "calls": 1,
+      "t": "2026-01-15 12:00",
+      "tok_in": 100,
+      "tok_out": 50,
+      "tokens": 165
+     }
+    ],
+    "total": {
+     "billed_calls": 2,
+     "cache_read": 10,
+     "cache_write": 5,
+     "calls": 3,
+     "failed": 1,
+     "tok_in": 1107,
+     "tok_out": 2053,
+     "tokens": 3175,
+     "usd_billed": 0.52
+    },
+    "truncated": false
+   }
+  },
+  {
+   "name": "empty",
+   "query": [
+    {
+     "limit": 5000,
+     "owner": null,
+     "since": 1768221296.0
+    }
+   ],
+   "report": {
+    "bucket": "day",
+    "by_kind": [],
+    "by_model": [],
+    "by_owner": [],
+    "cost_note": "none",
+    "days": 3,
+    "rows": [],
+    "series": [
+     {
+      "calls": 0,
+      "t": "2026-01-12",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-13",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-14",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-15",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     }
+    ],
+    "total": {
+     "billed_calls": 0,
+     "cache_read": 0,
+     "cache_write": 0,
+     "calls": 0,
+     "failed": 0,
+     "tok_in": 0,
+     "tok_out": 0,
+     "tokens": 0,
+     "usd_billed": 0.0
+    },
+    "truncated": false
+   }
+  },
+  {
+   "name": "billed",
+   "query": [
+    {
+     "limit": 5000,
+     "owner": null,
+     "since": 1768307696.0
+    }
+   ],
+   "report": {
+    "bucket": "day",
+    "by_kind": [
+     {
+      "calls": 1,
+      "name": "build",
+      "tok_in": 100,
+      "tok_out": 50,
+      "tokens": 165
+     }
+    ],
+    "by_model": [
+     {
+      "calls": 1,
+      "name": "openai/gpt-5.5",
+      "tok_in": 100,
+      "tok_out": 50,
+      "tokens": 165
+     }
+    ],
+    "by_owner": [
+     {
+      "calls": 1,
+      "name": "",
+      "tok_in": 100,
+      "tok_out": 50,
+      "tokens": 165
+     }
+    ],
+    "cost_note": "billed",
+    "days": 2,
+    "rows": [
+     {
+      "attempts": 1,
+      "kind": "build",
+      "model": "openai/gpt-5.5",
+      "node": "n1",
+      "session_id": "s1",
+      "status": "ok",
+      "tok_in": 100,
+      "tok_out": 50,
+      "tokens": 165,
+      "ts": 1768480496.0
+     }
+    ],
+    "series": [
+     {
+      "calls": 0,
+      "t": "2026-01-13",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-14",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 1,
+      "t": "2026-01-15",
+      "tok_in": 100,
+      "tok_out": 50,
+      "tokens": 165
+     }
+    ],
+    "total": {
+     "billed_calls": 1,
+     "cache_read": 10,
+     "cache_write": 5,
+     "calls": 1,
+     "failed": 0,
+     "tok_in": 100,
+     "tok_out": 50,
+     "tokens": 165,
+     "usd_billed": 0.02
+    },
+    "truncated": false
+   }
+  },
+  {
+   "name": "truncated",
+   "query": [
+    {
+     "limit": 3,
+     "owner": null,
+     "since": 1768307696.0
+    }
+   ],
+   "report": {
+    "bucket": "day",
+    "by_kind": [
+     {
+      "calls": 2,
+      "name": "build",
+      "tok_in": 1100,
+      "tok_out": 2050,
+      "tokens": 3165
+     },
+     {
+      "calls": 1,
+      "name": "chat",
+      "tok_in": 7,
+      "tok_out": 3,
+      "tokens": 10
+     }
+    ],
+    "by_model": [
+     {
+      "calls": 1,
+      "name": "google/gemini-3.5-flash",
+      "tok_in": 1000,
+      "tok_out": 2000,
+      "tokens": 3000
+     },
+     {
+      "calls": 2,
+      "name": "openai/gpt-5.5",
+      "tok_in": 107,
+      "tok_out": 53,
+      "tokens": 175
+     }
+    ],
+    "by_owner": [
+     {
+      "calls": 3,
+      "name": "",
+      "tok_in": 1107,
+      "tok_out": 2053,
+      "tokens": 3175
+     }
+    ],
+    "cost_note": "partial",
+    "days": 2,
+    "rows": [
+     {
+      "attempts": 1,
+      "kind": "build",
+      "model": "openai/gpt-5.5",
+      "node": "n1",
+      "session_id": "s1",
+      "status": "ok",
+      "tok_in": 100,
+      "tok_out": 50,
+      "tokens": 165,
+      "ts": 1768480496.0
+     },
+     {
+      "attempts": 1,
+      "kind": "chat",
+      "model": "openai/gpt-5.5",
+      "node": "n2",
+      "session_id": "s1",
+      "status": "failed",
+      "tok_in": 7,
+      "tok_out": 3,
+      "tokens": 10,
+      "ts": 1768476896.0
+     },
+     {
+      "attempts": 3,
+      "kind": "build",
+      "model": "google/gemini-3.5-flash",
+      "node": "n3",
+      "session_id": "s2",
+      "status": "ok",
+      "tok_in": 1000,
+      "tok_out": 2000,
+      "tokens": 3000,
+      "ts": 1768307696.0
+     }
+    ],
+    "series": [
+     {
+      "calls": 1,
+      "t": "2026-01-13",
+      "tok_in": 1000,
+      "tok_out": 2000,
+      "tokens": 3000
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-14",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 2,
+      "t": "2026-01-15",
+      "tok_in": 107,
+      "tok_out": 53,
+      "tokens": 175
+     }
+    ],
+    "total": {
+     "billed_calls": 2,
+     "cache_read": 10,
+     "cache_write": 5,
+     "calls": 3,
+     "failed": 1,
+     "tok_in": 1107,
+     "tok_out": 2053,
+     "tokens": 3175,
+     "usd_billed": 0.52
+    },
+    "truncated": true
+   }
+  },
+  {
+   "name": "clamped",
+   "query": [
+    {
+     "limit": 5000,
+     "owner": null,
+     "since": 1765888496.0
+    }
+   ],
+   "report": {
+    "bucket": "day",
+    "by_kind": [],
+    "by_model": [],
+    "by_owner": [],
+    "cost_note": "none",
+    "days": 30,
+    "rows": [],
+    "series": [
+     {
+      "calls": 0,
+      "t": "2025-12-16",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-12-17",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-12-18",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-12-19",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-12-20",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-12-21",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-12-22",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-12-23",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-12-24",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-12-25",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-12-26",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-12-27",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-12-28",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-12-29",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-12-30",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-12-31",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-01",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-02",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-03",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-04",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-05",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-06",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-07",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-08",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-09",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-10",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-11",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-12",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-13",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-14",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-15",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     }
+    ],
+    "total": {
+     "billed_calls": 0,
+     "cache_read": 0,
+     "cache_write": 0,
+     "calls": 0,
+     "failed": 0,
+     "tok_in": 0,
+     "tok_out": 0,
+     "tokens": 0,
+     "usd_billed": 0.0
+    },
+    "truncated": false
+   }
+  },
+  {
+   "name": "clamped_hi",
+   "query": [
+    {
+     "limit": 50000,
+     "owner": null,
+     "since": 1736944496.0
+    }
+   ],
+   "report": {
+    "bucket": "day",
+    "by_kind": [],
+    "by_model": [],
+    "by_owner": [],
+    "cost_note": "none",
+    "days": 365,
+    "rows": [],
+    "series": [
+     {
+      "calls": 0,
+      "t": "2025-01-15",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-01-16",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-01-17",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-01-18",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-01-19",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-01-20",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-01-21",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-01-22",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-01-23",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-01-24",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-01-25",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-01-26",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-01-27",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-01-28",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-01-29",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-01-30",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-01-31",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-02-01",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-02-02",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-02-03",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-02-04",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-02-05",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-02-06",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-02-07",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-02-08",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-02-09",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-02-10",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-02-11",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-02-12",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-02-13",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-02-14",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-02-15",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-02-16",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-02-17",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-02-18",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-02-19",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-02-20",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-02-21",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-02-22",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-02-23",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-02-24",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-02-25",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-02-26",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-02-27",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-02-28",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-03-01",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-03-02",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-03-03",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-03-04",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-03-05",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-03-06",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-03-07",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-03-08",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-03-09",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-03-10",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-03-11",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-03-12",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-03-13",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-03-14",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-03-15",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-03-16",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-03-17",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-03-18",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-03-19",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-03-20",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-03-21",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-03-22",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-03-23",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-03-24",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-03-25",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-03-26",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-03-27",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-03-28",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-03-29",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-03-30",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-03-31",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-04-01",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-04-02",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-04-03",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-04-04",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-04-05",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-04-06",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-04-07",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-04-08",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-04-09",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-04-10",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-04-11",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-04-12",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-04-13",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-04-14",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-04-15",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-04-16",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-04-17",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-04-18",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-04-19",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-04-20",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-04-21",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-04-22",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-04-23",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-04-24",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-04-25",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-04-26",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-04-27",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-04-28",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-04-29",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-04-30",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-05-01",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-05-02",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-05-03",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-05-04",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-05-05",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-05-06",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-05-07",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-05-08",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-05-09",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-05-10",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-05-11",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-05-12",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-05-13",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-05-14",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-05-15",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-05-16",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-05-17",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-05-18",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-05-19",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-05-20",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-05-21",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-05-22",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-05-23",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-05-24",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-05-25",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-05-26",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-05-27",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-05-28",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-05-29",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-05-30",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-05-31",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-06-01",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-06-02",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-06-03",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-06-04",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-06-05",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-06-06",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-06-07",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-06-08",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-06-09",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-06-10",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-06-11",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-06-12",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-06-13",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-06-14",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-06-15",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-06-16",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-06-17",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-06-18",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-06-19",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-06-20",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-06-21",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-06-22",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-06-23",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-06-24",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-06-25",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-06-26",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-06-27",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-06-28",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-06-29",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-06-30",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-07-01",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-07-02",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-07-03",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-07-04",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-07-05",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-07-06",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-07-07",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-07-08",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-07-09",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-07-10",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-07-11",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-07-12",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-07-13",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-07-14",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-07-15",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-07-16",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-07-17",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-07-18",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-07-19",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-07-20",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-07-21",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-07-22",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-07-23",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-07-24",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-07-25",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-07-26",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-07-27",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-07-28",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-07-29",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-07-30",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-07-31",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-08-01",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-08-02",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-08-03",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-08-04",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-08-05",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-08-06",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-08-07",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-08-08",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-08-09",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-08-10",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-08-11",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-08-12",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-08-13",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-08-14",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-08-15",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-08-16",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-08-17",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-08-18",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-08-19",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-08-20",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-08-21",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-08-22",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-08-23",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-08-24",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-08-25",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-08-26",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-08-27",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-08-28",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-08-29",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-08-30",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-08-31",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-09-01",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-09-02",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-09-03",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-09-04",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-09-05",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-09-06",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-09-07",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-09-08",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-09-09",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-09-10",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-09-11",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-09-12",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-09-13",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-09-14",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-09-15",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-09-16",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-09-17",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-09-18",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-09-19",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-09-20",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-09-21",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-09-22",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-09-23",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-09-24",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-09-25",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-09-26",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-09-27",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-09-28",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-09-29",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-09-30",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-10-01",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-10-02",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-10-03",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-10-04",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-10-05",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-10-06",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-10-07",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-10-08",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-10-09",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-10-10",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-10-11",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-10-12",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-10-13",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-10-14",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-10-15",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-10-16",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-10-17",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-10-18",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-10-19",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-10-20",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-10-21",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-10-22",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-10-23",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-10-24",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-10-25",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-10-26",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-10-27",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-10-28",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-10-29",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-10-30",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-10-31",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-11-01",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-11-02",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-11-03",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-11-04",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-11-05",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-11-06",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-11-07",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-11-08",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-11-09",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-11-10",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-11-11",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-11-12",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-11-13",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-11-14",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-11-15",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-11-16",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-11-17",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-11-18",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-11-19",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-11-20",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-11-21",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-11-22",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-11-23",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-11-24",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-11-25",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-11-26",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-11-27",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-11-28",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-11-29",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-11-30",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-12-01",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-12-02",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-12-03",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-12-04",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-12-05",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-12-06",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-12-07",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-12-08",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-12-09",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-12-10",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-12-11",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-12-12",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-12-13",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-12-14",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-12-15",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-12-16",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-12-17",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-12-18",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-12-19",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-12-20",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-12-21",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-12-22",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-12-23",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-12-24",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-12-25",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-12-26",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-12-27",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-12-28",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-12-29",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-12-30",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2025-12-31",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-01",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-02",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-03",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-04",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-05",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-06",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-07",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-08",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-09",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-10",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-11",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-12",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-13",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-14",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     },
+     {
+      "calls": 0,
+      "t": "2026-01-15",
+      "tok_in": 0,
+      "tok_out": 0,
+      "tokens": 0
+     }
+    ],
+    "total": {
+     "billed_calls": 0,
+     "cache_read": 0,
+     "cache_write": 0,
+     "calls": 0,
+     "failed": 0,
+     "tok_in": 0,
+     "tok_out": 0,
+     "tokens": 0,
+     "usd_billed": 0.0
+    },
+    "truncated": false
+   }
+  }
+ ],
+ "usage_sink": [
+  {
+   "kwargs": {
+    "kind": "build",
+    "owner": "u1",
+    "session_id": "s1"
+   },
+   "rec": {
+    "attempts": 2,
+    "cache_read": 90,
+    "cache_write": 10,
+    "effort": "high",
+    "model": "openai/gpt-5.5",
+    "node_id": "extract.0",
+    "run_id": "run_s1_abcd1234",
+    "status": "ok",
+    "tok_in": 1200,
+    "tok_out": 340,
+    "usd": 0.0123,
+    "usd_source": "gateway"
+   },
+   "row": {
+    "attempts": 2,
+    "cache_read": 90,
+    "cache_write": 10,
+    "day": "2026-01-15",
+    "effort": "high",
+    "id": "deadbeefdeadbeefdeadbeefdeadbeef",
+    "kind": "build",
+    "model": "openai/gpt-5.5",
+    "node_id": "extract.0",
+    "owner": "u1",
+    "run_id": "run_s1_abcd1234",
+    "session_id": "s1",
+    "status": "ok",
+    "tok_in": 1200,
+    "tok_out": 340,
+    "ts": 1768480496.0,
+    "usd": 0.0123,
+    "usd_source": "gateway"
+   },
+   "total": 1640
+  },
+  {
+   "kwargs": {},
+   "rec": {},
+   "row": {
+    "attempts": 1,
+    "cache_read": 0,
+    "cache_write": 0,
+    "day": "2026-01-15",
+    "effort": "",
+    "id": "deadbeefdeadbeefdeadbeefdeadbeef",
+    "kind": "build",
+    "model": "?",
+    "node_id": "",
+    "owner": "",
+    "run_id": "",
+    "session_id": "",
+    "status": "ok",
+    "tok_in": 0,
+    "tok_out": 0,
+    "ts": 1768480496.0,
+    "usd": 0.0,
+    "usd_source": "estimated"
+   },
+   "total": 0
+  },
+  {
+   "kwargs": {
+    "kind": "chat",
+    "owner": "",
+    "session_id": "s2"
+   },
+   "rec": {
+    "attempts": 1,
+    "model": "google/gemini-3.5-flash",
+    "status": "failed",
+    "tok_in": 7,
+    "usd": 0.0,
+    "usd_source": "estimated"
+   },
+   "row": {
+    "attempts": 1,
+    "cache_read": 0,
+    "cache_write": 0,
+    "day": "2026-01-15",
+    "effort": "",
+    "id": "deadbeefdeadbeefdeadbeefdeadbeef",
+    "kind": "chat",
+    "model": "google/gemini-3.5-flash",
+    "node_id": "",
+    "owner": "",
+    "run_id": "",
+    "session_id": "s2",
+    "status": "failed",
+    "tok_in": 7,
+    "tok_out": 0,
+    "ts": 1768480496.0,
+    "usd": 0.0,
+    "usd_source": "estimated"
+   },
+   "total": 7
+  }
+ ]
 }

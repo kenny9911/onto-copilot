@@ -234,6 +234,8 @@ export interface SessionBrief {
   project_id: string;
   status: string;
   files: number;
+  /** 本轮还会读几份知识库固定版本；语料 = 会话文件 ∪ 这些。 */
+  attached: number;
   mode: string;
   created: number;
   error: string;
@@ -392,6 +394,18 @@ export class Session {
       project_id: this.projectId,
       status: this.status,
       files: this.files.length,
+      /**
+       * 本轮梳理还会读几份**知识库固定版本**。
+       *
+       * 语料 = 会话文件 ∪ 已挂载的知识库文档（pipeline/run.ts），但清单是
+       * `_document_manifest` 这个下划线私有状态，publicState 会把它剥掉 ——
+       * 于是前端数不到它，同屏最大的那颗按钮一直写「开始梳理 N 份材料」，
+       * 那个 N 只数会话上传。挂 3 份进去，按钮仍说 6，实际跑 9。
+       * 只外发一个计数，不外发文档身份：那是边界信息。
+       */
+      attached: Array.isArray(this.state["_document_manifest"])
+        ? (this.state["_document_manifest"] as unknown[]).length
+        : 0,
       mode: typeof this.state["mode"] === "string" ? (this.state["mode"] as string) : "work",
       created: this.created,
       error: this.error,

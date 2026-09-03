@@ -18794,7 +18794,9 @@ ${el.value}` : text4;
       bar.innerHTML = "";
       return;
     }
-    const st = G.S.status, n = G.S.files || 0;
+    const st = G.S.status;
+    const attached = G.S.attached || 0;
+    const n = (G.S.files || 0) + attached;
     const arts = G.S.state?.artifacts || [];
     const tpl = arts.find((a) => a.endsWith(".xlsx"));
     const btns = [];
@@ -18803,6 +18805,9 @@ ${el.value}` : text4;
       btns.push(`<button class="abtn" onclick="stopRun()">■ ${t("composer.stop", "停止")}</button>`);
     } else if (n && st !== "done") {
       btns.push(`<button class="abtn pri" onclick="startBuild()">开始梳理 ${n} 份材料</button>`);
+      if (attached > 0) {
+        btns.push(`<span class="cap">会话上传 ${G.S.files || 0} · 知识库固定 ${attached}</span>`);
+      }
     } else if (st === "done") {
       if (tpl) btns.push(`<a class="abtn pri" download
       href="${API}/api/sessions/${G.S.id}/artifacts/${encodeURIComponent(tpl)}">下载填写模板</a>`);

@@ -94,6 +94,13 @@ const EXPECTED = new Map([
   // 加这一批之前我逐条去 ts/src/ui 里找了对应件，确认不是"丢了"而是"换了形状"。
   // 为不理解的改动写豁免理由，等于用这道闸自己去掩盖回归 —— 那比让它红着更糟。
   [
+    "constst=S.status,n=S.files||0;",
+    "render.ts:51 拆成两行并把 n 改成 files+attached。原来这个 n 只数会话上传，" +
+      "而语料是 会话文件 ∪ 已挂载的知识库文档（pipeline/run.ts）—— 挂 3 份进去，" +
+      "同屏最大的那颗「开始梳理 N 份材料」仍说 6、实际跑 9。这是有意的行为修正，" +
+      "不是形状漂移：原行的数是错的。",
+  ],
+  [
     'if(k==="question.answered")returnev.question_id||ev.qid||"";',
     "events.ts:161 改成了 if 块（要同时读 question_id/qid 再做别的事），单行 return 形态不在了",
   ],

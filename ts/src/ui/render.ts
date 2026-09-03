@@ -48,7 +48,12 @@ export function render(){
 export function paintActions(){
   const bar = $("abar");
   if (!G.S) { bar.innerHTML = ""; return; }
-  const st = G.S.status, n = G.S.files || 0;
+  const st = G.S.status;
+  // 语料 = 会话上传 ∪ 知识库里固定的版本（pipeline/run.ts）。只数前者的话，
+  // 挂 3 份库文档进去，这颗按钮仍说 6、实际跑 9 —— 同屏最大的按钮报错数，
+  // 而 attach 恰恰是个高后果开关（一份挂上去读不到就整轮失败）。
+  const attached = G.S.attached || 0;
+  const n = (G.S.files || 0) + attached;
   const arts = G.S.state?.artifacts || [];
   const tpl = arts.find((a: any) => a.endsWith(".xlsx"));
   const btns = [];
@@ -59,6 +64,10 @@ export function paintActions(){
     btns.push(`<button class="abtn" onclick="stopRun()">■ ${t("composer.stop","停止")}</button>`);
   } else if (n && st !== "done") {
     btns.push(`<button class="abtn pri" onclick="startBuild()">开始梳理 ${n} 份材料</button>`);
+    // 数字由两部分组成时说清楚，否则用户会奇怪「我明明只传了 6 份」。
+    if (attached > 0) {
+      btns.push(`<span class="cap">会话上传 ${G.S.files || 0} · 知识库固定 ${attached}</span>`);
+    }
   } else if (st === "done") {
     if (tpl) btns.push(`<a class="abtn pri" download
       href="${API}/api/sessions/${G.S.id}/artifacts/${encodeURIComponent(tpl)}">下载填写模板</a>`);
