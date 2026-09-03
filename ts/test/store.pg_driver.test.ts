@@ -152,12 +152,12 @@ describe.skipIf(!PG_UP)("Postgres 真库", () => {
       expect(empty.ok).toBe(false);
 
       const ran = await upgrade(store.engine as unknown as PgEngine);
-      expect(ran).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]);
+      expect(ran).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]);
       // 第二次是空操作 —— 迁移不是幂等的话，滚动发布第二个副本就会重建表。
       expect(await upgrade(store.engine as unknown as PgEngine)).toEqual([]);
 
       const health = await store.healthcheck();
-      expect(health).toEqual({ mode: "postgres", ok: true, schema_version: 18 });
+      expect(health).toEqual({ mode: "postgres", ok: true, schema_version: 19 });
     } finally {
       await store.close();
     }

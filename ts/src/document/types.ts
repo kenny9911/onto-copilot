@@ -131,6 +131,45 @@ export class DocumentConflict extends DocumentError {
   }
 }
 
+/** 用户手工建的文件夹。路径用 / 分隔，不以 / 开头或结尾。 */
+export interface DocumentFolder {
+  readonly path: string;
+  readonly createdBy: string;
+  readonly createdAt: string;
+}
+
+/**
+ * 规范化并校验文件夹路径。空串 = 根目录。
+ *
+ * 单独抽出来是因为路径是这套东西唯一的身份：允许 `a//b`、` a/b `、`a/b/` 同时存在，
+ * 树上就会冒出三个看起来一样的文件夹。
+ */
+export function cleanFolderPath(raw: string | undefined): string {
+  const value = (raw ?? "").trim();
+  if (value === "") return "";
+  if (value.includes("\u0000")) {
+    throw new DocumentError("INVALID_ARGUMENT", "文件夹名不能包含控制字符", 400);
+  }
+  const parts = value.split("/").map((p) => p.trim()).filter((p) => p !== "");
+  if (parts.length === 0) return "";
+  if (parts.length > 8) {
+    throw new DocumentError("INVALID_ARGUMENT", "文件夹最多 8 层", 400);
+  }
+  for (const part of parts) {
+    if (part === "." || part === "..") {
+      throw new DocumentError("INVALID_ARGUMENT", "文件夹名不能是 . 或 ..", 400);
+    }
+    if ([...part].length > 80) {
+      throw new DocumentError("INVALID_ARGUMENT", "单层文件夹名不能超过 80 个字", 400);
+    }
+  }
+  const path = parts.join("/");
+  if ([...path].length > 400) {
+    throw new DocumentError("INVALID_ARGUMENT", "文件夹路径太长", 400);
+  }
+  return path;
+}
+
 export interface DocumentSummary {
   readonly id: string;
   readonly projectId: string;
@@ -148,6 +187,8 @@ export interface DocumentSummary {
   readonly createdBy: string;
   readonly createdAt: string;
   readonly updatedAt: string;
+  /** 用户手工建的文件夹路径。空串 = 根目录。 */
+  readonly folderPath: string;
 }
 
 export interface DocumentVersion {

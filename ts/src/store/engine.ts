@@ -73,7 +73,8 @@ import type { ColDefault, ColKind, ColSpec, IndexSpec, TableName, TableSpec } fr
 
 export const DEFAULT_POOL_SIZE = 5;
 export const DEFAULT_MAX_OVERFLOW = 5;
-export const SQLITE_SCHEMA_VERSION = 18;
+// 19：onto_document.folder_path + onto_document_folder（用户手工建的文件夹）。
+export const SQLITE_SCHEMA_VERSION = 19;
 
 // ══════════════════════════════════════════════════════════════════
 //  URL
@@ -544,6 +545,17 @@ export async function upgradeSqliteCompat(conn: Conn): Promise<void> {
   if (!sessionColumns.has("project_id")) {
     await conn.exec('ALTER TABLE "session" ADD COLUMN project_id TEXT');
     sessionColumns.add("project_id");
+  }
+
+  // 0019：知识库文档加 folder_path（用户手工建的文件夹）。空串 = 根目录，
+  // 所以既有数据不会因为这次升级而"消失"到某个新分组里。
+  // 和上面两条一样是可空/带默认的普通列，就地 ADD 是安全的；
+  // onto_document_folder 那张新表由 createAllSqlite 的 IF NOT EXISTS 负责。
+  if (tables.has("onto_document")) {
+    const documentColumns = new Set(await columnNamesOf("onto_document"));
+    if (!documentColumns.has("folder_path")) {
+      await conn.exec(`ALTER TABLE "onto_document" ADD COLUMN folder_path TEXT NOT NULL DEFAULT ''`);
+    }
   }
 
   // 0006：SQLite 改不了具名 CHECK 约束。只在存下来的 CREATE 语句里还没有

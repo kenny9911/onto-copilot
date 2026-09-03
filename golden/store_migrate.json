@@ -161,6 +161,15 @@
    "chars": 2126,
    "checksum": "99fc5fc89d103f4a827673279b0b8542",
    "sha256_full": "99fc5fc89d103f4a827673279b0b85420541d6dd85d6fbb0f63abe5e4c50e4a4"
+  },
+  {
+   "version": 19,
+   "name": "onto_document_folders",
+   "filename": "0019_onto_document_folders.sql",
+   "bytes": 1551,
+   "chars": 981,
+   "checksum": "65a30d292d3fc6e5fd0db58c592c9bcd",
+   "sha256_full": "65a30d292d3fc6e5fd0db58c592c9bcdf61e158e620932524bc44a94c89f10c7"
   }
  ],
  "checksum_cases": [
@@ -234,7 +243,7 @@
    "label": "status_none",
    "rc": 0,
    "stderr": "",
-   "stdout": "[ ] 0001_init\n[ ] 0002_accounts\n[ ] 0003_app_settings\n[ ] 0004_session_owner\n[ ] 0005_question_decision_revision\n[ ] 0006_session_status\n[ ] 0007_session_event_idempotency\n[ ] 0008_build_lease\n[ ] 0009_chat_lease\n[ ] 0010_llm_usage\n[ ] 0011_mutation_lease\n[ ] 0012_user_display_name\n[ ] 0013_project_folders\n[ ] 0014_onto_document\n[ ] 0015_onto_document_acl\n[ ] 0016_onto_document_jobs_search\n[ ] 0017_onto_document_wiki\n[ ] 0018_onto_document_connectors\n"
+   "stdout": "[ ] 0001_init\n[ ] 0002_accounts\n[ ] 0003_app_settings\n[ ] 0004_session_owner\n[ ] 0005_question_decision_revision\n[ ] 0006_session_status\n[ ] 0007_session_event_idempotency\n[ ] 0008_build_lease\n[ ] 0009_chat_lease\n[ ] 0010_llm_usage\n[ ] 0011_mutation_lease\n[ ] 0012_user_display_name\n[ ] 0013_project_folders\n[ ] 0014_onto_document\n[ ] 0015_onto_document_acl\n[ ] 0016_onto_document_jobs_search\n[ ] 0017_onto_document_wiki\n[ ] 0018_onto_document_connectors\n[ ] 0019_onto_document_folders\n"
   },
   {
    "argv": [
@@ -269,7 +278,7 @@
    "label": "status_partial",
    "rc": 0,
    "stderr": "",
-   "stdout": "[✓] 0001_init\n[✓] 0002_accounts\n[✓] 0003_app_settings\n[✓] 0004_session_owner\n[✓] 0005_question_decision_revision\n[ ] 0006_session_status\n[ ] 0007_session_event_idempotency\n[ ] 0008_build_lease\n[ ] 0009_chat_lease\n[ ] 0010_llm_usage\n[ ] 0011_mutation_lease\n[ ] 0012_user_display_name\n[ ] 0013_project_folders\n[ ] 0014_onto_document\n[ ] 0015_onto_document_acl\n[ ] 0016_onto_document_jobs_search\n[ ] 0017_onto_document_wiki\n[ ] 0018_onto_document_connectors\n"
+   "stdout": "[✓] 0001_init\n[✓] 0002_accounts\n[✓] 0003_app_settings\n[✓] 0004_session_owner\n[✓] 0005_question_decision_revision\n[ ] 0006_session_status\n[ ] 0007_session_event_idempotency\n[ ] 0008_build_lease\n[ ] 0009_chat_lease\n[ ] 0010_llm_usage\n[ ] 0011_mutation_lease\n[ ] 0012_user_display_name\n[ ] 0013_project_folders\n[ ] 0014_onto_document\n[ ] 0015_onto_document_acl\n[ ] 0016_onto_document_jobs_search\n[ ] 0017_onto_document_wiki\n[ ] 0018_onto_document_connectors\n[ ] 0019_onto_document_folders\n"
   },
   {
    "argv": [
@@ -348,6 +357,10 @@
      [
       18,
       "99fc5fc89d103f4a827673279b0b8542"
+     ],
+     [
+      19,
+      "65a30d292d3fc6e5fd0db58c592c9bcd"
      ]
     ],
     "table_exists": true,
@@ -356,7 +369,7 @@
    "label": "status_all",
    "rc": 0,
    "stderr": "",
-   "stdout": "[✓] 0001_init\n[✓] 0002_accounts\n[✓] 0003_app_settings\n[✓] 0004_session_owner\n[✓] 0005_question_decision_revision\n[✓] 0006_session_status\n[✓] 0007_session_event_idempotency\n[✓] 0008_build_lease\n[✓] 0009_chat_lease\n[✓] 0010_llm_usage\n[✓] 0011_mutation_lease\n[✓] 0012_user_display_name\n[✓] 0013_project_folders\n[✓] 0014_onto_document\n[✓] 0015_onto_document_acl\n[✓] 0016_onto_document_jobs_search\n[✓] 0017_onto_document_wiki\n[✓] 0018_onto_document_connectors\n"
+   "stdout": "[✓] 0001_init\n[✓] 0002_accounts\n[✓] 0003_app_settings\n[✓] 0004_session_owner\n[✓] 0005_question_decision_revision\n[✓] 0006_session_status\n[✓] 0007_session_event_idempotency\n[✓] 0008_build_lease\n[✓] 0009_chat_lease\n[✓] 0010_llm_usage\n[✓] 0011_mutation_lease\n[✓] 0012_user_display_name\n[✓] 0013_project_folders\n[✓] 0014_onto_document\n[✓] 0015_onto_document_acl\n[✓] 0016_onto_document_jobs_search\n[✓] 0017_onto_document_wiki\n[✓] 0018_onto_document_connectors\n[✓] 0019_onto_document_folders\n"
   },
   {
    "argv": [],
@@ -433,6 +446,10 @@
      [
       18,
       "99fc5fc89d103f4a827673279b0b8542"
+     ],
+     [
+      19,
+      "65a30d292d3fc6e5fd0db58c592c9bcd"
      ]
     ],
     "table_exists": true,
@@ -476,7 +493,7 @@
    "label": "upgrade_partial",
    "rc": 0,
    "stderr": "",
-   "stdout": "应用了 13 个迁移: [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]\n"
+   "stdout": "应用了 14 个迁移: [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]\n"
   },
   {
    "argv": [
@@ -539,7 +556,7 @@
    "label": "upgrade_one",
    "rc": 0,
    "stderr": "",
-   "stdout": "应用了 6 个迁移: [13, 14, 15, 16, 17, 18]\n"
+   "stdout": "应用了 7 个迁移: [13, 14, 15, 16, 17, 18, 19]\n"
   },
   {
    "argv": [],
@@ -738,7 +755,8 @@
     15,
     16,
     17,
-    18
+    18,
+    19
    ],
    "dry_run": false,
    "input": {
@@ -1023,6 +1041,20 @@
      }
     },
     {
+     "op": "script",
+     "chars": 981,
+     "sha256": "65a30d292d3fc6e5fd0db58c592c9bcdf61e158e620932524bc44a94c89f10c7"
+    },
+    {
+     "op": "execute",
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)",
+     "params": {
+      "v": 19,
+      "n": "onto_document_folders",
+      "c": "65a30d292d3fc6e5fd0db58c592c9bcd"
+     }
+    },
+    {
      "op": "execute",
      "params": {
       "k": 1330533455
@@ -1053,7 +1085,8 @@
     15,
     16,
     17,
-    18
+    18,
+    19
    ],
    "dry_run": true,
    "input": {
@@ -1116,7 +1149,8 @@
     15,
     16,
     17,
-    18
+    18,
+    19
    ],
    "dry_run": false,
    "input": {
@@ -1406,6 +1440,20 @@
      }
     },
     {
+     "op": "script",
+     "chars": 981,
+     "sha256": "65a30d292d3fc6e5fd0db58c592c9bcdf61e158e620932524bc44a94c89f10c7"
+    },
+    {
+     "op": "execute",
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)",
+     "params": {
+      "v": 19,
+      "n": "onto_document_folders",
+      "c": "65a30d292d3fc6e5fd0db58c592c9bcd"
+     }
+    },
+    {
      "op": "execute",
      "params": {
       "k": 1330533455
@@ -1431,7 +1479,8 @@
     15,
     16,
     17,
-    18
+    18,
+    19
    ],
    "dry_run": false,
    "input": {
@@ -1672,6 +1721,20 @@
      }
     },
     {
+     "op": "script",
+     "chars": 981,
+     "sha256": "65a30d292d3fc6e5fd0db58c592c9bcdf61e158e620932524bc44a94c89f10c7"
+    },
+    {
+     "op": "execute",
+     "sql": "INSERT INTO schema_migration (version, name, checksum) VALUES (:v, :n, :c)",
+     "params": {
+      "v": 19,
+      "n": "onto_document_folders",
+      "c": "65a30d292d3fc6e5fd0db58c592c9bcd"
+     }
+    },
+    {
      "op": "execute",
      "params": {
       "k": 1330533455
@@ -1761,6 +1824,10 @@
      [
       18,
       "99fc5fc89d103f4a827673279b0b8542"
+     ],
+     [
+      19,
+      "65a30d292d3fc6e5fd0db58c592c9bcd"
      ]
     ],
     "table_exists": true
@@ -1883,6 +1950,10 @@
      [
       18,
       "99fc5fc89d103f4a827673279b0b8542"
+     ],
+     [
+      19,
+      "65a30d292d3fc6e5fd0db58c592c9bcd"
      ]
     ],
     "table_exists": true
@@ -2196,6 +2267,10 @@
      [
       18,
       "99fc5fc89d103f4a827673279b0b8542"
+     ],
+     [
+      19,
+      "65a30d292d3fc6e5fd0db58c592c9bcd"
      ]
     ],
     "table_exists": true
@@ -2318,6 +2393,10 @@
      [
       "18",
       "99fc5fc89d103f4a827673279b0b8542"
+     ],
+     [
+      "19",
+      "65a30d292d3fc6e5fd0db58c592c9bcd"
      ]
     ],
     "table_exists": true

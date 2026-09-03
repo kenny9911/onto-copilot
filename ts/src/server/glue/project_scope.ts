@@ -9,15 +9,72 @@
  * 存储分区：页面里存进去的文档，模型工具和 DAG 流水线一份都看不见。
  */
 
+import { sha256Hex } from "../../kernel/ids.js";
 import type { DocumentScope } from "../../document/types.js";
 import { globalLibraryScope } from "../../document/types.js";
 import { getRepoOptional } from "../../store/deps.js";
 import type { Repo } from "../../store/repo/protocol.js";
+import { makeProjectRow } from "../../store/types.js";
 
-/** 解析作用域只需要会话的这两个字段。 */
+/**
+ * 解析作用域只需要会话的这几个字段。`projectId` 可写：会话还没归项目时，
+ * 这里会惰性把它归进默认项目并就地写回。
+ */
 export interface ProjectScopeSessionLike {
-  readonly projectId: string;
+  readonly id?: string;
+  projectId: string;
   readonly owner: string;
+}
+
+/**
+ * 自动建出来的默认项目名。**不能**叫「未归类」——侧栏那个是 project_id 为空的
+ * 虚拟分组，真建一个同名项目会并排出现两个都叫「未归类」的东西。
+ */
+export const DEFAULT_PROJECT_NAME = "我的材料";
+const DEFAULT_PROJECT_FLAG = "oc_default";
+
+/** 默认项目 id 由 owner 推导：并发建只会撞主键，不会建出两个。 */
+export function defaultProjectId(owner: string): string {
+  return sha256Hex(`oc:default:${owner}`).slice(0, 12);
+}
+
+/**
+ * 找到或创建这个 owner 的默认项目。
+ *
+ * 会话没归项目时不能直接拒绝 —— 真实库里 33/42 个会话 project_id 为空，
+ * 拒绝等于知识库对多数会话根本不存在。模型侧尤其明显：用户说「把这几份材料放进
+ * 知识库」，模型只能回一句「当前会话尚未关联任何项目，我暂时无法保存」，
+ * 而用户根本不知道该去哪里关联。
+ */
+export async function ensureDefaultProject(
+  repo: Repo,
+  owner: string,
+): Promise<{ id: string; name: string; owner: string; created: boolean }> {
+  const id = defaultProjectId(owner);
+  const mine = await repo.listProjects({ owner });
+  // 按 prefs 标记找，不按名字 —— 用户可以把「我的材料」改成别的名字。
+  const found = mine.find(
+    (p) => (p.prefs as Record<string, unknown> | undefined)?.[DEFAULT_PROJECT_FLAG] === true,
+  ) ?? mine.find((p) => p.id === id);
+  if (found !== undefined) {
+    return { id: found.id, name: found.name, owner: found.owner, created: false };
+  }
+  const row = makeProjectRow({
+    id,
+    name: DEFAULT_PROJECT_NAME,
+    owner,
+    prefs: { [DEFAULT_PROJECT_FLAG]: true },
+  });
+  try {
+    await repo.createProject(row);
+  } catch (exc) {
+    // 冲突后重读，不去认错误形状：projects.ts 的 isDuplicateProject 只认 Postgres 的
+    // 23505，而真库是 SQLite（那边抛 ERR_SQLITE_ERROR / errcode 1555）。
+    const again = await repo.getProject(id);
+    if (again === null) throw exc;
+    return { id: again.id, name: again.name, owner: again.owner, created: false };
+  }
+  return { id: row.id, name: row.name, owner: row.owner, created: true };
 }
 
 /**
@@ -33,6 +90,13 @@ export interface ProjectScopeSessionLike {
 export async function documentScope(session: ProjectScopeSessionLike): Promise<DocumentScope> {
   // store/deps.ts 的 Repo 还是占位类型，和 session.ts:481 的 `getRepo() as Repo` 同处理。
   const repo = getRepoOptional() as Repo | null;
+  // 会话还没归项目 → 惰性归入默认项目，而不是拒绝。和 HTTP 侧
+  // （routes/document_scope.ts 的 resolveProjectScope）**逐字一致**的行为。
+  if (!session.projectId && repo !== null && session.owner) {
+    const ensured = await ensureDefaultProject(repo, session.owner);
+    session.projectId = ensured.id;
+    if (session.id) await repo.assignSession(session.id, ensured.id);
+  }
   const project = repo === null ? null : await repo.getProject(session.projectId);
   return {
     projectId: session.projectId,

@@ -327,6 +327,8 @@ export const TABLE_SPECS = {
       created_by: { kind: "text", notNull: true },
       created_at: { kind: "tstz", notNull: true, default: NOW },
       updated_at: { kind: "tstz", notNull: true, default: NOW },
+      /** 用户手工建的文件夹路径。空串 = 根目录（既有数据的默认落点）。 */
+      folder_path: { kind: "text", notNull: true, default: lit("") },
     },
     checks: [
       { name: "onto_document_status_ck", expr: "status IN ('active','archived')" },
@@ -745,6 +747,24 @@ export const TABLE_SPECS = {
         name: "onto_document_wiki_revision_history_idx",
         columns: ["project_id", "owner", "page_id", "revision"],
       },
+    ],
+  },
+
+  /**
+   * 用户手工创建的文件夹。
+   *
+   * 存完整路径（`制度/采购`）而不是父子指针：树只有几层，要的操作是列全部和按前缀筛。
+   */
+  onto_document_folder: {
+    columns: {
+      project_id: { kind: "text", pk: true },
+      owner: { kind: "text", pk: true },
+      path: { kind: "text", pk: true },
+      created_by: { kind: "text", notNull: true },
+      created_at: { kind: "tstz", notNull: true, default: NOW },
+    },
+    indexes: [
+      { name: "onto_document_folder_scope_idx", columns: ["project_id", "owner"] },
     ],
   },
 

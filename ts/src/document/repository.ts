@@ -1,6 +1,7 @@
 import type { ParsedDoc } from "../onto/parse/base.js";
 import { sha256Hex } from "../kernel/ids.js";
 import type { Conn, Store } from "../store/engine.js";
+import type { DocumentFolder } from "./types.js";
 import {
   DocumentConflict,
   DocumentError,
@@ -26,6 +27,8 @@ export interface NewDocumentSeed {
   readonly tags: readonly string[];
   readonly createdBy: string;
   readonly createdAt: string;
+  /** 落在哪个文件夹。缺省是根目录。 */
+  readonly folderPath?: string;
 }
 
 export interface NewVersionSeed {
@@ -143,6 +146,13 @@ export interface DocumentRepository {
    *
    * 返回 total 是为了让阅读器如实说「第 1-50 段，共 213 段」，而不是默默截断。
    */
+  listFolders(scope: DocumentScope): Promise<DocumentFolder[]>;
+  createFolder(scope: DocumentScope, path: string, createdBy: string, createdAt: string): Promise<DocumentFolder>;
+  /** 删掉文件夹本身及其所有子文件夹；里面的文档挪到 `moveTo`（默认根目录），不删。 */
+  deleteFolder(scope: DocumentScope, path: string, moveTo: string): Promise<number>;
+  /** 重命名 = 连同所有子文件夹与其中文档的路径前缀一起改。 */
+  renameFolder(scope: DocumentScope, from: string, to: string): Promise<number>;
+  moveDocument(scope: DocumentScope, documentId: string, folderPath: string): Promise<DocumentSummary>;
   chunksOfVersion(
     scope: DocumentScope,
     documentId: string,
@@ -267,6 +277,7 @@ function conflictBase(expected: string | undefined, actual: string): never {
 // ══════════════════════════════════════════════════════════════════
 
 export class MemoryDocumentRepository implements DocumentRepository {
+  private readonly folders = new Map<string, DocumentFolder>();
   private readonly documents = new Map<string, DocumentSummary>();
   private readonly versions = new Map<string, StoredDocumentVersion>();
   private readonly chunks = new Map<string, StoredDocumentChunk>();
@@ -390,6 +401,8 @@ export class MemoryDocumentRepository implements DocumentRepository {
             createdBy: input.newDocument!.createdBy,
             createdAt: input.newDocument!.createdAt,
             updatedAt: version.createdAt,
+            // 新文档默认落在根目录；入库之后再移动到某个文件夹。
+            folderPath: input.newDocument!.folderPath ?? "",
           }
         : {
             ...existing,
@@ -590,6 +603,89 @@ export class MemoryDocumentRepository implements DocumentRepository {
     return { document: cloneDocument(d), version: versionPublic(cloneVersion(v)), chunk: cloneChunk(c) };
   }
 
+  private folderKey(scope: DocumentScope, path: string): string {
+    return `${scope.projectId}\u0000${scope.owner}\u0000${path}`;
+  }
+
+  async listFolders(scope: DocumentScope): Promise<DocumentFolder[]> {
+    assertScope(scope);
+    const prefix = `${scope.projectId}\u0000${scope.owner}\u0000`;
+    return [...this.folders.entries()]
+      .filter(([k]) => k.startsWith(prefix))
+      .map(([, v]) => ({ ...v }))
+      .sort((a, b) => a.path.localeCompare(b.path, "zh-Hans-CN"));
+  }
+
+  async createFolder(
+    scope: DocumentScope,
+    path: string,
+    createdBy: string,
+    createdAt: string,
+  ): Promise<DocumentFolder> {
+    assertScope(scope);
+    const key = this.folderKey(scope, path);
+    const existing = this.folders.get(key);
+    if (existing !== undefined) return { ...existing };
+    const row: DocumentFolder = { path, createdBy, createdAt };
+    this.folders.set(key, row);
+    return { ...row };
+  }
+
+  async deleteFolder(scope: DocumentScope, path: string, moveTo: string): Promise<number> {
+    assertScope(scope);
+    const prefix = `${path}/`;
+    let moved = 0;
+    for (const [key, doc] of this.documents) {
+      if (doc.projectId !== scope.projectId || doc.owner !== scope.owner) continue;
+      if (doc.folderPath !== path && !doc.folderPath.startsWith(prefix)) continue;
+      this.documents.set(key, { ...doc, folderPath: moveTo });
+      moved += 1;
+    }
+    for (const key of [...this.folders.keys()]) {
+      const row = this.folders.get(key)!;
+      if (!key.startsWith(`${scope.projectId}\u0000${scope.owner}\u0000`)) continue;
+      if (row.path === path || row.path.startsWith(prefix)) this.folders.delete(key);
+    }
+    return moved;
+  }
+
+  async renameFolder(scope: DocumentScope, from: string, to: string): Promise<number> {
+    assertScope(scope);
+    const prefix = `${from}/`;
+    const rename = (p: string): string =>
+      p === from ? to : p.startsWith(prefix) ? `${to}/${p.slice(prefix.length)}` : p;
+    let touched = 0;
+    for (const [key, doc] of this.documents) {
+      if (doc.projectId !== scope.projectId || doc.owner !== scope.owner) continue;
+      const next = rename(doc.folderPath);
+      if (next === doc.folderPath) continue;
+      this.documents.set(key, { ...doc, folderPath: next });
+      touched += 1;
+    }
+    for (const key of [...this.folders.keys()]) {
+      if (!key.startsWith(`${scope.projectId}\u0000${scope.owner}\u0000`)) continue;
+      const row = this.folders.get(key)!;
+      const next = rename(row.path);
+      if (next === row.path) continue;
+      this.folders.delete(key);
+      this.folders.set(this.folderKey(scope, next), { ...row, path: next });
+      touched += 1;
+    }
+    return touched;
+  }
+
+  async moveDocument(
+    scope: DocumentScope,
+    documentId: string,
+    folderPath: string,
+  ): Promise<DocumentSummary> {
+    const d = this.scoped(scope, documentId);
+    if (d === null) throw new DocumentNotFound();
+    const next = { ...d, folderPath };
+    this.documents.set(documentId, next);
+    return cloneDocument(next);
+  }
+
   async chunksOfVersion(
     scope: DocumentScope,
     documentId: string,
@@ -658,6 +754,8 @@ function rowDocument(r: DbRow): DocumentSummary {
     adoptedVersionId: r["adopted_version_id"] === null ? null : String(r["adopted_version_id"]),
     revision: Number(r["revision"]),
     createdBy: String(r["created_by"]),
+    // 老库读出来是 undefined（0019 之前没这列）—— 按根目录处理。
+    folderPath: String(r["folder_path"] ?? ""),
     createdAt: dateText(r["created_at"]),
     updatedAt: dateText(r["updated_at"]),
   };
@@ -1178,6 +1276,128 @@ export class SqlDocumentRepository implements DocumentRepository {
         "WHERE d.project_id=? AND d.owner=? AND d.id=? AND v.id=? AND c.chunk_id=?";
       const rows = await conn.all<DbRow>(sql, [scope.projectId, scope.owner, documentId, versionId, chunkId]);
       return rows[0] === undefined ? null : candidateFromJoined(rows[0]);
+    });
+  }
+
+  async listFolders(scope: DocumentScope): Promise<DocumentFolder[]> {
+    assertScope(scope);
+    return this.engine.connect(async (conn) => {
+      const rows = await conn.all<DbRow>(
+        "SELECT path,created_by,created_at FROM onto_document_folder " +
+          "WHERE project_id=? AND owner=? ORDER BY path",
+        [scope.projectId, scope.owner],
+      );
+      return rows.map((r) => ({
+        path: String(r["path"]),
+        createdBy: String(r["created_by"]),
+        createdAt: dateText(r["created_at"]),
+      }));
+    });
+  }
+
+  async createFolder(
+    scope: DocumentScope,
+    path: string,
+    createdBy: string,
+    createdAt: string,
+  ): Promise<DocumentFolder> {
+    assertScope(scope);
+    return this.engine.connect(async (conn) => {
+      const found = await conn.all<DbRow>(
+        "SELECT path,created_by,created_at FROM onto_document_folder " +
+          "WHERE project_id=? AND owner=? AND path=?",
+        [scope.projectId, scope.owner, path],
+      );
+      if (found[0] !== undefined) {
+        // 已存在就原样返回：建一个已经在的文件夹不是错误，是空操作。
+        return {
+          path,
+          createdBy: String(found[0]["created_by"]),
+          createdAt: dateText(found[0]["created_at"]),
+        };
+      }
+      await conn.exec(
+        "INSERT INTO onto_document_folder (project_id,owner,path,created_by,created_at) " +
+          "VALUES (?,?,?,?,?)",
+        [scope.projectId, scope.owner, path, createdBy, createdAt],
+      );
+      return { path, createdBy, createdAt };
+    });
+  }
+
+  async deleteFolder(scope: DocumentScope, path: string, moveTo: string): Promise<number> {
+    assertScope(scope);
+    return this.engine.connect(async (conn) => {
+      const like = `${path}/%`;
+      // 先把里面的文档挪走再删文件夹 —— 顺序反了就会有一批文档指向一个不存在的路径。
+      // **不删文档**：删掉一个文件夹不该顺带销毁材料。
+      await conn.exec(
+        "UPDATE onto_document SET folder_path=? WHERE project_id=? AND owner=? " +
+          "AND (folder_path=? OR folder_path LIKE ?)",
+        [moveTo, scope.projectId, scope.owner, path, like],
+      );
+      const moved = await conn.all<DbRow>(
+        "SELECT COUNT(*) AS n FROM onto_document WHERE project_id=? AND owner=? AND folder_path=?",
+        [scope.projectId, scope.owner, moveTo],
+      );
+      await conn.exec(
+        "DELETE FROM onto_document_folder WHERE project_id=? AND owner=? AND (path=? OR path LIKE ?)",
+        [scope.projectId, scope.owner, path, like],
+      );
+      return Number(moved[0]?.["n"] ?? 0);
+    });
+  }
+
+  async renameFolder(scope: DocumentScope, from: string, to: string): Promise<number> {
+    assertScope(scope);
+    return this.engine.connect(async (conn) => {
+      const like = `${from}/%`;
+      const cut = from.length + 1;
+      // 子文件夹和其中的文档跟着一起改前缀 —— 否则改完名字，下面那一层就断了根。
+      await conn.exec(
+        "UPDATE onto_document SET folder_path=? WHERE project_id=? AND owner=? AND folder_path=?",
+        [to, scope.projectId, scope.owner, from],
+      );
+      await conn.exec(
+        `UPDATE onto_document SET folder_path=? || substr(folder_path,${cut}) ` +
+          "WHERE project_id=? AND owner=? AND folder_path LIKE ?",
+        [`${to}/`, scope.projectId, scope.owner, like],
+      );
+      await conn.exec(
+        "UPDATE onto_document_folder SET path=? WHERE project_id=? AND owner=? AND path=?",
+        [to, scope.projectId, scope.owner, from],
+      );
+      await conn.exec(
+        `UPDATE onto_document_folder SET path=? || substr(path,${cut}) ` +
+          "WHERE project_id=? AND owner=? AND path LIKE ?",
+        [`${to}/`, scope.projectId, scope.owner, like],
+      );
+      const n = await conn.all<DbRow>(
+        "SELECT COUNT(*) AS n FROM onto_document_folder WHERE project_id=? AND owner=? " +
+          "AND (path=? OR path LIKE ?)",
+        [scope.projectId, scope.owner, to, `${to}/%`],
+      );
+      return Number(n[0]?.["n"] ?? 0);
+    });
+  }
+
+  async moveDocument(
+    scope: DocumentScope,
+    documentId: string,
+    folderPath: string,
+  ): Promise<DocumentSummary> {
+    assertScope(scope);
+    return this.engine.connect(async (conn) => {
+      await conn.exec(
+        "UPDATE onto_document SET folder_path=? WHERE id=? AND project_id=? AND owner=?",
+        [folderPath, documentId, scope.projectId, scope.owner],
+      );
+      const rows = await conn.all<DbRow>(
+        `SELECT ${DOC_COLUMNS} FROM onto_document WHERE id=? AND project_id=? AND owner=?`,
+        [documentId, scope.projectId, scope.owner],
+      );
+      if (rows[0] === undefined) throw new DocumentNotFound();
+      return rowDocument(rows[0]);
     });
   }
 

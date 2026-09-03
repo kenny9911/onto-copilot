@@ -54,6 +54,7 @@ const SUMMARY: DocumentSummary = {
   createdBy: "u1",
   createdAt: "2026-09-01T01:00:00.000Z",
   updatedAt: "2026-09-01T02:00:00.000Z",
+  folderPath: "",
 };
 
 const VERSION: DocumentVersion = {

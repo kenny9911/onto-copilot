@@ -2,7 +2,7 @@
  "constants": {
   "DEFAULT_POOL_SIZE": 5,
   "DEFAULT_MAX_OVERFLOW": 5,
-  "SQLITE_SCHEMA_VERSION": 18
+  "SQLITE_SCHEMA_VERSION": 19
  },
  "database_url": [
   {
@@ -92,7 +92,7 @@
   }
  },
  "fresh": {
-  "user_version": 18,
+  "user_version": 19,
   "tables": {
    "app_setting": {
     "columns": [
@@ -1539,6 +1539,14 @@
       "notnull": 1,
       "dflt_value": "CURRENT_TIMESTAMP",
       "pk": 0
+     },
+     {
+      "cid": 14,
+      "name": "folder_path",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
      }
     ],
     "foreign_keys": [],
@@ -1573,7 +1581,7 @@
       ]
      }
     ],
-    "sql": "CREATE TABLE \"onto_document\" (\n\t\"id\" TEXT NOT NULL, \n\t\"project_id\" TEXT NOT NULL, \n\t\"owner\" TEXT NOT NULL, \n\t\"title\" TEXT NOT NULL, \n\t\"logical_name\" TEXT NOT NULL, \n\t\"source_class\" TEXT NOT NULL, \n\t\"tags\" JSON NOT NULL, \n\t\"status\" TEXT DEFAULT 'active' NOT NULL, \n\t\"current_version_id\" TEXT NOT NULL, \n\t\"adopted_version_id\" TEXT, \n\t\"revision\" INTEGER DEFAULT '1' NOT NULL, \n\t\"created_by\" TEXT NOT NULL, \n\t\"created_at\" DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\t\"updated_at\" DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tPRIMARY KEY (\"id\"), \n\tCONSTRAINT \"onto_document_status_ck\" CHECK (status IN ('active','archived')), \n\tCONSTRAINT \"onto_document_source_class_ck\" CHECK (source_class IN ('session_upload','generated','external','imported'))\n)"
+    "sql": "CREATE TABLE \"onto_document\" (\n\t\"id\" TEXT NOT NULL, \n\t\"project_id\" TEXT NOT NULL, \n\t\"owner\" TEXT NOT NULL, \n\t\"title\" TEXT NOT NULL, \n\t\"logical_name\" TEXT NOT NULL, \n\t\"source_class\" TEXT NOT NULL, \n\t\"tags\" JSON NOT NULL, \n\t\"status\" TEXT DEFAULT 'active' NOT NULL, \n\t\"current_version_id\" TEXT NOT NULL, \n\t\"adopted_version_id\" TEXT, \n\t\"revision\" INTEGER DEFAULT '1' NOT NULL, \n\t\"created_by\" TEXT NOT NULL, \n\t\"created_at\" DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\t\"updated_at\" DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\t\"folder_path\" TEXT DEFAULT '' NOT NULL, \n\tPRIMARY KEY (\"id\"), \n\tCONSTRAINT \"onto_document_status_ck\" CHECK (status IN ('active','archived')), \n\tCONSTRAINT \"onto_document_source_class_ck\" CHECK (source_class IN ('session_upload','generated','external','imported'))\n)"
    },
    "onto_document_acl_rule": {
     "columns": [
@@ -2117,6 +2125,75 @@
      }
     ],
     "sql": "CREATE TABLE \"onto_document_connector_source\" (\n\t\"id\" TEXT NOT NULL, \n\t\"project_id\" TEXT NOT NULL, \n\t\"owner\" TEXT NOT NULL, \n\t\"provider\" TEXT NOT NULL, \n\t\"name\" TEXT NOT NULL, \n\t\"root_or_prefix\" TEXT NOT NULL, \n\t\"credential_ref\" TEXT NOT NULL, \n\t\"tags\" JSON NOT NULL, \n\t\"classification\" TEXT DEFAULT 'internal' NOT NULL, \n\t\"enabled\" BOOLEAN DEFAULT 1 NOT NULL, \n\t\"revision\" INTEGER DEFAULT '1' NOT NULL, \n\t\"cursor\" TEXT, \n\t\"status\" TEXT DEFAULT 'idle' NOT NULL, \n\t\"created_by\" TEXT NOT NULL, \n\t\"updated_by\" TEXT NOT NULL, \n\t\"created_at\" DATETIME NOT NULL, \n\t\"updated_at\" DATETIME NOT NULL, \n\t\"last_started_at\" DATETIME, \n\t\"last_completed_at\" DATETIME, \n\t\"last_error\" TEXT, \n\tPRIMARY KEY (\"id\"), \n\tCONSTRAINT \"onto_document_connector_scope_root_uq\" UNIQUE (\"project_id\", \"owner\", \"provider\", \"root_or_prefix\"), \n\tCONSTRAINT \"onto_document_connector_provider_ck\" CHECK (provider IN ('sharepoint','webdav','s3','confluence','datahub','openmetadata')), \n\tCONSTRAINT \"onto_document_connector_classification_ck\" CHECK (classification IN ('public','internal','confidential','restricted')), \n\tCONSTRAINT \"onto_document_connector_status_ck\" CHECK (status IN ('idle','syncing','error','archived')), \n\tCONSTRAINT \"onto_document_connector_revision_ck\" CHECK (revision > 0), \n\tCONSTRAINT \"onto_document_connector_archive_ck\" CHECK (status <> 'archived' OR enabled = false)\n)"
+   },
+   "onto_document_folder": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "project_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "owner",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 2
+     },
+     {
+      "cid": 2,
+      "name": "path",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 3
+     },
+     {
+      "cid": 3,
+      "name": "created_by",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "created_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [],
+    "indexes": [
+     {
+      "name": "onto_document_folder_scope_idx",
+      "unique": 0,
+      "origin": "c",
+      "partial": 0,
+      "columns": [
+       "project_id",
+       "owner"
+      ]
+     },
+     {
+      "name": "sqlite_autoindex_onto_document_folder_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "project_id",
+       "owner",
+       "path"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE \"onto_document_folder\" (\n\t\"project_id\" TEXT NOT NULL, \n\t\"owner\" TEXT NOT NULL, \n\t\"path\" TEXT NOT NULL, \n\t\"created_by\" TEXT NOT NULL, \n\t\"created_at\" DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tPRIMARY KEY (\"project_id\", \"owner\", \"path\")\n)"
    },
    "onto_document_job": {
     "columns": [
@@ -4462,12 +4539,12 @@
   "healthcheck": {
    "mode": "sqlite",
    "ok": true,
-   "schema_version": 18
+   "schema_version": 19
   },
   "mode": "sqlite"
  },
  "reopen": {
-  "user_version": 18,
+  "user_version": 19,
   "tables": {
    "app_setting": {
     "columns": [
@@ -5914,6 +5991,14 @@
       "notnull": 1,
       "dflt_value": "CURRENT_TIMESTAMP",
       "pk": 0
+     },
+     {
+      "cid": 14,
+      "name": "folder_path",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
      }
     ],
     "foreign_keys": [],
@@ -5948,7 +6033,7 @@
       ]
      }
     ],
-    "sql": "CREATE TABLE \"onto_document\" (\n\t\"id\" TEXT NOT NULL, \n\t\"project_id\" TEXT NOT NULL, \n\t\"owner\" TEXT NOT NULL, \n\t\"title\" TEXT NOT NULL, \n\t\"logical_name\" TEXT NOT NULL, \n\t\"source_class\" TEXT NOT NULL, \n\t\"tags\" JSON NOT NULL, \n\t\"status\" TEXT DEFAULT 'active' NOT NULL, \n\t\"current_version_id\" TEXT NOT NULL, \n\t\"adopted_version_id\" TEXT, \n\t\"revision\" INTEGER DEFAULT '1' NOT NULL, \n\t\"created_by\" TEXT NOT NULL, \n\t\"created_at\" DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\t\"updated_at\" DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tPRIMARY KEY (\"id\"), \n\tCONSTRAINT \"onto_document_status_ck\" CHECK (status IN ('active','archived')), \n\tCONSTRAINT \"onto_document_source_class_ck\" CHECK (source_class IN ('session_upload','generated','external','imported'))\n)"
+    "sql": "CREATE TABLE \"onto_document\" (\n\t\"id\" TEXT NOT NULL, \n\t\"project_id\" TEXT NOT NULL, \n\t\"owner\" TEXT NOT NULL, \n\t\"title\" TEXT NOT NULL, \n\t\"logical_name\" TEXT NOT NULL, \n\t\"source_class\" TEXT NOT NULL, \n\t\"tags\" JSON NOT NULL, \n\t\"status\" TEXT DEFAULT 'active' NOT NULL, \n\t\"current_version_id\" TEXT NOT NULL, \n\t\"adopted_version_id\" TEXT, \n\t\"revision\" INTEGER DEFAULT '1' NOT NULL, \n\t\"created_by\" TEXT NOT NULL, \n\t\"created_at\" DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\t\"updated_at\" DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\t\"folder_path\" TEXT DEFAULT '' NOT NULL, \n\tPRIMARY KEY (\"id\"), \n\tCONSTRAINT \"onto_document_status_ck\" CHECK (status IN ('active','archived')), \n\tCONSTRAINT \"onto_document_source_class_ck\" CHECK (source_class IN ('session_upload','generated','external','imported'))\n)"
    },
    "onto_document_acl_rule": {
     "columns": [
@@ -6492,6 +6577,75 @@
      }
     ],
     "sql": "CREATE TABLE \"onto_document_connector_source\" (\n\t\"id\" TEXT NOT NULL, \n\t\"project_id\" TEXT NOT NULL, \n\t\"owner\" TEXT NOT NULL, \n\t\"provider\" TEXT NOT NULL, \n\t\"name\" TEXT NOT NULL, \n\t\"root_or_prefix\" TEXT NOT NULL, \n\t\"credential_ref\" TEXT NOT NULL, \n\t\"tags\" JSON NOT NULL, \n\t\"classification\" TEXT DEFAULT 'internal' NOT NULL, \n\t\"enabled\" BOOLEAN DEFAULT 1 NOT NULL, \n\t\"revision\" INTEGER DEFAULT '1' NOT NULL, \n\t\"cursor\" TEXT, \n\t\"status\" TEXT DEFAULT 'idle' NOT NULL, \n\t\"created_by\" TEXT NOT NULL, \n\t\"updated_by\" TEXT NOT NULL, \n\t\"created_at\" DATETIME NOT NULL, \n\t\"updated_at\" DATETIME NOT NULL, \n\t\"last_started_at\" DATETIME, \n\t\"last_completed_at\" DATETIME, \n\t\"last_error\" TEXT, \n\tPRIMARY KEY (\"id\"), \n\tCONSTRAINT \"onto_document_connector_scope_root_uq\" UNIQUE (\"project_id\", \"owner\", \"provider\", \"root_or_prefix\"), \n\tCONSTRAINT \"onto_document_connector_provider_ck\" CHECK (provider IN ('sharepoint','webdav','s3','confluence','datahub','openmetadata')), \n\tCONSTRAINT \"onto_document_connector_classification_ck\" CHECK (classification IN ('public','internal','confidential','restricted')), \n\tCONSTRAINT \"onto_document_connector_status_ck\" CHECK (status IN ('idle','syncing','error','archived')), \n\tCONSTRAINT \"onto_document_connector_revision_ck\" CHECK (revision > 0), \n\tCONSTRAINT \"onto_document_connector_archive_ck\" CHECK (status <> 'archived' OR enabled = false)\n)"
+   },
+   "onto_document_folder": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "project_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "owner",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 2
+     },
+     {
+      "cid": 2,
+      "name": "path",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 3
+     },
+     {
+      "cid": 3,
+      "name": "created_by",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "created_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [],
+    "indexes": [
+     {
+      "name": "onto_document_folder_scope_idx",
+      "unique": 0,
+      "origin": "c",
+      "partial": 0,
+      "columns": [
+       "project_id",
+       "owner"
+      ]
+     },
+     {
+      "name": "sqlite_autoindex_onto_document_folder_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "project_id",
+       "owner",
+       "path"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE \"onto_document_folder\" (\n\t\"project_id\" TEXT NOT NULL, \n\t\"owner\" TEXT NOT NULL, \n\t\"path\" TEXT NOT NULL, \n\t\"created_by\" TEXT NOT NULL, \n\t\"created_at\" DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tPRIMARY KEY (\"project_id\", \"owner\", \"path\")\n)"
    },
    "onto_document_job": {
     "columns": [
@@ -8842,7 +8996,7 @@
   "mode": "sqlite"
  },
  "legacy": {
-  "user_version": 18,
+  "user_version": 19,
   "tables": {
    "app_setting": {
     "columns": [
@@ -10289,6 +10443,14 @@
       "notnull": 1,
       "dflt_value": "CURRENT_TIMESTAMP",
       "pk": 0
+     },
+     {
+      "cid": 14,
+      "name": "folder_path",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "''",
+      "pk": 0
      }
     ],
     "foreign_keys": [],
@@ -10323,7 +10485,7 @@
       ]
      }
     ],
-    "sql": "CREATE TABLE \"onto_document\" (\n\t\"id\" TEXT NOT NULL, \n\t\"project_id\" TEXT NOT NULL, \n\t\"owner\" TEXT NOT NULL, \n\t\"title\" TEXT NOT NULL, \n\t\"logical_name\" TEXT NOT NULL, \n\t\"source_class\" TEXT NOT NULL, \n\t\"tags\" JSON NOT NULL, \n\t\"status\" TEXT DEFAULT 'active' NOT NULL, \n\t\"current_version_id\" TEXT NOT NULL, \n\t\"adopted_version_id\" TEXT, \n\t\"revision\" INTEGER DEFAULT '1' NOT NULL, \n\t\"created_by\" TEXT NOT NULL, \n\t\"created_at\" DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\t\"updated_at\" DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tPRIMARY KEY (\"id\"), \n\tCONSTRAINT \"onto_document_status_ck\" CHECK (status IN ('active','archived')), \n\tCONSTRAINT \"onto_document_source_class_ck\" CHECK (source_class IN ('session_upload','generated','external','imported'))\n)"
+    "sql": "CREATE TABLE \"onto_document\" (\n\t\"id\" TEXT NOT NULL, \n\t\"project_id\" TEXT NOT NULL, \n\t\"owner\" TEXT NOT NULL, \n\t\"title\" TEXT NOT NULL, \n\t\"logical_name\" TEXT NOT NULL, \n\t\"source_class\" TEXT NOT NULL, \n\t\"tags\" JSON NOT NULL, \n\t\"status\" TEXT DEFAULT 'active' NOT NULL, \n\t\"current_version_id\" TEXT NOT NULL, \n\t\"adopted_version_id\" TEXT, \n\t\"revision\" INTEGER DEFAULT '1' NOT NULL, \n\t\"created_by\" TEXT NOT NULL, \n\t\"created_at\" DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\t\"updated_at\" DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\t\"folder_path\" TEXT DEFAULT '' NOT NULL, \n\tPRIMARY KEY (\"id\"), \n\tCONSTRAINT \"onto_document_status_ck\" CHECK (status IN ('active','archived')), \n\tCONSTRAINT \"onto_document_source_class_ck\" CHECK (source_class IN ('session_upload','generated','external','imported'))\n)"
    },
    "onto_document_acl_rule": {
     "columns": [
@@ -10867,6 +11029,75 @@
      }
     ],
     "sql": "CREATE TABLE \"onto_document_connector_source\" (\n\t\"id\" TEXT NOT NULL, \n\t\"project_id\" TEXT NOT NULL, \n\t\"owner\" TEXT NOT NULL, \n\t\"provider\" TEXT NOT NULL, \n\t\"name\" TEXT NOT NULL, \n\t\"root_or_prefix\" TEXT NOT NULL, \n\t\"credential_ref\" TEXT NOT NULL, \n\t\"tags\" JSON NOT NULL, \n\t\"classification\" TEXT DEFAULT 'internal' NOT NULL, \n\t\"enabled\" BOOLEAN DEFAULT 1 NOT NULL, \n\t\"revision\" INTEGER DEFAULT '1' NOT NULL, \n\t\"cursor\" TEXT, \n\t\"status\" TEXT DEFAULT 'idle' NOT NULL, \n\t\"created_by\" TEXT NOT NULL, \n\t\"updated_by\" TEXT NOT NULL, \n\t\"created_at\" DATETIME NOT NULL, \n\t\"updated_at\" DATETIME NOT NULL, \n\t\"last_started_at\" DATETIME, \n\t\"last_completed_at\" DATETIME, \n\t\"last_error\" TEXT, \n\tPRIMARY KEY (\"id\"), \n\tCONSTRAINT \"onto_document_connector_scope_root_uq\" UNIQUE (\"project_id\", \"owner\", \"provider\", \"root_or_prefix\"), \n\tCONSTRAINT \"onto_document_connector_provider_ck\" CHECK (provider IN ('sharepoint','webdav','s3','confluence','datahub','openmetadata')), \n\tCONSTRAINT \"onto_document_connector_classification_ck\" CHECK (classification IN ('public','internal','confidential','restricted')), \n\tCONSTRAINT \"onto_document_connector_status_ck\" CHECK (status IN ('idle','syncing','error','archived')), \n\tCONSTRAINT \"onto_document_connector_revision_ck\" CHECK (revision > 0), \n\tCONSTRAINT \"onto_document_connector_archive_ck\" CHECK (status <> 'archived' OR enabled = false)\n)"
+   },
+   "onto_document_folder": {
+    "columns": [
+     {
+      "cid": 0,
+      "name": "project_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 1
+     },
+     {
+      "cid": 1,
+      "name": "owner",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 2
+     },
+     {
+      "cid": 2,
+      "name": "path",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 3
+     },
+     {
+      "cid": 3,
+      "name": "created_by",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+     },
+     {
+      "cid": 4,
+      "name": "created_at",
+      "type": "DATETIME",
+      "notnull": 1,
+      "dflt_value": "CURRENT_TIMESTAMP",
+      "pk": 0
+     }
+    ],
+    "foreign_keys": [],
+    "indexes": [
+     {
+      "name": "onto_document_folder_scope_idx",
+      "unique": 0,
+      "origin": "c",
+      "partial": 0,
+      "columns": [
+       "project_id",
+       "owner"
+      ]
+     },
+     {
+      "name": "sqlite_autoindex_onto_document_folder_1",
+      "unique": 1,
+      "origin": "pk",
+      "partial": 0,
+      "columns": [
+       "project_id",
+       "owner",
+       "path"
+      ]
+     }
+    ],
+    "sql": "CREATE TABLE \"onto_document_folder\" (\n\t\"project_id\" TEXT NOT NULL, \n\t\"owner\" TEXT NOT NULL, \n\t\"path\" TEXT NOT NULL, \n\t\"created_by\" TEXT NOT NULL, \n\t\"created_at\" DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tPRIMARY KEY (\"project_id\", \"owner\", \"path\")\n)"
    },
    "onto_document_job": {
     "columns": [
@@ -13203,7 +13434,7 @@
   "healthcheck": {
    "mode": "sqlite",
    "ok": true,
-   "schema_version": 18
+   "schema_version": 19
   },
   "mode": "sqlite",
   "rows": {

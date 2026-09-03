@@ -27,36 +27,15 @@
 
 import type { Context } from "hono";
 
-import { sha256Hex } from "../../kernel/ids.js";
 import type { DocumentScope } from "../../document/types.js";
 import { globalLibraryScope } from "../../document/types.js";
-import { makeProjectRow } from "../../store/types.js";
 import type { AppEnv } from "../app.js";
 import { SYNTHETIC_ADMIN_ID, isolate, ownerId } from "../app.js";
+import { ensureDefaultProject } from "../glue/project_scope.js";
 import { SESSIONS, currentRepo } from "../session.js";
 import { apiError } from "./sessions.js";
 
-/**
- * 自动建出来的默认项目名。
- *
- * **不能**叫「未归类」：侧栏里那个「未归类」是 `project_id` 为空的会话的虚拟分组，
- * 用的是一个真项目 id 长不成的哨兵键（`ui/state.ts:157`）。真建一个同名项目，
- * 侧栏会同时出现一个虚拟组和一个真文件夹，两个都叫「未归类」。
- */
-export const DEFAULT_PROJECT_NAME = "我的材料";
-
-/** 默认项目在 prefs 上的标记。用它而不是名字来找 —— 用户可以把它改名。 */
-const DEFAULT_PROJECT_FLAG = "oc_default";
-
-/**
- * 默认项目的 id 由 owner 推导，因此并发建只会撞主键、不会建出两个。
- *
- * 刻意保持 12 位十六进制，和 `shortId()`（sessions.ts 里 randomUUID 去横杠取 12 位）
- * 同形，侧栏那些拿 id 当 key 的地方看不出区别。
- */
-export function defaultProjectId(owner: string): string {
-  return sha256Hex(`oc:default:${owner}`).slice(0, 12);
-}
+export { DEFAULT_PROJECT_NAME, defaultProjectId } from "../glue/project_scope.js";
 
 /** 解析作用域时只需要会话的这三个字段；具体类型由各路由自己的会话形状决定。 */
 export interface ProjectScopeSession {
@@ -86,46 +65,15 @@ export function repoProjectDirectory(): ProjectDirectory {
       return row === null ? null : { id: row.id, name: row.name, owner: row.owner };
     },
     /**
-     * 并发不靠新约束、不靠租约，靠**确定性 id + 建失败后重读**。
-     *
-     * project 表上没有 (owner, name) 唯一约束，`createProject` 只在 **id** 冲突时抛
-     * —— 随机 id 下「先查后建」必然能建出两个「我的材料」。用 `defaultProjectId(owner)`
-     * 之后并发两路算出的是同一个主键，冲突由主键兜住。
-     *
-     * 冲突后**不去认错误形状**：`projects.ts` 的 `isDuplicateProject` 只认 Postgres 的
-     * `23505`，而真库是 SQLite —— 那边重复主键抛的是 `ERR_SQLITE_ERROR` / errcode 1555，
-     * 一个 23505 都没有。重读式重试与方言无关，是唯一稳的写法。
+     * 委托给 `glue/project_scope.ts` 的同一份实现 —— 模型工具那条路也用它。
+     * 这两条路径以前靠注释约定「逐字一致」；靠同一段代码更靠谱。
      */
     async ensureDefault(owner) {
-      const repo = currentRepo();
-      const id = defaultProjectId(owner);
-      const mine = await repo.listProjects({ owner });
-      // 按 prefs 标记找，不按名字 —— 用户可以把「我的材料」改成别的名字。
-      const flagged = mine.find(
-        (p) => (p.prefs as Record<string, unknown> | undefined)?.[DEFAULT_PROJECT_FLAG] === true,
-      );
-      const existing = flagged ?? mine.find((p) => p.id === id);
-      if (existing !== undefined) {
-        return {
-          project: { id: existing.id, name: existing.name, owner: existing.owner },
-          created: false,
-        };
-      }
-      const row = makeProjectRow({
-        // prefs 列 NOT NULL 且故意没有跨方言默认值 —— 和 projects.ts 的创建路径一致。
-        id,
-        name: DEFAULT_PROJECT_NAME,
-        owner,
-        prefs: { [DEFAULT_PROJECT_FLAG]: true },
-      });
-      try {
-        await repo.createProject(row);
-      } catch (exc) {
-        const again = await repo.getProject(id);
-        if (again === null) throw exc;
-        return { project: { id: again.id, name: again.name, owner: again.owner }, created: false };
-      }
-      return { project: { id: row.id, name: row.name, owner: row.owner }, created: true };
+      const ensured = await ensureDefaultProject(currentRepo(), owner);
+      return {
+        project: { id: ensured.id, name: ensured.name, owner: ensured.owner },
+        created: ensured.created,
+      };
     },
     async assign(sessionId, projectId) {
       await currentRepo().assignSession(sessionId, projectId);

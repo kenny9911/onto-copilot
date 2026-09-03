@@ -732,9 +732,10 @@ function consumeCapability(capability: DocumentTurnCapability): void {
 }
 
 function unavailable(session: SessionLike): Dict | null {
-  if (!session.projectId) {
-    return { ok: false, error: "这个会话还没有归入项目。请先选择项目，再使用项目知识库。" };
-  }
+  // 这里**不再**因为「会话没归项目」而拒绝。用户说「把这几份材料放进知识库」，
+  // 模型回一句「当前会话尚未关联任何项目，我暂时无法保存」是最没用的回答 ——
+  // 他根本不知道该去哪里关联。`documentScope()` 会惰性归入默认项目，
+  // 和用户在页面上打开知识库时发生的事完全一样。
   if (!session.owner) {
     return { ok: false, error: "当前会话没有可核验的账号身份，不能访问项目知识库。" };
   }
