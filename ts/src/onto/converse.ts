@@ -559,9 +559,98 @@ function materialClaimSentences(answerText: string): string[] {
     .filter((row) => !/(?:未找到|没有找到|材料不足|无法(?:确认|判断)|不能(?:确认|判断)|尚待|待确认|需要.*(?:确认|核对)|用户提出|我(?:推测|猜测)|可能|假设|通用经验|一般建议|建议|风险提示|不代表客户现状)/u.test(row));
 }
 
+/**
+ * 「把用户的提问词当成标题、后半截才是断言」这一层壳。
+ *
+ * 现场（2026-09-04）：用户问「验收规范里写的验收期限是多少天？」，模型答
+ * 「验收期限是到货后 3 个工作日内完成验收」。后半截逐字来自原文，可整句被拦下 ——
+ * 因为原文写的是「完成验收」，从没出现过「期限」二字，而「验收期限」是用户自己
+ * 的提问词。于是一个完全正确、有出处的回答被判成「无出处的新事实」。
+ *
+ * 这不是孤例，是**问答的自然形状**：人问「X 是多少」，答「X 是 ……」。
+ *
+ * ## 为什么只剥壳，不豁免提问词
+ *
+ * 直觉的修法是「用户问句里出现过的词一律不算无出处」。我算过那条路：
+ * 提问「采购申请是不是必须由董事长审批？」、原文写「必须由总经理审批」、
+ * 模型答「采购申请必须由董事长审批后才能提交付款」——「董事/事长/长审」全在提问里，
+ * 豁免之后 missingBusinessTerms 清空，而 ratio 有 0.78 拦不住它，**顶替角色的假事实
+ * 会被发布**。那正是下面那行注释警告的「董事长→总经理这类关键替换」。
+ *
+ * 所以这里只做一件很窄的事：**如果整句拿不下，就把「<标题>是/为/：」这层壳剥掉，
+ * 让后半截独立再跑一遍同样的四项检查。** 两把锁：
+ *   · 标题必须是用户这一轮**原话里的连续子串**（来自 turn.text，不是材料正文，
+ *     没有被材料注入的路径），而且它只当标题用，不承载任何被发布的事实；
+ *   · 剥完之后那半句要**独立满足全部四项**（matches / ratio / 业务名词 / 强制词），
+ *     分母分子仍然只数证据 bigram，提问词一个都没进支持集。
+ *
+ * 上面那个顶替角色的例子里没有「……是……」这层壳（整句就是断言），剥不掉，照旧被拦。
+ */
+function questionLabelRemainder(sentence: string, question: string): string | null {
+  if (question === "") return null;
+  const match = /^(.{2,30}?)(?:是|为|：|:)(.+)$/su.exec(sentence);
+  if (match === null) return null;
+  const [, label, rest] = match;
+  // 标题必须是用户原话里的**连续子串**。放宽成「以问句里的词结尾」就有洞：
+  // 「采购必须由董事长审批，验收期限是……」的标题尾巴也叫「验收期限」，
+  // 而标题整段是不参与核对、直接发布的 —— 那等于开一条夹带假事实的路。
+  if (!question.includes(label!)) return null;
+  return rest!.trim() === "" ? null : rest!;
+}
+
+/**
+ * 剥掉句首那句「根据《某某文件》，」。
+ *
+ * 模型很爱这么写，而它会把整句挤出「标题 + 断言」的形状：
+ * 「根据《验收规范.md》，验收期限是到货后 3 个工作日内完成验收」的标题变成
+ * 「根据《验收规范.md》，验收期限」，那不是用户原话里的子串，于是整句被拦 ——
+ * 一句既有出处、措辞又贴着原文的回答，栽在一句出处说明上。
+ *
+ * **只在这段话确实指着本轮引用的那条 cite 时才剥。** 「根据董事长的规定，」
+ * 同样是「根据……，」的形状，但它断言了一件材料没说的事（谁定的规矩），
+ * 而被剥掉的部分是不核对、直接发布的 —— 不加这道限制就是一条夹带的路。
+ */
+function withoutSourceAttribution(sentence: string, cites: readonly string[]): string {
+  const match = /^(?:根据|按照|依据|参考)\s*([^，,。；;]{1,60}?)\s*[，,]\s*(.+)$/su.exec(sentence);
+  if (match === null) return sentence;
+  const [, source, rest] = match;
+  // 必须点到本轮真的引用了的那份材料。cite 形如「验收规范.md#p1」，而人话里写的是
+  // 「《验收规范.md》的明确规定」—— 按 `#` 之前的文档名比对，两边都不必逐字相等。
+  const known = cites.some((cite) => {
+    const name = (cite.split("#")[0] ?? "").trim();
+    return name !== "" && source!.includes(name);
+  });
+  return known && rest!.trim() !== "" ? rest! : sentence;
+}
+
+/**
+ * 把答案里内联的 cite 字符串抹掉再核对。
+ *
+ * 现场（2026-09-04）实测模型写的是：
+ *   「根据《验收规范.md》的明确规定，到货后需要在 3 个工作日内完成验收验收规范.md#p1。」
+ * 它把出处直接粘在正文末尾了。于是「收验」「验收规范」「范.m」「md#」这些片段全成了
+ * 「原文里查不到的业务名词」，一句逐字来自原文的回答被判成无出处。
+ *
+ * cite 字符串**按定义就是已核验内容**：它必须与工具回执里的 cite 全等，
+ * 否则前面 CITATION_FABRICATED 那道闸早就拦下了。让它再以「无出处的新事实」
+ * 的身份被算一次，是同一个东西被两道闸用两种口径判，纯属误伤。
+ */
+function withoutInlineCites(sentence: string, cites: readonly string[]): string {
+  let out = sentence;
+  // 长的先删：「验收规范.md#p1」要先于「验收规范.md」被抹掉，否则会剩下一截「#p1」。
+  for (const cite of [...cites].sort((a, b) => b.length - a.length)) {
+    if (cite === "") continue;
+    out = out.split(cite).join("");
+    const name = (cite.split("#")[0] ?? "").trim();
+    if (name !== "" && name.length >= 4) out = out.split(name).join("");
+  }
+  return out;
+}
+
 function unsupportedMaterialClaims(
   answerText: string,
   citedEvidence: readonly GroundingEvidence[],
+  question: string,
 ): string[] {
   const evidenceTerms = citedEvidence
     .filter((row) => materialEvidenceContextRisk(row.text) === null)
@@ -572,28 +661,47 @@ function unsupportedMaterialClaims(
     "不超过", "不少于", "不等于", "不得", "不能", "无需", "禁止", "必须", "至少",
     "至多", "只能", "不再", "未", "无", "非",
   ];
-  for (const sentence of materialClaimSentences(answerText)) {
-    const terms = claimSupportTerms(sentence);
+  /**
+   * 一段话能不能被某条引文独立支持。
+   *
+   * 抽出来是为了让「剥壳后再跑一遍」用的是**同一段判据**而不是抄一份 ——
+   * 抄一份迟早会漂，而这里漂一寸就是一条放行假事实的路。
+   */
+  const passes = (fragment: string): boolean => {
+    const terms = claimSupportTerms(fragment);
     // 纯标题、过渡句和极短标签没有足够信息形成可校验的业务主张。
-    if (terms.length < 3) continue;
-    let supported = false;
+    // 剥壳之后同样适用：「审批人是董事长」剥完只剩「董事长」（2 个片段），
+    // 证不出任何东西，必须当作没证明，而不是当作跳过。
+    if (terms.length < 3) return false;
     for (const available of evidenceTerms) {
       const matches = terms.filter((term) => available.terms.has(term)).length;
       const ratio = matches / terms.length;
       const missingBusinessTerms = terms.filter((term) =>
         !available.terms.has(term) && ![...term].some((char) => bridgeChars.includes(char)));
       const missingStrictWords = strictWords.filter((word) =>
-        sentence.includes(word) && !available.text.includes(word));
+        fragment.includes(word) && !available.text.includes(word));
       if (
         matches >= 2 &&
         ratio >= 0.7 &&
         missingBusinessTerms.length === 0 &&
         missingStrictWords.length === 0
-      ) supported = true;
+      ) return true;
     }
+    return false;
+  };
+  const cites = citedEvidence.map((row) => row.cite);
+  for (const raw of materialClaimSentences(answerText)) {
+    // 两步预处理，**顺序不能换**：出处说明要靠文件名才认得出来
+    // （「根据《验收规范.md》的明确规定，」），而下一步正要把文件名抹掉。
+    const sentence = withoutInlineCites(withoutSourceAttribution(raw, cites), cites);
+    // 整句太短仍然是「不足以形成可校验主张」，直接略过（保持原行为）。
+    if (claimSupportTerms(sentence).length < 3) continue;
     // 允许“需要/经……后”等少量语法桥接，但业务名词、角色、动作、否定和强制词
     // 必须由同一条引文覆盖。按百分比“大部分相似”会放过董事长→总经理这类关键替换。
-    if (!supported) unsupported.push(sentence);
+    if (passes(sentence)) continue;
+    const remainder = questionLabelRemainder(sentence, question);
+    if (remainder !== null && passes(remainder)) continue;
+    unsupported.push(raw);
   }
   return unsupported;
 }
@@ -669,7 +777,11 @@ export function checkGrounding(
         verifier: "rule:grounding",
       }));
     }
-    for (const claim of unsupportedMaterialClaims(answerText, citedEvidence)) {
+    for (const claim of unsupportedMaterialClaims(
+      answerText,
+      citedEvidence,
+      pyStr(policy?.question ?? ""),
+    )) {
       out.push(makeFinding({
         severity: Severity.HIGH,
         code: "MATERIAL_CLAIM_UNSUPPORTED",
@@ -1271,7 +1383,12 @@ export class ConversationAgent {
     const grounding = opts.grounding ?? null;
     const context = (opts.context ?? "") + (grounding?.mode === "strict_material"
       ? "\n\n【本轮材料证据要求】这是材料核对问题。最终结论必须引用本轮提供或检索到的完整 cite；" +
-        "不能只凭文件名、会话摘要、产物状态或通用经验下结论。查不到就明确说查不到。"
+        "不能只凭文件名、会话摘要、产物状态或通用经验下结论。查不到就明确说查不到。" +
+        // 措辞这条以前一个字都没说，而闸是按「答句片段能不能被所引原文覆盖」判的。
+        // 于是模型用自己的话把原文复述一遍——一件完全正常的事——就会被拦下，
+        // 而它无从知道原因。闸不能依赖提示词（所以 unsupportedMaterialClaims 那边
+        // 也改了），但把判据说出来能让人少撞一次。
+        "结论请贴着原文的说法写：能照抄就照抄，别把材料里没有的词换成你自己的说法。"
       : "");
     const onStep = opts.onStep ?? null;
     const turnId = pyStr(ctx.turnId ?? ctx.turn_id ?? "");

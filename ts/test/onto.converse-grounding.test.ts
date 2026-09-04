@@ -235,6 +235,157 @@ describe("strict material grounding", () => {
     expect(turn.citations).toEqual([]);
   });
 
+  // ── 「<提问词>是<原文>」这层壳 ────────────────────────────────────
+  //
+  // 现场（2026-09-04）：用户问「验收规范里写的验收期限是多少天？」，模型答
+  // 「验收期限是到货后 3 个工作日内完成验收」。后半截逐字来自原文，整句却被拦 ——
+  // 原文写「完成验收」，从没出现过「期限」二字，而「验收期限」是用户自己的提问词。
+  // 一个完全正确、有出处的回答被判成「无出处的新事实」。
+  //
+  // 这不是孤例，是问答的自然形状：人问「X 是多少」，答「X 是 ……」。
+  describe("提问词当标题不算无出处，但只限标题", () => {
+    const EVIDENCE = [{ cite: CITE, text: "到货后 3 个工作日内完成验收；不合格品 24 小时内退回。" }];
+
+    it("「<提问词>是<原文>」放行 —— 后半截独立满足全部四项检查", () => {
+      const findings = checkGrounding(answer({
+        answer: "验收期限是到货后 3 个工作日内完成验收。",
+      }), [], {
+        mode: "strict_material",
+        evidence: EVIDENCE,
+        question: "验收规范里写的验收期限是多少天？",
+      });
+      expect(findings.map((f) => f.code)).not.toContain("MATERIAL_CLAIM_UNSUPPORTED");
+    });
+
+    it("没有问句时照旧被拦 —— 豁免只来自用户这一轮的原话", () => {
+      const findings = checkGrounding(answer({
+        answer: "验收期限是到货后 3 个工作日内完成验收。",
+      }), [], { mode: "strict_material", evidence: EVIDENCE });
+      expect(findings).toEqual(expect.arrayContaining([
+        expect.objectContaining({ code: "MATERIAL_CLAIM_UNSUPPORTED", severity: "high" }),
+      ]));
+    });
+
+    it("**关键**：诱导性提问不能替顶替角色的假事实背书", () => {
+      // 这是我在实现前算出来、并因此否决了「豁免所有提问词」那条直觉修法的用例。
+      // 那条路上「董事/事长/长审」全在提问里、豁免后 missingBusinessTerms 清空，
+      // 而 ratio 有 0.78 拦不住 —— 假事实会被发布。
+      //
+      // 剥壳这条路拦得住：整句就是断言，没有「<标题>是」这层壳可剥。
+      const findings = checkGrounding(answer({
+        answer: "采购申请必须由董事长审批后才能提交付款。",
+      }), [], {
+        mode: "strict_material",
+        evidence: [{ cite: CITE, text: "采购申请必须由总经理审批后才能提交付款。" }],
+        question: "采购申请是不是必须由董事长审批？",
+      });
+      expect(findings).toEqual(expect.arrayContaining([
+        expect.objectContaining({ code: "MATERIAL_CLAIM_UNSUPPORTED", severity: "high" }),
+      ]));
+    });
+
+    it("壳剥完只剩一个短标签，证不出东西，仍然被拦", () => {
+      const findings = checkGrounding(answer({
+        answer: "审批人是董事长。",
+      }), [], {
+        mode: "strict_material",
+        evidence: [{ cite: CITE, text: "审批人是总经理。" }],
+        question: "审批人是不是董事长？",
+      });
+      expect(findings).toEqual(expect.arrayContaining([
+        expect.objectContaining({ code: "MATERIAL_CLAIM_UNSUPPORTED", severity: "high" }),
+      ]));
+    });
+
+    it("标题必须真的出自用户原话，编一个标题混不过去", () => {
+      const findings = checkGrounding(answer({
+        answer: "退货时限是到货后 3 个工作日内完成验收。",
+      }), [], {
+        mode: "strict_material",
+        evidence: EVIDENCE,
+        question: "验收规范里写的验收期限是多少天？",
+      });
+      expect(findings).toEqual(expect.arrayContaining([
+        expect.objectContaining({ code: "MATERIAL_CLAIM_UNSUPPORTED", severity: "high" }),
+      ]));
+    });
+
+    it("壳后面夹带否定，照旧被拦 —— 强制词只认原文", () => {
+      const findings = checkGrounding(answer({
+        answer: "验收期限是到货后 3 个工作日内无需完成验收。",
+      }), [], {
+        mode: "strict_material",
+        evidence: EVIDENCE,
+        question: "验收规范里写的验收期限是多少天？",
+      });
+      expect(findings).toEqual(expect.arrayContaining([
+        expect.objectContaining({ code: "MATERIAL_CLAIM_UNSUPPORTED", severity: "high" }),
+      ]));
+    });
+
+    it("句首「根据《文件》，」这层出处说明可以剥 —— 但只在它指着真 cite 时", () => {
+      // 模型很爱这么写，而它会把整句挤出「标题 + 断言」的形状：标题变成
+      // 「根据《验收规范.md》，验收期限」，不是用户原话里的子串，于是一句既有出处、
+      // 措辞又贴着原文的回答栽在一句出处说明上。
+      const ok = checkGrounding(answer({
+        answer: "根据《采购说明.docx》，验收期限是到货后 3 个工作日内完成验收。",
+      }), [], {
+        mode: "strict_material",
+        evidence: EVIDENCE,
+        question: "验收规范里写的验收期限是多少天？",
+      });
+      expect(ok.map((f) => f.code)).not.toContain("MATERIAL_CLAIM_UNSUPPORTED");
+    });
+
+    it("**关键**：「根据<材料没说过的东西>，」不能剥 —— 被剥掉的部分是直接发布的", () => {
+      // 「根据董事长的规定，」和上面那句是同一个形状，但它断言了一件材料没说的事
+      // （谁定的规矩）。剥掉的部分不参与核对、直接进最终回答，所以剥的条件必须是
+      // 「这段话指着本轮真的引用了的那条 cite」，而不是「长得像出处说明」。
+      const findings = checkGrounding(answer({
+        answer: "根据董事长的规定，验收期限是到货后 3 个工作日内完成验收。",
+      }), [], {
+        mode: "strict_material",
+        evidence: EVIDENCE,
+        question: "验收规范里写的验收期限是多少天？",
+      });
+      expect(findings).toEqual(expect.arrayContaining([
+        expect.objectContaining({ code: "MATERIAL_CLAIM_UNSUPPORTED", severity: "high" }),
+      ]));
+    });
+
+    it("模型把 cite 粘在正文里也不算无出处 —— 这是现场那句原话", () => {
+      // 现场（2026-09-04）捕获的真实草稿，一字未改：
+      //   「根据《验收规范.md》的明确规定，到货后需要在 3 个工作日内完成验收验收规范.md#p1。」
+      // 模型把出处直接粘在了正文末尾。于是「收验」「验收规范」「范.m」「md#」这些片段
+      // 全成了「原文里查不到的业务名词」，一句逐字来自原文的回答被判成无出处。
+      //
+      // cite 字符串按定义就是已核验内容（它必须与工具回执全等，否则
+      // CITATION_FABRICATED 早就拦了）。让它再以「新事实」的身份被算一次，
+      // 是同一个东西被两道闸用两种口径判。
+      const findings = checkGrounding(answer({
+        answer: "根据《采购说明.docx》的明确规定，到货后需要在 3 个工作日内完成验收采购说明.docx#p2。",
+      }), [], {
+        mode: "strict_material",
+        evidence: EVIDENCE,
+        question: "验收规范里写的验收期限是多少天？",
+      });
+      expect(findings.map((f) => f.code)).not.toContain("MATERIAL_CLAIM_UNSUPPORTED");
+    });
+
+    it("壳后面换数字，由数值闸独立拦下", () => {
+      const findings = checkGrounding(answer({
+        answer: "验收期限是到货后 5 个工作日内完成验收。",
+      }), [], {
+        mode: "strict_material",
+        evidence: EVIDENCE,
+        question: "验收规范里写的验收期限是多少天？",
+      });
+      expect(findings).toEqual(expect.arrayContaining([
+        expect.objectContaining({ code: "MATERIAL_DETAIL_UNSUPPORTED", severity: "high" }),
+      ]));
+    });
+  });
+
   it("长句大部分相同也不能掩盖关键角色被替换", () => {
     const findings = checkGrounding(answer({
       answer: "采购申请必须由董事长审批后才能提交付款。",
