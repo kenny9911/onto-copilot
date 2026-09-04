@@ -174,7 +174,7 @@ describe("OntoDocument dialogue harness", () => {
     expect(isPureDocumentManagementRequest("保存到知识库并总结这份材料")).toBe(false);
     expect(isPureDocumentManagementRequest("请分析这份文档，不要归档它")).toBe(false);
   });
-  it("十一个工具的 scopes 与 danger 固定：六个只读双模式、五个写入仅工作模式", () => {
+  it("十三个工具的 scopes 与 danger 固定：七个只读双模式、六个写入仅工作模式", () => {
     const { registry } = fixture();
     const rows = registry.registrationSnapshot().filter((row) => row.name.startsWith("document."));
     expect(rows).toEqual([
@@ -196,12 +196,19 @@ describe("OntoDocument dialogue harness", () => {
       // evidence_ref）—— 一份没猜中关键词的材料，对模型等于不存在，而它会把
       // 自己的盲区说成「本次检索没有命中」。
       { name: "document.read", danger: "READ", scopes: ["converse", "chat"], origin: "builtin", fingerprint: expect.any(String) },
+      // 文档记忆的读侧。跨会话保留，所以聊天模式也给 —— 「上次是怎么定的」
+      // 这种问题在纯聊天里问得最多。
+      { name: "document.recall_knowledge", danger: "READ", scopes: ["converse", "chat"], origin: "builtin", fingerprint: expect.any(String) },
+      // 写侧。写进去的永远是 draft（wiki.ts:420「AI 没有能创建 confirmed 的 API」），
+      // 所以它不需要能力票：它改不了任何已确认的事实，人不点确认它就只是一条待审的
+      // 草稿。这和 question.answer「当前作答即授权」是同一类判断。
+      { name: "document.remember", danger: "WRITE_LOCAL", scopes: ["converse"], origin: "builtin", fingerprint: expect.any(String) },
       { name: "document.search", danger: "READ", scopes: ["converse", "chat"], origin: "builtin", fingerprint: expect.any(String) },
     ]);
     expect(registry.forScope("chat").filter((tool) => tool.spec.name.startsWith("document.")))
-      .toHaveLength(6);
+      .toHaveLength(7);
     expect(registry.forScope("converse").filter((tool) => tool.spec.name.startsWith("document.")))
-      .toHaveLength(11);
+      .toHaveLength(13);
     expect(registry.get("document.search", "chat").spec.danger).toBe(Danger.READ);
   });
 

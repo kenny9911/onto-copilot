@@ -70,22 +70,32 @@ describe("独立项目知识库页面", () => {
     expect(document.body.classList.contains("knowledge-page-open")).toBe(true);
   });
 
-  it("没有已归入项目的会话时打开的是公共知识库，而不是什么都不发生", () => {
-    // 旧契约：`if (!G.S?.id || !G.S?.project_id) return;` —— 按钮点了没反应。
-    // 产品要求这个库可以直接访问，所以没有项目就退到公共层，而不是拒绝。
+  it("会话没归项目时进的是「我的材料」，不是被弹去公共库", () => {
+    // 这条契约改过两次。第一版：`if (!G.S?.id || !G.S?.project_id) return;`
+    // —— 按钮点了没反应。第二版改成「没项目就退到公共层」。
+    //
+    // 现在是第三版，起因是用户的截图：会话里 6 份材料，这一页写着「0 份材料」。
+    // 公共库**结构上不可能**装着某个会话的上传件，把人送进去等于说「你的东西
+    // 不见了」。后端 document_scope.ts 会给这种会话懒建「我的材料」默认项目，
+    // 材料一直存得进去 —— 挡在门外的只有前端这个判据。
     G.S = { id: "s1", filelist: [] };
     const view = render(<KnowledgePage />);
 
     act(() => openKnowledgePage("project"));
 
     expect(G.MAIN_PAGE).toBe("knowledge");
-    expect(G.KNOWLEDGE_TARGET).toBe("global");
+    expect(G.KNOWLEDGE_TARGET).toBe("project");
     expect(window.location.hash).toBe("#knowledge");
     expect(view.container.querySelector(".knowledge-page-shell")).not.toBeNull();
-    expect(view.container.querySelector("h1")?.textContent).toBe("公共知识库");
-    // 「当前项目」那一档在没有项目时是灰的，但公共这一档永远能用。
-    const project = view.container.querySelectorAll(".kp-level button")[1] as HTMLButtonElement;
-    expect(project.hasAttribute("disabled")).toBe(true);
+    // 标题照实说后端那个默认项目的名字，不写「项目 · 知识库」去指一个用户
+    // 从没建过的东西。
+    expect(view.container.querySelector("h1")?.textContent).toBe("我的材料 · 知识库");
+    // 两档现在都能用：项目层只要有会话就成立（后端会懒建默认项目），
+    // 公共层本来就不依赖会话。灰掉的只剩「一个会话都没有」那种情况。
+    const [global, project] = [...view.container.querySelectorAll(".kp-level button")] as HTMLButtonElement[];
+    expect(project!.hasAttribute("disabled")).toBe(false);
+    expect(project!.textContent).toBe("我的材料");
+    expect(global!.hasAttribute("disabled")).toBe(false);
   });
 
   it("页面内返回会话会清掉 hash，并替换当前历史记录", async () => {

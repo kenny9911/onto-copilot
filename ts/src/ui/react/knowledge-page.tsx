@@ -4,7 +4,7 @@ import { G } from "../state.js";
 import { registerRegion } from "./app.js";
 import { bumpUi, setUi, useUi } from "./store.js";
 import { KnowledgeWorkspace } from "./knowledge-workspace.js";
-import { stickStreamToBottom } from "./stream.js";
+import { stickStreamToBottom } from "./stream-scroll.js";
 
 const HASH = "#knowledge";
 

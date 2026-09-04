@@ -17,6 +17,8 @@ import {
   type DocumentSummary,
   type DocumentVersion,
 } from "../../document/types.js";
+import { getWikiPageServiceOptional } from "../../document/wiki_deps.js";
+import { WIKI_CLAIM_KINDS, type WikiClaimKind } from "../../document/wiki.js";
 import { getDocumentServiceOptional } from "../../document/deps.js";
 import { root } from "../session.js";
 import { relativeToRoot } from "../routes/sessions.js";
@@ -779,6 +781,30 @@ function consumeCapability(capability: DocumentTurnCapability): void {
   capability.remainingUses = 0;
 }
 
+/** 六个 kind 的中文说法。和 UI 的 CLAIM_KINDS（knowledge-workspace.tsx）保持一致。 */
+const WIKI_KIND_LABELS: Record<string, string> = {
+  MATERIAL_FACT: "材料事实",
+  HUMAN_DECISION: "人工决定",
+  INFERENCE: "待验证推断",
+  GENERAL_GUIDANCE: "通用参考",
+  CONTESTED: "存在争议",
+  STALE: "可能已过期",
+};
+
+/** 模型自己记东西时的默认落点。人可以在界面上另建页面、把声明挪过去。 */
+const DEFAULT_KNOWLEDGE_PAGE = "项目知识";
+
+/** 知识声明这一路要的是 Wiki 服务，不是文档服务；不可用的说法也得跟着换。 */
+function unavailableKnowledge(session: SessionLike): Dict | null {
+  if (!session.owner) {
+    return { ok: false, error: "当前会话没有可核验的账号身份，不能访问项目知识。" };
+  }
+  if (getWikiPageServiceOptional() === null) {
+    return { ok: false, error: "项目知识服务尚未就绪，不能把空结果解释为这个项目没有沉淀。" };
+  }
+  return null;
+}
+
 function unavailable(session: SessionLike): Dict | null {
   // 这里**不再**因为「会话没归项目」而拒绝。用户说「把这几份材料放进知识库」，
   // 模型回一句「当前会话尚未关联任何项目，我暂时无法保存」是最没用的回答 ——
@@ -1075,6 +1101,163 @@ export function registerDocumentDialogueTools(
           note: rows.length === 0
             ? "还没有任何文件夹，材料都在根目录。"
             : "document_count 为 0 的是空文件夹（用户建了但还没往里放东西），不是错误。",
+        };
+      });
+    },
+  );
+
+  // ── 文档记忆 ──────────────────────────────────────────────────────
+  //
+  // 用户要 Copilot 具备「文档记忆」。今天这一类是**空的**：模型读完一份材料得出
+  // 的结论，没有任何一条路能存回去、下一轮或下一个会话再读到。它每次都从零开始。
+  //
+  // 领域层其实早就建好了（document/wiki.ts）：声明分 draft / confirmed 两态，
+  // 六个 kind（材料事实 / 人工决定 / 待验证推断 / 通用参考 / 存在争议 / 可能已过期），
+  // 确认必须带 evidence_ref，而且 wiki.ts:420 那行注释写得很清楚——
+  // 「AI 没有能创建 confirmed 的 API」。缺的只是把它接进模型可调的注册表。
+  //
+  // 所以这里接的是**草稿**那一半，而且只能是那一半：
+  //   · 模型写的永远是 draft，人在界面上确认它才成为项目知识。这不是我加的限制，
+  //     是 createWikiClaimDraft 的类型和运行时双重保证；
+  //   · 工具结果里明写「这条还没被人确认」，免得模型下一轮把自己昨天的猜测
+  //     当成已确认事实引用 —— 那是记忆功能最容易长出来的幻觉回路。
+  reg.fn(
+    {
+      name: "document.recall_knowledge",
+      description:
+        "读取这个项目已经沉淀下来的知识声明（口径、结论、争议点），跨会话保留。" +
+        "回答项目性问题、或准备重复一次已经做过的判断之前先调用，避免每轮从零开始。" +
+        "注意区分 state：confirmed 是人确认过的项目知识，draft 只是还没被确认的草稿，" +
+        "引用 draft 时必须说明它尚未确认。",
+      schema: {
+        type: "object",
+        properties: {
+          subject: { type: "string", maxLength: 200 },
+          include_drafts: { type: "boolean", default: true },
+        },
+        additionalProperties: false,
+      },
+      danger: Danger.READ,
+      scopes: RO,
+    },
+    async (args) => {
+      const bad = unavailableKnowledge(session);
+      if (bad !== null) return bad;
+      return await guarded(async () => {
+        const wiki = getWikiPageServiceOptional()!;
+        const scope = await documentScope(session);
+        const pages = await wiki.listPages(scope, false);
+        const subject = typeof args["subject"] === "string" ? args["subject"].trim() : "";
+        const includeDrafts = args["include_drafts"] !== false;
+        const claims = pages.flatMap((stored) => stored.page.claims
+          .filter((claim) => includeDrafts || claim.state === "confirmed")
+          .filter((claim) => subject === "" || claim.subject.includes(subject) || claim.statement.includes(subject))
+          .map((claim) => ({
+            claim_id: claim.id,
+            page_id: stored.page.id,
+            page_title: stored.page.title,
+            kind: claim.kind,
+            kind_label: WIKI_KIND_LABELS[claim.kind] ?? claim.kind,
+            subject: claim.subject,
+            statement: claim.statement,
+            state: claim.state,
+            evidence_refs: claim.evidenceRefs,
+            author: claim.author.kind,
+            created_at: claim.createdAt,
+            confirmed_by: claim.confirmation?.actor.id ?? null,
+            confirmed_at: claim.confirmation?.confirmedAt ?? null,
+          })));
+        const confirmed = claims.filter((row) => row.state === "confirmed").length;
+        return {
+          ok: true,
+          count: claims.length,
+          confirmed_count: confirmed,
+          claims,
+          note: claims.length === 0
+            ? "这个项目还没有沉淀任何知识声明；这不代表相关事实不存在，只代表还没人记下来。"
+            : `其中 ${confirmed} 条是人确认过的项目知识，其余是尚未确认的草稿。` +
+              "引用草稿时必须说明它还没被确认，不能当成已经拍板的口径。",
+        };
+      });
+    },
+  );
+
+  reg.fn(
+    {
+      name: "document.remember",
+      description:
+        "把一条从材料里得出的结论记进项目知识，供以后的会话复用。" +
+        "适合口径定义、关键数值、材料之间的冲突这类会被反复问到的东西。" +
+        "写进去的**永远是草稿**：要成为项目知识，得由用户在知识库页面上确认——" +
+        "你不能替他确认，也不要在下一轮把自己写的草稿当成已确认的事实引用。" +
+        "material_fact 类必须带 evidence_ref（来自 document.search / document.read / document.open）；" +
+        "没有出处的判断请写成 inference。",
+      schema: {
+        type: "object",
+        required: ["subject", "statement", "kind"],
+        properties: {
+          subject: { type: "string", minLength: 1, maxLength: 200 },
+          statement: { type: "string", minLength: 1, maxLength: 4000 },
+          kind: { type: "string", enum: [...WIKI_CLAIM_KINDS] },
+          evidence_refs: { type: "array", maxItems: 20, items: { type: "string", minLength: 1, maxLength: 2048 } },
+          page_title: { type: "string", maxLength: 120 },
+        },
+        additionalProperties: false,
+      },
+      danger: Danger.WRITE_LOCAL,
+      scopes: RW,
+    },
+    async (args) => {
+      const bad = unavailableKnowledge(session);
+      if (bad !== null) return bad;
+      return await guarded(async () => {
+        const wiki = getWikiPageServiceOptional()!;
+        const scope = await documentScope(session);
+        const kind = String(args["kind"] ?? "") as WikiClaimKind;
+        const refs = Array.isArray(args["evidence_refs"])
+          ? args["evidence_refs"].map((row) => String(row)).filter((row) => row !== "")
+          : [];
+        // 材料事实必须有出处。这一条在确认环节本来就会被
+        // checkWikiMaterialFactSupport 拦下，但拦在这里更早、也更有用：模型这一刻
+        // 还记得自己刚读过哪一段，退回去补一个 evidence_ref 是举手之劳；等到人去
+        // 确认时才发现没出处，那条草稿基本就废了。
+        if (kind === "MATERIAL_FACT" && refs.length === 0) {
+          return {
+            ok: false,
+            error: "material_fact 必须带至少一个 evidence_ref。" +
+              "如果这是你的推断而不是材料里写着的原话，请改用 kind=\"INFERENCE\"。",
+          };
+        }
+        const actor = { kind: "ai" as const, id: "copilot" };
+        const pages = await wiki.listPages(scope, false);
+        const title = typeof args["page_title"] === "string" && args["page_title"].trim() !== ""
+          ? args["page_title"].trim()
+          : DEFAULT_KNOWLEDGE_PAGE;
+        const draft = {
+          kind,
+          subject: String(args["subject"] ?? ""),
+          statement: String(args["statement"] ?? ""),
+          evidenceRefs: refs,
+        };
+        const existing = pages.find((row) => row.page.title === title);
+        // 没有对应页面就现建一个。要求模型先建页再写声明，等于让它每次记一件事
+        // 都做两步且第二步会因为并发而失败 —— 记忆这种高频动作必须一步能完成。
+        const saved = existing === undefined
+          ? await wiki.createPage(scope, { title, actor, drafts: [draft] })
+          : await wiki.addDraft(scope, existing.page.id, {
+              ...draft,
+              expectedRevision: existing.revision,
+              actor,
+            });
+        const added = saved.page.claims[saved.page.claims.length - 1];
+        return {
+          ok: true,
+          page_id: saved.page.id,
+          page_title: saved.page.title,
+          claim_id: added?.id ?? "",
+          state: added?.state ?? "draft",
+          note: "已记为**草稿**，等用户在知识库页面确认后才算这个项目的知识。" +
+            "不要在后续回答里把它当成已经确认的口径。",
         };
       });
     },

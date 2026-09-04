@@ -76,11 +76,14 @@ export function checkCatalog(): CatalogCheckResult {
   const dag = buildFdeEngagementDag();
   const coreTools = toolPolicies("core").length;
   const dialogueTools = toolPolicies("dialogue").length;
+  // dialogue 63：加了 document.recall_knowledge / document.remember（文档记忆）。
+  // 领域层（wiki.ts 的 draft/confirmed 两态）早就完整，缺的一直是把它接进模型可调
+  // 的注册表 —— 在此之前，模型读完材料得出的结论没有任何一条路能存回去。
   // dialogue 61：加了 document.read（通读正文）与 document.folders（看目录结构）。
   // 前者补的是「分析文档」—— 在它之前模型只有 search（要关键词）和 open（要
   // 已有的 evidence_ref），一份没猜中关键词的材料对模型等于不存在。
   // 后者补的是「管理文档」的第一步：不知道现在怎么归的类，就提不出整理建议。
-  if (coreTools !== 8 || dialogueTools !== 61) {
+  if (coreTools !== 8 || dialogueTools !== 63) {
     throw new Error(`工具目录数量异常: core=${coreTools}, dialogue=${dialogueTools}`);
   }
   return {

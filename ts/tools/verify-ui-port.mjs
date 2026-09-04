@@ -94,6 +94,18 @@ const EXPECTED = new Map([
   // 加这一批之前我逐条去 ts/src/ui 里找了对应件，确认不是"丢了"而是"换了形状"。
   // 为不理解的改动写豁免理由，等于用这道闸自己去掩盖回归 —— 那比让它红着更糟。
   [
+    "if(atBottom)box.scrollTop=box.scrollHeight;",
+    "「贴着底就跟着滚」这条判据整块搬进 ts/src/ui/react/stream-scroll.ts —— " +
+      "atBottom 从模块级裸变量变成 isStreamAtBottom() / noteStreamScroll() / " +
+      "stickStreamToBottom() 三个函数，阈值 120 逐字保留。搬家的理由是 import 环：" +
+      "它有三个调用方（stream.tsx 画流、sessions.ts 换会话、knowledge-page.tsx 关页），" +
+      "留在 stream.tsx 上会长出 stream→chat→knowledge-page→stream 与 " +
+      "stream→chat→sessions→stream 两个环，实测表现是 preview/stream 一批测试里" +
+      "「spy 没被调用过」。行为上多了一条：box 藏起来（clientHeight===0）时不写 " +
+      "scrollTop —— display:none 的元素 scrollHeight 恒为 0，照原样写就是把消息流" +
+      "钉在最顶端，那正是从知识库页回聊天时看到第一条消息的原因。",
+  ],
+  [
     "constst=S.status,n=S.files||0;",
     "render.ts:51 拆成两行并把 n 改成 files+attached。原来这个 n 只数会话上传，" +
       "而语料是 会话文件 ∪ 已挂载的知识库文档（pipeline/run.ts）—— 挂 3 份进去，" +

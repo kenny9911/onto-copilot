@@ -61,6 +61,7 @@ import type {
 } from "./dialogue/ports.js";
 import { excName, excText, formatPercent0, pyJsonIndent, pyRound } from "./dialogue/pyutil.js";
 import { assetMemoryBrief, syncAssetMemory } from "./asset_memory.js";
+import { getWikiPageServiceOptional } from "../document/wiki_deps.js";
 import { getDocumentServiceOptional } from "../document/deps.js";
 import type { DocumentScope } from "../document/types.js";
 import { hydrateAttachedDocumentEvidence, reconcileDocumentEvidence } from "./glue/preparse.js";
@@ -453,6 +454,7 @@ export async function reason(
       s.state["_document_manifest"] = manifest;
       delete s.state["_document_manifest_error"];
       await refreshLibraryBrief(documentStore, s, scope, manifest);
+      await refreshKnowledgeBrief(s, scope);
       // manifest 是本轮实时 ACL 裁决。只允许其中精确版本继续留在运行期索引；
       // detach/撤权的旧切片立即消失，不能等下次 hydrate。
       reconcileDocumentEvidence(s, manifest);
@@ -714,6 +716,45 @@ async function refreshLibraryBrief(
   }
 }
 
+/**
+ * 让模型知道「这个项目已经定过什么」。
+ *
+ * 和 refreshLibraryBrief 是同一个病、同一个治法：系统提示里写着「先查项目知识」，
+ * 而 contextBrief 一个字都不提这里有沉淀 —— 模型不会为一件它不知道存在的东西
+ * 去调工具。document.recall_knowledge 加上了，但没有这一行，它基本不会被调用。
+ *
+ * **只放已确认的。** 草稿是模型自己上一轮写下的猜测；把它当成系统事实喂回去，
+ * 就是记忆功能最容易长出来的那条幻觉回路 —— 昨天的推断今天变成「项目已定的口径」，
+ * 而中间没有任何人点过头。要看草稿，模型得显式调 recall_knowledge，
+ * 那条路上工具结果会明说它还没被确认。
+ */
+async function refreshKnowledgeBrief(s: SessionLike, scope: DocumentScope): Promise<void> {
+  const wiki = getWikiPageServiceOptional();
+  if (wiki === null) {
+    delete s.state["_project_knowledge_brief"];
+    return;
+  }
+  try {
+    const pages = await wiki.listPages(scope, false);
+    const confirmed = pages.flatMap((stored) =>
+      stored.page.claims.filter((claim) => claim.state === "confirmed"));
+    if (confirmed.length === 0) {
+      delete s.state["_project_knowledge_brief"];
+      return;
+    }
+    const shown = confirmed.slice(0, 6).map((claim) => `${claim.subject}：${claim.statement}`);
+    s.state["_project_knowledge_brief"] =
+      `这个项目已确认的知识（${confirmed.length} 条，由人确认过，可直接引用）：` +
+      shown.join("；") +
+      (confirmed.length > shown.length ? `；另有 ${confirmed.length - shown.length} 条，用 document.recall_knowledge 查。` : "") +
+      "还有尚未确认的草稿时，同样用 document.recall_knowledge 查，引用前必须说明它没被确认。";
+  } catch {
+    // 和 refreshLibraryBrief 一样：这只是给模型的一句提示，读不到就不提，
+    // 绝不能让一次概览查询失败毁掉整轮对话。
+    delete s.state["_project_knowledge_brief"];
+  }
+}
+
 export function contextBrief(s: SessionLike): string {
   const parts: string[] = [];
   const draft = asRecord(s.state["draft_provenance"]);
@@ -767,6 +808,8 @@ export function contextBrief(s: SessionLike): string {
       typeof library === "string" && library !== "" ? library : "本次已固定的项目知识：（无）",
     );
   }
+  const knowledge = s.state["_project_knowledge_brief"];
+  if (typeof knowledge === "string" && knowledge !== "") parts.push(knowledge);
   if (s.state["_document_manifest_error"]) {
     parts.push("项目知识库当前无法核对；不得据此声称资料不存在，也不得凭常识补写项目事实。");
   }

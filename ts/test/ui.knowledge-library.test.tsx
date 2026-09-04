@@ -163,8 +163,13 @@ describe("OntoDocument 项目知识库", () => {
     const folders = [...container.querySelectorAll(".od-folder-name")].map((n) => n.textContent);
     expect(folders).toContain("采购");
     expect(container.querySelector(".od-file-name")?.textContent).toBe("采购管理制度");
-    // 还没选中任何一份时，右边说清楚该干什么，而不是空着。
-    expect(container.querySelector(".od-preview-idle")?.textContent).toContain("在左边选一份材料");
+    // 库里有东西就直接摊开第一份的正文。
+    //
+    // 右栏原来的默认是一句「在左边选一份材料，正文就显示在这里」—— 一整栏的空话，
+    // 在这一页最宽的那块地方写着「你还没做够」。第一次打开的人想干的事是**看看
+    // 里面有什么**，不是先学会这一页的操作方式。
+    expect(container.querySelector(".od-preview-idle")).toBeNull();
+    expect(container.querySelector(".od-file.on")?.textContent).toContain("采购管理制度");
     expect(container.textContent).not.toContain("永久删除");
     expect(api.list).toHaveBeenCalledWith("session-1", false);
     expect(api.history).toHaveBeenCalledWith("session-1", "doc-1");
@@ -236,24 +241,40 @@ describe("OntoDocument 项目知识库", () => {
     expect(names).toContain("制度");
   });
 
-  it("新建文件夹建在当前所在位置，删除时说清楚材料不会跟着没", async () => {
+  it("新建文件夹就地展开一行，并说清楚会建在哪儿", async () => {
+    // 原来这里用的是 window.prompt。它在这个产品上有两个硬问题：弹窗盖在页面
+    // **之外**，用户看不见自己正在哪个文件夹下面建；而且它不进无障碍树、
+    // 在自动化里只能靠 spy 假装。就地展开一行，两个问题一起没了。
     const api = fakeApi();
     const view = render(<KnowledgeLibrary sessionId="session-1" sessionFiles={[]} api={api} />);
     await waitFor(() => expect(view.container.querySelector(".od-folder-name")).not.toBeNull());
 
-    const prompt = vi.spyOn(window, "prompt").mockReturnValue("台账");
-    fireEvent.click(view.getByTitle("新建文件夹"));
-    await waitFor(() => expect(api.createFolder).toHaveBeenCalledWith("session-1", "台账"));
-    prompt.mockRestore();
+    fireEvent.click(view.getByText("新建文件夹"));
+    const draft = view.container.querySelector(".od-folder-draft") as HTMLElement;
+    expect(draft).not.toBeNull();
+    // 「建在哪儿」必须写在屏幕上，不能只存在于用户的记忆里。
+    expect(draft.textContent).toContain("建在根目录");
 
-    // 删除必须先说清楚「材料会移到根目录，不会被删除」—— 不然没人敢点。
-    const confirm = vi.spyOn(window, "confirm").mockImplementation((msg) => {
-      expect(String(msg)).toContain("不会被删除");
-      return true;
-    });
-    fireEvent.click(view.getAllByTitle("删除文件夹（材料不删）")[0]!);
+    fireEvent.change(draft.querySelector("input") as HTMLInputElement, { target: { value: "台账" } });
+    fireEvent.click(view.getByText("建好"));
+    await waitFor(() => expect(api.createFolder).toHaveBeenCalledWith("session-1", "台账"));
+  });
+
+  it("删除文件夹的后果和按钮同屏，且默认不删", async () => {
+    const api = fakeApi();
+    const view = render(<KnowledgeLibrary sessionId="session-1" sessionFiles={[]} api={api} />);
+    await waitFor(() => expect(view.container.querySelector(".od-folder-name")).not.toBeNull());
+
+    fireEvent.click(view.getAllByText("删除")[0]!);
+    // 「材料会移到根目录，不会被删除」这句话正是他不敢点那个按钮的原因，
+    // 所以它必须和确认按钮在同一块屏幕上 —— 不是一个只能读一遍的 confirm 弹窗。
+    const confirmRow = view.container.querySelector(".od-folder-confirm") as HTMLElement;
+    expect(confirmRow).not.toBeNull();
+    expect(confirmRow.textContent).toContain("一份都不会被删");
+    expect(api.deleteFolder).not.toHaveBeenCalled();
+
+    fireEvent.click(view.getByText("删掉文件夹"));
     await waitFor(() => expect(api.deleteFolder).toHaveBeenCalled());
-    confirm.mockRestore();
   });
 
   it("选中一份材料后可以把它移到别的文件夹", async () => {

@@ -22,6 +22,22 @@ export function wikiPageService(): WikiPageService {
   return current;
 }
 
+/**
+ * Store 还没起来时返回 null，而不是抛。
+ *
+ * 对话工具要用它：一个工具在 Store 未就绪时应当**说自己现在不可用**，而不是让
+ * 整轮对话炸掉。和 getDocumentServiceOptional（document/deps.ts:71）同一个形状，
+ * 也同一个理由。
+ */
+export function getWikiPageServiceOptional(): WikiPageService | null {
+  try {
+    return wikiPageService();
+  } catch (error) {
+    if (error instanceof Error && error.message === "Store 未初始化") return null;
+    throw error;
+  }
+}
+
 /** 路由可以在 Store lifespan 之前注册；真正实例到第一次请求才解析。 */
 export function lazyWikiPageService(): WikiPageService {
   return new Proxy(Object.create(null) as WikiPageService, {

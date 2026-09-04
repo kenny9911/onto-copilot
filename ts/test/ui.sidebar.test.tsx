@@ -188,9 +188,20 @@ describe("项目知识库入口", () => {
     expect(convs().querySelector(".side-knowledge-entry")).toBeNull();
   });
 
-  it("会话没归项目时入口照样可点 —— 进的是公共知识库", () => {
-    // 旧契约是「禁用 + 提示请先打开一个已归入项目的会话」：想看一眼公共材料，
-    // 得先建会话、再把会话归进某个项目。产品要求是这个库可以直接访问。
+  it("会话没归项目时入口进的是「我的材料」—— 那才是他材料所在的那一层", () => {
+    // 这条契约改过两次。
+    //
+    // 第一版是「禁用 + 提示请先打开一个已归入项目的会话」：想看一眼材料，得先
+    // 建会话、再把会话归进某个项目。产品要求是这个库可以直接访问，所以改成了
+    // 「没归项目就进公共库」。
+    //
+    // 第二版（就是现在这条）是被用户的截图逼出来的：他会话里有 6 份材料，知识库
+    // 页面写着「0 份材料」。公共库**结构上不可能**装着某个会话的上传件 —— 那一层
+    // 放的是跨项目通用参考。把他送进去，等于让界面对他说「你的东西不见了」。
+    //
+    // 后端 document_scope.ts 早就不看 project_id 了：它会给这种会话懒建一个叫
+    // 「我的材料」的默认项目，材料照样存得进去。所以只要有会话，项目层就是有
+    // 内容的那一层。公共库仍然在页头一键可达。
     G.PROJECTS_OK = true;
     G.PROJECTS = [{ id: "p1", name: "采购项目" }];
     G.S = { id: "s0" };
@@ -199,6 +210,17 @@ describe("项目知识库入口", () => {
     const entry = convs().querySelector(".side-knowledge-entry") as HTMLButtonElement;
     expect(entry).not.toBeNull();
     expect(entry.hasAttribute("disabled")).toBe(false);
+    expect(entry.textContent).toContain("我的材料");
+    expect(entry.getAttribute("title")).toBe("打开「我的材料」的知识库");
+  });
+
+  it("一个会话都没有时才落到公共库 —— 那时确实没有「他的材料」可谈", () => {
+    G.PROJECTS_OK = true;
+    G.PROJECTS = [{ id: "p1", name: "采购项目" }];
+    G.S = null;
+    mountSidebar();
+
+    const entry = convs().querySelector(".side-knowledge-entry") as HTMLButtonElement;
     expect(entry.textContent).toContain("公共");
     expect(entry.getAttribute("title")).toBe("打开公共知识库");
   });

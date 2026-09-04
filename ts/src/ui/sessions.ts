@@ -14,7 +14,7 @@ import { loadQuestions } from "./questions.js";
 import { loadModels } from "./upload.js";
 import { applyMode } from "./mode.js";
 import { stopThinking } from "./chat.js";
-import { stickStreamToBottom } from "./react/stream.js";
+import { stickStreamToBottom } from "./react/stream-scroll.js";
 
 export async function loadSessions(){
   // 聊天与工作各自一份列表（像 ChatGPT 的对话 vs 项目），按当前模式过滤

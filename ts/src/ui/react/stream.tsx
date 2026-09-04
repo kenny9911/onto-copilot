@@ -39,6 +39,7 @@ import { ContextReceipts } from "./context-receipts.js";
 import { EvCard } from "./events.js";
 import { PendingCard } from "./pending.js";
 import { Placeholder } from "./preview.js";
+import { isStreamAtBottom, noteStreamScroll } from "./stream-scroll.js";
 import { bumpUi, useUi } from "./store.js";
 
 // ── 入场动画与滚到底 ─────────────────────────────────────────────
@@ -63,42 +64,11 @@ export function markNewBubbles(box: any){
   G.SEEN_BUBBLES = bubs.length;
 }
 
-/** 「离底不到这么多像素就算在底部」。原来那句 `< 120` 的那个 120。 */
-const NEAR_BOTTOM = 120;
-
-/**
- * 用户是不是还贴着底。
- *
- * 旧代码在**替换 innerHTML 之前**当场量一次；React 下没有那个时刻（渲染与提交
- * 是两步，量到的已经是新内容）。所以改成跟着滚动事件记：用户往上翻就记 false，
- * 翻回底部记 true。程序自己滚到底也会触发一次 scroll，于是自动回到 true ——
- * 和旧行为一致：**只要人在底部，新消息就跟着上来；人翻上去看历史，就别抢他的位置。**
- */
-let atBottom = true;
-
-/**
- * 回到底部。
- *
- * `atBottom` 是模块级的、从不重置 —— 这有两个后果，都不是设计：
- *   · 换会话时它带着上一个会话的姿势过来。在旧会话里往上翻过历史，打开新会话
- *     就停在顶上，看不见最新一轮。
- *   · 从知识库页回到聊天时同理，而知识库页恰恰鼓励人一边读材料一边问 ——
- *     问完回来正是最需要看见答案的时刻。
- *
- * 所以「换了要看的东西」这件事必须显式说一声。调用点：openSession、
- * closeKnowledgePage。
- */
-export function stickStreamToBottom(): void {
-  atBottom = true;
-}
-
 function useStreamEffects(): void {
   useEffect(() => {
     const box = $("stream");
     if (!box?.addEventListener) return;
-    const onScroll = (): void => {
-      atBottom = box.scrollHeight - box.scrollTop - box.clientHeight < NEAR_BOTTOM;
-    };
+    const onScroll = (): void => { noteStreamScroll(box); };
     box.addEventListener("scroll", onScroll);
     return () => { box.removeEventListener("scroll", onScroll); };
   }, []);
@@ -114,7 +84,7 @@ function useStreamEffects(): void {
     // 用户看到的是这个会话的第一条消息，而不是他刚问的那一句。
     // 跳过就好：它重新可见时会有一次渲染，那一次量到的几何才是真的。
     if (box.clientHeight === 0) return;
-    if (atBottom) box.scrollTop = box.scrollHeight;
+    if (isStreamAtBottom()) box.scrollTop = box.scrollHeight;
   });
 }
 
