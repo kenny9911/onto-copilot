@@ -4,6 +4,9 @@ import { G } from "../state.js";
 import { registerRegion } from "./app.js";
 import { bumpUi, setUi, useUi } from "./store.js";
 import { KnowledgeWorkspace } from "./knowledge-workspace.js";
+import {
+  clearKnowledgeChatLane, knowledgeChatOpen, setKnowledgeChatOpen,
+} from "./knowledge-chat-lane.js";
 import { stickStreamToBottom } from "./stream-scroll.js";
 
 const HASH = "#knowledge";
@@ -16,37 +19,6 @@ const HASH = "#knowledge";
  * 是禁用的，提示写着「请先打开一个已归入项目的会话」。
  */
 export type KnowledgeTarget = "global" | "project";
-
-/**
- * 知识库页上的对话栏开着没有。
- *
- * 用户原话：「当我在知识库中输入对话，但是这个是不显示对话的，这个请你思考一下
- * 该如何设计。」在此之前的答法是 chat.ts:66 的「发送即把人踢回聊天页」——
- * 那是在回答他「你不能在这里对话」，而他要的正是能。
- *
- * 默认关着：进这一页是来读材料的，不该一上来就被切掉三分之一。发送的时候若它
- * 还关着，自动打开（openKnowledgeChat）—— 那一刻用户已经用行动说了他要看回答。
- *
- * 挂在 body 上而不是 React state，因为要生效的是 index.template.html 里那一组
- * `body.knowledge-page-open.kb-chat-open .main>...` 的网格规则，而 .main / .stream
- * 都长在冻结的 HTML 上，不归 React 管。
- */
-const CHAT_CLASS = "kb-chat-open";
-
-export function knowledgeChatOpen(): boolean {
-  return typeof document !== "undefined" && document.body.classList.contains(CHAT_CLASS);
-}
-
-export function setKnowledgeChatOpen(open: boolean): void {
-  if (typeof document === "undefined") return;
-  document.body.classList.toggle(CHAT_CLASS, open);
-  bumpUi();
-}
-
-/** 发送时用：栏关着就打开它，而不是把人送走。 */
-export function openKnowledgeChat(): void {
-  if (!knowledgeChatOpen()) setKnowledgeChatOpen(true);
-}
 
 function setHash(open: boolean, replace = false): void {
   if (typeof window === "undefined") return;
@@ -83,7 +55,7 @@ export function openKnowledgePage(target: KnowledgeTarget = "global"): void {
 
 export function closeKnowledgePage(options: { replaceHistory?: boolean } = {}): void {
   // 这个 class 只在知识库页上有意义；带回聊天页会让 .main 保持网格布局。
-  if (typeof document !== "undefined") document.body.classList.remove(CHAT_CLASS);
+  clearKnowledgeChatLane();
   // 消息流在这一页上是 display:none，藏着的时候量不出滚动位置。回聊天的这一刻
   // 恰恰是最需要看见最新一轮的时刻 —— 人多半是刚在这一页问完一句才回来的。
   stickStreamToBottom();

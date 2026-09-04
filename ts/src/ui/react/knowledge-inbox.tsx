@@ -110,10 +110,12 @@ export interface KnowledgeInboxProps {
   onIngest: (names: readonly string[]) => Promise<void>;
   onUpload: () => void;
   onDismissOutcomes: () => void;
+  /** 把「请把这 N 份材料存入知识库」预填进输入框，交给 Copilot 做。 */
+  onAskCopilot: () => void;
 }
 
 export function KnowledgeInbox({
-  items, busy, outcomes, onIngest, onUpload, onDismissOutcomes,
+  items, busy, outcomes, onIngest, onUpload, onDismissOutcomes, onAskCopilot,
 }: KnowledgeInboxProps): ReactElement | null {
   // 勾选默认全选：绝大多数情况就是「都存进去」。想挑的人再去掉几个。
   const [skipped, setSkipped] = useState<Set<string>>(new Set());
@@ -175,6 +177,10 @@ export function KnowledgeInbox({
       })}
     </ul>
     <div className="od-inbox-foot">
+      {/* 同一件事的两条路：自己点（上面那颗主按钮，串行 promote + 逐份回执），
+          或者交给 Copilot（它做完会连带解释，也能接着往下分析）。
+          预填不发送 —— 这句话发出去会改动知识库，用户得先看见它。 */}
+      <button type="button" className="od-link" onClick={onAskCopilot}>让 Copilot 来存</button>
       <button type="button" className="od-link" onClick={onUpload}>还要再传一些文件</button>
     </div>
   </div>;

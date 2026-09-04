@@ -19,10 +19,14 @@ import {
   type UpdateKnowledgeInput,
 } from "../knowledge-library.js";
 import { prefillComposer } from "../context-sync.js";
+import {
+  askArchive, askAttach, askIngestAll, askOrganize, askRemember, askSearch,
+} from "../copilot-asks.js";
 import { onKnowledgeChanged } from "../knowledge-events.js";
 import {
   KnowledgeInbox, pendingSessionFiles, type InboxOutcome,
 } from "./knowledge-inbox.js";
+import { openKnowledgeChat } from "./knowledge-chat-lane.js";
 import { useUi } from "./store.js";
 
 export interface KnowledgeSessionFile {
@@ -248,6 +252,8 @@ interface DocumentPreviewProps {
   onMove?: ((folderPath: string) => Promise<void>) | undefined;
   folderOptions: readonly string[];
   level: "global" | "project";
+  /** 把一句话预填进输入框（不发送）。见 KnowledgeLibrary 里的 askCopilot。 */
+  onAsk: (text: string) => void;
 }
 
 /**
@@ -501,7 +507,7 @@ function DocumentReader({ sessionId, documentId, versionId, lang, level, api = k
 const PAGE = 50;
 
 function DocumentPreview({
-  sessionId, api, onClose, document, versions, attachment, sessionFiles, busy, lang, level,
+  sessionId, api, onClose, document, versions, attachment, sessionFiles, busy, lang, level, onAsk,
   onUpdate, onArchive, onAttach, onDetach, onAdopt, onAddVersion, onPublish, onMove, folderOptions,
 }: DocumentPreviewProps): ReactElement {
   const [expanded, setExpanded] = useState(false);
@@ -554,6 +560,22 @@ function DocumentPreview({
         <button type="button" className="od-link" onClick={onClose}>{words("关闭", "Close", lang)}</button>
       </div>
     </header>
+
+    {/* 「让 Copilot 来做」。
+        它们不是上面那排按钮的重复：上面那排是**人直接改**，这里是把同一件事
+        交给模型去做，好处是模型做完会连带解释、也能接着往下分析。
+        每一颗都是**预填**，用户看得见自己将要说什么、也能改。 */}
+    <div className="od-ask">
+      <span>{words("让 Copilot：", "Ask Copilot to:", lang)}</span>
+      <button type="button" className="od-link"
+        onClick={() => onAsk(askSearch(document.title))}>{words("在库里找相关的", "find related material", lang)}</button>
+      {attachment ? null : <button type="button" className="od-link"
+        onClick={() => onAsk(askAttach(document.title))}>{words("加进本次分析", "use it in this run", lang)}</button>}
+      <button type="button" className="od-link"
+        onClick={() => onAsk(askRemember(document.title))}>{words("把结论记进项目知识", "remember a conclusion", lang)}</button>
+      {document.status === "archived" ? null : <button type="button" className="od-link"
+        onClick={() => onAsk(askArchive())}>{words("归档它", "archive it", lang)}</button>}
+    </div>
 
     {editing ? <MetadataEditor document={document} busy={isBusy} lang={lang}
       onCancel={() => setEditing(false)} onSave={onUpdate} /> : null}
@@ -815,6 +837,22 @@ export function KnowledgeLibrary({
 
   const selected = documents.find((item) => item.id === selectedId) ?? null;
 
+  /**
+   * 把一句话预填进输入框，交给用户过目。
+   *
+   * **预填不发送。** 和右栏那十来个引用按钮同一条纪律（context-sync.ts）：
+   * 用户没审过的话不替他调用模型。这里尤其要紧 —— 这些句子发出去会**改动知识库**。
+   *
+   * 说的什么话不是文案偏好：模型侧的写操作要全句匹配一道意图闸，
+   * 措辞由 ui/copilot-asks.ts 统一给出，那边的注释讲了为什么。
+   *
+   * 顺带打开对话栏：预填了却看不见输入框，等于什么也没发生。
+   */
+  const askCopilot = useCallback((text: string): void => {
+    openKnowledgeChat();
+    prefillComposer(text, { mode: "replace", focusSidebar: false });
+  }, []);
+
   const pending = level === "global" ? [] : pendingSessionFiles(sessionFiles, documents, histories);
 
   return <section className="od-library od-fm" aria-label={words("知识库", "Knowledge library", lang)}>
@@ -827,6 +865,7 @@ export function KnowledgeLibrary({
       onIngest={ingest}
       onUpload={() => document.getElementById("picker")?.click()}
       onDismissOutcomes={() => setInboxOutcomes([])}
+      onAskCopilot={() => askCopilot(askIngestAll(pending.length))}
     />}
     <div className="od-explorer">
       {/* 左边：文件树。图标条 + 分组 + 文件，没有别的。 */}
@@ -846,6 +885,16 @@ export function KnowledgeLibrary({
             disabled={status === "loading" || Boolean(busy)} onClick={() => void refresh()}>
             {words("刷新", "Refresh", lang)}
           </button>
+          {/* 整理建议：模型看目录、提方案，**人自己动手**。
+              建文件夹 / 改名 / 移动这四个动作刻意没有给模型工具 —— 材料怎么归类
+              是用户对自己东西的编排意图，而且 folder_path 不进检索语料也不进
+              流水线，模型代做它既越权又不改变任何输出。所以这颗按钮预填的那句话
+              明确写着「不要直接改，我确认后自己动手」。 */}
+          {level === "global" || documents.length < 3 ? null : <button type="button" className="od-tree-act"
+            title={words("让 Copilot 看目录结构并给整理建议（不会直接改）", "Ask Copilot for a filing plan", lang)}
+            onClick={() => askCopilot(askOrganize())}>
+            {words("整理建议", "Filing plan", lang)}
+          </button>}
           <label className="od-tree-archived">
             <input type="checkbox" checked={includeArchived}
               onChange={(event) => setIncludeArchived(event.target.checked)} />
@@ -1006,6 +1055,7 @@ export function KnowledgeLibrary({
           key={selected.id}
           sessionId={sessionId}
           level={level}
+          onAsk={askCopilot}
           api={api}
           onClose={() => setSelectedId(null)}
           document={selected}

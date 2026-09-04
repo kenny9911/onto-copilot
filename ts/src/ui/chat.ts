@@ -4,7 +4,8 @@ import { $, esc, j } from "./dom.js";
 import { t } from "./i18n.js";
 import { md } from "./md.js";
 import { newSession } from "./sessions.js";
-import { closeKnowledgePage, openKnowledgeChat } from "./react/knowledge-page.js";
+import { closeKnowledgePage } from "./react/knowledge-page.js";
+import { openKnowledgeChat } from "./react/knowledge-chat-lane.js";
 import { render } from "./render.js";
 
 // ── 对话 ────────────────────────────────────────────────────────

@@ -253,6 +253,8 @@ body.knowledge-page-open .main{min-width:0;border-right:0}
 .od-hit-shared .od-hit-list{padding:0 8px 8px}
 .od-hit-also{padding:0 5px;border-radius:4px;background:var(--warn-tint);color:var(--warn);font-size:.6296rem}
 .kp-acts{display:flex;flex:none;align-items:center;gap:8px}
+.od-ask{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;margin-top:8px;padding:7px 11px;border:1px dashed var(--line);border-radius:8px}
+.od-ask>span{color:var(--ink-3);font-size:.7037rem}
 .od-fm-status{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;border-top:1px solid var(--line-soft);color:var(--ink-3);font-size:.7037rem}
 @media (max-width:900px){.od-explorer{grid-template-columns:minmax(0,1fr)}.od-tree{border-right:0;border-bottom:1px solid var(--line)}}
 /* 就地读全文。这是此前完全没有的入口。 */
@@ -16016,6 +16018,26 @@ ${receipt.summary}` : header;
     };
   }
 
+  // ts/src/ui/copilot-asks.ts
+  function askIngestAll(count2) {
+    return `请把这 ${count2} 份材料存入知识库`;
+  }
+  function askAttach(title) {
+    return `请把${title}固定到本次分析`;
+  }
+  function askArchive() {
+    return "请归档这份文档";
+  }
+  function askSearch(topic) {
+    return `在项目知识库里查一下${topic}，把原文出处一起给我`;
+  }
+  function askOrganize() {
+    return "看一下知识库现在的文件夹结构和每份材料的位置，给我一份整理建议：该建哪些文件夹、哪份材料该放进哪个，说明理由。不要直接改，我确认后自己动手。";
+  }
+  function askRemember(subject) {
+    return `把关于「${subject}」的结论记进项目知识，带上材料出处`;
+  }
+
   // ts/src/ui/knowledge-events.ts
   var KNOWLEDGE_CHANGED_EVENT = "ontocopilot:knowledge-changed";
   function emitKnowledgeChanged(action) {
@@ -16073,7 +16095,8 @@ ${receipt.summary}` : header;
     outcomes,
     onIngest,
     onUpload,
-    onDismissOutcomes
+    onDismissOutcomes,
+    onAskCopilot
   }) {
     const [skipped, setSkipped] = (0, import_react3.useState)(/* @__PURE__ */ new Set());
     const chosen = items.filter((item) => !skipped.has(item.name));
@@ -16138,8 +16161,29 @@ ${receipt.summary}` : header;
           outcomes.find((row) => row.name === item.name && !row.ok) ? /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { className: "od-inbox-note weak", children: outcomes.find((row) => row.name === item.name)?.message }) : null
         ] }, item.name);
       }) }),
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { className: "od-inbox-foot", children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("button", { type: "button", className: "od-link", onClick: onUpload, children: "还要再传一些文件" }) })
+      /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { className: "od-inbox-foot", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("button", { type: "button", className: "od-link", onClick: onAskCopilot, children: "让 Copilot 来存" }),
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("button", { type: "button", className: "od-link", onClick: onUpload, children: "还要再传一些文件" })
+      ] })
     ] });
+  }
+
+  // ts/src/ui/react/knowledge-chat-lane.ts
+  var CHAT_CLASS = "kb-chat-open";
+  function knowledgeChatOpen() {
+    return typeof document !== "undefined" && document.body.classList.contains(CHAT_CLASS);
+  }
+  function setKnowledgeChatOpen(open) {
+    if (typeof document === "undefined") return;
+    document.body.classList.toggle(CHAT_CLASS, open);
+    bumpUi();
+  }
+  function openKnowledgeChat() {
+    if (!knowledgeChatOpen()) setKnowledgeChatOpen(true);
+  }
+  function clearKnowledgeChatLane() {
+    if (typeof document === "undefined") return;
+    document.body.classList.remove(CHAT_CLASS);
   }
 
   // ts/src/ui/react/knowledge-library.tsx
@@ -16498,6 +16542,7 @@ ${provenance}（这段的证据引用是 ${evidenceRef}，需要核对原文时�
     busy,
     lang,
     level,
+    onAsk,
     onUpdate,
     onArchive,
     onAttach,
@@ -16583,6 +16628,45 @@ ${provenance}（这段的证据引用是 ${evidenceRef}，需要核对原文时�
           ) : null,
           /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", className: "od-link", onClick: onClose, children: words("关闭", "Close", lang) })
         ] })
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "od-ask", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { children: words("让 Copilot：", "Ask Copilot to:", lang) }),
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
+          "button",
+          {
+            type: "button",
+            className: "od-link",
+            onClick: () => onAsk(askSearch(document2.title)),
+            children: words("在库里找相关的", "find related material", lang)
+          }
+        ),
+        attachment ? null : /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
+          "button",
+          {
+            type: "button",
+            className: "od-link",
+            onClick: () => onAsk(askAttach(document2.title)),
+            children: words("加进本次分析", "use it in this run", lang)
+          }
+        ),
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
+          "button",
+          {
+            type: "button",
+            className: "od-link",
+            onClick: () => onAsk(askRemember(document2.title)),
+            children: words("把结论记进项目知识", "remember a conclusion", lang)
+          }
+        ),
+        document2.status === "archived" ? null : /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
+          "button",
+          {
+            type: "button",
+            className: "od-link",
+            onClick: () => onAsk(askArchive()),
+            children: words("归档它", "archive it", lang)
+          }
+        )
       ] }),
       editing ? /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
         MetadataEditor,
@@ -16788,6 +16872,10 @@ ${provenance}（这段的证据引用是 ${evidenceRef}，需要核对原文时�
     const hiddenUnder = (path) => path.includes("/") && [...closedFolders].some((c) => path.startsWith(`${c}/`));
     const rootDocs = docsByFolder.get("") ?? [];
     const selected = documents.find((item) => item.id === selectedId) ?? null;
+    const askCopilot = (0, import_react4.useCallback)((text4) => {
+      openKnowledgeChat();
+      prefillComposer(text4, { mode: "replace", focusSidebar: false });
+    }, []);
     const pending = level === "global" ? [] : pendingSessionFiles(sessionFiles, documents, histories);
     return /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("section", { className: "od-library od-fm", "aria-label": words("知识库", "Knowledge library", lang), children: [
       level === "global" ? null : /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
@@ -16798,7 +16886,8 @@ ${provenance}（这段的证据引用是 ${evidenceRef}，需要核对原文时�
           outcomes: inboxOutcomes,
           onIngest: ingest,
           onUpload: () => document.getElementById("picker")?.click(),
-          onDismissOutcomes: () => setInboxOutcomes([])
+          onDismissOutcomes: () => setInboxOutcomes([]),
+          onAskCopilot: () => askCopilot(askIngestAll(pending.length))
         }
       ),
       /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "od-explorer", children: [
@@ -16822,6 +16911,16 @@ ${provenance}（这段的证据引用是 ${evidenceRef}，需要核对原文时�
                 disabled: status === "loading" || Boolean(busy),
                 onClick: () => void refresh2(),
                 children: words("刷新", "Refresh", lang)
+              }
+            ),
+            level === "global" || documents.length < 3 ? null : /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
+              "button",
+              {
+                type: "button",
+                className: "od-tree-act",
+                title: words("让 Copilot 看目录结构并给整理建议（不会直接改）", "Ask Copilot for a filing plan", lang),
+                onClick: () => askCopilot(askOrganize()),
+                children: words("整理建议", "Filing plan", lang)
               }
             ),
             /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("label", { className: "od-tree-archived", children: [
@@ -17018,6 +17117,7 @@ ${provenance}（这段的证据引用是 ${evidenceRef}，需要核对原文时�
             {
               sessionId,
               level,
+              onAsk: askCopilot,
               api,
               onClose: () => setSelectedId(null),
               document: selected,
@@ -18106,18 +18206,6 @@ ${provenance}（这段的证据引用是 ${evidenceRef}，需要核对原文时�
   // ts/src/ui/react/knowledge-page.tsx
   var import_jsx_runtime5 = __toESM(require_jsx_runtime(), 1);
   var HASH = "#knowledge";
-  var CHAT_CLASS = "kb-chat-open";
-  function knowledgeChatOpen() {
-    return typeof document !== "undefined" && document.body.classList.contains(CHAT_CLASS);
-  }
-  function setKnowledgeChatOpen(open) {
-    if (typeof document === "undefined") return;
-    document.body.classList.toggle(CHAT_CLASS, open);
-    bumpUi();
-  }
-  function openKnowledgeChat() {
-    if (!knowledgeChatOpen()) setKnowledgeChatOpen(true);
-  }
   function setHash(open, replace = false) {
     if (typeof window === "undefined") return;
     const next = open ? HASH : `${window.location.pathname}${window.location.search}`;
@@ -18137,7 +18225,7 @@ ${provenance}（这段的证据引用是 ${evidenceRef}，需要核对原文时�
     setHash(true);
   }
   function closeKnowledgePage(options = {}) {
-    if (typeof document !== "undefined") document.body.classList.remove(CHAT_CLASS);
+    clearKnowledgeChatLane();
     stickStreamToBottom();
     if (G.MAIN_PAGE !== "chat") setUi({ MAIN_PAGE: "chat" });
     setHash(false, options.replaceHistory === true);
