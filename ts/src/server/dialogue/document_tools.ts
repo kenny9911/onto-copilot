@@ -881,6 +881,33 @@ function documentView(row: {
   };
 }
 
+/**
+ * 告诉界面「知识库刚被改了」。
+ *
+ * 这条通道以前**整条不存在**。模型调 promote / attach / archive 成功之后，
+ * 服务端什么也不发，前端 sse.ts 的 13 条分支里一条和 document 有关的都没有，
+ * 于是：知识库页开着的时候，模型刚存进去的材料不会出现在左边的树里；
+ * 「开始梳理 N 份材料」那个 N 也不动。用户只能自己去点刷新 —— 而他刚刚明明
+ * 看见系统说改好了。sse.ts:150 那段注释早就把这个判据写清楚了：
+ * 「判据是『这个事件代表会话状态变了吗』，不是『它由哪一层发出』」。
+ *
+ * 事件本身刻意做得很薄：只说发生了什么动作、涉及哪份材料。**不带正文、不带
+ * 清单** —— 前端拿到它去重新拉，那条路上有 ACL；把内容塞进事件等于绕开它。
+ *
+ * 发不出去不算失败：它只是一条刷新提示，为它把一次已经成功的写入回滚是荒唐的。
+ */
+async function announceDocumentChange(
+  session: SessionLike,
+  action: string,
+  detail: Record<string, unknown>,
+): Promise<void> {
+  try {
+    await session.emitDurable("document.changed", { action, ...detail });
+  } catch {
+    // 见上：写已经成功了，提示发不出去就算了。
+  }
+}
+
 async function refreshManifest(session: SessionLike, deps: DialogueDeps): Promise<void> {
   const service = getDocumentServiceOptional();
   if (service === null || !session.projectId || !session.owner) return;
@@ -1250,6 +1277,10 @@ export function registerDocumentDialogueTools(
               actor,
             });
         const added = saved.page.claims[saved.page.claims.length - 1];
+        await announceDocumentChange(session, "remember", {
+          page_title: saved.page.title,
+          subject: draft.subject,
+        });
         return {
           ok: true,
           page_id: saved.page.id,
@@ -1480,6 +1511,11 @@ export function registerDocumentDialogueTools(
           },
         );
         await refreshManifest(session, deps);
+        await announceDocumentChange(session, "attach", {
+          document_id: attachment.documentId,
+          version_id: attachment.versionId,
+          title: attachment.documentId,
+        });
         return {
           ok: true,
           message: "已把这个固定版本加入本次分析；以后出现新版本也不会自动替换。",
@@ -1530,6 +1566,9 @@ export function registerDocumentDialogueTools(
           scope, { ...scope, sessionId: session.id }, requested.document_id,
         );
         await refreshManifest(session, deps);
+        if (detached) {
+          await announceDocumentChange(session, "detach", { document_id: requested.document_id });
+        }
         return {
           ok: true,
           detached,
@@ -1615,6 +1654,9 @@ export function registerDocumentDialogueTools(
             failed.push({ name: want.name, error: message(error) });
           }
         }
+        if (saved.length > 0) {
+          await announceDocumentChange(session, "promote_batch", { count: saved.length });
+        }
         return {
           ok: failed.length === 0,
           message: failed.length === 0
@@ -1682,6 +1724,14 @@ export function registerDocumentDialogueTools(
           },
           createdBy: session.owner,
         });
+        // 去重时不发事件：什么都没变，界面没有理由重画，回执卡更会误导
+        // ——「Copilot 把 X 加进了知识库」而库里数目没动。
+        if (!result.deduplicated) {
+          await announceDocumentChange(session, "promote", {
+            document_id: result.document.id,
+            title: result.document.title,
+          });
+        }
         return {
           ok: true,
           message: result.deduplicated
@@ -1779,6 +1829,10 @@ export function registerDocumentDialogueTools(
           return { ok: false, error: "不支持这个管理动作。" };
         }
         await refreshManifest(session, deps);
+        await announceDocumentChange(session, action, {
+          document_id: document.id,
+          title: document.title,
+        });
         return {
           ok: true,
           message: action === "archive"

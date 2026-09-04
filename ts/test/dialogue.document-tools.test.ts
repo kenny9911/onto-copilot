@@ -142,6 +142,10 @@ function fixture() {
     id: "session_1",
     projectId: "project_A",
     owner: "alice",
+    // 知识库写入之后要发一条 document.changed，界面靠它知道「刚才库里变了」。
+    // 桩里必须有它，否则 announceDocumentChange 的 catch 会把缺失悄悄吃掉，
+    // 测试也就永远看不出这条通道断没断。
+    emitDurable: vi.fn(async (kind: string, payload?: Dict) => ({ kind, payload, seq: 1 })),
     state: {} as Dict,
     files: [{
       name: "采购规则.txt",
@@ -305,6 +309,19 @@ describe("OntoDocument dialogue harness", () => {
         { version_id: "ver_2", parse_status: "ready", chunk_count: 1 },
       ],
     });
+  });
+
+  it("模型改完知识库要发 document.changed —— 界面靠它知道刚才库里变了", async () => {
+    const { call, session } = fixture();
+    // 这条通道以前**整条不存在**：模型 promote 成功之后服务端什么也不发，
+    // 前端 sse.ts 十三条分支里没有一条和 document 有关。于是知识库页开着的时候，
+    // 刚存进去的材料不会出现在左边的树里，用户只能自己去点刷新 ——
+    // 而他刚刚明明看见系统说改好了。
+    await authorizeDocumentToolsForTurn(session, "turn_promote", "请把采购规则.txt保存到项目知识库");
+    await call("document.promote", { session_file_name: "采购规则.txt" }, "turn_promote");
+    const emitted = session.emitDurable.mock.calls.find((row: unknown[]) => row[0] === "document.changed");
+    expect(emitted).toBeDefined();
+    expect(emitted![1]).toMatchObject({ action: "promote" });
   });
 
   it("层级缺失时 fail closed —— 绝不把来路不明的片段说成客户自己的规定", async () => {

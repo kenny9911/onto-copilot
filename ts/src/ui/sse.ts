@@ -8,6 +8,8 @@ import { loadQuestions } from "./questions.js";
 import { mergeStateSnapshot, addTurn, stopThinking } from "./chat.js";
 import { render } from "./render.js";
 import { paint } from "./preview.js";
+import { contextSyncStore } from "./context-sync.js";
+import { emitKnowledgeChanged } from "./knowledge-events.js";
 
 // ── 事件流 ──────────────────────────────────────────────────────
 const ES_OPEN = 1;
@@ -89,6 +91,36 @@ function openStream(sid: string, since: number): void {
         || (ev.kind === "chat.turn" && ev.turn?.speaker === "assistant")) clearQuota();
     // 自动命名（上传完第一份材料、第一轮对话之后）在服务端发生，改完发这一条。
     // 事件走的是**当前会话**那条流，所以没带会话 id 时它说的就是当前这条。
+    // 知识库被模型改了。
+    //
+    // 这条通道以前整条不存在：模型 promote / attach / archive 成功之后，界面上
+    // 一个字都没有 —— 知识库页开着的话，左边的树里不会冒出刚存进去的材料；
+    // 右栏「已固定 N 份」的 N 也不动。用户只能自己去点刷新，而他刚刚明明看见
+    // 系统说改好了。
+    //
+    // 两件事分开做，因为它们答的是两个问题：
+    //   · 回执卡答「刚才发生了什么」—— 走 contextSyncStore，和右栏那十来个
+    //     人点出来的回执共用一条渠道和一种外观。它刻意不是聊天气泡：
+    //     「系统写进了什么」不该混在对话里。
+    //   · 自定义事件答「哪一块该重画」—— 知识库页自己订阅它去重拉列表。
+    //     事件里**不带清单**：让页面自己去拉，那条路上有 ACL；把内容塞进
+    //     事件等于绕开它。
+    //
+    // createdAt 用事件自己的时间戳，不用 now()。回执 id 是按内容（含 createdAt）
+    // 哈希的，于是断线重连的全量重放会算出同一个 id、被 publish 原样去重 ——
+    // 否则重放 2000 条历史会在流尾堆出一摞重复回执，那正是 2026-08-25 那次
+    // 页面冻死的同一类成因。
+    if (ev.kind === "document.changed") {
+      contextSyncStore.publish({
+        type: "context.update",
+        section: "evidence",
+        origin: "system",
+        title: documentChangeTitle(ev),
+        summary: "这是 Copilot 在本轮里对知识库做的改动，不是它给你的回答。",
+        ...(ev.ts ? { createdAt: ev.ts } : {}),
+      });
+      emitKnowledgeChanged(String(ev.action || ""));
+    }
     if (ev.kind === "session.renamed") applySessionTitle(ev.id || G.S.id, ev.title);
     if (ev.kind === "clarify.request") { G.S.state.questions = ev.questions; loadQuestions(); }
     if (ev.kind === "suggest.ready") G.S.state.suggestions = ev.suggestions;
@@ -152,7 +184,7 @@ function openStream(sid: string, since: number): void {
     // 看得到"改了本体"这条记录，右栏的对象/流程计数却纹丝不动 —— 用户只能去点
     // 刷新，而他刚刚明明看见系统说改好了。判据是"这个事件代表会话状态变了吗"，
     // 不是"它由哪一层发出"。
-    if (["corpus.ready","corpus.restored","parse.failed","run.completed","run.failed","run.suspended","run.cancelled","artifact.ready","human.recorded","question.updated","question.answered","audit.applied","draft.initialized","draft.updated","oir.edited","flow.ready","sketch.ready","template.edited"].includes(ev.kind))
+    if (["corpus.ready","corpus.restored","parse.failed","run.completed","run.failed","run.suspended","run.cancelled","artifact.ready","human.recorded","question.updated","question.answered","audit.applied","draft.initialized","draft.updated","oir.edited","flow.ready","sketch.ready","template.edited","document.changed"].includes(ev.kind))
       scheduleStateRefresh();
     scheduleRender();
   };
@@ -170,6 +202,28 @@ function openStream(sid: string, since: number): void {
 // （比如 mutation queue 收尾一次 drain 多条事件）同样受益。
 
 /** 手动打开/切换会话时从头水合；自动断线才走上面的续传游标。 */
+/**
+ * 回执卡上那一行字。
+ *
+ * 说的是**动作**，不是工具名：用户不需要知道有个东西叫 document.promote_batch。
+ * 认不出来的动作就笼统说一句，绝不把英文枚举漏到界面上。
+ */
+function documentChangeTitle(ev: any): string {
+  const title = String(ev.title || "").trim();
+  switch (String(ev.action || "")) {
+    case "promote": return title ? `Copilot 把「${title}」存进了知识库` : "Copilot 把一份材料存进了知识库";
+    case "promote_batch": return `Copilot 把 ${Number(ev.count) || 0} 份材料存进了知识库`;
+    case "attach": return "Copilot 把一份知识库材料加进了本次分析";
+    case "detach": return "Copilot 把一份材料移出了本次分析";
+    case "archive": return title ? `Copilot 归档了「${title}」` : "Copilot 归档了一份材料";
+    case "restore": return title ? `Copilot 恢复了「${title}」` : "Copilot 恢复了一份材料";
+    case "adopt_version": return title ? `Copilot 切换了「${title}」的采用版本` : "Copilot 切换了采用版本";
+    case "update_metadata": return title ? `Copilot 改了「${title}」的信息` : "Copilot 改了一份材料的信息";
+    case "remember": return `Copilot 记了一条待确认的项目知识：${String(ev.subject || "").trim() || "（无主题）"}`;
+    default: return "Copilot 改动了知识库";
+  }
+}
+
 export function connect(){
   cancelReconnect();
   if (!G.S) {

@@ -19,6 +19,7 @@ import {
   type UpdateKnowledgeInput,
 } from "../knowledge-library.js";
 import { prefillComposer } from "../context-sync.js";
+import { onKnowledgeChanged } from "../knowledge-events.js";
 import {
   KnowledgeInbox, pendingSessionFiles, type InboxOutcome,
 } from "./knowledge-inbox.js";
@@ -683,6 +684,18 @@ export function KnowledgeLibrary({
     void refresh();
     return () => { loadSequence.current += 1; };
   }, [refresh]);
+
+  /**
+   * Copilot 改了知识库 → 这一页跟着重画。
+   *
+   * 在此之前这个列表是一份死数据：进页面拉一次，之后除非人点「刷新」，别处发生
+   * 的任何事都不会出现在这棵树里。而这一页现在旁边就摆着对话栏 —— 用户完全可能
+   * 一边看着树、一边让 Copilot 把材料存进来，然后盯着一棵没动的树发呆。
+   *
+   * 只重拉、不做局部合并：事件里刻意不带清单（见 knowledge-events.ts 的注释），
+   * 而重拉这条路上有 ACL 和作用域解析。少一次请求换一条绕过鉴权的旁路，不划算。
+   */
+  useEffect(() => onKnowledgeChanged(() => { void refresh(); }), [refresh]);
 
   /**
    * 库里有东西就先摊开第一份的正文。

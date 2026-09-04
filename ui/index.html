@@ -16016,6 +16016,26 @@ ${receipt.summary}` : header;
     };
   }
 
+  // ts/src/ui/knowledge-events.ts
+  var KNOWLEDGE_CHANGED_EVENT = "ontocopilot:knowledge-changed";
+  function emitKnowledgeChanged(action) {
+    if (typeof window === "undefined") return;
+    window.dispatchEvent(
+      new CustomEvent(KNOWLEDGE_CHANGED_EVENT, { detail: { action } })
+    );
+  }
+  function onKnowledgeChanged(handler) {
+    if (typeof window === "undefined") return () => {
+    };
+    const listener = (event) => {
+      handler(event.detail ?? { action: "" });
+    };
+    window.addEventListener(KNOWLEDGE_CHANGED_EVENT, listener);
+    return () => {
+      window.removeEventListener(KNOWLEDGE_CHANGED_EVENT, listener);
+    };
+  }
+
   // ts/src/ui/react/knowledge-inbox.tsx
   var import_react3 = __toESM(require_react(), 1);
   var import_jsx_runtime2 = __toESM(require_jsx_runtime(), 1);
@@ -16680,6 +16700,9 @@ ${provenance}（这段的证据引用是 ${evidenceRef}，需要核对原文时�
         loadSequence.current += 1;
       };
     }, [refresh2]);
+    (0, import_react4.useEffect)(() => onKnowledgeChanged(() => {
+      void refresh2();
+    }), [refresh2]);
     const autoPicked = (0, import_react4.useRef)(false);
     (0, import_react4.useEffect)(() => {
       if (autoPicked.current || selectedId !== null || documents.length === 0) return;
@@ -19517,6 +19540,17 @@ ${el.value}` : text4;
       }
       if (QUOTA_KINDS.includes(ev.kind)) noteQuota(ev);
       if (ev.kind === "run.completed" || ev.kind === "artifact.ready" || ev.kind === "chat.turn" && ev.turn?.speaker === "assistant") clearQuota();
+      if (ev.kind === "document.changed") {
+        contextSyncStore.publish({
+          type: "context.update",
+          section: "evidence",
+          origin: "system",
+          title: documentChangeTitle(ev),
+          summary: "这是 Copilot 在本轮里对知识库做的改动，不是它给你的回答。",
+          ...ev.ts ? { createdAt: ev.ts } : {}
+        });
+        emitKnowledgeChanged(String(ev.action || ""));
+      }
       if (ev.kind === "session.renamed") applySessionTitle(ev.id || G.S.id, ev.title);
       if (ev.kind === "clarify.request") {
         G.S.state.questions = ev.questions;
@@ -19565,10 +19599,35 @@ ${el.value}` : text4;
       }
       if (ev.kind === "prompts.ready" && ev.slot === "opening") G.PROMPTS = ev.questions || [];
       if (ev.kind === "node.completed" && ev.node === "CONFLICT") G.S.state.conflicts = ev.conflicts;
-      if (["corpus.ready", "corpus.restored", "parse.failed", "run.completed", "run.failed", "run.suspended", "run.cancelled", "artifact.ready", "human.recorded", "question.updated", "question.answered", "audit.applied", "draft.initialized", "draft.updated", "oir.edited", "flow.ready", "sketch.ready", "template.edited"].includes(ev.kind))
+      if (["corpus.ready", "corpus.restored", "parse.failed", "run.completed", "run.failed", "run.suspended", "run.cancelled", "artifact.ready", "human.recorded", "question.updated", "question.answered", "audit.applied", "draft.initialized", "draft.updated", "oir.edited", "flow.ready", "sketch.ready", "template.edited", "document.changed"].includes(ev.kind))
         scheduleStateRefresh();
       scheduleRender();
     };
+  }
+  function documentChangeTitle(ev) {
+    const title = String(ev.title || "").trim();
+    switch (String(ev.action || "")) {
+      case "promote":
+        return title ? `Copilot 把「${title}」存进了知识库` : "Copilot 把一份材料存进了知识库";
+      case "promote_batch":
+        return `Copilot 把 ${Number(ev.count) || 0} 份材料存进了知识库`;
+      case "attach":
+        return "Copilot 把一份知识库材料加进了本次分析";
+      case "detach":
+        return "Copilot 把一份材料移出了本次分析";
+      case "archive":
+        return title ? `Copilot 归档了「${title}」` : "Copilot 归档了一份材料";
+      case "restore":
+        return title ? `Copilot 恢复了「${title}」` : "Copilot 恢复了一份材料";
+      case "adopt_version":
+        return title ? `Copilot 切换了「${title}」的采用版本` : "Copilot 切换了采用版本";
+      case "update_metadata":
+        return title ? `Copilot 改了「${title}」的信息` : "Copilot 改了一份材料的信息";
+      case "remember":
+        return `Copilot 记了一条待确认的项目知识：${String(ev.subject || "").trim() || "（无主题）"}`;
+      default:
+        return "Copilot 改动了知识库";
+    }
   }
   function connect() {
     cancelReconnect();
