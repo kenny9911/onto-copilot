@@ -87,6 +87,21 @@ export interface DocumentRepository {
     documentId: string,
     sha256: string,
   ): Promise<StoredDocumentVersion | null>;
+  /**
+   * 整个 scope 里有没有哪一份**在架**材料的**当前版**正是这段字节。
+   *
+   * 和 findVersionBySha 的区别是不指定 documentId —— 它回答的是「这份内容进过这个
+   * 库没有」，而不是「这份文档有没有这一版」。入库时没给目标文档就要用它，
+   * 否则同一个文件点两次会长出两份一模一样的文档（实测过）。
+   *
+   * 只看当前版：一份材料**历史上**某一版和新文件相同，不代表现在还是；那种情况
+   * 应该走「加为新版本」，不是去重。归档的也不算 —— 归档意味着人说过「这份先收
+   * 起来」，再传一次是重新拿它出来用，不该静默指回一份看不见的东西。
+   */
+  findActiveDocumentByCurrentSha(
+    scope: DocumentScope,
+    sha256: string,
+  ): Promise<DocumentSummary | null>;
   commitVersion(input: CommitVersionInput): Promise<CommitVersionResult>;
   updateMetadata(
     scope: DocumentScope,
@@ -335,6 +350,21 @@ export class MemoryDocumentRepository implements DocumentRepository {
       (v) => v.documentId === documentId && v.sha256 === sha256,
     );
     return row === undefined ? null : cloneVersion(row);
+  }
+
+  async findActiveDocumentByCurrentSha(
+    scope: DocumentScope,
+    sha256: string,
+  ): Promise<DocumentSummary | null> {
+    assertScope(scope);
+    for (const doc of this.documents.values()) {
+      if (doc.projectId !== scope.projectId || doc.owner !== scope.owner) continue;
+      if (doc.status !== "active") continue;
+      if (doc.currentVersionId === "") continue;
+      const version = this.versions.get(doc.currentVersionId);
+      if (version !== undefined && version.sha256 === sha256) return cloneDocument(doc);
+    }
+    return null;
   }
 
   async commitVersion(input: CommitVersionInput): Promise<CommitVersionResult> {
@@ -907,6 +937,24 @@ export class SqlDocumentRepository implements DocumentRepository {
   ): Promise<StoredDocumentVersion | null> {
     assertScope(scope);
     return this.engine.connect((conn) => this.versionIn(conn, scope, documentId, "sha256", sha256));
+  }
+
+  async findActiveDocumentByCurrentSha(
+    scope: DocumentScope,
+    sha256: string,
+  ): Promise<DocumentSummary | null> {
+    assertScope(scope);
+    return this.engine.connect(async (conn) => {
+      // JOIN 挂在 current_version_id 上，不是「任意一版」—— 见接口上那段注释。
+      const rows = await conn.all<DbRow>(
+        `SELECT ${DOC_COLUMNS.split(",").map((c) => `d.${c}`).join(",")} FROM onto_document d ` +
+          "JOIN onto_document_version v ON v.id=d.current_version_id " +
+          "WHERE d.project_id=? AND d.owner=? AND d.status='active' AND v.sha256=? " +
+          "ORDER BY d.created_at ASC,d.id ASC",
+        [scope.projectId, scope.owner, sha256],
+      );
+      return rows[0] === undefined ? null : rowDocument(rows[0]);
+    });
   }
 
   async commitVersion(input: CommitVersionInput): Promise<CommitVersionResult> {

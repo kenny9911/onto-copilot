@@ -1279,7 +1279,8 @@ export function registerDocumentRoutes(app: Hono<AppEnv>, deps: DocumentRouteDep
       await deps.documents.promoteSessionFile(scope, input),
     );
     const message = result.deduplicated
-      ? `「${file.name}」的内容与知识库现有版本相同，没有重复保存。`
+      ? `「${file.name}」的内容和库里的「${result.document.title}」逐字节相同，没有再存一份；` +
+        "要看它请打开那一份。"
       : documentId === undefined
         ? `已把「${file.name}」保存到项目知识库。`
         : `已把「${file.name}」保存为新版本；采用哪个版本仍由你确认。`;

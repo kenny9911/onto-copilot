@@ -20,6 +20,8 @@ export interface UiState {
   MAIN_PAGE: "chat" | "knowledge";
   /** 知识库看的是哪一层：公共库（不依赖项目）还是当前项目的库。 */
   KNOWLEDGE_TARGET: "global" | "project";
+  /** 层级是不是人自己挑过的。见 knowledge-page.tsx 里那段注释。 */
+  KNOWLEDGE_TOUCHED: boolean;
   TAB: string;
   /** 从模型/审阅点进证据后回到原工作上下文；显式切导航时清空。 */
   CONTEXT_BACK: string | null;
@@ -129,7 +131,7 @@ export interface UiState {
 }
 
 export const G: UiState = {
-  S: null, MAIN_PAGE: "chat", KNOWLEDGE_TARGET: "global", TAB: "model", CONTEXT_BACK: null, FILE: null, SRC: {}, ES: null, ANSWERS: {},
+  S: null, MAIN_PAGE: "chat", KNOWLEDGE_TARGET: "global", KNOWLEDGE_TOUCHED: false, TAB: "model", CONTEXT_BACK: null, FILE: null, SRC: {}, ES: null, ANSWERS: {},
   Q_BACKLOG: [], Q_API: false, Q_FILTER: "open", Q_LIMIT: 40,
   Q_NEXT: [], RETURN_AUDIT: null, RETURN_FILE: null, RETURN_BUSY: false,
   MODE: localStorage.getItem("oc_mode") || "work", // 聊天 / 工作 双模式

@@ -19,6 +19,9 @@ import {
   type UpdateKnowledgeInput,
 } from "../knowledge-library.js";
 import { prefillComposer } from "../context-sync.js";
+import {
+  KnowledgeInbox, pendingSessionFiles, type InboxOutcome,
+} from "./knowledge-inbox.js";
 import { useUi } from "./store.js";
 
 export interface KnowledgeSessionFile {
@@ -243,6 +246,7 @@ interface DocumentPreviewProps {
   onPublish?: (() => Promise<void>) | undefined;
   onMove?: ((folderPath: string) => Promise<void>) | undefined;
   folderOptions: readonly string[];
+  level: "global" | "project";
 }
 
 /**
@@ -262,9 +266,22 @@ interface DocumentPreviewProps {
  * 模型侧的 `document.open` 要的是一个精确的 evidence_ref（见 document_tools.ts
  * 里那个工具的描述），拿不到就只能自己重搜一遍去猜用户指的是哪一段。
  * 于是「材料事实有出处」这条链，恰好断在人把材料交给模型的那一刻。
+ *
+ * **也必须带层级。** 公共知识库装的是行业通用参考，项目库装的是这家客户自己的
+ * 规定。把前者当成后者，是这个产品最不能出的错（routes/documents.ts:853 的注释
+ * 原话）。而这句话是人交给模型的原文，模型除了这段字什么也看不到 —— 层级不写在
+ * 这里，它就丢在这里了。界面上那枚 8.3px 的灰徽章救不了它：模型读不到 CSS。
  */
-function quoteForComposer(cite: string, text: string, evidenceRef: string): string {
-  return `关于「${cite}」这一段：\n\n${text}\n\n` +
+function quoteForComposer(
+  cite: string,
+  text: string,
+  evidenceRef: string,
+  level?: string,
+): string {
+  const provenance = level === "global"
+    ? "这一段来自**公共知识库**：行业通用参考，不是这个客户自己的规定，别当成客户事实用。\n"
+    : "";
+  return `关于「${cite}」这一段：\n\n${text}\n\n${provenance}` +
     `（这段的证据引用是 ${evidenceRef}，需要核对原文时用 document.open 打开它。）\n`;
 }
 
@@ -282,9 +299,35 @@ function FileRow({ item, depth, selectedId, attachments, lang, onPick }: {
     style={{ paddingLeft: `${27 + depth * 14}px` }}
     onClick={onPick}>
     <span className="od-file-name">{item.title}</span>
+    {/* 原来这里是一个 6px 的圆点，含义只写在 title 里 —— 触屏上永远看不到，
+        鼠标上也要先猜到"这个点可能是有意思的"才会去悬停。
+        「本次在用」是这一页最重要的状态（它决定这一轮分析真的读了什么），
+        不该是全页最小、最沉默的那个东西。 */}
     {attachedVersion(item.id, attachments)
-      ? <span className="od-file-dot" title={words("本次分析在用", "In use this run", lang)} /> : null}
+      ? <span className="od-file-flag">{words("本次在用", "In use", lang)}</span> : null}
   </button>;
+}
+
+/** 一组命中。分层展示要用两次，所以抽出来 —— 抄第二遍必然会漂。 */
+function HitGroup({ hits, lang, onOpen }: {
+  hits: readonly KnowledgeSearchHit[];
+  lang: string;
+  onOpen: (evidenceRef: string) => void;
+}): ReactElement {
+  return <div className="od-hit-list">
+    {hits.map((hit) => <button type="button" className="od-hit" key={hit.evidence_ref}
+      onClick={() => onOpen(hit.evidence_ref)}>
+      <span>
+        <strong>{hit.document_title} · v{hit.version_no}</strong>
+        {/* 「这一段公共库也有一份」仍然值得说：它意味着这条不是客户独有的做法。
+            但它是补充信息，不是分层本身 —— 分层已经由分组承担了。 */}
+        {hit.also_in_level === "global"
+          ? <span className="od-hit-also">{words("公共库也有同一段", "Also in the shared library", lang)}</span> : null}
+        <small>{hit.cite}</small>
+      </span>
+      <p>{hit.text}</p>
+    </button>)}
+  </div>;
 }
 
 /** 搜索结果占据预览区：找东西和读东西是同一个位置，不额外开一块。 */
@@ -297,6 +340,8 @@ function SearchPane({ result, openedEvidence, evidenceError, lang, onOpen, onCle
   onClear: () => void;
 }): ReactElement {
   const total = (result as { total?: number }).total ?? result.hits.length;
+  const sharedHits = result.hits.filter((hit) => hit.level === "global");
+  const ownHits = result.hits.filter((hit) => hit.level !== "global");
   return <>
     <header className="od-preview-head">
       <div>
@@ -306,6 +351,8 @@ function SearchPane({ result, openedEvidence, evidenceError, lang, onOpen, onCle
         {result.coverage?.missingTerms?.length
           ? <small>{words("未命中：", "Not found: ", lang)}{result.coverage.missingTerms.join("、")}</small>
           : null}
+        {/* 「公共库也一起搜了」这件事，界面上从前一个字都没有。 */}
+        <small>{words("项目材料和公共知识库一起搜。", "Searches both this project and the shared library.", lang)}</small>
       </div>
       <button type="button" className="od-link" onClick={onClear}>{words("清除搜索", "Clear", lang)}</button>
     </header>
@@ -313,19 +360,22 @@ function SearchPane({ result, openedEvidence, evidenceError, lang, onOpen, onCle
       "搜索只返回能定位到文件版本和原文位置的片段。这不代表业务上一定不存在，只表示当前知识库没有证据。",
       "Search only returns passages tied to a file version and location; a miss is not proof the fact is false.",
       lang,
-    )}</p> : <div className="od-hit-list">
-      {result.hits.map((hit) => <button type="button" className="od-hit" key={hit.evidence_ref}
-        onClick={() => onOpen(hit.evidence_ref)}>
-        <span>
-          <strong>{hit.document_title} · v{hit.version_no}</strong>
-          {hit.level === "global" ? <span className="od-badge current">{words("总库", "Shared", lang)}</span> : null}
-          {hit.also_in_level === "global"
-            ? <span className="od-badge current">{words("总库也有", "Also shared", lang)}</span> : null}
-          <small>{hit.cite}</small>
-        </span>
-        <p>{hit.text}</p>
-      </button>)}
-    </div>}
+    )}</p> : <>
+      {/* 命中按层分成两组，不靠每行一枚小徽章。
+          这一页的检索是**跨层并集**（service.ts 的 searchLayered），而界面从来没
+          说过这件事 —— 用户在"当前项目"这四个字下面看到的结果里，混着公共库的
+          行业通用做法，唯一的区别是一枚 8.3px 的灰点。把这家客户的规定和行业通用
+          参考弄混，是这个产品最不能出的错。所以：客户材料在前、不打标签（默认就是
+          客户事实），行业通用参考单独一组、默认折叠、--warn 系配色。 */}
+      <HitGroup hits={ownHits} lang={lang} onOpen={onOpen} />
+      {sharedHits.length ? <details className="od-hit-shared">
+        <summary>
+          {words(`另有 ${sharedHits.length} 处来自公共知识库`, `${sharedHits.length} more from the shared library`, lang)}
+          <span>{words("行业通用参考，不是这个客户的规定", "Cross-project reference, not this client’s rules", lang)}</span>
+        </summary>
+        <HitGroup hits={sharedHits} lang={lang} onOpen={onOpen} />
+      </details> : null}
+    </>}
     {evidenceError ? <div className="od-inline-error">{evidenceError}</div> : null}
     {openedEvidence ? <article className="od-open-evidence">
       <div><strong>{openedEvidence.document_title} · v{openedEvidence.version_no}</strong><span>{openedEvidence.cite}</span></div>
@@ -337,17 +387,21 @@ function SearchPane({ result, openedEvidence, evidenceError, lang, onOpen, onCle
         {words("原文校验值", "Source text checksum", lang)}：{shortId(openedEvidence.text_sha256)}
       </small>
       <button type="button" className="od-link" onClick={() => {
-        prefillComposer(quoteForComposer(openedEvidence.cite, openedEvidence.text, openedEvidence.evidence_ref), { mode: "insert" });
+        prefillComposer(quoteForComposer(
+          openedEvidence.cite, openedEvidence.text, openedEvidence.evidence_ref, openedEvidence.level,
+        ), { mode: "insert" });
       }}>{words("引用到对话", "Quote in chat", lang)}</button>
     </article> : null}
   </>;
 }
 
-function DocumentReader({ sessionId, documentId, versionId, lang, api = knowledgeLibraryApi }: {
+function DocumentReader({ sessionId, documentId, versionId, lang, level, api = knowledgeLibraryApi }: {
   sessionId: string;
   documentId: string;
   versionId?: string;
   lang: string;
+  /** 这份材料属于哪一层。公共库的正文要长得不一样 —— 见下面那条横条的注释。 */
+  level: "global" | "project";
   api?: Pick<KnowledgeLibraryApi, "read">;
 }): ReactElement {
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
@@ -395,6 +449,21 @@ function DocumentReader({ sessionId, documentId, versionId, lang, api = knowledg
   }
 
   return <div className="od-reader">
+    {/* 层级条：常驻，不是徽章。
+        在此之前，「这段是行业通用参考还是这家客户的规定」全部的可见表现，是版本列表
+        里那枚 .od-badge.current —— 8.3px、灰底灰字，而且和「最新上传」共用同一个 class。
+        后端在 routes/documents.ts:853 用注释点名这是「这个产品最不能出的错」，界面
+        却把它渲染成全页最小、最中性的一个东西。读一份公共库材料时，这条横条从头
+        到尾都在，用 --warn 系配色，因为它要说的不是"这里有个属性"，
+        而是"你正在读的东西不是这个客户说的"。 */}
+    {level === "global" ? <div className="od-level-bar" role="note">
+      <strong>{words("公共知识库", "Shared library", lang)}</strong>
+      <span>{words(
+        "行业通用参考，不是这个客户自己的规定。引用到对话时会带上这句话。",
+        "Cross-project reference material — not this client’s own rules.",
+        lang,
+      )}</span>
+    </div> : null}
     <div className="od-eyebrow">
       {/* 不把截断伪装成全部 —— 后端给了 total 就要说出来。 */}
       {words(
@@ -414,7 +483,9 @@ function DocumentReader({ sessionId, documentId, versionId, lang, api = knowledg
       <button type="button" className="od-link" onClick={() => {
         // 预填而不是直接发送：用户没审过的话不该替他调用模型。
         // 这条纪律和右侧上下文栏的十来个引用按钮一致（context-sync.ts 的注释）。
-        prefillComposer(quoteForComposer(chunk.cite, chunk.text, chunk.evidence_ref), { mode: "insert" });
+        prefillComposer(quoteForComposer(
+          chunk.cite, chunk.text, chunk.evidence_ref, chunk.level ?? level,
+        ), { mode: "insert" });
       }}>{words("引用到对话", "Quote in chat", lang)}</button>
     </div>)}
     {chunks.length < total ? <button type="button" className="act" disabled={more}
@@ -429,7 +500,7 @@ function DocumentReader({ sessionId, documentId, versionId, lang, api = knowledg
 const PAGE = 50;
 
 function DocumentPreview({
-  sessionId, api, onClose, document, versions, attachment, sessionFiles, busy, lang,
+  sessionId, api, onClose, document, versions, attachment, sessionFiles, busy, lang, level,
   onUpdate, onArchive, onAttach, onDetach, onAdopt, onAddVersion, onPublish, onMove, folderOptions,
 }: DocumentPreviewProps): ReactElement {
   const [expanded, setExpanded] = useState(false);
@@ -506,6 +577,7 @@ function DocumentPreview({
       documentId={document.id}
       {...(version === undefined ? {} : { versionId: version.id })}
       lang={lang}
+      level={level}
     /> : null}
   </>;
 }
@@ -553,6 +625,20 @@ export function KnowledgeLibrary({
   const [searchResult, setSearchResult] = useState<KnowledgeSearchResult | null>(null);
   const [openedEvidence, setOpenedEvidence] = useState<KnowledgeOpenResult | null>(null);
   const [evidenceError, setEvidenceError] = useState("");
+  /** 逐份入库的回执。事办完了收件区就塌成一行「都齐了」，靠的是它。 */
+  const [inboxOutcomes, setInboxOutcomes] = useState<InboxOutcome[]>([]);
+  const [ingesting, setIngesting] = useState(false);
+  /**
+   * 就地建/改文件夹的那一行输入框。
+   *
+   * 原来用的是 `window.prompt` / `window.confirm`。它们在这个产品里有两个硬问题：
+   * 一是浏览器弹窗**在页面之外**，用户看不到自己正在哪个文件夹下面建；二是
+   * 「删除文件夹里的材料会怎样」这句解释被塞进一个只能读一遍的 confirm 里，
+   * 而这恰恰是他不敢点那个 × 的原因。就地展开一行，两个问题一起没了。
+   */
+  const [draftFolder, setDraftFolder] = useState<{ kind: "new" | "rename"; base: string; value: string } | null>(null);
+  /** 正在等确认删除的文件夹路径。确认词就长在那一行上，不弹窗。 */
+  const [pendingDelete, setPendingDelete] = useState<string | null>(null);
   const loadSequence = useRef(0);
 
   useEffect(() => {
@@ -598,6 +684,24 @@ export function KnowledgeLibrary({
     return () => { loadSequence.current += 1; };
   }, [refresh]);
 
+  /**
+   * 库里有东西就先摊开第一份的正文。
+   *
+   * 右栏原来的默认是一句「在左边选一份材料，正文就显示在这里」—— 一整栏的空话，
+   * 在最宽的那一块地方写着「你还没做够」。第一次打开这一页的人想干的事是**看看
+   * 里面有什么**，不是先学会这一页的操作方式。默认铺开一份，他至少已经在读了。
+   *
+   * 只在「还没选过」时做，所以不会跟点击抢；换文件夹、搜索、关闭预览都不会被它
+   * 拽回第一份（关闭时 selectedId 置 null，但那时 documents 没变、这个 effect
+   * 不重跑）。
+   */
+  const autoPicked = useRef(false);
+  useEffect(() => {
+    if (autoPicked.current || selectedId !== null || documents.length === 0) return;
+    autoPicked.current = true;
+    setSelectedId(documents[0]!.id);
+  }, [documents, selectedId]);
+
   const runMutation = useCallback(async (
     key: string,
     operation: () => Promise<KnowledgeMutationResult>,
@@ -615,6 +719,31 @@ export function KnowledgeLibrary({
       setBusy("");
     }
   }, [lang, refresh]);
+
+  /**
+   * 一份一份地存。
+   *
+   * 不做成一个批量接口，是因为每一份的失败原因不一样（重名、解析不了、超限），
+   * 而这里最要紧的信息恰恰是「哪一份没进去、为什么」。一个只返回
+   * 「3 成功 1 失败」的批量接口给不出这个，用户只能自己一份份试。
+   */
+  const ingest = useCallback(async (names: readonly string[]): Promise<void> => {
+    setIngesting(true);
+    setMutationError("");
+    setNotice("");
+    const rows: InboxOutcome[] = [];
+    for (const name of names) {
+      try {
+        const result = await api.promote(sessionId, { session_file_name: name });
+        rows.push({ name, ok: true, message: result.message || "已入库" });
+      } catch (error) {
+        rows.push({ name, ok: false, message: errorMessage(error, lang) });
+      }
+      setInboxOutcomes([...rows]);
+    }
+    setIngesting(false);
+    await refresh();
+  }, [api, lang, refresh, sessionId]);
 
   const submitSearch = async (event: FormEvent): Promise<void> => {
     event.preventDefault();
@@ -673,44 +802,71 @@ export function KnowledgeLibrary({
 
   const selected = documents.find((item) => item.id === selectedId) ?? null;
 
+  const pending = level === "global" ? [] : pendingSessionFiles(sessionFiles, documents, histories);
+
   return <section className="od-library od-fm" aria-label={words("知识库", "Knowledge library", lang)}>
+    {/* 收件区在 explorer **之上**，不在左树里面：它回答的是「我刚传的东西在哪」，
+        这是第一次打开这一页的人唯一想问的问题。事办完了它自己塌成一行。 */}
+    {level === "global" ? null : <KnowledgeInbox
+      items={pending}
+      busy={ingesting}
+      outcomes={inboxOutcomes}
+      onIngest={ingest}
+      onUpload={() => document.getElementById("picker")?.click()}
+      onDismissOutcomes={() => setInboxOutcomes([])}
+    />}
     <div className="od-explorer">
       {/* 左边：文件树。图标条 + 分组 + 文件，没有别的。 */}
       <aside className="od-tree" aria-label={words("材料目录", "Material tree", lang)}>
+        {/* 工具条：每一颗都带中文字。
+            原来这里是 ＋ / ＋▤ / ⌄ / ↻ 四个字形加一个裸复选框 —— 两个 ＋ 干的是
+            完全不同的事（入库 vs 新建文件夹），含义只写在 title 里。用户的原话是
+            「你设计的非常难用」，这一条是其中最直接的。
+            入库整块搬去了收件区（第一屏那个带数字的主按钮），这里不再重复。 */}
         <div className="od-tree-bar">
-          {level === "global" ? null : sessionFiles.length ? <>
-            <select className="od-tree-pick" aria-label={words("选择要添加的文件", "Choose a file to add", lang)}
-              value={selectedUpload} onChange={(event) => setSelectedUpload(event.target.value)}>
-              {sessionFiles.map((file) => <option key={file.name} value={file.name}>{file.name}</option>)}
-            </select>
-            <button type="button" title={words("把这份文件加入知识库", "Add this file", lang)}
-              disabled={Boolean(busy) || !selectedUpload}
-              onClick={() => void runMutation("promote:new", async () => await api.promote(sessionId, { session_file_name: selectedUpload }))}>＋</button>
-          </> : <button type="button" title={words("上传材料", "Upload material", lang)}
-            onClick={() => document.getElementById("picker")?.click()}>＋</button>}
-          <button type="button" title={words("新建文件夹", "New folder", lang)}
-            onClick={() => {
-              // 在当前选中材料所在的文件夹下建 —— 和文件管理器一致：
-              // 「新建文件夹」建在你正看着的位置，不是永远建在根上。
-              const base = selected?.folder_path ?? "";
-              const name = window.prompt(
-                words("新文件夹名称", "New folder name", lang),
-                "",
-              );
-              if (!name || !name.trim()) return;
-              void runMutation("folder:new", async () =>
-                ({ ok: true, message: words(`已建文件夹「${name.trim()}」`, "Folder created", lang),
-                   ...(await api.createFolder(sessionId, base ? `${base}/${name.trim()}` : name.trim())) } as never));
-            }}>＋▤</button>
-          <button type="button" title={words("全部收起", "Collapse all", lang)}
-            onClick={() => setClosedFolders(new Set(folderNames))}>⌄</button>
-          <button type="button" title={words("刷新", "Refresh", lang)}
-            disabled={status === "loading" || Boolean(busy)} onClick={() => void refresh()}>↻</button>
-          <label className="od-tree-archived" title={words("显示已归档", "Show archived", lang)}>
+          {level === "global" ? null : <button type="button" className="od-tree-act"
+            disabled={Boolean(busy) || draftFolder !== null}
+            onClick={() => setDraftFolder({ kind: "new", base: selected?.folder_path ?? "", value: "" })}>
+            {words("新建文件夹", "New folder", lang)}
+          </button>}
+          <button type="button" className="od-tree-act"
+            disabled={status === "loading" || Boolean(busy)} onClick={() => void refresh()}>
+            {words("刷新", "Refresh", lang)}
+          </button>
+          <label className="od-tree-archived">
             <input type="checkbox" checked={includeArchived}
               onChange={(event) => setIncludeArchived(event.target.checked)} />
+            <span>{words("含已归档", "Archived", lang)}</span>
           </label>
         </div>
+
+        {/* 就地建文件夹。它长在树的上沿，而且说清了会建在哪儿 ——
+            这是 window.prompt 给不了的：那个弹窗盖在页面之上，用户看不见上下文。 */}
+        {draftFolder?.kind === "new" ? <form className="od-folder-draft" onSubmit={(event) => {
+          event.preventDefault();
+          const name = draftFolder.value.trim();
+          if (!name) return;
+          const full = draftFolder.base ? `${draftFolder.base}/${name}` : name;
+          setDraftFolder(null);
+          void runMutation("folder:new", async () => {
+            await api.createFolder(sessionId, full);
+            return { ok: true, message: words(`已建文件夹「${name}」`, "Folder created", lang) };
+          });
+        }}>
+          <label>
+            <span>{draftFolder.base
+              ? words(`建在「${draftFolder.base}」里`, `Inside “${draftFolder.base}”`, lang)
+              : words("建在根目录", "At the root", lang)}</span>
+            {/* eslint-disable-next-line jsx-a11y/no-autofocus -- 这一行是点了按钮才出现的，
+                焦点跟过来正是用户此刻要的；不跟过来反而要再点一次。 */}
+            <input autoFocus value={draftFolder.value} maxLength={80}
+              placeholder={words("文件夹名称", "Folder name", lang)}
+              onChange={(event) => setDraftFolder({ ...draftFolder, value: event.target.value })}
+              onKeyDown={(event) => { if (event.key === "Escape") setDraftFolder(null); }} />
+          </label>
+          <button type="submit" className="act" disabled={!draftFolder.value.trim()}>{words("建好", "Create", lang)}</button>
+          <button type="button" className="od-link" onClick={() => setDraftFolder(null)}>{words("取消", "Cancel", lang)}</button>
+        </form> : null}
 
         <form className="od-tree-search" onSubmit={(event) => void submitSearch(event)} role="search">
           <input type="search" value={query} maxLength={2_000}
@@ -729,9 +885,17 @@ export function KnowledgeLibrary({
             <strong>{level === "global"
               ? words("公共知识库还是空的", "The shared library is empty", lang)
               : words("这个项目还没有材料", "No material yet", lang)}</strong>
+            {/* 空状态得说「下一步点哪儿」，而且指的必须是**当下真的在屏幕上**的东西。
+                原来这句写「用左上角的 ＋」，而那颗 ＋ 已经不在了，且它当初和旁边的
+                ＋▤ 长得一样、干的是两件事。 */}
             <p>{level === "global"
-              ? words("这里放跨项目通用的东西：行业标准、通用制度、模板。", "Cross-project material lives here.", lang)
-              : words("用左上角的 ＋ 把材料加进来。", "Use ＋ above to add material.", lang)}</p>
+              ? words("这里放跨项目通用的东西：行业标准、通用制度、模板。项目里的材料点「设为通用知识」才会进来。",
+                      "Cross-project material lives here.", lang)
+              : pending.length
+                ? words("上面那颗按钮会把这次会话的材料存进来。", "Use the button above to file this session’s material.", lang)
+                : words("先在对话里上传文件，再回到这里把它存入知识库。", "Upload a file in the chat first, then file it here.", lang)}</p>
+            {level === "global" || pending.length ? null : <button type="button" className="act"
+              onClick={() => document.getElementById("picker")?.click()}>{words("上传材料", "Upload material", lang)}</button>}
           </div> : <div className="od-tree-body" role="tree">
             {folderNames.map((name) => {
               // 父级收起时，子级整支不渲染 —— 缩进靠层数，不用递归组件。
@@ -751,26 +915,52 @@ export function KnowledgeLibrary({
                   <span className="od-folder-name">{name.slice(name.lastIndexOf("/") + 1)}</span>
                   <span className="od-folder-n">{items.length || ""}</span>
                 </button>
+                {/* 改名 / 删除。
+                    原来是两个只在 hover 时出现的字形（✎ ×）—— 触屏上永远出不来，
+                    键盘 Tab 也走不到；解释文字全在 title 里。现在它们是常驻的、
+                    带中文的两颗小按钮，删除的后果就写在展开的那一行上。 */}
                 {level === "global" ? null : <span className="od-folder-acts">
-                  <button type="button" title={words("重命名", "Rename", lang)} onClick={() => {
-                    const next = window.prompt(words("新名称", "New name", lang), name.slice(name.lastIndexOf("/") + 1));
-                    if (!next || !next.trim()) return;
-                    const parent = name.includes("/") ? name.slice(0, name.lastIndexOf("/")) : "";
-                    void runMutation(`folder:${name}:rename`, async () =>
-                      await api.renameFolder(sessionId, name, parent ? `${parent}/${next.trim()}` : next.trim()));
-                  }}>✎</button>
-                  <button type="button" title={words("删除文件夹（材料不删）", "Delete folder (files kept)", lang)}
-                    onClick={() => {
-                      // 说清楚材料不会跟着没 —— 不然没人敢点。
-                      if (!window.confirm(words(
-                        `删除文件夹「${name}」？\n里面的材料会移到根目录，不会被删除。`,
-                        `Delete folder “${name}”? Files inside move to the root; nothing is deleted.`,
-                        lang,
-                      ))) return;
-                      void runMutation(`folder:${name}:delete`, async () =>
-                        await api.deleteFolder(sessionId, name));
-                    }}>×</button>
+                  <button type="button" onClick={() => {
+                    setPendingDelete(null);
+                    setDraftFolder({ kind: "rename", base: name, value: name.slice(name.lastIndexOf("/") + 1) });
+                  }}>{words("改名", "Rename", lang)}</button>
+                  <button type="button" onClick={() => { setDraftFolder(null); setPendingDelete(name); }}>
+                    {words("删除", "Delete", lang)}
+                  </button>
                 </span>}
+
+                {draftFolder?.kind === "rename" && draftFolder.base === name
+                  ? <form className="od-folder-draft inline" onSubmit={(event) => {
+                      event.preventDefault();
+                      const next = draftFolder.value.trim();
+                      if (!next) return;
+                      const parent = name.includes("/") ? name.slice(0, name.lastIndexOf("/")) : "";
+                      setDraftFolder(null);
+                      void runMutation(`folder:${name}:rename`, async () =>
+                        await api.renameFolder(sessionId, name, parent ? `${parent}/${next}` : next));
+                    }}>
+                      {/* eslint-disable-next-line jsx-a11y/no-autofocus -- 同上：点出来的行，焦点该跟过来。 */}
+                      <input autoFocus value={draftFolder.value} maxLength={80}
+                        aria-label={words("新名称", "New name", lang)}
+                        onChange={(event) => setDraftFolder({ ...draftFolder, value: event.target.value })}
+                        onKeyDown={(event) => { if (event.key === "Escape") setDraftFolder(null); }} />
+                      <button type="submit" className="act" disabled={!draftFolder.value.trim()}>{words("改好", "Rename", lang)}</button>
+                      <button type="button" className="od-link" onClick={() => setDraftFolder(null)}>{words("取消", "Cancel", lang)}</button>
+                    </form>
+                  : null}
+
+                {pendingDelete === name ? <div className="od-folder-confirm" role="alert">
+                  <span>{words(
+                    `删掉这个文件夹？里面的 ${items.length} 份材料会移到根目录，一份都不会被删。`,
+                    `Delete this folder? Its ${items.length} files move to the root; none are deleted.`,
+                    lang,
+                  )}</span>
+                  <button type="button" className="act" onClick={() => {
+                    setPendingDelete(null);
+                    void runMutation(`folder:${name}:delete`, async () => await api.deleteFolder(sessionId, name));
+                  }}>{words("删掉文件夹", "Delete folder", lang)}</button>
+                  <button type="button" className="od-link" onClick={() => setPendingDelete(null)}>{words("留着", "Keep", lang)}</button>
+                </div> : null}
                 {closed ? null : <div className="od-folder-body" role="group">
                   {items.map((item) => <FileRow key={item.id} item={item} depth={depth + 1}
                     selectedId={selectedId} attachments={attachments} lang={lang}
@@ -802,6 +992,7 @@ export function KnowledgeLibrary({
         /> : selected ? <DocumentPreview
           key={selected.id}
           sessionId={sessionId}
+          level={level}
           api={api}
           onClose={() => setSelectedId(null)}
           document={selected}

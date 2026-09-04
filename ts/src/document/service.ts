@@ -863,6 +863,26 @@ export class DocumentService {
       }
     } else if (input.baseVersionId !== undefined) {
       throw new DocumentError("INVALID_ARGUMENT", "新文档不能指定 baseVersionId", 400);
+    } else {
+      // 没指定目标文档 = 「把这个文件加进库」。这条路上以前没有任何去重：
+      // 同一个文件点两次，库里就长出两份 id 不同、内容逐字节相同的文档（实测）。
+      //
+      // 后果不只是列表里多一行。检索是按文档去重的（searchLayered 只跨层比
+      // text_sha256），同一段话会从两份「不同」文档里各命中一次 —— 读起来像
+      // 两个来源互相印证，实际是一个来源被数了两遍。对一个把「材料事实有出处」
+      // 当承诺的产品，这比多一行严重得多。
+      //
+      // publishToGlobal 上方那段注释早就写着「同一份内容只进一次。按 sha256 去重」，
+      // 但那道去重只在**指定了文档**时才跑（findVersionBySha 要 documentId）。
+      // 承诺是对的，覆盖面漏了一半，这里把它补齐。
+      const twin = await this.repository.findActiveDocumentByCurrentSha(scope, digest);
+      if (twin !== null) {
+        const current = await this.repository.getVersion(scope, twin.id, twin.currentVersionId);
+        if (current !== null) {
+          const { parsedDoc: _parsedDoc, ...version } = current;
+          return { document: twin, version, deduplicated: true };
+        }
+      }
     }
 
     return await this.commitBytes({

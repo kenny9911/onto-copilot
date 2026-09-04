@@ -29,13 +29,23 @@ function setHash(open: boolean, replace = false): void {
 /**
  * 打开知识库。
  *
- * 公共库恒可打开 —— 它不依赖会话，也不依赖项目。只有项目库才需要当前会话
- * 已经归入某个项目；此时若条件不满足，就退回公共库而不是什么都不做
- * （旧实现是 `if (!G.S?.id || !G.S?.project_id) return;`，按钮点了没反应）。
+ * 公共库恒可打开 —— 它不依赖会话，也不依赖项目。
+ *
+ * **项目库只要有会话就能打开，不再看 `project_id`。** 这一条改过两次，第二次
+ * 是被用户的截图逼出来的：他会话里有 6 份材料，页面写着「0 份材料」，一条路都
+ * 没有。根因是前端这个判据和后端对不上 —— 真实库里 33/42 个会话 `project_id`
+ * 为空，而后端 `document_scope.ts` 早就不 409 了，它会给这种会话懒建一个叫
+ * 「我的材料」的默认项目，材料照样存得进去。前端却拿一个后端已经不用的字段
+ * 把人挡在门外，然后把他送进一个**结构上不可能装着他那 6 份材料**的公共库。
+ * 一个说 0 的界面，比一个说"不行"的界面更伤人 —— 它看起来像东西丢了。
  */
 export function openKnowledgePage(target: KnowledgeTarget = "global"): void {
-  const canProject = Boolean(G.S?.id && G.S?.project_id);
-  setUi({ MAIN_PAGE: "knowledge", KNOWLEDGE_TARGET: target === "project" && canProject ? "project" : "global" });
+  const canProject = Boolean(G.S?.id);
+  setUi({
+    MAIN_PAGE: "knowledge",
+    KNOWLEDGE_TARGET: target === "project" && canProject ? "project" : "global",
+    KNOWLEDGE_TOUCHED: true,
+  });
   setHash(true);
 }
 
@@ -76,8 +86,14 @@ export function KnowledgePage(): ReactElement | null {
 
   if (!active) return null;
   const files = Array.isArray(session?.filelist) ? session.filelist : [];
-  const canProject = Boolean(session?.id && session?.project_id);
-  const target: KnowledgeTarget = ui.KNOWLEDGE_TARGET === "project" && canProject ? "project" : "global";
+  const canProject = Boolean(session?.id);
+  // 默认落在**有他材料的那一层**。KNOWLEDGE_TARGET 的初值是 "global"（state.ts），
+  // 而按 hash 直接进来（刷新、书签、浏览器后退）不经过 openKnowledgePage，于是
+  // 一个会话里躺着 6 份材料的人，刷新一次就被送进空的公共库。
+  // 公共库只在**没有会话可谈**时才是合理的落点。
+  const target: KnowledgeTarget = canProject
+    ? (ui.KNOWLEDGE_TARGET === "global" && ui.KNOWLEDGE_TOUCHED === true ? "global" : "project")
+    : "global";
   const isGlobal = target === "global";
 
   return <main className="knowledge-page-shell" aria-label="知识库">
@@ -86,13 +102,17 @@ export function KnowledgePage(): ReactElement | null {
         证据」—— 说明书式的句子，用户每次进来都要读一遍，而它并不帮他找到文件。 */}
     <header className="knowledge-page-head">
       <div className="kp-title">
-        <h1>{isGlobal ? "公共知识库" : `${String(project?.name ?? "项目")} · 知识库`}</h1>
+        {/* 没归项目的会话落在后端懒建的「我的材料」里 —— 标题就照实说这个名字，
+            不要写「项目 · 知识库」去指一个用户从没建过的东西。 */}
+        <h1>{isGlobal ? "公共知识库" : `${String(project?.name ?? "我的材料")} · 知识库`}</h1>
         <nav className="kp-level" aria-label="知识库层级">
+          {/* KNOWLEDGE_TOUCHED 记的是「这一层是人自己挑的」。没有它就分不清
+              "初值恰好是 global" 和 "他刚点了公共"，切过去会被下一次渲染弹回来。 */}
           <button type="button" className={isGlobal ? "on" : ""}
-            onClick={() => setUi({ KNOWLEDGE_TARGET: "global" })}>公共</button>
+            onClick={() => setUi({ KNOWLEDGE_TARGET: "global", KNOWLEDGE_TOUCHED: true })}>公共</button>
           <button type="button" className={isGlobal ? "" : "on"} disabled={!canProject}
-            title={canProject ? "当前项目的知识库" : "当前会话还没有归入项目"}
-            onClick={() => setUi({ KNOWLEDGE_TARGET: "project" })}>当前项目</button>
+            title={canProject ? "这个会话的材料" : "先打开一个会话"}
+            onClick={() => setUi({ KNOWLEDGE_TARGET: "project", KNOWLEDGE_TOUCHED: true })}>{project?.name ?? "我的材料"}</button>
         </nav>
       </div>
       {/* 显式“返回会话”替换当前 #knowledge 记录，避免用户下一次按浏览器返回时

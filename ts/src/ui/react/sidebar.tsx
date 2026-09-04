@@ -136,17 +136,22 @@ export function Sidebar(): ReactNode {
   if (G.MODE !== "work" || !G.PROJECTS_OK) return <Flat list={G.SESSION_LIST} hint={emptyHint} />;
 
   const currentProject = G.PROJECTS.find((project: any) => project.id === G.S?.project_id);
-  // 知识库**恒可打开**。原来它在会话没归项目时是禁用的，提示写着「请先打开一个
-  // 已归入项目的会话」—— 想看一眼公共材料，得先建会话、再把会话归进某个项目。
-  // 现在：有项目就进那个项目的库，没有就进公共库；两层在页头一键互切。
+  // 知识库**恒可打开**，而且默认落在「有我材料的那一层」。
+  //
+  // 原来的判据是 `currentProject ? "project" : "global"` —— 会话没归项目就送去
+  // 公共库。可材料是跟着会话走的：那条路把一个刚传完 6 份文件的人，送进一个
+  // 结构上不可能装着这 6 份的库，然后让界面对他说「0 份材料」。
+  // 后端 document_scope.ts 会给没归项目的会话懒建「我的材料」，所以只要有会话，
+  // 项目层就是有内容的那一层。公共库仍在页头一键可达。
+  const label = currentProject?.name ?? (G.S?.id ? "我的材料" : "公共");
   const knowledgeEntry = <button
     type="button"
     className={`side-knowledge-entry${G.MAIN_PAGE === "knowledge" ? " on" : ""}`}
-    title={currentProject ? `打开「${currentProject.name}」的知识库` : "打开公共知识库"}
-    onClick={() => openKnowledgePage(currentProject ? "project" : "global")}
+    title={G.S?.id ? `打开「${label}」的知识库` : "打开公共知识库"}
+    onClick={() => openKnowledgePage(G.S?.id ? "project" : "global")}
   >
     <span className="side-knowledge-icon" aria-hidden="true">▤</span>
-    <span><strong>知识库</strong><small>{currentProject?.name ?? "公共"}</small></span>
+    <span><strong>知识库</strong><small>{label}</small></span>
   </button>;
 
   if (!G.PROJECTS.length) return (

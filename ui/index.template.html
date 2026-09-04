@@ -136,14 +136,16 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
    把 .comp 一起藏掉，那条路当场就断了。消息流仍然收起（知识库页是主内容），
    发出去之后由 knowledge-page 负责退回聊天，避免「说了话看不到回答」的死路。 */
 body.knowledge-page-open .main>.stream,body.knowledge-page-open .main>.qbar{display:none!important}
-body.knowledge-page-open .main>.comp{border-top:1px solid var(--line-soft)}
+body.knowledge-page-open .main>.comp{border-top:1px solid var(--line-soft);padding-top:6px}
+body.knowledge-page-open .main>.comp::before{display:block;padding:0 2px 4px;color:var(--ink-3);content:"发出去会回到会话里看回答 —— 找材料原文请用左边的搜索框";font-size:.6667rem}
+
 body.knowledge-page-open .knowledge-page{display:flex}
 body.knowledge-page-open .preview,body.knowledge-page-open .pexpand{display:none!important}
 body.knowledge-page-open .main{min-width:0;border-right:0}
 .knowledge-page-shell{display:flex;width:100%;min-width:0;min-height:0;flex-direction:column;overflow:hidden}
-.knowledge-page-head{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;padding:24px 32px 18px;border-bottom:1px solid var(--line-soft);background:var(--panel)}
+.knowledge-page-head{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;padding:14px 32px 12px;border-bottom:1px solid var(--line-soft);background:var(--panel)}
 .knowledge-page-head span{color:var(--ink-3);font-size:.7407rem}.knowledge-page-head h1{margin-top:2px;font-size:1.5556rem;font-weight:600;letter-spacing:-.02em}.knowledge-page-head p{margin-top:4px;color:var(--ink-2);font-size:.8519rem}
-.knowledge-page-body{min-height:0;flex:1;overflow:auto;padding:0 32px 40px}.knowledge-page-body>.odm-workspace{width:min(1240px,100%);margin:0 auto}
+.knowledge-page-body{min-height:0;flex:1;overflow:auto;padding:0 32px 40px}.knowledge-page-body>.odm-workspace{width:min(1240px,100%);margin:0 auto}@media(min-width:901px){.knowledge-page-body{display:flex;overflow:hidden;padding-bottom:18px}.knowledge-page-body>.odm-workspace.odm-simple{display:flex;min-height:0;flex:1;flex-direction:column}.odm-simple>.odm-panel{display:flex;min-height:0;flex:1;flex-direction:column;overflow:auto}.odm-simple .odm-files{display:flex;min-height:0;flex:1;flex-direction:column}.odm-simple .od-library.od-fm{display:flex;min-height:0;flex:1;flex-direction:column}.odm-simple .od-library.od-fm>.od-explorer{min-height:340px;flex:1}.odm-simple>.odm-advanced{flex:none;margin-top:12px}}
 .odm-workspace{min-width:0}.odm-tabs{position:sticky;z-index:3;top:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px;padding:14px 0;border-bottom:1px solid var(--line-soft);background:color-mix(in srgb,var(--bg) 94%,transparent)}
 /* 五个 Tab 收成「材料 / 已确认知识」两个轻量切换 —— 原来那五个是后端五个路由
    文件的镜像，不是用户的五件事。 */
@@ -168,14 +170,15 @@ body.knowledge-page-open .main{min-width:0;border-right:0}
    右边是预览。点树里任意一份材料，正文和出处就在右边 —— 找东西和读东西
    共用同一个位置，不再多开一块。
    这一版之前是一张扁平表，再之前是一屏说明书。 */
-.od-explorer{display:grid;grid-template-columns:250px minmax(0,1fr);min-height:440px;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--panel)}
+.od-explorer>*{min-height:0}
+.od-explorer{display:grid;grid-template-columns:260px minmax(0,1fr);min-height:440px;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--panel)}
 .od-tree{display:flex;min-width:0;flex-direction:column;border-right:1px solid var(--line);background:var(--panel-soft)}
 .od-tree-bar{display:flex;align-items:center;gap:2px;padding:8px 8px 4px}
-.od-tree-bar button{width:26px;height:26px;border-radius:6px;color:var(--ink-2);font-size:.8519rem}
-.od-tree-bar button:hover:not(:disabled){background:var(--hover);color:var(--ink)}
-.od-tree-bar button:disabled{color:var(--ink-3)}
+.od-tree-bar{flex-wrap:wrap}.od-tree-act{padding:3px 8px;border:1px solid var(--line);border-radius:6px;color:var(--ink-2);font-size:.7407rem}
+.od-tree-act:hover:not(:disabled){background:var(--hover);color:var(--ink)}
+.od-tree-act:disabled{color:var(--ink-3);opacity:.55}
 .od-tree-pick{flex:1;min-width:0;max-width:118px;padding:3px 6px;border:1px solid var(--line);border-radius:6px;background:var(--panel);font-size:.7037rem}
-.od-tree-archived{display:flex;align-items:center;margin-left:auto}
+.od-tree-archived{display:flex;align-items:center;gap:4px;margin-left:auto;color:var(--ink-3);font-size:.7037rem}
 .od-tree-search{padding:2px 8px 8px}
 .od-tree-search input{width:100%;padding:5px 9px;border:1px solid var(--line);border-radius:7px;background:var(--panel);font-size:.7778rem}
 .od-tree-search input:focus{border-color:var(--accent-line);outline:0}
@@ -186,9 +189,9 @@ body.knowledge-page-open .main{min-width:0;border-right:0}
 .od-folder-name{flex:1;overflow:hidden;color:var(--ink);font-size:.8519rem;text-overflow:ellipsis;white-space:nowrap}
 .od-folder-n{color:var(--ink-3);font-size:.6667rem}
 .od-folder{position:relative}
-.od-folder-acts{position:absolute;top:3px;right:6px;display:none;gap:2px}
-.od-folder:hover .od-folder-acts{display:flex}
-.od-folder-acts button{width:20px;height:20px;border-radius:5px;color:var(--ink-3);font-size:.7037rem}
+.od-folder-acts{position:absolute;top:4px;right:6px;display:flex;gap:4px;opacity:.45;transition:opacity .12s}
+.od-folder:hover .od-folder-acts,.od-folder-acts:focus-within{opacity:1}
+.od-folder-acts button{padding:1px 5px;border-radius:5px;color:var(--ink-3);font-size:.6667rem}
 .od-folder-acts button:hover{background:var(--hover-2);color:var(--ink)}
 .od-move{max-width:150px;padding:2px 6px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink-2);font-size:.7037rem}
 .od-file{display:flex;width:100%;align-items:center;gap:7px;padding:4px 10px 4px 27px;text-align:left}
@@ -197,13 +200,46 @@ body.knowledge-page-open .main{min-width:0;border-right:0}
 .od-file.on .od-file-name{color:var(--accent);font-weight:600}
 .od-file.archived .od-file-name{color:var(--ink-3);text-decoration:line-through}
 .od-file-name{flex:1;overflow:hidden;color:var(--ink-2);font-size:.8148rem;text-overflow:ellipsis;white-space:nowrap}
-.od-file-dot{width:6px;height:6px;flex:none;border-radius:50%;background:var(--accent)}
+.od-file-flag{flex:none;padding:0 5px;border-radius:4px;background:var(--accent-tint);color:var(--accent);font-size:.6296rem;font-weight:600;line-height:15px}
 .od-preview-pane{display:flex;min-width:0;flex-direction:column;overflow:auto;padding:14px 18px 18px}
 .od-preview-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding-bottom:10px;border-bottom:1px solid var(--line-soft)}
 .od-preview-head strong{display:block;color:var(--ink);font-size:.9259rem}
 .od-preview-head small{display:block;margin-top:2px;color:var(--ink-3);font-size:.7407rem}
 .od-preview-acts{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
 .od-preview-idle{display:flex;flex:1;align-items:center;justify-content:center;color:var(--ink-3);font-size:.8148rem}
+.od-inbox{margin-bottom:12px;padding:12px 14px;border:1px solid var(--accent-line);border-radius:10px;background:var(--accent-tint)}
+.od-inbox.done{display:flex;align-items:flex-start;gap:9px;border-color:var(--line);background:var(--panel-soft)}
+.od-inbox-tick{flex:none;color:var(--accent);font-size:.9259rem;line-height:1.35}
+.od-inbox.done>div{flex:1;min-width:0}
+.od-inbox-fails{margin-top:5px;color:var(--ink-2);font-size:.7407rem;line-height:1.6}
+.od-inbox-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.od-inbox-head strong,.od-inbox.done strong{display:block;color:var(--ink);font-size:.8889rem}
+.od-inbox-head small{display:block;margin-top:2px;color:var(--ink-2);font-size:.7407rem}
+.od-inbox-head .act.pri{flex:none;white-space:nowrap}
+.od-inbox-list{display:flex;flex-wrap:wrap;gap:4px 16px;margin-top:9px}
+.od-inbox-list li{display:flex;align-items:center;gap:6px;font-size:.7778rem}
+.od-inbox-list li.off .od-inbox-name{color:var(--ink-3);text-decoration:line-through}
+.od-inbox-list label{display:flex;align-items:center;gap:5px;cursor:pointer}
+.od-inbox-name{overflow:hidden;max-width:260px;color:var(--ink-2);text-overflow:ellipsis;white-space:nowrap}
+.od-inbox-note{color:var(--ink-3);font-size:.7037rem}
+.od-inbox-note.weak{color:var(--warn);font-size:.7037rem}
+.od-inbox-foot{margin-top:8px}
+.od-folder-draft{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:6px 10px;background:var(--panel)}
+.od-folder-draft.inline{padding-left:24px;background:var(--hover)}
+.od-folder-draft label{display:flex;min-width:0;flex:1;flex-direction:column;gap:2px}
+.od-folder-draft label span{color:var(--ink-3);font-size:.6667rem}
+.od-folder-draft input{width:100%;padding:4px 7px;border:1px solid var(--line);border-radius:6px;background:var(--panel);font-size:.7778rem}
+.od-folder-draft input:focus{border-color:var(--accent-line);outline:0}
+.od-folder-confirm{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:7px 10px 7px 24px;background:var(--warn-tint)}
+.od-folder-confirm span{flex:1;min-width:160px;color:var(--ink-2);font-size:.7037rem;line-height:1.5}
+.od-level-bar{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;margin-bottom:10px;padding:7px 11px;border:1px solid var(--warn-line);border-radius:8px;background:var(--warn-tint)}
+.od-level-bar strong{color:var(--warn);font-size:.7778rem}
+.od-level-bar span{color:var(--ink-2);font-size:.7037rem}
+.od-hit-shared{margin-top:10px;border:1px solid var(--warn-line);border-radius:8px;background:var(--warn-tint)}
+.od-hit-shared>summary{padding:7px 11px;color:var(--warn);cursor:pointer;font-size:.7407rem}
+.od-hit-shared>summary span{display:block;color:var(--ink-3);font-size:.6667rem;font-weight:400}
+.od-hit-shared .od-hit-list{padding:0 8px 8px}
+.od-hit-also{padding:0 5px;border-radius:4px;background:var(--warn-tint);color:var(--warn);font-size:.6296rem}
 .od-fm-status{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;border-top:1px solid var(--line-soft);color:var(--ink-3);font-size:.7037rem}
 @media (max-width:900px){.od-explorer{grid-template-columns:minmax(0,1fr)}.od-tree{border-right:0;border-bottom:1px solid var(--line)}}
 /* 就地读全文。这是此前完全没有的入口。 */
