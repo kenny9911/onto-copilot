@@ -2,7 +2,7 @@
 
 面向 AI FDE 工程师的本体建模副驾。把异构业务材料（Excel 梳理表、OpenAPI、Word 流程说明、DDL、BPMN、PPT、扫描件、CSV）变成可被下游软件直接消费的 Ontology 数据包。
 
-**整个仓库是 TypeScript。** 早期的 Python 实现（`src/ontocopilot/`）已在 `59346fa` 整树删除，运行时不含任何 Python 依赖、不起 sidecar、不做进程桥接。磁盘上残留的 `src/ontocopilot/**/__pycache__/*.pyc`、`tests/__pycache__/`、`.venv/` 都是未入库的垃圾 —— 它们已经骗过一次审计，所以 `.gitignore` 里专门写了一段警告。真正的代码在 `ts/src/`：291 个 `.ts/.tsx`，223 个测试文件、7592 条用例。
+**整个仓库是 TypeScript。** 早期的 Python 实现（`src/ontocopilot/`）已在 `59346fa` 整树删除，运行时不含任何 Python 依赖、不起 sidecar、不做进程桥接。磁盘上残留的 `src/ontocopilot/**/__pycache__/*.pyc`、`tests/__pycache__/`、`.venv/` 都是未入库的垃圾 —— 它们已经骗过一次审计，所以 `.gitignore` 里专门写了一段警告。真正的代码在 `ts/src/`：291 个 `.ts/.tsx`，225 个测试文件、7620 条用例。
 
 源码里大量注释仍以 `移植自 xxx.py` 的形式引用那份已删除的 Python 原件。**那是移植出处，不是现存文件** —— 顺着它去找 `src/ontocopilot/onto/pipeline.py` 会一无所获，要看原件请用 `git show 6dd3115:src/ontocopilot/onto/pipeline.py`。
 
@@ -10,21 +10,21 @@
 
 ## 快速开始
 
-没有根 `package.json`，所有 npm 脚本都在 `ts/` 下跑。
+没有根 `package.json`，所有 npm 脚本都在 `ts/` 下跑。Node ≥ 22（Node 26 已验证）。
 
 ```bash
 cd ts && npm install
 ```
 
 ```bash
-npm test          # vitest，7592 条
+npm test          # vitest，7620 条
 npm run check     # tsc --noEmit + 运行时定义目录校验
 ```
 
 启动服务（前后端**是同一个进程**，TS 服务在 `/` 直接吐前端）：
 
 ```bash
-./restart.sh            # 仓库根目录；默认 8000，先构建前端再起
+./restart.sh            # 仓库根目录；默认 3594，先构建前端再起
 ```
 
 `restart.sh` 值得用而不是 `npm start`：它**按端口收尸**而不是 `pkill node`（不会连你别的 Node 项目一起杀），等旧进程真的退干净才起新的（否则浏览器刷新看到的还是旧代码，一整轮验证等于在测几小时前的东西），并且启动前跑一次 `build:ui`（前端是构建产物，改了源码不重新构建页面上什么都不会变）。
@@ -113,7 +113,7 @@ ts/src/
   ui/                     ★ React 19 前端源码（65 个文件）
   cli.ts / serve.ts       命令行与服务装配
 ts/catalog/               人工维护的运行时定义：18 技能 / 18 Agent / 66 工具 / 1 工作流
-ts/test/                  223 个测试文件，7592 条用例
+ts/test/                  225 个测试文件，7620 条用例
 golden/                   85 份 golden fixture，钉住字节级行为（在仓库根，不在 ts/ 下）
 migrations/               18 个 Postgres 迁移
 ui/index.template.html    前端骨架（**这个是源码**）
@@ -356,7 +356,7 @@ node tools/build-ui.mjs --check         # 只检查漂移，不写盘
 
 ## 服务与接口
 
-Hono + `@hono/node-server`，`serve.ts` 的 `wireServer()` 一次性装配。默认监听 `127.0.0.1:8000`（`--host/--port` > `ONTOCOPILOT_HOST/PORT` > 内置默认；仓库里的 `.env` 设的是 8765）。
+Hono + `@hono/node-server`，`serve.ts` 的 `wireServer()` 一次性装配。默认监听 `127.0.0.1:3594`（`--host/--port` > `ONTOCOPILOT_HOST/PORT` > 内置默认；仓库里的 `.env` 设的是 8765）。
 
 **全仓只有一个 SSE 端点**：`GET /api/sessions/:sid/stream`。它是**持久事件日志的投影**，不是第二条遥测通道 —— chat/kernel/run/artifact/question 等事件原样流出，`?since=<seq>` 续传，20 秒一个 keepalive 注释行。
 

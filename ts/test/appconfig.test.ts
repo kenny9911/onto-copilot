@@ -567,7 +567,9 @@ describe("serve", () => {
     // 这条断言会莫名其妙地红，而红的原因跟被测代码无关。
     delete process.env["ONTOCOPILOT_PORT"];
     delete process.env["ONTOCOPILOT_HOST"];
-    expect(parseArgs([])).toEqual({ host: "127.0.0.1", port: 8000, reload: false });
+    // 这里写死字面量而不是引 DEFAULT_PORT：默认端口是**对外承诺**，
+    // 跟着常量走的话改常量就永远测不红。
+    expect(parseArgs([])).toEqual({ host: "127.0.0.1", port: 3594, reload: false });
     expect(parseArgs(["--host", "0.0.0.0", "--port", "9000", "--reload"])).toEqual({
       host: "0.0.0.0",
       port: 9000,
@@ -602,10 +604,10 @@ describe("serve", () => {
       expect(parseArgs(["--port", "9001"]).port).toBe(9001);
     });
 
-    it("环境里写歪了退回 8000，不抛 —— .env 打错字不该让服务起不来", () => {
+    it("环境里写歪了退回 3594，不抛 —— .env 打错字不该让服务起不来", () => {
       for (const bad of ["abc", "", "0", "70000", "-1", "80 80"]) {
         process.env["ONTOCOPILOT_PORT"] = bad;
-        expect(parseArgs([]).port, bad).toBe(8000);
+        expect(parseArgs([]).port, bad).toBe(3594);
       }
       // 但显式 --port 写歪了仍然报错：那是 argparse 的语义，两者不是一回事。
       process.env["ONTOCOPILOT_PORT"] = "8765";

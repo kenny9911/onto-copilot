@@ -1111,7 +1111,7 @@ export async function startServer(
     // 一个看起来毫不相干的 EADDRNOTAVAIL。
     ({ server, port } = await new Promise<{ server: ReturnType<typeof serve>; port: number }>(
       (resolve, reject) => {
-        const s = serve({ fetch: app.fetch, hostname: host, port: opts.port ?? 8000 }, (info) =>
+        const s = serve({ fetch: app.fetch, hostname: host, port: opts.port ?? DEFAULT_PORT }, (info) =>
           resolve({ server: s, port: info.port }),
         );
         // **关掉 Node 的 5 分钟请求超时。** uvicorn 没有这个限制，所以 Python 时代
@@ -1148,6 +1148,17 @@ export async function startServer(
   };
 }
 
+/**
+ * 不给 `--port`、`.env` 里也没有 `ONTOCOPILOT_PORT` 时监听哪个口。
+ *
+ * **只此一处。** 这个数字先后在 `parseArgs`、`serve()` 的兜底、`envDefaults()`
+ * 的兜底里各写过一遍，改端口时漏掉任何一边都不会报错 —— 命令行进来的路径和内部
+ * 直接调 `main()` 的路径会听在两个不同的口上，而两边都"能起来"。
+ *
+ * 优先级：`--port` > `ONTOCOPILOT_PORT` > 这里。
+ */
+export const DEFAULT_PORT = 3594;
+
 /** `argparse` 的那一小块：`--host` / `--port` / `--reload`。 */
 export interface ServeArgs {
   host: string;
@@ -1176,7 +1187,7 @@ function envDefaults(env: NodeJS.ProcessEnv = process.env): Pick<ServeArgs, "hos
   const rawPort = (env["ONTOCOPILOT_PORT"] ?? "").trim();
   const port = /^\d+$/.test(rawPort) && Number(rawPort) > 0 && Number(rawPort) < 65536
     ? Number(rawPort)
-    : 8000;
+    : DEFAULT_PORT;
   const host = (env["ONTOCOPILOT_HOST"] ?? "").trim() || "127.0.0.1";
   return { host, port };
 }

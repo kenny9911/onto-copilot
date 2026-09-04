@@ -324,10 +324,18 @@ const VISION_RE = re(
     `${BL}o1${BR}|${BL}o3${BR}|${BL}o4${BR}|` +
     "gemini|claude-3|claude-4|claude-opus|claude-sonnet|" +
     "claude-haiku|qwen.*(?:vl|omni)|pixtral|llava|internvl|minicpm-v|glm-4v|" +
-    "glm-4\\.\\dv|step-1v|grok-2-vision|grok-4|llama-3\\.2-(?:11b|90b)|llama-4",
+    "glm-4\\.\\dv|step-1v|grok-2-vision|grok-4|llama-3\\.2-(?:11b|90b)|llama-4|" +
+    // Moonshot 的视觉款叫 `moonshot-v1-{8k,32k,128k}-vision-preview` —— 家族名
+    // 在下面的 TEXT_ONLY 里，只能靠 `-vision` 这一截把它捞回来（两边都要改，
+    // 因为 TEXT_ONLY 是**否决票**）。漏掉它的后果不是少个选项，是整条扫描件
+    // OCR 通路以「网关上没有视觉模型」的名义静默关掉 —— 而网关上明明有。
+    "moonshot.*vision|kimi.*vl",
 );
+// 这里的 `(?!…)` 全是**给上面 VISION_RE 让路的豁免口**：否决票放行了，还得
+// VISION_RE 真认得出来，那一档才落得下。两者少一边，整条豁免就是死代码 ——
+// `kimi(?!.*vl)` 曾经就是：写了豁免、没配 VISION_RE，加不加它结果一模一样。
 const TEXT_ONLY_RE = re(
-  "gpt-3\\.5|deepseek|text-davinci|babbage|moonshot|kimi(?!.*vl)|" +
+  "gpt-3\\.5|deepseek|text-davinci|babbage|moonshot(?!.*vision)|kimi(?!.*vl)|" +
     "qwen(?!.*(?:vl|omni))|o1-mini|o3-mini|gemini-embedding",
 );
 const CHEAP_RE = re("mini|flash|haiku|nano|lite|small|8b|turbo|air");
