@@ -135,7 +135,19 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 /* 知识库页面**保留对话输入框**：产品要求就是「在知识库里跟 Copilot 说话」，
    把 .comp 一起藏掉，那条路当场就断了。消息流仍然收起（知识库页是主内容），
    发出去之后由 knowledge-page 负责退回聊天，避免「说了话看不到回答」的死路。 */
-body.knowledge-page-open .main>.stream,body.knowledge-page-open .main>.qbar{display:none!important}
+body.knowledge-page-open .main>.qbar{display:none!important}
+body.knowledge-page-open .main>.stream{display:none}
+@media(min-width:1100px){
+body.knowledge-page-open.kb-chat-open .main{display:grid;grid-template-columns:minmax(0,1fr) minmax(360px,36vw);grid-template-rows:auto minmax(0,1fr) auto}
+body.knowledge-page-open.kb-chat-open .main>.mhead{grid-column:1/-1}
+body.knowledge-page-open.kb-chat-open .main>.knowledge-page{min-width:0;grid-row:2;grid-column:1}
+body.knowledge-page-open.kb-chat-open .main>.stream{display:block;min-width:0;grid-row:2;grid-column:2;border-left:1px solid var(--line-soft)}
+body.knowledge-page-open.kb-chat-open .main>.comp{grid-column:1/-1;grid-row:3}
+body.knowledge-page-open.kb-chat-open .main>.stream .wrap{max-width:none;padding-top:14px}
+body.knowledge-page-open.kb-chat-open .main>.stream .bub .body{max-width:100%}
+body.knowledge-page-open.kb-chat-open .main>.stream .mdbody .mdcode{white-space:pre}
+}
+
 body.knowledge-page-open .main>.comp{border-top:1px solid var(--line-soft);padding-top:6px}
 body.knowledge-page-open .main>.comp::before{display:block;padding:0 2px 4px;color:var(--ink-3);content:"发出去会回到会话里看回答 —— 找材料原文请用左边的搜索框";font-size:.6667rem}
 
@@ -240,6 +252,7 @@ body.knowledge-page-open .main{min-width:0;border-right:0}
 .od-hit-shared>summary span{display:block;color:var(--ink-3);font-size:.6667rem;font-weight:400}
 .od-hit-shared .od-hit-list{padding:0 8px 8px}
 .od-hit-also{padding:0 5px;border-radius:4px;background:var(--warn-tint);color:var(--warn);font-size:.6296rem}
+.kp-acts{display:flex;flex:none;align-items:center;gap:8px}
 .od-fm-status{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;border-top:1px solid var(--line-soft);color:var(--ink-3);font-size:.7037rem}
 @media (max-width:900px){.od-explorer{grid-template-columns:minmax(0,1fr)}.od-tree{border-right:0;border-bottom:1px solid var(--line)}}
 /* 就地读全文。这是此前完全没有的入口。 */

@@ -39,6 +39,9 @@ const documentRow = (over: Dict = {}) => ({
 const hit = {
   evidenceRef: "odoc.v1.doc_1.ver_1.body",
   displayCite: "采购规则（v1，正文）",
+  // 层级是 DocumentSearchHit 的必填字段（types.ts:296）。桩少了它，测试就测不出
+  // 「模型看不看得见层级」—— 而那正是这个产品最不能出的错所在的那条轴。
+  level: "project" as const,
   documentId: "doc_1",
   versionId: "ver_1",
   versionNo: 1,
@@ -70,6 +73,20 @@ function fixture() {
       searchedVersions: ["ver_1"],
       coverage: { matchedTerms: ["采购"], missingTerms: [], queryTerms: 1, ratio: 1 },
     })),
+    // 通读整篇：document.read 打的是它。
+    read: vi.fn(async (_scope: unknown, _documentId: string, options: Dict = {}) => {
+      const offset = Number(options["offset"] ?? 0);
+      const limit = Number(options["limit"] ?? 30);
+      return {
+        document: documentRow(),
+        version: { id: "ver_1", versionNo: 1 },
+        level: "project" as const,
+        chunks: offset === 0 && limit > 0 ? [hit] : [],
+        total: 1,
+        offset,
+      };
+    }),
+    listFolders: vi.fn(async () => []),
     search: vi.fn(async (_scope: unknown, input: Dict) => ({
       query: String(input["query"] ?? ""),
       searchedVersions: ["ver_1"],
@@ -157,12 +174,15 @@ describe("OntoDocument dialogue harness", () => {
     expect(isPureDocumentManagementRequest("保存到知识库并总结这份材料")).toBe(false);
     expect(isPureDocumentManagementRequest("请分析这份文档，不要归档它")).toBe(false);
   });
-  it("九个工具的 scopes 与 danger 固定：四个只读双模式、五个写入仅工作模式", () => {
+  it("十一个工具的 scopes 与 danger 固定：六个只读双模式、五个写入仅工作模式", () => {
     const { registry } = fixture();
     const rows = registry.registrationSnapshot().filter((row) => row.name.startsWith("document."));
     expect(rows).toEqual([
       { name: "document.attach", danger: "WRITE_LOCAL", scopes: ["converse"], origin: "builtin", fingerprint: expect.any(String) },
       { name: "document.detach", danger: "WRITE_LOCAL", scopes: ["converse"], origin: "builtin", fingerprint: expect.any(String) },
+      // 看目录结构。只读 —— 建文件夹、移动材料仍然只能是人点的：那是用户对自己
+      // 材料的编排意图，模型可以建议但不该代做。
+      { name: "document.folders", danger: "READ", scopes: ["converse", "chat"], origin: "builtin", fingerprint: expect.any(String) },
       { name: "document.history", danger: "READ", scopes: ["converse", "chat"], origin: "builtin", fingerprint: expect.any(String) },
       { name: "document.list", danger: "READ", scopes: ["converse", "chat"], origin: "builtin", fingerprint: expect.any(String) },
       { name: "document.manage", danger: "WRITE_LOCAL", scopes: ["converse"], origin: "builtin", fingerprint: expect.any(String) },
@@ -172,16 +192,20 @@ describe("OntoDocument dialogue harness", () => {
       // 那一刻冻死 —— 这不是放宽「不许猜目标」，「本次会话里所有还没入库的材料」
       // 本来就是个确定集合。
       { name: "document.promote_batch", danger: "WRITE_LOCAL", scopes: ["converse"], origin: "builtin", fingerprint: expect.any(String) },
+      // 通读正文。在它之前模型只有 search（要关键词）和 open（要已有的
+      // evidence_ref）—— 一份没猜中关键词的材料，对模型等于不存在，而它会把
+      // 自己的盲区说成「本次检索没有命中」。
+      { name: "document.read", danger: "READ", scopes: ["converse", "chat"], origin: "builtin", fingerprint: expect.any(String) },
       { name: "document.search", danger: "READ", scopes: ["converse", "chat"], origin: "builtin", fingerprint: expect.any(String) },
     ]);
     expect(registry.forScope("chat").filter((tool) => tool.spec.name.startsWith("document.")))
-      .toHaveLength(4);
+      .toHaveLength(6);
     expect(registry.forScope("converse").filter((tool) => tool.spec.name.startsWith("document.")))
-      .toHaveLength(9);
+      .toHaveLength(11);
     expect(registry.get("document.search", "chat").spec.danger).toBe(Danger.READ);
   });
 
-  it("list/search/open/history 返回稳定结构；search/open 可直接进入 grounding 白名单", async () => {
+  it("list/search/open/read/folders/history 返回稳定结构；search/open 可直接进入 grounding 白名单", async () => {
     const { call } = fixture();
     const listed = await call("document.list", {}, "read-list", false, "chat") as Dict;
     expect(listed).toMatchObject({
@@ -216,6 +240,20 @@ describe("OntoDocument dialogue harness", () => {
     expect(extractGroundingEvidence("document.search", searched)).toEqual([
       { cite: hit.evidenceRef, text: hit.text },
     ]);
+    // 层级必须逐条出现在模型看得见的字段里。
+    //
+    // types.ts:293 的注释把理由写死了：两级合并之后一次结果里同时有总库和项目库
+    // 的片段，让调用方从作用域反推，就会把行业通用制度说成客户自己的规定。
+    // 这里曾经一条都没带 —— HTTP 侧（routes/documents.ts:856）一直带，于是同一份
+    // 数据在人眼前分了层、在模型眼前没分，而正是模型在替人转述这些内容。
+    //
+    // 「层级也编在 evidence_ref 的 odoc.v2.<level> 段里」不算数：那是一个 id，
+    // 把承诺挂在「模型自己会去解析 id」上，等于没有承诺。
+    expect((searched["hits"] as Dict[])[0]).toMatchObject({
+      level: "project",
+      level_label: "项目库",
+    });
+    expect(searched["total"]).toBe(1);
 
     const opened = await call("document.open", { evidence_ref: hit.evidenceRef }, "read-open", false, "chat") as Dict;
     expect(opened).toMatchObject({
@@ -233,6 +271,24 @@ describe("OntoDocument dialogue harness", () => {
       { cite: hit.evidenceRef, text: hit.text },
     ]);
 
+    // document.read：通读。这是「分析文档」那一类唯一的工具 —— 没有它，一份没被
+    // 关键词命中的材料对模型等于不存在。
+    const readPage = await call("document.read", { document_id: "doc_1", limit: 1 }, "read-read", false, "chat") as Dict;
+    expect(readPage).toMatchObject({
+      ok: true,
+      document_id: "doc_1",
+      total: 1,
+      offset: 0,
+      returned: 1,
+      level: "project",
+      chunks: [{ evidence_ref: hit.evidenceRef, text: hit.text, text_sha256: hit.textSha256 }],
+    });
+    // 读完了就说读完了；没读完要给出下一页的 offset，不能让模型以为这就是全部。
+    expect(String(readPage["note"])).toContain("已读完全部");
+
+    const folders = await call("document.folders", {}, "read-folders", false, "chat") as Dict;
+    expect(folders).toMatchObject({ ok: true, root_count: 1, folders: [] });
+
     const history = await call("document.history", { document_id: "doc_1" }, "read-history", false, "chat") as Dict;
     expect(history).toMatchObject({
       ok: true,
@@ -242,6 +298,28 @@ describe("OntoDocument dialogue harness", () => {
         { version_id: "ver_2", parse_status: "ready", chunk_count: 1 },
       ],
     });
+  });
+
+  it("层级缺失时 fail closed —— 绝不把来路不明的片段说成客户自己的规定", async () => {
+    const { call, service } = fixture();
+    // 造一条没有 level 的命中。类型上不该发生，但 levelLabel 的实现是
+    // `level === "global" ? "总库" : "项目库"` —— 任何非 global 的值（包括
+    // undefined）都会被说成「项目库」。在这条轴上 fail open 的后果，是模型把一段
+    // 行业通用做法当作这个客户的规定转述出去。
+    const { level: _level, ...noLevel } = hit;
+    service.searchLayered.mockResolvedValueOnce({
+      query: "采购",
+      // 类型上 level 是必填的，所以这里必须显式绕过 —— 绕过本身就是这条测试要说的
+      // 话：「类型保证不了的时候，运行时也不许猜」。
+      hits: [noLevel as unknown as typeof hit],
+      total: 1,
+      searchedVersions: ["ver_1"],
+      coverage: { matchedTerms: ["采购"], missingTerms: [], queryTerms: 1, ratio: 1 },
+    });
+    const searched = await call("document.search", { query: "采购" }, "read-nolevel", false, "chat") as Dict;
+    const first = (searched["hits"] as Dict[])[0]!;
+    expect(first["level"]).toBe("unknown");
+    expect(String(first["level_label"])).toContain("不要当作客户自己的规定");
   });
 
   it("crash → revoke → resume：document.search 重新鉴权，不回放撤权前正文", async () => {

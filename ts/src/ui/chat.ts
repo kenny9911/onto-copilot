@@ -4,7 +4,7 @@ import { $, esc, j } from "./dom.js";
 import { t } from "./i18n.js";
 import { md } from "./md.js";
 import { newSession } from "./sessions.js";
-import { closeKnowledgePage } from "./react/knowledge-page.js";
+import { closeKnowledgePage, openKnowledgeChat } from "./react/knowledge-page.js";
 import { render } from "./render.js";
 
 // ── 对话 ────────────────────────────────────────────────────────
@@ -57,13 +57,22 @@ export async function sendChat(){
   const el = $("cin");
   const text = (el.value || "").trim();
   if (!text) return;
-  // 在知识库页面上发一句话，回答会渲染进一个 display:none 的 .stream ——
-  // 说了看不到，是条死路。所以发送即退回聊天。
+  // 在知识库页上发一句话，以前的处理是**把人踢回聊天页**：那时 .stream 在这一页
+  // 上是 display:none，说了看不到，退回去是当时唯一能让他看见回答的办法。
   //
-  // ui/index.template.html 的 CSS 注释一直声称「发出去之后由 knowledge-page
-  // 负责退回聊天」，而实现里从来没有这段：closeKnowledgePage 全仓只有「返回会话」
-  // 按钮一个调用点。注释替代码作了一个它没做的承诺，现在把承诺补上。
-  if (G.MAIN_PAGE !== "chat") closeKnowledgePage({ replaceHistory: true });
+  // 但用户要的不是「被送走」——原话：「当我在知识库中输入对话，但是这个是不显示
+  // 对话的，这个请你思考一下该如何设计。」现在这一页自己就有对话栏（body 上的
+  // kb-chat-open + index.template.html 里那组网格规则）。所以：
+  //   · 栏开着 → 什么也不做，回答就落在他正在读的材料旁边；
+  //   · 栏关着 → **打开它**，而不是把他送走。他按下发送这个动作本身，
+  //     已经说明他要看回答了。
+  // 只有窄屏（<1100px，那组网格规则不生效）才仍然退回聊天 —— 那种宽度下
+  // 两栏并排真的没法读。
+  if (G.MAIN_PAGE !== "chat") {
+    const wide = typeof window === "undefined" || window.innerWidth >= 1_100;
+    if (wide) openKnowledgeChat();
+    else closeKnowledgePage({ replaceHistory: true });
+  }
   // 没会话就建一个 —— 想说话之前先点「新会话」是多余的一步
   if (!G.S) await newSession(true);
   el.value = ""; autoGrow(el);

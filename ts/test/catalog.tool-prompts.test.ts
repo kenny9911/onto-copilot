@@ -11,8 +11,8 @@ import { converseTools } from "../src/server/dialogue/tools.js";
 import { builtinRegistry } from "../src/server/glue/tools.js";
 
 describe("managed tool routing prompts", () => {
-  it("67 个工具都有短、单行且互不重复的选择边界", () => {
-    expect(TOOL_POLICIES).toHaveLength(67);
+  it("69 个工具都有短、单行且互不重复的选择边界", () => {
+    expect(TOOL_POLICIES).toHaveLength(69);
     const prompts = new Set<string>();
     for (const policy of TOOL_POLICIES) {
       expect(policy.routingPrompt.trim(), policy.name).toBe(policy.routingPrompt);

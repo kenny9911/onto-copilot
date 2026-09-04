@@ -76,6 +76,22 @@ const NEAR_BOTTOM = 120;
  */
 let atBottom = true;
 
+/**
+ * 回到底部。
+ *
+ * `atBottom` 是模块级的、从不重置 —— 这有两个后果，都不是设计：
+ *   · 换会话时它带着上一个会话的姿势过来。在旧会话里往上翻过历史，打开新会话
+ *     就停在顶上，看不见最新一轮。
+ *   · 从知识库页回到聊天时同理，而知识库页恰恰鼓励人一边读材料一边问 ——
+ *     问完回来正是最需要看见答案的时刻。
+ *
+ * 所以「换了要看的东西」这件事必须显式说一声。调用点：openSession、
+ * closeKnowledgePage。
+ */
+export function stickStreamToBottom(): void {
+  atBottom = true;
+}
+
 function useStreamEffects(): void {
   useEffect(() => {
     const box = $("stream");
@@ -92,6 +108,12 @@ function useStreamEffects(): void {
     const box = $("stream");
     if (!box) return;
     markNewBubbles(box);
+    // 藏起来的时候不算滚动位置。display:none 的元素 scrollHeight 恒为 0，
+    // `scrollTop = 0` 会把消息流**钉在最顶端**，而且写下去之后没有任何东西会来
+    // 纠正它 —— 知识库页把 #stream 整块 display:none，于是从知识库回到聊天，
+    // 用户看到的是这个会话的第一条消息，而不是他刚问的那一句。
+    // 跳过就好：它重新可见时会有一次渲染，那一次量到的几何才是真的。
+    if (box.clientHeight === 0) return;
     if (atBottom) box.scrollTop = box.scrollHeight;
   });
 }

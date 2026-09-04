@@ -15,9 +15,9 @@ describe("runtime definition catalog", () => {
       // 与 process_modeler 分工：那个只给已有基线补细节，一个环节都不许新增。
       agents: 18,
       // 66：在既有 58 项上新增 8 项 OntoDocument 管理与检索工具。
-      tools: 67,
+      tools: 69,
       coreTools: 8,
-      dialogueTools: 59,
+      dialogueTools: 61,
       workflows: 1,
       workflowNodes: 16,
     });

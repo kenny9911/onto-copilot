@@ -14,6 +14,7 @@ import { loadQuestions } from "./questions.js";
 import { loadModels } from "./upload.js";
 import { applyMode } from "./mode.js";
 import { stopThinking } from "./chat.js";
+import { stickStreamToBottom } from "./react/stream.js";
 
 export async function loadSessions(){
   // 聊天与工作各自一份列表（像 ChatGPT 的对话 vs 项目），按当前模式过滤
@@ -131,6 +132,8 @@ export async function openSession(id: any){
   G.S = st; G.S.events = []; G.ANSWERS = {}; G.SRC = {}; G.FILE = null; G.PENDING = []; G.QUEUED = []; G.MAT_N = 100;
   G.CONTEXT_BACK = null;
   G.MAIN_PAGE = "chat";
+  // 换了要看的东西，消息流就该回到底部 —— 见 stickStreamToBottom 的注释。
+  stickStreamToBottom();
   const browserWindow = typeof window === "undefined" ? null : window;
   if (browserWindow?.location?.hash === "#knowledge" && browserWindow.history?.replaceState) {
     browserWindow.history.replaceState(
