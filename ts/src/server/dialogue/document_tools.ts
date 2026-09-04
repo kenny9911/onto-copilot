@@ -69,6 +69,8 @@ type ExactDocumentOperation =
       readonly size: number;
       readonly sha256: string;
     };
+    /** 用户说的是「公共/通用/总知识库」。见 wantsGlobalLibrary。 */
+    readonly wantsGlobal: boolean;
   }
   | {
     readonly tool: "document.promote_batch";
@@ -81,6 +83,7 @@ type ExactDocumentOperation =
       readonly size: number;
       readonly sha256: string;
     }[];
+    readonly wantsGlobal: boolean;
   }
   | {
     readonly tool: "document.manage";
@@ -173,7 +176,19 @@ function isReportedDocumentInstruction(clause: string): boolean {
 const DIRECT_REQUEST_PREFIX =
   String.raw`(?:(?:(?:请(?:你)?|麻烦(?:你)?|帮我|帮忙|现在|直接|立即|立刻)\s*)|(?:(?:可以|能否|能不能)(?:请(?:你)?|帮我|帮忙)?\s*)|(?:(?:我(?:要|想|需要)|需要)\s*))?`;
 const OPTIONAL_QUESTION = String.raw`(?:吗)?`;
-const KNOWLEDGE_BASE = String.raw`(?:项目)?(?:知识库|资料库|文档库)`;
+/**
+ * 「知识库」这个词用户会怎么说。
+ *
+ * 现场（2026-09-04，用户截图）：他说「把"…-v2.xlsx"放进**通用的知识库里**」，
+ * 闸不认 —— 原来的写法只允许「(项目)?知识库」：动词后面必须紧跟着这个词，
+ * 中间不能有修饰语、后面不能有方位词。于是一句完全正常的中文被判成「没有明确
+ * 指令」，模型只能回一句「未被授予写入权限」，用户完全看不出问题出在哪。
+ *
+ * 修饰语（公共/通用/总）在这里只影响**匹配**，不影响写到哪一层 ——
+ * 写哪一层由 wantsGlobalLibrary 单独判，见那边的注释。
+ */
+const KNOWLEDGE_BASE =
+  String.raw`(?:项目|公共|通用|总|全局)?(?:的)?\s*(?:知识库|资料库|文档库)(?:里面|里|中)?`;
 const DOCUMENT_REF =
   String.raw`(?:(?:这|该|此)(?:份|个)?(?:项目|知识库)?(?:文档|版本)|(?:这个|当前|该)版本|(?:这个|当前|该)?项目文档|知识库(?:中的)?(?:这份|该)?文档)`;
 const SESSION_TARGET =
@@ -187,10 +202,10 @@ function fullCommand(source: string): RegExp {
 const DOCUMENT_ACTION_COMMANDS: Readonly<Record<DocumentWriteAction, readonly RegExp[]>> = {
   promote: [
     fullCommand(
-      String.raw`${DIRECT_REQUEST_PREFIX}(?:把|将)\s*.{1,80}?\s*(?:保存|存入|放进|加入|沉淀|收录|归档到)\s*(?:到|进|至)?\s*${KNOWLEDGE_BASE}${OPTIONAL_QUESTION}`,
+      String.raw`${DIRECT_REQUEST_PREFIX}(?:把|将)\s*.{1,80}?\s*(?:保存|存入|存进|存到|放进|放入|收进|加入|沉淀|收录|归档到)\s*(?:到|进|至)?\s*${KNOWLEDGE_BASE}${OPTIONAL_QUESTION}`,
     ),
     fullCommand(
-      String.raw`${DIRECT_REQUEST_PREFIX}(?:保存|存入|放进|加入|沉淀|收录|归档到)\s*(?:.{1,80}?\s*)?(?:到|进|至)?\s*${KNOWLEDGE_BASE}${OPTIONAL_QUESTION}`,
+      String.raw`${DIRECT_REQUEST_PREFIX}(?:保存|存入|存进|存到|放进|放入|收进|加入|沉淀|收录|归档到)\s*(?:.{1,80}?\s*)?(?:到|进|至)?\s*${KNOWLEDGE_BASE}${OPTIONAL_QUESTION}`,
     ),
     fullCommand(
       String.raw`(?:please\s+)?(?:save|promote|add)\s+.{1,80}?\s+(?:to|into)\s+(?:the\s+)?(?:project\s+)?(?:knowledge\s+base|document\s+library)` +
@@ -544,6 +559,33 @@ function resolveSessionFile(userText: string, session: SessionLike): SessionLike
  * 材料」是一个确定的集合**，没有可猜的余地。真正要防的是模型自己挑几份，
  * 所以名单在签发能力票那一刻就冻住，工具调用必须逐字对上。
  */
+/**
+ * 用户说的是「公共 / 通用 / 总知识库」吗。
+ *
+ * **模型没有写公共库的工具，这是刻意的。** 公共库跨项目共享，让它自动生长，
+ * 三个月后就是垃圾场（document/service.ts 里 publishToGlobal 上方那条纪律）。
+ * 进公共库只有一条路：人在界面上点那份材料的「设为通用知识」。
+ *
+ * 但「做不了」和「说不清为什么做不了」是两回事。现场用户说「放进通用的知识库里」，
+ * 模型回的是「当前对话环境未被授予对项目知识库的写入和归档权限」—— 一句既不准确
+ * （权限没问题）又没有出路的话。有了这个判据，promote 可以直说：
+ * 我只能存进这个项目的库，公共库要你自己点那一下，位置在哪儿。
+ */
+/**
+ * 用户要的是公共库、而我们只能写项目库时，附在回执里的那句话。
+ *
+ * 不说这句的话，模型手上只有一个「成功存进项目库」的结果，它会照实汇报，
+ * 而用户以为东西进了公共库 —— 一个静默的错位，下次他在公共库里找不到。
+ */
+const GLOBAL_LIBRARY_NOTE =
+  "注意：你说的是公共/通用知识库，但我只能存进**这个项目的**知识库 —— " +
+  "公共库是跨项目共享的，只能由人来决定放什么进去。" +
+  "要把它设为通用知识：打开左侧「知识库」，选中这份材料，点上方的「设为通用知识」。";
+
+function wantsGlobalLibrary(userText: string): boolean {
+  return /(?:公共|通用|总|全局)(?:的)?\s*(?:知识库|资料库|文档库)/u.test(userText.normalize("NFKC"));
+}
+
 const BATCH_QUANTIFIER =
   /(?:这些|那些|这几份|这\s*\d+\s*份|全部|所有|都)|(?:all|these|every)\s+(?:the\s+)?(?:files?|materials?|documents?)/iu;
 
@@ -584,6 +626,7 @@ async function resolveExactOperation(
         action,
         args: { session_file_names: sources.map((row) => row.name) },
         sources,
+        wantsGlobal: wantsGlobalLibrary(userText),
       };
     }
     const path = text(source["path"]);
@@ -596,6 +639,7 @@ async function resolveExactOperation(
       // 独立、可确定解析的显式产品动作，不能由模型自行补写。
       args: { session_file_name: source.name },
       source: { name: source.name, path, size, sha256: text(source["sha256"]) },
+      wantsGlobal: wantsGlobalLibrary(userText),
     };
   }
 
@@ -1657,11 +1701,13 @@ export function registerDocumentDialogueTools(
         if (saved.length > 0) {
           await announceDocumentChange(session, "promote_batch", { count: saved.length });
         }
+        const wantedGlobalBatch = operation.wantsGlobal;
         return {
           ok: failed.length === 0,
-          message: failed.length === 0
+          message: (failed.length === 0
             ? `已把 ${saved.length} 份材料保存到项目知识库。`
-            : `${saved.length} 份已保存，${failed.length} 份没有保存。`,
+            : `${saved.length} 份已保存，${failed.length} 份没有保存。`)
+            + (wantedGlobalBatch ? `\n\n${GLOBAL_LIBRARY_NOTE}` : ""),
           saved,
           failed,
         };
@@ -1732,11 +1778,12 @@ export function registerDocumentDialogueTools(
             title: result.document.title,
           });
         }
+        const wantedGlobal = operation.wantsGlobal;
         return {
           ok: true,
-          message: result.deduplicated
+          message: (result.deduplicated
             ? "知识库已有内容相同的版本，没有重复保存。"
-            : "已保存到项目知识库。",
+            : "已保存到项目知识库。") + (wantedGlobal ? `\n\n${GLOBAL_LIBRARY_NOTE}` : ""),
           deduplicated: result.deduplicated,
           document: documentView(result.document),
           version: {

@@ -300,6 +300,34 @@ const PURE_INVENTORY_SEGMENT = /^(?:(?:(?:这个|本|当前|我们的?)?项目|(
 const PURE_DOCUMENT_HOW_TO_SEGMENT = /^(?:怎么|如何)(?:给|为)?(?:项目|知识库|项目库|资料库)?(?:里|中|内|下|的)?(?:文件|文档)?(?:上传|同步|解析|设置权限|配置权限|归档|归档文件|使用)(?:文件|文档|知识库)?$/iu;
 const PURE_ARTIFACT_COUNT_SEGMENT = /^(?:(?:当前|现在)(?:模型|产物|项目)?(?:里|中|内)?(?:有)?(?:多少|几个|几条)(?:对象|实体|字段|关系|规则|动作|事件)|(?:对象|实体|字段|关系|规则|动作|事件)(?:的)?(?:数量|总数|统计)(?:是)?(?:多少|什么)?)$/u;
 
+/**
+ * 文件名里的字不算「在问材料内容」。
+ *
+ * 现场（2026-09-04，用户截图）：用户说
+ *   「把"采购计划管理实体及业务规则梳理-v2.xlsx"放进通用的知识库里」
+ * 这是一句纯粹的**归档动作**，可它被判成了「要用可核验材料回答的问题」，于是模型
+ * 的操作回执（「已存入」这类话）拿不出 citation，被 grounding 闸拦成
+ * 「回答没有拿到可核对的出处」。用户看到的是：让 Copilot 存个文件，它答非所问地
+ * 说不能给结论。
+ *
+ * 根因是**文件名本身**：`业务规则`、`梳理`、`管理实体` 这些词命中
+ * BUSINESS_KNOWLEDGE_REFERENCE。实测把同一句里的文件名换成 `aaa.xlsx` 就不再严格，
+ * 换成 `业务规则.xlsx` 立刻又严格 —— 判据读的是文件的**名字**，当成了他在问文件的
+ * **内容**。文件名越是描述得清楚，越容易触发，这个方向完全反了。
+ *
+ * 所以在跑这些启发式之前，先把文件名 span 抹成一个占位符。文件名是**标识符**，
+ * 不是关于内容的陈述句。
+ *
+ * 不影响真的在问内容的句子：「采购制度.md 里写的付款条件是什么」抹掉文件名之后
+ * 仍然剩下「里写的付款条件是什么」，照样命中内容判据。
+ */
+const FILE_NAME_SPAN =
+  /(?:[«《"'“”「『]\s*)?[^\s"'“”「」『』《》«»，,。；;！!？?]{1,80}\.(?:xlsx?|docx?|pptx?|pdf|csv|tsv|md|markdown|txt|json|ya?ml|xml|html?|png|jpe?g|gif|webp|svg|zip|rar|7z|sql|log)(?:\s*[»》"'“”」』])?/giu;
+
+function maskFileNames(text: string): string {
+  return text.replace(FILE_NAME_SPAN, " 某个文件 ");
+}
+
 function requestSegments(text: string): string[] {
   return text
     .split(/[，,。；;！!？?\r\n]+|(?:然后|并且|随后|接着|同时)|(?:并|再)(?=(?:请|帮|告诉|查看|列出|显示|总结|概括|归纳|分析|解释|查|搜|找|检索|核对|确认|回答|如何|怎么|OCR|知识库|项目|当前))/u)
@@ -344,6 +372,9 @@ export function needsStrictMaterialGrounding(
   opts: { mode?: unknown; hasParsedChunks: boolean; hasMaterials?: boolean },
 ): boolean {
   const hasMaterials = opts.hasMaterials ?? opts.hasParsedChunks;
+  // 文件名是标识符，不是关于内容的陈述 —— 见 maskFileNames 的注释。
+  // 从这里往下的所有判据都读这一份，包括下面几处直接 test(text) 的。
+  text = maskFileNames(text);
   const segments = requestSegments(text);
   if (segments.length === 0) return false;
   if (segments.every(isPureOperationalSegment)) return false;

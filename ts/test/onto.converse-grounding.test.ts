@@ -525,6 +525,36 @@ describe("strict material grounding", () => {
 });
 
 describe("dialogue material policy", () => {
+  // ── 文件名不是「在问材料内容」 ──────────────────────────────────
+  //
+  // 现场（2026-09-04，用户截图）：他说
+  //   「把"采购计划管理实体及业务规则梳理-v2.xlsx"放进通用的知识库里」
+  // 这是一句纯粹的归档动作，却被判成「要用可核验材料回答的问题」。于是模型的操作
+  // 回执拿不出 citation，被 grounding 闸拦成「回答没有拿到可核对的出处」——
+  // 用户让 Copilot 存个文件，得到的是一句答非所问的「我不能给出基于材料的结论」。
+  //
+  // 根因是**文件名本身**命中了业务知识词表。文件名描述得越清楚越容易触发，
+  // 方向完全反了。
+  it("归档动作不因为文件名里有业务词就变成材料问答", () => {
+    const opts = { mode: "work" as const, hasParsedChunks: true, hasMaterials: true };
+    expect(needsStrictMaterialGrounding(
+      '把"采购计划管理实体及业务规则梳理-v2.xlsx"放进通用的知识库里', opts,
+    )).toBe(false);
+    // 逐个隔离出来的触发词，都不该再触发。
+    for (const name of ["业务规则.xlsx", "梳理.xlsx", "管理实体.docx", "审批流程.pdf"]) {
+      expect(needsStrictMaterialGrounding(`把${name}放进知识库`, opts)).toBe(false);
+    }
+  });
+
+  it("**但真的在问文件内容时照旧严格** —— 抹掉的只是文件名这个标识符", () => {
+    const opts = { mode: "work" as const, hasParsedChunks: true, hasMaterials: true };
+    // 抹掉文件名之后仍然剩下「里写的付款条件是多少天」，内容判据照样命中。
+    expect(needsStrictMaterialGrounding("采购制度.md 里写的付款条件是多少天", opts)).toBe(true);
+    expect(needsStrictMaterialGrounding("业务规则.xlsx 里是怎么定义审批门槛的", opts)).toBe(true);
+    expect(needsStrictMaterialGrounding("知识库里关于付款条件是怎么写的", opts)).toBe(true);
+  });
+
+
   it("显式要求通用经验时不误拦，项目材料分析会启用", () => {
     expect(needsStrictMaterialGrounding("按通用经验讲讲采购流程", {
       mode: "work", hasParsedChunks: true,

@@ -324,6 +324,29 @@ describe("OntoDocument dialogue harness", () => {
     expect(emitted![1]).toMatchObject({ action: "promote" });
   });
 
+  it("要求存进「通用知识库」时，回执直说只能进项目库、公共库怎么走", async () => {
+    // 模型没有写公共库的工具，这是刻意的（公共库跨项目共享，自动生长三个月就是
+    // 垃圾场）。但「做不了」和「说不清为什么做不了」是两回事：现场用户说
+    // 「放进通用的知识库里」，模型回的是「未被授予写入和归档权限」——
+    // 一句既不准确又没出路的话，而东西其实**已经**进了项目库。
+    const { call, session } = fixture();
+    await authorizeDocumentToolsForTurn(session, "turn_g", "请把采购规则.txt放进通用的知识库里");
+    const out = await call("document.promote", { session_file_name: "采购规则.txt" }, "turn_g") as Dict;
+    expect(out["ok"]).toBe(true);
+    const message = String(out["message"] ?? "");
+    // 三件事都要说：进了哪儿、为什么不是公共库、公共库怎么进。
+    expect(message).toContain("项目知识库");
+    expect(message).toContain("公共");
+    expect(message).toContain("设为通用知识");
+  });
+
+  it("没提公共库时不加这段话 —— 免得每次入库都念一遍", async () => {
+    const { call, session } = fixture();
+    await authorizeDocumentToolsForTurn(session, "turn_p", "请把采购规则.txt保存到项目知识库");
+    const out = await call("document.promote", { session_file_name: "采购规则.txt" }, "turn_p") as Dict;
+    expect(String(out["message"] ?? "")).not.toContain("设为通用知识");
+  });
+
   it("层级缺失时 fail closed —— 绝不把来路不明的片段说成客户自己的规定", async () => {
     const { call, service } = fixture();
     // 造一条没有 level 的命中。类型上不该发生，但 levelLabel 的实现是
