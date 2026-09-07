@@ -86,6 +86,55 @@ function harness() {
 const projectScope: DocumentScope = { projectId: "project_A", owner: "alice", actorId: "alice" };
 const otherProjectScope: DocumentScope = { projectId: "project_B", owner: "bob", actorId: "bob" };
 
+describe("单字中文查询", () => {
+  // tokenize 对 CJK 只切二元组：「付款条件」→ 付款/款条/条件，一个单字都不产出。
+  // 而查询「款」自己只产出「款」，于是**单字查询在多字正文上恒不命中**。
+  // 实测一份 2566 词的真实语料，「款验采批价税」六个字全灭，0/6。
+  //
+  // 修法只在**查询侧**：一个在语料里查不到的 CJK 单字，扩成语料中包含它的那些
+  // 二元组。不去给正文也切单字（那是教科书做法，但会让词表翻倍、df 与 avgLength
+  // 全变，于是每一次既有检索的排序都可能动）—— 这个洞只影响单字查询这一种情况。
+  it("「款」能搜到「付款条件」", async () => {
+    const { service, write } = harness();
+    await service.promoteSessionFile(projectScope, {
+      source: write("采购制度.md", "付款条件：验收合格后 30 天内支付。"),
+    });
+    const found = await service.searchLayered([projectScope], { query: "款" });
+    expect(found.hits.length).toBeGreaterThan(0);
+    expect(found.hits[0]!.text).toContain("付款条件");
+  });
+
+  it("覆盖率按**用户敲的那个字**报，不把内部扩展出来的二元组说成未命中", async () => {
+    const { service, write } = harness();
+    await service.promoteSessionFile(projectScope, {
+      source: write("采购制度.md", "付款条件：验收合格后 30 天内支付。"),
+    });
+    const found = await service.searchLayered([projectScope], { query: "款" });
+    expect(found.coverage.matchedTerms).toEqual(["款"]);
+    expect(found.coverage.missingTerms).toEqual([]);
+  });
+
+  it("语料里真的没有的单字，照旧是零命中 —— 扩展不许无中生有", async () => {
+    const { service, write } = harness();
+    await service.promoteSessionFile(projectScope, {
+      source: write("采购制度.md", "付款条件：验收合格后 30 天内支付。"),
+    });
+    const found = await service.searchLayered([projectScope], { query: "鲸" });
+    expect(found.hits).toEqual([]);
+    expect(found.coverage.missingTerms).toEqual(["鲸"]);
+  });
+
+  it("多字查询一个字节都不受影响 —— 它们的词本来就在词表里", async () => {
+    const { service, write } = harness();
+    await service.promoteSessionFile(projectScope, {
+      source: write("采购制度.md", "付款条件：验收合格后 30 天内支付。"),
+    });
+    const found = await service.searchLayered([projectScope], { query: "付款条件" });
+    expect(found.hits.length).toBeGreaterThan(0);
+    expect(found.coverage.matchedTerms).toEqual(expect.arrayContaining(["付款", "款条", "条件"]));
+  });
+});
+
 describe("总库与项目库是两个边界", () => {
   it("总库作用域用保留常量，且真项目 id 撞不上它", () => {
     const scope = globalLibraryScope("alice");

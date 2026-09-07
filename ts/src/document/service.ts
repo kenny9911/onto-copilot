@@ -1140,14 +1140,17 @@ export class DocumentService {
     for (const row of corpus) {
       for (const term of new Set(row.terms)) df.set(term, (df.get(term) ?? 0) + 1);
     }
+    // 单字中文查询的回退：语料词表就在手上（df 的键），扩展只在这里发生，
+    // 多字查询走不到这条分支。见 expandSingleChars 的注释。
+    const { terms: effectiveTerms, aliases } = expandSingleChars(queryTerms, new Set(df.keys()));
     const scored: DocumentSearchHit[] = [];
     for (const row of corpus) {
       const counts = new Map<string, number>();
       for (const term of row.terms) counts.set(term, (counts.get(term) ?? 0) + 1);
-      const coverage = coverageOf(queryTerms, new Set(row.terms));
+      const coverage = coverageOf(effectiveTerms, new Set(row.terms), aliases);
       if (coverage.matchedTerms.length === 0) continue;
       let score = 0;
-      for (const term of queryTerms) {
+      for (const term of effectiveTerms) {
         const tf = counts.get(term) ?? 0;
         if (tf === 0) continue;
         const present = df.get(term) ?? 0;
@@ -1203,7 +1206,7 @@ export class DocumentService {
       // 即使某个版本还没有可搜索正文，也要如实说明它属于本次范围；否则空命中会
       // 把“选中了但没读到”伪装成“没有这份文档”。
       searchedVersions: [...new Set(recalls.flatMap((r) => r.selectedVersions))].sort(),
-      coverage: coverageOf(queryTerms, matched),
+      coverage: coverageOf(effectiveTerms, matched, aliases),
     };
   }
 
@@ -1672,10 +1675,66 @@ function tokenize(input: string): string[] {
   return out;
 }
 
-function coverageOf(queryTerms: readonly string[], available: ReadonlySet<string>): SearchCoverage {
-  const unique = [...new Set(queryTerms)];
-  const matchedTerms = unique.filter((term) => available.has(term));
-  const missingTerms = unique.filter((term) => !available.has(term));
+/**
+ * 单字中文查询的回退。
+ *
+ * ## 这个洞是什么
+ *
+ * tokenize 对 CJK 只切**二元组**：「付款条件」→ 付款/款条/条件，一个单字都不产出。
+ * 而查询「款」自己是一个长度 1 的串，只会产出「款」。于是 款 ∉ {付款,款条,条件} ——
+ * **单字查询在多字正文上恒不命中**。实测一份 2566 词的真实语料，
+ * 「款验采批价税」六个字全灭，命中率 0/6。多字查询则全部正常。
+ *
+ * ## 为什么不去给正文也切单字
+ *
+ * 那是教科书做法（bigram + unigram 双索引），但代价是**每一次检索的分数都变**：
+ * 词表翻倍、df 和 avgLength 全变，于是所有既有查询的排序都可能动。
+ * 这个洞只影响单字查询这一种情况，为它改动全局打分模型不划算。
+ *
+ * 所以只在**查询侧**补：一个在语料里查不到的 CJK 单字，扩成语料中**包含它**的
+ * 那些二元组。语料（corpus）是每次检索现装的，词表就在手上，不需要额外索引。
+ * 多字查询一个字节都不受影响 —— 它们的词本来就在词表里，走不到这条分支。
+ *
+ * 返回 `aliases`：扩展出来的词 → 用户原本敲的那个字。覆盖率要按**用户敲的东西**
+ * 报，不能把他没打过的二元组说成「未命中」。
+ */
+function expandSingleChars(
+  queryTerms: readonly string[],
+  vocabulary: ReadonlySet<string>,
+): { readonly terms: readonly string[]; readonly aliases: ReadonlyMap<string, string> } {
+  const CJK = /^[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}]$/u;
+  const aliases = new Map<string, string>();
+  const terms: string[] = [];
+  for (const term of queryTerms) {
+    terms.push(term);
+    if (!CJK.test(term) || vocabulary.has(term)) continue;
+    for (const word of vocabulary) {
+      if (word.length === 2 && word.includes(term)) {
+        terms.push(word);
+        aliases.set(word, term);
+      }
+    }
+  }
+  return { terms: [...new Set(terms)], aliases };
+}
+
+function coverageOf(
+  queryTerms: readonly string[],
+  available: ReadonlySet<string>,
+  /** 扩展词 → 用户原本敲的那个字。见 expandSingleChars。 */
+  aliases: ReadonlyMap<string, string> = new Map(),
+): SearchCoverage {
+  // 报的是**用户敲进去的东西**命中没有，不是我们内部扩展出来的那些二元组。
+  // 把他没打过的词说成「未命中」，等于用自己的实现细节去解释他的查询。
+  const hit = new Set<string>();
+  for (const term of available) {
+    hit.add(term);
+    const original = aliases.get(term);
+    if (original !== undefined) hit.add(original);
+  }
+  const unique = [...new Set(queryTerms.filter((term) => !aliases.has(term)))];
+  const matchedTerms = unique.filter((term) => hit.has(term));
+  const missingTerms = unique.filter((term) => !hit.has(term));
   return {
     matchedTerms,
     missingTerms,
