@@ -187,6 +187,7 @@ describe("wireServer", () => {
       "GET /api/sessions/:sid/documents/:documentId/content",
       // 「设为通用知识」：把项目材料复制进公共库。人点的动作，没有自动调用点。
       "POST /api/sessions/:sid/documents/:documentId/publish",
+      "POST /api/sessions/:sid/documents/:documentId/reparse",
       // 用户手工建的文件夹。之前树里的分组是按标签推出来的，空文件夹无处存放 ——
       // 建一个立刻消失。文件夹必须是独立于文件存在的东西。
       "GET /api/sessions/:sid/documents/folders",

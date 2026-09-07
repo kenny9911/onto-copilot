@@ -210,6 +210,13 @@ class FakeDocumentService implements DocumentServicePort {
     return { document: SUMMARY, version: VERSION, deduplicated: false };
   }
 
+  async reparse(
+    ...args: Parameters<DocumentServicePort["reparse"]>
+  ): Promise<PromoteResult> {
+    this.calls.push({ method: "reparse", args });
+    return { document: SUMMARY, version: VERSION, deduplicated: false };
+  }
+
   async updateMetadata(
     ...args: Parameters<DocumentServicePort["updateMetadata"]>
   ): Promise<DocumentSummary> {

@@ -302,6 +302,38 @@ describe("api", () => {
     return { ...actual, findings };
   }
 
+  it("顶层是数组的 JSON 要读得出来 —— 「一组记录」是最常见的形状之一", async () => {
+    // 现场（2026-09-07 用户截图）：他的 objects.json / actions.json / events.json /
+    // links.json / rules.json / workflows.json 六份，顶层全是 `[{...}, {...}]`。
+    // 当时的判据是「顶层不是对象 → parse_failed」，于是六份全是 chunk_count=0，
+    // 界面上写着「还没有读出可核验的正文」—— 一份都读不出来。
+    //
+    // 而 plainJson 本来就会处理数组（`Array.isArray(obj) ? obj.map(...)`），
+    // 挡住它的只是那道给 OpenAPI 分支用的 isDict 守卫拦在了前面。
+    const text = JSON.stringify([
+      { id: "bd-demand-plan", name: "采购需求计划", type: "data" },
+      { id: "bd-po", name: "采购订单", type: "data" },
+    ]);
+    const p = await write("objects.json", Buffer.from(text, "utf8").toString("base64"), "arr");
+    const doc = await new OpenApiParser().parse(p, { fileId: "f_arr" });
+
+    expect(doc.kind).toBe("json");
+    expect(doc.findings).toEqual([]);
+    expect(doc.chunks).toHaveLength(2);
+    // 内容真的进了切片 —— BM25 检索靠的就是这段字。
+    expect(doc.chunks[0]!.render).toContain("采购需求计划");
+    expect(doc.chunks[1]!.render).toContain("采购订单");
+  });
+
+  it("顶层是标量的 JSON 仍然算读不出结构", async () => {
+    // 放宽的只是数组。一个裸数字/字符串确实没有可切片的结构，
+    // 那种情况说「读不出来」是实话，不该硬造出一段。
+    const p = await write("scalar.json", Buffer.from("42", "utf8").toString("base64"), "scalar");
+    const doc = await new OpenApiParser().parse(p, { fileId: "f_scalar" });
+    expect(doc.chunks).toHaveLength(0);
+    expect(doc.findings[0]?.kind).toBe("parse_failed");
+  });
+
   it("OpenAPI / 普通 JSON / 顶层不是对象 / 坏 JSON", async () => {
     for (const [i, c] of G.api.entries()) {
       const p = await write(

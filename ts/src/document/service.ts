@@ -350,6 +350,87 @@ export class DocumentService {
    */
 
   /**
+   * 拿同一份原件重跑一遍解析，落成**新的一版**。
+   *
+   * ## 为什么需要它
+   *
+   * 解析是**入库那一刻**做的，切片跟着当时那版解析器走。解析器后来变好了，
+   * 已经躺在库里的材料不会自己受益 —— 它们永远停在入库那天的结果上。
+   *
+   * 现场（2026-09-07）：用户六份 objects.json / actions.json / …，顶层都是
+   * `[{...}]` 这种「一组记录」的形状。当时的 OpenApiParser 见到非对象的顶层直接
+   * 判 parse_failed，于是六份全是 chunk_count=0，界面上写着「还没有读出可核验的
+   * 正文」。解析器修好之后**新传的**能读了，可他库里那六份还是空的 —— 而且因为
+   * 按 sha 去重，他重新上传同一个文件也只会拿回那份空的。
+   * 没有这个入口，那六份就永远废在那儿。
+   *
+   * ## 为什么是新版本，不是就地改切片
+   *
+   * 版本是不可变的：某一轮分析可能已经固定了这一版，它读到的内容不能在人背后
+   * 改掉。所以重新解析产出**新的一版**，旧版原样留着，采用哪一版仍由人决定
+   * （和「上传了新版本」同一条纪律）。
+   *
+   * 原件字节一个不动，只是重新解释它 —— 所以这里**刻意绕过 sha 去重**：
+   * 去重问的是「这份内容进过库没有」，而这次要的恰恰是「同一份内容，换个解析器
+   * 再读一遍」。
+   */
+  async reparse(
+    scope: DocumentScope,
+    documentId: string,
+    options: { readonly versionId?: string } = {},
+  ): Promise<PromoteResult> {
+    safeScope(scope);
+    const cleanId = cleanText(documentId, "", "文档 ID", 2_048);
+    await this.guardAcl(() => this.acl.authorizeWrite(
+      scope,
+      principalOf(scope),
+      { scopeType: "document", documentId: cleanId },
+    ));
+    const summary = await this.repository.get(scope, cleanId);
+    if (summary === null) throw new DocumentNotFound("没有找到这份材料");
+    const versionId = cleanText(
+      options.versionId ?? summary.currentVersionId,
+      "",
+      "版本 ID",
+      2_048,
+    );
+    const version = await this.repository.getVersion(scope, cleanId, versionId);
+    if (version === null) throw new DocumentNotFound("没有找到这一版材料");
+
+    // 路径守卫和 publishToGlobal 那条一样：只认这个项目自己的文档目录。
+    const root = await realpath(this.workspaceRoot).catch(() => this.workspaceRoot);
+    const projectDocs = resolve(
+      root,
+      "projects",
+      safeSegment(scope.projectId, "project"),
+      "documents",
+      safeSegment(cleanId, "document"),
+    );
+    const declared = resolve(root, version.relPath);
+    if (!pathInside(projectDocs, declared)) {
+      throw new DocumentError("FORBIDDEN", "这一版的原件不在该项目的文档目录里", 404);
+    }
+    const bytes = await readFile(declared).catch(() => null);
+    if (bytes === null) throw new DocumentNotFound("这一版的原件已经不在了");
+    const digest = sha256Hex(bytes);
+    if (digest !== version.sha256) {
+      throw new DocumentError("INTEGRITY_ERROR", "原件的校验值和版本记录不一致，已拒绝重新解析", 500);
+    }
+
+    return await this.commitBytes({
+      scope,
+      root,
+      bytes,
+      sourceName: version.fileName,
+      existing: summary,
+      baseVersionId: summary.currentVersionId,
+      digest,
+      mediaType: version.mediaType,
+      createdBy: scope.actorId ?? scope.owner,
+    });
+  }
+
+  /**
    * 把一份项目材料**设为通用知识**：复制进公共知识库。
    *
    * 三条产品纪律写进实现里：

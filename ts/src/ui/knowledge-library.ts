@@ -167,6 +167,8 @@ export interface KnowledgeLibraryApi {
   detach(sessionId: string, documentId: string): Promise<KnowledgeMutationResult>;
   /** 设为通用知识：把这份项目材料复制进公共知识库。人点的动作。 */
   publish(sessionId: string, documentId: string, versionId?: string): Promise<KnowledgeMutationResult>;
+  /** 拿同一份原件用现在这版解析器再读一遍，落成新的一版。 */
+  reparse(sessionId: string, documentId: string, versionId?: string): Promise<KnowledgeMutationResult>;
   listFolders(sessionId: string): Promise<KnowledgeFolder[]>;
   createFolder(sessionId: string, path: string): Promise<KnowledgeFolder[]>;
   renameFolder(sessionId: string, from: string, to: string): Promise<KnowledgeMutationResult>;
@@ -274,6 +276,13 @@ function createKnowledgeApi(route: RouteFn, scope: "session" | "global"): Knowle
       if (scope === "global") notInGlobal("设为通用知识");
       return await request<KnowledgeMutationResult>(
         route(sessionId, documentSuffix(documentId, "/publish")),
+        { method: "POST", body: JSON.stringify(versionId ? { version_id: versionId } : {}) },
+      );
+    },
+
+    async reparse(sessionId, documentId, versionId) {
+      return await request<KnowledgeMutationResult>(
+        route(sessionId, documentSuffix(documentId, "/reparse")),
         { method: "POST", body: JSON.stringify(versionId ? { version_id: versionId } : {}) },
       );
     },

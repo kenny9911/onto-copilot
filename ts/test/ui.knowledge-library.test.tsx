@@ -121,6 +121,7 @@ function fakeApi(): KnowledgeLibraryApi {
     archive: vi.fn(async () => ({ ok: true, message: "已归档这份文档。" })),
     attach: vi.fn(async () => ({ ok: true, message: "已把这个固定版本加入本次分析。" })),
     publish: vi.fn(async () => ({ ok: true, message: "已设为通用知识" })),
+    reparse: vi.fn(async () => ({ ok: true, message: "已重新解析，读出 12 段可检索正文（存为新的一版）。" })),
     // 用户手工建的文件夹。树上的分组来自这里，不再是「按标签推出来的」。
     listFolders: vi.fn(async () => [
       { path: "制度", created_at: "2026-09-03T00:00:00.000Z" },
@@ -275,6 +276,27 @@ describe("OntoDocument 项目知识库", () => {
 
     fireEvent.click(view.getByText("删掉文件夹"));
     await waitFor(() => expect(api.deleteFolder).toHaveBeenCalled());
+  });
+
+  it("读不出正文时不瞎猜原因，并给出重新解析的出路", async () => {
+    // 现场（2026-09-07 用户截图）：点开一个 .json，正文区写着
+    // 「它可能是扫描件，需要先做识别。」—— 一个纯文本格式，永远不可能是扫描件。
+    // 这不只是文案难看：它把人引向一条根本不存在的路（去哪儿"做识别"？），
+    // 而真正的原因（入库那天的解析器读不了这个形状）一个字都没说。
+    const api = fakeApi();
+    api.read = vi.fn(async () => ({
+      document: documentRow, version: versions[0]!, level: "project" as const,
+      chunks: [], total: 0, offset: 0,
+    })) as never;
+    const view = render(<KnowledgeLibrary sessionId="session-1" sessionFiles={[]} api={api} />);
+    await waitFor(() => expect(view.container.querySelector(".od-library-empty")).not.toBeNull());
+
+    const empty = view.container.querySelector(".od-library-empty") as HTMLElement;
+    expect(empty.textContent).not.toContain("扫描件");
+    expect(empty.textContent).toContain("没有读出可检索的正文");
+
+    fireEvent.click(view.getByText("重新解析这份材料"));
+    await waitFor(() => expect(api.reparse).toHaveBeenCalledWith("session-1", "doc-1"));
   });
 
   it("选中一份材料后可以把它移到别的文件夹", async () => {

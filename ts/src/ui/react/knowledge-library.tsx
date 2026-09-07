@@ -252,6 +252,8 @@ interface DocumentPreviewProps {
   onMove?: ((folderPath: string) => Promise<void>) | undefined;
   folderOptions: readonly string[];
   level: "global" | "project";
+  /** 拿同一份原件用现在这版解析器再读一遍。读不出正文时才有意义。 */
+  onReparse?: (() => Promise<void>) | undefined;
   /** 把一句话预填进输入框（不发送）。见 KnowledgeLibrary 里的 askCopilot。 */
   onAsk: (text: string) => void;
 }
@@ -402,13 +404,20 @@ function SearchPane({ result, openedEvidence, evidenceError, lang, onOpen, onCle
   </>;
 }
 
-function DocumentReader({ sessionId, documentId, versionId, lang, level, api = knowledgeLibraryApi }: {
+function DocumentReader({
+  sessionId, documentId, documentTitle, versionId, lang, level,
+  onReparse, reparsing = false, api = knowledgeLibraryApi,
+}: {
   sessionId: string;
   documentId: string;
+  /** 只用来看扩展名：读不出正文时要按格式说实话，不能一律说「可能是扫描件」。 */
+  documentTitle: string;
   versionId?: string;
   lang: string;
   /** 这份材料属于哪一层。公共库的正文要长得不一样 —— 见下面那条横条的注释。 */
   level: "global" | "project";
+  onReparse?: (() => Promise<void>) | undefined;
+  reparsing?: boolean;
   api?: Pick<KnowledgeLibraryApi, "read">;
 }): ReactElement {
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
@@ -446,12 +455,46 @@ function DocumentReader({ sessionId, documentId, versionId, lang, level, api = k
     return <div className="od-inline-error">{error}</div>;
   }
   if (total === 0) {
+    // 读不出正文时**别猜原因**。
+    //
+    // 原来这里不管什么文件都说「它可能是扫描件，需要先做识别」。用户点开一个
+    // .json 看到这句话 —— 一个纯文本格式，永远不可能是扫描件。这不只是文案难看：
+    // 它把人引向一条根本不存在的路（去哪儿"做识别"？），而真正的原因
+    // （入库那天的解析器读不了这个形状）一个字都没说。
+    //
+    // 只按扩展名分两类，因为前端手上确切知道的就这么多：
+    //   · 文本类格式（json/csv/md/…）—— 扫描件的说法在这里是错的；
+    //   · 图片和 PDF —— 扫描件确实是最常见的原因。
+    // 不确定的一律说「没读出来」，不编原因。
+    const ext = (documentTitle.split(".").pop() ?? "").toLowerCase();
+    const textual = TEXTUAL_EXTENSIONS.has(ext);
+    const scannable = SCANNABLE_EXTENSIONS.has(ext);
     return <div className="od-library-empty">
-      {words(
-        "这一版还没有读出可核验的正文。它可能是扫描件，需要先做识别。",
-        "No verifiable text has been read from this version yet.",
-        lang,
-      )}
+      <strong>{words("这一版没有读出可检索的正文。", "No searchable text in this version.", lang)}</strong>
+      <p>{textual
+        ? words(
+          `这是一个 ${ext} 文件，内容本身是文本 —— 读不出来通常是入库那天的解析器不认识它的结构。`
+            + "解析器后来改好过，可以重新解析一次试试：原件一个字节都不动，只是换现在这版解析器再读一遍，结果存成新的一版。",
+          `A ${ext} file is text; this usually means the parser at ingest time did not understand its shape.`,
+          lang,
+        )
+        : scannable
+          ? words(
+            "这类文件如果是扫描件或纯图片，需要先做文字识别才能读出正文。",
+            "If this is a scan or image, it needs OCR before text can be read.",
+            lang,
+          )
+          : words(
+            "没有读出内容。可以重新解析一次看看，或者确认这个格式是不是当前支持的。",
+            "No content was read. Try re-parsing, or check whether this format is supported.",
+            lang,
+          )}</p>
+      {onReparse ? <button type="button" className="act" disabled={reparsing}
+        onClick={() => { void onReparse(); }}>
+        {reparsing
+          ? words("正在重新解析…", "Re-parsing…", lang)
+          : words("重新解析这份材料", "Re-parse this file", lang)}
+      </button> : null}
     </div>;
   }
 
@@ -504,11 +547,20 @@ function DocumentReader({ sessionId, documentId, versionId, lang, level, api = k
   </div>;
 }
 
+/** 内容本身是文字的格式 —— 对这些说「可能是扫描件」是错的。 */
+const TEXTUAL_EXTENSIONS = new Set([
+  "json", "csv", "tsv", "md", "markdown", "txt", "yaml", "yml", "xml", "html", "htm",
+  "sql", "ddl", "log", "ini", "toml", "properties",
+]);
+/** 这些确实可能是扫描件／纯图片，需要先做文字识别。 */
+const SCANNABLE_EXTENSIONS = new Set(["pdf", "png", "jpg", "jpeg", "gif", "webp", "bmp", "tif", "tiff"]);
+
 const PAGE = 50;
 
 function DocumentPreview({
   sessionId, api, onClose, document, versions, attachment, sessionFiles, busy, lang, level, onAsk,
-  onUpdate, onArchive, onAttach, onDetach, onAdopt, onAddVersion, onPublish, onMove, folderOptions,
+  onUpdate, onArchive, onAttach, onDetach, onAdopt, onAddVersion, onPublish, onMove, onReparse,
+  folderOptions,
 }: DocumentPreviewProps): ReactElement {
   const [expanded, setExpanded] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -598,9 +650,12 @@ function DocumentPreview({
       sessionId={sessionId}
       api={api}
       documentId={document.id}
+      documentTitle={document.title}
       {...(version === undefined ? {} : { versionId: version.id })}
       lang={lang}
       level={level}
+      {...(onReparse === undefined ? {} : { onReparse })}
+      reparsing={isBusy}
     /> : null}
   </>;
 }
@@ -1081,6 +1136,8 @@ export function KnowledgeLibrary({
             base_version_id: selected.current_version_id,
           }))}
           folderOptions={folderNames}
+          onReparse={async () => await runMutation(`${selected.id}:reparse`,
+            async () => await api.reparse(sessionId, selected.id))}
           onMove={async (folderPath) => await runMutation(`${selected.id}:move`,
             async () => await api.moveDocument(sessionId, selected.id, folderPath))}
           {...(level === "global" ? {} : {

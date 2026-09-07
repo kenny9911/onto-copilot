@@ -90,6 +90,11 @@ export interface DocumentServicePort {
     documentId: string,
     options?: { readonly versionId?: string },
   ): Promise<PromoteResult>;
+  reparse(
+    scope: DocumentScope,
+    documentId: string,
+    options?: { readonly versionId?: string },
+  ): Promise<PromoteResult>;
   read(
     scope: DocumentScope,
     documentId: string,
@@ -1436,6 +1441,37 @@ export function registerDocumentRoutes(app: Hono<AppEnv>, deps: DocumentRouteDep
       version: versionView(result.version),
       deduplicated: result.deduplicated,
     }, result.deduplicated ? 200 : 201);
+  });
+
+  // 重新解析：拿同一份原件、用**现在**这版解析器再读一遍，落成新的一版。
+  //
+  // 解析是入库那一刻做的。解析器后来修好了，已经躺在库里的材料不会自己受益 ——
+  // 而且因为按 sha 去重，重新上传同一个文件也只会拿回那份读不出正文的旧记录。
+  // 这个入口是那种情况唯一的出路。
+  app.post("/api/sessions/:sid/documents/:documentId/reparse", async (c) => {
+    rejectBoundaryQuery(c);
+    onlyQueryFields(c, new Set(), "重新解析");
+    const body = await strictJsonBody(c);
+    rejectBoundaryBody(body);
+    const { scope } = await routeScope(c, deps);
+    const documentId = opaqueId(c.req.param("documentId"), "文档");
+    const versionId = optionalText(field(body, "version_id", "versionId"), "版本 ID", 2_048);
+    const result = await documentCall(async () => await deps.documents.reparse(
+      scope,
+      documentId,
+      ...(versionId === undefined ? [] : [{ versionId }]),
+    ));
+    const chunks = result.version.chunkCount;
+    return c.json({
+      ok: true,
+      // 照实说读出来多少段。重新解析之后仍然是 0 段是完全可能的（真的是扫描件、
+      // 或者这个格式就是读不了），那时候说「已重新解析」会让人以为好了。
+      message: chunks > 0
+        ? `已重新解析「${result.document.title}」，读出 ${chunks} 段可检索正文（存为新的一版）。`
+        : `重新解析了「${result.document.title}」，但仍然没有读出可检索的正文。`,
+      document: documentView(result.document),
+      version: versionView(result.version),
+    }, 201);
   });
 
   app.get("/api/sessions/:sid/documents/:documentId/content", async (c) => {

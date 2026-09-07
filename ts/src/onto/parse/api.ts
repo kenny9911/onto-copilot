@@ -177,8 +177,29 @@ export class OpenApiParser extends Parser {
       }
     }
 
+    // 顶层是**数组**的 JSON 走普通 JSON 那条路，不再当成解析失败。
+    //
+    // 用户现场（2026-09-07）：objects.json / actions.json / events.json 这一批文件
+    // 顶层都是 `[{...}, {...}]`（一组记录），在库里全是 chunk_count=0、
+    // parse_status=degraded，界面上写着「这一版还没有读出可核验的正文」——
+    // 六份材料，一份都读不出来。
+    //
+    // 而 plainJson 本来就会处理数组（`Array.isArray(obj) ? obj.map(...)`，见下面），
+    // 挡住它的只是这里这道 isDict 守卫：它是给下面 OpenAPI 分支用的
+    // （那条路要 spec.paths / spec.components），却拦在了 plainJson 前面。
+    //
+    // 「一组记录」是 JSON 最常见的形状之一，不是边角情况。
+    //
+    // 这改动会动一条 Python 时代的 golden（onto.parse.json 里 toplevel_list.json
+    // = `[1, 2]` 钉着 parse_failed）。Python 侧已整树删除，golden 现在是回归钉
+    // 而不是跨实现契约，所以这是一次**有意的行为变更**，golden 一并更新。
     if (!isDict(spec)) {
-      doc.findings.push(makeFinding("parse_failed", "顶层不是对象", {}, "warn"));
+      if (Array.isArray(spec)) {
+        doc.kind = "json";
+        return plainJson(doc, spec, fileId, fileName);
+      }
+      // 顶层是标量（一个裸数字/字符串/null）—— 那确实没有可切片的结构。
+      doc.findings.push(makeFinding("parse_failed", "顶层不是对象也不是数组", {}, "warn"));
       return doc;
     }
     if (!Object.hasOwn(spec, "paths") && !Object.hasOwn(spec, "components")) {

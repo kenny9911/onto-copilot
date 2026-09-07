@@ -15356,6 +15356,12 @@ body.dragging .preview{transition:none}
           { method: "POST", body: JSON.stringify(versionId ? { version_id: versionId } : {}) }
         );
       },
+      async reparse(sessionId, documentId, versionId) {
+        return await request2(
+          route2(sessionId, documentSuffix(documentId, "/reparse")),
+          { method: "POST", body: JSON.stringify(versionId ? { version_id: versionId } : {}) }
+        );
+      },
       async listFolders(sessionId) {
         const r = await request2(route2(sessionId, "/folders"));
         return r.folders;
@@ -16448,7 +16454,17 @@ ${provenance}（这段的证据引用是 ${evidenceRef}，需要核对原文时�
       ] }) : null
     ] });
   }
-  function DocumentReader({ sessionId, documentId, versionId, lang, level, api = knowledgeLibraryApi }) {
+  function DocumentReader({
+    sessionId,
+    documentId,
+    documentTitle,
+    versionId,
+    lang,
+    level,
+    onReparse,
+    reparsing = false,
+    api = knowledgeLibraryApi
+  }) {
     const [state, setState] = (0, import_react4.useState)("loading");
     const [error, setError] = (0, import_react4.useState)("");
     const [chunks, setChunks] = (0, import_react4.useState)([]);
@@ -16483,11 +16499,37 @@ ${provenance}（这段的证据引用是 ${evidenceRef}，需要核对原文时�
       return /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "od-inline-error", children: error });
     }
     if (total === 0) {
-      return /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "od-library-empty", children: words(
-        "这一版还没有读出可核验的正文。它可能是扫描件，需要先做识别。",
-        "No verifiable text has been read from this version yet.",
-        lang
-      ) });
+      const ext = (documentTitle.split(".").pop() ?? "").toLowerCase();
+      const textual = TEXTUAL_EXTENSIONS.has(ext);
+      const scannable = SCANNABLE_EXTENSIONS.has(ext);
+      return /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "od-library-empty", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("strong", { children: words("这一版没有读出可检索的正文。", "No searchable text in this version.", lang) }),
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("p", { children: textual ? words(
+          `这是一个 ${ext} 文件，内容本身是文本 —— 读不出来通常是入库那天的解析器不认识它的结构。解析器后来改好过，可以重新解析一次试试：原件一个字节都不动，只是换现在这版解析器再读一遍，结果存成新的一版。`,
+          `A ${ext} file is text; this usually means the parser at ingest time did not understand its shape.`,
+          lang
+        ) : scannable ? words(
+          "这类文件如果是扫描件或纯图片，需要先做文字识别才能读出正文。",
+          "If this is a scan or image, it needs OCR before text can be read.",
+          lang
+        ) : words(
+          "没有读出内容。可以重新解析一次看看，或者确认这个格式是不是当前支持的。",
+          "No content was read. Try re-parsing, or check whether this format is supported.",
+          lang
+        ) }),
+        onReparse ? /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
+          "button",
+          {
+            type: "button",
+            className: "act",
+            disabled: reparsing,
+            onClick: () => {
+              void onReparse();
+            },
+            children: reparsing ? words("正在重新解析…", "Re-parsing…", lang) : words("重新解析这份材料", "Re-parse this file", lang)
+          }
+        ) : null
+      ] });
     }
     return /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "od-reader", children: [
       level === "global" ? /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "od-level-bar", role: "note", children: [
@@ -16530,6 +16572,26 @@ ${provenance}（这段的证据引用是 ${evidenceRef}，需要核对原文时�
       ) : null
     ] });
   }
+  var TEXTUAL_EXTENSIONS = /* @__PURE__ */ new Set([
+    "json",
+    "csv",
+    "tsv",
+    "md",
+    "markdown",
+    "txt",
+    "yaml",
+    "yml",
+    "xml",
+    "html",
+    "htm",
+    "sql",
+    "ddl",
+    "log",
+    "ini",
+    "toml",
+    "properties"
+  ]);
+  var SCANNABLE_EXTENSIONS = /* @__PURE__ */ new Set(["pdf", "png", "jpg", "jpeg", "gif", "webp", "bmp", "tif", "tiff"]);
   var PAGE = 50;
   function DocumentPreview({
     sessionId,
@@ -16551,6 +16613,7 @@ ${provenance}（这段的证据引用是 ${evidenceRef}，需要核对原文时�
     onAddVersion,
     onPublish,
     onMove,
+    onReparse,
     folderOptions
   }) {
     const [expanded, setExpanded] = (0, import_react4.useState)(false);
@@ -16699,9 +16762,12 @@ ${provenance}（这段的证据引用是 ${evidenceRef}，需要核对原文时�
           sessionId,
           api,
           documentId: document2.id,
+          documentTitle: document2.title,
           ...version === void 0 ? {} : { versionId: version.id },
           lang,
-          level
+          level,
+          ...onReparse === void 0 ? {} : { onReparse },
+          reparsing: isBusy
         }
       ) : null
     ] });
@@ -17151,6 +17217,10 @@ ${provenance}（这段的证据引用是 ${evidenceRef}，需要核对原文时�
                 base_version_id: selected.current_version_id
               })),
               folderOptions: folderNames,
+              onReparse: async () => await runMutation(
+                `${selected.id}:reparse`,
+                async () => await api.reparse(sessionId, selected.id)
+              ),
               onMove: async (folderPath) => await runMutation(
                 `${selected.id}:move`,
                 async () => await api.moveDocument(sessionId, selected.id, folderPath)

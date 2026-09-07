@@ -781,26 +781,55 @@
   },
   {
    "doc": {
-    "chunks": [],
-    "file_id": "f_0123456789ab",
-    "file_name": "toplevel_list.json",
-    "findings": [
+    "chunks": [
      {
-      "kind": "parse_failed",
-      "locator": {},
-      "message": "顶层不是对象",
-      "severity": "warn"
+      "chunk_id": "f_0123456789ab:k0",
+      "file_id": "f_0123456789ab",
+      "file_name": "toplevel_list.json",
+      "locator": {
+       "kind": "json",
+       "pointer": "$.0"
+      },
+      "render": "0: 1",
+      "raw": 1,
+      "order": 0,
+      "tags": [
+       "json"
+      ],
+      "context": ""
+     },
+     {
+      "chunk_id": "f_0123456789ab:k1",
+      "file_id": "f_0123456789ab",
+      "file_name": "toplevel_list.json",
+      "locator": {
+       "kind": "json",
+       "pointer": "$.1"
+      },
+      "render": "1: 2",
+      "raw": 2,
+      "order": 1,
+      "tags": [
+       "json"
+      ],
+      "context": ""
      }
     ],
-    "kind": "openapi",
+    "file_id": "f_0123456789ab",
+    "file_name": "toplevel_list.json",
+    "findings": [],
+    "kind": "json",
     "meta": {},
     "stats": {
-     "chunks": 0,
      "file": "toplevel_list.json",
-     "findings": 1,
-     "kind": "openapi"
+     "kind": "json",
+     "chunks": 2,
+     "findings": 0,
+     "keys": 2
     },
-    "structured": {}
+    "structured": {
+     "keys": 2
+    }
    },
    "file_id": "f_0123456789ab",
    "name": "toplevel_list.json",
