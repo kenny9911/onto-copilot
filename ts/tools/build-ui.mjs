@@ -8,8 +8,9 @@
 // 单文件、无外部请求是硬约束：这个页面是直接被服务端当 HTML 返回的，
 // 没有静态资源路由，也没人愿意为一个内部工作台引一套构建产物目录。
 //
-// 用法：node ts/tools/build-ui.mjs [--check]
-//   --check 只比对，不写盘（CI 里用来确认 index.html 与源码没有漂移）
+// 用法：node ts/tools/build-ui.mjs [--check] [--sync-dist]
+//   --check      只比对，不写盘（CI 里用来确认 index.html 与源码没有漂移）
+//   --sync-dist  同时写一份进 ts/dist/src/server/ui/（发版才要；见下面那段注释）
 
 import { build } from "esbuild";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -87,10 +88,24 @@ if (process.argv.includes("--check")) {
   // 不是仓库根的 ui/。以前那份是手工拷进去的：dist 一重建就没了，服务端于是回退到
   // 「前端未构建」，或者更糟 —— 继续吐几小时前的旧界面，而你以为看的是新代码。
   // 前端只有这一个产物，跟着它一起写出去最省事。
-  const packaged = resolve(ROOT, "ts/dist/src/server");
-  if (existsSync(packaged)) {
-    mkdirSync(join(packaged, "ui"), { recursive: true });
-    writeFileSync(join(packaged, "ui", "index.html"), html);
-    console.log("ts/dist/src/server/ui/index.html 已同步");
+  // **只在 --sync-dist 时同步**（`npm run build:deploy` 会带上它）。
+  //
+  // 以前这里是无条件的，理由写在上面：dist 一重建，手工拷进去的那份就没了。
+  // 但无条件的代价更大：`./restart.sh` 是**开发模式**（tsx 直接读源码，另起一个
+  // 端口），它也跑 build:ui —— 于是在这台机器上，跑一次 restart.sh 就把常驻
+  // launchd 服务（跑的是 dist）的前端换成了当前源码的新 bundle，而它的后端 JS
+  // 还是旧的。前后端版本错配，症状是前端调新接口拿 404，**没有任何日志说明
+  // 发生过什么**。
+  //
+  // 「谁在发版」这件事应该是显式的，不该由「谁碰巧构建了前端」决定。
+  if (process.argv.includes("--sync-dist")) {
+    const packaged = resolve(ROOT, "ts/dist/src/server");
+    if (existsSync(packaged)) {
+      mkdirSync(join(packaged, "ui"), { recursive: true });
+      writeFileSync(join(packaged, "ui", "index.html"), html);
+      console.log("ts/dist/src/server/ui/index.html 已同步");
+    } else {
+      console.log("ts/dist 不存在，跳过同步（还没编译过服务端）");
+    }
   }
 }

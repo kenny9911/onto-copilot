@@ -373,7 +373,7 @@ node tools/build-ui.mjs --check         # 只检查漂移，不写盘
 * **`ui/index.template.html` 是源码**（HTML 骨架 + 全部 CSS + 标记），**`ui/index.html` 是产物，不要手改。**
 * 改了 `ts/src/ui/` 不重新构建，浏览器上什么都不会变，而 `ts/test/ui.build.test.ts` 会红。
 * `npm run build` 是 `tsc` + 把 `ts/catalog/` 复制进 `ts/dist/catalog/`，**不管前端**；`npm run dev` 只 watch 服务端，UI 没有 HMR。
-* **发版到 `ts/dist` 用 `npm run build:deploy`**（= `build` + `build:ui`）。分开跑的坑有两个，都不会当场报错：只跑 `tsc` 不复制 catalog，服务起来之后**每一轮对话**都抛「工具未登记在 tools/tools.yaml」；不跑 `build:ui`，页面还是上一次构建的产物。`restart.sh` 走的是 `tsx` 读源码那条路（默认 3594），不经过 `dist`，所以它只需要 `build:ui`。
+* **发版到 `ts/dist` 用 `npm run build:deploy`**（= `build` + `build:ui`）。分开跑的坑有两个，都不会当场报错：只跑 `tsc` 不复制 catalog，服务起来之后**每一轮对话**都抛「工具未登记在 tools/tools.yaml」；不跑 `build:ui`，页面还是上一次构建的产物。`restart.sh` 走的是 `tsx` 读源码那条路，本身不经过 `dist`，所以它只跑 `build:ui`（不带 `--sync-dist`）。**前端产物默认不写进 `dist`** —— 只有 `build:deploy` 会写。否则跑一次开发模式的 `restart.sh`，就把常驻服务（跑的是 `dist`）的前端换成了当前源码的新 bundle，而它的后端 JS 还是旧的，前后端版本错配且没有任何日志。
 * `ui/shell.baseline.json` 存骨架 CSS 与 body 的 sha256，样式改动要 `node ts/tools/verify-ui-shell.mjs --accept` 重新基线 —— 那份 diff 就是给评审看的记录。
 * `build:ui` 用 esbuild 打包。它一度**没有写进 `package.json`**、只靠 vitest/vite 传递带进来 —— 去掉测试工具链前端就构建不了。现在它是显式的 devDependency（`esbuild` ^0.28.2）。
 

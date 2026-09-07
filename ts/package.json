@@ -10,7 +10,7 @@
     "check:catalog": "npx tsx src/catalog/check.ts",
     "update:catalog-golden": "npx tsx tools/update-catalog-golden.ts",
     "build": "tsc && node tools/copy-catalog.mjs",
-    "build:deploy": "npm run build && npm run build:ui",
+    "build:deploy": "npm run build && node tools/build-ui.mjs --sync-dist",
     "migrate": "tsx tools/migrate.mts",
     "start": "tsx src/main.ts",
     "dev": "tsx watch src/main.ts",

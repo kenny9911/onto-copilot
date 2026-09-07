@@ -13,10 +13,13 @@
  * ── cwd 与 .env ────────────────────────────────────────────────
  * 抄 `src/main.ts` 的做法：先把 cwd 摆回仓库根，再 `loadDotenv()`。`DATABASE_URL`
  * 通常只写在 `.env` 里、并没有 export 到 shell，不载的话这里会看成"没配"，
- * 于是在一个明明配了 PG 的仓库上报"这是 SQLite 模式"。`migrations/` 的发现
- * 也是相对 cwd 的，同一个 chdir 一并解决。
+ * 于是在一个明明配了 PG 的仓库上报"这是 SQLite 模式"。
  *
- *     npx tsx ts/tools/migrate.mts        # 从哪个目录跑都行
+ * （chdir **只**为了 `.env`。`migrations/` 的发现和 cwd 无关 —— store/migrate.ts 的
+ * `SOURCE_MIGRATIONS` 是相对模块文件 resolve 的。原来这里写着它也跟 cwd 走，
+ * 照着改 cwd 逻辑会得出错误结论。）
+ *
+ *     npm run migrate --prefix ts         # 或 npx tsx ts/tools/migrate.mts，从哪个目录跑都行
  */
 
 import { dirname, resolve } from "node:path";
@@ -39,19 +42,24 @@ if (!url) {
 }
 
 const store = await Store.open(url);
+// 不在 try 里 process.exit：那会**立刻**终止进程，下面 finally 的 store.close()
+// 根本跑不完，连接留给 Postgres 自己去超时回收。记个状态，出了 finally 再退。
+let wrongDialect = false;
 try {
   if (store.engine === null || store.engine.dialect !== "postgresql") {
     console.error(`✗ 迁移只跑 Postgres，当前 ${store.engine?.dialect ?? "无引擎"}。`);
-    process.exit(2);
+    wrongDialect = true;
+  } else {
+    const total = discover().length;
+    // upgrade() 自己会拿 advisory lock，所以多个副本同时起也只有一个真的在写。
+    const ran = await upgrade(store.engine as unknown as MigrationEngine);
+    console.log(
+      ran.length === 0
+        ? `✓ 迁移已是最新（共 ${total} 个）`
+        : `✓ 应用了 ${ran.length} 个迁移：${ran.join(", ")}（共 ${total} 个）`,
+    );
   }
-  const total = discover().length;
-  // upgrade() 自己会拿 advisory lock，所以多个副本同时起也只有一个真的在写。
-  const ran = await upgrade(store.engine as unknown as MigrationEngine);
-  console.log(
-    ran.length === 0
-      ? `✓ 迁移已是最新（共 ${total} 个）`
-      : `✓ 应用了 ${ran.length} 个迁移：${ran.join(", ")}（共 ${total} 个）`,
-  );
 } finally {
   await store.close();
 }
+if (wrongDialect) process.exit(2);
