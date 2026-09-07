@@ -325,6 +325,33 @@ describe("api", () => {
     expect(doc.chunks[1]!.render).toContain("采购订单");
   });
 
+  it("一组记录用记录自己的名字当标签，但**指针仍然是下标**", async () => {
+    // 标签和指针是两回事：
+    //   · 指针是「这段在原文的哪个位置」，是证据链的一环 —— 数组里必须是下标，
+    //     写成记录名根本不是一条能走回去的路径；
+    //   · 标签是给人看的那几个字，会出现在阅读器、检索命中的 cite，也参与 BM25。
+    //     数组下标在这个位置是纯噪音（「0: {…}」「1: {…}」）。
+    // 我第一版把两者混了，pointer 变成了 `$.采购需求计划` —— 这条测试钉住它们分开。
+    const text = JSON.stringify([
+      { id: "bd-demand-plan", name: "采购需求计划" },
+      { id: "bd-po", title: "采购订单" },
+      { id: "no-name-here" },
+      "一个字符串",
+    ]);
+    const p = await write("records.json", Buffer.from(text, "utf8").toString("base64"), "rec");
+    const doc = await new OpenApiParser().parse(p, { fileId: "f_rec" });
+
+    expect(doc.chunks[0]!.render.startsWith("采购需求计划:")).toBe(true);
+    expect(doc.chunks[1]!.render.startsWith("采购订单:")).toBe(true);
+    // 没有 name/title 就退到 id；连 id 都没有（或不是对象）才退回下标。
+    expect(doc.chunks[2]!.render.startsWith("no-name-here:")).toBe(true);
+    expect(doc.chunks[3]!.render.startsWith("3:")).toBe(true);
+
+    // 指针一律是下标，和标签无关。
+    expect(doc.chunks.map((c) => c.locator["pointer"]))
+      .toEqual(["$.0", "$.1", "$.2", "$.3"]);
+  });
+
   it("顶层是标量的 JSON 仍然算读不出结构", async () => {
     // 放宽的只是数组。一个裸数字/字符串确实没有可切片的结构，
     // 那种情况说「读不出来」是实话，不该硬造出一段。

@@ -278,6 +278,26 @@ describe("OntoDocument 项目知识库", () => {
     await waitFor(() => expect(api.deleteFolder).toHaveBeenCalled());
   });
 
+  it("一次把所有读不出正文的材料重新解析", async () => {
+    // 解析发生在入库那一刻。解析器后来修好了，已经躺在库里的材料不会自己受益，
+    // 而按 sha256 去重又让「重新上传同一个文件」这条路走不通。
+    // 逐份点是可行的，但现场用户一次就有六份 —— 那是六次重复劳动。
+    const api = fakeApi();
+    api.history = vi.fn(async () => [{ ...versions[0]!, chunk_count: 0 }]) as never;
+    const view = render(<KnowledgeLibrary sessionId="session-1" sessionFiles={[]} api={api} />);
+    await waitFor(() => expect(view.container.textContent).toContain("读不出正文"));
+
+    fireEvent.click(view.getByText(/读不出正文 · 重新解析/u));
+    await waitFor(() => expect(api.reparse).toHaveBeenCalledWith("session-1", "doc-1"));
+  });
+
+  it("全都读得出正文时不显示那个入口", async () => {
+    const api = fakeApi();
+    const view = render(<KnowledgeLibrary sessionId="session-1" sessionFiles={[]} api={api} />);
+    await waitFor(() => expect(view.container.querySelector(".od-fm-status")).not.toBeNull());
+    expect(view.container.textContent).not.toContain("读不出正文");
+  });
+
   it("读不出正文时不瞎猜原因，并给出重新解析的出路", async () => {
     // 现场（2026-09-07 用户截图）：点开一个 .json，正文区写着
     // 「它可能是扫描件，需要先做识别。」—— 一个纯文本格式，永远不可能是扫描件。

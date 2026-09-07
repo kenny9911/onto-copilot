@@ -909,6 +909,39 @@ export function KnowledgeLibrary({
     await runMutation(`${documentId}:move`, async () => await api.moveDocument(sessionId, documentId, folderPath));
   }, [api, runMutation, sessionId]);
 
+  /**
+   * 库里所有「一段正文都没读出来」的材料。
+   *
+   * 解析发生在**入库那一刻**。解析器后来修好了，这些材料不会自己受益 —— 而且
+   * 因为按 sha256 去重，重新上传同一个文件也只会拿回那份空的。逐份点「重新解析」
+   * 是可行的，但用户手里可能一次就有六七份（现场就是），那是六七次重复劳动。
+   */
+  const unreadable = documents.filter((row) => {
+    const history = histories[row.id];
+    if (!history) return false;   // 版本还没拉到，先不说话
+    const current = history.find((v) => v.id === row.current_version_id);
+    return current !== undefined && current.chunk_count === 0;
+  });
+
+  const reparseAll = useCallback(async (): Promise<void> => {
+    setIngesting(true);
+    setMutationError("");
+    setNotice("");
+    const rows: InboxOutcome[] = [];
+    // 串行，理由和入库那条一样：每一份的失败原因不同，逐份报出来才有用。
+    for (const row of unreadable) {
+      try {
+        const result = await api.reparse(sessionId, row.id);
+        rows.push({ name: row.title, ok: true, message: result.message || "已重新解析" });
+      } catch (error) {
+        rows.push({ name: row.title, ok: false, message: errorMessage(error, lang) });
+      }
+      setInboxOutcomes([...rows]);
+    }
+    setIngesting(false);
+    await refresh();
+  }, [api, histories, lang, refresh, sessionId, unreadable]);
+
   const submitSearch = async (event: FormEvent): Promise<void> => {
     event.preventDefault();
     const normalized = query.trim();
@@ -1199,6 +1232,18 @@ export function KnowledgeLibrary({
           <span>{status === "ready"
             ? words(`${documents.length} 份材料`, `${documents.length} files`, lang)
             : ""}</span>
+          {/* 一段正文都没读出来的材料，一次全部重解析。
+              解析发生在入库那一刻，解析器修好之后这些材料不会自己受益，
+              而按 sha 去重又让「重新上传」这条路走不通 —— 逐份点是可行的，
+              但一次就有六七份时那是六七次重复劳动。 */}
+          {unreadable.length > 0 && level !== "global" ? <button type="button" className="od-link"
+            disabled={ingesting}
+            title={words("这些材料入库时没读出正文，用现在的解析器再读一遍", "Re-parse files with no readable text", lang)}
+            onClick={() => void reparseAll()}>
+            {ingesting
+              ? words("正在重新解析…", "Re-parsing…", lang)
+              : words(`${unreadable.length} 份读不出正文 · 重新解析`, `${unreadable.length} unreadable · re-parse`, lang)}
+          </button> : null}
         </div>
       </aside>
 

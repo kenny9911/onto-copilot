@@ -16954,6 +16954,29 @@ ${provenance}（这段的证据引用是 ${evidenceRef}，需要核对原文时�
       setMovingId(null);
       await runMutation(`${documentId}:move`, async () => await api.moveDocument(sessionId, documentId, folderPath));
     }, [api, runMutation, sessionId]);
+    const unreadable = documents.filter((row) => {
+      const history = histories[row.id];
+      if (!history) return false;
+      const current = history.find((v) => v.id === row.current_version_id);
+      return current !== void 0 && current.chunk_count === 0;
+    });
+    const reparseAll = (0, import_react4.useCallback)(async () => {
+      setIngesting(true);
+      setMutationError("");
+      setNotice("");
+      const rows2 = [];
+      for (const row of unreadable) {
+        try {
+          const result = await api.reparse(sessionId, row.id);
+          rows2.push({ name: row.title, ok: true, message: result.message || "已重新解析" });
+        } catch (error) {
+          rows2.push({ name: row.title, ok: false, message: errorMessage(error, lang) });
+        }
+        setInboxOutcomes([...rows2]);
+      }
+      setIngesting(false);
+      await refresh2();
+    }, [api, histories, lang, refresh2, sessionId, unreadable]);
     const submitSearch = async (event) => {
       event.preventDefault();
       const normalized = query.trim();
@@ -17295,7 +17318,20 @@ ${provenance}（这段的证据引用是 ${evidenceRef}，需要核对原文时�
                   ]
                 }
               ) : null,
-              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "od-fm-status", children: /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { children: status === "ready" ? words(`${documents.length} 份材料`, `${documents.length} files`, lang) : "" }) })
+              /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "od-fm-status", children: [
+                /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { children: status === "ready" ? words(`${documents.length} 份材料`, `${documents.length} files`, lang) : "" }),
+                unreadable.length > 0 && level !== "global" ? /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
+                  "button",
+                  {
+                    type: "button",
+                    className: "od-link",
+                    disabled: ingesting,
+                    title: words("这些材料入库时没读出正文，用现在的解析器再读一遍", "Re-parse files with no readable text", lang),
+                    onClick: () => void reparseAll(),
+                    children: ingesting ? words("正在重新解析…", "Re-parsing…", lang) : words(`${unreadable.length} 份读不出正文 · 重新解析`, `${unreadable.length} unreadable · re-parse`, lang)
+                  }
+                ) : null
+              ] })
             ] }),
             /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "od-preview-pane", children: [
               searchResult ? /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(

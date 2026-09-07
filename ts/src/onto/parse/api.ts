@@ -388,6 +388,21 @@ function synthId(method: string, path: string): string {
 }
 
 /** 不是 OpenAPI 的普通 JSON：按顶层键切片，保留 JSON Pointer。 */
+/**
+ * 一条记录的人类可读标签。
+ *
+ * 只认这几个字段名，且只认**非空字符串**：猜错一个标签比用下标更糟 ——
+ * 下标至少诚实地表示「这是第几条」，而一个猜错的标签会让人以为记录叫那个名字。
+ */
+function recordLabel(value: unknown): string | null {
+  if (!isDict(value)) return null;
+  for (const key of ["name", "title", "名称", "标题", "label", "id"]) {
+    const raw = value[key];
+    if (typeof raw === "string" && raw.trim() !== "") return raw.trim();
+  }
+  return null;
+}
+
 function plainJson(
   doc: ParsedDoc,
   obj: unknown,
@@ -398,13 +413,25 @@ function plainJson(
     ? obj.map((v, i): [unknown, unknown] => [i, v])
     : Object.entries(asDict(obj));
   items.forEach(([k, v], i) => {
+    // **标签和指针是两回事，不能混。**
+    //
+    // 指针（locator.pointer）是「这段在原文的哪个位置」，是证据链的一环 ——
+    // 数组里就必须是下标，写成记录名根本不是一条能走回去的路径。
+    //
+    // 标签是给人看的那几个字：它会出现在阅读器里、进检索命中的 cite、也参与
+    // BM25 打分。数组下标在这个位置是纯噪音 —— 一份 34 条对象的 objects.json
+    // 读起来是「0: {…}」「1: {…}」，用户说的「无法展现」，解析修好之后剩下的
+    // 就是这一半。所以一组记录时标签用记录自己的名字，指针照旧是下标。
+    //
+    // 找不到名字就退回下标（一组标量、或字段命名不一样的记录），和以前一致。
+    const label = Array.isArray(obj) ? recordLabel(v) ?? pyStr(k) : pyStr(k);
     doc.chunks.push(
       makeChunk({
         docId: `k${i}`,
         fileId,
         fileName,
         locator: { kind: "json", pointer: `$.${pyStr(k)}` },
-        render: `${pyStr(k)}: ${cpSlice(pyJsonDumps(v), 0, 600)}`,
+        render: `${label}: ${cpSlice(pyJsonDumps(v), 0, 600)}`,
         raw: v,
         order: i,
         tags: ["json"],
