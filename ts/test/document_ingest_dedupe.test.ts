@@ -153,6 +153,41 @@ describe(`入库去重（${label}）`, () => {
     expect(again.document.id).not.toBe(first.document.id);
   });
 
+  it("重新解析是**就地重建这一版的派生数据**，不新建版本", async () => {
+    // 我第一版设计成「造一份新版本」，schema 直接把它挡了下来：
+    // `UNIQUE (document_id, sha256)`（migrations/0014_onto_document.sql:56）——
+    // 一份文档不会存两遍同样的字节。而这个约束是对的：
+    // **不可变的是原件，不是从它推出来的切片**，index_revision 这个字段存在的
+    // 意义正是「派生结果换过一茬」。
+    //
+    // 那一版的真实行为是静默空操作：唯一约束报错 → 被 catch 翻译成去重结果 →
+    // 返回旧那一版、切片一个字没变，而回执照样写着「已重新解析，读出 N 段」。
+    // 拿浏览器验证时看到引用行写着 v1、正文还是老样子，才发现的。
+    const { service, write } = await harness(await make());
+    const first = await service.promoteSessionFile(scope, {
+      source: write("采购制度.md", "付款条件：验收后 30 天。"),
+    });
+    const again = await service.reparse(scope, first.document.id);
+
+    // 同一版，版本号不变，历史不长出第二条。
+    expect(again.version.id).toBe(first.version.id);
+    expect(again.version.versionNo).toBe(1);
+    expect(await service.history(scope, first.document.id)).toHaveLength(1);
+    // 原件的身份一个字节没动。
+    expect(again.version.sha256).toBe(first.version.sha256);
+  });
+
+  it("重新解析之后读到的是新派生的切片", async () => {
+    const { service, write } = await harness(await make());
+    const first = await service.promoteSessionFile(scope, {
+      source: write("采购制度.md", "付款条件：验收后 30 天。"),
+    });
+    await service.reparse(scope, first.document.id);
+    const page = await service.read(scope, first.document.id, { offset: 0, limit: 10 });
+    expect(page.total).toBeGreaterThan(0);
+    expect(page.chunks[0]!.text).toContain("付款条件");
+  });
+
   it("跨项目不互相去重 —— 两个项目各有一份是对的", async () => {
     const { service, write } = await harness(await make());
     const source = write("行业规范.md", "行业通用：月结 30 天。");

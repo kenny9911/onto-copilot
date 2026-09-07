@@ -61,6 +61,19 @@ export interface CommitVersionInput {
   readonly chunks: readonly StoredDocumentChunk[];
 }
 
+export interface ReindexVersionInput {
+  readonly scope: DocumentScope;
+  readonly documentId: string;
+  readonly versionId: string;
+  readonly docKind: string;
+  readonly parsedDoc: ParsedDoc;
+  readonly parseStatus: "ready" | "degraded";
+  readonly parserName: string;
+  readonly parserVersion: string;
+  readonly indexRevision: string;
+  readonly chunks: readonly StoredDocumentChunk[];
+}
+
 export interface CommitVersionResult {
   readonly document: DocumentSummary;
   readonly version: StoredDocumentVersion;
@@ -103,6 +116,18 @@ export interface DocumentRepository {
     sha256: string,
   ): Promise<DocumentSummary | null>;
   commitVersion(input: CommitVersionInput): Promise<CommitVersionResult>;
+  /**
+   * 用**同一份原件**重跑解析的结果，就地替换这一版的派生数据。
+   *
+   * 不新建版本，因为 schema 不允许：`UNIQUE (document_id, sha256)`
+   * （migrations/0014_onto_document.sql:56）明确说一份文档不会存两遍同样的字节。
+   * 这个约束是对的 —— **不可变的是原件，不是从它推出来的切片**。
+   * `index_revision` 这个字段存在的意义正是「这一版的派生结果换过一茬」。
+   *
+   * 改的只有派生列：parsed_doc / parse_status / parser_* / index_revision /
+   * chunk_count 和切片本身。原件字节、sha256、rel_path、version_no 一个不动。
+   */
+  reindexVersion(input: ReindexVersionInput): Promise<StoredDocumentVersion>;
   updateMetadata(
     scope: DocumentScope,
     documentId: string,
@@ -716,6 +741,30 @@ export class MemoryDocumentRepository implements DocumentRepository {
     return cloneDocument(next);
   }
 
+  async reindexVersion(input: ReindexVersionInput): Promise<StoredDocumentVersion> {
+    assertScope(input.scope);
+    const doc = this.scoped(input.scope, input.documentId);
+    if (doc === null) throw new DocumentNotFound();
+    const version = this.versions.get(input.versionId);
+    if (version === undefined || version.documentId !== input.documentId) throw new DocumentNotFound();
+    const next: StoredDocumentVersion = {
+      ...version,
+      docKind: input.docKind,
+      parsedDoc: input.parsedDoc,
+      parseStatus: input.parseStatus,
+      parserName: input.parserName,
+      parserVersion: input.parserVersion,
+      indexRevision: input.indexRevision,
+      chunkCount: input.chunks.length,
+    };
+    this.versions.set(input.versionId, next);
+    for (const [key, chunk] of [...this.chunks.entries()]) {
+      if (chunk.versionId === input.versionId) this.chunks.delete(key);
+    }
+    for (const chunk of input.chunks) this.chunks.set(chunk.chunkId, { ...chunk });
+    return cloneVersion(next);
+  }
+
   async chunksOfVersion(
     scope: DocumentScope,
     documentId: string,
@@ -954,6 +1003,49 @@ export class SqlDocumentRepository implements DocumentRepository {
         [scope.projectId, scope.owner, sha256],
       );
       return rows[0] === undefined ? null : rowDocument(rows[0]);
+    });
+  }
+
+  async reindexVersion(input: ReindexVersionInput): Promise<StoredDocumentVersion> {
+    assertScope(input.scope);
+    return this.engine.begin(async (conn) => {
+      // 作用域校验走和别处同一条路：先确认这份文档属于这个 scope，再动它的版本。
+      const doc = await this.docIn(conn, input.scope, input.documentId);
+      if (doc === null) throw new DocumentNotFound();
+      const version = await this.versionIn(conn, input.scope, input.documentId, "id", input.versionId);
+      if (version === null) throw new DocumentNotFound();
+      // 只更派生列。sha256 / rel_path / version_no / created_at 一个不动 ——
+      // 原件没变，变的只是怎么解释它。
+      await conn.exec(
+        "UPDATE onto_document_version SET doc_kind=?,parsed_doc=?,parse_status=?," +
+          "parser_name=?,parser_version=?,index_revision=?,chunk_count=? WHERE id=? AND document_id=?",
+        [
+          input.docKind,
+          jsonText(input.parsedDoc),
+          input.parseStatus,
+          input.parserName,
+          input.parserVersion,
+          input.indexRevision,
+          input.chunks.length,
+          input.versionId,
+          input.documentId,
+        ],
+      );
+      await conn.exec("DELETE FROM onto_document_chunk WHERE version_id=?", [input.versionId]);
+      for (const c of input.chunks) {
+        await conn.exec(
+          "INSERT INTO onto_document_chunk " +
+            "(version_id,chunk_id,document_id,order_no,locator,render_text,raw_json,tags,context,text_sha256) " +
+            "VALUES (?,?,?,?,?,?,?,?,?,?)",
+          [
+            c.versionId, c.chunkId, c.documentId, c.order, jsonText(c.locator),
+            c.render, jsonText(c.raw), jsonText(c.tags), c.context, c.textSha256,
+          ],
+        );
+      }
+      const updated = await this.versionIn(conn, input.scope, input.documentId, "id", input.versionId);
+      if (updated === null) throw new DocumentNotFound();
+      return updated;
     });
   }
 

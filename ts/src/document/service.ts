@@ -370,9 +370,7 @@ export class DocumentService {
    * 改掉。所以重新解析产出**新的一版**，旧版原样留着，采用哪一版仍由人决定
    * （和「上传了新版本」同一条纪律）。
    *
-   * 原件字节一个不动，只是重新解释它 —— 所以这里**刻意绕过 sha 去重**：
-   * 去重问的是「这份内容进过库没有」，而这次要的恰恰是「同一份内容，换个解析器
-   * 再读一遍」。
+   * 原件字节一个不动，只是重新解释它。
    */
   async reparse(
     scope: DocumentScope,
@@ -417,17 +415,31 @@ export class DocumentService {
       throw new DocumentError("INTEGRITY_ERROR", "原件的校验值和版本记录不一致，已拒绝重新解析", 500);
     }
 
-    return await this.commitBytes({
+    // 重新解析出来的东西**就地替换这一版的派生数据**，不新建版本。
+    //
+    // 我第一版是「造一份新版本」，那是错的，而 schema 直接把它挡了下来：
+    // `UNIQUE (document_id, sha256)`（migrations/0014_onto_document.sql:56）——
+    // 一份文档不会存两遍同样的字节。这个约束是对的，**不可变的是原件，不是从它
+    // 推出来的切片**；`index_revision` 这个字段存在的意义正是「派生结果换过一茬」。
+    //
+    // 那一版的真实行为是**静默空操作**：唯一约束报错 → 被 catch 翻译成去重结果
+    // → 返回旧那一版、切片一个字没变，而回执照样写着「已重新解析，读出 N 段」。
+    // 拿浏览器验证时看到引用行上写着 v1、正文还是老样子，才发现的。
+    const derived = await this.derive(declared, version.fileName, cleanId, versionId);
+    const reindexed = await this.repository.reindexVersion({
       scope,
-      root,
-      bytes,
-      sourceName: version.fileName,
-      existing: summary,
-      baseVersionId: summary.currentVersionId,
-      digest,
-      mediaType: version.mediaType,
-      createdBy: scope.actorId ?? scope.owner,
+      documentId: cleanId,
+      versionId,
+      docKind: derived.doc.kind,
+      parsedDoc: derived.doc,
+      parseStatus: derived.parseStatus,
+      parserName: derived.parserName,
+      parserVersion: derived.parserVersion,
+      indexRevision: derived.indexRevision,
+      chunks: derived.chunks,
     });
+    const { parsedDoc: _parsedDoc, ...view } = reindexed;
+    return { document: summary, version: view, deduplicated: false };
   }
 
   /**
@@ -539,6 +551,85 @@ export class DocumentService {
    * 两个入口各自保留自己的路径守卫（一个只认会话目录、一个只认项目文档目录），
    * 那部分**不共用** —— 边界检查放宽一寸就是一个越权读文件的洞。
    */
+  /**
+   * 从一份**已经落盘的原件**推出这一版的派生数据。
+   *
+   * 抽出来是因为它有两个调用方：入库（commitBytes）和重新解析（reparse）。
+   * 抄第二份迟早会漂，而这里漂一寸的后果是同一份内容在两条路上算出不同的
+   * index_revision 或 parse_status —— publishToGlobal 上方那段注释记过同一个教训
+   * （evidenceRef 各存两份吃过亏）。
+   */
+  private async derive(
+    path: string,
+    sourceName: string,
+    documentId: string,
+    versionId: string,
+    opts: { readonly parserName?: string; readonly parserVersion?: string } = {},
+  ): Promise<{
+    readonly doc: ParsedDoc;
+    readonly chunks: readonly StoredDocumentChunk[];
+    readonly parseStatus: "ready" | "degraded";
+    readonly parserName: string;
+    readonly parserVersion: string;
+    readonly indexRevision: string;
+  }> {
+    let parsed: ParsedDoc;
+    try {
+      parsed = await this.parser.parse(path, { fileId: versionId });
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : String(error);
+      // 文件主库和解析器不是同一个真相层。解析器暂时不认识格式、损坏或缺少 OCR
+      // 时，仍要先保住已经通过 SHA 校验的不可变原件；否则用户会误以为文件已进
+      // 项目库，实际却什么都没留下。零切片的 degraded 版本不会被 AI 当成证据，
+      // 后续可从“处理任务”明确重试或换 OCR/解析器。
+      parsed = makeParsedDoc({ fileId: versionId, fileName: sourceName, kind: "unknown" });
+      parsed.findings.push(makeFinding(
+        "parse_failed",
+        `原文件已保存，但暂时没有读出可搜索正文：${detail}`.slice(0, 2_000),
+        { file: sourceName },
+        "warn",
+      ));
+      parsed.meta = { ingestion: "stored_unparsed" };
+    }
+    let normalized: ParsedDoc;
+    try {
+      normalized = normalizeParsedDoc(parsed, versionId, sourceName);
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : String(error);
+      normalized = makeParsedDoc({ fileId: versionId, fileName: sourceName, kind: "unknown" });
+      normalized.findings.push(makeFinding(
+        "parse_result_invalid",
+        `原文件已保存，但解析结果没有通过完整性检查：${detail}`.slice(0, 2_000),
+        { file: sourceName },
+        "warn",
+      ));
+      normalized.meta = { ingestion: "stored_unparsed" };
+    }
+    const chunks = chunksOf(documentId, versionId, normalized);
+    const parserName = cleanText(opts.parserName, "default-registry", "解析器名称", 120);
+    const parserVersion = cleanText(opts.parserVersion, "1", "解析器版本", 120);
+    const indexRevision = sha256Hex(
+      canonicalJson({
+        parser_name: parserName,
+        parser_version: parserVersion,
+        chunks: chunks.map((c) => ({
+          id: c.chunkId,
+          locator: c.locator,
+          text_sha256: c.textSha256,
+        })),
+      }),
+    ).slice(0, 32);
+    // 图片、纯扫描 PDF 在不触发付费视觉模型的入库阶段可能得到 0 个切片，并带
+    // vision_pending/info。它们绝不能显示成"已读入"：零正文和任何降级发现都只
+    // 能标为 degraded，后续问答会因无证据 fail closed。
+    const parseStatus = chunks.length === 0 || normalized.findings.some(
+      (f) => f.severity === "warn" || f.kind === "vision_pending" || f.kind === "page_limit",
+    )
+      ? "degraded" as const
+      : "ready" as const;
+    return { doc: normalized, chunks, parseStatus, parserName, parserVersion, indexRevision };
+  }
+
   private async commitBytes(opts: {
     readonly scope: DocumentScope;
     readonly root: string;
@@ -578,52 +669,11 @@ export class DocumentService {
       await writeFile(destination, bytes, { flag: "wx", mode: 0o600 });
       // 不解析会话里的可变文件，而解析刚刚落下的不可变快照，堵住 hash 与解析内容
       // 之间的 TOCTOU 窗口。
-      let parsed: ParsedDoc;
-      try {
-        parsed = await this.parser.parse(destination, { fileId: versionId });
-      } catch (error) {
-        const detail = error instanceof Error ? error.message : String(error);
-        // 文件主库和解析器不是同一个真相层。解析器暂时不认识格式、损坏或缺少 OCR
-        // 时，仍要先保住已经通过 SHA 校验的不可变原件；否则用户会误以为文件已进
-        // 项目库，实际却什么都没留下。零切片的 degraded 版本不会被 AI 当成证据，
-        // 后续可从“处理任务”明确重试或换 OCR/解析器。
-        parsed = makeParsedDoc({ fileId: versionId, fileName: sourceName, kind: "unknown" });
-        parsed.findings.push(makeFinding(
-          "parse_failed",
-          `原文件已保存，但暂时没有读出可搜索正文：${detail}`.slice(0, 2_000),
-          { file: sourceName },
-          "warn",
-        ));
-        parsed.meta = { ingestion: "stored_unparsed" };
-      }
-      let normalized: ParsedDoc;
-      try {
-        normalized = normalizeParsedDoc(parsed, versionId, sourceName);
-      } catch (error) {
-        const detail = error instanceof Error ? error.message : String(error);
-        normalized = makeParsedDoc({ fileId: versionId, fileName: sourceName, kind: "unknown" });
-        normalized.findings.push(makeFinding(
-          "parse_result_invalid",
-          `原文件已保存，但解析结果没有通过完整性检查：${detail}`.slice(0, 2_000),
-          { file: sourceName },
-          "warn",
-        ));
-        normalized.meta = { ingestion: "stored_unparsed" };
-      }
-      const chunks = chunksOf(documentId, versionId, normalized);
-      const parserName = cleanText(opts.parserName, "default-registry", "解析器名称", 120);
-      const parserVersion = cleanText(opts.parserVersion, "1", "解析器版本", 120);
-      const indexRevision = sha256Hex(
-        canonicalJson({
-          parser_name: parserName,
-          parser_version: parserVersion,
-          chunks: chunks.map((c) => ({
-            id: c.chunkId,
-            locator: c.locator,
-            text_sha256: c.textSha256,
-          })),
-        }),
-      ).slice(0, 32);
+      const derived = await this.derive(destination, sourceName, documentId, versionId, {
+        ...(opts.parserName === undefined ? {} : { parserName: opts.parserName }),
+        ...(opts.parserVersion === undefined ? {} : { parserVersion: opts.parserVersion }),
+      });
+      const { doc: normalized, chunks, parserName, parserVersion, indexRevision } = derived;
       const relativePath = relative(root, destination).split(sep).join("/");
       if (relativePath.startsWith("../") || isAbsolute(relativePath)) {
         throw new DocumentError("INTEGRITY_ERROR", "知识库文件没有落在 workspace 内", 500);
@@ -632,14 +682,8 @@ export class DocumentService {
       if (!SOURCE_CLASSES.has(sourceClass)) {
         throw new DocumentError("INVALID_ARGUMENT", "不支持的文档来源分类", 400);
       }
-      // 图片、纯扫描 PDF 在不触发付费视觉模型的入库阶段可能得到 0 个切片，并带
-      // vision_pending/info。它们绝不能显示成“已读入”：零正文和任何降级发现都只
-      // 能标为 degraded，后续问答会因无证据 fail closed。
-      const parseStatus = normalized.chunks.length === 0 || normalized.findings.some(
-        (f) => f.severity === "warn" || f.kind === "vision_pending" || f.kind === "page_limit",
-      )
-        ? "degraded"
-        : "ready";
+      // parse_status 由 derive 一并算出 —— 判据只此一处，见那边的注释。
+      const parseStatus = derived.parseStatus;
       const title = cleanText(opts.title, sourceName, "标题", 200);
       const logicalName = cleanText(
         opts.logicalName,

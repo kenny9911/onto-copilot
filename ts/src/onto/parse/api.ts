@@ -394,6 +394,50 @@ function synthId(method: string, path: string): string {
  * 只认这几个字段名，且只认**非空字符串**：猜错一个标签比用下标更糟 ——
  * 下标至少诚实地表示「这是第几条」，而一个猜错的标签会让人以为记录叫那个名字。
  */
+/**
+ * 标签 + 正文拼成切片的那段字。
+ *
+ * 记录铺成多行时标签**自成一行**（像标题）；其余情况保持 `键: 值` 的老形状 ——
+ * 一行里「标签: id: rule-…」读起来像两个冒号打架。
+ */
+function renderChunkText(label: string, value: unknown, insideArray: boolean): string {
+  const body = cpSlice(renderValue(value, insideArray), 0, 600);
+  return body.includes("\n") ? `${label}\n${body}` : `${label}: ${body}`;
+}
+
+/**
+ * 一条切片的正文长什么样。
+ *
+ * 一组记录（数组里的对象）铺成**逐字段一行**，其余一切照旧 JSON 序列化。
+ *
+ * 为什么只对这一种：用户点开一份 34 条记录的 objects.json，读到的是
+ *
+ *     需求计划须经技术与商务双重确认: {"id": "rule-tech-…", "name": "需求计划须经…",
+ *     "category": "职责确认", "belongsToClient": "中厂核", "description": "采购需求…
+ *
+ * —— 标签修好了，后面仍然是一堵 600 字的 JSON 墙，名字还重复一遍。他说的
+ * 「无法展现和 render 出来」，解析修好之后剩下的就是这一堵墙。铺成
+ *
+ *     需求计划须经技术与商务双重确认: category: 职责确认
+ *     belongsToClient: 中厂核
+ *     description: 采购需求计划必须完成技术与商务确认后再提交审批…
+ *
+ * 人能读，BM25 也更好切（字段值之间有分隔，不再夹着 JSON 标点）。
+ *
+ * 已经当成标签用掉的那个字段跳过，不重复一遍。嵌套值仍然 JSON 序列化 ——
+ * 把它们也铺平会让「哪一层」丢失，而 raw 里存着完整原貌，需要时能拿到。
+ */
+function renderValue(value: unknown, insideArray: boolean): string {
+  if (!insideArray || !isDict(value)) return pyJsonDumps(value);
+  const label = recordLabel(value);
+  const lines: string[] = [];
+  for (const [key, field] of Object.entries(value)) {
+    if (typeof field === "string" && field === label) continue;
+    lines.push(`${key}: ${typeof field === "string" ? field : pyJsonDumps(field)}`);
+  }
+  return lines.length > 0 ? lines.join("\n") : pyJsonDumps(value);
+}
+
 function recordLabel(value: unknown): string | null {
   if (!isDict(value)) return null;
   for (const key of ["name", "title", "名称", "标题", "label", "id"]) {
@@ -431,7 +475,7 @@ function plainJson(
         fileId,
         fileName,
         locator: { kind: "json", pointer: `$.${pyStr(k)}` },
-        render: `${label}: ${cpSlice(pyJsonDumps(v), 0, 600)}`,
+        render: renderChunkText(label, v, Array.isArray(obj)),
         raw: v,
         order: i,
         tags: ["json"],

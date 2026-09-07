@@ -121,7 +121,7 @@ function fakeApi(): KnowledgeLibraryApi {
     archive: vi.fn(async () => ({ ok: true, message: "已归档这份文档。" })),
     attach: vi.fn(async () => ({ ok: true, message: "已把这个固定版本加入本次分析。" })),
     publish: vi.fn(async () => ({ ok: true, message: "已设为通用知识" })),
-    reparse: vi.fn(async () => ({ ok: true, message: "已重新解析，读出 12 段可检索正文（存为新的一版）。" })),
+    reparse: vi.fn(async () => ({ ok: true, message: "已重新解析，读出 12 段可检索正文。" })),
     // 用户手工建的文件夹。树上的分组来自这里，不再是「按标签推出来的」。
     listFolders: vi.fn(async () => [
       { path: "制度", created_at: "2026-09-03T00:00:00.000Z" },

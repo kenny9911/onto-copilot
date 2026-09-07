@@ -333,7 +333,7 @@ describe("api", () => {
     //     数组下标在这个位置是纯噪音（「0: {…}」「1: {…}」）。
     // 我第一版把两者混了，pointer 变成了 `$.采购需求计划` —— 这条测试钉住它们分开。
     const text = JSON.stringify([
-      { id: "bd-demand-plan", name: "采购需求计划" },
+      { id: "bd-demand-plan", name: "采购需求计划", type: "data", desc: "需求清单" },
       { id: "bd-po", title: "采购订单" },
       { id: "no-name-here" },
       "一个字符串",
@@ -341,11 +341,26 @@ describe("api", () => {
     const p = await write("records.json", Buffer.from(text, "utf8").toString("base64"), "rec");
     const doc = await new OpenApiParser().parse(p, { fileId: "f_rec" });
 
-    expect(doc.chunks[0]!.render.startsWith("采购需求计划:")).toBe(true);
-    expect(doc.chunks[1]!.render.startsWith("采购订单:")).toBe(true);
+    // 多字段的记录铺成多行，标签自成一行（像标题）。
+    expect(doc.chunks[0]!.render.startsWith("采购需求计划\n")).toBe(true);
+    // 只剩一个字段时不值得换行，保持 `标签: 字段` 的老形状 ——
+    // 一行里换行反而更碎。
+    expect(doc.chunks[1]!.render).toBe("采购订单: id: bd-po");
     // 没有 name/title 就退到 id；连 id 都没有（或不是对象）才退回下标。
-    expect(doc.chunks[2]!.render.startsWith("no-name-here:")).toBe(true);
-    expect(doc.chunks[3]!.render.startsWith("3:")).toBe(true);
+    expect(doc.chunks[2]!.render.startsWith("no-name-here")).toBe(true);
+    expect(doc.chunks[3]!.render).toBe("3: \"一个字符串\"");
+
+    // 正文铺成**逐字段一行**，不是一堵 JSON 墙。
+    //
+    // 用户点开一份 34 条记录的 objects.json，标签修好之后读到的仍然是
+    // 「需求计划须经…: {"id": "rule-…", "name": "需求计划须经…", "category": …」
+    // —— 600 字的 JSON，名字还重复一遍。他说的「无法展现」，剩下的就是这一堵墙。
+    //
+    // 铺平之后人能读，BM25 也更好切（字段值之间有分隔，不再夹着 JSON 标点）。
+    // 已经当成标签用掉的那个字段跳过，不重复。
+    expect(doc.chunks[0]!.render).toContain("id: bd-demand-plan");
+    expect(doc.chunks[0]!.render).not.toContain("{\"id\"");
+    expect((doc.chunks[0]!.render.match(/采购需求计划/gu) ?? [])).toHaveLength(1);
 
     // 指针一律是下标，和标签无关。
     expect(doc.chunks.map((c) => c.locator["pointer"]))
