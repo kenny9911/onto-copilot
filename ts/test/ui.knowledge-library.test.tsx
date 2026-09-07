@@ -299,6 +299,74 @@ describe("OntoDocument 项目知识库", () => {
     await waitFor(() => expect(api.reparse).toHaveBeenCalledWith("session-1", "doc-1"));
   });
 
+  it("「设为通用参考」要先确认，并说清楚撤不回来", async () => {
+    // 这是这一屏**唯一不可逆**的动作：service.ts 里根本没有 unpublish。
+    // 而它以前是一颗裸链接，解释只写在 title 里（触屏永远看不见），
+    // 一键就把材料复制进跨项目共享的库。
+    //
+    // 对比之下，拖动归类（folder_path 不进检索语料、不进流水线，改了不影响任何
+    // 输出）反而是可逆的。这两者的界面权重必须和它们的后果一致，否则用户会
+    // 反推出一个正好相反的因果模型。
+    const api = fakeApi();
+    const view = render(<KnowledgeLibrary sessionId="session-1" sessionFiles={[]} api={api} />);
+    await waitFor(() => expect(view.container.querySelector(".od-preview-head")).not.toBeNull());
+
+    fireEvent.click(view.getByText("设为通用参考"));
+    const confirm = view.container.querySelector(".od-publish-confirm") as HTMLElement;
+    expect(confirm).not.toBeNull();
+    expect(confirm.textContent).toContain("撤不回来");
+    expect(confirm.textContent).toContain("所有项目");
+    // 只是打开确认行，还没有真的发出去。
+    expect(api.publish).not.toHaveBeenCalled();
+
+    fireEvent.click(view.getByText("确认设为通用参考"));
+    await waitFor(() => expect(api.publish).toHaveBeenCalledWith("session-1", "doc-1"));
+  });
+
+  it("确认行上点「先不要」不会发出去", async () => {
+    const api = fakeApi();
+    const view = render(<KnowledgeLibrary sessionId="session-1" sessionFiles={[]} api={api} />);
+    await waitFor(() => expect(view.container.querySelector(".od-preview-head")).not.toBeNull());
+    fireEvent.click(view.getByText("设为通用参考"));
+    fireEvent.click(view.getByText("先不要"));
+    expect(view.container.querySelector(".od-publish-confirm")).toBeNull();
+    expect(api.publish).not.toHaveBeenCalled();
+  });
+
+  it("拖一份材料到文件夹上就移过去了", async () => {
+    const api = fakeApi();
+    const view = render(<KnowledgeLibrary sessionId="session-1" sessionFiles={[]} api={api} />);
+    await waitFor(() => expect(view.container.querySelector(".od-file")).not.toBeNull());
+
+    const row = view.container.querySelector(".od-file") as HTMLElement;
+    expect(row.getAttribute("draggable")).toBe("true");
+    // 行是 treeitem 不是 button：HTML 不许 button 套 button，而行上要挂 ⋯ 菜单。
+    expect(row.getAttribute("role")).toBe("treeitem");
+
+    const folder = view.container.querySelector(".od-folder") as HTMLElement;
+    fireEvent.dragStart(row);
+    fireEvent.dragOver(folder);
+    fireEvent.drop(folder);
+    await waitFor(() => expect(api.moveDocument).toHaveBeenCalled());
+  });
+
+  it("拖不了的时候有一条等价的路 —— 触屏和键盘都够得着", async () => {
+    // HTML5 拖拽在触屏上根本不发 dragstart，键盘更没有；而窄屏会把这一页压成单列，
+    // 是常见形态不是边角情况。所以拖拽**不能是唯一的路**。
+    const api = fakeApi();
+    const view = render(<KnowledgeLibrary sessionId="session-1" sessionFiles={[]} api={api} />);
+    await waitFor(() => expect(view.container.querySelector(".od-file")).not.toBeNull());
+
+    fireEvent.click(view.container.querySelector(".od-file-menu") as HTMLElement);
+    const pick = view.container.querySelector(".od-move-pick") as HTMLElement;
+    expect(pick).not.toBeNull();
+    // 「根目录」在页面上有两处（这个选择条，和右栏那个「移动到」下拉的选项），
+    // 所以从这个条里找，不用全局 getByText。
+    const root = [...pick.querySelectorAll("button")].find((b) => b.textContent === "根目录")!;
+    fireEvent.click(root);
+    await waitFor(() => expect(api.moveDocument).toHaveBeenCalledWith("session-1", expect.any(String), ""));
+  });
+
   it("选中一份材料后可以把它移到别的文件夹", async () => {
     const api = fakeApi();
     const view = render(<KnowledgeLibrary sessionId="session-1" sessionFiles={[]} api={api} />);

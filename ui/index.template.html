@@ -255,6 +255,21 @@ body.knowledge-page-open .main{min-width:0;border-right:0}
 .kp-acts{display:flex;flex:none;align-items:center;gap:8px}
 .od-ask{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;margin-top:8px;padding:7px 11px;border:1px dashed var(--line);border-radius:8px}
 .od-ask>span{color:var(--ink-3);font-size:.7037rem}
+.od-publish-confirm{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:12px;margin-top:10px;padding:11px 13px;border:1px solid var(--warn-line);border-radius:8px;background:var(--warn-tint)}
+.od-publish-confirm>div:first-child{flex:1;min-width:220px}
+.od-publish-confirm strong{display:block;color:var(--ink);font-size:.8519rem}
+.od-publish-confirm p{margin-top:4px;color:var(--ink-2);font-size:.7407rem;line-height:1.6}
+.od-publish-warn{color:var(--warn)!important;font-weight:600}
+.od-publish-acts{display:flex;flex:none;align-items:center;gap:10px}
+.od-folder.dropping>.od-folder-head{background:var(--accent-tint);box-shadow:inset 0 0 0 1px var(--accent-line)}
+.od-file[draggable="true"]{cursor:grab}
+.od-file:focus-visible{outline:2px solid var(--accent-line);outline-offset:-2px}
+.od-file-menu{flex:none;padding:0 4px;border-radius:4px;color:var(--ink-3);font-size:.7407rem;opacity:.5}
+.od-file:hover .od-file-menu,.od-file-menu:focus-visible{opacity:1;background:var(--hover-2);color:var(--ink)}
+.od-root-drop{margin:6px 8px;padding:9px;border:1px dashed var(--line);border-radius:7px;color:var(--ink-3);font-size:.7037rem;text-align:center}
+.od-root-drop.dropping{border-color:var(--accent-line);background:var(--accent-tint);color:var(--accent)}
+.od-move-pick{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;padding:7px 10px;border-top:1px solid var(--line-soft);background:var(--panel)}
+.od-move-pick>span{color:var(--ink-3);font-size:.7037rem}
 .od-fm-status{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;border-top:1px solid var(--line-soft);color:var(--ink-3);font-size:.7037rem}
 @media (max-width:900px){.od-explorer{grid-template-columns:minmax(0,1fr)}.od-tree{border-right:0;border-bottom:1px solid var(--line)}}
 /* 就地读全文。这是此前完全没有的入口。 */

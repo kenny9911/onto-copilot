@@ -255,6 +255,21 @@ body.knowledge-page-open .main{min-width:0;border-right:0}
 .kp-acts{display:flex;flex:none;align-items:center;gap:8px}
 .od-ask{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;margin-top:8px;padding:7px 11px;border:1px dashed var(--line);border-radius:8px}
 .od-ask>span{color:var(--ink-3);font-size:.7037rem}
+.od-publish-confirm{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:12px;margin-top:10px;padding:11px 13px;border:1px solid var(--warn-line);border-radius:8px;background:var(--warn-tint)}
+.od-publish-confirm>div:first-child{flex:1;min-width:220px}
+.od-publish-confirm strong{display:block;color:var(--ink);font-size:.8519rem}
+.od-publish-confirm p{margin-top:4px;color:var(--ink-2);font-size:.7407rem;line-height:1.6}
+.od-publish-warn{color:var(--warn)!important;font-weight:600}
+.od-publish-acts{display:flex;flex:none;align-items:center;gap:10px}
+.od-folder.dropping>.od-folder-head{background:var(--accent-tint);box-shadow:inset 0 0 0 1px var(--accent-line)}
+.od-file[draggable="true"]{cursor:grab}
+.od-file:focus-visible{outline:2px solid var(--accent-line);outline-offset:-2px}
+.od-file-menu{flex:none;padding:0 4px;border-radius:4px;color:var(--ink-3);font-size:.7407rem;opacity:.5}
+.od-file:hover .od-file-menu,.od-file-menu:focus-visible{opacity:1;background:var(--hover-2);color:var(--ink)}
+.od-root-drop{margin:6px 8px;padding:9px;border:1px dashed var(--line);border-radius:7px;color:var(--ink-3);font-size:.7037rem;text-align:center}
+.od-root-drop.dropping{border-color:var(--accent-line);background:var(--accent-tint);color:var(--accent)}
+.od-move-pick{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;padding:7px 10px;border-top:1px solid var(--line-soft);background:var(--panel)}
+.od-move-pick>span{color:var(--ink-3);font-size:.7037rem}
 .od-fm-status{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;border-top:1px solid var(--line-soft);color:var(--ink-3);font-size:.7037rem}
 @media (max-width:900px){.od-explorer{grid-template-columns:minmax(0,1fr)}.od-tree{border-right:0;border-bottom:1px solid var(--line)}}
 /* 就地读全文。这是此前完全没有的入口。 */
@@ -16358,17 +16373,40 @@ ${text4}
 ${provenance}（这段的证据引用是 ${evidenceRef}，需要核对原文时用 document.open 打开它。）
 `;
   }
-  function FileRow({ item, depth, selectedId, attachments, lang, onPick }) {
+  function FileRow({ item, depth, selectedId, attachments, lang, onPick, onDragStart, onMenu }) {
     return /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(
-      "button",
+      "div",
       {
-        type: "button",
+        role: "treeitem",
+        "aria-selected": item.id === selectedId,
+        tabIndex: 0,
+        draggable: onDragStart !== void 0,
+        onDragStart,
         className: `od-file${item.id === selectedId ? " on" : ""}${item.status === "archived" ? " archived" : ""}`,
         style: { paddingLeft: `${27 + depth * 14}px` },
         onClick: onPick,
+        onKeyDown: (event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            onPick();
+          }
+        },
         children: [
           /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "od-file-name", children: item.title }),
-          attachedVersion(item.id, attachments) ? /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "od-file-flag", children: words("本次在用", "In use", lang) }) : null
+          attachedVersion(item.id, attachments) ? /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "od-file-flag", children: words("本次在用", "In use", lang) }) : null,
+          onMenu ? /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
+            "button",
+            {
+              type: "button",
+              className: "od-file-menu",
+              title: words("移到别的文件夹", "Move to another folder", lang),
+              onClick: (event) => {
+                event.stopPropagation();
+                onMenu();
+              },
+              children: "⋯"
+            }
+          ) : null
         ]
       }
     );
@@ -16387,7 +16425,7 @@ ${provenance}（这段的证据引用是 ${evidenceRef}，需要核对原文时�
               " · v",
               hit.version_no
             ] }),
-            hit.also_in_level === "global" ? /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "od-hit-also", children: words("公共库也有同一段", "Also in the shared library", lang) }) : null,
+            hit.also_in_level === "global" ? /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "od-hit-also", children: words("通用参考里也有同一段", "Also in shared reference", lang) }) : null,
             /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("small", { children: hit.cite })
           ] }),
           /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("p", { children: hit.text })
@@ -16420,7 +16458,7 @@ ${provenance}（这段的证据引用是 ${evidenceRef}，需要核对原文时�
         /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(HitGroup, { hits: ownHits, lang, onOpen }),
         sharedHits.length ? /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("details", { className: "od-hit-shared", children: [
           /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("summary", { children: [
-            words(`另有 ${sharedHits.length} 处来自公共知识库`, `${sharedHits.length} more from the shared library`, lang),
+            words(`另有 ${sharedHits.length} 处来自通用参考`, `${sharedHits.length} more from shared reference`, lang),
             /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { children: words("行业通用参考，不是这个客户的规定", "Cross-project reference, not this client’s rules", lang) })
           ] }),
           /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(HitGroup, { hits: sharedHits, lang, onOpen })
@@ -16533,7 +16571,7 @@ ${provenance}（这段的证据引用是 ${evidenceRef}，需要核对原文时�
     }
     return /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "od-reader", children: [
       level === "global" ? /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "od-level-bar", role: "note", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("strong", { children: words("公共知识库", "Shared library", lang) }),
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("strong", { children: words("通用参考", "Shared reference", lang) }),
         /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { children: words(
           "行业通用参考，不是这个客户自己的规定。引用到对话时会带上这句话。",
           "Cross-project reference material — not this client’s own rules.",
@@ -16548,7 +16586,7 @@ ${provenance}（这段的证据引用是 ${evidenceRef}，需要核对原文时�
       chunks.map((chunk) => /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "od-reader-chunk", children: [
         /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "od-evidence-context", children: [
           chunk.cite,
-          chunk.level === "global" ? /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "od-badge current", children: words("总库", "Shared", lang) }) : null
+          chunk.level === "global" ? /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "od-badge current", children: words("通用参考", "Shared reference", lang) }) : null
         ] }),
         /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("p", { className: "od-reader-text", children: chunk.text }),
         /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", className: "od-link", onClick: () => {
@@ -16618,6 +16656,7 @@ ${provenance}（这段的证据引用是 ${evidenceRef}，需要核对原文时�
   }) {
     const [expanded, setExpanded] = (0, import_react4.useState)(false);
     const [editing, setEditing] = (0, import_react4.useState)(false);
+    const [confirmPublish, setConfirmPublish] = (0, import_react4.useState)(false);
     const pinnedVersion = versions?.find((item) => item.id === attachment?.version_id);
     const adoptedVersion = versions?.find((item) => item.id === document2.adopted_version_id);
     const currentVersion = versions?.find((item) => item.id === document2.current_version_id);
@@ -16684,9 +16723,8 @@ ${provenance}（这段的证据引用是 ${evidenceRef}，需要核对原文时�
               type: "button",
               className: "od-link",
               disabled: isBusy,
-              title: words("复制到公共知识库，其他项目也能检索到", "Copy into the shared library", lang),
-              onClick: () => void onPublish(),
-              children: words("设为通用知识", "Make shared", lang)
+              onClick: () => setConfirmPublish((on) => !on),
+              children: words("设为通用参考", "Make shared", lang)
             }
           ) : null,
           /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", className: "od-link", onClick: onClose, children: words("关闭", "Close", lang) })
@@ -16731,6 +16769,45 @@ ${provenance}（这段的证据引用是 ${evidenceRef}，需要核对原文时�
           }
         )
       ] }),
+      confirmPublish ? /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "od-publish-confirm", role: "alert", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { children: [
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("strong", { children: words("把这份材料设为通用参考？", "Make this shared reference?", lang) }),
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("p", { children: words(
+            `「${document2.title}」会被复制一份进通用参考库（项目里这份原样留着）。之后所有项目都能检索到它，任何人都可能把它当成参考依据引用。`,
+            "It will be copied into the shared reference library and become searchable from every project.",
+            lang
+          ) }),
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("p", { className: "od-publish-warn", children: words(
+            "这一步目前撤不回来 —— 系统还没有「取消通用参考」这个动作。",
+            "This cannot be undone yet.",
+            lang
+          ) })
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "od-publish-acts", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
+            "button",
+            {
+              type: "button",
+              className: "act",
+              disabled: isBusy,
+              onClick: () => {
+                setConfirmPublish(false);
+                void onPublish?.();
+              },
+              children: words("确认设为通用参考", "Yes, make it shared", lang)
+            }
+          ),
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
+            "button",
+            {
+              type: "button",
+              className: "od-link",
+              onClick: () => setConfirmPublish(false),
+              children: words("先不要", "Not now", lang)
+            }
+          )
+        ] })
+      ] }) : null,
       editing ? /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
         MetadataEditor,
         {
@@ -16808,6 +16885,9 @@ ${provenance}（这段的证据引用是 ${evidenceRef}，需要核对原文时�
     const [ingesting, setIngesting] = (0, import_react4.useState)(false);
     const [draftFolder, setDraftFolder] = (0, import_react4.useState)(null);
     const [pendingDelete, setPendingDelete] = (0, import_react4.useState)(null);
+    const [dragging, setDragging] = (0, import_react4.useState)(null);
+    const [dropTarget, setDropTarget] = (0, import_react4.useState)(null);
+    const [movingId, setMovingId] = (0, import_react4.useState)(null);
     const loadSequence = (0, import_react4.useRef)(0);
     (0, import_react4.useEffect)(() => {
       if (!sessionFiles.some((file) => file.name === selectedUpload)) {
@@ -16890,6 +16970,12 @@ ${provenance}（这段的证据引用是 ${evidenceRef}，需要核对原文时�
       setIngesting(false);
       await refresh2();
     }, [api, lang, refresh2, sessionId]);
+    const moveTo = (0, import_react4.useCallback)(async (documentId, folderPath) => {
+      setDragging(null);
+      setDropTarget(null);
+      setMovingId(null);
+      await runMutation(`${documentId}:move`, async () => await api.moveDocument(sessionId, documentId, folderPath));
+    }, [api, runMutation, sessionId]);
     const submitSearch = async (event) => {
       event.preventDefault();
       const normalized = query.trim();
@@ -16943,304 +17029,395 @@ ${provenance}（这段的证据引用是 ${evidenceRef}，需要核对原文时�
       prefillComposer(text4, { mode: "replace", focusSidebar: false });
     }, []);
     const pending = level === "global" ? [] : pendingSessionFiles(sessionFiles, documents, histories);
-    return /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("section", { className: "od-library od-fm", "aria-label": words("知识库", "Knowledge library", lang), children: [
-      level === "global" ? null : /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
-        KnowledgeInbox,
-        {
-          items: pending,
-          busy: ingesting,
-          outcomes: inboxOutcomes,
-          onIngest: ingest,
-          onUpload: () => document.getElementById("picker")?.click(),
-          onDismissOutcomes: () => setInboxOutcomes([]),
-          onAskCopilot: () => askCopilot(askIngestAll(pending.length))
-        }
-      ),
-      /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "od-explorer", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("aside", { className: "od-tree", "aria-label": words("材料目录", "Material tree", lang), children: [
-          /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "od-tree-bar", children: [
-            level === "global" ? null : /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
-              "button",
-              {
-                type: "button",
-                className: "od-tree-act",
-                disabled: Boolean(busy) || draftFolder !== null,
-                onClick: () => setDraftFolder({ kind: "new", base: selected?.folder_path ?? "", value: "" }),
-                children: words("新建文件夹", "New folder", lang)
-              }
-            ),
-            /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
-              "button",
-              {
-                type: "button",
-                className: "od-tree-act",
-                disabled: status === "loading" || Boolean(busy),
-                onClick: () => void refresh2(),
-                children: words("刷新", "Refresh", lang)
-              }
-            ),
-            level === "global" || documents.length < 3 ? null : /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
-              "button",
-              {
-                type: "button",
-                className: "od-tree-act",
-                title: words("让 Copilot 看目录结构并给整理建议（不会直接改）", "Ask Copilot for a filing plan", lang),
-                onClick: () => askCopilot(askOrganize()),
-                children: words("整理建议", "Filing plan", lang)
-              }
-            ),
-            /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("label", { className: "od-tree-archived", children: [
-              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
-                "input",
-                {
-                  type: "checkbox",
-                  checked: includeArchived,
-                  onChange: (event) => setIncludeArchived(event.target.checked)
-                }
-              ),
-              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { children: words("含已归档", "Archived", lang) })
-            ] })
-          ] }),
-          draftFolder?.kind === "new" ? /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("form", { className: "od-folder-draft", onSubmit: (event) => {
-            event.preventDefault();
-            const name = draftFolder.value.trim();
-            if (!name) return;
-            const full = draftFolder.base ? `${draftFolder.base}/${name}` : name;
-            setDraftFolder(null);
-            void runMutation("folder:new", async () => {
-              await api.createFolder(sessionId, full);
-              return { ok: true, message: words(`已建文件夹「${name}」`, "Folder created", lang) };
-            });
-          }, children: [
-            /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("label", { children: [
-              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { children: draftFolder.base ? words(`建在「${draftFolder.base}」里`, `Inside “${draftFolder.base}”`, lang) : words("建在根目录", "At the root", lang) }),
-              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
-                "input",
-                {
-                  autoFocus: true,
-                  value: draftFolder.value,
-                  maxLength: 80,
-                  placeholder: words("文件夹名称", "Folder name", lang),
-                  onChange: (event) => setDraftFolder({ ...draftFolder, value: event.target.value }),
-                  onKeyDown: (event) => {
-                    if (event.key === "Escape") setDraftFolder(null);
-                  }
-                }
-              )
-            ] }),
-            /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "submit", className: "act", disabled: !draftFolder.value.trim(), children: words("建好", "Create", lang) }),
-            /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", className: "od-link", onClick: () => setDraftFolder(null), children: words("取消", "Cancel", lang) })
-          ] }) : null,
-          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("form", { className: "od-tree-search", onSubmit: (event) => void submitSearch(event), role: "search", children: /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
-            "input",
+    return /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(
+      "section",
+      {
+        className: "od-library od-fm",
+        onDragEnd: () => {
+          setDragging(null);
+          setDropTarget(null);
+        },
+        "aria-label": words("知识库", "Knowledge library", lang),
+        children: [
+          level === "global" ? null : /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
+            KnowledgeInbox,
             {
-              type: "search",
-              value: query,
-              maxLength: 2e3,
-              placeholder: words("搜索原文…", "Search text…", lang),
-              "aria-label": words("搜索材料内容", "Search material", lang),
-              onChange: (event) => setQuery(event.target.value)
+              items: pending,
+              busy: ingesting,
+              outcomes: inboxOutcomes,
+              onIngest: ingest,
+              onUpload: () => document.getElementById("picker")?.click(),
+              onDismissOutcomes: () => setInboxOutcomes([]),
+              onAskCopilot: () => askCopilot(askIngestAll(pending.length))
             }
-          ) }),
-          status === "error" ? /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "od-library-error", children: [
-            /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("strong", { children: words("知识库暂时不可用", "Library unavailable", lang) }),
-            /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("p", { children: loadError }),
-            /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", className: "act", onClick: () => void refresh2(), children: words("再试一次", "Try again", lang) })
-          ] }) : status === "loading" && documents.length === 0 ? /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "od-library-loading", children: words("读取中…", "Loading…", lang) }) : documents.length === 0 ? /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "od-library-empty", children: [
-            /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("strong", { children: level === "global" ? words("公共知识库还是空的", "The shared library is empty", lang) : words("这个项目还没有材料", "No material yet", lang) }),
-            /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("p", { children: level === "global" ? words(
-              "这里放跨项目通用的东西：行业标准、通用制度、模板。项目里的材料点「设为通用知识」才会进来。",
-              "Cross-project material lives here.",
-              lang
-            ) : pending.length ? words("上面那颗按钮会把这次会话的材料存进来。", "Use the button above to file this session’s material.", lang) : words("先在对话里上传文件，再回到这里把它存入知识库。", "Upload a file in the chat first, then file it here.", lang) }),
-            level === "global" || pending.length ? null : /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
-              "button",
-              {
-                type: "button",
-                className: "act",
-                onClick: () => document.getElementById("picker")?.click(),
-                children: words("上传材料", "Upload material", lang)
-              }
-            )
-          ] }) : /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "od-tree-body", role: "tree", children: [
-            folderNames.map((name) => {
-              if (hiddenUnder(name)) return null;
-              const depth = name.split("/").length - 1;
-              const closed = closedFolders.has(name);
-              const items = docsByFolder.get(name) ?? [];
-              return /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "od-folder", children: [
-                /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(
+          ),
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "od-explorer", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("aside", { className: "od-tree", "aria-label": words("材料目录", "Material tree", lang), children: [
+              /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "od-tree-bar", children: [
+                level === "global" ? null : /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
                   "button",
                   {
                     type: "button",
-                    className: "od-folder-head",
-                    "aria-expanded": !closed,
-                    style: { paddingLeft: `${10 + depth * 14}px` },
-                    onClick: () => setClosedFolders((prev) => {
-                      const next = new Set(prev);
-                      if (next.has(name)) next.delete(name);
-                      else next.add(name);
-                      return next;
-                    }),
-                    children: [
-                      /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "od-folder-caret", "aria-hidden": "true", children: closed ? "›" : "⌄" }),
-                      /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "od-folder-name", children: name.slice(name.lastIndexOf("/") + 1) }),
-                      /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "od-folder-n", children: items.length || "" })
-                    ]
+                    className: "od-tree-act",
+                    disabled: Boolean(busy) || draftFolder !== null,
+                    onClick: () => setDraftFolder({ kind: "new", base: selected?.folder_path ?? "", value: "" }),
+                    children: words("新建文件夹", "New folder", lang)
                   }
                 ),
-                level === "global" ? null : /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("span", { className: "od-folder-acts", children: [
-                  /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", onClick: () => {
-                    setPendingDelete(null);
-                    setDraftFolder({ kind: "rename", base: name, value: name.slice(name.lastIndexOf("/") + 1) });
-                  }, children: words("改名", "Rename", lang) }),
-                  /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", onClick: () => {
-                    setDraftFolder(null);
-                    setPendingDelete(name);
-                  }, children: words("删除", "Delete", lang) })
-                ] }),
-                draftFolder?.kind === "rename" && draftFolder.base === name ? /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("form", { className: "od-folder-draft inline", onSubmit: (event) => {
-                  event.preventDefault();
-                  const next = draftFolder.value.trim();
-                  if (!next) return;
-                  const parent = name.includes("/") ? name.slice(0, name.lastIndexOf("/")) : "";
-                  setDraftFolder(null);
-                  void runMutation(`folder:${name}:rename`, async () => await api.renameFolder(sessionId, name, parent ? `${parent}/${next}` : next));
-                }, children: [
+                /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
+                  "button",
+                  {
+                    type: "button",
+                    className: "od-tree-act",
+                    disabled: status === "loading" || Boolean(busy),
+                    onClick: () => void refresh2(),
+                    children: words("刷新", "Refresh", lang)
+                  }
+                ),
+                level === "global" || documents.length < 3 ? null : /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
+                  "button",
+                  {
+                    type: "button",
+                    className: "od-tree-act",
+                    title: words("让 Copilot 看目录结构并给整理建议（不会直接改）", "Ask Copilot for a filing plan", lang),
+                    onClick: () => askCopilot(askOrganize()),
+                    children: words("整理建议", "Filing plan", lang)
+                  }
+                ),
+                /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("label", { className: "od-tree-archived", children: [
+                  /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
+                    "input",
+                    {
+                      type: "checkbox",
+                      checked: includeArchived,
+                      onChange: (event) => setIncludeArchived(event.target.checked)
+                    }
+                  ),
+                  /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { children: words("含已归档", "Archived", lang) })
+                ] })
+              ] }),
+              draftFolder?.kind === "new" ? /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("form", { className: "od-folder-draft", onSubmit: (event) => {
+                event.preventDefault();
+                const name = draftFolder.value.trim();
+                if (!name) return;
+                const full = draftFolder.base ? `${draftFolder.base}/${name}` : name;
+                setDraftFolder(null);
+                void runMutation("folder:new", async () => {
+                  await api.createFolder(sessionId, full);
+                  return { ok: true, message: words(`已建文件夹「${name}」`, "Folder created", lang) };
+                });
+              }, children: [
+                /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("label", { children: [
+                  /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { children: draftFolder.base ? words(`建在「${draftFolder.base}」里`, `Inside “${draftFolder.base}”`, lang) : words("建在根目录", "At the root", lang) }),
                   /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
                     "input",
                     {
                       autoFocus: true,
                       value: draftFolder.value,
                       maxLength: 80,
-                      "aria-label": words("新名称", "New name", lang),
+                      placeholder: words("文件夹名称", "Folder name", lang),
                       onChange: (event) => setDraftFolder({ ...draftFolder, value: event.target.value }),
                       onKeyDown: (event) => {
                         if (event.key === "Escape") setDraftFolder(null);
                       }
                     }
-                  ),
-                  /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "submit", className: "act", disabled: !draftFolder.value.trim(), children: words("改好", "Rename", lang) }),
-                  /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", className: "od-link", onClick: () => setDraftFolder(null), children: words("取消", "Cancel", lang) })
-                ] }) : null,
-                pendingDelete === name ? /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "od-folder-confirm", role: "alert", children: [
-                  /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { children: words(
-                    `删掉这个文件夹？里面的 ${items.length} 份材料会移到根目录，一份都不会被删。`,
-                    `Delete this folder? Its ${items.length} files move to the root; none are deleted.`,
-                    lang
-                  ) }),
-                  /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", className: "act", onClick: () => {
-                    setPendingDelete(null);
-                    void runMutation(`folder:${name}:delete`, async () => await api.deleteFolder(sessionId, name));
-                  }, children: words("删掉文件夹", "Delete folder", lang) }),
-                  /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", className: "od-link", onClick: () => setPendingDelete(null), children: words("留着", "Keep", lang) })
-                ] }) : null,
-                closed ? null : /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "od-folder-body", role: "group", children: items.map((item) => /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
+                  )
+                ] }),
+                /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "submit", className: "act", disabled: !draftFolder.value.trim(), children: words("建好", "Create", lang) }),
+                /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", className: "od-link", onClick: () => setDraftFolder(null), children: words("取消", "Cancel", lang) })
+              ] }) : null,
+              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("form", { className: "od-tree-search", onSubmit: (event) => void submitSearch(event), role: "search", children: /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
+                "input",
+                {
+                  type: "search",
+                  value: query,
+                  maxLength: 2e3,
+                  placeholder: words("搜索原文…", "Search text…", lang),
+                  "aria-label": words("搜索材料内容", "Search material", lang),
+                  onChange: (event) => setQuery(event.target.value)
+                }
+              ) }),
+              status === "error" ? /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "od-library-error", children: [
+                /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("strong", { children: words("知识库暂时不可用", "Library unavailable", lang) }),
+                /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("p", { children: loadError }),
+                /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", className: "act", onClick: () => void refresh2(), children: words("再试一次", "Try again", lang) })
+              ] }) : status === "loading" && documents.length === 0 ? /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "od-library-loading", children: words("读取中…", "Loading…", lang) }) : documents.length === 0 ? /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "od-library-empty", children: [
+                /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("strong", { children: level === "global" ? words("公共知识库还是空的", "The shared library is empty", lang) : words("这个项目还没有材料", "No material yet", lang) }),
+                /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("p", { children: level === "global" ? words(
+                  "这里放跨项目通用的东西：行业标准、通用制度、模板。项目里的材料点「设为通用知识」才会进来。",
+                  "Cross-project material lives here.",
+                  lang
+                ) : pending.length ? words("上面那颗按钮会把这次会话的材料存进来。", "Use the button above to file this session’s material.", lang) : words("先在对话里上传文件，再回到这里把它存入知识库。", "Upload a file in the chat first, then file it here.", lang) }),
+                level === "global" || pending.length ? null : /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
+                  "button",
+                  {
+                    type: "button",
+                    className: "act",
+                    onClick: () => document.getElementById("picker")?.click(),
+                    children: words("上传材料", "Upload material", lang)
+                  }
+                )
+              ] }) : /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "od-tree-body", role: "tree", children: [
+                folderNames.map((name) => {
+                  if (hiddenUnder(name)) return null;
+                  const depth = name.split("/").length - 1;
+                  const closed = closedFolders.has(name);
+                  const items = docsByFolder.get(name) ?? [];
+                  return /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(
+                    "div",
+                    {
+                      className: `od-folder${dropTarget === name ? " dropping" : ""}`,
+                      onDragOver: (event) => {
+                        if (dragging === null) return;
+                        event.preventDefault();
+                        setDropTarget(name);
+                      },
+                      onDragLeave: () => setDropTarget((cur) => cur === name ? null : cur),
+                      onDrop: (event) => {
+                        event.preventDefault();
+                        if (dragging !== null) void moveTo(dragging, name);
+                      },
+                      children: [
+                        /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(
+                          "button",
+                          {
+                            type: "button",
+                            className: "od-folder-head",
+                            "aria-expanded": !closed,
+                            style: { paddingLeft: `${10 + depth * 14}px` },
+                            onClick: () => setClosedFolders((prev) => {
+                              const next = new Set(prev);
+                              if (next.has(name)) next.delete(name);
+                              else next.add(name);
+                              return next;
+                            }),
+                            children: [
+                              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "od-folder-caret", "aria-hidden": "true", children: closed ? "›" : "⌄" }),
+                              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "od-folder-name", children: name.slice(name.lastIndexOf("/") + 1) }),
+                              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "od-folder-n", children: items.length || "" })
+                            ]
+                          }
+                        ),
+                        level === "global" ? null : /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("span", { className: "od-folder-acts", children: [
+                          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", onClick: () => {
+                            setPendingDelete(null);
+                            setDraftFolder({ kind: "rename", base: name, value: name.slice(name.lastIndexOf("/") + 1) });
+                          }, children: words("改名", "Rename", lang) }),
+                          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", onClick: () => {
+                            setDraftFolder(null);
+                            setPendingDelete(name);
+                          }, children: words("删除", "Delete", lang) })
+                        ] }),
+                        draftFolder?.kind === "rename" && draftFolder.base === name ? /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("form", { className: "od-folder-draft inline", onSubmit: (event) => {
+                          event.preventDefault();
+                          const next = draftFolder.value.trim();
+                          if (!next) return;
+                          const parent = name.includes("/") ? name.slice(0, name.lastIndexOf("/")) : "";
+                          setDraftFolder(null);
+                          void runMutation(`folder:${name}:rename`, async () => await api.renameFolder(sessionId, name, parent ? `${parent}/${next}` : next));
+                        }, children: [
+                          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
+                            "input",
+                            {
+                              autoFocus: true,
+                              value: draftFolder.value,
+                              maxLength: 80,
+                              "aria-label": words("新名称", "New name", lang),
+                              onChange: (event) => setDraftFolder({ ...draftFolder, value: event.target.value }),
+                              onKeyDown: (event) => {
+                                if (event.key === "Escape") setDraftFolder(null);
+                              }
+                            }
+                          ),
+                          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "submit", className: "act", disabled: !draftFolder.value.trim(), children: words("改好", "Rename", lang) }),
+                          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", className: "od-link", onClick: () => setDraftFolder(null), children: words("取消", "Cancel", lang) })
+                        ] }) : null,
+                        pendingDelete === name ? /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "od-folder-confirm", role: "alert", children: [
+                          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { children: words(
+                            `删掉这个文件夹？里面的 ${items.length} 份材料会移到根目录，一份都不会被删。`,
+                            `Delete this folder? Its ${items.length} files move to the root; none are deleted.`,
+                            lang
+                          ) }),
+                          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", className: "act", onClick: () => {
+                            setPendingDelete(null);
+                            void runMutation(`folder:${name}:delete`, async () => await api.deleteFolder(sessionId, name));
+                          }, children: words("删掉文件夹", "Delete folder", lang) }),
+                          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { type: "button", className: "od-link", onClick: () => setPendingDelete(null), children: words("留着", "Keep", lang) })
+                        ] }) : null,
+                        closed ? null : /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "od-folder-body", role: "group", children: items.map((item) => /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
+                          FileRow,
+                          {
+                            item,
+                            depth: depth + 1,
+                            selectedId,
+                            attachments,
+                            lang,
+                            onPick: () => pickDocument(item.id),
+                            ...level === "global" ? {} : {
+                              onDragStart: () => setDragging(item.id),
+                              onMenu: () => setMovingId(item.id)
+                            }
+                          },
+                          item.id
+                        )) })
+                      ]
+                    },
+                    name
+                  );
+                }),
+                rootDocs.map((item) => /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
                   FileRow,
                   {
                     item,
-                    depth: depth + 1,
+                    depth: 0,
                     selectedId,
                     attachments,
                     lang,
-                    onPick: () => pickDocument(item.id)
+                    onPick: () => pickDocument(item.id),
+                    ...level === "global" ? {} : {
+                      onDragStart: () => setDragging(item.id),
+                      onMenu: () => setMovingId(item.id)
+                    }
                   },
                   item.id
-                )) })
-              ] }, name);
-            }),
-            rootDocs.map((item) => /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
-              FileRow,
-              {
-                item,
-                depth: 0,
-                selectedId,
-                attachments,
-                lang,
-                onPick: () => pickDocument(item.id)
-              },
-              item.id
-            ))
-          ] }),
-          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "od-fm-status", children: /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { children: status === "ready" ? words(`${documents.length} 份材料`, `${documents.length} files`, lang) : "" }) })
-        ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "od-preview-pane", children: [
-          searchResult ? /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
-            SearchPane,
-            {
-              result: searchResult,
-              openedEvidence,
-              evidenceError,
-              lang,
-              onOpen: (ref) => void openEvidence(ref),
-              onClear: () => {
-                setQuery("");
-                setSearchResult(null);
-              }
-            }
-          ) : selected ? /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
-            DocumentPreview,
-            {
-              sessionId,
-              level,
-              onAsk: askCopilot,
-              api,
-              onClose: () => setSelectedId(null),
-              document: selected,
-              versions: histories[selected.id],
-              attachment: attachedVersion(selected.id, attachments),
-              sessionFiles,
-              busy,
-              lang,
-              onUpdate: async (input) => await runMutation(`${selected.id}:metadata`, async () => await api.update(sessionId, selected.id, input)),
-              onArchive: async () => await runMutation(`${selected.id}:archive`, async () => await api.archive(
-                sessionId,
-                selected.id,
-                selected.status !== "archived",
-                selected.revision
-              )),
-              onAttach: async (version) => await runMutation(`${selected.id}:attach`, async () => await api.attach(
-                sessionId,
-                selected.id,
-                version.id
-              )),
-              onDetach: async () => await runMutation(`${selected.id}:detach`, async () => await api.detach(sessionId, selected.id)),
-              onAdopt: async (version) => await runMutation(`${selected.id}:adopt`, async () => await api.adopt(
-                sessionId,
-                selected.id,
-                version.id,
-                selected.revision
-              )),
-              onAddVersion: async (fileName) => await runMutation(`${selected.id}:version`, async () => await api.promote(sessionId, {
-                session_file_name: fileName,
-                target_document_id: selected.id,
-                base_version_id: selected.current_version_id
-              })),
-              folderOptions: folderNames,
-              onReparse: async () => await runMutation(
-                `${selected.id}:reparse`,
-                async () => await api.reparse(sessionId, selected.id)
-              ),
-              onMove: async (folderPath) => await runMutation(
-                `${selected.id}:move`,
-                async () => await api.moveDocument(sessionId, selected.id, folderPath)
-              ),
-              ...level === "global" ? {} : {
-                onPublish: async () => await runMutation(
-                  `${selected.id}:publish`,
-                  async () => await api.publish(sessionId, selected.id)
-                )
-              }
-            },
-            selected.id
-          ) : /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "od-preview-idle", children: words("在左边选一份材料，正文就显示在这里。", "Pick a file on the left to read it here.", lang) }),
-          /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "od-feedback", "aria-live": "polite", children: [
-            notice ? /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "od-notice", children: notice }) : null,
-            mutationError ? /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "od-inline-error", children: mutationError }) : null
+                )),
+                dragging !== null ? /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
+                  "div",
+                  {
+                    className: `od-root-drop${dropTarget === "" ? " dropping" : ""}`,
+                    onDragOver: (event) => {
+                      event.preventDefault();
+                      setDropTarget("");
+                    },
+                    onDragLeave: () => setDropTarget((cur) => cur === "" ? null : cur),
+                    onDrop: (event) => {
+                      event.preventDefault();
+                      if (dragging !== null) void moveTo(dragging, "");
+                    },
+                    children: words("拖到这里＝移出文件夹", "Drop here to move to root", lang)
+                  }
+                ) : null
+              ] }),
+              movingId !== null ? /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(
+                "div",
+                {
+                  className: "od-move-pick",
+                  role: "dialog",
+                  "aria-label": words("移到别的文件夹", "Move to another folder", lang),
+                  children: [
+                    /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { children: words("移到：", "Move to:", lang) }),
+                    /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
+                      "button",
+                      {
+                        type: "button",
+                        className: "od-link",
+                        onClick: () => void moveTo(movingId, ""),
+                        children: words("根目录", "Root", lang)
+                      }
+                    ),
+                    folderNames.map((f) => /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
+                      "button",
+                      {
+                        type: "button",
+                        className: "od-link",
+                        onClick: () => void moveTo(movingId, f),
+                        children: f
+                      },
+                      f
+                    )),
+                    /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
+                      "button",
+                      {
+                        type: "button",
+                        className: "od-link",
+                        onClick: () => setMovingId(null),
+                        children: words("取消", "Cancel", lang)
+                      }
+                    )
+                  ]
+                }
+              ) : null,
+              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "od-fm-status", children: /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { children: status === "ready" ? words(`${documents.length} 份材料`, `${documents.length} files`, lang) : "" }) })
+            ] }),
+            /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "od-preview-pane", children: [
+              searchResult ? /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
+                SearchPane,
+                {
+                  result: searchResult,
+                  openedEvidence,
+                  evidenceError,
+                  lang,
+                  onOpen: (ref) => void openEvidence(ref),
+                  onClear: () => {
+                    setQuery("");
+                    setSearchResult(null);
+                  }
+                }
+              ) : selected ? /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
+                DocumentPreview,
+                {
+                  sessionId,
+                  level,
+                  onAsk: askCopilot,
+                  api,
+                  onClose: () => setSelectedId(null),
+                  document: selected,
+                  versions: histories[selected.id],
+                  attachment: attachedVersion(selected.id, attachments),
+                  sessionFiles,
+                  busy,
+                  lang,
+                  onUpdate: async (input) => await runMutation(`${selected.id}:metadata`, async () => await api.update(sessionId, selected.id, input)),
+                  onArchive: async () => await runMutation(`${selected.id}:archive`, async () => await api.archive(
+                    sessionId,
+                    selected.id,
+                    selected.status !== "archived",
+                    selected.revision
+                  )),
+                  onAttach: async (version) => await runMutation(`${selected.id}:attach`, async () => await api.attach(
+                    sessionId,
+                    selected.id,
+                    version.id
+                  )),
+                  onDetach: async () => await runMutation(`${selected.id}:detach`, async () => await api.detach(sessionId, selected.id)),
+                  onAdopt: async (version) => await runMutation(`${selected.id}:adopt`, async () => await api.adopt(
+                    sessionId,
+                    selected.id,
+                    version.id,
+                    selected.revision
+                  )),
+                  onAddVersion: async (fileName) => await runMutation(`${selected.id}:version`, async () => await api.promote(sessionId, {
+                    session_file_name: fileName,
+                    target_document_id: selected.id,
+                    base_version_id: selected.current_version_id
+                  })),
+                  folderOptions: folderNames,
+                  onReparse: async () => await runMutation(
+                    `${selected.id}:reparse`,
+                    async () => await api.reparse(sessionId, selected.id)
+                  ),
+                  onMove: async (folderPath) => await runMutation(
+                    `${selected.id}:move`,
+                    async () => await api.moveDocument(sessionId, selected.id, folderPath)
+                  ),
+                  ...level === "global" ? {} : {
+                    onPublish: async () => await runMutation(
+                      `${selected.id}:publish`,
+                      async () => await api.publish(sessionId, selected.id)
+                    )
+                  }
+                },
+                selected.id
+              ) : /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "od-preview-idle", children: words("在左边选一份材料，正文就显示在这里。", "Pick a file on the left to read it here.", lang) }),
+              /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "od-feedback", "aria-live": "polite", children: [
+                notice ? /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "od-notice", children: notice }) : null,
+                mutationError ? /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "od-inline-error", children: mutationError }) : null
+              ] })
+            ] })
           ] })
-        ] })
-      ] })
-    ] });
+        ]
+      }
+    );
   }
 
   // ts/src/ui/react/knowledge-workspace.tsx

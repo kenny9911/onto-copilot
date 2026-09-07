@@ -262,7 +262,7 @@ describe("OntoDocument dialogue harness", () => {
     // 把承诺挂在「模型自己会去解析 id」上，等于没有承诺。
     expect((searched["hits"] as Dict[])[0]).toMatchObject({
       level: "project",
-      level_label: "项目库",
+      level_label: "项目材料",
     });
     expect(searched["total"]).toBe(1);
 

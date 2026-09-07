@@ -97,8 +97,11 @@ describe("总库与项目库是两个边界", () => {
     });
     expect(levelOf(scope)).toBe("global");
     expect(levelOf(projectScope)).toBe("project");
-    expect(levelLabel("global")).toBe("总库");
-    expect(levelLabel("project")).toBe("项目库");
+    // 名字是「通用参考 / 项目材料」而不是「总库 / 项目库」：用户直接问过
+    // 「这个材料库、和公共知识库有什么区别」—— 说明前一组词只描述了存储位置，
+    // 没描述内容性质，而后者才是他每次引用时真正要判断的。
+    expect(levelLabel("global")).toBe("通用参考");
+    expect(levelLabel("project")).toBe("项目材料");
     // 真项目 id 是 shortId() 出来的 12 位十六进制，形状上就不可能等于哨兵值。
     expect(/^[0-9a-f]{12}$/u.test(GLOBAL_LIBRARY_PROJECT_ID)).toBe(false);
   });
@@ -140,7 +143,7 @@ describe("总库与项目库是两个边界", () => {
     // 那个字符串，层级放旁边，第一次做摘要就丢了。
     expect(hit.evidenceRef.startsWith("odoc.v2.global.")).toBe(true);
     // 引用文案里也要写着「总库」，读答案的人一眼分得清这是不是客户自己的规定。
-    expect(hit.displayCite).toContain("总库");
+    expect(hit.displayCite).toContain("通用参考");
 
     // 关键：拿**项目**作用域去打开它。旧实现会走 WHERE project_id=<项目> 查一条
     // project_id=__global__ 的切片，必然返回「没找到」—— 等于发给模型一张

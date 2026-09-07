@@ -1757,7 +1757,9 @@ function cite(candidate: SearchChunkCandidate, level: KnowledgeLevel): string {
   // 总库的片段必须在引用里就说清楚。FDE 读到一句带引用的结论时，
   // 「这是行业通用做法」和「这是这个客户自己的规定」是两件完全不同的事。
   // 项目库不加前缀 —— 默认语境就是这个项目，加了反而是噪音。
-  const prefix = level === "global" ? "总库 " : "";
+  // 和 levelLabel 用同一个词。引用文案是人和模型都会读到的地方，
+  // 这里叫「总库」而别处叫「通用参考」，等于让同一件事有两个名字。
+  const prefix = level === "global" ? "通用参考 " : "";
   return `${candidate.document.title}（${prefix}v${candidate.version.versionNo}，${suffix || `chunk=${candidate.chunk.chunkId}`}）`;
 }
 

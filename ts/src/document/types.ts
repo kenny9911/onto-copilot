@@ -70,9 +70,20 @@ export function levelOf(scope: { readonly projectId: string }): KnowledgeLevel {
   return scope.projectId === GLOBAL_LIBRARY_PROJECT_ID ? "global" : "project";
 }
 
-/** 层级的中文说法。命中卡片、引用文案、模型看到的工具结果都用它，保持一致。 */
+/**
+ * 层级的中文说法。命中卡片、引用文案、模型看到的工具结果都用它，保持一致。
+ *
+ * **叫「通用参考」而不是「总库 / 公共知识库」。** 用户 2026-09-07 直接问出了
+ * 「这个材料库、和公共知识库有什么区别？」—— 说明「公共 / 总」这组词只描述了
+ * **存储位置**（大家共用的那个库），没有描述**内容性质**（行业通用做法，不是
+ * 这个客户自己的规定）。而后者才是他每次引用时真正需要判断的东西。
+ *
+ * 「通用参考」和「项目材料」这一对，不需要解释就能对比：一个是通用的，
+ * 一个是这个项目的。「公共」和「我的材料」这一对做不到 —— 公共的反义词是私有，
+ * 而这里的真正对立是「通用 vs 这一家」。
+ */
 export function levelLabel(level: KnowledgeLevel): string {
-  return level === "global" ? "总库" : "项目库";
+  return level === "global" ? "通用参考" : "项目材料";
 }
 
 export type DocumentStatus = "active" | "archived";

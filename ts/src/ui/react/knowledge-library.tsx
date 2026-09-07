@@ -1,5 +1,6 @@
 import {
-  useCallback, useEffect, useRef, useState, type FormEvent, type ReactElement,
+  useCallback, useEffect, useRef, useState,
+  type DragEvent, type FormEvent, type ReactElement,
 } from "react";
 
 import { fmtSize } from "../dom.js";
@@ -295,18 +296,42 @@ function quoteForComposer(
 }
 
 /** 树里的一行文件。缩进跟着层数走。 */
-function FileRow({ item, depth, selectedId, attachments, lang, onPick }: {
+/**
+ * 树里的一行文件。
+ *
+ * **不是 `<button>` 而是带 `role="treeitem"` 的 div**：HTML 不允许 button 套 button，
+ * 而这一行上要挂「⋯」菜单（拖拽在触屏上根本不发 dragstart，键盘更没有 —— 拖不是
+ * 唯一的路，那条路必须存在）。而且 `role="tree"` / `role="group"` 里今天一个
+ * `treeitem` 都没有，辅助技术读到的是一堆按钮而不是一棵树。
+ *
+ * 拖拽刻意**不做在途态、不做撤销、不做重试**。归类的正确反馈只有一个：行已经在
+ * 新位置上了；想撤销就再拖回去。这是它和「归档」「设为通用参考」的根本区别 ——
+ * 后两者才需要确认与撤销，而 folder_path 不进检索语料、不进流水线，
+ * 改了不影响任何输出。给它配一整套「这事有后果」的道具，会让人误判轻重。
+ */
+function FileRow({ item, depth, selectedId, attachments, lang, onPick, onDragStart, onMenu }: {
   item: KnowledgeDocument;
   depth: number;
   selectedId: string | null;
   attachments: KnowledgeAttachment[];
   lang: string;
   onPick: () => void;
+  onDragStart?: ((event: DragEvent) => void) | undefined;
+  /** 触屏与键盘那条路。拖不到的时候用它。 */
+  onMenu?: (() => void) | undefined;
 }): ReactElement {
-  return <button type="button"
+  return <div
+    role="treeitem"
+    aria-selected={item.id === selectedId}
+    tabIndex={0}
+    draggable={onDragStart !== undefined}
+    onDragStart={onDragStart}
     className={`od-file${item.id === selectedId ? " on" : ""}${item.status === "archived" ? " archived" : ""}`}
     style={{ paddingLeft: `${27 + depth * 14}px` }}
-    onClick={onPick}>
+    onClick={onPick}
+    onKeyDown={(event) => {
+      if (event.key === "Enter" || event.key === " ") { event.preventDefault(); onPick(); }
+    }}>
     <span className="od-file-name">{item.title}</span>
     {/* 原来这里是一个 6px 的圆点，含义只写在 title 里 —— 触屏上永远看不到，
         鼠标上也要先猜到"这个点可能是有意思的"才会去悬停。
@@ -314,7 +339,10 @@ function FileRow({ item, depth, selectedId, attachments, lang, onPick }: {
         不该是全页最小、最沉默的那个东西。 */}
     {attachedVersion(item.id, attachments)
       ? <span className="od-file-flag">{words("本次在用", "In use", lang)}</span> : null}
-  </button>;
+    {onMenu ? <button type="button" className="od-file-menu"
+      title={words("移到别的文件夹", "Move to another folder", lang)}
+      onClick={(event) => { event.stopPropagation(); onMenu(); }}>⋯</button> : null}
+  </div>;
 }
 
 /** 一组命中。分层展示要用两次，所以抽出来 —— 抄第二遍必然会漂。 */
@@ -331,7 +359,7 @@ function HitGroup({ hits, lang, onOpen }: {
         {/* 「这一段公共库也有一份」仍然值得说：它意味着这条不是客户独有的做法。
             但它是补充信息，不是分层本身 —— 分层已经由分组承担了。 */}
         {hit.also_in_level === "global"
-          ? <span className="od-hit-also">{words("公共库也有同一段", "Also in the shared library", lang)}</span> : null}
+          ? <span className="od-hit-also">{words("通用参考里也有同一段", "Also in shared reference", lang)}</span> : null}
         <small>{hit.cite}</small>
       </span>
       <p>{hit.text}</p>
@@ -379,7 +407,7 @@ function SearchPane({ result, openedEvidence, evidenceError, lang, onOpen, onCle
       <HitGroup hits={ownHits} lang={lang} onOpen={onOpen} />
       {sharedHits.length ? <details className="od-hit-shared">
         <summary>
-          {words(`另有 ${sharedHits.length} 处来自公共知识库`, `${sharedHits.length} more from the shared library`, lang)}
+          {words(`另有 ${sharedHits.length} 处来自通用参考`, `${sharedHits.length} more from shared reference`, lang)}
           <span>{words("行业通用参考，不是这个客户的规定", "Cross-project reference, not this client’s rules", lang)}</span>
         </summary>
         <HitGroup hits={sharedHits} lang={lang} onOpen={onOpen} />
@@ -507,7 +535,7 @@ function DocumentReader({
         到尾都在，用 --warn 系配色，因为它要说的不是"这里有个属性"，
         而是"你正在读的东西不是这个客户说的"。 */}
     {level === "global" ? <div className="od-level-bar" role="note">
-      <strong>{words("公共知识库", "Shared library", lang)}</strong>
+      <strong>{words("通用参考", "Shared reference", lang)}</strong>
       <span>{words(
         "行业通用参考，不是这个客户自己的规定。引用到对话时会带上这句话。",
         "Cross-project reference material — not this client’s own rules.",
@@ -526,7 +554,7 @@ function DocumentReader({
       <div className="od-evidence-context">
         {chunk.cite}
         {chunk.level === "global"
-          ? <span className="od-badge current">{words("总库", "Shared", lang)}</span>
+          ? <span className="od-badge current">{words("通用参考", "Shared reference", lang)}</span>
           : null}
       </div>
       <p className="od-reader-text">{chunk.text}</p>
@@ -564,6 +592,7 @@ function DocumentPreview({
 }: DocumentPreviewProps): ReactElement {
   const [expanded, setExpanded] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [confirmPublish, setConfirmPublish] = useState(false);
   const pinnedVersion = versions?.find((item) => item.id === attachment?.version_id);
   const adoptedVersion = versions?.find((item) => item.id === document.adopted_version_id);
   const currentVersion = versions?.find((item) => item.id === document.current_version_id);
@@ -607,8 +636,7 @@ function DocumentPreview({
         {/* 设为通用知识：把这份材料复制进公共知识库，其他项目也能检索到。
             必须是人点的 —— AI 只能建议。公共库是共享的，让它自动生长会变成垃圾场。 */}
         {onPublish ? <button type="button" className="od-link" disabled={isBusy}
-          title={words("复制到公共知识库，其他项目也能检索到", "Copy into the shared library", lang)}
-          onClick={() => void onPublish()}>{words("设为通用知识", "Make shared", lang)}</button> : null}
+          onClick={() => setConfirmPublish((on) => !on)}>{words("设为通用参考", "Make shared", lang)}</button> : null}
         <button type="button" className="od-link" onClick={onClose}>{words("关闭", "Close", lang)}</button>
       </div>
     </header>
@@ -628,6 +656,37 @@ function DocumentPreview({
       {document.status === "archived" ? null : <button type="button" className="od-link"
         onClick={() => onAsk(askArchive())}>{words("归档它", "archive it", lang)}</button>}
     </div>
+
+    {/* 「设为通用参考」是这一屏**唯一不可逆**的动作，所以它有确认行，而拖动归类没有。
+        这个权重关系以前是反的：归类（folder_path 不进检索语料、不进流水线，
+        改了不影响任何输出）如果配上撤销和回执，而这一颗一键就把材料复制进跨项目
+        共享的库、`service.ts` 里**根本没有 unpublish**，用户会从界面权重反推出
+        一个正好相反的因果模型。
+        后果三句话写全：复制不是搬走、其他项目都能检索到、撤不回来。 */}
+    {confirmPublish ? <div className="od-publish-confirm" role="alert">
+      <div>
+        <strong>{words("把这份材料设为通用参考？", "Make this shared reference?", lang)}</strong>
+        <p>{words(
+          `「${document.title}」会被复制一份进通用参考库（项目里这份原样留着）。`
+            + "之后所有项目都能检索到它，任何人都可能把它当成参考依据引用。",
+          "It will be copied into the shared reference library and become searchable from every project.",
+          lang,
+        )}</p>
+        <p className="od-publish-warn">{words(
+          "这一步目前撤不回来 —— 系统还没有「取消通用参考」这个动作。",
+          "This cannot be undone yet.",
+          lang,
+        )}</p>
+      </div>
+      <div className="od-publish-acts">
+        <button type="button" className="act" disabled={isBusy}
+          onClick={() => { setConfirmPublish(false); void onPublish?.(); }}>
+          {words("确认设为通用参考", "Yes, make it shared", lang)}
+        </button>
+        <button type="button" className="od-link"
+          onClick={() => setConfirmPublish(false)}>{words("先不要", "Not now", lang)}</button>
+      </div>
+    </div> : null}
 
     {editing ? <MetadataEditor document={document} busy={isBusy} lang={lang}
       onCancel={() => setEditing(false)} onSave={onUpdate} /> : null}
@@ -717,6 +776,12 @@ export function KnowledgeLibrary({
   const [draftFolder, setDraftFolder] = useState<{ kind: "new" | "rename"; base: string; value: string } | null>(null);
   /** 正在等确认删除的文件夹路径。确认词就长在那一行上，不弹窗。 */
   const [pendingDelete, setPendingDelete] = useState<string | null>(null);
+  /** 正在拖的那份材料。null = 没在拖。 */
+  const [dragging, setDragging] = useState<string | null>(null);
+  /** 拖到哪个文件夹上方了（"" = 根目录）。只在拖拽期间有值。 */
+  const [dropTarget, setDropTarget] = useState<string | null>(null);
+  /** 触屏/键盘那条路：点了行上的 ⋯ 之后，让他选一个目标文件夹。 */
+  const [movingId, setMovingId] = useState<string | null>(null);
   const loadSequence = useRef(0);
 
   useEffect(() => {
@@ -835,6 +900,19 @@ export function KnowledgeLibrary({
     await refresh();
   }, [api, lang, refresh, sessionId]);
 
+  /**
+   * 把一份材料挪进某个文件夹。
+   *
+   * 拖完不做在途态、不做撤销条 —— 反馈就是「行已经在新位置上了」，
+   * 想撤销再拖回去。见 FileRow 的注释。
+   */
+  const moveTo = useCallback(async (documentId: string, folderPath: string): Promise<void> => {
+    setDragging(null);
+    setDropTarget(null);
+    setMovingId(null);
+    await runMutation(`${documentId}:move`, async () => await api.moveDocument(sessionId, documentId, folderPath));
+  }, [api, runMutation, sessionId]);
+
   const submitSearch = async (event: FormEvent): Promise<void> => {
     event.preventDefault();
     const normalized = query.trim();
@@ -910,7 +988,8 @@ export function KnowledgeLibrary({
 
   const pending = level === "global" ? [] : pendingSessionFiles(sessionFiles, documents, histories);
 
-  return <section className="od-library od-fm" aria-label={words("知识库", "Knowledge library", lang)}>
+  return <section className="od-library od-fm"
+    onDragEnd={() => { setDragging(null); setDropTarget(null); }} aria-label={words("知识库", "Knowledge library", lang)}>
     {/* 收件区在 explorer **之上**，不在左树里面：它回答的是「我刚传的东西在哪」，
         这是第一次打开这一页的人唯一想问的问题。事办完了它自己塌成一行。 */}
     {level === "global" ? null : <KnowledgeInbox
@@ -1020,7 +1099,21 @@ export function KnowledgeLibrary({
               const depth = name.split("/").length - 1;
               const closed = closedFolders.has(name);
               const items = docsByFolder.get(name) ?? [];
-              return <div className="od-folder" key={name}>
+              return <div
+                className={`od-folder${dropTarget === name ? " dropping" : ""}`}
+                key={name}
+                onDragOver={(event) => {
+                  if (dragging === null) return;
+                  // 不 preventDefault 的话浏览器根本不认这是个放置目标（drop 不会触发）。
+                  event.preventDefault();
+                  setDropTarget(name);
+                }}
+                onDragLeave={() => setDropTarget((cur) => (cur === name ? null : cur))}
+                onDrop={(event) => {
+                  event.preventDefault();
+                  if (dragging !== null) void moveTo(dragging, name);
+                }}
+              >
                 <button type="button" className="od-folder-head" aria-expanded={!closed}
                   style={{ paddingLeft: `${10 + depth * 14}px` }}
                   onClick={() => setClosedFolders((prev) => {
@@ -1081,15 +1174,44 @@ export function KnowledgeLibrary({
                 {closed ? null : <div className="od-folder-body" role="group">
                   {items.map((item) => <FileRow key={item.id} item={item} depth={depth + 1}
                     selectedId={selectedId} attachments={attachments} lang={lang}
-                    onPick={() => pickDocument(item.id)} />)}
+                    onPick={() => pickDocument(item.id)}
+                    {...(level === "global" ? {} : {
+                      onDragStart: () => setDragging(item.id),
+                      onMenu: () => setMovingId(item.id),
+                    })} />)}
                 </div>}
               </div>;
             })}
             {/* 根目录的材料垫底，不套一层假文件夹 —— 那会让「没归类」看起来像个真分组。 */}
             {rootDocs.map((item) => <FileRow key={item.id} item={item} depth={0}
               selectedId={selectedId} attachments={attachments} lang={lang}
-              onPick={() => pickDocument(item.id)} />)}
+              onPick={() => pickDocument(item.id)}
+              {...(level === "global" ? {} : {
+                onDragStart: () => setDragging(item.id),
+                onMenu: () => setMovingId(item.id),
+              })} />)}
+            {/* 根目录的放置区**只在拖拽期间存在**。静止时摆一条空白区域，
+                等于给这一屏又加一个平时看不懂的东西。 */}
+            {dragging !== null ? <div
+              className={`od-root-drop${dropTarget === "" ? " dropping" : ""}`}
+              onDragOver={(event) => { event.preventDefault(); setDropTarget(""); }}
+              onDragLeave={() => setDropTarget((cur) => (cur === "" ? null : cur))}
+              onDrop={(event) => { event.preventDefault(); if (dragging !== null) void moveTo(dragging, ""); }}
+            >{words("拖到这里＝移出文件夹", "Drop here to move to root", lang)}</div> : null}
           </div>}
+        {/* 拖不到的时候走这条：触屏上 HTML5 拖拽根本不发 dragstart，键盘更没有。
+            而 @media(max-width:900px) 会把 .od-explorer 压成单列 —— 窄屏是这一页的
+            常见形态，不是边角情况。 */}
+        {movingId !== null ? <div className="od-move-pick" role="dialog"
+          aria-label={words("移到别的文件夹", "Move to another folder", lang)}>
+          <span>{words("移到：", "Move to:", lang)}</span>
+          <button type="button" className="od-link"
+            onClick={() => void moveTo(movingId, "")}>{words("根目录", "Root", lang)}</button>
+          {folderNames.map((f) => <button type="button" className="od-link" key={f}
+            onClick={() => void moveTo(movingId, f)}>{f}</button>)}
+          <button type="button" className="od-link"
+            onClick={() => setMovingId(null)}>{words("取消", "Cancel", lang)}</button>
+        </div> : null}
         <div className="od-fm-status">
           <span>{status === "ready"
             ? words(`${documents.length} 份材料`, `${documents.length} files`, lang)
