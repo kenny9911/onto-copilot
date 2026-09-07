@@ -329,13 +329,19 @@ const VISION_RE = re(
     // 在下面的 TEXT_ONLY 里，只能靠 `-vision` 这一截把它捞回来（两边都要改，
     // 因为 TEXT_ONLY 是**否决票**）。漏掉它的后果不是少个选项，是整条扫描件
     // OCR 通路以「网关上没有视觉模型」的名义静默关掉 —— 而网关上明明有。
-    "moonshot.*vision|kimi.*vl",
+    // kimi 的视觉款有 `-vl-` 和 `-vision` 两种命名，都要认。
+    "moonshot.*vision|kimi.*(?:vl|vision)",
 );
 // 这里的 `(?!…)` 全是**给上面 VISION_RE 让路的豁免口**：否决票放行了，还得
 // VISION_RE 真认得出来，那一档才落得下。两者少一边，整条豁免就是死代码 ——
 // `kimi(?!.*vl)` 曾经就是：写了豁免、没配 VISION_RE，加不加它结果一模一样。
 const TEXT_ONLY_RE = re(
-  "gpt-3\\.5|deepseek|text-davinci|babbage|moonshot(?!.*vision)|kimi(?!.*vl)|" +
+  // 否决票的负向前瞻要覆盖**整个名字**里的视觉标记，不能只认一种写法。
+  // 网关回来的名字常带厂商前缀（anthropic/… google/… moonshotai/…），
+  // 而 `moonshot(?!.*vision)` 在 `moonshotai/kimi-vl-a3b` 上就地命中前缀 `moonshot`，
+  // 后面又没有 `vision` 这个词 —— 于是否决票生效，一个明明是视觉款的模型被判成纯文本。
+  // 实测：裸名 `kimi-vl-a3b-thinking` 有 vision，`moonshotai/kimi-vl-a3b-thinking` 没有。
+  "gpt-3\\.5|deepseek|text-davinci|babbage|moonshot(?!.*(?:vision|vl))|kimi(?!.*(?:vl|vision))|" +
     "qwen(?!.*(?:vl|omni))|o1-mini|o3-mini|gemini-embedding",
 );
 const CHEAP_RE = re("mini|flash|haiku|nano|lite|small|8b|turbo|air");

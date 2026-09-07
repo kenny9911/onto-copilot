@@ -68,7 +68,11 @@ USE_PG=0
 PID_FILE="$RUN_DIR/server-$PORT.pid"
 LOG_FILE="$LOG_DIR/server-$PORT.log"
 
-port_busy() { lsof -ti "tcp:$1" >/dev/null 2>&1 }
+# `lsof -ti tcp:$1` 匹配的是「任一端点端口号等于 $1 的 socket」—— 里面既有**监听者**
+# 也有**连到它的客户端**。stop_app 拿这个列表去 kill，会顺手杀掉正连着的浏览器/curl，
+# 甚至别的开发进程。只认监听者。
+port_busy() { lsof -ti "tcp:$1" -sTCP:LISTEN >/dev/null 2>&1 }
+port_listeners() { lsof -ti "tcp:$1" -sTCP:LISTEN 2>/dev/null; }
 
 # ══════════════════════════════════════════════════════════════
 #  停
@@ -76,7 +80,7 @@ port_busy() { lsof -ti "tcp:$1" >/dev/null 2>&1 }
 stop_app() {
   echo "==> 停应用（:$PORT）"
   local pids
-  pids=$(lsof -ti "tcp:$PORT" 2>/dev/null)
+  pids=$(port_listeners "$PORT")
   if [[ -z "$pids" ]]; then
     echo "    端口本来就是空的"
     rm -f "$PID_FILE"
@@ -93,7 +97,7 @@ stop_app() {
   done
   if port_busy "$PORT"; then
     echo "    还没退，强制杀"
-    lsof -ti "tcp:$PORT" | xargs kill -9 2>/dev/null
+    port_listeners "$PORT" | xargs kill -9 2>/dev/null
     sleep 1
   fi
   rm -f "$PID_FILE"
@@ -155,16 +159,45 @@ build_ui() {
   ( cd "$ROOT/ts" && npm run --silent build:ui ) || { echo "!! 前端构建失败" >&2; return 1; }
 }
 
-warn_launchd() {
-  # launch.json 里记过这个坑：如果有 keepalive 的 launchd 作业占着端口，
-  # 你 kill 掉它会被**立刻重新拉起**，脚本随后"启动成功"，而页面上跑的还是
-  # 那个作业的旧 dist。这里只提醒，不替你去 unload 别人的作业。
-  local jobs
+# launchd 作业占着我们要用的端口时，**拦下来**，不是提醒一句就往下走。
+#
+# 原来这里只 echo 两行警告然后继续。在这台机器上的实际后果是：`.env` 里写着
+# `ONTOCOPILOT_PORT=8765`，而 8765 正是 launchd 作业 com.ontocopilot.dev.8765
+# 常驻占着的口。于是不带参数跑一次 ./restart.sh ——
+#   1. PORT 解析成 8765；
+#   2. stop_app 按端口把常驻服务 SIGTERM 掉；
+#   3. 作业是 keepalive 的，launchd **立刻**把它拉起来；
+#   4. start_app 撞上「仍被占用」，退出 1。
+# 净效果：把用户正在用的服务踢下线一次，自己什么也没起来。
+#
+# 所以改成闸门：这种情况下唯一正确的操作是 kickstart 那个作业（它跑的是 dist，
+# 所以还得先 build:deploy），或者显式换一个端口自己起一台。两条路都打出来。
+launchd_owns_port() {
+  local jobs pid
   jobs=$(launchctl list 2>/dev/null | grep -i ontocopilot | awk '{print $3}')
-  [[ -n "$jobs" ]] || return 0
-  echo "!! 注意：检测到 launchd 作业 ${jobs//$'\n'/ }" >&2
-  echo "   它可能 keepalive 地占着端口：kill 掉会被自动拉起，你会以为在跑新代码。" >&2
-  echo "   要重启那一台：launchctl kickstart -k gui/\$UID/<作业名>" >&2
+  [[ -n "$jobs" ]] || return 1
+  # 只有当那个作业**真的**占着我们要用的这个口时才拦 —— 它可能听在别的口上，
+  # 那样和这次启动毫无关系，拦下来只会碍事。
+  for pid in $(port_listeners "$PORT"); do
+    if launchctl list 2>/dev/null | awk -v p="$pid" '$1 == p { found = 1 } END { exit !found }'; then
+      LAUNCHD_JOBS="${jobs//$'\n'/ }"
+      return 0
+    fi
+  done
+  return 1
+}
+
+guard_launchd() {
+  launchd_owns_port || return 0
+  echo "!! :$PORT 被 launchd 作业占着（$LAUNCHD_JOBS），不能按端口收尸。" >&2
+  echo "   它是 keepalive 的：kill 掉会被立刻拉起，脚本随后「启动成功」，" >&2
+  echo "   而你看到的还是那个作业的旧 dist —— 一整轮验证等于在测旧代码。" >&2
+  echo "" >&2
+  echo "   要重启那一台（它跑 ts/dist，所以先构建）：" >&2
+  echo "     (cd ts && npm run build:deploy) && launchctl kickstart -k gui/\$UID/$LAUNCHD_JOBS" >&2
+  echo "   要另起一台自己调试（tsx 直接读源码，改完立刻生效）：" >&2
+  echo "     ./restart.sh $DEFAULT_PORT" >&2
+  return 1
 }
 
 start_app() {
@@ -225,7 +258,7 @@ status() {
   fi
   if port_busy "$PORT"; then
     local pids code
-    pids=$(lsof -ti "tcp:$PORT" 2>/dev/null | tr '\n' ' ')
+    pids=$(port_listeners "$PORT" | tr '\n' ' ')
     code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 2 "http://127.0.0.1:$PORT/api/health" 2>/dev/null)
     echo "应用       在跑（pid ${pids%% }）  HTTP ${code:-无应答}"
   else
@@ -237,9 +270,10 @@ status() {
 case "$ACTION" in
   status) status ;;
   stop)   stop_app || exit 1; stop_pg ;;
-  start)  warn_launchd; start_pg || exit 1; migrate || exit 1; build_ui || exit 1; start_app || exit 1 ;;
+  start)  guard_launchd || exit 1; start_pg || exit 1; migrate || exit 1; build_ui || exit 1; start_app || exit 1 ;;
   restart)
-    warn_launchd
+    # 闸门在 stop_app **之前** —— 拦不住的话，第一件发生的事就是把常驻服务踢下线。
+    guard_launchd || exit 1
     stop_app || exit 1
     start_pg || exit 1
     migrate  || exit 1
