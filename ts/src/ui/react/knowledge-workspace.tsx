@@ -58,7 +58,7 @@ function InlineState({ children, error = false }: { children: ReactNode; error?:
   return <div className={error ? "odm-inline-error" : "odm-inline-state"}>{children}</div>;
 }
 
-function VersionReviewPanel({ sessionId, api }: {
+export function VersionReviewPanel({ sessionId, api }: {
   sessionId: string; api: KnowledgeManagementApi;
 }): ReactElement {
   const [documents, setDocuments] = useState<KnowledgeDocument[]>([]);
@@ -208,7 +208,7 @@ function WikiClaimEditor({ initial, submitLabel, onCancel, onSubmit }: {
   </form>;
 }
 
-function WikiPanel({ sessionId, api }: { sessionId: string; api: KnowledgeManagementApi }): ReactElement {
+export function WikiPanel({ sessionId, api }: { sessionId: string; api: KnowledgeManagementApi }): ReactElement {
   const [pages, setPages] = useState<WikiStoredPageView[]>([]);
   const [selectedId, setSelectedId] = useState("");
   const [includeArchived, setIncludeArchived] = useState(false);
@@ -328,7 +328,7 @@ const JOB_STATUS: Record<DocumentJobView["status"], string> = {
   queued: "等待处理", running: "处理中", succeeded: "处理完成", failed: "处理失败", cancelled: "已取消",
 };
 
-function JobsPanel({ sessionId, api }: { sessionId: string; api: KnowledgeManagementApi }): ReactElement {
+export function JobsPanel({ sessionId, api }: { sessionId: string; api: KnowledgeManagementApi }): ReactElement {
   const [jobs, setJobs] = useState<DocumentJobView[]>([]);
   const [documents, setDocuments] = useState<KnowledgeDocument[]>([]);
   const [showForm, setShowForm] = useState(false);
@@ -440,7 +440,7 @@ function SourceEditor({ source, onCancel, onSubmit }: {
   </form>;
 }
 
-function SourcesPanel({ sessionId, api }: { sessionId: string; api: KnowledgeManagementApi }): ReactElement {
+export function SourcesPanel({ sessionId, api }: { sessionId: string; api: KnowledgeManagementApi }): ReactElement {
   const [sources, setSources] = useState<ConnectorSourceView[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [provider, setProvider] = useState<ConnectorSourceView["provider"]>("sharepoint");
@@ -551,7 +551,7 @@ function cleanAclRule(rule: AclRuleView, index: number): AclRuleView {
   };
 }
 
-function AccessPanel({ sessionId, api }: { sessionId: string; api: KnowledgeManagementApi }): ReactElement {
+export function AccessPanel({ sessionId, api }: { sessionId: string; api: KnowledgeManagementApi }): ReactElement {
   const [acl, setAcl] = useState<AclSnapshotView | null>(null);
   const [rules, setRules] = useState<AclRuleView[]>([]);
   const [events, setEvents] = useState<AuditEventView[]>([]);
@@ -650,8 +650,16 @@ export interface KnowledgeWorkspaceProps {
 export function KnowledgeWorkspace({ level = "project", sessionId, sessionFiles, api = knowledgeManagementApi }: KnowledgeWorkspaceProps): ReactElement {
   const isGlobal = level === "global";
   const [section, setSection] = useState<KnowledgeWorkspaceSection>("files");
-  const [advanced, setAdvanced] = useState(false);
-  const showingWiki = section === "wiki";
+  // 库里到底有没有知识声明。有才渲染那一节 —— 见下面的注释。
+  const [hasKnowledge, setHasKnowledge] = useState(false);
+  useEffect(() => {
+    if (!sessionId) return;
+    let alive = true;
+    void api.listWikiPages(sessionId)
+      .then((pages) => { if (alive) setHasKnowledge(pages.length > 0); })
+      .catch(() => { /* 读不到就当没有：这一节是加分项，不该为它报错。 */ });
+    return () => { alive = false; };
+  }, [api, sessionId]);
 
   if (isGlobal) {
     // 公共库只有一件事：文档列表 + 点开预览。其余分区都以会话/项目为前提。
@@ -663,35 +671,35 @@ export function KnowledgeWorkspace({ level = "project", sessionId, sessionFiles,
   }
 
   return <div className="odm-workspace odm-simple">
-    <nav className="odm-switch" aria-label="项目知识库">
-      <button type="button" className={showingWiki ? "" : "on"} aria-pressed={!showingWiki}
-        onClick={() => setSection("files")}>材料</button>
-      <button type="button" className={showingWiki ? "on" : ""} aria-pressed={showingWiki}
-        onClick={() => setSection("wiki")}>已确认知识</button>
-    </nav>
+    {/* 页签和「高级」折叠层都删了。
+        前三轮「简化」砍的都是**可见性**（五个 Tab 折成两个加一个「高级」），
+        结构一动没动：一棵树 + 一个层级开关 + 一个分区页签 + 一个折叠层 +
+        两排按钮 = 六套并行的组织手段。用户数的不是按钮数，是「我得先搞懂几套规矩」。
+        所以这次动结构：**这一页只剩一件事 —— 材料在左边的树上，正文在右边。**
 
+        拿他自己的库查过的账（这些不是猜的）：
+          · 「已确认知识」页签：全库 0 条 Wiki，一个恒常可见、通向空房间的页签，
+            比没有它更糟 —— 它让人以为自己漏做了什么。模型写的 draft 仍然进得来
+            （document.remember），到时候在树上以「待你确认 (N)」出现，N=0 时不渲染。
+          · 「高级」四块里三块零数据（job=0 / acl_rule=0 / connector_source=0）；
+            「数据源」更是**结构上不可能工作** —— registerConnectorRuntime 全仓
+            零调用方，「立即同步」必定 503。给人一个填完只会报错的表单，比不给更伤。
+          · 「版本比较」对现有每一份材料都无事可做：7/7 文档只有 1 个版本。
+
+        这四块的代码一行没删，只是不再挂在这一屏上（见 knowledge-admin.tsx）。
+        它们要么属于设置页，要么该合进它真正相关的那个位置。 */}
     <div className="odm-panel" id="odm-active-panel">
-      {showingWiki
-        ? <WikiPanel sessionId={sessionId} api={api} />
-        : <div className="odm-files">
-            <KnowledgeLibrary sessionId={sessionId} sessionFiles={sessionFiles} />
-          </div>}
-    </div>
-
-    {/* 内部机器收在这里：仍然可达，但不再和「我的材料」抢主位。 */}
-    <div className="odm-advanced">
-      <button type="button" className="odm-advanced-toggle" aria-expanded={advanced}
-        onClick={() => setAdvanced((on) => !on)}>
-        {advanced ? "▾" : "▸"} 高级：版本比较 · 处理任务 · 数据源 · 权限审计
-      </button>
-      {advanced && <div className="odm-advanced-body">
-        {/* 版本比较也搬到这里：它回答的是「改了哪一版、影响什么」，
-            不是「我的材料里有什么」。后者才是这一页的主线。 */}
-        <VersionReviewPanel sessionId={sessionId} api={api} />
-        <JobsPanel sessionId={sessionId} api={api} />
-        <SourcesPanel sessionId={sessionId} api={api} />
-        <AccessPanel sessionId={sessionId} api={api} />
-      </div>}
+      <div className="odm-files">
+        <KnowledgeLibrary sessionId={sessionId} sessionFiles={sessionFiles} />
+      </div>
+      {/* 「已确认知识」只在**真的有**的时候出现。
+          它不能整个删：document.remember 让模型只能写 draft，人在界面上确认才成为
+          项目知识 —— 这是「AI 只能提交草稿」那条纪律的**唯一人类端**。
+          所以它从一个恒常可见的页签，变成一个有内容才长出来的分区。 */}
+      {hasKnowledge ? <section className="odm-knowledge">
+        <h2>已确认知识</h2>
+        <WikiPanel sessionId={sessionId} api={api} />
+      </section> : null}
     </div>
   </div>;
 }

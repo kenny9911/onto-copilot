@@ -367,16 +367,6 @@ describe("OntoDocument 项目知识库", () => {
     await waitFor(() => expect(api.moveDocument).toHaveBeenCalledWith("session-1", expect.any(String), ""));
   });
 
-  it("选中一份材料后可以把它移到别的文件夹", async () => {
-    const api = fakeApi();
-    const view = render(<KnowledgeLibrary sessionId="session-1" sessionFiles={[]} api={api} />);
-    await waitFor(() => expect(view.container.querySelector(".od-file")).not.toBeNull());
-    fireEvent.click(view.container.querySelector(".od-file") as any);
-    await waitFor(() => expect(view.container.querySelector(".od-move")).not.toBeNull());
-
-    fireEvent.change(view.container.querySelector(".od-move") as any, { target: { value: "制度/采购" } });
-    await waitFor(() => expect(api.moveDocument).toHaveBeenCalledWith("session-1", "doc-1", "制度/采购"));
-  });
 
   it("不用输任何关键词就能打开一份材料读，每段都能引用到对话", async () => {
     // 这是「知识库看不懂」最直接的一条：在这个入口之前，存进去的文件只能靠

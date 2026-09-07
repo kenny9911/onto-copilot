@@ -622,14 +622,10 @@ function DocumentPreview({
         {attachment ? <span className="od-badge attached">{words("本次在用", "In use", lang)}</span> : null}
         <button type="button" className="od-link" disabled={isBusy}
           onClick={() => { setEditing((v) => !v); setExpanded(false); }}>{words("编辑", "Edit", lang)}</button>
-        <button type="button" className="od-link" disabled={isBusy}
-          onClick={() => { setExpanded((v) => !v); setEditing(false); }}>{words("版本", "Versions", lang)}</button>
-        {onMove ? <select className="od-move" aria-label={words("移动到文件夹", "Move to folder", lang)}
-          value={document.folder_path ?? ""} disabled={isBusy}
-          onChange={(event) => void onMove(event.target.value)}>
-          <option value="">{words("根目录", "Root", lang)}</option>
-          {folderOptions.map((f) => <option key={f} value={f}>{f}</option>)}
-        </select> : null}
+        {/* 只有真的存在第二版时才出现。7/7 文档只有 1 版时，这颗按钮的内容只能是
+            「v1」—— 而 v1 已经印在副标题上了。 */}
+        {(versions?.length ?? 0) > 1 ? <button type="button" className="od-link" disabled={isBusy}
+          onClick={() => { setExpanded((v) => !v); setEditing(false); }}>{words("版本", "Versions", lang)}</button> : null}
         <button type="button" className="od-link" disabled={isBusy} onClick={() => void onArchive()}>
           {document.status === "archived" ? words("恢复", "Restore", lang) : words("归档", "Archive", lang)}
         </button>
@@ -637,7 +633,7 @@ function DocumentPreview({
             必须是人点的 —— AI 只能建议。公共库是共享的，让它自动生长会变成垃圾场。 */}
         {onPublish ? <button type="button" className="od-link" disabled={isBusy}
           onClick={() => setConfirmPublish((on) => !on)}>{words("设为通用参考", "Make shared", lang)}</button> : null}
-        <button type="button" className="od-link" onClick={onClose}>{words("关闭", "Close", lang)}</button>
+
       </div>
     </header>
 
@@ -1015,20 +1011,7 @@ export function KnowledgeLibrary({
             onClick={() => setDraftFolder({ kind: "new", base: selected?.folder_path ?? "", value: "" })}>
             {words("新建文件夹", "New folder", lang)}
           </button>}
-          <button type="button" className="od-tree-act"
-            disabled={status === "loading" || Boolean(busy)} onClick={() => void refresh()}>
-            {words("刷新", "Refresh", lang)}
-          </button>
-          {/* 整理建议：模型看目录、提方案，**人自己动手**。
-              建文件夹 / 改名 / 移动这四个动作刻意没有给模型工具 —— 材料怎么归类
-              是用户对自己东西的编排意图，而且 folder_path 不进检索语料也不进
-              流水线，模型代做它既越权又不改变任何输出。所以这颗按钮预填的那句话
-              明确写着「不要直接改，我确认后自己动手」。 */}
-          {level === "global" || documents.length < 3 ? null : <button type="button" className="od-tree-act"
-            title={words("让 Copilot 看目录结构并给整理建议（不会直接改）", "Ask Copilot for a filing plan", lang)}
-            onClick={() => askCopilot(askOrganize())}>
-            {words("整理建议", "Filing plan", lang)}
-          </button>}
+
           <label className="od-tree-archived">
             <input type="checkbox" checked={includeArchived}
               onChange={(event) => setIncludeArchived(event.target.checked)} />

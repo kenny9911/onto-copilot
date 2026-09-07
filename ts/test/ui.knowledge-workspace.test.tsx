@@ -8,7 +8,14 @@ vi.mock("../src/ui/react/knowledge-library.js", () => ({
 }));
 
 import type { KnowledgeManagementApi, WikiStoredPageView } from "../src/ui/knowledge-management.js";
-import { KnowledgeWorkspace } from "../src/ui/react/knowledge-workspace.js";
+import {
+  AccessPanel,
+  JobsPanel,
+  KnowledgeWorkspace,
+  SourcesPanel,
+  WikiPanel,
+  VersionReviewPanel,
+} from "../src/ui/react/knowledge-workspace.js";
 
 const documentRow = {
   id: "doc-1", title: "采购制度", logical_name: "采购制度", source_class: "session_upload", tags: [],
@@ -125,28 +132,29 @@ describe("独立项目知识库工作区", () => {
     const api = apiFixture();
     const view = render(<KnowledgeWorkspace sessionId="session/1" sessionFiles={[{ name: "采购制度.docx" }]} api={api} />);
 
-    // 顶部只剩两个轻量切换，材料在前。
-    expect(Array.from(view.container.querySelectorAll(".odm-switch button") as any[]).map((node: any) => node.textContent))
-      .toEqual(["材料", "已确认知识"]);
-    expect(view.container.querySelector(".odm-tabs"), "五个 Tab 的旧结构应当已经消失").toBeNull();
-
-    // 内部机器默认不渲染，收在折叠区里 —— 可达，但不挡在用户和他的材料之间。
+    // 这一屏现在**只有一件事**：材料在树上，正文在右边。
+    //
+    // 前三轮「简化」砍的都是可见性（五个 Tab → 两个 Tab + 一个「高级」），
+    // 结构一动没动，用户第四次还是说复杂。这一次动结构：页签和折叠层整个退场。
+    //
+    // 拿他自己的库查过的账：「已确认知识」全库 0 条 Wiki；「高级」四块里三块
+    // 零数据；「数据源」的同步更是结构上不可能成功（registerConnectorRuntime
+    // 全仓零调用方，必定 503）。一个通向空房间的常驻页签，比没有它更糟。
+    expect(view.container.querySelector(".odm-switch"), "页签整个退场").toBeNull();
+    expect(view.container.querySelector(".odm-tabs"), "五个 Tab 的旧结构早已消失").toBeNull();
+    expect(view.container.querySelector(".odm-advanced-toggle"), "「高级」折叠层退场").toBeNull();
     expect(view.container.textContent).not.toContain("新建处理任务");
-    expect(view.container.querySelector(".odm-advanced-toggle")?.textContent)
-      .toContain("高级：版本比较 · 处理任务 · 数据源 · 权限审计");
+    expect(view.container.textContent).not.toContain("版本变化与影响");
 
     expect(view.container.querySelector(".od-library")?.getAttribute("data-session-id")).toBe("session/1");
-    // 「版本变化与影响」不再出现在首屏 —— 它搬进了折叠的高级区。
-    expect(view.container.textContent).not.toContain("版本变化与影响");
     expect(view.container.querySelector(".ctx-sidebar"), "知识库内容被放回右侧 sidebar").toBeNull();
   });
 
   it("版本影响只有点击比较后才调用，并明确不会自动修改产物", async () => {
     const api = apiFixture();
-    const view = render(<KnowledgeWorkspace sessionId="s1" sessionFiles={[]} api={api} />);
-    // 版本比较回答的是「改了哪一版、影响什么」，不是「我的材料里有什么」——
-    // 它也搬进了折叠的高级区，先展开。
-    fireEvent.click(view.container.querySelector(".odm-advanced-toggle") as any);
+    // 直接挂面板：这条测的是**面板自己的行为**，不是它挂在哪一屏上。
+    // 它现在不挂在知识库页上了（那一屏只剩材料），但组件本身照旧要能用。
+    const view = render(<VersionReviewPanel sessionId="s1" api={api} />);
     const compare = await view.findByRole("button", { name: "比较并检查影响" });
     await waitFor(() => expect(compare.hasAttribute("disabled")).toBe(false));
     expect(api.diff).not.toHaveBeenCalled();
@@ -157,8 +165,9 @@ describe("独立项目知识库工作区", () => {
 
   it("Wiki 清楚区分 AI 草稿和人工确认，确认必须由按钮提交且带证据", async () => {
     const api = apiFixture();
-    const view = render(<KnowledgeWorkspace sessionId="s1" sessionFiles={[]} api={api} />);
-    fireEvent.click(view.getByRole("button", { name: "已确认知识" }));
+    // WikiPanel 现在是**有内容才出现**的一节（库里 0 条 Wiki 时整节不渲染 ——
+    // 一个通向空房间的常驻页签比没有它更糟）。这条测的是面板自己的行为，直接挂它。
+    const view = render(<WikiPanel sessionId="s1" api={api} />);
     await waitFor(() => expect(view.container.textContent).toContain("AI 草稿 · 待人工确认"));
     expect(view.container.textContent).toContain("人工已确认");
     expect(api.confirmWikiClaim).not.toHaveBeenCalled();
@@ -172,9 +181,7 @@ describe("独立项目知识库工作区", () => {
 
   it("处理任务不会自动创建；人工确认后才提交固定文档版本", async () => {
     const api = apiFixture();
-    const view = render(<KnowledgeWorkspace sessionId="s1" sessionFiles={[]} api={api} />);
-    // 内部机器收在折叠区里，先展开再操作。
-    fireEvent.click(view.container.querySelector(".odm-advanced-toggle") as any);
+    const view = render(<JobsPanel sessionId="s1" api={api} />);
     await waitFor(() => expect(view.container.textContent).toContain("OCR 识别"));
     expect(api.createJob).not.toHaveBeenCalled();
     fireEvent.click(view.getByRole("button", { name: "新建处理任务" }));
@@ -187,9 +194,7 @@ describe("独立项目知识库工作区", () => {
 
   it("数据源只显示凭据引用，只有点击同步才读取远端", async () => {
     const api = apiFixture();
-    const view = render(<KnowledgeWorkspace sessionId="s1" sessionFiles={[]} api={api} />);
-    // 内部机器收在折叠区里，先展开再操作。
-    fireEvent.click(view.container.querySelector(".odm-advanced-toggle") as any);
+    const view = render(<SourcesPanel sessionId="s1" api={api} />);
     await waitFor(() => expect(view.container.textContent).toContain("项目 SharePoint"));
     expect(view.container.textContent).toContain("vault://team/sharepoint");
     expect(view.container.textContent).toContain("不接收密码或 Token");
@@ -206,9 +211,7 @@ describe("独立项目知识库工作区", () => {
 
   it("权限默认只读，点击编辑和确认保存后才写；并如实说明当前账号边界", async () => {
     const api = apiFixture();
-    const view = render(<KnowledgeWorkspace sessionId="s1" sessionFiles={[]} api={api} />);
-    // 内部机器收在折叠区里，先展开再操作。
-    fireEvent.click(view.container.querySelector(".odm-advanced-toggle") as any);
+    const view = render(<AccessPanel sessionId="s1" api={api} />);
     await waitFor(() => expect(view.container.textContent).toContain("允许 用户 u1"));
     expect(view.container.textContent).toContain("当前版本以项目所属账号为访问边界");
     expect(view.queryByRole("button", { name: "确认保存权限" })).toBeNull();
