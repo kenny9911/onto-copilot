@@ -640,6 +640,62 @@ describe("catalog / SmartGateway", () => {
 //  catalog：_ensure_catalog 与 CatalogPort 接线
 // ══════════════════════════════════════════════════════════════════
 
+describe("按名字推断能力：视觉与「否决票」的耦合", () => {
+  // VISION_RE 和 TEXT_ONLY_RE 必须**一起**改：TEXT_ONLY_RE 是否决票
+  // （inferCapabilities 里是 `VISION_RE.test(name) && !TEXT_ONLY_RE.test(name)`）。
+  // moonshot / kimi 的家族名整个落在否决票里，视觉款只能靠 `-vision` / `vl`
+  // 这一截捞回来 —— 少改一边，加的豁免就是死代码。
+  //
+  // 漏掉的后果不是「少一个模型选项」：整条扫描件 OCR 通路会以「网关上没有视觉
+  // 模型」的名义**静默关掉**，而网关上明明有。这种失败没有报错、没有日志，
+  // 只有用户发现图片材料永远读不出内容。
+  //
+  // golden/catalog.json 只覆盖内置目录里的 kimi-vl-a3b；网关现造的
+  // moonshot-v1-*-vision-preview 走 cardFromName，那条路上之前一条测试都没有。
+  it("moonshot / kimi 的视觉款认得出来，文本款不误认", () => {
+    for (const name of [
+      "moonshot-v1-8k-vision-preview",
+      "moonshot-v1-32k-vision-preview",
+      "moonshot-v1-128k-vision-preview",
+      "kimi-vl-a3b",
+      "kimi-vl-a3b-thinking",
+    ]) {
+      expect([...inferCapabilities(name)]).toContain("vision");
+    }
+    for (const name of ["moonshot-v1-8k", "moonshot-v1-128k", "kimi-k2", "kimi-latest"]) {
+      expect([...inferCapabilities(name)]).not.toContain("vision");
+    }
+  });
+
+  it("**带厂商前缀也要认** —— 网关回来的名字长这样", () => {
+    // 网关列出来的名字普遍带前缀（anthropic/… google/… openai/… moonshotai/…）。
+    // 而否决票原来写的是 `moonshot(?!.*vision)`：它在 `moonshotai/kimi-vl-a3b` 上
+    // 就地命中前缀里的 `moonshot`，后面又确实没有 `vision` 这个词 —— 否决生效，
+    // 一个明明是视觉款的模型被判成纯文本。
+    //
+    // 实测（修之前）：裸名 kimi-vl-a3b-thinking 有 vision，
+    // moonshotai/kimi-vl-a3b-thinking 没有。**同一个模型，加个前缀就瞎了。**
+    for (const name of ["moonshotai/kimi-vl-a3b", "moonshotai/kimi-vl-a3b-thinking"]) {
+      expect([...inferCapabilities(name)]).toContain("vision");
+    }
+    for (const name of ["moonshotai/kimi-k2", "moonshotai/moonshot-v1-8k"]) {
+      expect([...inferCapabilities(name)]).not.toContain("vision");
+    }
+  });
+
+  it("kimi 的两种视觉命名都认：-vl- 和 -vision", () => {
+    // 两半边判据原来不对称：moonshot 那半按 `-vision` 认，kimi 那半只按 `vl` 认，
+    // 于是 kimi-latest-vision 这类命名拿不到 vision。
+    expect([...inferCapabilities("kimi-latest-vision")]).toContain("vision");
+    expect([...inferCapabilities("kimi-vl-a3b")]).toContain("vision");
+  });
+
+  it("cardFromName 也走同一条判据 —— 网关现造的卡不能和目录里的卡说法不一致", () => {
+    expect([...cardFromName("moonshot-v1-8k-vision-preview").capabilities]).toContain("vision");
+    expect([...cardFromName("moonshot-v1-8k").capabilities]).not.toContain("vision");
+  });
+});
+
 describe("catalog / ensureCatalog（server.py:457）", () => {
   const realFetch = globalThis.fetch;
   afterEach(() => {

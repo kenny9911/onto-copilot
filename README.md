@@ -2,7 +2,7 @@
 
 面向 AI FDE 工程师的本体建模副驾。把异构业务材料（Excel 梳理表、OpenAPI、Word 流程说明、DDL、BPMN、PPT、扫描件、CSV）变成可被下游软件直接消费的 Ontology 数据包。
 
-**整个仓库是 TypeScript。** 早期的 Python 实现（`src/ontocopilot/`）已在 `59346fa` 整树删除，运行时不含任何 Python 依赖、不起 sidecar、不做进程桥接。磁盘上残留的 `src/ontocopilot/**/__pycache__/*.pyc`、`tests/__pycache__/`、`.venv/` 都是未入库的垃圾 —— 它们已经骗过一次审计，所以 `.gitignore` 里专门写了一段警告。真正的代码在 `ts/src/`：291 个 `.ts/.tsx`，225 个测试文件、7620 条用例。
+**整个仓库是 TypeScript。** 早期的 Python 实现（`src/ontocopilot/`）已在 `59346fa` 整树删除，运行时不含任何 Python 依赖、不起 sidecar、不做进程桥接。磁盘上残留的 `src/ontocopilot/**/__pycache__/*.pyc`、`tests/__pycache__/`、`.venv/` 都是未入库的垃圾 —— 它们已经骗过一次审计，所以 `.gitignore` 里专门写了一段警告。真正的代码在 `ts/src/`：296 个 `.ts/.tsx`，228 个测试文件、7664 条用例。
 
 源码里大量注释仍以 `移植自 xxx.py` 的形式引用那份已删除的 Python 原件。**那是移植出处，不是现存文件** —— 顺着它去找 `src/ontocopilot/onto/pipeline.py` 会一无所获，要看原件请用 `git show 6dd3115:src/ontocopilot/onto/pipeline.py`。
 
@@ -24,10 +24,14 @@ npm run check     # tsc --noEmit + 运行时定义目录校验
 启动服务（前后端**是同一个进程**，TS 服务在 `/` 直接吐前端）：
 
 ```bash
-./restart.sh            # 仓库根目录；默认 3594，先构建前端再起
+./restart.sh            # 仓库根目录；端口取 .env 的 ONTOCOPILOT_PORT，没设时 3594
+./restart.sh 3594       # 显式指定端口
+./restart.sh status     # 只看状态，不动任何进程
 ```
 
-`restart.sh` 值得用而不是 `npm start`：它**按端口收尸**而不是 `pkill node`（不会连你别的 Node 项目一起杀），等旧进程真的退干净才起新的（否则浏览器刷新看到的还是旧代码，一整轮验证等于在测几小时前的东西），并且启动前跑一次 `build:ui`（前端是构建产物，改了源码不重新构建页面上什么都不会变）。
+`restart.sh` 值得用而不是 `npm start`：它**按端口收尸**而不是 `pkill node`（不会连你别的 Node 项目一起杀），只认**监听者**不误杀连着的客户端，等旧进程真的退干净才起新的（否则浏览器刷新看到的还是旧代码，一整轮验证等于在测几小时前的东西），并且启动前跑一次 `build:ui`（前端是构建产物，改了源码不重新构建页面上什么都不会变）。
+
+⚠️ **端口取自 `.env`，而仓库里的 `.env` 写着 `ONTOCOPILOT_PORT=8765`** —— 那正是常驻 launchd 作业 `com.ontocopilot.dev.8765` 占着的口。不带参数跑 `./restart.sh` 会撞上它，脚本会**拦下来并告诉你怎么办**（那个作业是 keepalive 的：按端口 kill 掉会被立刻拉起，脚本随后「启动成功」，而你看到的还是它的旧 `dist`）。想自己起一台调试就显式给端口：`./restart.sh 3594`。
 
 **没有 `/docs`。** 启动横幅里那行 `API http://host:port/docs` 是条死链 —— 那是 FastAPI 白送的自动文档，迁到 Hono 之后没人补，也没有 OpenAPI schema。
 
@@ -106,14 +110,14 @@ ts/src/
   document/               ★ 知识库（32 个文件）：版本化、ACL、BM25 检索、逐块引用
   server/                 ★ Hono 应用（67 个文件）
     routes/               18 个路由文件
-    dialogue/             对话 + 约 50 个模型工具
+    dialogue/             对话 + 63 个模型工具（另有 8 个 core 工具）
     pipeline/             DAG 构建、检查点、停止、分叉
     glue/                 21 个接缝文件（原 Python 那个 7051 行 server.py 的拆解）
   store/                  SQLite（默认）/ Postgres，36 张表，79 方法的 Repo 协议
   ui/                     ★ React 19 前端源码（65 个文件）
   cli.ts / serve.ts       命令行与服务装配
-ts/catalog/               人工维护的运行时定义：18 技能 / 18 Agent / 66 工具 / 1 工作流
-ts/test/                  225 个测试文件，7620 条用例
+ts/catalog/               人工维护的运行时定义：18 技能 / 18 Agent / 71 工具 / 1 工作流
+ts/test/                  228 个测试文件，7664 条用例
 golden/                   85 份 golden fixture，钉住字节级行为（在仓库根，不在 ts/ 下）
 migrations/               18 个 Postgres 迁移
 ui/index.template.html    前端骨架（**这个是源码**）
@@ -280,10 +284,34 @@ DAG 跑完之后是一条**确定性尾巴** `finish()`：对齐 → 冲突检�
 `ts/src/document/` 是版本化的项目/全局知识库：上传的文件解析成**不可变版本**，逐块可引用，按 ACL 控读，并作为证据钉进抽取流水线。
 
 * 两级：**项目级**与**全局级**（全局用保留哨兵 `__global__` 复用同一套表，引用前缀「总库 」）。
-* 引用格式 `odoc.v1.<b64url(docId)>.<b64url(verId)>.<b64url(chunkId)>`，解码时校验往返。
+* 引用格式 `odoc.v2.<level>.<b64url(docId)>.<b64url(verId)>.<b64url(chunkId)>`，解码时校验往返。v1（无 level 段）仍然认，按项目库解。
 * 同一份文件 SHA-256 重复上传直接返回既有版本，不产生第二份副本、不重新解析。
 * ACL 四种作用域（project/document/version/chunk）、三种权限；**显式 deny 优先**；每次读都重校 ACL 版本号（CAS），撤权能让在途结果立即失效。
 * 解析走**带租约的任务队列**（`parse` / `ocr` 两种，租约 60 分钟，CHECK 约束保证只有 running 才持有租约）。
+
+### 界面与模型侧
+
+界面在 `#knowledge` 全屏页（`ts/src/ui/react/knowledge-*.tsx`）：
+
+* **收件区**是第一屏 —— 这一页在入库之前除了入库什么也做不了（`searchLayered` 只看
+  document store，会话里传了没入库的文件根本不在索引里），所以入库是最大的那个按钮，
+  上面写着确切份数。事办完它自己塌成一行。
+* **对话栏**（页头「对话」）把消息流放回这一页旁边，边读材料边问。栏宽是 `36vw` 而不是
+  定宽 px：消息流里表格的列宽上限写死 `34vw`，给定宽栏会溢出且没有退路。
+* **两级**在页头一键互切。公共库的正文顶部有常驻层级条、检索命中按层分两组 ——
+  把「行业通用参考」当成「这个客户的规定」是这个产品最不能出的错，不能只靠一枚 8px 徽章。
+
+模型侧有 **13 个 document 工具**（`ts/src/server/dialogue/document_tools.ts`）：
+`list / search / open / read / folders / history / recall_knowledge` 只读，
+`attach / detach / promote / promote_batch / manage / remember` 要写。
+
+* 写工具**每轮一张一次性能力票**：票由用户本轮**原话**签发（`explicitDocumentActions`
+  全句匹配 + 参数逐字绑定），模型自己请不到票。
+* **公共库没有写工具**，这是刻意的：它跨项目共享，让模型自动往里放，三个月后就是垃圾场。
+  只能人在界面上点「设为通用知识」。
+* `remember` 写进去的**永远是草稿**，人确认才算项目知识（`document/wiki.ts` 里
+  「AI 没有能创建 confirmed 的 API」这条约束由类型和运行时双重保证）。
+* 模型改完知识库会发 `document.changed`，界面出一张回执卡、列表自动刷新。
 
 **检索是纯 BM25 的词法检索**（k1=1.2, b=0.75），中日韩按字符二元组切分。代码里那层 `HybridDocumentSearch` 有 RRF 融合骨架，但语义打分器 `registerDocumentSemanticScorer()` **在整个仓库里没有任何调用点** —— 所以线上恒为 `lexical_only`，融合退化成 BM25 顺序。**不要把这套描述成语义检索或混合检索。** 同样地，六种外部连接器（SharePoint/WebDAV/S3/Confluence/DataHub/OpenMetadata）代码写完了但**没接线**，运行时会抛 `SOURCE_UNAVAILABLE`。
 
@@ -344,9 +372,10 @@ node tools/build-ui.mjs --check         # 只检查漂移，不写盘
 
 * **`ui/index.template.html` 是源码**（HTML 骨架 + 全部 CSS + 标记），**`ui/index.html` 是产物，不要手改。**
 * 改了 `ts/src/ui/` 不重新构建，浏览器上什么都不会变，而 `ts/test/ui.build.test.ts` 会红。
-* `npm run build` 是 `tsc`，**不管前端**；`npm run dev` 只 watch 服务端，UI 没有 HMR。
+* `npm run build` 是 `tsc` + 把 `ts/catalog/` 复制进 `ts/dist/catalog/`，**不管前端**；`npm run dev` 只 watch 服务端，UI 没有 HMR。
+* **发版到 `ts/dist` 用 `npm run build:deploy`**（= `build` + `build:ui`）。分开跑的坑有两个，都不会当场报错：只跑 `tsc` 不复制 catalog，服务起来之后**每一轮对话**都抛「工具未登记在 tools/tools.yaml」；不跑 `build:ui`，页面还是上一次构建的产物。`restart.sh` 走的是 `tsx` 读源码那条路，本身不经过 `dist`，所以它只跑 `build:ui`（不带 `--sync-dist`）。**前端产物默认不写进 `dist`** —— 只有 `build:deploy` 会写。否则跑一次开发模式的 `restart.sh`，就把常驻服务（跑的是 `dist`）的前端换成了当前源码的新 bundle，而它的后端 JS 还是旧的，前后端版本错配且没有任何日志。
 * `ui/shell.baseline.json` 存骨架 CSS 与 body 的 sha256，样式改动要 `node ts/tools/verify-ui-shell.mjs --accept` 重新基线 —— 那份 diff 就是给评审看的记录。
-* ⚠️ **esbuild 没有写进 `package.json`**，它只是被 vitest/vite 传递带进来的。去掉测试工具链，`build:ui` 就会坏。
+* `build:ui` 用 esbuild 打包。它一度**没有写进 `package.json`**、只靠 vitest/vite 传递带进来 —— 去掉测试工具链前端就构建不了。现在它是显式的 devDependency（`esbuild` ^0.28.2）。
 
 迁移是**混合态**而非纯 React：React 接管九个容器（quotaBar / setTabs / setBody / acctBody / identity / convs / knowledgePage / stream / pbody）加预览页签，其余仍是冻结 HTML + inline onclick，靠 `globals.ts` 把名字挂回 window。
 
